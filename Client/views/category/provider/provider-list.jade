@@ -1,0 +1,210 @@
+//.padding-all-5
+.panel.panel-primary(ng-if="checkViewPermission('Provider')")
+    .panel-heading.padding-all-5
+        .panel-title.left-col
+            .fa.fa-gamepad
+            text &nbsp;{{"PROVIDER" | translate}}
+            a#providerRefresh.fa.pull-right(style='font-size:1.7em', ng-click='vm.getAllProvider();')
+    .panel-body.common-left-panel-body
+        .search-box
+            .fa.fa-search.pull-right.margin-all-5(ng-click='vm.searchProvider()')
+            input.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}}' ng-model="vm.providerSearchText")
+        p
+        .row
+            div#providerTree(style="height: 400px; overflow-y: auto;",ng-if="checkViewPermission('Provider','Provider','Read')")
+        p
+        .row(ng-show='vm.SelectedProvider')
+            .col-md-12(ng-if="checkViewPermission('Provider','Provider','Read')")
+                .panel.panel-info.providerInfo(style="padding:8px;word-wrap:breakword;")
+                    .col-sm-6
+                        label {{'PROVIDER_ID' | translate}} :&nbsp;
+                            label.text-danger {{vm.SelectedProvider.providerId}}
+                        br
+                        label {{'PROVIDER_NICKNAME' | translate}} :&nbsp;
+                            label.text-danger  {{vm.SelectedProvider.nickName}}
+                    .col-sm-6
+                        label {{'PROVIDER_CODE' | translate}} :&nbsp;
+                            label.text-danger {{vm.SelectedProvider.code}}
+                        br
+                        label {{'PROVIDER_PREFIX' | translate}} :&nbsp;
+                            label.text-danger  {{vm.SelectedProvider.prefix}}
+                    .col-sm-12
+                        label {{"DAILY_SETTLE_TIME" | translate}} :&nbsp;
+                        label.text-danger {{vm.SelectedProvider.dailySettlementHour}} : {{vm.SelectedProvider.dailySettlementMinute}}
+                    .col-sm-12
+                        label {{"SETTLEMENT_STATUS" | translate}} :&nbsp;
+                            //label.text-danger {{vm.SelectedProvider.settlementStatus}}
+                        i.fa.fa-circle.text-danger(ng-show='vm.SelectedProvider.settlementStatus=="DailyError"')
+                            button.btn.btn-primary.common-button-sm.margin-left-5(ng-if="checkViewPermission('Provider','Provider', 'Settle')",ng-disabled="!vm.SelectedProvider", ng-click='vm.showProvider=vm.startProviderDailySettlement();')
+                                text {{"Retry Daily Settlement" | translate}}
+                        i.fa.fa-circle.text-success(ng-show='vm.SelectedProvider.settlementStatus=="Ready"')
+        .btn-group.text-center(style="border-radius:9px",role="group")
+            //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider','Provider', 'Create')", data-toggle="modal", data-target='#modalCreateProvider', ng-click='vm.showProvider={};vm.editProvider=true;')
+            //    text {{"CREATE" | translate}}
+            //    img.img-create
+            //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider','Provider', 'Delete')",ng-disabled="!vm.SelectedProvider", data-toggle='modal', data-target='#modalDeleteProvider', ng-click='vm.showProvider=vm.SelectedProvider;vm.editProvider=false;')
+            //    text {{"DELETE" | translate}}
+            //    img.img-delete
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider','Provider', 'Update')",ng-disabled="!vm.SelectedProvider", data-toggle='modal', data-target='#modalUpdateProvider', ng-click='vm.editProvider=true;vm.showUpdateProviderModal()')
+                text {{"EDIT" | translate}}
+                img.img-edit
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider','Provider', 'GameTypeRead')",data-toggle='modal', data-target='#modalAllGameType', ng-click='')
+                text {{"GAME_TYPE" | translate}}
+                img.img-edit
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider','Provider', 'Expense')",ng-disabled="!vm.SelectedProvider", ng-click='vm.prepareShowProviderExpense()')
+                text {{"EXPENSE" | translate}}
+                i.fa.fa-table
+            button.btn.btn-primary.common-button(ng-if='checkViewPermission("Provider","Provider", "SettlementHistory")',ng-disabled="!vm.SelectedProvider", ng-click='vm.prepareSettlementHistory()')
+                text {{"Settlement History" | translate}}
+                img.img-edit
+            button.btn.btn-primary.common-button(ng-if='checkViewPermission("Provider","Provider", "Settle")',ng-disabled="!vm.SelectedProvider", ng-click='vm.showSettlementActionModal()')
+                text {{"Target Settlement" | translate}}
+                img.img-edit
+
+//#modalCreateProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:80%;margin-left:10%')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"CREATE_PROVIDER" | translate}}
+            .modal-body
+                .panel-body
+                    .well
+                        .row
+                            include ./provider-detail
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_provider.$invalid', ng-click="vm.createNewProvider();") {{"CREATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalUpdateProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:50%;margin-left:20%')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"EDIT_PROVIDER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .row
+                                include ./provider-detail
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_provider.$invalid', ng-click="vm.updateProvider();") {{"UPDATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+//#modalDeleteProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:50%;margin-left:20%')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_PROVIDER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            include ./provider-detail
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-click="vm.deleteProvider();") {{"DELETE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalAllGameType.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:70%;margin-left:15%')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ALL_GAME_TYPES" | translate}}
+            .modal-body
+                .panel
+                    .panel-body
+                        .inlineBlk.margin-right-5(ng-repeat='v in vm.allGameTypesList')
+                            .badge.margin-right-5 {{v.gameTypeId}}
+                            .gameType {{v.name}} ({{v.code}})
+                        .clearfix
+            .modal-footer
+                div.pull-right
+                    button.btn.btn-primary.common-button(data-dismiss='modal') {{"CLOSE" | translate}}
+
+#modalProviderExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"PROVIDER_EXPENSES" | translate}} : {{vm.SelectedProvider.name}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        #providerExpenseQuery.well
+                            .inlineBlk
+                                .control-label {{"Platform" | translate}}
+                                select.form-control(ng-model='vm.selectedPlatformID')
+                                    option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}') {{v.name}}
+                            .inlineBlk
+                                .control-label {{"Start date" | translate}}
+                                .startTime
+                                //input.input-sm.form-control(type='date', ng-model='vm.expenseQuery.startTime')
+                            .inlineBlk
+                                .control-label {{"End date" | translate}}
+                                .endTime
+                                //input.input-sm.form-control(type='date', ng-model='vm.expenseQuery.endTime', ng-init='Date.now()')
+                            .inlineBlk
+                                button.btn.btn-primary.common-button(ng-click="vm.getProviderExpense(true)") {{"SEARCH" | translate}}
+                            br
+                        div(ng-if="checkViewPermission('Provider', 'Game', 'Read')")
+                            i.fa.fa-spinner.fa-spin(ng-show='vm.providerExpenseTableLoading')
+                            label {{"Total" | translate}} {{vm.expenseQuery.totalCount}} {{"records" | translate}} 
+                            table#providerExpenseTable.common-table.display(style='min-width:100%')
+                            #providerExpenseTablePage
+#modalProviderSettlementHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.SelectedProvider.name}} {{"Settle" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-12.block-query.well
+                            div
+                                label {{"Start date"|translate}}
+                                .startTime
+                            div
+                                label {{"End date"|translate}}
+                                .endTime
+                            div
+                                label &nbsp;
+                                button.btn.common-button.btn-primary(ng-click='vm.getSettlementHistory()') {{'SEARCH' | translate}}
+                        .col-md-12
+                            table#providerSettlementHistoryTbl.common-table(style='width:100%;min-width:100')
+                                thead
+                                    tr
+                                        th {{"SETTLEMENT" | translate}} {{'TIME' | translate}}
+                                        th {{"CREATE_TIME" | translate}}
+                                        th {{'RESULT' | translate}}
+                                        th {{'DETAIL' | translate}}
+                                tbody
+                                    tr(ng-repeat='(i,v) in vm.providerSettlementHis')
+                                        td {{vm.dateReformat(v.settlementTime)}}
+                                        td {{vm.dateReformat(v.createTime)}}
+                                        td {{v.result ? "Success" : "Fail" | translate}}
+                                        td.wordWrap {{v.data}}
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}
+#modalSettlementAction.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Settle" | translate}} : {{vm.SelectedProvider.name}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-12.block-query.well
+                            div
+                                label {{'date' | translate}}
+                                input.form-control(type='date', ng-model='vm.settlementAction.date')
+                            div
+                                label &nbsp;
+                                button.btn.btn-primary.common-button(ng-click='vm.doSettlement()') {{'Settle' | translate}}
+                            div(ng-show='vm.settlementAction.result')
+                                label &nbsp;
+                                label(class='{{vm.settlementAction.result=="SUCCESS" ? "text-success" : "text-danger"}}') {{vm.settlementAction.result}}

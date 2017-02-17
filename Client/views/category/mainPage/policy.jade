@@ -1,0 +1,17 @@
+#adminPolicy
+    .btn-group.btn-group-vertical
+        button.btn.btn-default(class='{{vm.roleCategory[i]}}', ng-repeat=("(i,v) in vm.allView"),ng-if='vm.checkWhetherShow(i,null)', ng-click='vm.expandPolicySection(i)') {{i|translate}}
+    .panel.panel-primary
+        .panel-heading.panel-heading-sm
+            .panel-title(ng-if='!vm.policyCategory.title') {{"Please select a category" |translate}}
+            .panel-title(ng-if='vm.policyCategory.title') {{vm.policyCategory.title | translate}}
+        .panel-body(style='height:380px;overflow-y:auto', ng-class='vm.showRoleFlag[vm.policyCategory.title].all ? "subDisabled":"" ')
+            .panel.panel-info(ng-repeat='(sectionName,sectionData) in vm.allView[vm.policyCategory.title]', ng-if='vm.checkWhetherShow(vm.policyCategory.title,sectionName)')
+                .panel-heading.panel-heading-sm
+                    .panel-title {{sectionName | translate}}
+                        label.pull-right(ng-show="vm.pageActionStatus=='creatingNewRole' || vm.pageActionStatus=='editingRole'") {{'ALL' | translate}}
+                            input(type='checkbox', ng-change='vm.toggleGroupPermissionCheckbox(vm.policytoggle[vm.policyCategory.title][sectionName].all,vm.policyCategory.title,sectionName)', ng-model='vm.policytoggle[vm.policyCategory.title][sectionName].all')
+                .panel-body.adminleafPanel(ng-if='vm.checkWhetherShow(vm.policyCategory.title,sectionName,null)')
+                    div(ng-repeat='(propName,propV) in sectionData',ng-if='vm.checkWhetherShow(vm.policyCategory.title,sectionName,propName,this)')
+                        label {{propName | translate}}
+                            input.pull-left(type='checkbox', ng-if="vm.pageActionStatus=='creatingNewRole' || vm.pageActionStatus=='editingRole'", ng-model='vm.showRoleFlag[vm.policyCategory.title][sectionName][propName]', ng-change='vm.policyToggleCheck(vm.showRoleFlag[vm.policyCategory.title][sectionName].all,vm.policyCategory.title,sectionName,propName)')

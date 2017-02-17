@@ -1,0 +1,162 @@
+form(name="form_new_platform" ,novalidate)
+    div.form-group.col-md-6
+        label.control-label *{{"PLATFORM_NAME" | translate}}
+        input.form-control(type="text", placeholder="{{'PLATFORM_NAME' | translate}}", ng-model="vm.showPlatform.name", required)
+    div.form-group.col-md-6
+        label.control-label *{{"OPERATION_DEPARTMENT" | translate}}
+        select.form-control(ng-model="vm.showPlatform.department._id", required)
+            option(ng-repeat='(i,v) in vm.departments',value='{{v._id}}', ng-selected='vm.showPlatform.department._id==v._id') {{v.departmentName}}
+    div.form-group.col-md-6
+        label.control-label *{{"PLATFORM_CODE" | translate}}
+        input.form-control(type="text", placeholder="{{'PLATFORM_CODE' | translate}}", ng-model="vm.showPlatform.code", required)
+    div.form-group.col-md-6
+        label.control-label *{{"PLATFORM_PREFIX" | translate}}
+        input.form-control(type="text", placeholder="{{'PLATFORM_PREFIX' | translate}}", ng-model="vm.showPlatform.prefix", required)
+    div.form-group.col-md-6
+        label.control-label {{"PLATFORM_ICON" | translate}}
+        input.form-control(type="text", placeholder="{{'PLATFORM ICON URL' | translate}}", ng-model="vm.showPlatform.icon", style='width:calc(100% - 50px);display:inline-block')
+        img.margin-left-5(ng-if='vm.showPlatform.icon', src="{{vm.showPlatform.icon}}", style='width:40px;height:40px;top: 20px;position: absolute;')
+    div.form-group.col-md-6
+        label.control-label *{{"CUSTOMER_SERVICE_EMAIL" | translate}} ({{"used when sending automated messages" | translate}})
+        input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail", required)
+    div.form-group.col-md-6
+        label.control-label {{"CUSTOMER_SERVICE_HOTLINE" | translate}}
+        input.form-control(type="text", placeholder="{{'HOTLINE' | translate}}", ng-model="vm.showPlatform.csPhone")
+    div.form-group.col-md-6
+        label.control-label {{"CUSTOMER_SERVICE_URL" | translate}}
+        input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_URL' | translate}}", ng-model="vm.showPlatform.csUrl")
+    div.form-group.col-md-6
+        label.control-label {{"CUSTOMER_SERVICE_QQ" | translate}}
+        input.form-control(type="text", placeholder="{{'QQ' | translate}}", ng-model="vm.showPlatform.csQQ")
+    div.form-group.col-md-6
+        label.control-label {{"CUSTOMER_SERVICE_WEIXIN" | translate}}
+        input.form-control(type="text", placeholder="{{'CUSTOMER_WEIXIN' | translate}}", ng-model="vm.showPlatform.csWeixin")
+    div.form-group.col-md-6
+        label.control-label {{"_WEIXIN" | translate}}
+        input.form-control(type="text", placeholder="{{'OFFICIAL_ACCOUNT_WEIXIN' | translate}}", ng-model="vm.showPlatform.oaWeixin")
+    div.form-group.col-md-6
+        label.control-label {{"WEIXIN_PHOTO" | translate}}
+        input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.weixinPhotoUrl")
+    div.form-group.col-md-6
+        label.control-label {{"PLAYER_INVITE" | translate}}
+        input.form-control(type="text", ng-model="vm.showPlatform.playerInvitationUrl")
+    div.form-group.col-md-6
+        label.control-label {{"PARTNER_INVITE" | translate}}
+        input.form-control(type="text", ng-model="vm.showPlatform.partnerInvitationUrl")
+    //div.form-group.col-md-6
+    //    label.control-label {{"SETTLEMENT" | translate}} {{"STATUS" | translate}}
+    //    select.form-control(ng-model="vm.showPlatform.settlementStatus", ng-options='o for o in ["Ready", "DailySettlement", "WeeklySettlement"]')
+    div.form-group.col-md-6
+        label {{"AUTO_SETTLEMENT" | translate}}
+            input.margin-left-5(type='checkbox', ng-model="vm.showPlatform.canAutoSettlement")
+    .col-md-12
+        .text-center
+            label {{"SETTLEMENT" | translate}}
+            label.colorRed.margin-left-5 {{"Weekly settlement time has to be after daily settlement time" | translate}}
+    div.platform-time.col-md-6
+        .text-center
+            label.text-success {{"DAILY_SETTLE_TIME" | translate}}
+        table(ng-show='!vm.pickDay')
+            tbody
+                tr
+                    td {{"HOUR" | translate}}
+                    td
+                    td {{"MINUTE" | translate}}
+                tr
+                    td
+                        button.btn.btn-default(title='Increment Hour', ng-click='vm.showPlatform.dailySettlementHour=(1+vm.showPlatform.dailySettlementHour)%24')
+                            span.glyphicon.glyphicon-chevron-up
+                    td
+                    td
+                        button.btn.btn-default(title='Increment Minute', ng-click='vm.showPlatform.dailySettlementMinute=(1+vm.showPlatform.dailySettlementMinute)%60')
+                            span.glyphicon.glyphicon-chevron-up
+                tr
+                    td
+                        button.btn.btn-default(title='Pick Hour', ng-click='vm.pickDay="Hour";vm.pickWeek=null;vm.listArray.length=24')
+                            .badge {{vm.getHourName(vm.showPlatform.dailySettlementHour) | translate}}
+                    td :
+                    td
+                        button.btn.btn-default(title='Pick Minute', ng-click='vm.pickDay="Min";vm.pickWeek=null;vm.listArray.length=60')
+                            .badge {{vm.getMinName(vm.showPlatform.dailySettlementMinute) | translate}}
+                tr
+                    td
+                        button.btn.btn-default(href='#', title='Decrement Hour', ng-click='vm.showPlatform.dailySettlementHour=(vm.showPlatform.dailySettlementHour+23)%24')
+                            span.glyphicon.glyphicon-chevron-down
+                    td
+                    td
+                        button.btn.btn-default(href='#', title='Decrement Minute', ng-click='vm.showPlatform.dailySettlementMinute=(vm.showPlatform.dailySettlementMinute+59)%60')
+                            span.glyphicon.glyphicon-chevron-down
+        div.pickTime.col-md-12(ng-show='vm.pickDay=="Hour"')
+            label {{"CHOOSE_HOUR" | translate}}
+            p
+            div(ng-repeat='n in vm.listArray track by $index')
+                .badge(ng-click='vm.showPlatform.dailySettlementHour=$index;vm.pickDay=null;') {{vm.getHourName($index) | translate}}
+        div.pickTime.col-md-12(ng-show='vm.pickDay=="Min"')
+            label {{"CHOOSE_MINUTE" | translate}}
+            p
+            div(ng-repeat='n in vm.listArray track by $index')
+                a.badge(ng-click='vm.showPlatform.dailySettlementMinute=$index;vm.pickDay=null;') {{vm.getMinName($index) | translate}}
+    div.platform-time.col-md-6
+        .text-center
+            label.text-success {{"WEEKLY_SETTLE_TIME" | translate}}
+        table(ng-show='!vm.pickWeek')
+            tbody
+                tr
+                    td {{"DAY" | translate}}
+                    td
+                    td {{"HOUR" | translate}}
+                    td
+                    td {{"MINUTE" | translate}}
+                tr
+                    td
+                        button.btn.btn-default(title='Increment Day', ng-click='vm.showPlatform.weeklySettlementDay=(1+vm.showPlatform.weeklySettlementDay)%7')
+                            span.glyphicon.glyphicon-chevron-up
+                    td
+                    td
+                        button.btn.btn-default(title='Increment Hour', ng-click='vm.showPlatform.weeklySettlementHour=(1+vm.showPlatform.weeklySettlementHour)%24')
+                            span.glyphicon.glyphicon-chevron-up
+                    td
+                    td
+                        button.btn.btn-default(title='Increment Minute', ng-click='vm.showPlatform.weeklySettlementMinute=(1+vm.showPlatform.weeklySettlementMinute)%60')
+                            span.glyphicon.glyphicon-chevron-up
+                tr
+                    td
+                        button.btn.btn-default(title='Pick Day', ng-click='vm.pickWeek="Day";vm.pickDay=null;vm.listArray.length=7')
+                            .badge {{vm.getDayName(vm.showPlatform.weeklySettlementDay) | translate}}
+                    td
+                    td
+                        button.btn.btn-default(title='Pick Hour', ng-click='vm.pickWeek="Hour";vm.pickDay=null;vm.listArray.length=24')
+                            .badge {{vm.getHourName(vm.showPlatform.weeklySettlementHour) | translate}}
+                    td :
+                    td
+                        button.btn.btn-default(title='Pick Minute', ng-click='vm.pickWeek="Min";vm.pickDay=null;vm.listArray.length=60')
+                            .badge {{vm.getMinName(vm.showPlatform.weeklySettlementMinute) | translate}}
+                tr
+                    td
+                        button.btn.btn-default(href='#', title='Decrement Day', ng-click='vm.showPlatform.weeklySettlementDay=(vm.showPlatform.weeklySettlementDay+6)%7')
+                            span.glyphicon.glyphicon-chevron-down
+                    td
+                    td
+                        button.btn.btn-default(href='#', title='Decrement Hour', ng-click='vm.showPlatform.weeklySettlementHour=(vm.showPlatform.weeklySettlementHour+23)%24')
+                            span.glyphicon.glyphicon-chevron-down
+                    td
+                    td
+                        button.btn.btn-default(href='#', title='Decrement Minute', ng-click='vm.showPlatform.weeklySettlementMinute=(vm.showPlatform.weeklySettlementMinute+59)%60')
+                            span.glyphicon.glyphicon-chevron-down
+        div.pickTime.col-md-12(ng-show='vm.pickWeek=="Day"')
+            label {{"CHOOSE_DAY" | translate}}
+            p
+            div(ng-repeat='n in vm.listArray track by $index', style='min-width:60px')
+                a.badge(ng-click='vm.showPlatform.weeklySettlementDay=$index;vm.pickWeek=null;') {{vm.getDayName($index) | translate}}
+        div.pickTime.col-md-12(ng-show='vm.pickWeek=="Hour"')
+            label {{"CHOOSE_HOUR" | translate}}
+            p
+            div(ng-repeat='n in vm.listArray track by $index')
+                a.badge(ng-click='vm.showPlatform.weeklySettlementHour=$index;vm.pickWeek=null;') {{vm.getHourName($index) | translate}}
+        div.pickTime.col-md-12(ng-show='vm.pickWeek=="Min"')
+            label {{"CHOOSE_MINUTE" | translate}}
+            p
+            div(ng-repeat='n in vm.listArray track by $index')
+                a.badge(ng-click='vm.showPlatform.weeklySettlementMinute=$index;vm.pickWeek=null;') {{vm.getMinName($index) | translate}}
+
+

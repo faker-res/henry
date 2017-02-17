@@ -1,0 +1,92 @@
+.panel.panel-primary
+    .panel-heading.padding-all-5
+        .panel-title.left-col
+            .fa.fa-cubes(ng-if='vm.selectedPlatform')
+            //-
+                text(ng-click='vm.operSelPlatform=true') {{vm.selectedPlatform.platformName | translate}}
+                .fa.fa-cubes(ng-if='!vm.selectedPlatform')
+                span(ng-if='!vm.selectedPlatform') {{'SELECT_PLATFORM' | translate}}
+                div(ng-show='vm.operSelPlatform')
+                    a.fa.fa-times.text-danger(ng-click='vm.operSelPlatform=false')
+            select.platform-select(ng-model='vm.selectedPlatformID', ng-change='vm.setPlatformById(vm.selectedPlatformID)', required)
+                option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatform._id==v._id') {{v.name}}
+    .panel-body.common-left-panel-body.leftPanel-vlist
+        #reportCategory.panel-group
+            .panel.panel-default
+                .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#generalReport')
+                    h4.panel-title
+                        label.text-success {{'GENERAL_REPORT' | translate}}
+                #generalReport.panel-collapse.collapse.in
+                    .panel-body
+                        div(ng-if="checkViewPermission('Report', 'General', 'Read')")
+                            //li.text-center.margin-top-5
+                                label.text-success {{'GENERAL_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.TOPUP_REPORT}}" ng-click='vm.loadPage("TOPUP_REPORT")', ng-if="checkViewPermission('Report', 'General', 'TOPUP_REPORT')")
+                                text {{'TOPUP_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PROPOSAL_REPORT}}" ng-click='vm.loadPage("PROPOSAL_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PROPOSAL_REPORT')")
+                                text {{'PROPOSAL_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.OPERATION_REPORT}}" ng-click='vm.loadPage("OPERATION_REPORT")', ng-if="checkViewPermission('Report', 'General', 'OPERATION_REPORT')")
+                                text {{'PROVIDER_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PLAYER_EXPENSE_REPORT}}" ng-click='vm.loadPage("PLAYER_EXPENSE_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_EXPENSE_REPORT')")
+                                text {{'PLAYER_EXPENSE_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PLAYER_REPORT}}" ng-click='vm.loadPage("PLAYER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_REPORT')")
+                                text {{'PLAYER_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.NEWACCOUNT_REPORT}}" ng-click='vm.loadPage("NEWACCOUNT_REPORT")', ng-if="checkViewPermission('Report', 'General', 'NEWACCOUNT_REPORT')")
+                                text {{'NEWACCOUNT_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PLAYERPARTNER_REPORT}}" ng-click='vm.loadPage("PLAYERPARTNER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYERPARTNER_REPORT')")
+                                text {{'PLAYERPARTNER_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PARTNERPLAYERBOUNS_REPORT}}" ng-click='vm.loadPage("PARTNERPLAYERBOUNS_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PARTNERPLAYERBOUNS_REPORT')")
+                                text {{'PARTNERPLAYERBOUNS_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PARTNERCOMMISSION_REPORT}}" ng-click='vm.loadPage("PARTNERCOMMISSION_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PARTNERCOMMISSION_REPORT')")
+                                text {{'PARTNERCOMMISSION_REPORT' | translate}}
+            .panel.panel-default
+                .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#rewardReports')
+                    h4.panel-title
+                        label.text-success {{'REWARD_REPORT' | translate}}
+                #rewardReports.panel-collapse.collapse
+                    .panel-body
+                        div(ng-if="checkViewPermission('Report', 'Reward','Read')")
+                            //li.text-center.margin-top-5
+                                label.text-success {{'REWARD_REPORT' | translate}}
+                            li.list-group-item(style='margin-bottom: 20px;', class="{{vm.seleDataType.RewardReport}}", ng-click='vm.loadPage("RewardReport")')
+                                text {{"Reward Report" | translate}}
+                            li.list-group-item(ng-repeat='(i,v) in vm.rewardList', class="{{vm.seleDataType[v.name]}}", ng-click='vm.loadPage(vm.getPageNameByRewardName(v.type.name),v.name,v.code,v._id)')
+                                text {{v.name}}
+                            li.list-group-item.text-danger(ng-if='vm.rewardList.length==0') {{"NONE" | translate}} {{"Reward task" | translate}}
+                            //li.list-group-item(class="{{vm.seleDataType.PLAYER_CONSUMPTION_RETURN_REPORT}}" ng-click='vm.loadPage("PLAYER_CONSUMPTION_RETURN_REPORT")', ng-if="checkViewPermission('Report', 'Reward', 'PlayerConsumption')")
+                            //    text {{'PLAYER_CONSUMPTION_RETURN_REPORT' | translate}}
+                            //li.list-group-item(class="{{vm.seleDataType.FULL_ATTENDANCE_REPORT}}" ng-click='vm.loadPage("FULL_ATTENDANCE_REPORT")', ng-if="checkViewPermission('Report', 'Reward', 'FullAttendance')")
+                            //    text {{'FULL_ATTENDANCE_REPORT' | translate}}
+                            //li.list-group-item(class="{{vm.seleDataType.FIRST_TOPUP_REWARD_REPORT}}" ng-click='vm.loadPage("FIRST_TOPUP_REWARD_REPORT")', ng-if="checkViewPermission('Report', 'Reward', 'FirstTopUp')")
+                            //    text {{'FIRST_TOPUP_REWARD_REPORT' | translate}}
+                            //li.list-group-item(class="{{vm.seleDataType.PROVIDER_REPORT}}" ng-click='vm.loadPage("PROVIDER_REPORT")',ng-if="checkViewPermission('Report', 'Reward', 'Provider')")
+                            //    text {{'PROVIDER_REPORT' | translate}}
+                            //li.list-group-item(class="{{vm.seleDataType.TRANSACTION_REPORT}}" ng-click='vm.loadPage("TRANSACTION_REPORT")', ng-if="checkViewPermission('Report', 'Reward', 'Transaction')")
+                            //    text {{'TRANSACTION_REPORT' | translate}}
+                            //li.list-group-item(class="{{vm.seleDataType.PARTNER_CONSUMPTION_REPORT}}" ng-click='vm.loadPage("PARTNER_CONSUMPTION_REPORT")',ng-if="checkViewPermission('Report', 'Reward', 'PartnerConsumption')")
+                            //    text {{'PARTNER_CONSUMPTION_REPORT' | translate}}
+                            //li.list-group-item(class="{{vm.seleDataType.PARTNER_INCENTIVE_REPORT}}" ng-click='vm.loadPage("PARTNER_INCENTIVE_REPORT")',ng-if="checkViewPermission('Report', 'Reward', 'PartnerIncentive')")
+                            //    text {{'PARTNER_INCENTIVE_REPORT' | translate}}
+                            //li.list-group-item(class="{{vm.seleDataType.PARTNER_REFERRAL_REPORT}}" ng-click='vm.loadPage("PARTNER_REFERRAL_REPORT")',ng-if="checkViewPermission('Report', 'Reward', 'PartnerReferral')")
+                            //    text {{'PARTNER_REFERRAL_REPORT' | translate}}
+            .panel.panel-default
+                .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#OtherReports')
+                    h4.panel-title
+                        label.text-success {{'MISCELLANEOUS_REPORT' | translate}}
+                #OtherReports.panel-collapse.collapse
+                    .panel-body
+                        div(ng-if="checkViewPermission('Report', 'Miscellaneous', 'Read')")
+                            //li.text-center.margin-top-5
+                                label.text-success {{'MISCELLANEOUS_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PLAYER_FEEDBACK_REPORT}}" ng-click='vm.loadPage("PLAYER_FEEDBACK_REPORT")',ng-if="checkViewPermission('Report', 'Miscellaneous', 'PLAYER_FEEDBACK_REPORT')")
+                                text {{'PLAYER_FEEDBACK_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.CREDIT_CHANGE_REPORT}}" ng-click='vm.loadPage("CREDIT_CHANGE_REPORT")',ng-if="checkViewPermission('Report', 'Miscellaneous', 'CREDIT_CHANGE_REPORT')")
+                                text {{'CREDIT_CHANGE_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PLAYER_ALMOST_LEVELUP_REPORT}}" ng-click='vm.loadPage("PLAYER_ALMOST_LEVELUP_REPORT")',ng-if="checkViewPermission('Report', 'Miscellaneous', 'PLAYER_ALMOST_LEVELUP_REPORT')")
+                                text {{'PLAYER_ALMOST_LEVELUP_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.ACTIONLOG_REPORT}}" ng-click='vm.loadPage("ACTIONLOG_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'ACTIONLOG_REPORT')")
+                                text {{'ACTIONLOG_REPORT' | translate}}
+
+
+
+

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="cache-control" content="max-age=0"/>
+    <meta http-equiv="cache-control" content="no-cache"/>
+    <meta http-equiv="expires" content="0"/>
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT"/>
+    <meta http-equiv="pragma" content="no-cache"/>
+    <title>Test Payment Proposal Update</title>
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>-->
+    <!--<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>-->
+    <!--<script src="common/require.js" data-main="testProposalAPI"></script>-->
+</head>
+<body>
+<h3>Create Platform(添加平台)</h3>
+<div class="test-container">
+    <div>
+        <label>Name
+            <input name="name">
+        </label>
+    </div>
+    <div>
+        <label>Code
+            <input name="code">
+        </label>
+    </div>
+    <div>
+        <label>Prefix
+            <input name="prefix">
+        </label>
+    </div>
+    <div>
+        <label>Url
+            <input name="url">
+        </label>
+    </div>
+    <div>
+        <label>CS Email
+            <input name="csEmail">
+        </label>
+    </div>
+    <div>
+        <label>CS Phone
+            <input name="csPhone">
+        </label>
+    </div>
+    <div>
+        <label>CS Weixin
+            <input name="csWeixin">
+        </label>
+    </div>
+    <div>
+        <label>CS QQ
+            <input name="csQQ">
+        </label>
+    </div>
+    <div>
+        <label>OA Weixin
+            <input name="oaWeixin">
+        </label>
+    </div>
+    <div>
+        <button id="add" data-api-name="createPlatform">Create Platform</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+<h3>Create Player(创建玩家)</h3>
+<div class="test-container">
+    <div>
+        <label>Name
+            <input name="name">
+        </label>
+    </div>
+    <div>
+        <label>password
+            <input name="password">
+        </label>
+    </div>
+    <div>
+        <label>email
+            <input name="email">
+        </label>
+    </div>
+    <div>
+        <label>realName
+            <input name="realName">
+        </label>
+    </div>
+    <div>
+        <label>phoneNumber
+            <input name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>isTestPlayer
+            <input name="isTestPlayer">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>playerLevel value
+            <input name="playerLevel" type="number">
+        </label>(0/1/2/3/4/5)
+    </div>
+    <div>
+        <label>registrationTime
+            <input name="registrationTime" type="date">
+        </label>
+    </div>
+    <div>
+        <label>lastAccessTime
+            <input name="lastAccessTime" type="date">
+        </label>
+    </div>
+    <div>
+        <label>lastLogin IP
+            <input name="lastLoginIp">
+        </label>
+    </div>
+    <div>
+        <label>status
+            <input name="status" type="number">
+        </label>(1:Normal, 2:Forbid Games, 3:Forbid)
+    </div>
+    <div>
+        <label>photoUrl
+            <input name="photoUrl">
+        </label>
+    </div>
+    <div>
+        <label>creditBalance
+            <input name="creditBalance">
+        </label>
+    </div>
+    <div>
+        <label>validCredit
+            <input name="validCredit">
+        </label>
+    </div>
+    <div>
+        <label>Voice IP
+            <input name="lockedCredit">
+        </label>
+    </div>
+    <div>
+        <label>bankName
+            <input name="bankName">
+        </label>
+    </div>
+    <div>
+        <label>bankAccount
+            <input name="bankAccount">
+        </label>
+    </div>
+    <div>
+        <label>CS QQ
+            <input name="bankAccountName">
+        </label>
+    </div>
+    <div>
+        <label>OA Weixin
+            <input name="bankAccountType">
+        </label>
+    </div>
+    <div>
+        <label>OA Weixin
+            <input name="bankAccountCity">
+        </label>
+    </div>
+    <div>
+        <label>bankAddress
+            <input name="bankAddress">
+        </label>
+    </div>
+
+    <div>
+        <label>bankBranch
+            <input name="bankBranch">
+        </label>
+    </div>
+    <div>
+        <label>favoriteGames
+            <input name="favoriteGames">
+        </label>
+    </div>
+    <div>
+        <label>qq
+            <input name="qq">
+        </label>
+    </div>
+    <div>
+        <button id="delete" data-api-name="createPlayer">Create Player</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+<h3>Create Player TopUp Record(添加玩家充值记录)</h3>
+<div class="test-container">
+    <div>
+        <label>playerName
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>amount
+            <input name="amount" type="number">
+        </label>
+    </div>
+    <div>
+        <label>topUpType
+            <input name="topUpType">
+        </label> (1:Manual, 2:Online)
+    </div>
+    <div>
+        <label>createTime
+            <input name="createTime" type="date">
+        </label>
+    </div>
+    <div>
+        <label>bDirty
+            <input name="bDirty">
+        </label>
+    </div>
+    <div>
+        <button id="create" data-api-name="createPlayerTopUpRecord">Create TopUp Record</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Create Player Consumption Record(添加玩家消费额度)</h3>
+<div class="test-container">
+    <div>
+        <label>Player Name
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>Provider Id
+            <input name="provider">
+        </label>
+    </div>
+    <div>
+        <label>Game Id
+            <input name="game">
+        </label>
+    </div>
+    <div>
+        <label>create Time
+            <input name="createTime" type="date">
+        </label>
+    </div>
+    <div>
+        <label>amount
+            <input name="amount" type="number">
+        </label>
+    </div>
+    <div>
+        <label>validAmount
+            <input name="validAmount" type="number">
+        </label>
+    </div>
+    <div>
+        <label>bonusAmount
+            <input name="bonusAmount" type="number">
+        </label>
+    </div>
+    <div>
+        <label>commissionAmount
+            <input name="commissionAmount" type="number">
+        </label>
+    </div>
+    <div>
+        <label>roundNo
+            <input name="roundNo">
+        </label>
+    </div>
+    <div>
+        <label>orderNo
+            <input name="orderNo">
+        </label>
+    </div>
+    <div>
+        <label>bDirty
+            <input name="bDirty">
+        </label>
+    </div>
+    <div>
+        <button id="createPlayerConsumptionRecord" data-api-name="createPlayerConsumptionRecord">Create</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Create Player Feedback(添加玩家回访记录)</h3>
+<div class="test-container">
+    <div>
+        <label>Player Name
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform name
+            <input name="platformName">
+        </label>
+    </div>
+    <div>
+        <label>Content
+            <input name="content">
+        </label>
+    </div>
+    <div>
+        <label>Result
+            <input name="result">
+        </label> ("Normal"/"MissedCall"/"PlayerBusy")
+    </div>
+    <div>
+        <label>createTime
+            <input name="createTime" type="date">
+        </label>
+    </div>
+    <div>
+        <button id="createPlayerFeedback" data-api-name="createPlayerFeedback">Create</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Create Player Reward Task(添加玩家奖励任务)</h3>
+<div class="test-container">
+    <div>
+        <label>Player Name
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>status
+            <input name="status">
+        </label> ("Started"/"Achieved"/"Completed"/"NoCredit")
+    </div>
+    <div>
+        <label>requiredUnlockAmount
+            <input name="requiredUnlockAmount">
+        </label>
+    </div>
+    <div>
+        <label>unlockedAmount
+            <input name="unlockedAmount">
+        </label>
+    </div>
+    <div>
+        <label>_inputCredit
+            <input name="_inputCredit">
+        </label>
+    </div>
+    <div>
+        <label>currentAmount
+            <input name="currentAmount">
+        </label>
+    </div>
+    <div>
+        <label>initAmount
+            <input name="initAmount">
+        </label>
+    </div>
+    <div>
+        <label>isUnlock
+            <input name="isUnlock">
+        </label>
+    </div>
+    <div>
+        <label>useConsumption
+            <input name="useConsumption">
+        </label>
+    </div>
+    <div>
+        <label>targetProviders
+            <input name="targetProviders">
+        </label>
+    </div>
+    <div>
+        <label>createTime
+            <input name="createTime" type="date">
+        </label>
+    </div>
+    <div>
+        <button id="createPlayerRewardTask" data-api-name="createPlayerRewardTask">Create</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>create Player Login Record(添加玩家登录记录)</h3> 
+<div class="test-container"> 
+    <div> 
+        <label>Player Name 
+            <input name="playerName"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>platform Id 
+            <input name="platform"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>loginTime 
+            <input name="loginTime" type="date"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>loginIP 
+            <input name="loginIP"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>clientType
+              <input name="clientType"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>logoutTime
+              <input name="logoutTime" type="date"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>country
+              <input name="country"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>city
+              <input name="city"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>province
+              <input name="province"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>longitude
+              <input name="longitude"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>latitude
+              <input name="latitude"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>userAgent
+              <input name="userAgent"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <button id="createPlayerLoginRecord" data-api-name="createPlayerLoginRecord">Create</button>
+    </div>
+         
+    <div>  <textarea></textarea> </div>
+     
+</div>
+
+<h3>create Player Credit Transfer Log(添加玩家额度转入转出记录)</h3> 
+<div class="test-container"> 
+    <div> 
+        <label>Player Name 
+            <input name="playerName"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>platform Id 
+            <input name="platform"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>createTime 
+            <input name="createTime" type="date"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>type 
+            <input name="type"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>transferId
+              <input name="transferId"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>provider code
+              <input name="providerCode"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <label>amount
+              <input name="amount" type="number"> 
+        </label> 
+    </div>
+     
+    <div> 
+        <button id="createPlayerCreditTransferLog" data-api-name="createPlayerCreditTransferLog">Create</button>
+    </div>
+         
+    <div>  <textarea></textarea> </div>
+     
+</div>
+
+<h3>add Partner To Player(给玩家添加推广渠道)</h3>
+<div class="test-container">
+    <div>
+        <label>playerName
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>partnerName
+            <input name="partnerName">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="addPlayerPartner">add Player Partner</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>add Player Referral(给玩家添加推荐人)</h3>
+<div class="test-container">
+    <div>
+        <label>playerName
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>referral Name
+            <input name="referralName">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="addPlayerReferral">add Player Referral</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>add Partner To Player(给玩家添加推广渠道)</h3>
+<div class="test-container">
+    <div>
+        <label>playerName
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>operationType
+            <input name="operationType">
+        </label>
+    </div>
+    <div>
+        <label>amount
+            <input name="amount">
+        </label>
+    </div>
+    <div>
+        <label>curAmount
+            <input name="curAmount">
+        </label>
+    </div>
+    <div>
+        <label>operationTime
+            <input name="operationTime">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="createPlayerCreditChangeLog">create</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Update Player last played provider(给玩家更新最后玩的提供商)</h3>
+<div class="test-container">
+    <div>
+        <label>playerName
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>Provider Id
+            <input name="providerId">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="updateLastPlayedProvider">Update Last Played Provider</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Update Player Credit(更新玩家额度)</h3>
+<div class="test-container">
+    <div>
+        <label>playerName
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>Credit
+            <input name="validCredit">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="updatePlayerCredit">Update</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<script>
+    require(['services/migration/MigrationServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/migrationAPITest/PlayerAPITest', 'testAPI/migrationAPITest/ConnectionAPITest'],
+        function (MigrationServices, WebSocketClient, TestHelper, PlayerAPITest, connectionAPITest) {
+            var Client = function (url) {
+
+                WebSocketClient.call(this, url);
+
+                var connectionService = new MigrationServices.ConnectionService();
+                this.addService(connectionService);
+
+                var playerService = new MigrationServices.PlayerService();
+                this.addService(playerService);
+            };
+
+            var proto = Client.prototype = Object.create(WebSocketClient.prototype);
+            proto.constructor = Client;
+
+            $(document).ready(function () {
+
+                var client = new Client("ws://" + TestHelper.wsMigration + ":9680");
+
+                client.connect();
+
+                client.addEventListener("open", function () {
+
+//                        var connectionService = client.getService("connection");
+//                        console.log("connectionService....", connectionService);
+//                        var connAPITest = new connectionAPITest(connectionService);
+
+                    var playerService = client.getService("player");
+                    var playerAPITest = new PlayerAPITest(playerService);
+
+                    //todo::enable login later
+//                        connAPITest.login(function (data) {
+//                            console.log('login data.....', data);
+//                        }, {
+//                            name: "testApiUser",
+//                            password: "123"
+//                        });
+
+                    TestHelper.setAPIName('MigrationServices.player');
+                    TestHelper.attachListeners(playerAPITest);
+
+                });
+
+                TestHelper.addReconnectOnCloseListener(client);
+            });
+        }
+    );
+
+</script>
+</body>
+</html>

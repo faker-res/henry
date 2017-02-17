@@ -1,0 +1,18 @@
+.row.margin-left-5.margin-right-5(ng-if="checkViewPermission('Test')")
+   div
+      .col-md-3
+         include ./test-list
+   div#platformContent.col-md-9
+      .padding-all-5
+         .panel.panel-primary
+            .panel-heading.common-right-panel-heading
+               .panel-title.left-col
+                  label.strong {{vm.curTestText|translate}}
+            .panel-body.common-right-panel-body
+               div(ng-if="vm.curTestText === 'GameProviderRewardEventTest'")
+                  include test-gameProviderRewardEvent
+               div(ng-if="vm.curTestText === 'WeeklyConsecutiveTopUpTest'")
+                  include test-weeklyConsecutiveTopUp
+               div(ng-if="vm.curTestText === 'OperationTest'")
+                  include test-operation
+

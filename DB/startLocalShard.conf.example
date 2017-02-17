@@ -1,0 +1,6 @@
+# If you want to use this config, copy it to startLocalShard.conf
+
+# Saves a lot of disk space but reduces performance
+# On Linux, without this config: 6.7GB initial, >7GB with sharding
+# On Linux, with this config: 130MB initial, 2.2GB with sharing
+extra_opts="--smallfiles --nojournal --noprealloc"

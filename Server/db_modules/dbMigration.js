@@ -1,0 +1,1498 @@
+/******************************************************************
+ *        NinjaPandaManagement-WS
+ *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
+ *  All rights reserved.
+ ******************************************************************/
+
+var Q = require("q");
+var geoip = require('geoip-lite');
+var queryPhoneLocation = require('query-mobile-phone-area');
+var encrypt = require('./../modules/encrypt');
+var dbconfig = require("../modules/dbproperties");
+var dbDepartment = require("../db_modules/dbDepartment");
+var dbAdminInfo = require("../db_modules/dbAdminInfo");
+var dbPlatform = require("../db_modules/dbPlatform");
+var dbPlayerInfo = require("../db_modules/dbPlayerInfo");
+var dbPlayerConsumptionRecord = require("../db_modules/dbPlayerConsumptionRecord");
+var dbPlayerTopUpRecord = require("../db_modules/dbPlayerTopUpRecord");
+var dbPlayerFeedback = require("../db_modules/dbPlayerFeedback");
+var dbPartner = require("../db_modules/dbPartner");
+var pmsAPI = require("../externalAPI/pmsAPI");
+var serverInstance = require("../modules/serverInstance");
+const constPlayerLevel = require("../const/constPlayerLevel");
+const constProposalStatus = require('../const/constProposalStatus');
+const constProposalMainType = require('../const/constProposalMainType');
+const constProposalType = require('../const/constProposalType');
+const constRewardTaskStatus = require('../const/constRewardTaskStatus');
+var dbProposal = require('../db_modules/dbProposal');
+var dbLogger = require('../modules/dbLogger');
+var proposalExecutor = require('../modules/proposalExecutor');
+
+var dbMigration = {
+
+    errorHandler: function (service, functionName, data, error) {
+        //tmp error log for debugging
+        console.error(service, functionName, data, error);
+        dbLogger.createDataMigrationErrorLog(service, functionName, data, error);
+        return Q.reject(error);
+    },
+
+    resHandler: function (data) {
+        return data;
+    },
+
+    createDepartment: function (data) {
+        data.departmentName = data.name;
+        //default parent is admin department
+        if (!data.parent) {
+            data.parent = "admin";
+        }
+        //create department under admin
+        return dbconfig.collection_department.findOne({departmentName: data.parent}).then(
+            rootDepart => {
+                if (rootDepart) {
+                    data.parent = rootDepart._id;
+                    return dbDepartment.createDepartmentWithParent(data);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find root department"});
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("admin", "createDepartment", data, error)
+        );
+    },
+
+    createUser: function (data) {
+        data.adminName = data.name;
+        data.password = "Ms1234%"; //default password
+        var salt = encrypt.generateSalt();
+        var hashpassword = encrypt.createHash(data.password, salt);
+        data.password = hashpassword;
+        data.salt = salt;
+
+        if (data.department) {
+            return dbconfig.collection_department.findOne({departmentName: data.department}).then(
+                depart => {
+                    if (depart) {
+                        data.departments = [depart._id];
+                        return dbAdminInfo.createAdminUserWithDepartment(data);
+                    }
+                    else {
+                        return Q.reject({name: "DataError", message: "Can not find root department"});
+                    }
+                }
+            ).then(
+                dbMigration.resHandler,
+                error => dbMigration.errorHandler("admin", "createUser", data, error)
+            );
+        }
+        else {
+            var error = {name: "DataError", message: "Invalid data", error: "department is required"};
+            dbLogger.createDataMigrationErrorLog("admin", "createUser", data, error);
+            return Q.reject(error);
+            // We could probably do that in two lines:
+            //var error = {name: "DataError", message: "Invalid data", error: "department is required"};
+            //return dbMigration.errorHandler("admin", "createUser", data, error);
+        }
+    },
+
+    createPlatform: function (data) {
+        return dbPlatform.createPlatform(data).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "createPlatform", data, error)
+        );
+    },
+
+    createPlayer: function (data) {
+        if (data.lastLoginIp) {
+            var geo = geoip.lookup(data.lastLoginIp);
+            if (geo) {
+                data.country = geo.country;
+                data.city = geo.city;
+                data.longitude = geo.ll ? geo.ll[1] : null;
+                data.latitude = geo.ll ? geo.ll[0] : null;
+            }
+        }
+
+        if (data.phoneNumber) {
+            var queryRes = queryPhoneLocation(data.phoneNumber);
+            if (queryRes) {
+                data.phoneProvince = queryRes.province;
+                data.phoneCity = queryRes.city;
+                data.phoneType = queryRes.type;
+            }
+        }
+
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).lean().then(
+            platformData => {
+                if (platformData) {
+                    data.platform = platformData._id;
+                    var playerLevel = data.playerLevel ? data.playerLevel : 0;
+                    return dbconfig.collection_playerLevel.findOne({value: playerLevel, platform: platformData._id})
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            playerLevelData => {
+                if (playerLevelData) {
+                    data.playerLevel = playerLevelData._id;
+                    // return dbPlayerInfo.createPlayerInfo(data);
+                    return data;
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player level"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    if (playerData.partner) {
+                        //add partner to player if this player has partner
+                        return dbconfig.collection_partner.findOne({partnerName: playerData.partner}).then(
+                            partnerData => {
+                                if (partnerData) {
+                                    playerData.partner = partnerData._id;
+                                    return playerData;
+                                }
+                                else {
+                                    return Q.reject({name: "DataError", message: "Can not find player partner"});
+                                }
+                            }
+                        );
+                    }
+                    else {
+                        return playerData;
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            //find bank name id based on code
+            playerData => {
+                if (playerData.bankName != null) {
+                    return pmsAPI.bankcard_getBankTypeList({}).then(
+                        list => {
+                            if (list && list.data && list.data.length > 0) {
+                                var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
+                                if (type) {
+                                    playerData.bankName = type.id;
+                                    return data;
+                                }
+                                else {
+                                    return Q.reject({name: "DataError", message: "Can not find bank type id"});
+                                }
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Can not find bank type list"});
+                            }
+                        }
+                    );
+                }
+                else {
+                    return playerData;
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    return dbPlayerInfo.createPlayerInfo(playerData, true, true);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    dbPlayerInfo.updateGeoipws(playerData._id, playerData.platform, playerData.lastLoginIp);
+                    return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(playerData, data.phoneNumber);
+                }
+                else {
+                    return playerData;
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "createPlayer", data, error)
+        );
+    },
+
+    createPlayerConsumptionRecord: function (data) {
+        var platformId = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
+            platformData => {
+                if (platformData) {
+
+                    platformId = platformData._id;
+                    var playerProm = dbconfig.collection_players.findOne({name: data.playerName, platform: platformId});
+                    var providerProm = dbconfig.collection_gameProvider.findOne({code: data.provider});
+                    return Q.all([playerProm, providerProm]);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            playerProviderData => {
+                if (playerProviderData && playerProviderData[0] && playerProviderData[1]) {
+                    data.platformId = platformId;
+                    data.playerId = playerProviderData[0]._id;
+                    data.providerId = playerProviderData[1]._id;
+                    var aliasQuery = ".*" + data.game + "*.";
+                    return dbconfig.collection_game.findOne(
+                        {
+                            $or: [{code: data.game}, {aliasCode: {$regex: aliasQuery}}, {code: data.game + "_h5"}],
+                            provider: playerProviderData[1]._id
+                        }
+                    );
+                } else {
+                    return Q.reject({name: "DataError", message: "Can not find player or game provider"});
+                }
+            }
+        ).then(
+            gameData => {
+                if (gameData) {
+                    data.gameId = gameData._id;
+                    data.gameType = gameData.type;
+
+                    delete data.playerName;
+                    delete data.platform;
+                    delete data.game;
+                    return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(data);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find game"});
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => {
+                if (error && error.message) {
+                    error.message += " orderNo:" + data.orderNo;
+                }
+                return dbMigration.errorHandler("player", "createPlayerConsumptionRecord", data, error)
+            }
+        );
+    },
+
+    createPlayerTopUpRecord: function (data) {
+        var platformObjId = null;
+        var playerObj = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
+            platformData => {
+                if (platformData) {
+                    platformObjId = platformData._id;
+                    return dbconfig.collection_players.findOne({name: data.playerName, platform: platformObjId});
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+                    data.playerId = playerData._id;
+                    data.platformId = platformObjId;
+                    delete data.playerName;
+                    delete data.platform;
+                    return dbPlayerTopUpRecord.createPlayerTopUpRecord(data);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player"});
+                }
+            }
+        ).then(
+            record => {
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {_id: playerObj._id, platform: playerObj.platform},
+                    {
+                        $inc: {
+                            //validCredit: amount,
+                            topUpSum: data.amount,
+                            //dailyTopUpSum: amount,
+                            //weeklyTopUpSum: amount,
+                            topUpTimes: 1,
+                            creditBalance: data.amount
+                        }
+                    }
+                )
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "createPlayerTopUpRecord", data, error)
+        );
+    },
+
+    createPlayerFeedback: function (data) {
+        var platformId = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
+            platformData => {
+                if (platformData) {
+                    platformId = platformData._id;
+                    var playerProm = dbconfig.collection_players.findOne({name: data.playerName, platform: platformId});
+                    var adminProm = dbconfig.collection_admin.findOne({adminName: data.creator});
+                    return Q.all([playerProm, adminProm]);
+                }
+            }
+        ).then(
+            promData => {
+                if (promData && promData[0] && promData[1]) {
+                    data.adminId = promData[1]._id;
+                    data.playerId = promData[0]._id;
+                    delete data.playerName;
+                    //delete data.platform;
+                    data.platform = platformId;
+                    return dbPlayerFeedback.createPlayerFeedback(data);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player or admin"});
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => {
+                return dbMigration.errorHandler("player", "createPlayerFeedback", data, error)
+            }
+        );
+    },
+
+    createPlayerLoginRecord: function (data) {
+        var platformId = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
+            platformData => {
+                if (platformData) {
+                    platformId = platformData._id;
+                    var playerProm = dbconfig.collection_players.findOne({name: data.playerName, platform: platformId});
+                    return Q.resolve(playerProm);
+                }
+            }
+        ).then(
+            promData => {
+                if (promData) {
+                    data.player = promData._id;
+                    delete data.playerName;
+                    //delete data.platform; 
+                    data.platform = platformId;
+                    data.loginTime = data.loginTime ? new Date(data.loginTime) : null;
+                    data.logoutTime = data.logoutTime ? new Date(data.logoutTime) : null;
+                    data.userAgent = data.userAgent || {};
+                    data.data = data.data
+                    var record = new dbconfig.collection_playerLoginRecord(data);
+                    return record.save();
+                } else {
+                    return Q.reject({name: "DataError", message: "Can not find player or admin"});
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "createPlayerLoginRecord", data, error)
+        );
+    },
+
+    createPlayerCreditTransferLog: function (data) {
+        var platformObjId = null;
+        var saveData = {};
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
+            platformData => {
+                if (platformData) {
+                    platformObjId = platformData._id;
+                    saveData.platformId = platformData.platformId;
+                    var playerProm = dbconfig.collection_players.findOne({
+                        name: data.playerName,
+                        platform: platformObjId
+                    });
+                    var providerProm = dbconfig.collection_gameProvider.findOne({code: data.providerCode});
+                    return Q.all([playerProm, providerProm]);
+                }
+            }
+        ).then(
+            dbData => {
+                if (dbData && dbData[0] && dbData[1]) {
+                    var promData = dbData[0], provider = dbData[1];
+                    saveData.playerObjId = promData._id;
+                    saveData.platformObjId = platformObjId;
+                    saveData.adminName = data.adminName;
+                    saveData.playerId = promData.playerId;
+                    saveData.type = data.type;
+                    saveData.transferId = data.transferId;
+                    saveData.providerId = provider.providerId;
+                    saveData.amount = data.amount;
+                    saveData.lockedAmount = data.lockedAmount;
+                    saveData.createTime = data.createTime ? new Date(data.createTime) : null;
+                    saveData.apiRes = data.apiRes;
+                    saveData.data = data.data
+                    var record = new dbconfig.collection_playerCreditTransferLog(saveData);
+                    return record.save()
+                } else {
+                    return Q.reject({name: "DataError", message: "Can not find player or admin or provider"});
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "createPlayerLoginRecord", data, error)
+        );
+    },
+
+    createProposal: function (typeName, platform, creator, creatorType, createTime, entryType, userType, status, proposalData) {
+        var creatorObj = {};
+        creatorType = creatorType || 'system';
+        var prom1 = Q.resolve({});
+        if (creatorType == 'admin') {
+            prom1 = dbconfig.collection_admin.findOne({adminName: creator});
+        } else if (creatorType == 'player') {
+            prom1 = dbconfig.collection_players.findOne({name: creator});
+        }
+        var prom2 = dbconfig.collection_platform.findOne({platformId: platform});
+        var prom3 = Q.resolve({});
+        if (proposalData && proposalData.loginname) {
+            prom3 = dbconfig.collection_players.findOne({name: proposalData.loginname});
+        }
+        return Q.all([prom1, prom2, prom3]).then(
+            data => {
+                if (data && data[1]) {
+                    var platformObj = data[1], user = data[0], player = data[2];
+                    if (user) {
+                        if (creatorType == 'admin') {
+                            creatorObj = {
+                                name: user.adminName,
+                                type: 'admin',
+                                id: user._id
+                            };
+                        } else if (creatorType == 'player') {
+                            creatorObj = {
+                                name: user.name,
+                                type: 'player',
+                                id: user._id
+                            };
+                            proposalData.playerObjId = user._id;
+                            proposalData.playerId = user._id;
+                            proposalData.playerShorId = user.playerId;
+                            proposalData.platformObjId = user.platform;
+                            proposalData.platformId = platform;
+                        }
+                    }
+                    if (player) {
+                        proposalData.playerObjId = player._id;
+                        proposalData.playerId = player._id;
+                        proposalData.playerShorId = player.playerId;
+                        proposalData.platformObjId = player.platform;
+                        proposalData.platformId = platform;
+                    }
+                    var newProposalData = proposalData;
+                    return dbMigration.proposalDataConverter(typeName, proposalData).then(
+                        convertData => {
+                            newProposalData = convertData;
+                            return dbconfig.collection_proposalType.findOne({
+                                platformId: platformObj._id,
+                                name: typeName
+                            })
+                        }
+                    ).then(
+                        proposalType => {
+                            if (proposalType) {
+                                createTime = createTime || new Date();
+                                var newRecord = {
+                                    mainType: constProposalMainType[typeName],
+                                    type: proposalType._id,
+                                    creator: creatorObj,
+                                    createTime: createTime,
+                                    data: newProposalData,
+                                    entryType: entryType,
+                                    userType: userType,
+                                    status: status,
+                                    noSteps: true
+                                };
+                                return dbProposal.createProposal(newRecord).then(
+                                    data => {
+                                        return data;
+                                    },
+                                    err => {
+                                        return Q.reject({
+                                            name: "DataError",
+                                            message: "Error when creating proposal.",
+                                            err: err
+                                        });
+                                    }
+                                );
+                            } else {
+                                return Q.reject({name: "DataError", message: "Can not find proposalType in platform"});
+                            }
+                        }
+                    )
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            },
+            err => {
+                return Q.reject({name: "DataError", message: "Can not find platform or creator", err: err});
+            }
+        ).then(
+            proposal => {
+                if (proposal) {
+                    //if it is top up proposal and successful, create top up record
+                    if ((typeName == constProposalType.PLAYER_TOP_UP || typeName == constProposalType.PLAYER_MANUAL_TOP_UP || typeName == constProposalType.PLAYER_ALIPAY_TOP_UP)
+                        && status == constProposalStatus.SUCCESS) {
+                        var record = {
+                            playerName: String(creator).toLowerCase(),
+                            platform: platform,
+                            amount: proposalData.amount,
+                            topUpType: typeName == constProposalType.PLAYER_TOP_UP ? 2 : (typeName == constProposalType.PLAYER_MANUAL_TOP_UP ? 1 : 3),
+                            createTime: createTime,
+                            bDirty: false,
+                            proposalId: proposal.proposalId
+                        };
+                        return dbMigration.createPlayerTopUpRecord(record);
+                    }
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("proposal", "createProposal", {
+                type: typeName, platform: platform, creator: creator, creatorType: creatorType, createTime: createTime,
+                entryType: entryType, userType: userType, status: status, proposalData: proposalData
+            }, error)
+        );
+    },
+
+    createPartner: function (data) {
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).lean().then(
+            platformData => {
+                if (platformData) {
+                    data.platform = platformData._id;
+                    if (data.parent) {
+                        return dbconfig.collection_partner.findOne({partnerName: data.parent}).lean().then(
+                            parentData => {
+                                if (parentData) {
+                                    data.parent = parentData._id;
+                                    return data;
+                                }
+                                else {
+                                    return Q.reject({name: "DataError", message: "Can not find parent partner"});
+                                }
+                            }
+                        );
+                    }
+                    else {
+                        return data;
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            //find bank name id based on code
+            partnerData => {
+                if (data.bankName != null) {
+                    return pmsAPI.bankcard_getBankTypeList({}).then(
+                        list => {
+                            if (list && list.data && list.data.length > 0) {
+                                var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
+                                if (type) {
+                                    data.bankName = type.id;
+                                    return data;
+                                }
+                                else {
+                                    return Q.reject({name: "DataError", message: "Can not find bank type id"});
+                                }
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Can not find bank type list"});
+                            }
+                        }
+                    );
+                }
+                else {
+                    return partnerData;
+                }
+            }
+        ).then(
+            partnerData => {
+                if (partnerData) {
+                    if (partnerData.parent) {
+                        return dbPartner.createPartnerWithParent(partnerData);
+                    }
+                    else {
+                        return dbPartner.createPartner(partnerData);
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid partner data"});
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("partner", "createPartner", data, error)
+        );
+    },
+
+    createPartnerLoginRecord: function (data) {
+        var platformId = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
+            platformData => {
+                if (platformData) {
+                    platformId = platformData._id;
+                    return dbconfig.collection_partner.findOne({
+                        partnerName: data.partnerName,
+                        platform: platformId
+                    }).lean();
+                }
+            }
+        ).then(
+            promData => {
+                if (promData) {
+                    data.partner = promData._id;
+                    delete data.partnerName;
+                    //delete data.platform; 
+                    data.platform = platformId;
+                    data.loginTime = data.loginTime ? new Date(data.loginTime) : null;
+                    data.logoutTime = data.logoutTime ? new Date(data.logoutTime) : null;
+                    data.userAgent = data.userAgent || {};
+                    data.data = data.data;
+                    var record = new dbconfig.collection_partnerLoginRecord(data);
+                    return record.save();
+                } else {
+                    return Q.reject({name: "DataError", message: "Can not find partner"});
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "createPartnerLoginRecord", data, error)
+        );
+    },
+
+    createPlayerRewardTask: function (data) {
+        var platformObjId = null;
+        var playerObjId = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObjId = platformData._id;
+                    data.platformId = platformData._id;
+                    return dbconfig.collection_players.findOne({name: data.playerName, platform: platformObjId}).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    playerObjId = playerData._id;
+                    data.playerId = playerData._id;
+                    if (data.targetProviders && data.targetProviders.length > 0) {
+                        return dbconfig.collection_gameProvider.find({name: {$in: data.targetProviders}}).lean();
+                    }
+                    else {
+                        return null;
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player"});
+                }
+            }
+        ).then(
+            providerData => {
+                if (providerData && providerData.length > 0) {
+                    data.targetProviders = providerData.map(provider => provider._id);
+                }
+                else {
+                    delete data.targetProviders;
+                }
+                //check if this player has pending reward task
+                if (!data.status || data.status == constRewardTaskStatus.STARTED) {
+                    return dbconfig.collection_rewardTask.findOne({
+                        playerId: playerObjId,
+                        status: constRewardTaskStatus.STARTED
+                    }).lean();
+                }
+                else {
+                    return null;
+                }
+            }
+        ).then(
+            taskData => {
+                if (!taskData) {
+                    var rewardTask = new dbconfig.collection_rewardTask(data);
+                    return rewardTask.save().then(
+                        newTask => {
+                            if (data.status == constRewardTaskStatus.STARTED && !data.inProvider) {
+                                return dbconfig.collection_players.findOneAndUpdate(
+                                    {_id: playerObjId, platform: data.platformId},
+                                    {lockedCredit: data.currentAmount}
+                                );
+                            }
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "This player already has started reward task"});
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "createPlayerRewardTask", data, error)
+        );
+    },
+
+    proposalDataConverter: function (type, proposalData) {
+        var convertData = Object.assign({}, proposalData);
+        switch (type) {
+            case constProposalType.PLAYER_TOP_UP:
+            case constProposalType.PLAYER_ALIPAY_TOP_UP:
+                convertData.platform = proposalData.platformObjId;
+                convertData.playerName = proposalData.loginname;
+                break;
+            case constProposalType.PLAYER_MANUAL_TOP_UP:
+                convertData.platform = proposalData.platformObjId;
+                convertData.playerName = proposalData.loginname;
+                convertData.depositMethod = dbMigration.getDepositMethod(proposalData.manner);
+                convertData.bankCardNo = proposalData.accountNo;
+                return dbMigration.getPaymentCityInfo(proposalData).then(
+                    cityInfo => {
+                        var cityData = cityInfo || {};
+                        convertData.provinceId = cityData.provinceId;
+                        convertData.cityId = cityData.cityId;
+                        convertData.districtId = cityData.districtId;
+
+                        return pmsAPI.bankcard_getBankTypeList({
+                            platformId: proposalData.platformId,
+                            queryId: serverInstance.getQueryId()
+                        });
+                    }
+                ).then(
+                    cList => {
+                        if (cList && cList.data && cList.data.length > 0) {
+                            for (var i = 0; i < cList.data.length; i++) {
+                                if (cList.data[i].name.indexOf(proposalData.corpBankName) >= 0 || (proposalData.corpBankName && proposalData.corpBankName.indexOf(cList.data[i].name) >= 0)) {
+                                    convertData.bankTypeId = cList.data[i].id;
+                                    convertData.bankCardType = cList.data[i].id;
+                                }
+                            }
+                        }
+                        return convertData;
+                    }
+                );
+                break;
+            default:
+                convertData.platform = proposalData.platformObjId;
+                convertData.playerName = proposalData.loginname;
+                break;
+        }
+        return Q.resolve(convertData);
+    },
+
+    getDepositMethod: function (manner) {
+        switch (manner) {
+            case "网银转账":
+                return 1;
+            case "ATM":
+                return 2;
+            default:
+                return 3;
+        }
+    },
+
+    getPaymentCityInfo: function (proposalData) {
+        var provinceId = null;
+        var cityId = null;
+        var districtId = null;
+
+        return pmsAPI.foundation_getProvinceList({}).then(
+            pList => {
+                if (pList && pList.provinces && pList.provinces.length > 0) {
+                    for (var i = 0; i < pList.provinces.length > 0; i++) {
+                        if (pList.provinces[i].name == proposalData.province) {
+                            provinceId = pList.provinces[i].id;
+                            return pmsAPI.foundation_getCityList({provinceId: provinceId});
+                        }
+                    }
+                }
+            }
+        ).then(
+            cList => {
+                if (cList && cList.cities && cList.cities.length > 0) {
+                    for (var i = 0; i < cList.cities.length > 0; i++) {
+                        if (cList.cities[i].name == proposalData.city) {
+                            cityId = cList.cities[i].id;
+                            return pmsAPI.foundation_getDistrictList({provinceId: provinceId, cityId: cityId});
+                        }
+                    }
+                }
+            }
+        ).then(
+            dList => {
+                if (dList && dList.districts && dList.districts.length > 0) {
+                    for (var i = 0; i < dList.districts.length > 0; i++) {
+                        if (dList.districts[i].name == proposalData.country) {
+                            districtId = dList.districts[i].id;
+                        }
+                    }
+                }
+                return {
+                    provinceId: provinceId,
+                    cityId: cityId,
+                    districtId: districtId
+                };
+            },
+            error => {
+                return {};
+            }
+        );
+    },
+
+    createPlayerCreditChangeLog: function (data) {
+        var platformObjId = null;
+        var playerObjId = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObjId = platformData._id;
+                    data.platformId = platformData._id;
+                    return dbconfig.collection_players.findOne({name: data.playerName, platform: platformObjId}).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    playerObjId = playerData._id;
+                    data.playerId = playerData._id;
+                    if (data.data && data.data.pno) {
+                        return dbconfig.collection_proposal.findOne({"data.pno": data.data.pno}).then(
+                            proposalData => {
+                                if (proposalData) {
+                                    data.data.proposalId = proposalData.proposalId;
+                                }
+                                return data;
+                            }
+                        );
+                    }
+                    else {
+                        return data;
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player data"});
+                }
+            }
+        ).then(
+            data => {
+                var record = new dbconfig.collection_creditChangeLog(data);
+                return record.save();
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "createPlayerCreditChangeLog", data, error)
+        );
+    },
+
+    createPlayerClientSourceLog: function (data) {
+        var record = new dbconfig.collection_playerClientSourceLog(data);
+        return record.save();
+    },
+
+    addPlayerPartner: function (data) {
+        var playerObj = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_players.findOne({
+                        platform: platformData._id,
+                        name: data.playerName
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+                    return dbconfig.collection_partner.findOne({
+                        platform: playerData.platform,
+                        partnerName: data.partnerName
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player"});
+                }
+            }
+        ).then(
+            partnerData => {
+                if (partnerData) {
+                    return dbconfig.collection_players.findOneAndUpdate({
+                        _id: playerObj._id,
+                        platform: playerObj.platform
+                    }, {partner: partnerData._id});
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find partner"});
+                }
+            }
+        );
+    },
+
+    addPlayerReferral: function (data) {
+        var playerObj = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_players.findOne({
+                        platform: platformData._id,
+                        name: data.playerName
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+                    return dbconfig.collection_players.findOne({
+                        platform: playerData.platform,
+                        name: data.referralName
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player"});
+                }
+            }
+        ).then(
+            referralData => {
+                if (referralData) {
+                    return dbconfig.collection_players.findOneAndUpdate({
+                        _id: playerObj._id,
+                        platform: playerObj.platform
+                    }, {referral: referralData._id});
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find referral"});
+                }
+            }
+        );
+    },
+
+    updateLastPlayedProvider: function (inputData) {
+        var platformProm = dbconfig.collection_platform.findOne({platformId: inputData.platform}).lean();
+        var providerProm = dbconfig.collection_gameProvider.findOne({providerId: inputData.providerId}).lean();
+
+        return Q.all([platformProm, providerProm]).then(
+            data => {
+                if (data && data[0] && data[1]) {
+                    return dbconfig.collection_players.findOne({
+                        name: inputData.playerName,
+                        platform: data[0]._id
+                    }).then(
+                        playerData => {
+                            if (playerData) {
+                                playerData.lastPlayedProvider = data[1]._id;
+                                return playerData.save();
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Can not find player"});
+                            }
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform or provider"});
+                }
+            }
+        );
+    },
+
+    updatePlayerCredit: function (inputData) {
+        return dbconfig.collection_platform.findOne({platformId: inputData.platform}).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_players.findOne({
+                        name: inputData.playerName,
+                        platform: platformData._id
+                    }).then(
+                        playerData => {
+                            if (playerData) {
+                                playerData.validCredit = inputData.validCredit;
+                                return playerData.save();
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Can not find player"});
+                            }
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        )
+    },
+
+    validateProposalData: function (typeName, proposalData) {
+        var bValid = false;
+        //check proposal parameters for each type
+        switch (typeName) {
+            case "UpdatePlayerInfo":
+                bValid = true;
+                break;
+            case "UpdatePlayerCredit":
+                if (proposalData && proposalData.updateAmount != null) {
+                    bValid = true;
+                }
+                break;
+            case "UpdatePlayerEmail":
+                if (proposalData && proposalData.updateData && proposalData.updateData.email != null) {
+                    bValid = true;
+                }
+                break;
+            case "UpdatePlayerPhone":
+                if (proposalData && proposalData.updateData && proposalData.updateData.phoneNumber != null) {
+                    bValid = true;
+                }
+                break;
+            case "UpdatePlayerBankInfo":
+                bValid = true;
+                break;
+            case "AddPlayerRewardTask":
+                //there shouldn't be any proposal use this type for data sync
+                break;
+            case "UpdatePartnerBankInfo":
+                if (proposalData && proposalData.updateData) {
+                    bValid = true;
+                }
+                break;
+            case "UpdatePartnerPhone":
+                if (proposalData && proposalData.updateData && proposalData.updateData.phoneNumber) {
+                    bValid = true;
+                }
+                break;
+            case "UpdatePartnerEmail":
+                if (proposalData && proposalData.updateData && proposalData.updateData.email) {
+                    bValid = true;
+                }
+                break;
+            case "UpdatePartnerInfo":
+                if (proposalData && proposalData.updateData) {
+                    bValid = true;
+                }
+                break;
+            case "FullAttendance":
+                if (proposalData && proposalData.rewardAmount && proposalData.spendingAmount) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerConsumptionReturn":
+                //there shouldn't be any proposal use this type for data sync
+                break;
+            case "PartnerConsumptionReturn":
+                //there shouldn't be any proposal use this type for data sync
+                break;
+            case "FirstTopUp":
+                if (proposalData && proposalData.rewardAmount && proposalData.applyAmount && proposalData.spendingAmount) {
+                    bValid = true;
+                }
+                break;
+            case "PartnerIncentiveReward":
+                //there shouldn't be any proposal use this type for data sync
+                break;
+            case "PartnerReferralReward":
+                //there shouldn't be any proposal use this type for data sync
+                break;
+            case "GameProviderReward":
+                //there shouldn't be any proposal use this type for data sync
+                break;
+            case "PlatformTransactionReward":
+                //there shouldn't be any proposal use this type for data sync
+                break;
+            case "ManualPlayerTopUp":
+                if (proposalData && proposalData.amount) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerAlipayTopUp":
+                if (proposalData && proposalData.amount) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerTopUp":
+                if (proposalData && proposalData.amount) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerBonus":
+                if (proposalData && proposalData.bonusId && proposalData.amount && proposalData.bonusCredit) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerTopUpReturn":
+                if (proposalData && proposalData.rewardAmount && proposalData.applyAmount && proposalData.spendingAmount) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerConsumptionIncentive":
+                if (proposalData && proposalData.rewardAmount && proposalData.spendingAmount) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerLevelUp":
+                if (proposalData && proposalData.rewardAmount) {
+                    bValid = true;
+                }
+                break;
+            case "PartnerTopUpReturn":
+                //there shouldn't be any proposal use this type for data sync
+                break;
+            case "PlayerTopUpReward":
+                if (proposalData && proposalData.rewardAmount && proposalData.applyAmount && proposalData.spendingAmount) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerReferralReward":
+                if (proposalData && proposalData.rewardAmount) {
+                    bValid = true;
+                }
+                break;
+            case "PartnerBonus":
+                if (proposalData && proposalData.bonusId && proposalData.amount && proposalData.bonusCredit) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerConsumptionReturnFix":
+                if (proposalData && proposalData.updateAmount) {
+                    bValid = true;
+                }
+                break;
+            case "PlayerRegistrationReward":
+                if (proposalData && proposalData.rewardAmount && proposalData.unlockBonusAmount) {
+                    bValid = true;
+                }
+                break;
+            default:
+                break;
+        }
+        return bValid;
+    },
+
+    syncProposal: function (typeName, platform, creator, creatorType, createTime, entryType, userType, status, proposalData) {
+        var bPartnerProposal = false;
+        //data validation
+        var dataValidationProm = Q.resolve().then(
+            () => {
+                //check proposal status
+                if (status != constProposalStatus.SUCCESS && status != constProposalStatus.FAIL) {
+                    return Q.reject({name: "DataError", message: "Invalid proposal status"});
+                }
+                var bValid = dbMigration.validateProposalData(typeName, proposalData);
+
+                if (!bValid) {
+                    return Q.reject({name: "DataError", message: "Invalid proposal data"});
+                }
+                var userProm = dbconfig.collection_players.findOne({name: proposalData.loginname}).lean();
+                var partnerProposalType = ["PartnerBonus", "UpdatePartnerBankInfo", "UpdatePartnerPhone", "UpdatePartnerEmail", "UpdatePartnerInfo", ""];
+                if (partnerProposalType.indexOf(typeName) >= 0) {
+                    bPartnerProposal = true;
+                    proposalData.partnerName = proposalData.loginname;
+                    userProm = dbconfig.collection_partner.findOne({partnerName: proposalData.loginname}).lean();
+                }
+                else {
+                    proposalData.playerName = proposalData.loginname;
+                }
+                return userProm.then(
+                    userData => {
+                        if (userData) {
+                            return userData;
+                        }
+                        else {
+                            return Q.reject({name: "DataError", message: "Can not find user"});
+                        }
+                    }
+                );
+            }
+        );
+
+        var creatorObj = {};
+        creatorType = creatorType || 'system';
+        var prom1 = Q.resolve({});
+        if (creatorType == 'admin') {
+            prom1 = dbconfig.collection_admin.findOne({adminName: creator}).lean();
+        } else if (creatorType == 'player') {
+            prom1 = dbconfig.collection_players.findOne({name: creator}).lean();
+        }
+        var prom2 = dbconfig.collection_platform.findOne({platformId: platform}).lean();
+        var prom3 = Q.resolve({});
+        if (!bPartnerProposal && proposalData && proposalData.loginname) {
+            prom3 = dbconfig.collection_players.findOne({name: proposalData.loginname}).lean();
+        }
+        return Q.all([prom1, prom2, prom3, dataValidationProm]).then(
+            data => {
+                if (data && data[1]) {
+                    var platformObj = data[1], user = data[0], player = data[2];
+                    var partner = null;
+                    if (bPartnerProposal) {
+                        partner = data[3];
+                    }
+                    if (user) {
+                        if (creatorType == 'admin') {
+                            creatorObj = {
+                                name: user.adminName,
+                                type: 'admin',
+                                id: user._id
+                            };
+                        } else if (creatorType == 'player') {
+                            creatorObj = {
+                                name: user.name,
+                                type: 'player',
+                                id: user._id
+                            };
+                            proposalData._id = user._id;
+                            proposalData.playerObjId = user._id;
+                            proposalData.playerId = user.playerId;
+                            //proposalData.playerShorId = user.playerId;
+                            proposalData.platformObjId = user.platform;
+                            proposalData.platformId = user.platform;
+                        }
+                    }
+                    if (player) {
+                        proposalData._id = player._id;
+                        proposalData.playerObjId = player._id;
+                        proposalData.playerId = player.playerId;
+                        //proposalData.playerShorId = player.playerId;
+                        proposalData.platformObjId = player.platform;
+                        proposalData.platformId = player.platform;
+                    }
+                    if (partner) {
+                        proposalData.partnerObjId = partner._id;
+                        proposalData.platformObjId = partner.platform;
+                        proposalData.platformId = partner.platform;
+                        proposalData.partnerName = partner.partnerName;
+                    }
+                    var newProposalData = proposalData;
+                    return dbMigration.proposalDataConverter(typeName, proposalData).then(
+                        convertData => {
+                            newProposalData = convertData;
+                            return dbconfig.collection_proposalType.findOne({
+                                platformId: platformObj._id,
+                                name: typeName
+                            })
+                        }
+                    ).then(
+                        proposalType => {
+                            if (proposalType) {
+                                createTime = createTime || new Date();
+                                var newRecord = {
+                                    mainType: constProposalMainType[typeName],
+                                    type: proposalType._id,
+                                    creator: creatorObj,
+                                    createTime: createTime,
+                                    data: newProposalData,
+                                    entryType: entryType,
+                                    userType: userType,
+                                    status: status,
+                                    noSteps: true
+                                };
+                                return dbProposal.createProposal(newRecord).then(
+                                    data => {
+                                        return data;
+                                    },
+                                    err => {
+                                        return Q.reject({
+                                            name: "DataError",
+                                            message: "Error when creating proposal.",
+                                            err: err
+                                        });
+                                    }
+                                );
+                            } else {
+                                return Q.reject({name: "DataError", message: "Can not find proposalType in platform"});
+                            }
+                        }
+                    )
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            },
+            err => {
+                return Q.reject({name: "DataError", message: "Can not find platform or creator", err: err});
+            }
+        ).then(
+            proposal => {
+                if (proposal) {
+                    //if proposal is success, execute proposal data
+                    if (typeName != "PlayerBonus" && typeName != "PartnerBonus") {
+                        if (status == constProposalStatus.SUCCESS) {
+                            var executionType = "execute" + typeName;
+                            var rejectionType = "reject" + typeName;
+                            var newProposal = proposal.toObject();
+                            newProposal.type = {name: typeName};
+                            return proposalExecutor.approveOrRejectProposal(executionType, rejectionType, true, newProposal);
+                        }
+                    }
+                    else {
+                        if (status == constProposalStatus.SUCCESS) {
+                            //update player credit if it is bonus proposal
+                            var updateAmount = proposal.data.amount * proposal.data.bonusCredit;
+                            if (typeName == "PlayerBonus") {
+                                return dbPlayerInfo.changePlayerCredit(proposal.data.playerObjId, proposal.data.platformObjId, -updateAmount, typeName, proposal.data).then(
+                                    player => {
+                                        console.error("Player credits is below zero.", player);
+                                        if (player && player.validCredit < 0) {
+                                            player.validCredit = 0;
+                                            return player.save();
+                                        }
+                                    }
+                                );
+                            }
+                            else {
+                                return dbconfig.collection_partner.findOneAndUpdate(
+                                    {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},
+                                    {$inc: {credits: -updateAmount}},
+                                    {new: true}
+                                ).then(
+                                    newPartnerData => {
+                                        if (newPartnerData && newPartnerData.credits < 0) {
+                                            console.error("Partner credits is below zero.", newPartnerData);
+                                            return dbconfig.collection_partner.findOneAndUpdate(
+                                                {
+                                                    _id: proposalData.data.partnerObjId,
+                                                    platform: proposalData.data.platformId
+                                                },
+                                                {credits: 0},
+                                                {new: true}
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("proposal", "createProposal", {
+                type: typeName, platform: platform, creator: creator, creatorType: creatorType, createTime: createTime,
+                entryType: entryType, userType: userType, status: status, proposalData: proposalData
+            }, error)
+        );
+    },
+
+    syncPlayerLoginRecord: function (data) {
+        var platformId = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
+            platformData => {
+                if (platformData) {
+                    platformId = platformData._id;
+                    var playerProm = dbconfig.collection_players.findOne({name: data.playerName, platform: platformId});
+                    return Q.resolve(playerProm);
+                }
+            }
+        ).then(
+            promData => {
+                if (promData) {
+                    data.player = promData._id;
+                    delete data.playerName;
+                    data.platform = platformId;
+                    data.loginTime = data.loginTime ? new Date(data.loginTime) : null;
+                    data.logoutTime = data.logoutTime ? new Date(data.logoutTime) : null;
+                    if (data.browser || data.device || data.os) {
+                        data.userAgent = {
+                            browser: data.browser || '',
+                            device: data.device || '',
+                            os: data.os || '',
+                        }
+                    }
+                    data.userAgent = data.userAgent || {};
+                    var record = new dbconfig.collection_playerLoginRecord(data);
+
+                    var newAgentArray = promData.userAgent || [];
+                    var uaObj = {
+                        browser: data.browser || '',
+                        device: data.device || '',
+                        os: data.os || '',
+                    };
+                    var bExit = false;
+                    newAgentArray.forEach(
+                        agent => {
+                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                bExit = true;
+                            }
+                        }
+                    );
+                    var updateData = {};
+                    if (!bExit) {
+                        newAgentArray.push(uaObj);
+                        updateData.userAgent = newAgentArray;
+                    }
+                    if (promData.lastAccessTime.getTime() < data.loginTime.getTime()) {
+                        updateData.lastLoginIp = data.loginIP;
+                        updateData.lastAccessTime = data.loginTime;
+                        var geo = geoip.lookup(data.loginIP);
+                        var geoInfo = {};
+                        if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                            geoInfo = {
+                                country: geo ? geo.country : null,
+                                city: geo ? geo.city : null,
+                                longitude: geo && geo.ll ? geo.ll[1] : null,
+                                latitude: geo && geo.ll ? geo.ll[0] : null
+                            }
+                        }
+                        Object.assign(updateData, geoInfo);
+                    }
+                    // if (data.loginIP && data.loginIP != promData.lastLoginIp) {
+                    //     updateData.$push = {loginIps: data.loginIP};
+                    // }
+                    dbconfig.collection_players.findOneAndUpdate({
+                        _id: promData._id,
+                        platform: promData.platform
+                    }, updateData).exec();
+                    return record.save()
+                } else {
+                    return Q.reject({name: "DataError", message: "Can not find player or admin"});
+                }
+            }
+        ).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "createPlayerLoginRecord", data, error)
+        );
+    },
+
+    transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
+        return dbPlayerInfo.transferPlayerCreditToProvider(playerId, platform, providerId, amount, adminName, forSync).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "transferPlayerCreditToProvider", {
+                playerId: playerId,
+                providerId: providerId
+            }, error)
+        );
+    },
+
+    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
+        return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync).then(
+            dbMigration.resHandler,
+            error => dbMigration.errorHandler("player", "transferPlayerCreditFromProvider", {
+                playerId: playerId,
+                providerId: providerId,
+                amount: amount
+            }, error)
+        );
+    }
+
+
+};
+
+module.exports = dbMigration;

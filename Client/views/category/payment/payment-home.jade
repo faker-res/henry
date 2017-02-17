@@ -1,0 +1,41 @@
+.row.margin-left-5.margin-right-5(ng-if="checkViewPermission('Payment')")
+    .col-md-3(ng-class='vm.leftPanelClass')
+        include ./platform-list
+    #platformContent.col-md-9(style="padding-left:0;",ng-class='vm.rightPanelClass')
+        .padding-all-5
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs
+                        .pull-left.padding-all-5
+                            a.fa.fa-chevron-circle-left.contractIcon(ng-show='vm.showPlatformList', ng-click='vm.toggleShowPlatformList(false)')
+                            a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showPlatformList', ng-click='vm.toggleShowPlatformList(true)')
+                        li(ng-if='!vm.curPlatformText')
+                            div.platformName
+                                .fa.fa-2x.fa-cubes(style='margin:5px 10px;')
+                                text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
+                        li(ng-if='vm.curPlatformText', style='margin: 0 5px')
+                            div.platformName(ng-click='vm.showPlatformDetailModal()')
+                                .fa.fa-2x.fa-cubes(style='margin:5px 10px;')
+                                text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
+                        li.active
+                            a.common-tab(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.paymentPageName='bankCardGroup';vm.updatePageTile();")
+                                .fa.fa-credit-card.margin-right-5
+                                text.span {{"Bankcard Group" | translate}}
+                        li
+                            a.common-tab(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Read')",data-toggle="tab", href="#merchantGroup", ng-click="vm.merchantGroupTabClicked();vm.paymentPageName='merchantGroup';vm.updatePageTile();")
+                                .fa.fa-money.margin-right-5
+                                text.span {{"Merchant Group" | translate}}
+                        li
+                            a.common-tab(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Read')",data-toggle="tab", href="#alipayGroup", ng-click="vm.paymentPageName='alipayGroup';vm.updatePageTile();")
+                                img.margin-right-5(src='images/icon/aliPayBlue.png')
+                                text.span {{"Alipay" | translate}}
+
+                .panel-body.common-right-panel-body
+                    div.tab-content
+                        #bankCardGroup.tab-pane.fade.in.active
+                            include ./payment-bankCardGroup
+                        #merchantGroup.tab-pane.fade
+                            include ./payment-merchantGroup
+                        #alipayGroup.tab-pane.fade
+                            include ./payment-alipayGroup
+#dialogFrame.dialog-frame

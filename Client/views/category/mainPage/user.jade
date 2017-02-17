@@ -1,0 +1,238 @@
+//.col-md-6.padding-left-right-1
+    .search-box
+        .fa.fa-search.pull-right.margin-all-5
+        a.fa.fa-times.pull-right.margin-all-5(ng-if='vm.searchText', ng-click='vm.searchText=null')
+        input#userSearch.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}}', ng-model="vm.searchText")
+.col-md-12.padding-left-right-1(style="height:400px;")
+    table.common-table#userDataTable.display(ng-if="checkViewPermission('Admin', 'User', 'Read')")
+        //thead(ng-show='vm.users.length>0')
+            tr
+                th(ng-repeat='(n,v) in vm.dataTableCols') {{v.title}}
+
+#userInfoPopover.col-md-12.padding-left-right-1.hide(style="width: 600px")
+    div(style="padding:4px;margin:0px;width: 600px")
+        ul.list-unstyled.horizontalList
+            li {{"USER_NAME" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.curUser.adminName}}
+            li {{"EMAIL" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.curUser.email}}
+            li {{"FIRST_NAME" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.curUser.firstName}}
+            li {{"LAST_NAME" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.curUser.lastName}}
+            li {{"DEPARTMENT" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.displayArrayElementsName(vm.curUser.departments, "departmentName")}}
+            li {{"ROLE" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.displayArrayElementsName(vm.curUser.roles, "roleName")}}
+            li {{"DID" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.curUser.did}}
+            li {{"Caller ID" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.curUser.callerId}}
+.col-md-12.padding-left-right-1
+    .btn-group(role="user")
+        a.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Create')" ng-disabled="!vm.canCreateUser()", data-toggle="{{vm.canCreateUser() ? 'modal' : ''}}", data-target='#modalCreateUser', ng-click="vm.pageTag='createAdmin'; vm.initNewUser()")
+            text {{'CREATE' | translate}}
+            img.img-create
+        a.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Delete')" ng-disabled="!vm.isUserSelected()", data-toggle="{{vm.isUserSelected() ? 'modal' : ''}}", data-target='#modalDeleteUser')
+            text {{'DELETE' | translate}}
+            img.img-delete
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Move')" ng-disabled="vm.selectedUsersCount!=1", data-toggle="modal",  data-target='#modalMoveDepartment', ng-click="vm.canMoveUser();vm.moveDepartmentDialog('user');vm.moveUser=true")
+            text {{'MOVE' | translate}}
+            img.img-move
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Update')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="modal",  data-target='#modalEditUser', ng-click="vm.editUserDialog()")
+            text {{'UPDATE' | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'ViewLog')" ng-disabled="vm.selectedUsersCount!=1", ng-click="vm.getAdminLog()")
+            text {{'VIEW_LOG' | translate}}
+            .fa.fa-list-alt
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'AttachRole')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="{{vm.selectedUsersCount===1 ? 'modal' : ''}}",  data-target='#modalAttachRolesToUser', ng-click='vm.attachAdminToRole();')
+            text {{'ATTACH_ROLE' | translate}}
+            .fa.fa-user-plus
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'DetachRole')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="{{vm.selectedUsersCount===1 ? 'modal' : ''}}",  data-target='#modalDetachRolesFromUser', ng-click="vm.beforeDetachingRole()")
+            text {{'DETACH_ROLE' | translate}}
+            .fa.fa-user-times
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'ResetPassword')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="{{vm.selectedUsersCount===1 ? 'modal' : ''}}",  data-target='#modalResetAdminPassword', ng-click="")
+            text {{'RESET_PASSWORD' | translate}}
+            .fa.fa-pencil-square-o
+
+#modalResetAdminPassword.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'RESET_ADMIN_PASSWORD' | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                text.control-label {{"The password of admin "|translate}}
+                                text.text-success(ng-repeat="(i,v) in vm.selectedUsers") &nbsp;{{v.adminName}}
+                                span &nbsp;{{"will be reset. Are you sure?"|translate}}
+
+                        .well(ng-if='vm.newAdminPassword')
+                            .form-group
+                                text The new password for&nbsp;
+                                span.text-success {{vm.curUser.adminName}}
+                                span &nbsp;is&nbsp;
+                                strong.text-danger {{vm.newAdminPassword}}
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(ng-if='!vm.newAdminPassword', ng-click='vm.submitResetAdminPassword()') {{'RESET_PASSWORD' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-if='vm.newAdminPassword', data-dismiss='modal') {{'OK' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.newAdminPassword', data-dismiss='modal') {{"CANCEL" | translate}}
+
+
+
+#modalCreateUser.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"CREATE_USER" | translate}} {{"in"|translate}} &nbsp;
+                    strong.text-danger(ng-repeat="(i,v) in vm.fullDepartmentPath") {{v.text}}/
+                    strong.text-danger {{vm.SelectedDepartmentNode.text}}
+                    text &nbsp;{{"DEPARTMENT"|translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            include admin-create
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-disabled='form_create_admin.$invalid || vm.passwordLengthCheck(vm.newAdmin.password)', ng-click="vm.createUser();") {{"CREATE_USER" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalEditUser.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"EDIT_USER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            include admin-update
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-disabled='form_update_admin.$invalid', ng-click="vm.submitEditUser();") {{"EDIT_USER" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalDeleteUser.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_USER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete user"|translate}}&nbsp;
+                                    span(ng-repeat="(i,v) in vm.selectedUsers")
+                                        strong.text-danger {{v.adminName}}
+                                        text(ng-if='!$last') ,&nbsp;
+                                    label ?
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.deleteUsers();") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalAttachRolesToUser.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ATTACH_ROLE" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    text {{"Adding"|translate}}&nbsp;
+                                    strong.text-danger {{vm.curUser.adminName}}
+                                    text &nbsp;{{"to following roles"|translate}}:
+                                    //text The following users&nbsp;
+                                    //strong.text-danger(ng-repeat="(i,v) in vm.selectedUsers") {{v}}&nbsp;
+                                    //text will be added to
+                        .row
+                            .col-md-12
+                                div(ng-if='vm.avaliableRoles.length == 0')
+                                    label {{"No available roles"|translate}}
+                                div(ng-if='vm.avaliableRoles.length > 0')
+                                    div(ng-repeat="(i,v) in vm.avaliableRoles")
+                                        label {{v.roleName}}
+                                            input.pull-left(type='checkbox', ng-model='vm.roleToBeAttached[v._id]')
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='vm.numberOfTruthyProps(vm.roleToBeAttached) == 0', ng-click="vm.submitAttachRoles();") {{"ADD_ROLE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalDetachRolesFromUser.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DETACH_ROLE" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    text {{"The following roles will be detached from"|translate}}&nbsp;
+                                    strong.text-danger {{vm.curUser.adminName}}
+                                    text :
+                        .row
+                            .col-md-12
+                                div(ng-if='vm.curUser.roles.length == 0')
+                                    label {{"This user has no roles"|translate}}
+                                div(ng-if='vm.curUser.roles.length > 0')
+                                    div(ng-repeat="(i,v) in vm.curUser.roles")
+                                        label {{v.roleName}}
+                                            input.pull-left(type='checkbox', ng-model='vm.roleToBeDetached[v._id]')
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='vm.numberOfTruthyProps(vm.roleToBeDetached) == 0', ng-click="vm.submitDetachRoles();") {{"DETACH_ROLE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalThisAdminLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:80%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'VIEW_LOG' | translate}}
+            .modal-body
+                .adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        label {{'Action' | translate}}
+                        select.form-control(ng-model='vm.filterAction')
+                            option(ng-repeat='(i,v) in vm.allAdminActions', value='{{v}}') {{v}}
+                            option(value='-1') {{'Unlimited' | translate}}
+                    .inlineBlk
+                        label {{'Limit' | translate}}
+                        select.form-control.limit(type="date")
+                            option 100
+                            option 200
+                            option 500
+                            option(value='0') {{'Unlimited' | translate}}
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.updateAdminLog($event)') {{'SEARCH' | translate}}
+                        i.fa.fa-spin.fa-spinner.pull-right(style='font-size:1.7em', ng-if='vm.gettingAdminLog')
+                table.simple-table.display#thisAdminLogDataTable(style='min-width:100%')
+                    thead
+                        tr
+                            th {{'TIME' | translate}}
+                            th {{'ACTION' | translate}}
+                            th {{'PARAMETER' | translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in thisAdminLogData')
+                            td {{timeReformat(v.operationTime)}}
+                            td {{v.action | translate}}
+                            td.wordWrap {{v.data}}
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click='') {{"CLOSE" | translate}}

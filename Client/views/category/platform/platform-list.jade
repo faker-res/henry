@@ -1,0 +1,247 @@
+.padding-all-5
+    .panel.panel-primary
+        .panel-heading.padding-all-5
+            .panel-title.left-col
+                .fa.fa-cubes
+                text &nbsp;{{"PLATFORM" | translate}}
+                a#platformRefresh.fa.fa-refresh.pull-right(style='font-size:1.7em', ng-click='vm.loadPlatformData();vm.syncPlatform()')
+        .panel-body.common-left-panel-body
+            .search-box.margin-top-bottom-small
+                .fa.fa-search.pull-right.margin-all-5(ng-click='vm.searchPlatform()')
+                input.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}}' ng-model="vm.platformSearchText", ng-change='vm.rebuildPlatformListDebounced()')
+            p
+            div#platformTree(style="height: 400px;")
+            div#platformDetail.margin-top-bottom-small
+                table.platformDetailClass(style='width:100%;font-size:16px')
+                    tr
+                        td(style='width:10%') {{'ID' | translate}}
+                        td(style='width:40%') {{vm.selectedPlatform.data.platformId}}
+                        td(style='width:10%')
+                            .fa.fa-share-alt(title="{{'OPERATION_DEPARTMENT' | translate}}")
+                        td(style='width:40%') {{vm.getDepartNamebyId(vm.selectedPlatform.data.department)}}
+                    tr
+                        td
+                            .fa.fa-arrow-circle-o-right(title="{{'PLATFORM_PREFIX' | translate}}")
+                        td {{vm.selectedPlatform.data.prefix}}
+                        td
+                            .fa.fa-phone(title="{{'TELPHONE' | translate}}")
+                        td {{vm.selectedPlatform.data.csPhone}}
+                    tr
+                        td
+                            .fa.fa-weixin(title="{{'WEIXIN' | translate}}")
+                        td {{vm.selectedPlatform.data.csWeixin}}
+                        td
+                            .fa.fa-qq(title="QQ")
+                        td {{vm.selectedPlatform.data.csQQ}}
+                    tr
+                        td
+                            .fa.fa-clock-o(title='{{"DAILY_SETTLE_TIME" | translate}}')
+                        td
+                            span.noWrap {{vm.getHourName(vm.selectedPlatform.data.dailySettlementHour)}}&nbsp;:&nbsp;
+                            span.noWrap {{vm.getMinName(vm.selectedPlatform.data.dailySettlementMinute)}}
+                        td
+                            .fa.fa-calendar(title='{{"WEEKLY_SETTLE_TIME" | translate}}')
+                        td
+                            span.noWrap {{vm.getDayName(vm.selectedPlatform.data.weeklySettlementDay)}},&nbsp;
+                            span.noWrap {{vm.getHourName(vm.selectedPlatform.data.weeklySettlementHour)}}&nbsp;:&nbsp;
+                            span.noWrap {{vm.getMinName(vm.selectedPlatform.data.weeklySettlementMinute)}}
+                    tr
+                        td(colspan=2) {{'PLATFORM_CODE' | translate}}&nbsp;:&nbsp;{{vm.selectedPlatform.data.code | translate}}
+                        td(colspan=2)
+                            span {{'AUTO_SETTLEMENT' | translate}}&nbsp;:&nbsp;
+                            span(ng-if='vm.selectedPlatform.data.canAutoSettlement') {{'Yes' | translate}}
+                            span(ng-if='!vm.selectedPlatform.data.canAutoSettlement') {{'No' | translate}}
+                    tr
+                        td(colspan=2)
+                            text {{'SETTLEMENT_STATUS' | translate}}&nbsp;:&nbsp;
+                            .inlineBlk(style='margin-bottom:0')
+                                .text-success(ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"')
+                                    i.fa.fa-circle
+                                .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="DailyError"')
+                                    i.fa.fa-circle.margin-right-5
+                                .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="WeeklyError"')
+                                    i.fa.fa-circle.margin-right-5
+                        td(colspan=2)
+                            .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="DailyError"')
+                                button.btn.common-button-sm(ng-if='checkViewPermission("Platform","Platform", "DailySettlement")',ng-disabled="!vm.selectedPlatform && vm.platformSettlement.processing", data-toggle="modal", ng-click='vm.dailySettlement(null, true)')
+                                    text {{"Retry Daily Settlement" | translate}}
+                            .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="WeeklyError"')
+                                button.btn.common-button-sm(ng-if='checkViewPermission("Platform","Platform", "WeeklySettlement")',ng-disabled="!vm.selectedPlatform && vm.platformSettlement.processing", data-toggle="modal", ng-click='vm.weeklySettlement(null, true)')
+                                    text {{"Retry Weekly Settlement" | translate}}
+                            i.fa.fa-spinner.fa-spin(ng-if='vm.platformSettlement.processing')
+                    tr
+                        td(colspan=2)
+                            text {{'LAST_DAILY_SETTLEMENT_TIME' | translate}}
+                        td(colspan=2)
+                            text {{vm.dateReformat(vm.selectedPlatform.data.lastDailySettlementTime)}}
+                    tr
+                        td(colspan=2)
+                            text {{'LAST_WEEKLY_SETTLEMENT_TIME' | translate}}
+                        td(colspan=2)
+                            text {{vm.dateReformat(vm.selectedPlatform.data.lastWeeklySettlementTime)}}
+
+
+                //#platformDetail.platformDetailClass.panel.panel-green(ng-if='vm.selectedPlatform')
+                    div
+                        .fa.fa-2x {{'ID' | translate}}
+                        span {{vm.selectedPlatform.data.platformId}}
+                    div
+                        .fa.fa-2x.fa-share-alt(title="{{'OPERATION_DEPARTMENT' | translate}}")
+                        span {{vm.getDepartNamebyId(vm.selectedPlatform.data.department)}}
+                    div
+                        .fa.fa-2x.fa-arrow-circle-o-right(title="{{'PLATFORM_PREFIX' | translate}}")
+                        span {{vm.selectedPlatform.data.prefix}}
+                    div
+                        .fa.fa-2x.fa-clock-o(title='{{"DAILY_SETTLE_TIME" | translate}}')
+                        span {{vm.getHourName(vm.selectedPlatform.data.dailySettlementHour)}}&nbsp;:&nbsp;
+                        span {{vm.getMinName(vm.selectedPlatform.data.dailySettlementMinute)}}
+                    div
+                        .fa.fa-2x.fa-calendar(title='{{"WEEKLY_SETTLE_TIME" | translate}}')
+                        span {{vm.getDayName(vm.selectedPlatform.data.weeklySettlementDay)}}&nbsp;,&nbsp;
+                        span {{vm.getHourName(vm.selectedPlatform.data.weeklySettlementHour)}}&nbsp;:&nbsp;
+                        span {{vm.getMinName(vm.selectedPlatform.data.weeklySettlementMinute)}}
+            .btn-group.text-center.margin-small
+                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform","Create")',data-toggle="modal", data-target='#modalCreatePlatform', ng-click='vm.initPlatform(true);vm.getAllDepartmentData();vm.clearShowPlatform();')
+                    text {{"CREATE" | translate}}
+                    img.img-create
+                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Delete")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalDeletePlatform', ng-click='vm.initPlatform(false)')
+                    text {{"DELETE" | translate}}
+                    img.img-delete
+                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Edit")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform', ng-click='vm.initPlatform(true);vm.getAllDepartmentData();vm.befreUpdatePlatform()')
+                    text {{"EDIT" | translate}}
+                    img.img-edit
+                button.btn.btn-primary.common-button(ng-show='checkViewPermission("Platform","Platform", "DailySettlement") && !vm.selectedPlatform.data.canAutoSettlement && vm.showDailySettlement', ng-disabled="!vm.selectedPlatform", data-toggle="modal", ng-click='vm.settlementModal("Daily Settlement")')
+                    text {{"Daily Settlement" | translate}}
+                    img.img-edit
+                button.btn.btn-primary.common-button(ng-show='checkViewPermission("Platform","Platform", "WeeklySettlement") && !vm.selectedPlatform.data.canAutoSettlement && vm.showWeeklySettlement',ng-disabled="!vm.selectedPlatform", data-toggle="modal", ng-click='vm.settlementModal("Weekly Settlement")')
+                    text {{"Weekly Settlement" | translate}}
+                    img.img-edit
+                //button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "RewardSettlement")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", ng-click='vm.weeklyRewardSettlement()')
+                    text {{"Reward Settlement" | translate}}
+                    img.img-edit
+                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "SettlementHistory")',ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareSettlementHistory()')
+                    text {{"Settlement History" | translate}}
+                    img.img-edit
+#modalCreatePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"CREATE_PLATFORM" | translate}}
+            .modal-body
+                .panel-body
+                    .well
+                        .row
+                            include ./platform-detail-form
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled='form_new_platform.$invalid', ng-click="vm.createNewPlatform();") {{"CREATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalDeletePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_PLATFORM" | translate}}
+            .modal-body
+                .panel.panel-primary
+
+                    .panel-body
+                        .well
+                            p
+                                #WarningIcon.fa.fa-exclamation-triangle
+                                label.margin-right-5 {{"DELETE_PLATFORM_MESSAGE" | translate}}
+                                strong.text-danger {{vm.selectedPlatform.text}} ?
+                        .well
+                            .row
+                                include ./platform-detail-form
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-click="vm.deletePlatform();") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalUpdatePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"EDIT_PLATFORM" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .row
+                                include ./platform-detail-form
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_update_platform.$invalid', ng-click="vm.updatePlatformAction();") {{"UPDATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalPlatformSettlementHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.selectedPlatform.text}} {{"Settle" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-12.block-query.well
+                            div
+                                label.margin-right-5 {{'Settlement Interval' | translate}}
+                                select.form-control(ng-model='vm.queryPara.modalPlatformSettlementHistory.interval', ng-options='a | translate for a in ["daily","weekly"]')
+                            div
+                                label {{"Start date"|translate}}
+                                .startTime
+                            div
+                                label {{"End date"|translate}}
+                                .endTime
+                            div
+                                label &nbsp;
+                                button.btn.common-button.btn-primary(ng-click='vm.getSettlementHistory()') {{'SEARCH' | translate}}
+                            hr
+                            table#platformSettlementHistoryTbl.common-table.display(style='width:100%')
+                                thead
+                                    tr
+                                        th {{"SETTLEMENT" | translate}} {{'TIME' | translate}}
+                                        th {{"CREATE_TIME" | translate}}
+                                        th {{'RESULT' | translate}}
+                                        th(style='width:50%') {{'DETAIL' | translate}}
+                                tbody
+                                    tr(ng-repeat='(i,v) in vm.platformSettlementHis')
+                                        td {{vm.dateReformat(v.settlementTime)}}
+                                        td {{vm.dateReformat(v.createTime)}}
+                                        td {{v.result ? "Success" : "Failure" | translate}}
+                                        td.wordWrap(style='width:50%;word-break:break-all') {{v.data}}
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}
+#modalPlatformSettlement.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.settlementType | translate}} : {{vm.selectedPlatform.text}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-12
+                            label {{vm.settlementType | translate}}
+                            | &nbsp;
+                            i#platformSettlementLoadingIcon.fa.fa-spin.fa-spinner
+                        .col-md-12
+                            table#settlementTable.common-table.display(style='width:100%')
+                        .col-md-12
+                            center
+                                label {{'Total' | translate}} {{'CONSUMPTIONAMOUNT' | translate}}:
+                                text &nbsp;{{vm.settlementTableTotals.totalConsumption}}
+                                | &nbsp;
+                                label {{'Total' | translate}} {{'RETURNAMOUNT' | translate}}:
+                                text &nbsp;{{vm.settlementTableTotals.totalReturn}}
+            .modal-footer
+                .form-control.inlineBlk(style='width:initial', ng-if='vm.platformSettlement.message')
+                    .text-danger {{vm.platformSettlement.message | translate}}
+                button.btn.btn-success.common-button(ng-if='vm.platformSettlement.message=="Success"', data-dismiss='modal', ng-click="vm.loadPlatformData()") {{'CONFIRMATION' | translate}}
+                button.btn.btn-success.common-button(ng-if='vm.platformSettlement.message!="Success"', ng-click="vm.performSettlement()", ng-disabled='vm.platformSettlement.processing') {{vm.settlementType | translate}}
+                    i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.platformSettlement.processing')
+                button.btn.btn-warning.common-button(ng-if='vm.platformSettlement.message!="Success"', data-dismiss='modal') {{"CLOSE" | translate}}
+
+
+

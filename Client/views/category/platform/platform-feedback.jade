@@ -1,0 +1,174 @@
+.row
+    .col-md-12
+        .well.feedbackQueryDiv
+            .inlineBlk
+                label {{"TYPE" | translate}}
+                select.form-control(ng-model='vm.playerFeedbackQuery.isRealPlayer', required)
+                    option(value=0) {{"ALL" | translate}}
+                    option(value=1) {{"Real Player" | translate}}
+                    option(value=2) {{"Test Player" | translate}}
+            .inlineBlk
+                label {{"PLAYER_LEVEL" | translate}}
+                select.form-control(ng-model='vm.playerFeedbackQuery.playerLevel', required)
+                    option(value='all') {{'ALL' | translate}}
+                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+            .inlineBlk
+                label {{"TRUST_LEVEL" | translate}}
+                select.form-control(ng-model='vm.playerFeedbackQuery.trustLevel', required)
+                    option(value='all') {{'ALL' | translate}}
+                    option(ng-repeat='(i,v) in vm.allPlayerTrustLvl', value='{{v.value}}') {{v.name | translate}}
+            .inlineBlk
+                label {{"LAST_ACCESS_TIME" | translate}} {{"from" | translate}}
+                    a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#lastAccessTime1")')
+                #lastAccessTime1
+            .inlineBlk
+                label {{"LAST_ACCESS_TIME" | translate}} {{"to" | translate}}
+                    a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#lastAccessTime2")')
+                #lastAccessTime2
+            .inlineBlk
+                label {{"Last Feedback Time" | translate}} {{"from" | translate}}
+                    a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#lastFeedbackTime1")')
+                #lastFeedbackTime1
+            .inlineBlk
+                label {{"Last Feedback Time" | translate}} {{"to" | translate}}
+                    a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#lastFeedbackTime2")')
+                #lastFeedbackTime2
+            .inlineBlk
+                label {{"topUpTimes" | translate}}
+                select.form-control(ng-model='vm.playerFeedbackQuery.topUpTimes', required)
+                    option(value="-1") {{"N/A" | translate}}
+                    option(value=0) 0
+                    option(value=1) 1-5
+                    option(value=2) 6-?
+            .inlineBlk
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.submitPlayerFeedbackQuery()') {{"SEARCH" | translate}}
+.row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
+    .text-center.text-danger
+        label {{"NO_PLATFORM_MESSAGE" | translate}}
+.row.margin-top-bottom-small(ng-show='vm.selectedPlatform')
+    .col-md-4
+        .panel.panel-primary
+            .panel-heading
+                .text-center {{"Player Information" | translate}}
+            .panel-body#feedbackPlayerInfo
+                table.simple-table
+                    tbody
+                        tr
+                            td(style='width:50%') {{"PLAYERNAME" | translate}}
+                            td(style='width:50%') {{vm.curFeedbackPlayer.name}}
+                        tr
+                            td {{"PARTNER" | translate}}
+                            td {{vm.curFeedbackPlayer.partner.partnerName || ''}}
+                        tr
+                            td {{"LOCAL_CREDIT" | translate}}
+                            td
+                                text.margin-right-5 {{vm.curFeedbackPlayer.validCredit || 0 | number:2}}
+                                .badge
+                                    i.fa.fa-lock.text-danger.margin-right-5
+                                    .inlineBlk {{vm.curFeedbackPlayer.lockedCredit || 0 | number : 2}}
+                        tr
+                            td {{"GAME_CREDIT" | translate}}
+                            td
+                                label(ng-show='vm.platformProviderList.length==0') {{"NO_PROVIDER" | translate}}
+                                ul.list-unstyled
+                                    li.form-control(ng-repeat='(i,v) in vm.platformProviderList', style='height: inherit;text-align:left；margin-bottom:-1px')
+                                        label(style='width:100%') {{v.name}}
+                                            span.inlineBlk.pull-right.badge(ng-if='!vm.curFeedbackPlayer.gameCredit') ?
+                                            span.inlineBlk.pull-right.badge(ng-if='vm.curFeedbackPlayer.gameCredit')
+                                                .text-danger(ng-show='vm.curFeedbackPlayer.gameCredit[v.providerId]') {{vm.curFeedbackPlayer.gameCredit[v.providerId].gameCredit || 0}}
+                                                i.fa.fa-spinner.fa-spin(ng-show='!vm.curFeedbackPlayer.gameCredit[v.providerId]')
+                                button.btn.btn-primary.pull-right(ng-show='vm.platformProviderList.length>0', ng-click='vm.getPlayerCreditinFeedbackInfo()') {{'SEARCH' | translate}}
+                        tr
+                            td {{"PLAYER_LEVEL" | translate}}
+                            td {{vm.playerLvlData[vm.curFeedbackPlayer.playerLevel].name || 'Unknown'}}
+                        tr
+                            td {{"TrustLevel" | translate}}
+                            td {{vm.curFeedbackPlayer.trustLevel}}
+                        tr
+                            td {{"REAL_NAME" | translate}}
+                            td {{vm.curFeedbackPlayer.realName}}
+                        tr
+                            td {{"TELEPHONE" | translate}}
+                            td(style='word-break:break-word') {{vm.curFeedbackPlayer.phoneNumber}}
+                        tr
+                            td {{"REGISTRATION_TIME" | translate}}
+                            td {{vm.dateReformat(vm.curFeedbackPlayer.registrationTime)}}
+                        tr
+                            td {{"LAST_ACCESS_TIME" | translate}}
+                            td {{vm.dateReformat(vm.curFeedbackPlayer.lastAccessTime)}}
+                        tr
+                            td {{"Last Feedback Time" | translate}}
+                            td {{vm.dateReformat(vm.curFeedbackPlayer.lastFeedbackTime)}}
+                        tr
+                            td {{"LAST_LOGIN_IP" | translate}}
+                            td {{vm.curFeedbackPlayer.lastLoginIp}}
+                        //tr
+                            td {{"login times" | translate}}
+                            td {{vm.curFeedbackPlayer.account}}
+                        tr
+                            td {{"topUpTimes" | translate}}
+                            td {{vm.curFeedbackPlayer.topUpTimes}}
+
+    .col-md-8
+        #playerAllFeedbackPanel.panel.panel-primary
+            .panel-heading
+                .text-center
+                    label {{"Feedback History" | translate}} : {{vm.curPlayerFeedbackDetail.length}}
+                hr.margin-top-bottom-small
+                .displayTable
+                    .colGrid(style='width:160px') {{"TIME" | translate}}
+                    .colGrid {{"ADMIN" | translate}}
+                    .colGrid(style='width:140px') {{"RESULT" | translate}}
+                    .colGrid(style='width:calc(75% - 300px)') {{"REMARK" | translate}}
+            .panel-body(style='height: 200px;')
+                .displayTable(ng-repeat='(i,v) in vm.curPlayerFeedbackDetail', ng-show='vm.curPlayerFeedbackDetail.length>0')
+                    .colGrid(style='width:160px') {{vm.dateReformat(v.createTime)}}
+                    .colGrid {{v.adminId.adminName || 'Unknown' | translate}}
+                    .colGrid(style='width:140px') {{v.result | translate}}
+                    .colGrid(style='width:calc(75% - 300px)') {{v.content}}
+        .clearfix
+        .panel.panel-primary.margin-top-bottom-small(ng-if="checkViewPermission('Platform','Feedback','Create')",style='background-color: #e4e4e4')
+            .panel-heading.panel-heading-sm
+                .panel-title
+                    .text-center {{"ADD_FEEDBACK" | translate}}
+            .panel-body
+                table(style='min-width:100%')
+                    tbody
+                        tr
+                            td {{'FEEDBACK_RESULTS' | translate}}
+                            td
+                                select(ng-model='vm.addFeedback.result', required)
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackString', value='{{v}}') {{v|translate}}
+                        tr
+                            td
+                                text {{"REMARK" | translate}}
+                            td.textareaDetail
+                                textarea.form-control(type="textarea", rows='4', ng-model='vm.addFeedback.content')
+                        tr
+                            td(colspan=2)
+                                .text-center
+                                    button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result=""') {{'Reset' | translate}}
+                                    button.btn.btn-success(ng-disabled="!vm.addFeedback.result || !vm.addFeedback.content", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
+.row(ng-show='vm.selectedPlatform')
+    .col-md-12
+        .pull-left
+            button.btn.btn-primary(ng-click='vm.callPlayer(vm.curFeedbackPlayer)') {{"CallPlayer" | translate}}
+        .pull-right.child-margin-5
+            button.btn.btn-primary(ng-click='vm.getFeedbackPlayer("-")') {{"Page_Previous" | translate}} 1 {{"Player" | translate}}
+            .inlineBlk
+                label.form-control {{"Current Page" | translate}} {{vm.feedbackPlayersPara.index}}/{{vm.feedbackPlayersPara.total}}
+            button.btn.btn-primary(ng-click='vm.getFeedbackPlayer("+")') {{"Page_Next" | translate}} 1 {{"Player" | translate}}
+            //div.inlineBlk
+                select.form-control(ng-model='vm.feedbackPlayersPara.numPerPage', required)
+                    option(value=1) 1
+                    option(value=5) 5
+                    option(value=10) 10
+            .inlineBlk
+                label {{'Jump to' | translate}}
+            .inlineBlk
+                input.form-control(style='width: 80px', type='number', ng-model='vm.feedbackPlayersPara.index', ng-change='vm.getFeedbackPlayer(vm.feedbackPlayersPara.index)')
+            .inlineBlk
+                label {{'Page' | translate}}
+
+
+

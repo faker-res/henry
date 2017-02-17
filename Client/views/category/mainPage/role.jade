@@ -1,0 +1,101 @@
+#rolePanel.panel.panel-primary
+    div(ng-if='vm.pageActionStatus=="creatingNewRole"')
+        .icon-text(style='margin-left: 15px')
+            a(data-toggle='modal', data-target='#modalchangeRoleIcon',ng-click="vm.stopBlink('#roleIcon')")
+                #roleIcon.fa(class="{{vm.newRole.icon}}")
+            input#roleName(ng-if='vm.pageActionStatus=="creatingNewRole"',type="text", placeholder="{{'please input new role name'|translate}}" ,ng-model="vm.newRole.roleName",ng-focus="vm.stopBlink('#roleName')")
+        .pull-right
+            button.btn.btn-warning.margin-right-5(ng-click="vm.cancelSaveNewRole();") {{"CANCEL_CREATION"|translate}}
+            button.btn.btn-success.margin-right-5(ng-click="vm.saveNewRole();") {{"Save"|translate}}
+    div(ng-if='vm.pageActionStatus=="editingRole"', style="font-size:12px")
+        .icon-text(style='margin-left: 15px')
+            a.btn(data-toggle='modal', data-target='#modalchangeRoleIcon')
+                .fa(class="{{vm.newRole.icon}}")
+            text.margin-left-5 {{vm.roleSelected.roleName}}
+            input.margin-left-5(type="text", style="width:50%;", ng-model="vm.newRole.roleName")
+        .pull-right
+            button.btn.btn-warning.margin-right-5(ng-click='vm.cancelUpdateRole()') {{"CANCEL_EDITING"|translate}}
+            button.btn.btn-success.margin-right-5(ng-click='vm.submitUpdateRole();vm.pageActionStatus="null"') {{"Update"|translate}}
+    div(ng-if='checkViewPermission("Admin", "Role", "Read") && vm.pageActionStatus!="editingRole" && vm.pageActionStatus!="creatingNewRole"')
+        .roleList(ng-if="!vm.allRole || vm.allRole.length==0")
+            label(style="margin:10px 5px 5px 10px") {{"NO_ROLE" | translate}}
+        ul.roleList(ng-if="vm.allRole.length>0", style="font-size:12px")
+            li(ng-repeat="(i,v) in vm.allRole")
+                .icon-text(ng-class="{roleSelected: v==vm.roleSelected}")
+                    //text(style="float:right")
+                    text(ng-click="vm.roleInRoleListClicked(v)") {{v.roleName}}
+                        .fa-2x(ng-show='v.icon', class="{{v.icon}}")
+
+.col-sm-2.roleUser
+    .panel.panel-primary
+        .panel-heading.padding-all-5
+            .text-center
+                .panel-title {{'USER' | translate}}
+        .panel-body
+            ul.list-group(ng-if='vm.roleUserList.length>0 ')
+                li.list-group-item(ng-repeat=("(i,v) in vm.roleUserList"))
+                    a {{v.adminName}}
+                    .badge {{v.roles.length}}
+            div(ng-if='!vm.roleUserList || vm.roleUserList.length==0')
+                label {{"NO_USER" | translate}}
+
+
+#permission.col-sm-10
+    .panel.panel-primary
+        .panel-heading.padding-all-5
+            .text-center
+                .panel-title {{'PERMISSION' | translate}}
+        .panel-body
+            include ./policy
+
+p
+.col-sm-12
+    a.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Role', 'Create') && vm.pageActionStatus!='creatingNewRole' && vm.pageActionStatus!='editingRole'", ng-click='vm.createRole();vm.pageActionStatus="creatingNewRole"', data-toggle="modal", data-target='#modalCreateRole')
+        text {{'CREATE' | translate}}
+        img.img-create
+    a.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Role', 'Delete') && vm.pageActionStatus!='creatingNewRole' && vm.pageActionStatus!='editingRole'",ng-disabled="!vm.roleSelected", data-toggle="modal", data-target='#modalDeleteRole')
+        text {{'DELETE' | translate}}
+        img.img-delete
+    a.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Role', 'Update') && vm.pageActionStatus!='creatingNewRole' && vm.pageActionStatus!='editingRole'", ng-disabled="!vm.roleSelected", ng-click="vm.showEditRole();vm.getIconList();vm.newRole.roleName = vm.roleSelected.roleName;vm.newRole.icon = vm.roleSelected.icon;")
+        text {{'UPDATE' | translate}}
+        img.img-edit
+
+#modalchangeRoleIcon.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"CHANGE_ICON" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-sm-12
+                                .form-group
+                                    label.control-label *{{"Please choose an icon" |translate}}:
+                                    .col-sm-3
+                                        text.margin-left-5.margin-right-5 {{"No icon"| translate}}&nbsp;&nbsp;
+                                            input.pull-left.margin-right-5(name='roleIcon', type="radio" ,ng-model="vm.newRole.icon", value="{{vm.defaultRoleIcon}}",data-dismiss='modal')
+                        p
+                        div(style='height:300px;overflow-y:auto')
+                            label.icon-radio(ng-repeat="icon in vm.iconList")
+                                .fa(class="{{icon}}")
+                                input(name='roleIcon', type="radio",ng-model="vm.newRole.icon", ng-value="icon;",data-dismiss='modal')
+            .modal-footer
+#modalDeleteRole.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_ROLE" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-sm-12
+                                p
+                                    label {{"Are you sure to delete role" | translate}}&nbsp;
+                                    strong.text-danger {{vm.roleSelected.roleName}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-sm-2(data-dismiss='modal',ng-click="vm.deleteRole();") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-sm-2(data-dismiss='modal') {{"CANCEL" | translate}}

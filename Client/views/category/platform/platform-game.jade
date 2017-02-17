@@ -1,0 +1,298 @@
+.col-sm-12(ng-if='!vm.curPlatformText')
+    .text-center
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.row(ng-if='vm.curPlatformText')
+    .col-md-4
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"GAME_PROVIDER" | translate}}
+            .panel-body
+                div(ng-if='!vm.platformProviderList || vm.platformProviderList.length==0', style="height: 430px; overflow-y: auto;")
+                    label.text-danger {{"NO_PROVIDER" | translate}}
+                ul.list-group.treeview(ng-if='vm.platformProviderList.length > 0', style="height: 430px; overflow-y: auto;")
+                    li.list-group-item(ng-repeat='(i,provider) in vm.platformProviderList', ng-click='vm.providerClicked(i,provider)', ng-class='{active: vm.SelectedProvider === provider}' class='{{vm.getGameStatusClass(provider.status)}}')
+                        .fa.fa-circle.colorRed(ng-if='vm.getPlatformsProviderEnable(provider)=="ENABLE"')
+                        .fa.fa-circle.colorGreen(ng-if='vm.getPlatformsProviderEnable(provider)=="DISABLE"')
+                        text {{provider.name}} ({{'PROVIDER_NICKNAME' | translate}} : {{vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, provider)}} )
+                .btn-group.text-center(style="border-radius:9px",role="group")
+                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'AttachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("attach");vm.linkProviderType="ATTACH"')
+                    //    text {{"ATTACH" | translate}}
+                    //    .fa.fa-link
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EditAttachedProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", data-toggle="modal", data-target='#modalEditAttachedProvider', ng-click='vm.selectedProviderNickName=vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, vm.SelectedProvider); vm.selectedProviderPrefix=vm.getPlatformsPrefixForProvider(vm.selectedPlatform.data, vm.SelectedProvider); vm.linkProviderType="RENAME"')
+                        text {{"RENAME" | translate}}
+                        .fa.fa-pencil
+                        //- img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EditAttachedProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", ng-click='vm.confirmUpdateProviderStatus(vm.SelectedProvider)')
+                        text {{vm.getPlatformsProviderEnable(vm.SelectedProvider) | translate}}
+                        .fa.fa-edit
+                    //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
+                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", ng-click='vm.confirmDetachProvider()')
+                    //    text {{"DETACH" | translate}}
+                    //    .fa.fa-chain-broken
+                //label {{"CPMS Server Status" | translate}} :&nbsp;
+                //    label.text-success(ng-show='vm.CPMSServerStatus') {{"Connected" | translate}}
+                //    label.blink.text-danger(ng-show='!vm.CPMSServerStatus') {{"Disconnected" | translate}}
+
+    .col-md-8(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"GAME_STATUS" | translate}}&nbsp;:&nbsp;{{vm.SelectedProvider.name}}
+                a.pull-right.fa.fa-2x.bg-pale.fa-info-circle(data-toggle="modal", data-target='#modalGameHelp', style='margin-top: -3px;')
+                    text.badge.pull-left(style='margin-top:4px') {{"HELP" | translate}}
+            .panel-body
+                .text-center(ng-if='!vm.SelectedProvider')
+                    label.text-danger {{"NO_PROVIDER_MESSAGE" | translate}}
+                .well
+                    .inlineBlk.margin-right-5
+                        .control-label {{"GAME_TITLE" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterGameName')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"GAME_TYPE" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterGameType', style='max-width:150px')
+                            option(value='all', ) {{'any' | translate}}
+                            option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v.gameTypeId}}') {{v.name}}&nbsp;({{v.description}})
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Play Game Type" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterPlayGameType', style='max-width:150px')
+                            option(value='all') {{'any' | translate}}
+                            option(value='1') {{'flash' | translate}}
+                            option(value='2') {{'HTML5' | translate}}
+                    .inlineBlk
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.providerClicked(1,vm.SelectedProvider)") {{"FILTER" | translate}}
+                #gameList.panel-group(ng-if='vm.SelectedProvider')
+                    label.text-danger(ng-if='vm.selectedGamesInGameGroup.length>0') {{vm.selectedGamesInGameGroup.length}}&nbsp;{{'game' | translate}}&nbsp;{{'is selected' | translate}}
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#gameList", href='#includedGames', ng-click='vm.showGameCate="include";vm.toggleGameType()')
+                            h4.panel-title
+                                text {{'INCLUDEDGAMES' | translate}}
+                                span(ng-if='vm.includedGames') &nbsp;:&nbsp;({{vm.includedGames.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.includedGames') {{'loading games' | translate}}...
+                                .pull-right.smallLink
+                                    a(ng-click='vm.allGametoPlatform("add","in");$event.stopPropagation();') {{"Select All" | translate}}
+                                    a(ng-click='vm.allGametoPlatform("remove","in");$event.stopPropagation();') {{"Clear All" | translate}}
+                        #includedGames.panel-collapse.collapse.in
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                div.platformGame(ng-repeat='(i,v) in vm.includedGames', class='{{vm.highlightGame[v._id]}}')
+                                    a(ng-click='vm.gameClicked(i,v)')
+                                        img(ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
+                                        div(ng-if="!vm.gameSmallShow[v._id]")
+                                            .fa.fa-square-o.divfa
+                                        .text-center
+                                            label {{v.name}}
+                                        .fa.fa-circle.masterStatusIcon(class='{{vm.getGameStatusClass(v.status)}}')
+                                        .fa.fa-circle.statusIcon(class='{{vm.getGameStatusClass(vm.gameStatus[v._id])}}')
+
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#gameList", href='#excludedGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType()')
+                            h4.panel-title
+                                text {{'EXCLUDEDGAMES' | translate}}
+                                span(ng-if='vm.excludedGames') &nbsp;:&nbsp;({{vm.excludedGames.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.excludedGames') {{'loading games' | translate}}...
+                                .pull-right.smallLink
+                                    a(ng-click='vm.allGametoPlatform("add","ex");$event.stopPropagation();') {{"Select All" | translate}}
+                                    a(ng-click='vm.allGametoPlatform("remove","ex");$event.stopPropagation();') {{"Clear All" | translate}}
+                        #excludedGames.panel-collapse.collapse
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                div.platformGame(ng-repeat='(i,v) in vm.excludedGames', class='{{vm.highlightGame[v._id]}}')
+                                    a(ng-click='vm.gameClicked(i,v)')
+                                        img(ng-if="v.smallIcon",src='{{v.smallIcon}}')
+                                        div(ng-if="!v.smallIcon")
+                                            .fa.fa-square-o.divfa
+                                        .text-center
+                                            label {{v.name}}
+                                        .fa.fa-circle.masterStatusIcon(class='{{vm.getGameStatusClass(v.status)}}', title='master game status')
+                .panel.panel-info(ng-if='vm.SelectedProvider')
+                    .panel-heading.panel-heading-sm
+                        h4.panel-title(ng-if='!vm.curGame' style='display:inline-block') {{'GAME_DESCRIPTION' | translate}}
+                        h4.panel-title(ng-if='vm.curGame' style='display:inline-block') {{vm.curGame.name}}
+                        label.pull-right(ng-if='vm.curGame') {{'GAME_TYPE' | translate}}&nbsp;:&nbsp;{{vm.curGame.type ? vm.allGameTypes[vm.curGame.type] : ("VOID" | translate)}}
+                    .panel-body(style='height:80px;padding:5px')
+                        .textareaDetail
+                            textarea(ng-model='vm.curGame.description', disabled, readonly, rows="2" style="border:none")
+                div(ng-if='vm.curGame')
+                    div(ng-if='vm.showGameCate=="include"')
+                        table(style='width:100%')
+                            tr.thPadding5
+                                th
+                                    .bg-primary(style='border-radius: 5px') {{'GAME_STATUS' | translate}}
+                                th
+                                    .bg-primary(style='border-radius: 5px') {{'PROPERTY' | translate}}
+                                th
+                                    .bg-primary(style='border-radius: 5px') {{'platform' | translate}}
+                            tr.tdPadding5.tdCenter
+                                td
+                                    .btn-group-vertical
+                                        button.btn.btn-success.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame') && vm.gameStatus[vm.curGame._id]!=vm.allGameStatusString.ENABLE", ng-click="vm.updateGameStat(vm.allGameStatusString.ENABLE)", ng-disabled='vm.curGame.status!=vm.allGameStatusString.ENABLE')
+                                            i.fa.fa-check
+                                            text {{vm.allGameStatusKeys[0] | translate}}
+                                        button.btn.btn-danger.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'DisableGame') && vm.gameStatus[vm.curGame._id]!=vm.allGameStatusString.DISABLE", ng-click="vm.updateGameStat(vm.allGameStatusString.DISABLE)")
+                                            i.fa.fa-times
+                                            text {{vm.allGameStatusKeys[1] | translate}}
+                                        button.btn.btn-warning.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame') && vm.gameStatus[vm.curGame._id]!=vm.allGameStatusString.MAINTENANCE", ng-click="vm.updateGameStat(vm.allGameStatusString.MAINTENANCE)")
+                                            i.fa.fa-wrench
+                                            text {{vm.allGameStatusKeys[2]| translate}}
+                                td
+                                    table(style='width:100%')
+                                        tr
+                                            td
+                                                //.row(style='margin:0px 10px 3px')
+                                                //    div.badge.pull-left(style='color:#2ca7bd;background-color: rgba(241, 147, 147, 0.26);') {{'MAINTENANCE_TIME' | translate}}
+                                                //    label.pull-right.margin-left-5 {{vm.curGame.maintenanceHour}}&nbsp;:&nbsp;{{vm.curGame.maintenanceMinute}}
+
+                                                .row(style='margin:0px 10px 3px')
+                                                    div.badge.pull-left(style='color:#2ca7bd;background-color: rgba(241, 147, 147, 0.26);') {{'Platform Visible' | translate}}
+                                                    label.pull-right.margin-left-5 {{vm.curGame.platformVisible | translate}}
+
+                                                .row(style='margin:0px 10px 3px')
+                                                    div.badge.pull-left(style='color:#2ca7bd;background-color: rgba(241, 147, 147, 0.26);') {{'Provider Visible' | translate}}
+                                                    label.pull-right.margin-left-5 {{vm.curGame.visible | translate}}
+                                            td
+                                                button.btn.btn-warning.common-button-sm.pull-right(ng-if="checkViewPermission('Platform', 'Game')", ng-click="vm.preparePlatformGameEdit()", data-toggle='modal', href='#modalPlatformGameProp')
+                                                    //i.fa.fa-picture-o
+                                                    text {{"UPDATE"| translate}}
+                                td
+                                    button.btn.btn-danger.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'DetachGame')", ng-click='vm.gametoPlatform("detach")')
+                                        i.fa.fa-minus-square
+                                        text {{"EXCLUDE" | translate}}{{vm.selectedGamesInGameGroup.length ? vm.selectedGamesInGameGroup.length : ''}}
+                    div(ng-if='vm.showGameCate=="exclude"')
+                        button.btn.btn-danger.common-button.pull-right(ng-if="checkViewPermission('Platform', 'Game', 'AttachGame')", ng-click='vm.gametoPlatform("attach")')
+                            i.fa.fa-plus-square
+                            text {{"INCLUDE" | translate}}{{vm.selectedGamesInGameGroup.length ? vm.selectedGamesInGameGroup.length : ''}}
+
+//- Note that vm.linkProviderType == 'DETACH' is no longer used, so this modal is now only used for 'ATTACH'
+//#modalTachProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.linkProviderType | translate}}
+            .modal-body
+                form(name="form_tachProvider")
+                    .panel.panel-primary
+                        .panel-body(style='max-height: 320px;overflow-y:auto')
+                            ul.list-unstyled
+                                //- li
+                                    label {{'NONE' | translate}}
+                                        input(type='radio', name='providerListRadio', ng-model='vm.selectProvider', ng-value='')
+                                li(ng-repeat='(i,v) in vm.showProviderList')
+                                    label {{v.name}}&nbsp;:&nbsp;{{v.code}}
+                                        text(class='{{vm.getGameStatusClass(v.status)}}') ({{v.status}})
+                                        input(type='radio', name='providerListRadio', ng-model='vm.selectProvider', ng-value='v', ng-click='vm.selectedProviderNickName = vm.selectProvider.nickName || vm.selectProvider.name; vm.selectedProviderPrefix = vm.selectProvider.prefix;', required)
+                        .panel-body(ng-if="vm.linkProviderType === 'ATTACH'")
+                            .well
+                                .form-group
+                                    .control-label {{"PROVIDER_NICKNAME" | translate}}
+                                    input.form-control(type='text', ng-model='vm.selectedProviderNickName', required)
+                                .form-group
+                                    .control-label {{"PROVIDER_PREFIX" | translate}}
+                                    input.form-control(type='text', ng-model='vm.selectedProviderPrefix', required)
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitProviderChange(vm.linkProviderType,vm.selectProvider)", ng-disabled="form_tachProvider.$invalid") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalEditAttachedProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"RENAME_PROVIDER" | translate}} {{vm.platformsNickNameForProvider(vm.selectedPlatform.data, vm.SelectedProvider)}}
+            .modal-body
+                form(name="form_editAttachedProvider")
+                    .panel.panel-primary
+                        .panel-body
+                            .well
+                                .form-group
+                                    .control-label {{"PROVIDER_NICKNAME" | translate}}
+                                    input.form-control(type='text', ng-model='vm.selectedProviderNickName', required)
+                                //.form-group
+                                //    .control-label {{"PROVIDER_PREFIX" | translate}}
+                                //    input.form-control(type='text', ng-model='vm.selectedProviderPrefix', required)
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitProviderChange('RENAME', vm.SelectedProvider)", ng-disabled="form_editAttachedProvider.$invalid") {{"RENAME" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalConfirmUpdateGame.modal.fade(tabindex='-1', role='dialog', aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.linkProviderType | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        Label {{"Are you sure to update"|translate}}&nbsp;
+                        span.strong.text-danger {{vm.curGame.name}}
+                        span &nbsp;from&nbsp;
+                        //{{vm.gameStatus[vm.curGame._id]}}
+                        span.strong(class='{{vm.getGameStatusClass(vm.gameStatus[vm.curGame._id])}}') {{vm.allGameStatusKeys[vm.gameStatus[vm.curGame._id]-1]}}
+                        span &nbsp;to&nbsp;
+                        //{{vm.newType}}
+                        span.strong(class='{{vm.getGameStatusClass(vm.newType)}}') {{vm.allGameStatusKeys[[vm.newType] -1]}}
+                        span ?
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.updateGameStat(vm.newType,true)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalGameHelp.modal.fade(tabindex='-1', role='dialog',aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Icon introduction" |translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        p {{"The icons placed at the top left corner of each game represent the status of the game"|translate}}
+                        p.fa.fa-circle.colorGreen
+                        span &nbsp;-> {{"game is running properly"|translate}}
+                        p
+                        p.fa.fa-circle.colorRed
+                        span &nbsp;-> {{"game has stopped running"|translate}}
+                        p
+                        p.fa.fa-circle.colorYellow
+                        span &nbsp;-> {{"game is under maintenance"|translate}}
+                        p /========================
+                        p {{"The upper"|translate}}&nbsp;
+                            span.fa.fa-circle
+                            span &nbsp;{{"represent the master game status"|translate}}
+                        p {{"The lower"|translate}}&nbsp;
+                            span.fa.fa-circle
+                            span &nbsp;{{"represent the game status under selected platform"|translate}}
+                        p /========================
+                        p {{"Changing the status in this page will only update the platform-specific status"|translate}}
+                        p {{"To change the master game status, please go to 'provider' page."|translate}}
+                        p.colorRed {{"Note: platform game cannot be set to enabled unless the master game status is enabled."|translate}}
+                        p {{"Click the game icon for more functions."|translate}}
+
+#modalPlatformGameProp.modal.fade(tabindex='-1', role='dialog',aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:50%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"GAME_PROPERTY" |translate}}
+            .modal-body
+                .well
+                    .row
+                        //.form-group.col-md-6
+                            .control-label {{"Maintenance Hour" | translate}}
+                            select.form-control(ng-model="vm.newMaintenanceHour")
+                                option(ng-repeat='(i,v) in vm.hourListArray', value='{{v}}') {{v}}
+                        //.form-group.col-md-6
+                            .control-label {{"Maintenance Minute" | translate}}
+                            select.form-control(ng-model="vm.newMaintenanceMinute")
+                                option(ng-repeat='(i,v) in vm.minuteListArray', value='{{v}}') {{v}}
+                        .form-group.col-md-12
+                            .control-label {{"GAME_PIC" | translate}}
+                            input.form-control(type='text', ng-model='vm.newGamePic')
+                        .form-group.col-md-12
+                            .control-label {{"GAME_VISIBLE" | translate}}
+                            .form-control
+                                label.margin-right-5 {{'visible' | translate}}
+                                    input.pull-left.margin-right-5(type='radio', ng-model='vm.platformGameVisible', ng-value='true', ng-checked='vm.curGame.platformVisible')
+                                label.margin-right-5 {{'invisible' | translate}}
+                                    input.pull-left.margin-right-5(type='radio', ng-model='vm.platformGameVisible', ng-value='false', ng-checked='!vm.curGame.platformVisible')
+
+                        //vm.curGame.visible
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.updatePlatformGameProp(vm.newMaintenanceHour,vm.newMaintenanceMinute,vm.newGamePic,vm.platformGameVisible)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

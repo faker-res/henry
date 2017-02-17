@@ -1,0 +1,34 @@
+div
+    .col-md-12
+        .row
+            .col-md-6
+                button.btn.btn-primary.common-button(ng-click="vm.gpReset()")
+                    text {{'RESET_TEST' | translate}}
+                p
+                label.control-label {{"SELECT_TEST_PLATFORM" | translate}}
+                select.form-control(ng-model="vm.gpCurPlatformId" ng-change="vm.gpSelectPlatform()")
+                    option(ng-repeat='v in vm.platforms',value='{{v._id}}', ng-selected='vm.gpCurPlatformId==v._id') {{v.name}}
+                span.help-block.alert-danger(ng-show="!vm.gpRewardEvent") No game provider reward event for this platform, please create one first!
+                p
+                div(ng-show="vm.gpRewardEvent && vm.gpCurPlatformId")
+                    label.control-label {{"SELECT_TEST_PLAYER" | translate}}
+                    select.form-control(ng-model="vm.gpCurPlayerId" ng-change="vm.gpSelectPlayer()")
+                        option(ng-repeat='v in vm.gpPlayers',value='{{v._id}}', ng-selected='vm.gpCurPlayerId==v._id') {{v.name}}
+                    p
+                    button.btn.btn-primary.common-button(ng-show="vm.gpCurPlayerId" ng-click="vm.gpPlayerApplyReward()")
+                        text {{'APPLY_REWARD' | translate}}
+                    p
+                    div(ng-show="vm.gpRewardProposal && !vm.gpRewardTask")
+                        label.control-label {{"PROPOSAL_CREATED" | translate}}
+                        p
+                        span.alert-success {{"ID" | translate}} : {{vm.gpRewardProposal.proposalId}}
+                        p
+                        button.btn.btn-success.common-button(ng-click="vm.gpUpdateProposal(true)")
+                            text {{'APPROVE' | translate}}
+                        button.btn.btn-danger.common-button(ng-click="vm.gpUpdateProposal(false)")
+                            text {{'REJECT' | translate}}
+                    div(ng-show="vm.gpRewardTask")
+                        label.control-label {{"REWARD_TASK_CREATED" | translate}}
+                        p
+                        span.alert-success(ng-show="vm.gpRewardTask._id") {{"ID" | translate}} : {{vm.gpRewardTask._id}}
+                        span.alert-danger(ng-show="!vm.gpRewardTask._id") {{vm.gpRewardTask}}

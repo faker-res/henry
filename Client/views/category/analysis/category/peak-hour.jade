@@ -1,0 +1,19 @@
+.section
+    .titlePic
+        .title {{"ONLINE_PLAYER" | translate}}
+    .graph
+        .panel.panel-default
+            #line-peakhour-onlinePlayer.lineChart
+.section
+    .titlePic
+        .title {{"CREDIT_SPEND" | translate}}
+    .graph
+        .panel.panel-default
+            #line-peakhour-creditSpend.lineChart
+.section
+    .titlePic
+        .title {{"TOP_UP" | translate}}
+    .graph
+        .panel.panel-default
+            #line-peakhour-topup.lineChart
+p(ng-init="vm.loadPageFunc('PEAK_HOUR')")

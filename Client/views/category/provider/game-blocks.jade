@@ -1,0 +1,43 @@
+.provider-games(ng-repeat='(i,v) in vm.filterAllGames track by $index', ng-class="vm.selectedGameBlock[i] ? 'bg-pale' : ''")
+    div(style='width:100%')
+        table
+            tr
+                td(style='vertical-align:top;width:30px')
+                    button.fa.fa-circle.gameIcon(class='{{vm.getGameStatusClass(v.status)}}', ng-click='vm.changingStatus[v._id]=!vm.changingStatus[v._id];')
+                    button.fa.fa-wrench.gameStat(ng-show='vm.changingStatus[v._id]', ng-click="vm.changeGameStatus(v,vm.allGameStatusString.MAINTENANCE);vm.changingStatus[v._id]=false;")
+                    button.fa.fa-check.gameStat(ng-show='vm.changingStatus[v._id]', ng-click="vm.changeGameStatus(v,vm.allGameStatusString.ENABLE);vm.changingStatus[v._id]=false;")
+                    button.fa.fa-times.gameStat(ng-show='vm.changingStatus[v._id]', ng-click="vm.changeGameStatus(v,vm.allGameStatusString.DISABLE);vm.changingStatus[v._id]=false;")
+                td(style='width:160px;', ng-click='vm.gameClicked(i,v)')
+                    img.thumb(ng-if="v.bigShow" src='{{v.bigShow}}')
+                    img.fa.fa-times.thumb(ng-if="!v.bigShow")
+                td(style='width:30px')
+        label(title='{{v.name}}', class='{{vm.getGameStatusClass(v.status)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_TITLE" | translate}} :&nbsp;
+            span.text-primary {{v.name}}
+        label(title='{{v.type}}', class='{{vm.getGameStatusClass(v.status)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_TYPE" | translate}} :&nbsp;
+            span.text-primary {{vm.allGameTypes[v.type] || 'VOID' | translate}}
+        label(title='{{v.gameId}}', class='{{vm.getGameStatusClass(v.status)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_ID" | translate}} :&nbsp;
+            span.text-primary {{ v.gameId }}
+        label(title='{{v.code}}', class='{{vm.getGameStatusClass(v.status)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_CODE" | translate}} :&nbsp;
+            span.text-primary {{ v.code }}
+#modalConfirmChangeGameStatus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog.modal-medium
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                i.fa.fa-exclamation-triangle.colorYellow
+                label {{ 'CONFIRMATION' | translate }}
+            .modal-body
+
+                text {{"This action will change game"|translate}}&nbsp;
+                span
+                    strong {{vm.curStatusGame.name|translate}}
+                span &nbsp;{{"from"|translate}}&nbsp;
+                span.strong(class='{{vm.getGameStatusClass(vm.curStatusGame.status)}}') {{vm.allGameStatusKeys[[vm.curStatusGame.status]-1]|translate}}
+                span &nbsp;{{"to"|translate}}&nbsp;
+                span.strong(class='{{vm.getGameStatusClass(vm.curStatusGame.targetStatus)}}') {{ vm.allGameStatusKeys[[vm.curStatusGame.targetStatus]-1]|translate}}
+                p
+                text {{"Please confirm your action."|translate}}
+
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.confirmGameStatusChange()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-click="vm.curStatusGame=null") {{"CANCEL" | translate}}

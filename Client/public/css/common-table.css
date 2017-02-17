@@ -1,0 +1,281 @@
+.wide-table {
+    display: block !important;
+}
+
+.common-table {
+    /*display: block;*/
+    width: 100%;
+    box-sizing: border-box;
+    /*border: 2px solid #aaaaff;*/
+    table-layout: fixed;
+    /*overflow-x: scroll;*/
+    max-width: inherit;
+    white-space: nowrap;
+}
+
+/*.common-table thead {*/
+/*background-color: #F3F3F3;*/
+/*background-image: -webkit-linear-gradient(top, #f6f6f6, #eeeeee);*/
+/* background-image: linear-gradient(to bottom, #f6f6f6, #eeeeee);*/
+/* background-repeat: repeat-x;*/
+/*}*/
+
+.common-table tbody {
+    /*overflow: auto;*/
+}
+
+.common-table tbody, .common-table thead {
+    text-align: center;
+}
+
+/*.common-table td {*/
+/*text-overflow: ellipsis;*/
+/*overflow: hidden;*/
+/*}*/
+
+.common-table th {
+    word-wrap: break-word;
+}
+
+.common-table tr {
+    cursor: pointer;
+}
+
+thead > tr > th {
+    /*vertical-align: bottom;*/
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-spacing: 0;
+    text-align: center;
+    border-collapse: collapse;
+    background: #337ab7;
+    color: white;
+    padding: 2px;
+}
+
+td.static {
+    /*background-color: rgba(204, 204, 204, 1);*/
+    background: #98bcdc;
+    /*color: white;*/
+    font-weight: 500;
+}
+
+table.border-cell td {
+    border: 1px solid black;
+}
+
+/* For some reason the datatable's element.style.width kept alternating between 100% and NNNNpx. */
+/* For example, when clicking a row header to sort the rows. */
+/* To prevent the oscillation, we can just fix the 100% value here. */
+/* Unfortunately it didn't seem to help with the column widths in the log modal, which we solved with resize()! */
+#pageWrapper .dataTables_wrapper > .dataTables_scroll > * {
+    width: 100% !important;
+}
+
+.table td {
+    vertical-align: middle !important;
+}
+
+table#actionLogDataTable {
+    width: 100%;
+    max-height: 400px;
+    overflow: auto;
+    table-layout: fixed;
+}
+
+#actionLogDataTable td {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.noBoderTable td {
+    border: none !important;
+}
+
+.paddingTbl td {
+    padding: 5px;
+}
+
+#feedbackPlayerInfo {
+    max-height: 460px;
+    overflow-y: auto;
+    padding: 0;
+    background-color: #e4e4e4
+}
+
+#feedbackPlayerInfo td {
+    word-break: break-word;
+}
+
+#playerAllFeedbackPanel .panel-body {
+    padding: 0;
+    background-color: #e4e4e4;
+    overflow-y: auto;
+}
+
+#playerAllFeedbackPanel .panel-body .colGrid {
+    border: solid 1px rgba(0, 0, 255, 0.13);
+}
+
+#playerAllFeedbackPanel .colGrid {
+    border-collapse: collapse;
+    width: 25%;
+    text-align: center;
+    word-break: break-all;
+}
+
+.displayTable {
+    display: table;
+    width: 100%;
+}
+
+.displayTable > * {
+    display: table-cell;
+}
+
+.wordWrap, .wordWrap * {
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+.feedbackAdminContent {
+    word-wrap: break-word;
+    white-space: normal;
+    max-width: 200px;
+}
+
+.dataTables_wrapper .dataTables_scroll {
+    margin-bottom: 10px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0 !important;
+}
+
+table.playerInfoModalDivs {
+    width: 100%
+}
+
+table.playerInfoModalDivs tbody td {
+    padding: 5px 10px;
+}
+
+/*table.playerInfoModalDivs tbody tr:nth-child(even) td:nth-child(2) {*/
+/*background-color: #d5d5cc;*/
+/*}*/
+
+table.playerInfoModalDivs tbody tr:not(:last-child) {
+    border-bottom-style: double;
+}
+
+table.playerInfoModalDivs tbody tr td:nth-child(2) {
+    padding: 10px;
+}
+
+.playerInfoModalDivs .inlineBlk {
+    min-width: 150px;
+    margin-right: 15px;
+}
+
+table.playerInfoModalDivs tbody tr td:first-child {
+    text-align: center;
+    white-space: nowrap;
+    /*background-color: rgba(96, 84, 255, 0.27);*/
+    padding: 5px 15px;
+    font-style: italic;
+}
+
+table.playerInfoModalDivs tbody tr td:first-child > div {
+    border-radius: 5px;
+    padding: 5px 10px;
+    background-color: rgba(30, 30, 30, 0.08);
+    color: rgba(0, 0, 43, 0.82)
+}
+
+table.playerInfoModalDivs td label + text {
+    margin-left: 5px;
+    margin-right: 5px;
+    font-family: serif;
+    font-style: oblique;
+}
+
+table.dataTable tfoot td.sumText {
+    text-align: right;
+}
+
+table.dataTable tfoot td {
+    padding-top: 6px;
+}
+
+table.dataTable tfoot td.sumFloat,
+table.dataTable tfoot td.sumInt {
+    padding-right: 10px;
+}
+
+.pagingTableFooter * {
+    font-size: 12px
+}
+
+.pagingTableFooter .pull-right > a, .pagingTableFooter .pull-right > button {
+    padding: 5px 8px;
+    border: solid 1px grey;
+    margin-left: 3px;
+}
+
+.pagingTableFooter .pull-right > text:not(.dots) {
+    padding: 5px 8px;
+    margin-left: 3px;
+}
+
+.pagingTableFooter .pull-right > .btnPage {
+    background-color: transparent;
+}
+
+.pagingTableFooter .pull-right > .jumpPage {
+    margin-left: 3px;
+}
+
+.pagingTableFooter label.cur_page {
+    border-radius: 9px;
+    font-size: 20px;
+    padding: 0px 7px 0;
+    vertical-align: middle;
+}
+
+.dataTables_scrollBody .datatable-sm tbody > tr > td,
+.dataTables_scrollHead .datatable-sm thead > tr > th {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+}
+
+#proposalDataTable tbody td {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#proposalDataTable * {
+    font-size: 12px;
+}
+
+.noWrapHeader > th {
+    width: 100%;
+    word-wrap: normal;
+    white-space: nowrap;
+}
+
+.headerBackGround {
+    background: #337ab7;
+    padding: 5px;
+}
+
+.stdDateCell {
+    min-width: 180px;
+}
+
+.dataTables_wrapper .dataTables_scroll .footer {
+    margin-top: -25px;
+}
+
+tbody td.tbodyNoWrap {
+    word-wrap: normal;
+    white-space: nowrap;
+}

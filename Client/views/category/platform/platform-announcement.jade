@@ -1,0 +1,57 @@
+div(style="height:265px;overflow:auto;margin-bottom:5px")
+    form(name="platformAnnouncementsForm")
+        table.simple-table(style='width:auto;min-width:99.9%')
+            thead
+                tr
+                    th(width="20%") {{'TITLE' | translate}}
+                    th(width="45%") {{'CONTENT' | translate}}
+                    th(width="15%") {{'REACH' | translate}}
+                    th(width="20%") {{'DATE' | translate}}
+            tbody
+                tr(ng-if="!vm.configTableAdd", ng-repeat="(i,ann) in vm.allPlatformAnnouncements", sn-selectable-model="vm.selectedPlatformAnnouncement", sn-selectable-value="ann", ng-click="vm.currentlyFocusedAnnouncement = ann; vm.previewPlatformAnnouncement()")
+                    td
+                        input.form-control(type="text", ng-disabled="!vm.configTableEdit", ng-model="ann.title", required, title="{{ann.title}}")
+                    td
+                        textarea.form-control.expand-on-focus(ng-disabled="!vm.configTableEdit", ng-model="ann.content", required, ng-focus="vm.currentlyFocusedAnnouncement = ann; vm.previewPlatformAnnouncement()", ng-change="vm.previewPlatformAnnouncement()", ng-blur="vm.currentlyFocusedAnnouncement = null; vm.previewPlatformAnnouncement()", title="{{ann.content}}")
+                    td
+                        select.form-control(ng-disabled="!vm.configTableEdit", ng-model="ann.reach", required, title="{{ann.reach}}")
+                            option(value="all") {{"ALL" | translate}}
+                            option(value="players") {{"PLAYERS_ONLY" | translate}}
+                            option(value="conditional") {{"CUSTOM" | translate}}
+                    td
+                        input.form-control(type="datetime", date-time, ng-disabled="!vm.configTableEdit", ng-model="ann.date", title="{{ann.date | date:'medium'}}")
+                tr(ng-if="vm.configTableAdd")
+                    td
+                        input.form-control(type="text", ng-model="vm.newAnn.title", required)
+                    td
+                        textarea.form-control.expand-on-focus(ng-model="vm.newAnn.content", required, ng-change="vm.previewPlatformAnnouncement()")
+                    td
+                        select.form-control(ng-model="vm.newAnn.reach", required)
+                            option(value="all") {{"ALL" | translate}}
+                            option(value="players") {{"PLAYERS_ONLY" | translate}}
+                            option(value="conditional") {{"CUSTOM" | translate}}
+                    td
+                        input.form-control(type="datetime", date-time, ng-model="vm.newAnn.date")
+.pull-right
+    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Announcement', 'PlatformAnnouncementCreate')", ng-click="vm.configTableAdd=true; vm.newAnn={}; vm.currentlyFocusedAnnouncement = vm.newAnn")
+        text {{'CREATE' | translate}}
+        img.img-create
+    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Announcement', 'PlatformAnnouncementUpdate')", ng-disabled="!vm.selectedPlatformAnnouncement", ng-click='vm.configStartEdit("announcement")')
+        text {{'EDIT' | translate}}
+        img.img-edit
+    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Announcement', 'PlatformAnnouncementDelete')", ng-disabled="!vm.selectedPlatformAnnouncement", ng-click='vm.configTableDeleteSelectedPlatformAnnouncement()')
+        text {{'DELETE' | translate}}
+        img.img-delete
+    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("announcement")')
+        text {{"CANCEL" | translate}}
+        .fa.fa-ban
+    button.btn.btn-primary.common-button(ng-if='vm.configTableAdd', ng-disabled="platformAnnouncementsForm.$invalid", ng-click='vm.configTableAdd=false; vm.submitAddAnnouncement()')
+        text {{"SUBMIT" | translate}}
+        .fa.fa-check
+    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-disabled="platformAnnouncementsForm.$invalid", ng-click='vm.configTableEdit=false; vm.configSubmitUpdate("announcement")')
+        text {{"CONFIRM" | translate}}
+        .fa.fa-check
+.clearfix
+label {{"PREVIEW" | translate}}
+.well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
+    .announcementPreview.html(style="max-height: 185px; overflow: auto; background-color: white")

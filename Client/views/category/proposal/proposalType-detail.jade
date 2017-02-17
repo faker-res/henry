@@ -1,0 +1,25 @@
+form(name="form_proposalType", novalidate)
+    .row
+        .col-md-1
+        .col-md-10
+            .form-group
+                label *{{"NAME" | translate}}
+                input.form-control.col-md-6(type="text", placeholder="{{'NAME' | translate}}", ng-model="vm.newProposal.name", required)
+    p
+    .row
+        .col-md-12
+            .row
+                .text-center
+                    label {{"CHOOSE_TYPE_OF_EXECUTION_AND_REJECTION" | translate}}
+            p
+            .row.label-select
+                div.form-group.col-md-1
+                div.form-group.col-md-4
+                    label {{"SELECT" | translate}}
+                    select.form-control(size= '5',ng-model="vm.newProposal.executionType", required)
+                        option(ng-repeat='(i,v) in vm.allProposalExecutionType', value='{{i}}') {{v | translate}}
+                div.form-group.col-md-1
+                div.form-group.col-md-4
+                    label {{"SELECT" | translate}}
+                    select.form-control(size= '5',ng-model="vm.newProposal.rejectionType", required)
+                        option(ng-repeat='(i,v) in vm.allProposalRejectionType', value='{{i}}') {{v | translate}}

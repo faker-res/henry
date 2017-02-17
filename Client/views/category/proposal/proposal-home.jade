@@ -1,0 +1,13 @@
+.row(mouse-capture ng-keydown="vm.keyDown($event)" ng-keyup="vm.keyUp($event)")
+    .text-center
+        p(ng-if="!vm.curPlatformText")
+            label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+    .col-sm-3(ng-if="vm.curPlatformText")
+        include ./proposal-left-panel
+    .col-md-9(ng-if="vm.curPlatformText", style='padding-left:0')
+        div(ng-if='!vm.selectedProposalType.text')
+            .text-center
+                text.text-danger {{"Please select a type" | translate}}
+        div(ng-if='vm.selectedProposalType.text')
+            include ./proposal-right-panel
+

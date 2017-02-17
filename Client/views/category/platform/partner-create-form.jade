@@ -1,0 +1,41 @@
+form(name="form_new_partner", novalidate)
+    div.form-group.col-md-6
+        label.control-label *{{"PARTNER_NAME" | translate}}
+        input.form-control(type="text", placeholder="{{'PARTNER_NAME' | translate}}", ng-model="vm.newPartner.partnerName", required)
+    div.form-group.col-md-6
+        label.control-label {{"DISPLAY_NAME" | translate}}
+        input.form-control(type="text", placeholder="{{'REAL_NAME' | translate}}", ng-model="vm.newPartner.realName")
+    div.form-group.col-md-6
+        label.control-label *{{"PASSWORD" | translate}}
+        input.form-control(type="password", placeholder="{{'PASSWORD' | translate}}", name="password1", ng-model="vm.newPartner.password",match="vm.tempPassword", required)
+        span.help-block(style='color: #b94a48',ng-show="form_new_partner.password1.$dirty && vm.passwordLengthCheck(vm.newPartner.password)") {{'Minimum Password length is' | translate}}&nbsp; 6.
+    div.form-group.col-md-6
+        label.control-label *{{"PASSWORD_RETYPE" | translate}}
+        input.form-control(type="password", placeholder="{{'REPEAT_PASSWORD' | translate}}", name="password2",ng-model="vm.tempPassword",match="vm.newPartner.password", required)
+        span.help-block(ng-show="form_new_partner.password2.$dirty && form_new_partner.password2.$error.match && !form_new_partner.password2.$error.required") Passwords don't match
+    div.form-group.col-md-6
+        label.control-label *{{"EMAIL" | translate}}
+        input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.newPartner.email", required)
+        span.help-block(ng-show="form_new_partner.email.$dirty && form_new_partner.email.$error.email") {{"EMAIL_INVALID" | translate}}
+    div.form-group.col-md-6
+        label.control-label {{"MOBILE" | translate}}
+        input.form-control(type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="vm.newPartner.phoneNumber")
+    div.form-group.col-md-6
+        label.control-label {{"PARTNER_LEVEL_SHORT" | translate}}
+        select.form-control(ng-model="vm.newPartner.level")
+            option(ng-repeat='(i,v) in vm.allPartnerLevels' value='{{v._id}}') {{v.name|translate}}
+    div.form-group.col-md-6
+        label.control-label {{"PARENT" | translate}}
+        input.form-control(type='text', style='width:calc(100% - 20px);display: inline-block', ng-model="vm.newPartner.parentName", ng-change='vm.partnerParentChange("name")')
+        i.partnerParentFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
+        i.partnerParentTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
+        //select.form-control(type="text", placeholder="{{'PARENT' | translate}}", ng-model="vm.newPartner.parent")
+            option(ng-repeat='(i,v) in vm.partners', value='{{v._id}}') {{v.partnerName}}
+            option(value='{{null}}') {{'NULL' | translate}}
+    p
+    div.form-group.col-md-12
+        label.control-label {{"REMARKS" | translate}}
+        .textareaDetail
+            textarea.form-control(type = "textarea",name = "remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.newPartner.remarks")
+
+

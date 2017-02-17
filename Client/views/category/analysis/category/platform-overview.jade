@@ -1,0 +1,169 @@
+.section
+    .row
+        .titlePic
+            .title {{"ACTIVE_PLAYER" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#allActivePlayerAnalysis .block-query","allActivePlayer")')
+                        text.pull-left.margin-right-5 {{vm.optionText.allActivePlayer | translate}}
+    #allActivePlayerAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{"date"|translate}}
+                input.form-control(type='date', ng-model='vm.queryPara.allActivePlayer.date')
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotAllPlatformActivePlayerPie()') {{'SEARCH' | translate}}
+        .row
+            .col-md-5
+                .panel.panel-default.leftPanel(style='padding-bottom:5px')
+                    .pieChart
+                        #pie-all-activePlayer
+            .col-md-7
+                .panel.panel-default.rightPanel
+                    #bar-all-activePlayer.barChart
+                    label {{vm.allPlatformActivePie}}
+.clearfix
+.section
+    .row
+        .titlePic
+            .title {{"NEW_PLAYER" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#allNewPlayerAnalysis .block-query","allNewPlayer")')
+                        text.pull-left.margin-right-5 {{vm.optionText.allNewPlayer | translate}}
+    #allNewPlayerAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            //div
+                label {{"Start date"|translate}}
+                input.form-control(type='date', ng-model='vm.queryPara.allNewPlayer.startTime')
+            //div
+                label {{"End date"|translate}}
+                input.form-control(type='date', ng-model='vm.queryPara.allNewPlayer.endTime')
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotAllPlatformNewPlayerPie()') {{'SEARCH' | translate}}
+        .row
+            .col-md-5
+                .panel.panel-default.leftPanel(style='padding-bottom:5px')
+                    .pieChart
+                        #pie-all-newPlayer
+            .col-md-7
+                .panel.panel-default.rightPanel
+                    #bar-all-newPlayer.barChart
+                    label {{vm.allPlatformNewPie}}
+.clearfix
+.section
+    .row
+        .titlePic
+            .title {{"PLAYER_EXPENSES" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#allPlayerConsumptionAnalysis .block-query","allPlayerConsumption")')
+                        text.pull-left.margin-right-5 {{vm.optionText.allPlayerConsumption | translate}}
+    #allPlayerConsumptionAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            //div
+            //    label {{"Start date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.allPlayerConsumption.startTime')
+            //div
+            //    label {{"End date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.allPlayerConsumption.endTime')
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotAllPlatformCreditPie()') {{'SEARCH' | translate}}
+        .row
+            .col-md-5
+                .panel.panel-default.leftPanel(style='padding-bottom:5px')
+                    .pieChart
+                        #pie-all-creditSpend
+            .col-md-7
+                .panel.panel-default.rightPanel
+                    #bar-all-creditSpend.barChart
+                    label {{vm.allPlatformCreditPie}}
+.clearfix
+.section
+    .row
+        .titlePic
+            .title {{"PLAYER_TOPUP" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#allPlayerTopupAnalysis .block-query","allPlayerTopup")')
+                        text.pull-left.margin-right-5 {{vm.optionText.allPlayerTopup | translate}}
+    #allPlayerTopupAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            //div
+            //    label {{"Start date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.allPlayerTopup.startTime')
+            //div
+            //    label {{"End date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.allPlayerTopup.endTime')
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotAllPlatformTopUpPie()') {{'SEARCH' | translate}}
+        .row
+            .col-md-5
+                .panel.panel-default.leftPanel(style='padding-bottom:5px')
+                    .pieChart
+                        #pie-all-topUpAmount
+            .col-md-7
+                .panel.panel-default.rightPanel
+                    #bar-all-topUpAmount.barChart
+                    label {{vm.allPlatformTopUpPie}}
+
+.clearfix
+.section(ng-show="checkViewPermission('Analysis','Analysis','ApiResponseTime')")
+    .row
+        .titlePic
+            .title {{"ApiResponseTime" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#allApiResponseTimeAnalysis .block-query","allApiResponseTime")')
+                        text.pull-left.margin-right-5 {{vm.optionText.allApiResponseTime | translate}}
+    #allApiResponseTimeAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{"Service Name" | translate}}
+                select.form-control(ng-model='vm.queryPara.allApiResponseTime.service')
+                    option(ng-repeat='i in vm.apiRespServiceNames track by $index') {{i}}
+            div
+                label {{"Function Name" | translate}}
+                select.form-control(ng-model='vm.queryPara.allApiResponseTime.funcName')
+                    option(ng-repeat='i in vm.apiRespFuncNames track by $index') {{i}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            //div
+            //    label {{"Start date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.allApiResponseTime.startTime')
+            //div
+            //    label {{"End date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.allApiResponseTime.endTime')
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotAllPlatformApiResponseTime()') {{'SEARCH' | translate}}
+            div.collapse
+                label &nbsp;
+                i.fa.fa-spin.fa-spinner
+        .row
+            .col-md-12
+                .graph
+                    .panel.panel-default.rightPanel
+                        #line-all-apiResponseTime.lineChart
+p(ng-init="vm.loadPageFunc('PLATFORM_OVERVIEW')")

@@ -1,0 +1,29 @@
+div(ng-if='vm.showPlatformPage && checkViewPermission("Admin", "Platform", "Read")')
+    div(ng-if='!vm.SelectedDepartmentNode || vm.SelectedDepartmentNode.id=="root"')
+        | please select a department
+    div(ng-if='vm.SelectedDepartmentNode && vm.SelectedDepartmentNode.id!="root"')
+        .panel.panel-green
+            .panel-heading {{"Related platforms"|translate}}
+            .panel-body(style='height:400px;overflow-x:visible;overflow-y:auto')
+                .list-group(style='margin-bottom:0px;min-width:200px', ng-repeat='(i,v) in vm.ownPlatforms')
+                    a.list-group-item(ng-if='vm.editPlatform', data-platform='{{i}}', ng-click='vm.ownPlatformClicked(i,v);') {{v}}
+                    text.list-group-item(ng-if='!vm.editPlatform') {{v}}
+                i.fa.fa-spin.fa-spinner(ng-show='vm.ownPlatforms==null')
+            .panel-footer(ng-if='vm.editPlatform')
+                .text-center
+                    label {{"Click to remove platform"|translate}}
+        .panel(style='height:400px;display:table-cell;vertical-align: middle;padding: 10px')
+            .btn-group-vertical
+                .btn.btn-info(ng-if='!vm.editPlatform && checkViewPermission("Admin", "Platform", "Edit")',ng-click='vm.editPlatform=true') {{"EDIT" | translate}}
+                .btn.fa.fa-exchange.fa-2x(ng-if='vm.editPlatform', disabled)
+                .btn.btn-success(ng-if='vm.editPlatform',ng-click='vm.editPlatform=false') {{"DONE" | translate}}
+        .panel.panel-danger(ng-if='vm.editPlatform')
+            .panel-heading  {{"Unattached platforms"|translate}}
+            .panel-body(style='height:400px;overflow-x:visible;overflow-y:auto')
+                .list-group(style='margin-bottom:0px;min-width:200px', ng-repeat='(i,v) in vm.otherPlatforms')
+                    a.list-group-item(data-platform='{{i}}' ng-click='vm.otherPlatformClicked(i,v);') {{v}}
+                i.fa.fa-spin.fa-spinner(ng-show='vm.otherPlatforms==null')
+            .panel-footer(ng-if='vm.editPlatform')
+                .text-center
+                    label {{"Click to add platform"|translate}}
+

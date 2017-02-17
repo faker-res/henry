@@ -1,0 +1,282 @@
+.col-sm-12(ng-if='!vm.curPlatformText')
+    .text-center
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.row(ng-if='vm.curPlatformText')
+    .col-md-3
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"Alipay Group" | translate}}
+            .panel-body
+                div(ng-if='!vm.platformAlipayGroupList || vm.platformAlipayGroupList.length==0', style="height: 50px; overflow-y: auto;")
+                    label.text-danger {{"NO_ALIPAY_GROUP_MESSAGE" | translate}}
+                ul.list-group(ng-if='vm.platformAlipayGroupList.length > 0', style="height: 430px; overflow-y: auto;")
+                    li.list-group-item(ng-repeat='(i,alipayGroup) in vm.platformAlipayGroupList', ng-click='vm.alipayGroupClicked(i,alipayGroup)', ng-class='{active: vm.SelectedAlipayGroupNode === alipayGroup}')
+                        text {{alipayGroup.name}}
+                        i.fa.fa-star.pull-right.margin-right-5(ng-show='alipayGroup.bDefault')
+                .btn-group.text-center(style="border-radius:9px",role="group")
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Create')", data-toggle="modal", ng-click='vm.newAlipayGroup={};', data-target='#modalAddAlipayGroup')
+                        text {{"ADD" | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Delete')", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalRemoveAlipayGroup', ng-click='')
+                        text {{"DELETE" | translate}}
+                        img.img-delete
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalRenameAlipayGroup', ng-click='vm.initRenameAlipayGroup()')
+                        text {{"EDIT" | translate}}
+                        img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformAlipayGroupList.length>0)", data-toggle="modal", data-target='#modalSetAlipayGroupDefault')
+                        text {{"Default" | translate}}
+                        img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Create')", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalAddPlayersToAlipayGroup', ng-click='vm.preparePlayerToGroupDialog("alipayGroup","#playertoAlipayGroupDataTable")')
+                        text {{"ADD_PLAYER" | translate}}
+                        img.img-create
+                    //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
+                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", ng-click='vm.confirmDetachProvider()')
+                    //    text {{"DETACH" | translate}}
+                    //    .fa.fa-chain-broken
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"Alipay Group" | translate}} : {{vm.SelectedAlipayGroupNode.name}} ({{vm.SelectedAlipayGroupNode.displayName}})
+            .panel-body
+                .text-center(ng-if='!vm.SelectedAlipayGroupNode')
+                    label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
+                .well
+                    .inlineBlk.margin-right-5
+                        .control-label {{"TITLE" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterAlipayTitle')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"ACCOUNT" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterAlipayAcc')
+                    //.inlineBlk.margin-right-5
+                        .control-label {{"Topup Type" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterAlipayTopupType', style='max-width:200px', ng-init='vm.filterAlipayTopupType="all"')
+                            option(value='all') all
+                            option(ng-repeat='(i,v) in vm.alipayTopupTypeJson', value='{{i}}') {{v | translate}}
+                    //.inlineBlk.margin-right-5
+                        .control-label {{"Alipay Use" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterAlipayUse', style='max-width:200px', ng-init='vm.filterAlipayUse="all"')
+                            option(value='all') all
+                            option(ng-repeat='(i,v) in vm.alipayUseTypeJson', value='{{i}}') {{v | translate}}
+                    //.inlineBlk.margin-right-5
+                        .control-label {{"Alipay Type ID" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterAlipayType', style='max-width:200px', ng-init='vm.filterAlipayType="all"')
+                            option(value='all') all
+                            option(ng-repeat='(i,v) in vm.allAlipayTypeList', value='{{i}}') {{v.name | translate}}
+                    .inlineBlk
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.alipayGroupClicked(1,vm.SelectedAlipayGroupNode)") {{"FILTER" | translate}}
+                #AlipayList.panel-group(ng-if='vm.SelectedAlipayGroupNode')
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#AlipayList", href='#includedAlipays', ng-click='vm.showAlipayCate="include";vm.toggleBankType()')
+                            h4.panel-title
+                                text {{'Included Alipays' | translate}}
+                                span(ng-if='vm.includedAlipays') &nbsp;:&nbsp;({{vm.includedAlipays.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.includedAlipays') {{'loading alipays' | translate}}...
+                        #includedAlipays.panel-collapse.collapse.in
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedAlipays', class='{{vm.highlightAlipay[v.accountNumber]}}', ng-click='vm.alipayClicked(i,v,"in")')
+                                    table.bg-pale
+                                        tr
+                                            td.text-center(rowspan="5")
+                                                i.fa.fa-money.text-danger
+                                            td {{'TITLE' | translate}}
+                                            td.text-success {{v.name}}
+                                        tr
+                                            td {{'ACCOUNT' | translate}}
+                                            td.text-success {{v.accountNumber}}
+                                        //tr
+                                        //    td {{'Topup Type' | translate}}
+                                        //    td.text-success {{vm.alipayTopupTypeJson[v.topupType] | translate}}
+                                        //tr
+                                        //    td {{'Alipay Use' | translate}}
+                                        //    td.text-success {{vm.alipayUseTypeJson[v.alipayUse] | translate}}
+                                        //tr
+                                        //    td {{'Alipay Type ID' | translate}}
+                                        //    td.text-success {{vm.allAlipayTypeList[v.alipayTypeId].name | translate}}
+                                        //        img(ng-if='v.alipayTypeId', src='{{vm.allAlipayTypeList[v.alipayTypeId].showIconURL}}')
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#AlipayList", href='#excludedAlipays', ng-click='vm.showAlipayCate="exclude";vm.toggleBankType()')
+                            h4.panel-title
+                                text {{'Excluded Alipays' | translate}}
+                                span(ng-if='vm.excludedAlipays') &nbsp;:&nbsp;({{vm.excludedAlipays.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.excludedAlipays') {{'loading alipays' | translate}}...
+                        #excludedAlipays.panel-collapse.collapse
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedAlipays', class='{{vm.highlightAlipay[v.accountNumber]}}', ng-click='vm.alipayClicked(i,v,"ex")')
+                                    table.bg-pale
+                                        tr
+                                            td.text-center(rowspan="5")
+                                                i.fa.fa-money.text-danger
+                                            td {{'TITLE' | translate}}
+                                            td.text-success {{v.name}}
+                                        tr
+                                            td {{'ACCOUNT' | translate}}
+                                            td.text-success {{v.accountNumber}}
+                                        //tr
+                                        //    td {{'Topup Type' | translate}}
+                                        //    td.text-success {{vm.alipayTopupTypeJson[v.topupType] | translate}}
+                                        //tr
+                                        //    td {{'Alipay Use' | translate}}
+                                        //    td.text-success {{vm.alipayUseTypeJson[v.alipayUse] | translate}}
+                                        //tr
+                                        //    td {{'Alipay Type ID' | translate}}
+                                        //    td.text-success {{vm.allAlipayTypeList[v.alipayTypeId].name | translate}}
+                                        //        img(ng-if='v.alipayTypeId', src='{{vm.allAlipayTypeList[v.alipayTypeId].showIconURL}}')
+                .panel.panel-info(ng-if='vm.curAlipay')
+                    .panel-heading.panel-heading-sm
+                        h4.panel-title(style='display:inline-block') {{'Alipay' | translate}} : {{vm.curAlipay.name}}
+                    .panel-body(style='padding:5px')
+                        .alipayPropFlex
+                            .alipayPropdiv
+                                text {{'alipayAccount' | translate}}
+                                label.text-success {{vm.curAlipay.accountNumber}}
+                            .alipayPropdiv
+                                text {{'TITLE' | translate}}
+                                label.text-success {{vm.curAlipay.name}}
+                            //.alipayPropdiv
+                            //    text {{'Alipay Type ID' | translate}}
+                            //    label.text-success {{vm.allAlipayTypeList[vm.curAlipay.alipayTypeId].name | translate}}
+                            //.alipayPropdiv
+                            //    text {{'Alipay Use' | translate}}
+                            //    label.text-success {{vm.alipayUseTypeJson[vm.curAlipay.alipayUse] | translate}}
+                            //.alipayPropdiv
+                            //    text {{'REMARK' | translate}}
+                            //    label.text-success {{vm.curAlipay.remark}}
+                            //.alipayPropdiv
+                            //    text {{'Target Devices' | translate}}
+                            //    label.text-success {{vm.alipayTargetDeviceJson[vm.curAlipay.targetDevices] | translate}}
+                            //.alipayPropdiv
+                            //    text {{'Topup Type' | translate}}
+                            //    label.text-success {{vm.alipayTopupTypeJson[vm.curAlipay.topupType] | translate}}
+
+                            //.alipayPropdiv(ng-repeat='(i,v) in vm.curAlipay')
+                                text {{i}}
+                                label.text-success {{v}}
+                div(ng-if='vm.curAlipay')
+                    div(ng-if='vm.showAlipayCate=="include"')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')", ng-click='vm.alipaytoAlipayGroup("detach")')
+                            i.fa.fa-minus-square
+                            text {{"EXCLUDE" | translate}}
+                    div(ng-if='vm.showAlipayCate=="exclude"')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')", ng-click='vm.alipaytoAlipayGroup("attach")')
+                            i.fa.fa-plus-square
+                            text {{"INCLUDE" | translate}}
+
+#modalAddAlipayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add Alipay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"Alipay Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newAlipayGroup.name')
+                            .form-group
+                                .control-label {{"Alipay Group Display Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newAlipayGroup.displayName')
+                            .form-group
+                                .control-label {{"Alipay Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newAlipayGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.addAlipayGroup(vm.newAlipayGroup)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalRemoveAlipayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Remove Alipay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"Alipay Group Name" | translate}}
+                                label {{vm.SelectedAlipayGroupNode.name}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.removeAlipayGroup(vm.SelectedAlipayGroupNode)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalRenameAlipayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Rename Alipay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"Alipay Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newAlipayGroup.name')
+                            .form-group
+                                .control-label {{"Alipay Group Display Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newAlipayGroup.displayName')
+                            .form-group
+                                .control-label {{"Alipay Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newAlipayGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.renameAlipayGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalSetAlipayGroupDefault.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Alipay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                label.control-label {{"Please choose default alipay group" | translate}}
+                                div(ng-repeat='(i,v) in vm.platformAlipayGroupList')
+                                    label {{v.name}} ({{v.displayName}})
+                                        input.pull-left.margin-right-5(type='radio', name='defaultAlipayGroup', ng-model='vm.defaultAlipayGroup', ng-value='v._id')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitDefaultAlipayGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalAddPlayersToAlipayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        label {{"Add Player to AliPay group"|translate}}&nbsp;:&nbsp;{{vm.SelectedAlipayGroupNode.name}}
+                        br
+                        .well
+                            .inlineBlk.margin-right-5
+                                label {{'alipayGroup' | translate}}
+                                select.form-control(ng-model='vm.playerToGroupFilterObj.filter.alipayGroup')
+                                    option(value='all') {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.platformAlipayGroupList', value='{{v._id}}') {{v.name}}({{v.displayName}})
+                            .inlineBlk.margin-right-5
+                                label {{'PLAYER_LEVEL' | translate}}
+                                select.form-control(ng-model='vm.playerToGroupFilterObj.filter.playerLevel')
+                                    option(value='all') {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                            .inlineBlk.margin-right-5
+                                label {{'USER_NAME' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerToGroupFilterObj.filter.name')
+                            .inlineBlk.margin-right-5
+                                label {{'MIN_TOPUP_TIMES' | translate}}
+                                input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.topUpTimes')
+                            .inlineBlk.margin-right-5
+                                label {{'CREDIT' | translate}}
+                                input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.validCredit')
+                            .inlineBlk
+                                button.btn.btn-primary.common-button(ng-click='vm.playerToGroupFilter("alipay")') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-show='vm.loadingPlayerTable')
+                                label.blink.text-danger {{'Loading' | translate}}
+                        text.text-danger(ng-show='vm.players.length==0') {{"No player is found."|translate}}
+                        table#playertoAlipayGroupDataTable.display(style="width:100%")
+                            thead
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitAddPlayersToAlipayGroup()") {{"ADD" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

@@ -1,0 +1,92 @@
+div(ng-if="checkViewPermission('Analysis')")
+    .analysisHeader.col-md-12
+        button.btn.common-button(class='{{vm.platformOverviewClass}}', ng-click='vm.loadPage("PLATFORM_OVERVIEW");') {{"OVERVIEW" | translate}}
+
+        .fa.fa-cubes.fa-2x
+        .dropdown
+            button.btn.btn-primary.common-button.dropdown-toggle(ng-if='vm.showPageName=="PLATFORM_OVERVIEW"', href='#' data-toggle='dropdown')
+                | {{"ALL_PLATFORM" | translate}}
+            button.btn.btn-danger.common-button.dropdown-toggle(ng-if='vm.showPageName!=="PLATFORM_OVERVIEW"', href='#' data-toggle='dropdown')
+                | {{vm.selectedPlatform.name | translate}}
+            ul.dropdown-menu(role='menu')
+                li(ng-repeat='(i,v) in vm.platformList')
+                    a(ng-click='vm.selectPlatform(v._id)') {{v.name}}
+        strong(style='display:inline-block;font-size:1.5em') {{'Data Type' | translate}}:
+        .dropdown
+            button.btn.btn-primary.common-button.dropdown-toggle(href='#' data-toggle='dropdown')
+                |  {{vm.showPageName | translate}}
+            ul.dropdown-menu(role='menu', ng-if='vm.showPageName!=="PLATFORM_OVERVIEW"')
+                li(ng-if="checkViewPermission('Analysis','Analysis','NewPlayer')", ng-click='vm.loadPage("NEW_PLAYER")')
+                    a  {{'NEW_PLAYER' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','ActivePlayer')", ng-click='vm.loadPage("ACTIVE_PLAYER")')
+                    a  {{'ACTIVE_PLAYER' | translate}}
+                //li(ng-click='vm.loadPage("PEAK_HOUR")')
+                    a  {{'PEAK_HOUR' | translate}}
+                //li(ng-click='vm.loadPage("PLAYER_SOURCE")')
+                    a  {{'PLAYER_SOURCE' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','Location')",ng-click='vm.loadPage("PLAYER_IP_LOCATION")')
+                    a  {{'PLAYER_IP_LOCATION' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','Location')",ng-click='vm.loadPage("PLAYER_PHONE_LOCATION")')
+                    a  {{'PLAYER_PHONE_LOCATION' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','Reward')",ng-click='vm.loadPage("REWARD_ANALYSIS")')
+                    a  {{'REWARD_ANALYSIS' | translate}}
+                //li(ng-click='vm.loadPage("PLAYER_ANALYSIS")')
+                    a  {{'PLAYER_ANALYSIS' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','Device')",ng-click='vm.loadPage("PLAYER_DEVICE_ANALYSIS")')
+                    a  {{'PLAYER_DEVICE_ANALYSIS' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','Domain')",ng-click='vm.loadPage("PLAYER_DOMAIN_ANALYSIS")')
+                    a  {{'PLAYER_DOMAIN_ANALYSIS' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','PlayerRetention')",ng-click='vm.loadPage("PLAYER_RETENTION")')
+                    a  {{'PLAYER_RETENTION' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','Consumption')",ng-click='vm.loadPage("PLAYER_EXPENSES")')
+                    a  {{'PLAYER_EXPENSES' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','TopUp')",ng-click='vm.loadPage("PLAYER_TOPUP")')
+                    a  {{'PLAYER_TOPUP' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','ClientSource')",ng-click='vm.loadPage("CLIENT_SOURCE")')
+                    a  {{'CLIENT_SOURCE' | translate}}
+                //li(ng-click='vm.loadPage("GAME_ANALYSIS")')
+                    a  {{'GAME_ANALYSIS' | translate}}
+        a.pull-right(ng-click='vm.loadPageFunc(vm.showPageName)')
+            text.text-primary.margin-right-5 {{'Refresh' | translate}}
+            .fa.fa-refresh.fa-2x.rotateOnHover
+    .col-md-12
+        #analysisPanel.panel.panel-danger.padding-all-5
+            div(ng-if='vm.showPageName=="PLATFORM_OVERVIEW"')
+                include category/platform-overview
+            div(ng-if='vm.showPageName=="NEW_PLAYER"')
+                include category/player-new
+            div(ng-if='vm.showPageName=="ACTIVE_PLAYER"')
+                include category/player-active
+            div(ng-if='vm.showPageName=="PEAK_HOUR"')
+                include category/peak-hour
+            div(ng-if='vm.showPageName=="PLAYER_IP_LOCATION"')
+                include category/player-location
+            div(ng-if='vm.showPageName=="PLAYER_PHONE_LOCATION"')
+                include category/player-location
+            div(ng-if='vm.showPageName=="REWARD_ANALYSIS"')
+                include category/reward-analysis
+            div(ng-if='vm.showPageName=="PLAYER_ANALYSIS"')
+                include category/player-analysis
+            div(ng-if='vm.showPageName=="PLAYER_DEVICE_ANALYSIS"')
+                include category/player-device
+            div(ng-if='vm.showPageName=="PLAYER_DOMAIN_ANALYSIS"')
+                include category/player-domain
+            div(ng-if='vm.showPageName=="PLAYER_RETENTION"')
+                include category/player-retention
+            div(ng-if='vm.showPageName=="GAME_ANALYSIS"')
+                include category/game-analysis
+            div(ng-if='vm.showPageName=="PLAYER_EXPENSES"')
+                include category/player-credit
+            div(ng-if='vm.showPageName=="PLAYER_TOPUP"')
+                include category/player-credit
+            div(ng-if='vm.showPageName=="CLIENT_SOURCE"')
+                include category/client-source
+            div(ng-if='vm.showPageName==""')
+                label Please select a Data type
+    include category/common/input-date
+link(rel='stylesheet', href='css/analysis.css')
+script(src='js/lib/flot/jquery.flot.min.js')
+script(src='js/lib/flot/jquery.flot.pie.min.js')
+script(src='js/lib/flot/jquery.flot.barnumbers.enhanced.js')
+script(src='js/lib/flot/jquery.flot.axislabels.js')
+script(src='js/lib/flot/jquery.flot.time.min.js')

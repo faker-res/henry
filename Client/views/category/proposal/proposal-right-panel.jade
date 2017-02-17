@@ -1,0 +1,70 @@
+.panel.panel-primary
+    .panel-heading.panel-heading-sm
+        label {{"PROCESS_DETAIL" | translate}} : {{vm.selectedProposalType.text}}
+    .panel-body.common-right-sub-panel-body
+        .row
+            .col-sm-10(style='padding-right:10px')
+                flow-chart#flowChart(style='width: 100%; height: 550px;overflow:auto;', chart='vm.chartViewModel')
+                .pull-left
+                    button.btn.btn-primary.common-button(data-toggle="modal", data-target='#modalAddProposalNode', title='Add a new node to the chart', ng-click='vm.initStep();')
+                        | {{'ADD' | translate}}{{'STEP' | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.deleteSelected()', ng-disabled='vm.chartViewModel.getSelectedNodes().length == 0 && vm.chartViewModel.getSelectedConnections().length == 0', title='Delete selected nodes and connections')
+                        | {{'DELETE_SELECTED' | translate}}
+                .pull-right
+                    button.btn.btn-primary.common-button(ng-disabled='!vm.proposalChanged',ng-click='vm.saveProcess();vm.proposalChanged=false;')  {{'SAVE_PROCESS' | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.resetProcess();vm.proposalChanged=false;')  {{'RESET_PROCESS' | translate}}
+            .col-sm-2(style='padding-left:0')
+                div(style="border:solid 1px blue;overflow: auto;padding:10px 5px;", ng-show='vm.chartViewModel.getSelectedNodes().length !== 0')
+                    div(ng-if="!vm.editingNode")
+                        //.form-group
+                            text {{'STEP_NAME' | translate}}
+                            label.form-control {{vm.tempNodeName}}
+                        .form-group
+                            text {{'DEPARTMENT' | translate}}
+                            label.form-control {{vm.tempNodeDepartmentName}}
+                        .form-group
+                            text {{'ROLE' | translate}}
+                            label.form-control {{vm.tempNodeRoleName}}
+                        .form-group
+                            button.btn-sm.btn.btn-info.common-button(ng-click='vm.clearData();vm.editingNode=true') {{'EDIT' | translate}}
+                    div(ng-if="vm.editingNode")
+                        //.form-group
+                            text {{'STEP_NAME' | translate}}
+                            input(type='text', ng-model="vm.tempNodeName")
+                        .form-group
+                            text {{'DEPARTMENT' | translate}}
+                            select(ng-model="vm.tempEditDepartName", ng-change='vm.StepDepartmentUpdated();' required)
+                                option(ng-repeat='(i,v) in vm.departments') {{v.departmentName}}
+                        .form-group
+                            text {{'ROLE' | translate}}
+                            select(ng-model="vm.tempEditRoleName", ng-change='vm.StepRoleUpdated();', required)
+                                option(ng-repeat='(i,v) in vm.tempAllRoles') {{v.roleName}}
+                        .form-group
+                            button.btn-sm.btn.btn-danger.common-button(ng-click='vm.editingNode=false;vm.proposalChanged=true;vm.updateProposalStepData()') update
+                            button.btn-sm.btn.btn-danger.common-button(ng-click='vm.editingNode=false') cancel
+#modalAddProposalNode.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:50%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'ADD' | translate}}{{'STEP' | translate}}
+            .modal-body
+                form(name='form_add_node', novalidate)
+                    //.label-input.width6040
+                        label {{'STEP_NAME' | translate}}
+                        input(type='text', ng-model="vm.tempNewNodeName", required)
+                    .label-select-inline.width6040
+                        label {{'DEPARTMENT' | translate}}&nbsp;:
+                        select(ng-model="vm.tempNewNodeDepartment", ng-options="v.departmentName for (i,v) in vm.departments",ng-change='vm.loadDepartmentRole(vm.tempNewNodeDepartment);' required)
+                            option(selected) {{'DEPARTMENT' | translate}}
+                            //option(ng-repeat="(i,v) in vm.departments", ng-value="v") {{v.departmentName}}
+                    .label-select-inline.width6040
+                        label {{'ROLE' | translate}}&nbsp;:
+                        select(ng-model="vm.tempNewNodeRole", ng-options="v.roleName for (i,v) in vm.tempAllRoles",ng-change='vm.setSelectedRole(vm.tempNewNodeRole);', required)
+                            option(selected) {{'ROLE' | translate}}
+                            //option(ng-repeat="(i,v) in vm.tempAllRoles", ng-value="i") {{v.roleName}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="form_add_node.$invalid", ng-click="vm.addNewNode();vm.proposalChanged=true;") {{"CREATE" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal') {{"OK" | translate}}
+
+                            

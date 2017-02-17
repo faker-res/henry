@@ -1,0 +1,64 @@
+p
+.row
+    .col-md-12
+        label.margin-left-5(style='display:inline-block;font-size:1.5em') &nbsp;{{'REWARD_TYPE' | translate}}&nbsp;:&nbsp;
+
+        .dropdown(style='display:inline-block')
+            button.btn.btn-primary.common-button.dropdown-toggle(href='#' data-toggle='dropdown')
+                | {{vm.selectReward.name}}
+            ul.dropdown-menu(role='menu')
+                li(ng-repeat='(i,v) in vm.rewardList')
+                    a(ng-click='vm.rewardClicked(v)') {{v.name}}
+
+.section
+    .row
+        .titlePic
+            .title {{"REWARD_ANALYSIS" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#rewardAnalysis .block-query","rewardAnalysis")')
+                        text.pull-left.margin-right-5 {{vm.optionText.rewardAnalysis | translate}}
+    #rewardAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.reward.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            //div
+            //    label {{"Start date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.reward.startTime')
+            //div
+            //    label {{"End date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.reward.endTime')
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotRewardAmountLine();vm.plotRewardNumberLine()') {{'SEARCH' | translate}}
+        .row
+            .col-md-6
+                label.text-primary {{"Reward amount" | translate}} VS {{vm.queryPara.reward.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-reward-amount.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table#rewardAmountAnalysisTable.display.tableDiv(style='min-width:100%')
+        .row
+            .col-md-6
+                label.text-primary {{"Reward number" | translate}} VS {{vm.queryPara.reward.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-reward-number.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table#rewardNumberAnalysisTable.display.tableDiv(style='min-width:100%')
+
+p(ng-init="vm.loadPageFunc('REWARD_ANALYSIS')")

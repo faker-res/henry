@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="cache-control" content="max-age=0"/>
+    <meta http-equiv="cache-control" content="no-cache"/>
+    <meta http-equiv="expires" content="0"/>
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT"/>
+    <meta http-equiv="pragma" content="no-cache"/>
+    <title>Test Client Game API</title>
+</head>
+<body>
+<h3>Get Game Type List (获取游戏类型列表)</h3>
+<div class="test-container">
+    <p>
+    <div>
+        <button data-api-name="getGameTypeList">Get Game Type List</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get Game List (获取游戏列表)</h3>
+<div class="test-container">
+    <div>
+
+        <label>Game Type Id
+            <input name="type">
+        </label>
+        <p></p>
+        <label>Provider ID
+            <input name="providerId">
+        </label>
+        <label>Game play type
+            <input name="playGameType">
+        </label>
+        <p></p>
+        <label>Request Count
+            <input name="requestCount" type="number">
+        </label>
+        <p></p>
+        <label>Start Index
+            <input name="startIndex" type='number'>
+        </label>
+    </div>
+    <p>
+    <div>
+        <button data-api-name="getGameList">Get Game List</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get Content Provider List (获取内容提供商(CP)列表)</h3>
+<div class="test-container">
+    <div>
+        <label>Player Id
+            <input name="playerId">
+        </label>
+    </div>
+    <p>
+    <div>
+        <button data-api-name="getProviderList">Get Provider List</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Transfer of credits from player account to a provider’s game credit account (将本地额度转出到CP账号的游戏额度)</h3>
+<div class="test-container">
+    <label>Player Id
+        <input name="playerId">
+    </label>
+
+    <p></p>
+    <label>Provider Id
+        <input name="providerId">
+    </label>
+    <p></p>
+    <label>Credit
+        <input name="credit" type="number">
+    </label>
+    <p></p>
+    <div>
+        <button data-api-name="transferToProvider">Transfer To Provider</button>
+    </div>
+    <textarea></textarea>
+
+</div>
+
+<h3>Transfer of credits from provider’s game credit account to player account (将游戏额度从CP账号转入到本地额度)</h3>
+<div class="test-container">
+    <label>Player Id
+        <input name="playerId">
+    </label>
+
+    <p></p>
+    <label>Provider Id
+        <input name="providerId">
+    </label>
+    <p></p>
+    <div>
+        <button data-api-name="transferFromProvider">Transfer From Provider</button>
+    </div>
+
+    <textarea></textarea>
+</div>
+
+<h3>Get Login URL (获取登录游戏的URL)</h3>
+<div class="test-container">
+    <label>Game Id
+        <input name="gameId">
+    </label>
+    <p></p>
+    <label>clientDomainName
+        <input name="clientDomainName">
+    </label>
+    <!--
+     <label>platformId
+         <input name="platformId">
+     </label>
+     <p></p>
+     <label>providerId
+         <input name="providerId">
+     </label>
+     <label>clientDomainName
+         <input name="clientDomainName">
+     </label>
+     <label>lang(1：简体中文；2：English；3:한국의；4：ไทย)
+         <input name="lang">
+     </label> -->
+    <p></p>
+    <div>
+        <button data-api-name="getLoginURL">Get</button>
+    </div>
+    <textarea></textarea>
+
+</div>
+
+<h3>Get Test Login URL (获取试玩游戏的URL)</h3>
+<div class="test-container">
+    <label>Game Id
+        <input name="gameId">
+    </label>
+    <p></p>
+    <label>clientDomainName
+        <input name="clientDomainName">
+    </label>
+    <!--
+     <label>platformId
+        <input name="platformId">
+    </label>
+    <p></p>
+    <label>providerId
+        <input name="providerId">
+    </label>
+    <label>lang(1：简体中文；2：English；3:한국의；4：ไทย)
+        <input name="lang">
+    </label> -->
+    <p></p>
+    <div>
+        <button data-api-name="getTestLoginURL">Get</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>getGameUserInfo (获取玩家游戏中的账户信息)</h3>
+<div class="test-container">
+    <label>platformId
+        <input name="platformId">
+    </label>
+    <p></p>
+    <label>providerId
+        <input name="providerId">
+    </label>
+    <p></p>
+    <div>
+        <button data-api-name="getGameUserInfo">Get</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>modifyGamePassword (修改玩家游戏账号的密码)</h3>
+<div class="test-container">
+    <label>username
+        <input name="username">
+    </label>
+    <p></p>
+    <label>platformId
+        <input name="platformId">
+    </label>
+    <p></p>
+    <label>providerId
+        <input name="providerId">
+    </label>
+    <p></p>
+    <label>oldPassword
+        <input name="oldPassword">
+    </label>
+    <p></p>
+    <label>newPassword
+        <input name="newPassword">
+    </label>
+    <p></p>
+    <div>
+        <button data-api-name="modifyGamePassword">Modify</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>grabPlayerTransferRecords (请求立即收录玩家的消费记录)</h3>
+<div class="test-container">
+    <label>platformId
+        <input name="platformId">
+    </label>
+    <p></p>
+    <label>providerId
+        <input name="providerId">
+    </label>
+    <p></p>
+    <div>
+        <button data-api-name="grabPlayerTransferRecords">Grab</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Add Favorite Games (收藏游戏)</h3>
+<div class="test-container">
+    <label>Game Id
+        <input name="gameId">
+    </label>
+    <p></p>
+    <div>
+        <button data-api-name="addFavoriteGame">Add</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Remove Favorite Games (删除收藏游戏)</h3>
+<div class="test-container">
+    <label>Game Id
+        <input name="gameId">
+    </label>
+    <p></p>
+    <div>
+        <button data-api-name="removeFavoriteGame">Remove</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get Favorite Games (获取收藏游戏)</h3>
+<div class="test-container">
+    <div>
+        <button data-api-name="getFavoriteGames">Get</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get Game Group List (获取游戏分组列表)</h3>
+<div class="test-container">
+    <div>
+        <label>platformId
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Start Index
+            <input name="startIndex" type='number'>
+        </label>
+    </div>
+    <div>
+        <label>Request Count
+            <input name="requestCount" type="number">
+        </label>
+    </div>
+    <p>
+    <div>
+        <button data-api-name="getGameGroupList">Get Game Group List</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get Group Game Info (获取游戏分组信息)</h3>
+<div class="test-container">
+    <div>
+        <label>PlatformID
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Game Group Code
+            <input name="code">
+        </label>
+    </div>
+    <div>
+        <label>Start Index
+            <input name="startIndex" type='number'>
+        </label>
+    </div>
+    <div>
+        <label>Request Count
+            <input name="requestCount" type="number">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button data-api-name="getGameGroupInfo">Get</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get Group Game Tree Info (获取游戏分组树信息)</h3>
+<div class="test-container">
+    <div>
+        <label>PlatformID
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Game Group Code
+            <input name="code">
+        </label>
+    </div>
+    <div>
+        <label>Contain Games
+            <input name="containGames"> (true/false)
+        </label>
+    </div>
+    <div>
+        <label>Start Index
+            <input name="startIndex" type="number">
+        </label>
+    </div>
+    <div>
+        <label>Request Count
+            <input name="requestCount" type="number">
+        </label>
+    </div>
+    <p>
+    <div>
+        <button data-api-name="getGameGroupTreeInfo">Get</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Search Games(查询游戏)</h3>
+<div class="test-container">
+    <div>
+        <label>platformId
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Game name
+            <input name="name">
+        </label>
+    </div>
+    <div>
+        <label>Game type
+            <input name="type">
+        </label>
+    </div>
+    <p>
+    <div>
+        <label>Game Group Code
+            <input name="groupCode">
+        </label>
+    </div>
+    <div>
+        <label>Game play type
+            <input name="playGameType">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="searchGame">Search</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+
+<h3>Get Content Provider Detail List (获取内容提供商详细(CP)列表)</h3>
+<div class="test-container">
+    <div>
+        <label>Player Id
+            <input name="playerId">
+        </label>
+    </div>
+    <p>
+    <div>
+        <button data-api-name="getProviderDetailList">Get Provider Detail List</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get Providers Status (查询内容提供商(CP)状态)</h3>
+<div class="test-container">
+    <div>
+        <label>Provider Id
+            <input name="providerId">
+        </label>
+    </div>
+    <p>
+    <div>
+        <button data-api-name="getProviderStatus">Get Provider status</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Notify Provider Status Update(通知内容提供商状态更新)</h3>
+<div class="test-container">
+    <div>
+        <button data-api-name="notifyProviderStatusUpdate">Notify</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get game provider credit(获取游戏提供商额度)</h3>
+<div class="test-container">
+    <label>Provider Id
+        <input name="providerId">
+    </label>
+    <p></p>
+
+    <div>
+        <button data-api-name="getGameProviderCredit">Get credit</button>
+    </div>
+    <textarea></textarea>
+
+</div>
+
+<h3>Get transfer progress(获取额度转让进度)</h3>
+<div class="test-container">
+    <div>
+        <button data-api-name="getTransferProgress">Get progress</button>
+    </div>
+    <textarea></textarea>
+
+</div>
+
+<h3>Search Games by Groups(根据游戏组查询游戏)</h3>
+<div class="test-container">
+    <div>
+        <label>platformId
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Groups
+            <input name="groups">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="searchGameByGroup">Search</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<script>
+    require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientGameAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest' ,'testAPI/clientAPITest/ClientConnectionAPITest'],
+            function (ClientServices, WebSocketClient, TestHelper, ClientGameAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
+                var Client = function (url) {
+
+                    WebSocketClient.call(this, url);
+
+                    var gameService = new ClientServices.GameService();
+                    this.addService(gameService);
+
+                    var playerService = new ClientServices.PlayerService();
+                    this.addService(playerService);
+
+                    var conService = new ClientServices.ConnectionService();
+                    this.addService(conService);
+
+                };
+
+                var proto = Client.prototype = Object.create(WebSocketClient.prototype);
+                proto.constructor = Client;
+
+                $(document).ready(function () {
+                    var client = new Client("ws://" + TestHelper.websocketIP + ":9280");
+                    client.connect();
+
+                    client.addEventListener("open", function () {
+                        var gameService = client.getService("game");
+                        var clientGameAPITest = new ClientGameAPITest(gameService);
+
+                        var connectionService = client.getService("connection");
+                        var connAPITest = new ClientConnectionAPITest(connectionService);
+
+                        connAPITest.setLang(function (data) {
+                            console.log('setlang data.....', data);
+                        });
+
+                        TestHelper.loginCookiePlayer(client, ClientPlayerAPITest);
+                        TestHelper.setAPIName('ClientServices.game');
+                        TestHelper.attachListeners(clientGameAPITest);
+
+                    });
+
+                    TestHelper.addReconnectOnCloseListener(client);
+                });
+            }
+    );
+</script>
+</body>
+</html>

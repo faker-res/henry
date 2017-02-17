@@ -1,0 +1,21 @@
+.col-md-12.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.minTopUpAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward.minTopUpAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.validTopUpDays.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward.validTopUpDays', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.validTopUpAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward.validTopUpAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.rewardPercentage.des | translate}}
+        span.percentage
+            input.form-control(type='number', min='0', percentage, style="width:calc(45% - 20px)", ng-model='vm.rewardParams.reward.rewardPercentage', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.maxRewardAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward.maxRewardAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.expirationDays.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward.expirationDays', ng-disabled='vm.platformRewardShowEdit()', required)
+

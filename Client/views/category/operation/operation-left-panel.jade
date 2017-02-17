@@ -1,0 +1,58 @@
+#operPlatform.panel.panel-primary(ng-if="checkViewPermission('Operation', 'Proposal','Read')")
+    .panel-heading.padding-all-5
+        .panel-title.left-col
+            .fa.fa-cubes(ng-if='vm.selectedPlatform')
+            //-
+                text(ng-click='vm.operSelPlatform=true') {{vm.selectedPlatform.platformName | translate}}
+                .fa.fa-cubes(ng-if='!vm.selectedPlatform')
+                span(ng-if='!vm.selectedPlatform') {{'SELECT_PLATFORM' | translate}}
+                div(ng-if='vm.operSelPlatform')
+                    a.fa.fa-times.text-danger(ng-click='vm.operSelPlatform=false')
+            select.platform-select(ng-model='vm.selectedPlatformID', ng-change='vm.selectPlatform(vm.selectedPlatformID)', required)
+                option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatformID==v._id') {{v.name}}
+    .panel-body(style='padding:5px 0')
+        ul.list-group(style="margin: 0")
+            a.list-group-item(ng-if="checkViewPermission('Operation', 'Proposal', 'ProposalListRead')", class='{{vm.highlightProposalListSelection.total}}' ng-click='vm.proposalTypeClicked("total");', data-toggle="tab", href="#proposalDataTableDiv")
+                text {{"PROPOSAL_LIST" | translate}}
+                .badge.pull-right(ng-show='vm.newProposalNum > 0') {{vm.newProposalNum}}
+            a.list-group-item(class='{{vm.highlightProposalListSelection.approval}}' ng-click='vm.proposalTypeClicked("approval");', data-toggle="tab", href="#proposalDataTableDiv")
+                text {{"Approval List" | translate}}
+                .badge.pull-right(ng-show='vm.newProposalNum > 0') {{vm.newProposalNum}}
+            //a.list-group-item(ng-if="checkViewPermission('Operation', 'Proposal', 'TopupIntentionRead')", class='{{vm.highlightProposalListSelection.topUp}}' ng-click='vm.proposalTypeClicked("topUp");vm.topupClicked()', data-toggle="tab", href="#topupMonitorTableDiv")
+                text {{"TOP_UP_INTENTION" | translate}}
+                .badge.pull-right {{vm.allTopupAccount.length}}
+            //a.list-group-item(ng-if="checkViewPermission('Operation', 'Proposal', 'NewAccountListRead')", class='{{vm.highlightProposalListSelection.newAccount}}' ng-click='vm.proposalTypeClicked("newAccount");vm.newAccountClicked()', data-toggle="tab", href="#registrationMonitorTableDiv")
+                text {{"NEW_ACCOUNT_INTENTION" | translate}}
+                .badge.pull-right {{vm.allNewAccount.length}}
+#operPlayer.panel.panel-primary(ng-if="checkViewPermission('Operation', 'Player','Read')")
+    .panel-heading.panel-heading-sm
+        .panel-title
+            text &nbsp;{{"Online Players" | translate}}
+            .pull-right
+                a#gettingOnlinePlayer.fa.fa-refresh.margin-right-5(ng-click='vm.getLoggedInPlayer();vm.getLoggedInPlayerCount()')
+                .badge {{vm.loggedInPlayerCount || 0}}
+    .panel-body
+        .search-box
+            .fa.fa-search.pull-right.margin-all-5
+            input.span.input-sm.margin-left-5(type="text", placeholder='{{"SEARCH_HERE" | translate}}' ng-model="vm.playerSearchText", ng-change='vm.getLoggedInPlayer()')
+        p
+        //#operPlayerList.col-sm-12
+        #operPlayerList.list-group(style="margin: 0;max-height:300px;overflow-y: auto;")
+            a.list-group-item(ng-repeat='(i,v) in vm.loggedPlayers' data-player='{{v}}')
+                text {{v.name}}
+        i.fa.fa-refresh.fa-spin.margin-left-5.text-danger.text-center
+
+#activePlayerPopover.hide(style="width: auto")
+    table.simple-table
+        thead
+            tr
+                th {{'PROPERTY' | translate}}
+                th {{'VALUE' | translate}}
+        tbody
+            tr(ng-repeat='(i,v) in vm.activePlayerDataPropertyList')
+                td(style='min-width: 9em') {{v.key | translate}}
+                td(style='min-width: 9em') {{v.func(vm.activePlayerData[v.key])}}
+    p
+    button.playerMessage.common-button.margin-right-5.btn.btn-success(data-player='{{vm.activePlayerData}}') {{'MESSAGE' | translate}}
+    button.playerTelephone.common-button.margin-right-5.btn.btn-success(data-player='{{vm.activePlayerData}}') {{'TELPHONE' | translate}}
+

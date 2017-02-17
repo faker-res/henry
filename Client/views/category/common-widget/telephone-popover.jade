@@ -1,0 +1,91 @@
+#telPopover.hide(style="width: 600px")
+    //label {{vm.telphonePlayer.name}}
+    button.playerMessage.common-button.margin-right-5.btn.btn-success(data-player='{{vm.telphonePlayer}}') {{'MESSAGE' | translate}}
+    button.playerTelephone.common-button.margin-right-5.btn.btn-success(data-player='{{vm.telphonePlayer}}') {{'TELPHONE' | translate}}
+
+
+ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' | translate}}")
+    ez-modal-body
+        form(name="form_send_message")
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
+                    text {{vm.telphonePlayer.name}} {{vm.telphonePlayer.nickName && '(' + vm.telphonePlayer.nickName + ')'}}
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"TITLE" | translate}}
+                    input.form-control(type="text", ng-model="vm.messageForPlayer.title", placeholder="...")
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"MESSAGE" | translate}}
+                    textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8")
+    ez-modal-footer
+        ez-confirm-button(ng-click="vm.sendMessageToPlayer()") {{"SEND" | translate}}
+        ez-cancel-button {{"CANCEL" | translate}}
+
+ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | translate}}")
+    ez-modal-body
+        .row
+            div.form-group.col-md-12
+                label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
+                text {{vm.smsPlayer.name}} {{vm.smsPlayer.nickName && '(' + vm.smsPlayer.nickName + ')'}}
+
+                label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
+                select(ng-model='vm.smsPlayer.channel', ng-options='a for a in channelList')
+
+                label.margin-left-5.blink.text-danger(ng-if="!vm.smsPlayer.hasPhone") {{'This Player did not input phone number' | translate}}
+
+                .pull-right(ng-if='vm.sendSMSResult.sent===true')
+                    .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
+                        text {{'SEND' | translate}} {{'SUCCESS' | translate}}
+                    .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
+                        text {{'SEND' | translate}} {{'FAIL' | translate}}
+                .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
+                    text.text-danger.blink {{"Sending" | translate}}
+        .row
+            div.form-group.col-md-12
+                label.control-label {{"CONTENT" | translate}}
+                textarea.form-control(ng-model="vm.smsPlayer.message", placeholder="...", rows="8", ng-disabled="!vm.smsPlayer.hasPhone")
+    ez-modal-footer
+        button.btn.common-button.btn-primary(ng-click="vm.sendSMSToPlayer()", ng-disabled="!vm.smsPlayer.hasPhone") {{"SEND" | translate}}
+        button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+ez-modal(modal-id="smsPartnerModal", modal-title="{{'Send SMS to Partner' | translate}}")
+    ez-modal-body
+        .row
+            div.form-group.col-md-12
+                label.control-label {{"To Partner" | translate}}:&nbsp;
+                text {{vm.smsPartner.name}} {{vm.smsPartner.realName && '(' + vm.smsPartner.realName + ')'}}
+
+                label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
+                select(ng-model='vm.smsPartner.channel', ng-options='a for a in channelList')
+
+                .pull-right(ng-if='vm.sendSMSResult.sent===true')
+                    .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
+                        text {{'SEND' | translate}} {{'SUCCESS' | translate}}
+                    .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
+                        text {{'SEND' | translate}} {{'FAIL' | translate}}
+                .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
+                    text.text-danger.blink {{"Sending" | translate}}
+        .row
+            div.form-group.col-md-12
+                label.control-label {{"CONTENT" | translate}}
+                textarea.form-control(ng-model="vm.smsPartner.message", placeholder="...", rows="8")
+    ez-modal-footer
+        button.btn.common-button.btn-primary(ng-click="vm.sendSMSToPartner()") {{"SEND" | translate}}
+        button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+ez-modal(modal-id="phoneCallModal", modal-title="{{'PHONE' | translate}}")
+    ez-modal-body
+        .row
+            div.form-group.col-md-12
+                label.control-label {{"Telphone to" | translate}}:&nbsp;
+                text {{phoneCall.toText}}
+                label.margin-left-5.blink.text-danger(ng-if="!phoneCall.loadingNumber && !phoneCall.phone") {{'This Player did not input phone number' | translate}}
+            //div.form-group.col-md-12
+                img(src='images/icon/spin.gif')
+                img#phoneCaptha.margin-right-5(src="{{phoneCall.capthaSrc}}", ng-click='getNewPhoneCaptha()')
+                input(type='text', ng-model='phoneCall.captha', placeholder="{{'Please input verification code' | translate}}")
+            div
+                button.btn.common-button.btn-primary(ng-disabled='!phoneCall.phone', ng-click="makePhoneCall()") {{"Call" | translate}}
+                //text.margin-left-5.text-danger(ng-if='phoneCall.err') {{phoneCall.err}}
+                text.margin-left-5.blink(ng-if='phoneCall.loadingNumber') {{"Retrieving phone number from server..." | translate}}
+    ez-modal-footer

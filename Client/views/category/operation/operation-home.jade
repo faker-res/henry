@@ -1,0 +1,8 @@
+div(ng-if="checkViewPermission('Operation')")
+    .col-md-3(ng-class='vm.leftPanelClass')
+        include ./operation-left-panel
+    #proposalRight.col-md-9(ng-class='vm.rightPanelClass')
+        include ./operation-right-panel
+   // #OPERATIONQUICKPANEL
+        include ./operation-quickpanel
+include ../common-widget/telephone-popover

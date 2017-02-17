@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Test Player Account</title>
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>-->
+    <!--<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>-->
+    <!--<script src="common/require.js" data-main="testClientPlayerAPI"></script>-->
+</head>
+<h3>TEST PLAYER REGISTRATION (玩家开户)</h3>
+
+<!--For Testing Player Registration API (1)-->
+<div class="test-container">
+    <div>
+        <label id="playerName">Player name
+            <input type=text name="name">
+        </label>
+    </div>
+    <div>
+        <label id="realName">Real name
+            <input type=text name="realName">
+        </label>
+    </div>
+    <div>
+        <label id="playerPassword">Password
+            <input type=text name="password">
+        </label>
+    </div>
+    <div>
+        <label id="platformId">Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label id="referral">Referral Name
+            <input type=text name="referral">
+        </label>
+    </div>
+    <div>
+        <label id="domain">Domain Name
+            <input type=text name="domain">
+        </label>
+    </div>
+    <div>
+        <label id="playerPhone">Telephone
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label id="playerEmail">Email
+            <input type=text name="email">
+        </label>
+    </div>
+    <div>
+        <label id="code">Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <div>
+        <button id="getRegCaptcha">Get Captcha Code</button>
+        <img id="playerRegCaptchaImg"/>
+    </div>
+    <p></p>
+    <div>
+        <label id="captchaCode">Captcha Code
+            <input id="captchaCodeInput" type=text name="captcha">
+        </label>
+    </div>
+
+    <div>
+        <button id="playerReg" data-api-name="create">Register</button>
+    </div>
+    <textarea id="playerRegConsole"></textarea>
+</div>
+
+<h3>TEST PLAYER LOGIN (登录)</h3>
+
+<div class="test-container">
+
+    <label id="platformIdLogin">Platform Id
+        <input id="platformIdLogin" type=text name="platformId">
+    </label>
+    <div></div>
+    <label id="playerNameLogin">Username
+        <input id="playerNameLoginInput" type=text name="name">
+    </label>
+    <div>
+        <label id="playerLoginPassword">Password
+            <input id="playerLoginPasswordInput" type=text name="password">
+        </label>
+    </div>
+    <div>
+        <label id="playerLoginClientDomain">Client Domain
+            <input id="playerLoginClientDomain" type=text name="clientDomain">
+        </label>
+    </div>
+    <div class="playerCaptcha" style="display:none">
+        <button id="getLoginCaptcha">Get Captcha Code</button>
+        <img id="playerLoginCaptchaImg"/>
+    </div>
+    <div class="playerCaptcha" style="display:none">
+        <label id="captchaCode">Captcha Code
+            <input id="captchaCodeInput" type=text name="captcha">
+        </label>
+    </div>
+    <p>
+    <div>
+        <!--For testing Player Login API (3)-->
+        <button id="playerLogin" data-api-name="login">Login</button>
+    </div>
+    <div>
+        <textarea id="playerLoginConsole"></textarea>
+    </div>
+</div>
+
+
+<h3>TEST PLAYER LOGOUT (注销)</h3>
+<div class="test-container">
+    <!--For testing player logout API (5)-->
+    <div>
+        <label>Player ID
+            <input type=text name="playerId">
+        </label>
+    </div>
+    <div>
+        <button id="playerLogoutSuccess" data-api-name="logout">Logout</button>
+    </div>
+    <div>
+        <textarea id="playerLogoutOutput"></textarea>
+    </div>
+</div>
+
+<h3>CHECK LOGIN(是否已登录)</h3>
+<div class='test-container'>
+    <!--For testing if player is login API (5)-->
+    <label>Player ID
+        <input name="playerId" type=text>
+    </label>
+    <p></p>
+    <div>
+        <button id="playerIsLogin" data-api-name="isLogin">Check if Player is logged in</button>
+    </div>
+    <div>
+        <textarea id="playerIsLoginOutput"></textarea>
+    </div>
+</div>
+
+<h3>TEST GET VERIFICATION CODE (获取手机验证码)</h3>
+<div class="test-container">
+    <div>
+        <label id="phone">Enter Phone Number
+            <input id="phoneinput" type=text name="phoneNumber">
+        </label>
+    </div>
+    <button id="getVerificationCode" data-api-name="getSMSCode">Get Verification Code</button>
+    <p>
+        <!--<div>-->
+        <!--<label id="playerVerify">Enter Verification Code-->
+        <!--<input id="playerVerifyInput" type=text name="SMSCode">-->
+        <!--</label>-->
+        <!--</div>-->
+        <!--<p>-->
+        <!--<div>-->
+        <!--<button id="checkVerificationCode" , data-api-name="">Check Verification Code</button>-->
+        <!--</div>-->
+
+    <div>
+        <textarea id="verificationCode"></textarea>
+    </div>
+</div>
+
+<h3>GET PLAYER INFORMATION(获取玩家基本信息)</h3>
+<div class='test-container'>
+    <!--For testing Get player information API (7)-->
+    <label>Player ID
+        <input name="playerId" type=text>
+    </label>
+    <div>
+        <button data-api-name="get">Get Player Information</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>MODIFY PLAYER PAYMENT INFORMATION (修改玩家的支付信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label id="playerId" name="playerId">Player Id
+            <input id="playerIDInput" name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label id="bankName">Bank Name
+            <input id="bankNameInput" type=text name="bankName">
+        </label>
+    </div>
+    <div>
+        <label id="bankAccount">Bank Account
+            <input id="bankAccountInput" type=text name="bankAccount">
+        </label>
+    </div>
+    <div>
+        <label id="bankAccountName">Account Name
+            <input id="accountNameInput" type=text name="bankAccountName">
+        </label>
+    </div>
+    <div>
+        <label id="bankAccountType">Account Type
+            <input id="accountTypeInput" type=text name="bankAccountType">
+        </label>
+    </div>
+    <div>
+        <label id="bankAccountCity">Account City
+            <input id="accountCityInput" type=text name="bankAccountCity">
+        </label>
+    </div>
+    <div>
+        <label id="bankBranch">Bank Branch
+            <input id="bankBranchInput" type=text name="bankBranch">
+        </label>
+    </div>
+    <div>
+        <label id="bankAddress">Bank Address
+            <input id="bankAddressInput" type=text name="bankAddress">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <!--For testing Modify the player payment information API (8)-->
+        <button id="ModifyPlayerPayment" data-api-name="updatePaymentInfo">Update Player Payment Information</button>
+        <div>
+            <textarea id="ModifyPlayerPaymentOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>MODIFY PLAYER PASSWORD INFORMATION (修改玩家登录密码)</h3>
+<div class="test-container">
+    <div>
+        <label>Player ID
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Old Password
+            <input id="playerOldPasswordInput" name="oldPassword" type=text>
+        </label>
+    </div>
+
+    <div>
+        <label id="playerNewPassword">New Password
+            <input id="playerNewPasswordInput" name="newPassword" type=text>
+        </label>
+    </div>
+    <p>
+    <div>
+        <!--For testing Modify the player login password API (9)-->
+        <button id="modifyPassword" data-api-name="updatePassword">Update Player Password</button>
+        <div>
+            <textarea id="modifyPasswordOutput">Show Output</textarea>
+        </div>
+    </div>
+</div>
+
+<h3>MODIFY SMS Setting (设置短信通知)</h3>
+
+<div class="test-container">
+    <div>
+        <label id="playerId" name="playerId">Player Id
+            <input id="playerIDInput" name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label id="manualTopup">manualTopup
+            <input id="manualTopup" type=text name="manualTopup"> (true/false)
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="applyBonus">applyBonus
+            <input id="applyBonus" type=text name="applyBonus"> (true/false)
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="cancelBonus">cancelBonus
+            <input id="cancelBonus" type=text name="cancelBonus"> (true/false)
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="applyReward">applyReward
+            <input id="applyReward" type=text name="applyReward"> (true/false)
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="consumptionReturn">consumptionReturn
+            <input id="consumptionReturn" type=text name="consumptionReturn"> (true/false)
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="updatePaymentInfo">updatePaymentInfo
+            <input id="updatePaymentInfo" type=text name="updatePaymentInfo"> (true/false)
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="updatePassword">updatePassword
+            <input id="updatePassword" type=text name="updatePassword"> (true/false)
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="UpdateSmsSetting" data-api-name="updateSmsSetting">Update Player Sms Setting</button>
+        <div>
+            <textarea id="UpdateSmsSettingOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+
+<h3>TEST VALID USERNAME (用户是否有效)</h3>
+<div class="test-container">
+    <label id="platformId1">Platform Id
+        <input id="platformId1" type=text name="platformId">
+    </label>
+    <div></div>
+    <label id="playerName1">Username
+        <input id="playerName1Input" type=text name="name">
+    </label>
+
+    <p>
+
+    <div>
+        <button id="isValidUsername" data-api-name="isValidUsername">Is Username Valid</button>
+    </div>
+    <div>
+        <textarea id="isValidUsernameConsole"></textarea>
+    </div>
+</div>
+
+<h3>Verify the authentication by token when Connection Lost after login (链接验证) </h3>
+<div class='test-container'>
+    <!--For testing Get player information API (7)-->
+    <div>
+        <label>Player Id
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Token
+            <input name="token" type=text>
+        </label>
+    </div>
+    <div>
+        <button data-api-name="authenticate">Authenticate Token</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>GET PLAYER MAIL LIST (获取玩家站内信)</h3>
+
+<div class="test-container">
+    <div>
+        <button data-api-name="getMailList">Get</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>NOTIFY PLAYER NEW MAIL (通知玩家有新的站内信)</h3>
+<div class="test-container">
+    <div>
+        <button data-api-name="notifyNewMail">Get</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>GET PLAYER CREDIT(获取玩家额度)</h3>
+<div class='test-container'>
+    <button data-api-name="getCredit">Get Player Credit</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>GET PLAYER CREDIT info(获取玩家额度信息)</h3>
+<div class='test-container'>
+    <button data-api-name="getCreditInfo">Get</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>TEST PLAYER QUICK REGISTRATION (玩家快捷开户)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Player name
+            <input type=text name="name">
+        </label>
+    </div>
+    <div>
+        <label>Nick name
+            <input type=text name="nickName">
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input type=text name="password">
+        </label>
+    </div>
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Telephone
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Email
+            <input type=text name="email">
+        </label>
+    </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <!--////-->
+    <div>
+        <label>smsSetting
+            <input type=text name="smsSetting">
+        </label>
+    </div>
+    <div>
+        <label id="manualTopup">manualTopup
+            <input id="manualTopup" type=text name="smsSetting.manualTopup">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="applyBonus">applyBonus
+            <input id="applyBonus" type=text name="smsSetting.applyBonus">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="cancelBonus">cancelBonus
+            <input id="cancelBonus" type=text name="smsSetting.cancelBonus">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="applyReward">applyReward
+            <input id="applyReward" type=text name="smsSetting.applyReward">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="consumptionReturn">consumptionReturn
+            <input id="consumptionReturn" type=text name="smsSetting.consumptionReturn">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="updatePaymentInfo">updatePaymentInfo
+            <input id="updatePaymentInfo" type=text name="smsSetting.updatePaymentInfo">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label id="updatePassword">updatePassword
+            <input id="updatePassword" type=text name="smsSetting.updatePassword">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <label>feedbackTimes
+            <input type=text name="feedbackTimes">
+        </label>
+    </div>
+    <div>
+        <label>realName
+            <input type=text name="realName">
+        </label>
+    </div>
+    <div>
+        <label>status
+            <input type=text name="status">
+        </label>
+    </div>
+    <div>
+        <label>remark
+            <input type=text name="remark">
+        </label>
+    </div>
+    <div>
+        <label>photoUrl
+            <input type=text name="photoUrl">
+        </label>
+    </div>
+    <div>
+        <label>creditBalance
+            <input type=text name="creditBalance">
+        </label>
+    </div>
+    <div>
+        <label>validCredit
+            <input type=text name="validCredit">
+        </label>
+    </div>
+    <div>
+        <label>lockedCredit
+            <input type=text name="lockedCredit">
+        </label>
+    </div>
+    <div>
+        <label>dailyTopUpSum
+            <input type=text name="dailyTopUpSum">
+        </label>
+    </div>
+    <div>
+        <label>weeklyTopUpSum
+            <input type=text name="weeklyTopUpSum">
+        </label>
+    </div>
+    <div>
+        <label>topUpSum
+            <input type=text name="topUpSum">
+        </label>
+    </div>
+
+    <div>
+        <label>topUpTimes
+            <input type=text name="topUpTimes">
+        </label>
+    </div>
+
+    <div>
+        <label>weeklyTopUpSum
+            <input type=text name="weeklyTopUpSum">
+        </label>
+    </div>
+
+    <div>
+        <label>dailyConsumptionSum
+            <input type=text name="dailyConsumptionSum">
+        </label>
+    </div>
+
+    <div>
+        <label>weeklyConsumptionSum
+            <input type=text name="weeklyConsumptionSum">
+        </label>
+    </div>
+    <div>
+        <label>consumptionSum
+            <input type=text name="consumptionSum">
+        </label>
+    </div>
+
+    <div>
+        <label>consumptionDetail
+            <input type=text name="consumptionDetail">
+        </label>
+    </div>
+    <div>
+        <label>consumptionTimes
+            <input type=text name="consumptionTimes">
+        </label>
+    </div>
+
+
+    <!--////-->
+    <p></p>
+
+    <div>
+        <button id="playerQuickReg" data-api-name="playerQuickReg">Quick Create Player</button>
+    </div>
+    <div>
+        <textarea id="playerQuickRegConsole"></textarea>
+    </div>
+</div>
+<!--
+<h3>TEST GET CAPTCHA CODE (获取验证码)</h3>
+
+<!--For testing Captcha Code API (2)-->
+<!--
+<button id="getLoginCaptcha">Get Captcha Code</button>
+<img id="playerLoginCaptchaImg"/>
+-->
+
+
+
+
+<h3>GET PLAYER CREDIT BALANCE(获取玩家全额消费)</h3>
+
+<div class='test-container'>
+    <button data-api-name="getCreditBalance">Get Player Credit Balance</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+
+<h3>MODIFY PLAYER INFORMATION (修改玩家信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label id="playerId" name="playerId">Player Id
+            <input id="playerIDInput" name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label id="nickName">Nick Name
+            <input id="nickNameInput" type=text name="nickName">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="ModifyPlayerName" data-api-name="update">Update Player Information</button>
+        <div>
+            <textarea id="ModifyPlayerInfoOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>UPDATE PLAYER PHOTO URL (修改玩家头像)</h3>
+
+<div class="test-container">
+
+    <div>
+        <label id="photoUrl">Profile Url
+            <input id="photoUrlInput" type=text name="photoUrl">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="updatePhotoUrl" data-api-name="updatePhotoUrl">Update Photo Url</button>
+        <div>
+            <textarea id="UpdateProfileUrlOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>GET PLAYER DAY STATUS (获取玩家当天状态)</h3>
+
+<div class="test-container">
+    <div>
+        <button id="GetPlayerDayStatus" data-api-name="getPlayerDayStatus">Get</button>
+        <div>
+            <textarea id="getPlayerDayStatusOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>GET PLAYER WEEK STATUS (获取玩家本周状态)</h3>
+
+<div class="test-container">
+    <div>
+        <button id="GetPlayerWeekStatus" data-api-name="getPlayerWeekStatus">Get</button>
+        <div>
+            <textarea id="getPlayerWeekStatusOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>GET PLAYER MONTH STATUS (获取玩家本月状态)</h3>
+
+<div class="test-container">
+    <div>
+        <button id="GetPlayerMonthStatus" data-api-name="getPlayerMonthStatus">Get</button>
+        <div>
+            <textarea id="getPlayerMonthStatusOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>SEND MAIL FROM CURRENT PLAYER TO ANOTHER PLAYER (发送站内信给另一玩家)</h3>
+
+<div class="test-container">
+    <div>
+        <label>To (Recipient Player ID)
+            <input type="text" name="recipientPlayerId">
+        </label>
+    </div>
+    <div>
+        <label>Title
+            <input type="text" name="title">
+        </label>
+    </div>
+    <div>
+        <label>Content
+            <textarea name="content" class="show"></textarea>
+        </label>
+    </div>
+
+    <p></p>
+
+    <div>
+        <button data-api-name="sendPlayerMailFromPlayerToPlayer">Send</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>SEND MAIL (REPLY) FROM CURRENT PLAYER TO AN ADMIN (发送站内信给管理员)</h3>
+
+<div class="test-container">
+    <div>
+        <label>To (Recipient Admin ObjID)
+            <input type="text" name="recipientAdminObjId">
+        </label>
+    </div>
+    <div>
+        <label>Title
+            <input type="text" name="title">
+        </label>
+    </div>
+    <div>
+        <label>Content
+            <textarea name="content" class="show"></textarea>
+        </label>
+    </div>
+
+    <p></p>
+
+    <div>
+        <button data-api-name="sendPlayerMailFromPlayerToAdmin">Send</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
+            function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {
+                var Client = function (url) {
+
+                    WebSocketClient.call(this, url);
+
+                    var playerService = new ClientServices.PlayerService();
+                    this.addService(playerService);
+
+                    var conService = new ClientServices.ConnectionService();
+                    this.addService(conService);
+                };
+
+                var proto = Client.prototype = Object.create(WebSocketClient.prototype);
+                proto.constructor = Client;
+
+                $(document).ready(function () {
+                    var client = new Client(TestHelper.websocketURL);
+                    client.connect();
+
+                    client.addEventListener("open", function () {
+                        var playerService = client.getService("player");
+                        var clientPlayerAPITest = new ClientPlayerAPITest(playerService);
+
+                        var connectionService = client.getService("connection");
+                        var connAPITest = new ClientConnectionAPITest(connectionService);
+
+                        connAPITest.setLang(function (data) {
+                            console.log('setlang data.....', data);
+                        });
+
+                        function _arrayBufferToBase64(buffer) {
+                            var binary = '';
+                            var bytes = new Uint8Array(buffer);
+                            var len = bytes.byteLength;
+                            for (var i = 0; i < len; i++) {
+                                binary += String.fromCharCode(bytes[i]);
+                            }
+                            return window.btoa(binary);
+                        }
+
+                        $("#getLoginCaptcha").click(function () {
+                            clientPlayerAPITest.captcha(function (data) {
+                                $("#playerLoginCaptchaImg").attr("src", "data:image/png;base64," + _arrayBufferToBase64(data.data.data));
+                            });
+                        });
+
+                        $("#getRegCaptcha").click(function () {
+                            clientPlayerAPITest.captcha(function (data) {
+                                $("#playerRegCaptchaImg").attr("src", "data:image/png;base64," + _arrayBufferToBase64(data.data.data));
+                            });
+                        });
+
+                        function setAllPlayerIdInputsTo(playerId) {
+                            if (playerId) {
+                                $("input[name=playerId]").val(playerId);
+                            }
+                        }
+
+                        TestHelper.loginCookiePlayer(client, ClientPlayerAPITest);
+
+                        TestHelper.setAPIName('ClientServices.player');
+                        TestHelper.attachListeners(clientPlayerAPITest);
+
+                    });
+
+                    TestHelper.addReconnectOnCloseListener(client);
+                });
+            }
+    );
+</script>
+</body>
+</html>

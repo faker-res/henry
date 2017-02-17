@@ -1,0 +1,234 @@
+'use strict';
+
+/* Directives */
+
+angular.module('myApp.directives', [])
+
+  .directive('appVersion', function (version) {
+    return function(scope, elm, attrs) {
+      elm.text(version);
+    };
+  })
+
+  .directive('match', [function () {
+    return {
+      require: 'ngModel',
+      link: function (scope, elem, attrs, ctrl) {
+
+        scope.$watch('[' + attrs.ngModel + ', ' + attrs.match + ']', function(value){
+          ctrl.$setValidity('match', value[0] === value[1] );
+        }, true);
+
+      }
+    }
+  }])
+
+  .directive('uniqueUsername', ['$http', function($http) {
+    return {
+      require: 'ngModel',
+      link: function(scope, elem, attrs, ctrl) {
+        scope.busy = false;
+        scope.$watch(attrs.ngModel, function(value) {
+
+          // hide old error messages
+          ctrl.$setValidity('isTaken', true);
+          ctrl.$setValidity('invalidChars', true);
+
+          if (!value) {
+            // don't send undefined to the server during dirty check
+            // empty username is caught by required directive
+            return;
+          }
+
+          //// show spinner
+          //scope.busy = true;
+
+          //
+          //// send request to server
+          //$http.post('/signup/check/username', {username: value})
+          //    .success(function(data) {
+          //      // everything is fine -> do nothing
+          //      scope.busy = false;
+          //    })
+          //    .error(function(data) {
+          //
+          //      // display new error message
+          //      if (data.isTaken) {
+          //        ctrl.$setValidity('isTaken', false);
+          //      } else if (data.invalidChars) {
+          //        ctrl.$setValidity('invalidChars', false);
+          //      }
+          //
+          //      scope.busy = false;
+          //    });
+        })
+      }
+    }
+  }])
+
+  .directive("percentage", ['$filter', function($filter){
+    return {
+      require: 'ngModel',
+      link: function(scope, ele, attr, ctrl){
+        ctrl.$parsers.unshift(function(viewValue){
+          //console.log("percent directive viewValue=%s", viewValue);
+          return $filter('number')(parseFloat(viewValue)/100);
+        });
+        ctrl.$formatters.unshift(function(modelValue){
+          //console.log("percent directive modelValue=%s", modelValue);
+          return $filter('number')(parseFloat(modelValue)*100);
+        });
+      }
+    };
+  }])
+
+  /**
+   * An easy way to make list items or table rows or cells selectable.
+   *
+   * Example using ng-repeat:
+   *
+   *     tr(ng-repeat="(i, book) in vm.allBooks", sn-selectable-model="vm.currentlySelectedBook", sn-selectable-value="book")
+   *
+   * or:
+   *
+   *     tr(ng-repeat="(i, book) in vm.allBooks", sn-selectable-model="vm.currentlySelectedBooks", sn-selectable-value="book", sn-selectable-multi)
+   *
+   * Plain example:
+   *
+   *     <table>
+   *         <tr sn-selectable-model='selectedAnimals' sn-selectable-value="giraffe" sn-selectable-multi>
+   *             <td>{{giraffe.name}}</td>
+   *         </tr>
+   *         <tr sn-selectable-model='selectedAnimals' sn-selectable-value="octopus" sn-selectable-multi>
+   *             <td>{{octopus.name}}</td>
+   *         </tr>
+   *     </table>
+   *
+   * Attributes:
+   *
+   *     sn-selectable-model - The model which will be updated when an element is clicked
+   *     sn-selectable-value - The data that will be placed into the model or removed from the model when the element is clicked
+   *     sn-selectable-multi - Allows multiple items to be selected, the model will be an array of items (not an item)
+   *
+   * The sn-selectable-value is evaluated when the element is linked (e.g. during the ng-repeat), and not when the element is clicked/selected.
+   *
+   * The sn-selectable-model elements must be siblings (i.e. not children of siblings), in order for the classes to be updated properly.
+   * In other words, sn-selectable-model should appear on the _same_ element as the ng-repeat, not _below_ it.
+   *
+   * The class used to highlight selected items is 'sn-selected'.  @consider This could be configurable.
+   */
+  .directive('snSelectableModel', function ($parse) {
+    return {
+      restrict: 'AE',
+
+      link: function (scope, elem, attrs) {
+        var model = $parse(attrs.snSelectableModel);
+        var valueExpr = attrs.snSelectableValue;
+        var isMulti = Boolean(attrs.snSelectableMulti);
+        var value = scope.$eval(valueExpr);
+
+        elem.bind('click', function () {
+          if (isMulti) {
+            scope.$apply(function () {
+              var selectionList = model(scope);
+              if (!(selectionList instanceof Array)) {
+                selectionList = [];
+              }
+              var wasSelected = selectionList.includes(value);
+              var isSelected = !wasSelected;
+              if (wasSelected) {
+                selectionList.splice(selectionList.indexOf(value), 1);
+              }
+              if (isSelected) {
+                selectionList.push(value);
+              }
+              model.assign(scope, selectionList);
+
+              // Update view
+              //elem.toggleClass('sn-selected', isSelected);
+            });
+          } else {
+            scope.$apply(function () {
+              var wasSelected = model(scope) === value;
+              var isSelected = !wasSelected;
+              var newModelValue = isSelected ? value : null;
+              model.assign(scope, newModelValue);
+
+              // Update view
+              //elem.siblings('[sn-selectable-model]').removeClass('selected');
+              //elem.toggleClass('sn-selected', isSelected);
+            });
+          }
+        });
+
+        // Update view automatically from model
+        scope.$watch(model, function (modelValue) {
+          var isSelected = isMulti
+            ? modelValue && modelValue.includes(value)
+            : modelValue === value;
+          elem.toggleClass('sn-selected', Boolean(isSelected));
+        }, isMulti);
+      }
+    };
+  })
+
+    .directive('snTooltip', function ($parse) {
+        return {
+            restrict: 'AE',
+            link: function (scope, elem, attrs) {
+                //var model = $parse(attrs.snSelectableModel);
+                //elem.addClass('sn-hoverable');
+                elem.hover(function () {
+                    $(elem).tooltip('show');
+                });
+            }
+        };
+    })
+
+  .directive('ezModal', function () {
+    return {
+      restrict: 'E',
+      transclude: {
+        extractedHeader: '?ezModalHeader',
+        extractedBody: 'ezModalBody',
+        extractedFooter: 'ezModalFooter'
+      },
+      scope: {
+        modalId: '@',
+        modalTitle: '@'
+      },
+      template: $('#ezModalTemplate').html()
+    };
+  })
+
+  .directive('ezConfirmButton', function () {
+    return {
+      restrict: 'E',
+      replace: true,
+      transclude: true,
+      //template: '<button class="common-button margin-right-5 btn btn-primary" data-dismiss="modal" ng-transclude></button>'
+      template: $('#ezConfirmButtonTemplate').html()
+    };
+  })
+
+  .directive('ezCancelButton', function () {
+    return {
+      restrict: 'E',
+      replace: true,
+      transclude: true,
+      //template: '<button class="common-button margin-right-5 btn btn-danger" data-dismiss="modal" ng-transclude></button>'
+      template: $('#ezCancelButtonTemplate').html()
+    };
+  })
+
+  .directive('ezNormalButton', function () {
+    return {
+      restrict: 'E',
+      replace: true,
+      transclude: true,
+      //template: '<button class="common-button margin-right-5 btn btn-primary" data-dismiss="modal" ng-transclude></button>'
+      template: $('#ezNormalButtonTemplate').html()
+    };
+  })
+
+;

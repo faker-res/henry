@@ -1,0 +1,180 @@
+.panel.panel-primary
+    .panel-heading.padding-all-5
+        .panel-title.left-col
+            .fa.fa-share-alt
+            text &nbsp;{{"DEPARTMENT" | translate}}
+    .panel-body.common-left-panel-body
+        .row
+            .col-md-12
+                .search-box
+                    a.fa.fa-search.pull-right.margin-all-5(ng-click="vm.searchDepartment()")
+                    a.fa.fa-times.pull-right.margin-all-5(ng-if='vm.searchDepartmentText', ng-click='vm.searchDepartmentText=null')
+                    input.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}}', ng-model="vm.searchDepartmentText")
+        p
+        .row
+            div#departmentTree(ng-if="checkViewPermission('Admin', 'Department', 'Read')" style="height: 500px; overflow-y: auto;")
+        p
+        .row
+            .col-md-12
+                .btn-group.text-center(style="min-width:110px", role="group")
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Department', 'Create')" ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'", data-toggle="{{vm.SelectedDepartmentNode ? 'modal' : ''}}", data-target='#modalCreateDepartment', ng-click='vm.getIconList();vm.newDepartment.icon="null"')
+                        text {{'CREATE' | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Department', 'Delete')" ng-disabled="!vm.canDepartmentBeDeleted() || vm.pageActionStatus!='null'", data-toggle="{{vm.canDepartmentBeDeleted() ? 'modal' : ''}}", data-target='#modalDeleteDepartment')
+                        text {{'DELETE' | translate}}
+                        img.img-delete
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Department', 'Move')" ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'", data-toggle="{{vm.SelectedDepartmentNode ? 'modal' : ''}}", data-target='#modalMoveDepartment', ng-click='vm.moveDepartmentDialog("department");vm.moveDepartment=true;')
+                        text {{'MOVE' | translate}}
+                        img.img-move
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Department', 'Update')" ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'", data-toggle="{{vm.SelectedDepartmentNode ? 'modal' : ''}}", data-target='#modalUpdateDepartment', ng-click="vm.newDepartmentName=vm.SelectedDepartmentNode.text;vm.newDepartment.icon=vm.SelectedDepartmentNode.departData.icon;vm.getIconList();")
+                        text {{'UPDATE' | translate}}
+                        img.img-edit
+                    //a.btn.btn-primary.common-button(ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'",, data-toggle="modal", data-target='#modalDepartmentPlatform')
+                        text {{'PLATFORM' | translate}}
+                        img.img-platform
+#modalCreateDepartment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                button.close(type='button', data-dismiss='modal') ×
+                h4.modal-title {{"CREATE_DEPARTMENT" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            p
+                                text {{"Create new department under"|translate}} &nbsp;
+                            p
+                                strong.text-primary(ng-repeat="(i,v) in vm.fullDepartmentPath") {{v.text}}/
+                                strong.text-primary {{vm.SelectedDepartmentNode.text}}
+                        .well
+                            .row
+                                .col-md-6
+                                    form(name="form_new_department", novalidate)
+                                        div.form-group
+                                            label.control-label *{{"DEPARTMENT_NAME" | translate}}
+                                            input.form-control(type="text", placeholder="Department Name", ng-model="vm.newDepartment.departmentName", required)
+                        .well
+                            .row
+                                div.form-group
+                                    label.control-label *{{"Please choose an icon"|translate}}:
+                                    div
+                                        label.active(style='width:100px') {{"No icon"|translate}}&nbsp;&nbsp;
+                                            input(name='departIcon', type="radio", style='float: left;margin-right:5px;', ng-model="vm.newDepartment.icon", value="null")
+                            .row(style='height:300px;overflow:auto')
+                                label.icon-radio(ng-repeat="icon in vm.iconList")
+                                    .fa(class="{{icon}}")
+                                    input(name='departIcon', type="radio" , ng-model="vm.newDepartment.icon", ng-value="icon")
+
+                        p
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-disabled='form_new_department.$invalid', ng-click="vm.createDepartment();") {{"ADD_DEPARTMENT" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalUpdateDepartment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title  {{"RENAME_DEPARTMENT" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .row
+                                form(name="form_new_department", novalidate)
+                                    div.form-group.col-md-6
+                                        label.control-label {{"RENAME_DEPARTMENT" | translate}}
+                                        input.form-control(type="text", ng-model="vm.newDepartmentName")
+                        .well
+                            .row
+                                div.form-group
+                                    label.control-label *{{"Please choose an icon"|translate}}:
+                                    div
+                                        label.icon-radio(style='width:200px') {{"No icon"|translate}}&nbsp;&nbsp;
+                                            input(name='updateDepartIcon', type="radio",style='float: left;margin-right:5px;',ng-model="vm.newDepartment.icon", value="null")
+                            .row(style='height:300px;overflow:auto')
+                                label.icon-radio(ng-repeat="icon in vm.iconList")
+                                    .fa(class="{{icon}}")
+                                    input(name='updateDepartIcon', type="radio",ng-model="vm.newDepartment.icon", ng-value="icon")
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.renameDepartment(vm.newDepartmentName,vm.newDepartment.icon);") {{"UPDATE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+
+
+#modalMoveDepartment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title(ng-if="vm.moveDepartment") {{"MOVE_DEPARTMENT" | translate}}
+                h4.modal-title(ng-if="vm.moveUser") {{"MOVE_USER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            div(ng-if="vm.moveDepartment")
+                                p
+                                    text {{"Are you sure to move department from"|translate}} &nbsp;
+                                    //strong.text-danger {{vm.SelectedDepartmentNode.text}}
+                                    //text from
+                            div(ng-if="vm.moveUser")
+                                p
+                                    text {{"Are you sure to move user"|translate}} &nbsp;
+                                    strong.text-danger(ng-repeat="(i,v) in vm.selectedUsers") {{v.adminName}}&nbsp;
+                                    text {{"from"|translate}}
+                            p
+                                strong.text-primary(ng-repeat="(i,v) in vm.fullDepartmentPath") {{v.text}}/
+                                strong.text-primary {{vm.SelectedDepartmentNode.text}}
+                            p {{"to"|translate}}
+                            p
+                                strong.text-primary(ng-repeat="(i,v) in vm.newfullDepartmentPath") {{v.text}}/
+                                strong.text-primary {{vm.newDepartmentNode.text}}
+                            p {{"Please select the target department to be moved to:"|translate}}
+                        .well
+                            div#departmentTreeForMoving(style="height: 300px; overflow-y: scroll;")
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-show="vm.moveDepartment", ng-click="vm.submitMoveDepartment();vm.moveDepartment=false;") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal', ng-show="vm.moveDepartment", ng-click="vm.moveDepartment=false;") {{"CANCEL" | translate}}
+
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-show="vm.moveUser", ng-click="vm.submitMoveUser();vm.moveUser=false;") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal', ng-show="vm.moveUser", ng-click="vm.moveUser=false;") {{"CANCEL" | translate}}
+
+#modalDeleteDepartment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_DEPARTMENT" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                p
+                                    label {{"Are you sure to delete department"|translate}}&nbsp;
+                                    strong.text-danger {{vm.SelectedDepartmentNode.text}}
+                                    //li {{"DELETE_DEPARTMENT_CONFIRM" | translate}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.deleteDepartment();") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+//#modalDepartmentPlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"PLATFORM" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                p
+                                    label {{"Will show platform"|translate}}&nbsp;
+                                    strong.text-danger {{vm.SelectedDepartmentNode.text}}
+                                    //li {{"DELETE_DEPARTMENT_CONFIRM" | translate}}
+            //.modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.deleteDepartment();") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}

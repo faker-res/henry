@@ -1,0 +1,13 @@
+.col-md-12.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.minTopUpAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward.minTopUpAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.rewardAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward.rewardAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.maxRewardAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward.maxRewardAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.reward.unlockTimes.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward.unlockTimes', ng-disabled='vm.platformRewardShowEdit()', required)

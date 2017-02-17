@@ -1,0 +1,79 @@
+#gameAnaTab
+    .col-sm-3
+        label {{'PROVIDER' | translate}}
+        ul.list-group(ng-if='vm.allGameProvider.length>0')
+            li.list-group-item(ng-repeat='(i,v) in vm.allGameProvider', class='{{vm.highlightProvider[i]}}')
+                a(ng-click='vm.providerOptClicked(i,v)') {{v.name}}
+        #textareaDiv
+            .textareaDetail
+                textarea(ng-model='vm.showProviderDetail', disabled, readonly, rows="9" style="border:none")
+    .col-sm-9
+        .section
+            .titlePic
+                .title ALL{{"ACTIVE_PLAYER" | translate}}
+            .col-sm-5
+                .panel.panel-default
+                    .btnOption
+                        button.btn.btn-info {{'DAY' | translate}}
+                        button.btn.btn-info {{'WEEK' | translate}}
+                        button.btn.btn-info {{'MONTH' | translate}}
+                    .allPlatfong-form
+                        .pieChart
+                            #pie-gameana-activePlayer
+                    p
+                    .dateOption
+                        div
+                            label {{'START_DATE' | translate}}
+                            br
+                            input(type='date', placeholder="{{'START_DATE' | translate}}", )
+                        div
+                            label {{'END_DATE' | translate}}
+                            br
+                            input(type='date', placeholder="{{'END_DATE' | translate}}")
+            .col-sm-7
+                .graph
+                    .panel.panel-default
+                        #line-gameana-activePlayer.barChart
+                        label {{vm.allPlatformActivePie}}
+        .section
+            .titlePic
+                .title {{vm.selectedProvider.name}}
+            .col-sm-5
+                .panel.panel-default
+                    .btnOption
+                        button.btn.btn-info {{'DAY' | translate}}
+                        button.btn.btn-info {{'WEEK' | translate}}
+                        button.btn.btn-info {{'MONTH' | translate}}
+                    .allPlatfong-form
+                        .pieChart
+                            #pie-gameana-player
+                    p
+                    .dateOption
+                        div
+                            label {{'START_DATE' | translate}}
+                            br
+                            input(type='date', placeholder="{{'START_DATE' | translate}}", )
+                        div
+                            label {{'END_DATE' | translate}}
+                            br
+                            input(type='date', placeholder="{{'END_DATE' | translate}}")
+            .col-sm-7
+                .graph
+                    .panel.panel-default
+                        #line-gameana-game.barChart
+                        label {{vm.allPlatformActivePie}}
+        .section
+            label {{vm.selectedProvider.name}}players
+            .graph
+                .panel.panel-default
+                    #line-gameana-player.lineChart
+            .dateOption
+                div
+                    label {{'START_DATE' | translate}}
+                    br
+                    input(type='date', placeholder="{{'START_DATE' | translate}}", )
+                div
+                    label {{'END_DATE' | translate}}
+                    br
+                    input(type='date', placeholder="{{'END_DATE' | translate}}")
+p(ng-init="vm.loadPageFunc('GAME_ANALYSIS')")

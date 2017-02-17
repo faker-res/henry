@@ -1,0 +1,371 @@
+/******************************************************************
+ *  Fantasy Player Management Tool
+ *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
+ *  All rights reserved.
+ ******************************************************************/
+var dbPropertiesFunc = function () {
+};
+module.exports = new dbPropertiesFunc();
+
+var mongoose = require('mongoose');
+
+// Tell mongoose which promise library it should use.
+mongoose.Promise = Promise;
+//mongoose.Promise = require('q').Promise;
+
+var dbConnections = require('./dbConnections');
+
+var db_admin = dbConnections.admindb;
+var db_player = dbConnections.playerdb;
+var dbLogs = dbConnections.logsdb;
+
+/////////////////////////Schemas/////////////////////////////////////
+
+// We are actually using dbConnections.counterModel instead
+//var counterSchema = require('./../schema/counter');
+
+var adminInfoSchema = require('./../schema/admin');
+var departmentSchema = require('./../schema/department');
+var platformSchema = require('./../schema/platform');
+var platformGameStatusSchema = require('./../schema/platformGameStatus');
+var playerSchema = require('./../schema/player');
+
+var playerLevelSchema = require('./../schema/playerLevel');
+var playerTrustLevelSchema = require('./../schema/playerTrustLevel');
+var playerBadRecordSchema = require('./../schema/playerBadRecord');
+var playerLoginRecordSchema = require('./../schema/playerLoginRecord');
+var playerLevelConsumptionLimitSchema = require('./../schema/playerLevelConsumptionLimit');
+var playerFeedbackSchema = require('./../schema/playerFeedback');
+
+var proposalSchema = require('./../schema/proposal');
+var proposalProcessSchema = require('./../schema/proposalProcess');
+var proposalProcessStepSchema = require('./../schema/proposalProcessStep');
+
+var proposalTypeSchema = require('./../schema/proposalType');
+var proposalTypeProcessSchema = require('./../schema/proposalTypeProcess');
+var proposalTypeProcessStepSchema = require('./../schema/proposalTypeProcessStep');
+
+var rewardEventSchema = require('./../schema/rewardEvent');
+var rewardRuleSchema = require('./../schema/rewardRule');
+var rewardParamSchema = require('./../schema/rewardParam');
+var rewardTypeSchema = require('./../schema/rewardType');
+var rewardConditionSchema = require('./../schema/rewardCondition');
+var rewardTaskSchema = require('./../schema/rewardTask');
+
+var roleSchema = require('./../schema/role');
+var apiUserSchema = require('./../schema/apiUser');
+
+var gameTypeSchema = require('./../schema/gameType');
+var gameSchema = require('./../schema/game');
+var gameProviderSchema = require('./../schema/gameProvider');
+
+var partnerSchema = require('./../schema/partner');
+var partnerLevelSchema = require('./../schema/partnerLevel');
+var partnerLevelConfigSchema = require('./../schema/partnerLevelConfig');
+
+var paymentChannelSchema = require('./../schema/paymentChannel');
+
+var messageTemplateSchema = require('./../schema/messageTemplate');
+var platformAnnouncementSchema = require('./../schema/platformAnnouncement');
+
+var playerMailSchema = require('./../schema/playerMail');
+
+/////////////////////////Schema models/////////////////////////////////////
+//----------------------------------------admin db properties-----------------------------------------------------------
+//var counterModel = db_admin.model('counter', counterSchema, 'counter');
+
+var adminInfoModel = db_admin.model('adminInfo', adminInfoSchema, 'adminInfo');
+var departmentModel = db_admin.model('department', departmentSchema, 'department');
+var roleModel = db_admin.model('role', roleSchema, 'role');
+
+var proposalTypeModel = db_admin.model('proposalType', proposalTypeSchema, 'proposalType');
+var proposalTypeProcessModel = db_admin.model('proposalTypeProcess', proposalTypeProcessSchema, 'proposalTypeProcess');
+var proposalTypeProcessStepModel = db_admin.model('proposalTypeProcessStep', proposalTypeProcessStepSchema, 'proposalTypeProcessStep');
+
+var rewardEventModel = db_admin.model('rewardEvent', rewardEventSchema, 'rewardEvent');
+var rewardTypeModel = db_admin.model('rewardType', rewardTypeSchema, 'rewardType');
+var rewardRuleModel = db_admin.model('rewardRule', rewardRuleSchema, 'rewardRule');
+var rewardParamModel = db_admin.model('rewardParam', rewardParamSchema, 'rewardParam');
+var rewardConditionModel = db_admin.model('rewardCondition', rewardConditionSchema, 'rewardCondition');
+
+var apiUserModel = db_admin.model('apiUser', apiUserSchema, 'apiUser');
+var platformModel = db_admin.model('platform', platformSchema, 'platform');
+var platformGameStatusModel = db_admin.model('platformGameStatus', platformGameStatusSchema, 'platformGameStatus');
+
+var gameTypeModel = db_admin.model('gametype', gameTypeSchema, 'gameType');
+var gameModel = db_admin.model('game', gameSchema, 'game');
+var gameProviderModel = db_admin.model('gameProvider', gameProviderSchema, 'gameProvider');
+
+var paymentChannelModel = db_admin.model('paymentChannel', paymentChannelSchema, 'paymentChannel');
+
+var messageTemplateModel = db_admin.model('messageTemplate', messageTemplateSchema, 'messageTemplate');
+var platformAnnouncementModel = db_admin.model('platformAnnouncement', platformAnnouncementSchema, 'platformAnnouncement');
+
+var playerLevelConsumptionLimitModel = db_admin.model("playerLevelConsumptionLimit", playerLevelConsumptionLimitSchema, 'playerLevelConsumptionLimit');
+
+var playerLevelModel = db_admin.model('playerLevel', playerLevelSchema, 'playerLevel');
+var playerTrustLevelModel = db_admin.model('playerTrustLevel', playerTrustLevelSchema, 'playerTrustLevel');
+var partnerLevelModel = db_admin.model('partnerLevel', partnerLevelSchema, 'partnerLevel');
+var partnerLevelConfigModel = db_admin.model('partnerLevelConfig', partnerLevelConfigSchema, 'partnerLevelConfig');
+
+var playerBadRecordModel = db_admin.model('playerBadRecord', playerBadRecordSchema, 'playerBadRecord');
+
+var platformDaySummarySchema = require('./../schema/platformDaySummary');
+var platformDaySummaryModel = db_admin.model('platformDaySummary', platformDaySummarySchema, 'platformDaySummary');
+
+var platformGameGroupSchema = require('./../schema/platformGameGroup');
+var platformGameGroupModel = db_admin.model('platformGameGroup', platformGameGroupSchema, 'platformGameGroup');
+
+var platformBankCardGroupSchema = require('./../schema/platformBankCardGroup');
+var platformBankCardGroupModel = db_admin.model('platformBankCardGroup', platformBankCardGroupSchema, 'platformBankCardGroup');
+
+var platformMerchantGroupSchema = require('./../schema/platformMerchantGroup');
+var platformMerchantGroupModel = db_admin.model('platformMerchantGroup', platformMerchantGroupSchema, 'platformMerchantGroup');
+
+var platformAlipayGroupSchema = require('./../schema/platformAlipayGroup');
+var platformAlipayGroupModel = db_admin.model('platformAlipayGroup', platformAlipayGroupSchema, 'platformAlipayGroup');
+
+var partnerCommissionConfigSchema = require('./../schema/partnerCommissionConfig');
+var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', partnerCommissionConfigSchema, 'partnerCommissionConfig');
+
+//----------------------------------------player db properties-----------------------------------------------------------
+var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
+var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
+var partnerModel = db_player.model('partner', partnerSchema, 'partner');
+
+var rewardTaskModel = db_player.model('rewardTask', rewardTaskSchema, 'rewardTask');
+
+//----------------------------------------logs db properties-----------------------------------------------------------
+var playerMailModel = dbLogs.model('playerMail', playerMailSchema, 'playerMail');
+
+var proposalModel = dbLogs.model('proposal', proposalSchema, 'proposal');
+var proposalProcessModel = dbLogs.model('proposalProcess', proposalProcessSchema, 'proposalProcess');
+var proposalProcessStepModel = dbLogs.model('proposalProcessStep', proposalProcessStepSchema, 'proposalProcessStep');
+
+var systemLogSchema = require('./../schema/logs/systemLog');
+var systemLogModel = dbLogs.model('systemLog', systemLogSchema, 'systemLog');
+
+var creditChangeLogSchema = require('./../schema/logs/creditChangeLog');
+var creditChangeLogModel = dbLogs.model('creditChangeLog', creditChangeLogSchema, 'creditChangeLog');
+
+var rewardLogSchema = require('./../schema/logs/rewardLog');
+var rewardLogModel = dbLogs.model('rewardLog', rewardLogSchema, 'rewardLog');
+
+var settlementLogSchema = require('./../schema/logs/settlementLog');
+var settlementLogModal = dbLogs.model('settlementLog', settlementLogSchema, 'settlementLog');
+
+var bankInfoLogSchema = require('./../schema/logs/bankInfoLog');
+var bankInfoLogModal = dbLogs.model('bankInfoLog', bankInfoLogSchema, 'bankInfoLog');
+
+var playerTopUpRecordSchema = require('./../schema/playerTopupRecord');
+var playerTopUpRecordModel = dbLogs.model('playerTopUpRecord', playerTopUpRecordSchema, 'playerTopUpRecord');
+var playerLoginRecordModel = dbLogs.model('playerLoginRecord', playerLoginRecordSchema, 'playerLoginRecord');
+
+var playerTopUpIntentRecordSchema = require('./../schema/playerTopUpIntentRecord');
+var playerTopUpIntentRecordModel = dbLogs.model('playerTopUpIntentRecord', playerTopUpIntentRecordSchema, 'playerTopUpIntentRecord');
+
+var playerRegistrationIntentRecordSchema = require('./../schema/playerRegistrationIntentRecord');
+var playerRegistrationIntentRecordModel = dbLogs.model('playerRegistrationIntentRecord', playerRegistrationIntentRecordSchema, 'playerRegistrationIntentRecord');
+
+var playerTopUpDaySummarySchema = require('./../schema/playerTopUpDaySummary');
+var playerTopUpDaySummaryModel = dbLogs.model('playerTopUpDaySummary', playerTopUpDaySummarySchema, 'playerTopUpDaySummary');
+
+var playerTopUpWeekSummarySchema = require('./../schema/playerTopUpWeekSummary');
+var playerTopUpWeekSummaryModel = dbLogs.model('playerTopUpWeekSummary', playerTopUpWeekSummarySchema, 'playerTopUpWeekSummary');
+
+var playerConsumptionRecordSchema = require('./../schema/playerConsumptionRecord');
+var playerConsumptionRecordModel = dbLogs.model('playerConsumptionRecord', playerConsumptionRecordSchema, 'playerConsumptionRecord');
+
+var playerConsumptionSummarySchema = require('./../schema/playerConsumptionSummary');
+var playerConsumptionSummaryModel = dbLogs.model('playerConsumptionSummary', playerConsumptionSummarySchema, 'playerConsumptionSummary');
+
+var playerConsumptionDaySummarySchema = require('./../schema/playerConsumptionDaySummary');
+var playerConsumptionDaySummaryModel = dbLogs.model('playerConsumptionDaySummary', playerConsumptionDaySummarySchema, 'playerConsumptionDaySummary');
+
+var playerGameTypeConsumptionDaySummarySchema = require('./../schema/playerGameTypeConsumptionDaySummary');
+var playerGameTypeConsumptionDaySummaryModel = dbLogs.model('playerGameTypeConsumptionDaySummary', playerGameTypeConsumptionDaySummarySchema, 'playerGameTypeConsumptionDaySummary');
+
+var playerGameTypeConsumptionWeekSummarySchema = require('./../schema/playerGameTypeConsumptionWeekSummary');
+var playerGameTypeConsumptionWeekSummaryModel = dbLogs.model('playerGameTypeConsumptionWeekSummary', playerGameTypeConsumptionWeekSummarySchema, 'playerGameTypeConsumptionWeekSummary');
+
+var playerConsumptionWeekSummarySchema = require('./../schema/playerConsumptionWeekSummary');
+var playerConsumptionWeekSummaryModel = dbLogs.model('playerConsumptionWeekSummary', playerConsumptionWeekSummarySchema, 'playerConsumptionWeekSummary');
+
+var partnerWeekSummarySchema = require('./../schema/partnerWeekSummary');
+var partnerWeekSummaryModel = dbLogs.model('partnerWeekSummary', partnerWeekSummarySchema, 'partnerWeekSummary');
+
+var partnerChildWeekSummarySchema = require('./../schema/partnerChildWeekSummary');
+var partnerChildWeekSummaryModel = dbLogs.model('partnerChildWeekSummary', partnerChildWeekSummarySchema, 'partnerChildWeekSummary');
+
+var partnerRewardRecordSchema = require('./../schema/partnerRewardRecord');
+var partnerRewardRecordModel = dbLogs.model('partnerRewardRecord', partnerRewardRecordSchema, 'partnerRewardRecord');
+
+var playerStatusChangeLogSchema = require('./../schema/logs/playerStatusChangeLog');
+var playerStatusChangeLogModal = dbLogs.model('playerStatusChangeLog', playerStatusChangeLogSchema, 'playerStatusChangeLog');
+
+var gameProviderDaySummarySchema = require('./../schema/gameProviderDaySummary');
+var gameProviderDaySummaryModel = dbLogs.model('gameProviderDaySummary', gameProviderDaySummarySchema, 'gameProviderDaySummary');
+
+var gameProviderPlayerDaySummarySchema = require('./../schema/gameProviderPlayerDaySummary');
+var gameProviderPlayerDaySummaryModel = dbLogs.model('gameProviderPlayerDaySummary', gameProviderPlayerDaySummarySchema, 'gameProviderPlayerDaySummary');
+
+var playerPermissionLogSchema = require('./../schema/logs/playerPermissionLog');
+var playerPermissionLogModel = dbLogs.model('playerPermissionLog', playerPermissionLogSchema, 'playerPermissionLog');
+
+var playerCreditTransferLogSchema = require('./../schema/logs/playerCreditTransferLog');
+var playerCreditTransferLogModel = dbLogs.model('playerCreditTransferLog', playerCreditTransferLogSchema, 'playerCreditTransferLog');
+
+var playerClientSourceLogSchema = require('./../schema/logs/playerClientSourceLog');
+var playerClientSourceLogModel = dbLogs.model('playerClientSourceLog', playerClientSourceLogSchema, 'playerClientSourceLog');
+
+var partnerLoginRecordSchema = require('./../schema/partnerLoginRecord');
+var partnerLoginRecordModel = dbLogs.model('partnerLoginRecord', partnerLoginRecordSchema, 'partnerLoginRecord');
+
+var smsLogSchema = require('./../schema/logs/smsLog');
+var smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
+
+var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
+var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
+
+var paymentAPILogSchema = require('./../schema/logs/paymentAPILog');
+var paymentAPILogModel = dbLogs.model('paymentAPILog', paymentAPILogSchema, 'paymentAPILog');
+
+//unique schema
+var playerNameSchema = require('./../schema/unique/playerName');
+var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
+var partnerOwnDomainSchema = require('./../schema/unique/partnerOwnDomain');
+var partnerOwnDomainModal = db_player.model('partnerOwnDomain', partnerOwnDomainSchema, 'partnerOwnDomain');
+var consumptionOrderNumSchema = require('./../schema/unique/consumptionOrderNum');
+var consumptionOrderNumModal = dbLogs.model('consumptionOrderNum', consumptionOrderNumSchema, 'consumptionOrderNum');
+
+//todo:: to be removed
+// test schema
+var providerPlayerCreditSchema = require('./../schema/providerPlayerCredit');
+var providerPlayerCreditModal = dbLogs.model('providerPlayerCredit', providerPlayerCreditSchema, 'providerPlayerCredit');
+
+// test schema
+var apiResponseTimeLogSchema = require('./../schema/logs/apiResponseTimeLog');
+var apiResponseTimeLogModal = dbLogs.model('apiResponseTimeLog', apiResponseTimeLogSchema, 'apiResponseTimeLog');
+
+var dataMigrationErrorLogSchema = require('./../schema/logs/dataMigrationErrorLog');
+var dataMigrationErrorLogModel = dbLogs.model('dataMigrationErrorLog', dataMigrationErrorLogSchema, 'dataMigrationErrorLog');
+
+
+/////////////////////////collections/////////////////////////////////////
+var dbProperties = {
+    //collection_counter: counterModel,
+
+    collection_admin: adminInfoModel,
+    collection_department: departmentModel,
+    collection_role: roleModel,
+
+    collection_proposal: proposalModel,
+    collection_proposalProcess: proposalProcessModel,
+    collection_proposalProcessStep: proposalProcessStepModel,
+    collection_proposalType: proposalTypeModel,
+    collection_proposalTypeProcess: proposalTypeProcessModel,
+    collection_proposalTypeProcessStep: proposalTypeProcessStepModel,
+
+    collection_rewardEvent: rewardEventModel,
+    collection_rewardParam: rewardParamModel,
+    collection_rewardRule: rewardRuleModel,
+    collection_rewardType: rewardTypeModel,
+    collection_rewardCondition: rewardConditionModel,
+    collection_rewardTask: rewardTaskModel,
+
+    collection_players: playerModel,
+    collection_playerLevel: playerLevelModel,
+    collection_playerBadRecord: playerBadRecordModel,
+    collection_playerTrustLevel: playerTrustLevelModel,
+    collection_playerFeedback: playerFeedbackModel,
+    collection_playerLoginRecord: playerLoginRecordModel,
+    collection_playerLevelConsumptionLevel: playerLevelConsumptionLimitModel,
+
+    collection_apiUser: apiUserModel,
+    collection_platform: platformModel,
+    collection_platformGameStatus: platformGameStatusModel,
+    collection_platformGameGroup: platformGameGroupModel,
+    collection_platformBankCardGroup: platformBankCardGroupModel,
+    collection_platformMerchantGroup: platformMerchantGroupModel,
+    collection_platformAlipayGroup: platformAlipayGroupModel,
+
+
+    collection_gameType: gameTypeModel,
+    collection_game: gameModel,
+    collection_gameProvider: gameProviderModel,
+
+    collection_partner: partnerModel,
+    collection_partnerLevel: partnerLevelModel,
+    collection_partnerLevelConfig: partnerLevelConfigModel,
+    collection_paymentChannel: paymentChannelModel,
+
+    collection_messageTemplate: messageTemplateModel,
+    collection_platformAnnouncement: platformAnnouncementModel,
+    collection_partnerCommissionConfig: partnerCommissionConfigModel,
+
+    //logs
+    collection_playerMail: playerMailModel,
+
+    collection_platformDaySummary: platformDaySummaryModel,
+
+    collection_playerTopUpRecord: playerTopUpRecordModel,
+    collection_playerTopUpIntentRecord: playerTopUpIntentRecordModel,
+    collection_playerRegistrationIntentRecord: playerRegistrationIntentRecordModel,
+    collection_playerTopUpDaySummary: playerTopUpDaySummaryModel,
+    collection_playerTopUpWeekSummary: playerTopUpWeekSummaryModel,
+    collection_playerConsumptionRecord: playerConsumptionRecordModel,
+    collection_playerConsumptionSummary: playerConsumptionSummaryModel,
+    collection_playerConsumptionDaySummary: playerConsumptionDaySummaryModel,
+    collection_playerConsumptionWeekSummary: playerConsumptionWeekSummaryModel,
+    collection_playerGameTypeConsumptionDaySummary: playerGameTypeConsumptionDaySummaryModel,
+    collection_playerGameTypeConsumptionWeekSummary: playerGameTypeConsumptionWeekSummaryModel,
+
+    collection_partnerWeekSummary: partnerWeekSummaryModel,
+    collection_partnerChildWeekSummary: partnerChildWeekSummaryModel,
+    collection_partnerRewardRecord: partnerRewardRecordModel,
+
+    collection_providerDaySummary: gameProviderDaySummaryModel,
+    collection_providerPlayerDaySummary: gameProviderPlayerDaySummaryModel,
+    collection_settlementLog: settlementLogModal,
+    collection_bankInfoLog: bankInfoLogModal,
+
+    collection_systemLog: systemLogModel,
+    collection_creditChangeLog: creditChangeLogModel,
+    collection_rewardLog: rewardLogModel,
+    collection_playerStatusChangeLog: playerStatusChangeLogModal,
+    collection_playerPermissionLog: playerPermissionLogModel,
+    collection_playerCreditTransferLog: playerCreditTransferLogModel,
+    collection_playerClientSourceLog: playerClientSourceLogModel,
+    collection_partnerLoginRecord: partnerLoginRecordModel,
+    collection_smsLog: smsLogModel,
+    collection_partnerCommissionRecord: partnerCommissionRecordModel,
+    collection_paymentAPILog: paymentAPILogModel,
+
+    //unique
+    collection_playerName: playerNameModal,
+    collection_consumptionOrderNumModal: consumptionOrderNumModal,
+    collection_partnerOwnDomain: partnerOwnDomainModal,
+
+    //test
+    collection_providerPlayerCredit: providerPlayerCreditModal,
+    collection_apiResponseTimeLog: apiResponseTimeLogModal,
+    collection_dataMigrationErrorLog: dataMigrationErrorLogModel
+};
+
+for (var key in dbProperties) {
+    var model = dbProperties[key];
+    (function (key, model) {
+        model.on('index', function (err) {
+            if (err) {
+                console.warn("Indexing error for model " + key + ": " + err);
+            }
+        });
+    }(key, model));
+}
+
+// module.exports = dbProperties;
+var proto = dbPropertiesFunc.prototype;
+proto = Object.assign(proto, dbProperties);
+
+// This make WebStorm navigation work
+module.exports = dbProperties;

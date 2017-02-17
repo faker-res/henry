@@ -1,0 +1,43 @@
+//
+   Created by wanglz on 30/5/16.
+
+.section
+    .row
+        .titlePic
+            .title
+                text {{"NEW_PLAYER" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#newPlayerAnalysis .block-query","newPlayer")')
+                        text.pull-left.margin-right-5 {{vm.optionText.newPlayer | translate}}
+    #newPlayerAnalysis(style='width:100%')
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.newPlayer.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            //div
+            //    label {{"Start date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.newPlayer.startTime')
+            //div
+            //    label {{"End date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.newPlayer.endTime')
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotNewPlayerLine()') {{'SEARCH' | translate}}
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-newPlayer.lineChart.graphDiv
+            .col-md-6
+                .graph
+                    table#newPlayerAnalysisTable.display.tableDiv(style='width:100%')
+p(ng-init="vm.loadPageFunc('NEW_PLAYER')")

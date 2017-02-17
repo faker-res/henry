@@ -1,0 +1,74 @@
+<span id="clientCounter" class="hide pull-right alert alert-warning text-center"></span>
+
+<h3>TEST PAGE MENU</h3>
+
+<h5>Client</h5>
+<button class="linkPage" data-page="./testPage/client/testClientPlayerAPI.html">Test Client Player API</button>
+<button class="linkPage" data-page="./testPage/client/testClientPlatformAPI.html">Test Client Platform API</button>
+<button class="linkPage" data-page="./testPage/client/testClientGameAPI.html">Test Client Game API</button>
+<button class="linkPage" data-page="./testPage/client/testClientTopUpIntentionAPI.html">Top Up Intention API</button>
+<button class="linkPage" data-page="./testPage/client/testClientRegistrationIntentionAPI.html">Registration Intention API</button>
+<button class="linkPage" data-page="./testPage/client/testClientConsumptionAPI.html">Consumption API</button>
+<button class="linkPage" data-page="./testPage/client/testClientPlayerLevelAPI.html">Player Level API</button>
+<button class="linkPage" data-page="./testPage/client/testClientRewardAPI.html">Reward API</button>
+<button class="linkPage" data-page="./testPage/client/testClientPaymentAPI.html">Payment API</button>
+<button class="linkPage" data-page="./testPage/client/testClientPartnerAPI.html">Partner API</button>
+<h5>Payment</h5>
+<button class="linkPage" data-page="./testPage/payment/testPaymentChannelAPI.html">Payment Channel API</button>
+<button class="linkPage" data-page="./testPage/payment/testProposalAPI.html">Payment Proposal API</button>
+<button class="linkPage" data-page="./testPage/payment/testPaymentVerificationAPI.html">Payment Verification API</button>
+<button class="linkPage" data-page="./testPage/payment/testPaymentDataAPI.html">Payment Data API</button>
+<h5>Provider</h5>
+<button class="linkPage" data-page="./testPage/provider/testUserAPI.html">User API Test</button>
+<button class="linkPage" data-page="./testPage/provider/testGameTypeAPI.html">GameType API Test</button>
+<button class="linkPage" data-page="./testPage/provider/testGameAPI.html">Game API Test</button>
+<button class="linkPage" data-page="./testPage/provider/testConsumptionAPI.html">Consumption API Test</button>
+<button class="linkPage" data-page="./testPage/provider/testProviderAPI.html">Provider API Test</button>
+<button class="linkPage" data-page="./testPage/provider/testVerificationAPI.html">Verification API Test</button>
+<button class="linkPage" data-page="./testPage/provider/testPlatformAPI.html">Platform API Test</button>
+<h5>PMS System</h5>
+<button class="linkPage" data-page="./testPage/pms/testConnectionAPI.html">Connection API Test</button>
+<button class="linkPage" data-page="./testPage/pms/testBonusAPI.html">Bonus API Test</button>
+<button class="linkPage" data-page="./testPage/pms/testPlatformAPI.html">Platform API Test</button>
+<button class="linkPage" data-page="./testPage/pms/testPaymentAPI.html">Payment API Test</button>
+<button class="linkPage" data-page="./testPage/pms/testFoundationAPI.html">Foundation API Test</button>
+<button class="linkPage" data-page="./testPage/pms/testBankcardAPI.html">Bankcard API Test</button>
+<button class="linkPage" data-page="./testPage/pms/testMerchantAPI.html">Merchant API Test</button>
+<button class="linkPage" data-page="./testPage/pms/testAlipayAPI.html">Alipay API Test</button>
+<h5>cpms API</h5>
+<button class="linkPage" data-page="./testPage/cpms/testConnectionAPI.html">cpms Connection Test</button>
+<button class="linkPage" data-page="./testPage/cpms/player.html">cpms Player Test</button>
+<h5>sms API</h5>
+<button class="linkPage" data-page="./testPage/sms/testSendingAPI.html">sms Sending Test</button>
+<button class="linkPage" data-page="./testPage/sms/testChannelAPI.html">sms Channel Test</button>
+<h5>migration API</h5>
+<button class="linkPage" data-page="./testPage/migration/testConnectionAPI.html">Connection API Test</button>
+<button class="linkPage" data-page="./testPage/migration/testAdminAPI.html"> Admin Test</button>
+<button class="linkPage" data-page="./testPage/migration/testPlayerAPI.html">Player Test</button>
+<button class="linkPage" data-page="./testPage/migration/testPartnerAPI.html">Partner Test</button>
+<button class="linkPage" data-page="./testPage/migration/testProposalAPI.html">Proposal Test</button>
+<button class="linkPage" data-page="./testPage/migration/syncDataAPI.html">SyncData Test</button>
+<hr>
+
+<div class="form-inline">
+    <label>Preferred language:
+        <select id="preferredLanguageSelector" class="form-control">
+            <option value="1" selected>Chinese (_________)</option>
+            <option value="2">English (_________)</option>
+        </select>
+    </label>
+</div>
+
+<script>
+    // Persist the language selection between sessions
+    $(document).ready(function() {
+        var lang = window.localStorage.getItem('preferredLanguage');
+        if (lang) {
+            $('select#preferredLanguageSelector').val(lang);
+        }
+
+        $('select#preferredLanguageSelector').change(function() {
+            window.localStorage.setItem('preferredLanguage', $(this).val());
+        });
+    });
+</script>
