@@ -34,11 +34,22 @@ var dbMigration = {
         //tmp error log for debugging
         console.error(service, functionName, data, error);
         dbLogger.createDataMigrationErrorLog(service, functionName, data, error);
+        dbMigration.removeRequestId(data.requestId);
         return Q.reject(error);
     },
 
-    resHandler: function (data) {
+    resHandler: function (data, service, functionName) {
+        dbLogger.createSyncDataLog(service, functionName, data);
         return data;
+    },
+
+    createRequestId: function (requestId) {
+        var newRequestId = new dbconfig.collection_syncDataRequestId({requestId: requestId});
+        return newRequestId.save();
+    },
+
+    removeRequestId: function (requestId) {
+        dbconfig.collection_syncDataRequestId.remove({requestId: requestId}).then();
     },
 
     createDepartment: function (data) {
@@ -48,7 +59,11 @@ var dbMigration = {
             data.parent = "admin";
         }
         //create department under admin
-        return dbconfig.collection_department.findOne({departmentName: data.parent}).then(
+        return dbMigration.createRequestId(data.requestId).then(
+            reId => {
+                return dbconfig.collection_department.findOne({departmentName: data.parent});
+            }
+        ).then(
             rootDepart => {
                 if (rootDepart) {
                     data.parent = rootDepart._id;
@@ -59,7 +74,7 @@ var dbMigration = {
                 }
             }
         ).then(
-            dbMigration.resHandler,
+            res => dbMigration.resHandler(data, "admin", "createDepartment"),
             error => dbMigration.errorHandler("admin", "createDepartment", data, error)
         );
     },
@@ -73,7 +88,12 @@ var dbMigration = {
         data.salt = salt;
 
         if (data.department) {
-            return dbconfig.collection_department.findOne({departmentName: data.department}).then(
+            //create department under admin
+            return dbMigration.createRequestId(data.requestId).then(
+                reId => {
+                    return dbconfig.collection_department.findOne({departmentName: data.department});
+                }
+            ).then(
                 depart => {
                     if (depart) {
                         data.departments = [depart._id];
@@ -84,7 +104,7 @@ var dbMigration = {
                     }
                 }
             ).then(
-                dbMigration.resHandler,
+                res => dbMigration.resHandler(data, "admin", "createUser"),
                 error => dbMigration.errorHandler("admin", "createUser", data, error)
             );
         }
@@ -99,8 +119,12 @@ var dbMigration = {
     },
 
     createPlatform: function (data) {
-        return dbPlatform.createPlatform(data).then(
-            dbMigration.resHandler,
+        return dbMigration.createRequestId(data.requestId).then(
+            reId => {
+                return dbPlatform.createPlatform(data);
+            }
+        ).then(
+            res => dbMigration.resHandler(data, "admin", "createPlatform"),
             error => dbMigration.errorHandler("player", "createPlatform", data, error)
         );
     },
@@ -201,7 +225,11 @@ var dbMigration = {
         ).then(
             playerData => {
                 if (playerData) {
-                    return dbPlayerInfo.createPlayerInfo(playerData, true, true);
+                    return dbMigration.createRequestId(data.requestId).then(
+                        reId => {
+                            return dbPlayerInfo.createPlayerInfo(playerData, true, true);
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid player data"});
@@ -218,7 +246,7 @@ var dbMigration = {
                 }
             }
         ).then(
-            dbMigration.resHandler,
+            res => dbMigration.resHandler(data, "admin", "createPlayer"),
             error => dbMigration.errorHandler("player", "createPlayer", data, error)
         );
     },
@@ -302,7 +330,11 @@ var dbMigration = {
                     data.platformId = platformObjId;
                     delete data.playerName;
                     delete data.platform;
-                    return dbPlayerTopUpRecord.createPlayerTopUpRecord(data);
+                    return dbMigration.createRequestId(data.requestId).then(
+                        reId => {
+                            return dbPlayerTopUpRecord.createPlayerTopUpRecord(data);
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find player"});
@@ -325,7 +357,7 @@ var dbMigration = {
                 )
             }
         ).then(
-            dbMigration.resHandler,
+            rest => dbMigration.resHandler(data, "player", "createPlayerTopUpRecord"),
             error => dbMigration.errorHandler("player", "createPlayerTopUpRecord", data, error)
         );
     },
@@ -349,14 +381,18 @@ var dbMigration = {
                     delete data.playerName;
                     //delete data.platform;
                     data.platform = platformId;
-                    return dbPlayerFeedback.createPlayerFeedback(data);
+                    return dbMigration.createRequestId(data.requestId).then(
+                        reId => {
+                            return dbPlayerFeedback.createPlayerFeedback(data);
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find player or admin"});
                 }
             }
         ).then(
-            dbMigration.resHandler,
+            res => dbMigration.resHandler(data, "player", "createPlayerFeedback"),
             error => {
                 return dbMigration.errorHandler("player", "createPlayerFeedback", data, error)
             }
@@ -385,13 +421,17 @@ var dbMigration = {
                     data.userAgent = data.userAgent || {};
                     data.data = data.data
                     var record = new dbconfig.collection_playerLoginRecord(data);
-                    return record.save();
+                    return dbMigration.createRequestId(data.requestId).then(
+                        reId => {
+                            return record.save();
+                        }
+                    );
                 } else {
                     return Q.reject({name: "DataError", message: "Can not find player or admin"});
                 }
             }
         ).then(
-            dbMigration.resHandler,
+            res => dbMigration.resHandler(data, "player", "createPlayerLoginRecord"),
             error => dbMigration.errorHandler("player", "createPlayerLoginRecord", data, error)
         );
     },
@@ -429,13 +469,17 @@ var dbMigration = {
                     saveData.apiRes = data.apiRes;
                     saveData.data = data.data
                     var record = new dbconfig.collection_playerCreditTransferLog(saveData);
-                    return record.save()
+                    return dbMigration.createRequestId(data.requestId).then(
+                        reId => {
+                            return record.save();
+                        }
+                    );
                 } else {
                     return Q.reject({name: "DataError", message: "Can not find player or admin or provider"});
                 }
             }
         ).then(
-            dbMigration.resHandler,
+            rest => dbMigration.resHandler(data, "player", "createPlayerLoginRecord"),
             error => dbMigration.errorHandler("player", "createPlayerLoginRecord", data, error)
         );
     },
@@ -509,7 +553,11 @@ var dbMigration = {
                                     status: status,
                                     noSteps: true
                                 };
-                                return dbProposal.createProposal(newRecord).then(
+                                return dbMigration.createRequestId(data.requestId).then(
+                                    reId => {
+                                        return dbProposal.createProposal(newRecord);
+                                    }
+                                ).then(
                                     data => {
                                         return data;
                                     },
@@ -554,7 +602,7 @@ var dbMigration = {
                 }
             }
         ).then(
-            dbMigration.resHandler,
+            res => dbMigration.resHandler(data, "proposal", "createProposal"),
             error => dbMigration.errorHandler("proposal", "createProposal", {
                 type: typeName, platform: platform, creator: creator, creatorType: creatorType, createTime: createTime,
                 entryType: entryType, userType: userType, status: status, proposalData: proposalData
@@ -629,7 +677,7 @@ var dbMigration = {
                 }
             }
         ).then(
-            dbMigration.resHandler,
+            res => dbMigration.resHandler(data, "partner", "createPartner"),
             error => dbMigration.errorHandler("partner", "createPartner", data, error)
         );
     },
@@ -658,13 +706,17 @@ var dbMigration = {
                     data.userAgent = data.userAgent || {};
                     data.data = data.data;
                     var record = new dbconfig.collection_partnerLoginRecord(data);
-                    return record.save();
+                    return dbMigration.createRequestId(data.requestId).then(
+                        reId => {
+                            return record.save();
+                        }
+                    );
                 } else {
                     return Q.reject({name: "DataError", message: "Can not find partner"});
                 }
             }
         ).then(
-            dbMigration.resHandler,
+            res => dbMigration.resHandler(data, "player", "createPartnerLoginRecord"),
             error => dbMigration.errorHandler("player", "createPartnerLoginRecord", data, error)
         );
     },
@@ -722,7 +774,11 @@ var dbMigration = {
             taskData => {
                 if (!taskData) {
                     var rewardTask = new dbconfig.collection_rewardTask(data);
-                    return rewardTask.save().then(
+                    return dbMigration.createRequestId(data.requestId).then(
+                        reId => {
+                            return rewardTask.save();
+                        }
+                    ).then(
                         newTask => {
                             if (data.status == constRewardTaskStatus.STARTED && !data.inProvider) {
                                 return dbconfig.collection_players.findOneAndUpdate(
@@ -738,7 +794,7 @@ var dbMigration = {
                 }
             }
         ).then(
-            dbMigration.resHandler,
+            res => dbMigration.resHandler(data, "player", "createPlayerRewardTask"),
             error => dbMigration.errorHandler("player", "createPlayerRewardTask", data, error)
         );
     },
@@ -889,17 +945,28 @@ var dbMigration = {
         ).then(
             data => {
                 var record = new dbconfig.collection_creditChangeLog(data);
-                return record.save();
+                return dbMigration.createRequestId(data.requestId).then(
+                    reId => {
+                        return record.save();
+                    }
+                );
             }
         ).then(
-            dbMigration.resHandler,
+            res => dbMigration.resHandler(data, "player", "createPlayerCreditChangeLog"),
             error => dbMigration.errorHandler("player", "createPlayerCreditChangeLog", data, error)
         );
     },
 
     createPlayerClientSourceLog: function (data) {
         var record = new dbconfig.collection_playerClientSourceLog(data);
-        return record.save();
+        return dbMigration.createRequestId(data.requestId).then(
+            reId => {
+                return record.save();
+            }
+        ).then(
+            res => dbMigration.resHandler(data, "player", "createPlayerClientSourceLog"),
+            error => dbMigration.errorHandler("player", "createPlayerClientSourceLog", data, error)
+        );
     },
 
     addPlayerPartner: function (data) {
@@ -1090,7 +1157,7 @@ var dbMigration = {
                 }
                 break;
             case "FullAttendance":
-                if (proposalData && proposalData.rewardAmount && proposalData.spendingAmount) {
+                if (proposalData && proposalData.rewardAmount != null && proposalData.spendingAmount != null) {
                     bValid = true;
                 }
                 break;
@@ -1101,7 +1168,7 @@ var dbMigration = {
                 //there shouldn't be any proposal use this type for data sync
                 break;
             case "FirstTopUp":
-                if (proposalData && proposalData.rewardAmount && proposalData.applyAmount && proposalData.spendingAmount) {
+                if (proposalData && proposalData.rewardAmount != null && proposalData.applyAmount != null && proposalData.spendingAmount != null) {
                     bValid = true;
                 }
                 break;
@@ -1118,37 +1185,37 @@ var dbMigration = {
                 //there shouldn't be any proposal use this type for data sync
                 break;
             case "ManualPlayerTopUp":
-                if (proposalData && proposalData.amount) {
+                if (proposalData && proposalData.amount != null) {
                     bValid = true;
                 }
                 break;
             case "PlayerAlipayTopUp":
-                if (proposalData && proposalData.amount) {
+                if (proposalData && proposalData.amount != null) {
                     bValid = true;
                 }
                 break;
             case "PlayerTopUp":
-                if (proposalData && proposalData.amount) {
+                if (proposalData && proposalData.amount != null) {
                     bValid = true;
                 }
                 break;
             case "PlayerBonus":
-                if (proposalData && proposalData.bonusId && proposalData.amount && proposalData.bonusCredit) {
+                if (proposalData && proposalData.bonusId != null && proposalData.amount != null && proposalData.bonusCredit != null) {
                     bValid = true;
                 }
                 break;
             case "PlayerTopUpReturn":
-                if (proposalData && proposalData.rewardAmount && proposalData.applyAmount && proposalData.spendingAmount) {
+                if (proposalData && proposalData.rewardAmount != null && proposalData.applyAmount != null && proposalData.spendingAmount != null) {
                     bValid = true;
                 }
                 break;
             case "PlayerConsumptionIncentive":
-                if (proposalData && proposalData.rewardAmount && proposalData.spendingAmount) {
+                if (proposalData && proposalData.rewardAmount != null && proposalData.spendingAmount != null) {
                     bValid = true;
                 }
                 break;
             case "PlayerLevelUp":
-                if (proposalData && proposalData.rewardAmount) {
+                if (proposalData && proposalData.rewardAmount != null) {
                     bValid = true;
                 }
                 break;
@@ -1156,27 +1223,27 @@ var dbMigration = {
                 //there shouldn't be any proposal use this type for data sync
                 break;
             case "PlayerTopUpReward":
-                if (proposalData && proposalData.rewardAmount && proposalData.applyAmount && proposalData.spendingAmount) {
+                if (proposalData && proposalData.rewardAmount != null && proposalData.applyAmount != null && proposalData.spendingAmount != null) {
                     bValid = true;
                 }
                 break;
             case "PlayerReferralReward":
-                if (proposalData && proposalData.rewardAmount) {
+                if (proposalData && proposalData.rewardAmount != null) {
                     bValid = true;
                 }
                 break;
             case "PartnerBonus":
-                if (proposalData && proposalData.bonusId && proposalData.amount && proposalData.bonusCredit) {
+                if (proposalData && proposalData.bonusId != null && proposalData.amount != null && proposalData.bonusCredit != null) {
                     bValid = true;
                 }
                 break;
             case "PlayerConsumptionReturnFix":
-                if (proposalData && proposalData.updateAmount) {
+                if (proposalData && proposalData.updateAmount != null) {
                     bValid = true;
                 }
                 break;
             case "PlayerRegistrationReward":
-                if (proposalData && proposalData.rewardAmount && proposalData.unlockBonusAmount) {
+                if (proposalData && proposalData.rewardAmount != null && proposalData.unlockBonusAmount != null) {
                     bValid = true;
                 }
                 break;
@@ -1186,7 +1253,7 @@ var dbMigration = {
         return bValid;
     },
 
-    syncProposal: function (typeName, platform, creator, creatorType, createTime, entryType, userType, status, proposalData) {
+    syncProposal: function (typeName, platform, creator, creatorType, createTime, entryType, userType, status, proposalData, requestData) {
         var bPartnerProposal = false;
         //data validation
         var dataValidationProm = Q.resolve().then(
@@ -1292,6 +1359,7 @@ var dbMigration = {
                         proposalType => {
                             if (proposalType) {
                                 createTime = createTime || new Date();
+                                newProposalData.requestId = requestData.requestId;
                                 var newRecord = {
                                     mainType: constProposalMainType[typeName],
                                     type: proposalType._id,
@@ -1303,18 +1371,25 @@ var dbMigration = {
                                     status: status,
                                     noSteps: true
                                 };
-                                return dbProposal.createProposal(newRecord).then(
-                                    data => {
-                                        return data;
-                                    },
-                                    err => {
-                                        return Q.reject({
-                                            name: "DataError",
-                                            message: "Error when creating proposal.",
-                                            err: err
-                                        });
+                                var newRequestId = new dbconfig.collection_syncDataRequestId({requestId: requestData.requestId});
+                                return newRequestId.save().then(
+                                    res => {
+                                        return dbProposal.createProposal(newRecord).then(
+                                            data => {
+                                                return data;
+                                            },
+                                            err => {
+                                                dbconfig.collection_syncDataRequestId.remove({requestId: requestData.requestId}).then();
+                                                return Q.reject({
+                                                    name: "DataError",
+                                                    message: "Error when creating proposal.",
+                                                    err: err
+                                                });
+                                            }
+                                        );
                                     }
                                 );
+
                             } else {
                                 return Q.reject({name: "DataError", message: "Can not find proposalType in platform"});
                             }
@@ -1383,11 +1458,8 @@ var dbMigration = {
                 }
             }
         ).then(
-            dbMigration.resHandler,
-            error => dbMigration.errorHandler("proposal", "createProposal", {
-                type: typeName, platform: platform, creator: creator, creatorType: creatorType, createTime: createTime,
-                entryType: entryType, userType: userType, status: status, proposalData: proposalData
-            }, error)
+            data => dbMigration.resHandler(requestData, "syncData", "syncProposal"),
+            error => dbMigration.errorHandler("syncData", "syncProposal", requestData, error)
         );
     },
 
@@ -1460,38 +1532,60 @@ var dbMigration = {
                         _id: promData._id,
                         platform: promData.platform
                     }, updateData).exec();
-                    return record.save()
+
+                    var newRequestId = new dbconfig.collection_syncDataRequestId({requestId: data.requestId});
+                    return newRequestId.save().then(
+                        res => {
+                            return record.save().then(
+                                () => {
+                                },
+                                error => {
+                                    dbconfig.collection_syncDataRequestId.remove({requestId: data.requestId}).then();
+                                    return Q.reject(error);
+                                }
+                            );
+                        }
+                    );
                 } else {
                     return Q.reject({name: "DataError", message: "Can not find player or admin"});
                 }
             }
         ).then(
-            dbMigration.resHandler,
-            error => dbMigration.errorHandler("player", "createPlayerLoginRecord", data, error)
+            res => dbMigration.resHandler(data, "syncData", "syncPlayerLoginRecord"),
+            error => dbMigration.errorHandler("syncData", "syncPlayerLoginRecord", data, error)
         );
     },
 
-    transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
-        return dbPlayerInfo.transferPlayerCreditToProvider(playerId, platform, providerId, amount, adminName, forSync).then(
-            dbMigration.resHandler,
-            error => dbMigration.errorHandler("player", "transferPlayerCreditToProvider", {
-                playerId: playerId,
-                providerId: providerId
-            }, error)
+    transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync, requestData) {
+        var newRequestId = new dbconfig.collection_syncDataRequestId({requestId: requestData.requestId});
+        return newRequestId.save().then(
+            res => {
+                return dbPlayerInfo.transferPlayerCreditToProvider(playerId, platform, providerId, amount, adminName, forSync).then(
+                    data => dbMigration.resHandler(requestData, "syncData", "transferPlayerCreditToProvider"),
+                    error => {
+                        dbconfig.collection_syncDataRequestId.remove({requestId: requestData.requestId}).then();
+                        return dbMigration.errorHandler("syncData", "transferPlayerCreditToProvider", requestData, error);
+                    }
+                );
+            }
         );
+
     },
 
-    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
-        return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync).then(
-            dbMigration.resHandler,
-            error => dbMigration.errorHandler("player", "transferPlayerCreditFromProvider", {
-                playerId: playerId,
-                providerId: providerId,
-                amount: amount
-            }, error)
+    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, requestData) {
+        var newRequestId = new dbconfig.collection_syncDataRequestId({requestId: requestData.requestId});
+        return newRequestId.save().then(
+            res => {
+                return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync).then(
+                    data => dbMigration.resHandler(requestData, "syncData", "transferPlayerCreditFromProvider"),
+                    error => {
+                        dbconfig.collection_syncDataRequestId.remove({requestId: requestData.requestId}).then();
+                        return dbMigration.errorHandler("syncData", "transferPlayerCreditFromProvider", requestData, error);
+                    }
+                );
+            }
         );
     }
-
 
 };
 

@@ -175,6 +175,23 @@ define(['js/app'], function (myApp) {
                 }
             });
         }
+        vm.setDateRange = function (option) {
+            var startDate;
+            switch (option) {
+                case 'day':
+                    startDate = utilService.getTodayStartTime();
+                    break;
+                case 'week':
+                    startDate = new Date(utilService.setNDaysAgo(utilService.getTodayStartTime(), utilService.getTodayStartTime().getDay()));
+                    break;
+                case 'month':
+                    startDate = new Date(new Date(utilService.getTodayStartTime()).setDate(1));
+                    break;
+            }
+            $("#datetimepicker").data('datetimepicker').setLocalDate(startDate);
+            $("#datetimepicker2").data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
+            vm.loadProposalQueryData(true);
+        }
         vm.loadProposalQueryData = function (newSearch, callback) {
             var selectedStatus = [];
             vm.proposalTypeUpdated();

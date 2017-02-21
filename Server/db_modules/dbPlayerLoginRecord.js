@@ -19,7 +19,7 @@ var dbPlayerLoginRecord = {
     },
     getIpHistory: function (playerId) {
         var p1 = dbconfig.collection_playerLoginRecord.find({'player': playerId}).sort({"loginTime": 1}).limit(1).lean();
-        var p2 = dbconfig.collection_playerLoginRecord.find({'player': playerId}).sort({"loginTime": -1}).limit(20).lean();
+        var p2 = dbconfig.collection_playerLoginRecord.find({'player': playerId}).sort({"loginTime": -1}).limit(100).lean();
         var returnData = {reg: [], login: []};
         return Q.all([p1, p2]).then(
             data => {
@@ -101,47 +101,102 @@ var dbPlayerLoginRecord = {
      * Get login player count 
      */
     countLoginPlayerbyPlatform: function (platformId, startDate, endDate, period) {
-        var options = {};
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
         switch (period) {
             case 'day':
-                options.date = {$dateToString: {format: "%Y-%m-%d", date: "$loginTime"}};
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
                 break;
             case 'week':
-                options.week = {$floor: {$divide: [{$subtract: ["$loginTime", startDate]}, 604800000]}};
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
                 break;
             case 'month':
             default:
-                options.year = {$year: "$loginTime"};
-                options.month = {$month: "$loginTime"};
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
         }
-        var matchingOption = {
-            loginTime: {
-                $gte: startDate,
-                $lt: endDate
+
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                platform: platformId,
+                loginTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            proms.push(
+                dbconfig.collection_playerLoginRecord.distinct("player", matchObj)
+            )
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(
+            data => {
+                var i = 0;
+                var tempDate = startDate;
+                var res = data.map(
+                    dayData => {
+                        var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
+                        var obj = {
+                            _id: {date: date},
+                            number: dayData.length
+                        }
+                        tempDate = getNextDate(tempDate);
+                        return obj;
+                    }
+                );
+                return res;
             }
-        }
-        if (platformId != 'all') {
-            matchingOption.platform = platformId;
-        }
-        return dbconfig.collection_playerLoginRecord.aggregate(
-            [{
-                $match: matchingOption,
-            }, {
-                $group: {
-                    _id: {
-                        date: options
-                    },
-                    playerId: {
-                        "$addToSet": "$player"
-                    },
-                }
-            }, {
-                $project: {
-                    _id: "$_id.date",
-                    number: {$size: "$playerId"}
-                }
-            }]
-        ).exec();
+        );
+
+
+        // var options = {};
+        // switch (period) {
+        //     case 'day':
+        //         options.date = {$dateToString: {format: "%Y-%m-%d", date: "$loginTime"}};
+        //         break;
+        //     case 'week':
+        //         options.week = {$floor: {$divide: [{$subtract: ["$loginTime", startDate]}, 604800000]}};
+        //         break;
+        //     case 'month':
+        //     default:
+        //         options.year = {$year: "$loginTime"};
+        //         options.month = {$month: "$loginTime"};
+        // }
+        // var matchingOption = {
+        //     loginTime: {
+        //         $gte: startDate,
+        //         $lt: endDate
+        //     }
+        // }
+        // if (platformId != 'all') {
+        //     matchingOption.platform = platformId;
+        // }
+        // return dbconfig.collection_playerLoginRecord.aggregate(
+        //     [{
+        //         $match: matchingOption,
+        //     }, {
+        //         $group: {
+        //             _id: {
+        //                 date: options
+        //             },
+        //             playerId: {
+        //                 "$addToSet": "$player"
+        //             },
+        //         }
+        //     }, {
+        //         $project: {
+        //             _id: "$_id.date",
+        //             number: {$size: "$playerId"}
+        //         }
+        //     }]
+        // ).exec();
     },
 
     countLoginPlayerbyPlatformWeek: function (startDate, endDate, platform) {

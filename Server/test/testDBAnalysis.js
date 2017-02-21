@@ -54,7 +54,7 @@ describe("Test Analysis", function () {
     });
 
     it('should test player login analysis', function () {
-        return dbPlayerLoginRecord.countLoginPlayerbyPlatform(testPlatformObjId).then(
+        return dbPlayerLoginRecord.countLoginPlayerbyPlatform(testPlatformObjId, new Date(0), new Date()).then(
             data => {
                 console.log(data, data);
             }

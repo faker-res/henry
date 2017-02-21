@@ -665,32 +665,39 @@ define(['js/app'], function (myApp) {
                 endDate: vm.queryPara.loginPlayer.endTime.data('datetimepicker').getLocalDate(),
             };
             socketService.$socket($scope.AppSocket, 'countLoginPlayerbyPlatform', sendData, function success(data1) {
-                var loginPlayerData = data1.data;
-                var loginPlayerObjData = {};
-                for (var i = 0; i < loginPlayerData.length; i++) {
-                    switch (vm.queryPara.loginPlayer.periodText) {
-                        case 'day':
-                            loginPlayerObjData[loginPlayerData[i]._id.date] = loginPlayerData[i].number;
-                            break;
-                        case 'week':
-                            loginPlayerObjData[loginPlayerData[i]._id.week] = loginPlayerData[i].number;
-                            break;
-                        case 'month':
-                            loginPlayerObjData[loginPlayerData[i]._id.year + '' + loginPlayerData[i]._id.month] = loginPlayerData[i].number;
-                            break;
-                    }
-                }
+
+
                 var graphData = [];
+                data1.data.map(item => {
+                    var localTime = new Date(item._id.date);
+                    graphData.push([localTime, item.number]);
+                })
+                // var loginPlayerData = data1.data;
+                // var loginPlayerObjData = {};
+                // for (var i = 0; i < loginPlayerData.length; i++) {
+                //     switch (vm.queryPara.loginPlayer.periodText) {
+                //         case 'day':
+                //             loginPlayerObjData[loginPlayerData[i]._id.date] = loginPlayerData[i].number;
+                //             break;
+                //         case 'week':
+                //             loginPlayerObjData[loginPlayerData[i]._id.week] = loginPlayerData[i].number;
+                //             break;
+                //         case 'month':
+                //             loginPlayerObjData[loginPlayerData[i]._id.year + '' + loginPlayerData[i]._id.month] = loginPlayerData[i].number;
+                //             break;
+                //     }
+                // }
+                // var graphData = [];
                 var newOptions = {};
-                var nowDate = new Date(sendData.startDate);
+                // var nowDate = new Date(sendData.startDate);
                 var xText = '';
                 switch (vm.queryPara.loginPlayer.periodText) {
                     case 'day':
-                        do {
-                            var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                            graphData.push([nowDate.getTime(), (loginPlayerObjData[dateText] || 0)]);
-                            nowDate.setDate(nowDate.getDate() + 1);
-                        } while (nowDate <= sendData.endDate);
+                //         do {
+                //             var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
+                //             graphData.push([nowDate.getTime(), (loginPlayerObjData[dateText] || 0)]);
+                //             nowDate.setDate(nowDate.getDate() + 1);
+                //         } while (nowDate <= sendData.endDate);
                         xText = 'DAY';
                         newOptions = {
                             xaxis: {
@@ -701,12 +708,12 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case 'week':
-                        var k = 0;
-                        do {
-                            graphData.push([nowDate.getTime(), (loginPlayerObjData[k] || 0)]);
-                            nowDate.setDate(nowDate.getDate() + 7);
-                            k++;
-                        } while (nowDate <= sendData.endDate);
+                //         var k = 0;
+                //         do {
+                //             graphData.push([nowDate.getTime(), (loginPlayerObjData[k] || 0)]);
+                //             nowDate.setDate(nowDate.getDate() + 7);
+                //             k++;
+                //         } while (nowDate <= sendData.endDate);
                         xText = 'WEEK';
                         newOptions = {
                             xaxis: {
@@ -717,15 +724,15 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case 'month' :
-                        nowDate.setDate(1);
-                        do {
-                            var nowYear = nowDate.getFullYear();
-                            var nowMonth = nowDate.getMonth() + 1;
-                            console.log('nowMonth', nowYear + '' + nowMonth);
-                            graphData.push([nowDate.getTime(), (loginPlayerObjData[nowYear + '' + nowMonth] || 0)]);
-                            nowDate.setMonth(nowDate.getMonth() + 1);
-
-                        } while (nowDate <= sendData.endDate);
+                //         nowDate.setDate(1);
+                //         do {
+                //             var nowYear = nowDate.getFullYear();
+                //             var nowMonth = nowDate.getMonth() + 1;
+                //             console.log('nowMonth', nowYear + '' + nowMonth);
+                //             graphData.push([nowDate.getTime(), (loginPlayerObjData[nowYear + '' + nowMonth] || 0)]);
+                //             nowDate.setMonth(nowDate.getMonth() + 1);
+                //
+                //         } while (nowDate <= sendData.endDate);
                         xText = 'MONTH';
                         newOptions = {
                             xaxis: {

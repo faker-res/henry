@@ -310,7 +310,7 @@ var dbPlayerConsumptionRecord = {
             function (bDirty) {
                 if (!bDirty) {
                     //for data migration purpose, only add consumption return for newly added record
-                    if( env.mode != "qa" && data && data.createTime && new Date(data.createTime).getTime() < new Date(Date.UTC(2017, 1, 14, 8, 0, 0)).getTime() ){
+                    if( env.mode != "qa" && data && data.createTime && new Date(data.createTime).getTime() < new Date(Date.UTC(2017, 1, 19, 16, 0, 0)).getTime() ){
                         return record;
                     }
                     //update consumption summary record

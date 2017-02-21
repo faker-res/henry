@@ -21,7 +21,6 @@ var AdminServiceImplement = function () {
         if (!isValidData) {
             errorUtils.logMigrationDataInvalidError(this, data);
         }
-
         WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.createDepartment, [data], isValidData);
     };
 

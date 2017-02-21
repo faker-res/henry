@@ -23,7 +23,7 @@
                 entryType: 0,
                 status: "Success",
                 userType: "player",
-                data: {loginname: "sawlz14", realName: "justfortest"},
+                data: {loginname: "vince80", realName: "justfortest"},
                 // data: {loginname: "sawlz14", updateAmount: 10},
                 // data: {loginname: "sawlz14", updateAmount: 10},
                 // data: {loginname: "sawlz14", updateAmount: 10},
@@ -33,7 +33,8 @@
                 // data: {loginname: "sawlz14", updateAmount: 10},
                 // data: {loginname: "sawlz14", updateAmount: 10},
                 // data: {loginname: "sawlz14", updateAmount: 10},
-            } || requestData;
+                requestId: requestData.requestId
+            };
         this._service.syncProposal.request(data);
         var self = this;
         this._service.syncProposal.once(function (data) {

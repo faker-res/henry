@@ -403,7 +403,7 @@ function socketActionPlayer(socketIO, socket) {
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
             var platform = data.platform ? ObjectId(data.platform) : 'all';
-            socketUtil.emitter(self.socket, dbPlayerInfo.countNewPlayerbyPlatform, [platform, startTime, endTime, 'day'], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.countDailyNewPlayerByPlatform, [platform, startTime, endTime], actionName, isValidData);
         },
 
         /**
@@ -448,6 +448,7 @@ function socketActionPlayer(socketIO, socket) {
             var platform = data.platform ? ObjectId(data.platform) : 'all';
             socketUtil.emitter(self.socket, dbPlayerInfo.countNewPlayersAllPlatform, [startTime, endTime, platform], actionName, isValidData);
         },
+
         /**
          * Get active player count
          * @param {json} data - data contains _id

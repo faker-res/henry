@@ -11,10 +11,14 @@ define(['js/app'], function (myApp) {
         vm.getDashboardData = function (numDays, after) {
             var queryDone = [false, false, false, false];
             var sendData = {
-                startDate: new Date().setDate(new Date().getDate() - numDays),
+                // startDate: new Date(new Date().setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), numDays)))),
+                startDate: utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), numDays)),
                 endDate: new Date(),
                 platform: vm.platformID
-            }
+            };
+
+            //sendData.startDate = sendData.startDate.setHours(0, 0, 0, 0);
+
             console.log('sendData', numDays, sendData);
 
             socketService.$socket($scope.AppSocket, 'countLoginPlayerbyPlatformWeek', sendData, function success(data) {
@@ -99,7 +103,8 @@ define(['js/app'], function (myApp) {
 
         vm.drawDataGraph = function () {
             var sendData = {
-                startDate: new Date().setDate(new Date().getDate() - 7),
+                startDate: utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 6)),
+                // new Date().setDate(new Date().getDate() - 7),
                 endDate: new Date(),
                 platform: vm.platformID
             };
@@ -129,19 +134,26 @@ define(['js/app'], function (myApp) {
                 }];
                 console.log('countLoginPlayerAllPlatform', playerData);
 
-                var nowDate = new Date(sendData.startDate);
-                var graphData = [];
-                var newPlayerObjData = {};
-                for (var i = 0; i < playerData.length; i++) {
-                    newPlayerObjData[playerData[i]._id.date] = playerData[i].number;
-                }
+                // var nowDate = new Date(sendData.startDate);
+                // var graphData = [];
+                // var newPlayerObjData = {};
+                // for (var i = 0; i < playerData.length; i++) {
+                //     newPlayerObjData[playerData[i]._id.date] = playerData[i].number;
+                // }
                 var lastDayNum = 0;
-                do {
-                    var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
-                    lastDayNum = newPlayerObjData[dateText] || 0;
-                    graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
-                    nowDate.setDate(nowDate.getDate() + 1);
-                } while (nowDate <= sendData.endDate);
+                // do {
+                //     var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
+                //     lastDayNum = newPlayerObjData[dateText] || 0;
+                //     graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
+                //     nowDate.setDate(nowDate.getDate() + 1);
+                // } while (nowDate <= sendData.endDate);
+                var graphData = [];
+                playerData.map(item => {
+                    var dateText = new Date(item._id.date);
+                    graphData.push([dateText, item.number]);
+                    lastDayNum = item.number;
+                })
+
                 $('.day .onlineNum .number').html(lastDayNum);
 
                 socketService.$plotLine(placeholder, [{
@@ -419,7 +431,7 @@ define(['js/app'], function (myApp) {
                         }
                     }, function (error) {
                     });
-                }
+                }, 1000
             );
         });
     };

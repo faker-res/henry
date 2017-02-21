@@ -23,7 +23,7 @@ var SyncDataServiceImplement = function () {
             errorUtils.logMigrationDataInvalidError(this, data);
         }
         data.creator = String(data.creator).toLowerCase();
-        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.syncProposal, [data.type, data.platform, data.creator, data.creatorType, data.createTime, data.entryType, data.userType, data.status, data.data], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.syncProposal, [data.type, data.platform, data.creator, data.creatorType, data.createTime, data.entryType, data.userType, data.status, data.data, data], isValidData);
     };
 
     this.syncPlayerLoginRecord.onRequest = function (wsFunc, conn, data) {
@@ -42,12 +42,12 @@ var SyncDataServiceImplement = function () {
 
     this.syncPlayerCreditTransferIn.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.userName && data.providerId != null);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.transferPlayerCreditToProvider, [data.userName, null, data.providerId, -1, null, true], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.transferPlayerCreditToProvider, [data.userName, null, data.providerId, -1, null, true, data], isValidData);
     };
 
     this.syncPlayerCreditTransferOut.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.userName && data.providerId != null && data.amount != null);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.transferPlayerCreditFromProvider, [data.userName, null, data.providerId, data.amount, null, null, null, true], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.transferPlayerCreditFromProvider, [data.userName, null, data.providerId, data.amount, null, null, null, true, data], isValidData);
     };
 };
 
