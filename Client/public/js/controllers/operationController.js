@@ -38,47 +38,55 @@ define(['js/app'], function (myApp) {
         vm.selectPlatform = function (id) {
             vm.newProposalNum = 0;
             vm.operSelPlatform = false;
+            vm.allPlatformId = [];
+
             $.each(vm.platformList, function (i, v) {
                 if (v._id == id) {
                     vm.selectedPlatform = v;
-                    vm.playerCountLimit = 20;
                     $cookies.put("platform", vm.selectedPlatform.name);
-                    console.log('vm.selectedPlatform', vm.selectedPlatform);
-                    vm.getLoggedInPlayerCount();
-                    vm.getLoggedInPlayer();
-                    // vm.loadProposalData();
-                    // vm.getTopupIntentionData();
-                    vm.allTopUpIntentionString = null;
-                    vm.allNewAccountString = null;
-                    vm.allProposalString = null;
-                    // vm.getPlayerTopUpIntentRecordStatusList();
-                    // vm.getNewAccountProposal().done();
-                    vm.getProposalTypeByPlatformId().then(
-                        function (data) {
-                            $('select#selectProposalType').multipleSelect({
-                                allSelected: $translate("All Selected"),
-                                selectAllText: $translate("Select All"),
-                                displayValues: true,
-                                countSelected: $translate('# of % selected'),
-                                onClick: function () {
-                                    vm.proposalTypeUpdated();
-                                },
-                                onCheckAll: function () {
-                                    vm.proposalTypeUpdated();
-                                },
-                                onUncheckAll: function () {
-                                    vm.proposalTypeUpdated();
-                                }
-                            });
-                            $("select#selectProposalType").multipleSelect("checkAll");
-                            vm.proposalTypeClicked("total");
-                            // vm.allProposalClicked();
-                        }
-                    );
-                    $scope.safeApply();
-                    return;
+                    vm.allPlatformId.push(v._id);
+                    //return;
+                } else if (id == "_allPlatform") {
+                    vm.selectedPlatform = '_allPlatform';
+                    $cookies.put("platform", id);
+                    vm.allPlatformId.push(v._id);
                 }
             });
+            vm.playerCountLimit = 20;
+            
+            console.log('vm.selectedPlatform', vm.allPlatformId);
+            vm.getLoggedInPlayerCount();
+            vm.getLoggedInPlayer();
+            // vm.loadProposalData();
+            // vm.getTopupIntentionData();
+            vm.allTopUpIntentionString = null;
+            vm.allNewAccountString = null;
+            vm.allProposalString = null;
+            // vm.getPlayerTopUpIntentRecordStatusList();
+            // vm.getNewAccountProposal().done();
+            vm.getProposalTypeByPlatformId(vm.allPlatformId).then(
+                function (data) {
+                    $('select#selectProposalType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                        onClick: function () {
+                            vm.proposalTypeUpdated();
+                        },
+                        onCheckAll: function () {
+                            vm.proposalTypeUpdated();
+                        },
+                        onUncheckAll: function () {
+                            vm.proposalTypeUpdated();
+                        }
+                    });
+                    $("select#selectProposalType").multipleSelect("checkAll");
+                    vm.proposalTypeClicked("total");
+                    // vm.allProposalClicked();
+                }
+            );
+            $scope.safeApply();
         }
         vm.proposalTypeClicked = function (i, v) {
             //vm.highlightProposalListSelection[i];
@@ -197,7 +205,7 @@ define(['js/app'], function (myApp) {
 
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.selectedPlatformID,
+                platformId: vm.allPlatformId,
                 type: vm.proposalTypeSelected,
                 startDate: startTime.getLocalDate(),
                 endDate: newEndTime,
@@ -1500,8 +1508,8 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.getLoggedInPlayerCount = function () {
-            socketService.$socket($scope.AppSocket, 'getLoggedInPlayersCount', {platform: vm.selectedPlatform._id}, function (data) {
-                console.log(data.data);
+            socketService.$socket($scope.AppSocket, 'getLoggedInPlayersCount', {platform: vm.allPlatformId}, function (data) {
+                console.log("getLoggedInPlayerCount", data.data);
                 vm.loggedInPlayerCount = data.data;
                 $scope.safeApply();
             });
@@ -1593,6 +1601,7 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 var storedPlatform = $cookies.get("platform");
+                console.log("Platform Cookies", storedPlatform);
                 if (storedPlatform) {
                     vm.platformList.forEach(
                         platform => {
@@ -1603,7 +1612,8 @@ define(['js/app'], function (myApp) {
                     );
                 }
                 if (!vm.selectedPlatform) {
-                    vm.selectedPlatform = vm.platformList[0];
+                    var objAllPlatform = { _id: "_allPlatform" };
+                    vm.selectedPlatform = objAllPlatform;
                 }
                 vm.selectedPlatformID = vm.selectedPlatform._id;
                 vm.selectPlatform(vm.selectedPlatformID);
@@ -1615,10 +1625,10 @@ define(['js/app'], function (myApp) {
             return deferred.promise;
         };
 
-        vm.getProposalTypeByPlatformId = function () {
+        vm.getProposalTypeByPlatformId = function (allPlatformId) {
             var deferred = Q.defer();
 
-            socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: vm.selectedPlatformID}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: allPlatformId}, function (data) {
                 vm.allProposalType = data.data;
                 vm.allProposalType.sort(
                     function (a, b) {
