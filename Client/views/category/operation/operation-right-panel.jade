@@ -17,11 +17,11 @@
                         //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
                         //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
 
-                        select.form-control#selectProposalType(multiple="multiple", style='min-width:100px', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in vm.allProposalType track by i.name', ng-model='vm.actionLogQuery.action')
+                        select.form-control#selectProposalType(multiple="multiple", style='min-width:100px;height:34px;', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in vm.allProposalType track by i.name', ng-model='vm.actionLogQuery.action')
 
                     .inlineBlk(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL' && checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
                         label {{'FILTER_PROPOSAL_STATUS' | translate}}
-                        select.form-control#selectProposalStatus(multiple="multiple", style='min-width:100px')
+                        select.form-control#selectProposalStatus(multiple="multiple", style='min-width:100px;height:34px;')
                             option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}') {{v | translate}}
                     .inlineBlk(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL' && checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
                         label {{'ENTRY_TYPE' | translate}}
@@ -52,6 +52,9 @@
                             input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
                             span.add-on
                                 i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                    .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
+                        label {{"Set Date Range" | translate}}
+                        select.form-control(ng-model='range',ng-options='i as v | translate for (i,v) in {"day":"Today","week":"This Week","month":"This Month"}',ng-change='vm.setDateRange(range)')
                     .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                         button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
                         button.common-button.btn.btn-primary(ng-if='!vm.queryProposalId', ng-click='vm.loadProposalQueryData(true)') {{'SEARCH' | translate}}

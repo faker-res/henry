@@ -4398,6 +4398,37 @@ var dbPlayerInfo = {
         return Q.resolve({steps: 5, currentStep: 3, stepContent: "get balance."});
     },
 
+    countDailyNewPlayerByPlatform: function (platformId, startDate, endDate) {
+        var proms = [];
+        var dayStartTime = startDate;
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = new Date(dayStartTime.getTime() + 24*60*60*1000);
+            var matchObj = {
+                platform: platformId,
+                registrationTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            proms.push(
+                dbconfig.collection_players.find(matchObj).count()
+            );
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(
+            data => {
+                var i = 0;
+                var res = data.map(
+                    dayData => {
+                        var date = dbUtility.getLocalTimeString(dbUtility.getDayStartTime(new Date(startDate.getTime() + (i++)*24*60*60*1000)), "YYYY-MM-DD");
+                        return {
+                            _id: {date: date},
+                            number: dayData
+                        }
+                    }
+                );
+                return res;
+            }
+        );
+    },
+
     /* 
      * Get new player count 
      */

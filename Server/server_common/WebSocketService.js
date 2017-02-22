@@ -85,7 +85,7 @@ var rootObj = {};
             packageData.requestId = requestData.requestId;
         }
         var res = JSON.stringify(packageData);
-        //console.log("server _sendResponse:", res);
+        console.log("server _sendResponse:", res);
         try {
             conn.send(res);
         } catch (e) {

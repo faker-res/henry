@@ -230,6 +230,9 @@ var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partn
 var paymentAPILogSchema = require('./../schema/logs/paymentAPILog');
 var paymentAPILogModel = dbLogs.model('paymentAPILog', paymentAPILogSchema, 'paymentAPILog');
 
+var syncDataLogSchema = require('./../schema/logs/syncDataLog');
+var syncDataLogModel = dbLogs.model('syncDataLog', syncDataLogSchema, 'syncDataLog');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -237,6 +240,10 @@ var partnerOwnDomainSchema = require('./../schema/unique/partnerOwnDomain');
 var partnerOwnDomainModal = db_player.model('partnerOwnDomain', partnerOwnDomainSchema, 'partnerOwnDomain');
 var consumptionOrderNumSchema = require('./../schema/unique/consumptionOrderNum');
 var consumptionOrderNumModal = dbLogs.model('consumptionOrderNum', consumptionOrderNumSchema, 'consumptionOrderNum');
+
+var syncDataRequestIdSchema = require('./../schema/unique/syncDataRequestId');
+var syncDataRequestIdModal = dbLogs.model('syncDataRequestId', syncDataRequestIdSchema, 'syncDataRequestId');
+
 
 //todo:: to be removed
 // test schema
@@ -340,11 +347,13 @@ var dbProperties = {
     collection_smsLog: smsLogModel,
     collection_partnerCommissionRecord: partnerCommissionRecordModel,
     collection_paymentAPILog: paymentAPILogModel,
+    collection_syncDataLog: syncDataLogModel,
 
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,
     collection_partnerOwnDomain: partnerOwnDomainModal,
+    collection_syncDataRequestId: syncDataRequestIdModal,
 
     //test
     collection_providerPlayerCredit: providerPlayerCreditModal,

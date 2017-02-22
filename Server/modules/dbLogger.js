@@ -281,7 +281,17 @@ var dbLogger = {
     createPaymentAPILog: function (logData) {
         var apiLog = new dbconfig.collection_paymentAPILog(logData);
         apiLog.save().then().catch(err => errorSavingLog(err, logData));
-    }
+    },
+
+    createSyncDataLog: function (service, functionName, data) {
+        var logData = {
+            service: service,
+            functionName: functionName,
+            data: data
+        };
+        var syncLog = new dbconfig.collection_syncDataLog(logData);
+        syncLog.save().then().catch(err => errorSavingLog(err, logData));
+    },
 
 };
 
