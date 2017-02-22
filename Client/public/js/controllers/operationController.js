@@ -167,7 +167,7 @@ define(['js/app'], function (myApp) {
         }
         vm.getOneProposal = function (callback) {
             socketService.$socket($scope.AppSocket, "getPlatformProposal", {
-                platformId: vm.selectedPlatform._id,
+                platformId: vm.allPlatformId,
                 proposalId: vm.queryProposalId
             }, function (data) {
                 if (data && !data.data) {
