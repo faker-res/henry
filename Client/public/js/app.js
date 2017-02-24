@@ -18,8 +18,7 @@ define(['js/config','js/commonAPIs', 'js/services/routeResolver', 'js/services/a
         'flowChart',
         'ngFileUpload',
         'LocalStorageModule',
-        'datePicker',
-        'angular.filter'
+        'datePicker'
     );
 
     myApp.config(['$routeProvider', 'routeResolverProvider', '$controllerProvider',
