@@ -22,7 +22,7 @@ var ProposalServiceImplement = function () {
             errorUtils.logMigrationDataInvalidError(this, data);
         }
         data.creator = String(data.creator).toLowerCase();
-        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.createProposal, [data.type, data.platform, data.creator, data.creatorType, data.createTime, data.entryType, data.userType, data.status, data.data], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.createProposal, [data.type, data.platform, data.creator, data.creatorType, data.createTime, data.entryType, data.userType, data.status, data.data, data], isValidData);
     };
 
 };

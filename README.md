@@ -217,4 +217,4 @@ sudo npm install -g gulp [https://github.com/gulpjs/gulp](https://github.com/gul
 
 Login User: admin
 
-Password: Sinonet@2015
+Password: Sinonet@2016

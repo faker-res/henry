@@ -28,7 +28,7 @@ const SMSSender = {
                     platformId = playerData.platform.platformId;
                     phoneNumber = playerData.phoneNumber;
                     //get sms channel
-                    return smsAPI.channel_getChannelList({}).then(
+                    smsAPI.channel_getChannelList({}).then(
                         channelData => {
                             if (channelData && channelData.channels && channelData.channels.length > 0) {
                                 defaultChannel = channelData.channels[0];
@@ -53,6 +53,7 @@ const SMSSender = {
                                     message: template.content,
                                     delay: 0
                                 };
+
                                 return smsAPI.sending_sendMessage(messageData).then(
                                     () => {},
                                     error => {

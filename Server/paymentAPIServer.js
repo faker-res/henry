@@ -16,7 +16,7 @@ var WebSocketMessageClient = require("./server_common/WebSocketMessageClient");
 var constMessageClientTypes = require("./const/constMessageClientTypes");
 // var services = require("./modules/services.js");
 // var serverInstance = require("./modules/serverInstance.js");
-// var clientApiInstances = require("./modules/clientApiInstances");
+var clientApiInstances = require("./modules/clientApiInstances");
 var dbPlatform = require("./db_modules/dbPlatform");
 
 env.messageClient = constMessageClientTypes.PAYMENT;
@@ -54,5 +54,12 @@ server.setMessageClient(messageClient);
 //         }
 //     }
 // );
+
+var dbPlatform = require("./db_modules/dbPlatform");
+clientApiInstances.createSMSAPI().then(
+    res => {
+        // dbPlatform.syncSMSPlatform();
+    }
+);
 
 module.exports = server;

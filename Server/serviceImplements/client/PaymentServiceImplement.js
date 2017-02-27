@@ -66,7 +66,7 @@ var PaymentServiceImplement = function () {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
-                SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_BONUS);
+                //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_BONUS);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };

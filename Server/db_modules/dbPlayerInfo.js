@@ -2502,12 +2502,12 @@ var dbPlayerInfo = {
     transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
         var deferred = Q.defer();
         var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            });
+            path: "platform",
+            model: dbconfig.collection_platform
+        }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        });
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         var playerData = null;
         var providerData = null;
@@ -2849,12 +2849,12 @@ var dbPlayerInfo = {
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
         var deferred = Q.defer();
         var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            });
+            path: "platform",
+            model: dbconfig.collection_platform
+        }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        });
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
@@ -3638,7 +3638,7 @@ var dbPlayerInfo = {
                             startIndex: startIndex,
                             requestCount: count
                         },
-                        rewards: res
+                        records: res
                     };
                 }
                 else {
@@ -3648,7 +3648,7 @@ var dbPlayerInfo = {
                             totalAmount: 0,
                             startIndex: startIndex
                         },
-                        rewards: []
+                        records: []
                     };
                 }
             }
@@ -4402,7 +4402,7 @@ var dbPlayerInfo = {
         var proms = [];
         var dayStartTime = startDate;
         while (dayStartTime.getTime() < endDate.getTime()) {
-            var dayEndTime = new Date(dayStartTime.getTime() + 24*60*60*1000);
+            var dayEndTime = new Date(dayStartTime.getTime() + 24 * 60 * 60 * 1000);
             var matchObj = {
                 platform: platformId,
                 registrationTime: {$gte: dayStartTime, $lt: dayEndTime}
@@ -4417,7 +4417,7 @@ var dbPlayerInfo = {
                 var i = 0;
                 var res = data.map(
                     dayData => {
-                        var date = dbUtility.getLocalTimeString(dbUtility.getDayStartTime(new Date(startDate.getTime() + (i++)*24*60*60*1000)), "YYYY-MM-DD");
+                        var date = dbUtility.getLocalTimeString(dbUtility.getDayStartTime(new Date(startDate.getTime() + (i++) * 24 * 60 * 60 * 1000)), "YYYY-MM-DD");
                         return {
                             _id: {date: date},
                             number: dayData
@@ -4433,33 +4433,75 @@ var dbPlayerInfo = {
      * Get new player count 
      */
     countNewPlayerbyPlatform: function (platformId, startDate, endDate, period) {
-        var options = {};
+        // var options = {};
+        // switch (period) {
+        //     case 'day':
+        //         options.date = {$dateToString: {format: "%Y-%m-%d", date: "$registrationTime"}};
+        //         break;
+        //     case 'week':
+        //         options.week = {$floor: {$divide: [{$subtract: ["$registrationTime", startDate]}, 604800000]}};
+        //         break;
+        //     case 'month':
+        //     default:
+        //         options.year = {$year: "$registrationTime"};
+        //         options.month = {$month: "$registrationTime"};
+        // }
+        //
+        // var matchingCond = {
+        //     registrationTime: {$gte: startDate, $lt: endDate}
+        // }
+        // if (platformId != 'all') {
+        //     matchingCond.platform = platformId;
+        // }
+        // return dbconfig.collection_players.aggregate(
+        //     {
+        //         $match: matchingCond
+        //     },
+        //     {
+        //         $group: {_id: options, number: {$sum: 1}}
+        //     }).exec();
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
         switch (period) {
             case 'day':
-                options.date = {$dateToString: {format: "%Y-%m-%d", date: "$registrationTime"}};
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
                 break;
             case 'week':
-                options.week = {$floor: {$divide: [{$subtract: ["$registrationTime", startDate]}, 604800000]}};
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                };
                 break;
             case 'month':
             default:
-                options.year = {$year: "$registrationTime"};
-                options.month = {$month: "$registrationTime"};
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
         }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {registrationTime: {$gte: dayStartTime, $lt: dayEndTime}};
+            if (platformId != 'all') {
+                matchObj.platform = platformId;
+            }
+            proms.push(dbconfig.collection_players.find(matchObj).count());
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(dayData => {
+                var obj = {_id: {date: tempDate}, number: dayData}
+                tempDate = getNextDate(tempDate);
+                return obj;
+            });
+            return res;
+        });
 
-        var matchingCond = {
-            registrationTime: {$gte: startDate, $lt: endDate}
-        }
-        if (platformId != 'all') {
-            matchingCond.platform = platformId;
-        }
-        return dbconfig.collection_players.aggregate(
-            {
-                $match: matchingCond
-            },
-            {
-                $group: {_id: options, number: {$sum: 1}}
-            }).exec();
     },
 
     dashboardTopupORConsumptionGraphData: function (platformId, period, type) {
@@ -4518,20 +4560,46 @@ var dbPlayerInfo = {
         )
     },
     countTopUpORConsumptionByPlatform: function (platformId, startDate, endDate, period, type) {
-        var options = {};
+        // var options = {};
+        // var calculation = null;
+        // switch (period) {
+        //     case 'day':
+        //         options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
+        //         break;
+        //     case 'week':
+        //         options.week = {$floor: {$divide: [{$subtract: ["$date", startDate]}, 604800000]}};
+        //         break;
+        //     case 'month':
+        //     default:
+        //         options.year = {$year: "$date"};
+        //         options.month = {$month: "$date"};
+        // }
+        // switch (type) {
+        //     case 'topup' :
+        //         calculation = {$sum: "$topUpAmount"};
+        //         break;
+        //     case 'consumption' :
+        //         calculation = {$sum: "$consumptionAmount"}
+        // }
+        // var matchOption = {
+        //     date: {$gte: startDate, $lt: endDate}
+        // }
+        // if (platformId != 'all') {
+        //     matchOption.platformId = platformId;
+        // }
+        // return dbconfig.collection_platformDaySummary.aggregate(
+        //     {
+        //         $match: matchOption
+        //     },
+        //     {
+        //         $group: {_id: options, number: calculation}
+        //     }).then(
+        //     data => {
+        //         return data;
+        //     }
+        // );
+        var proms = [];
         var calculation = null;
-        switch (period) {
-            case 'day':
-                options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
-                break;
-            case 'week':
-                options.week = {$floor: {$divide: [{$subtract: ["$date", startDate]}, 604800000]}};
-                break;
-            case 'month':
-            default:
-                options.year = {$year: "$date"};
-                options.month = {$month: "$date"};
-        }
         switch (type) {
             case 'topup' :
                 calculation = {$sum: "$topUpAmount"};
@@ -4539,23 +4607,53 @@ var dbPlayerInfo = {
             case 'consumption' :
                 calculation = {$sum: "$consumptionAmount"}
         }
-        var matchOption = {
-            date: {$gte: startDate, $lt: endDate}
+        var dayStartTime = startDate;
+        var getNextDate;
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
         }
-        if (platformId != 'all') {
-            matchOption.platformId = platformId;
-        }
-        return dbconfig.collection_platformDaySummary.aggregate(
-            {
-                $match: matchOption
-            },
-            {
-                $group: {_id: options, number: calculation}
-            }).then(
-            data => {
-                return data;
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {date: {$gte: dayStartTime, $lt: dayEndTime}};
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
             }
-        );
+            proms.push(dbconfig.collection_platformDaySummary.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: null,
+                        calc: calculation
+                    }
+                }))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                var obj = {_id: {date: tempDate}, number: item[0] ? item[0].calc : 0}
+                tempDate = getNextDate(tempDate);
+                return obj;
+            });
+            return res;
+        });
+
     },
 
     /* 
@@ -4976,6 +5074,7 @@ var dbPlayerInfo = {
                         );
                     }
                     else {
+                        SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
                         return data.save();
                     }
                 }
@@ -5573,10 +5672,16 @@ var dbPlayerInfo = {
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.bonusId) {
+                        if( proposalData.status != constProposalStatus.PENDING ){
+                            return Q.reject({
+                                status: constServerCode.DATA_INVALID,
+                                name: "DBError",
+                                message: 'This proposal has been processed'
+                            });
+                        }
                         proposal = proposalData;
                         bonusId = proposalData.data.bonusId;
                         return dbProposal.updateBonusProposal(proposalId, constProposalStatus.FAIL, bonusId);
-                        //todo::?? call PMS API later to cancel the bonus when done
                     }
                     else {
                         return Q.reject({

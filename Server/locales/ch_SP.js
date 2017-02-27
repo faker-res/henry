@@ -140,7 +140,8 @@ var simplifiedChinese = {
     "Top up amount is not enough": "充值额度不够",
     "Player has too much valid credit": "玩家额度过多",
     "Player has applied for this reward": "玩家以申请过该奖励",
-    "Amount is not enough": "申请兑奖数量过少"
+    "Amount is not enough": "申请兑奖数量过少",
+    "This proposal has been processed": "该提案已在处理中"
     //todo::add missing messages here
 
     /*

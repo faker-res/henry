@@ -500,54 +500,108 @@ var dbRewardTask = {
         return deferred.promise;
     },
 
-    getPlatformRewardAnalysis: function (type, period, platformId, startTime, endTime) {
-        var options = {};
+    getPlatformRewardAnalysis: function (type, period, platformId, startDate, endDate) {
+        //refractorTime
+        // var options = {};
+        // switch (period) {
+        //     case 'day':
+        //         options.date = {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}};
+        //         break;
+        //     case 'week':
+        //         options.week = {$floor: {$divide: [{$subtract: ["$createTime", startTime]}, 604800000]}};
+        //         break;
+        //     case 'month':
+        //     default:
+        //         options.year = {$year: "$createTime"};
+        //         options.month = {$month: "$createTime"};
+        // }
+        // return dbconfig.collection_proposalType.findOne({
+        //     platformId: platformId,
+        //     name: type
+        // }).then(
+        //     function (data) {
+        //         var typeId = data._id;
+        //         return dbconfig.collection_proposal
+        //             .aggregate(
+        //                 {
+        //                     $match: {
+        //                         'data.platformId': platformId,
+        //                         createTime: {$gte: startTime, $lt: endTime},
+        //                         type: typeId
+        //                     }
+        //                 },
+        //                 {
+        //                     $group: {_id: options, number: {$sum: 1}, amount: {$sum: '$data.rewardAmount'}}
+        //                 }
+        //             ).exec()
+        //     })
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
         switch (period) {
             case 'day':
-                options.date = {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}};
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
                 break;
             case 'week':
-                options.week = {$floor: {$divide: [{$subtract: ["$createTime", startTime]}, 604800000]}};
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
                 break;
             case 'month':
             default:
-                options.year = {$year: "$createTime"};
-                options.month = {$month: "$createTime"};
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
         }
-        // if (constRewardDataSource[type] && constRewardDataSource[type] == 'rewardTask') {
-        //     return dbconfig.collection_rewardTask.aggregate(
-        //         {
-        //             $match: {
-        //                 platformId: platformId,
-        //                 createTime: {$gte: startTime, $lt: endTime},
-        //                 rewardType: type
-        //             }
-        //         },
-        //         {
-        //             $group: {_id: options, number: {$sum: 1}, amount: {$sum: '$initAmount'}}
-        //         }).exec();
-        // } else if (constRewardDataSource[type] && constRewardDataSource[type] == 'proposal') {
         return dbconfig.collection_proposalType.findOne({
             platformId: platformId,
             name: type
-        }).then(
-            function (data) {
-                var typeId = data._id;
-                return dbconfig.collection_proposal
+        }).then(function (data) {
+            var typeId = data._id;
+            while (dayStartTime.getTime() < endDate.getTime()) {
+                var dayEndTime = getNextDate.call(this, dayStartTime);
+                var matchObj = {
+                    platformId: platformId,
+                    loginTime: {$gte: dayStartTime, $lt: dayEndTime},
+                    type: typeId
+                };
+                proms.push(dbconfig.collection_proposal
                     .aggregate(
                         {
                             $match: {
                                 'data.platformId': platformId,
-                                createTime: {$gte: startTime, $lt: endTime},
+                                createTime: {$gte: dayStartTime, $lt: dayEndTime},
                                 type: typeId
                             }
                         },
                         {
-                            $group: {_id: options, number: {$sum: 1}, amount: {$sum: '$data.rewardAmount'}}
+                            $group: {_id: null, number: {$sum: 1}, amount: {$sum: '$data.rewardAmount'}}
                         }
-                    ).exec()
-            })
-        // }
+                    ))
+                dayStartTime = dayEndTime;
+            }
+            return Q.all(proms)
+        }).then(data => {
+            var i = 0;
+            var tempDate = startDate;
+            var res = data.map(item => {
+                var date = tempDate;
+                var obj = {
+                    _id: {date: date},
+                    number: item[0] ? item[0].number : 0,
+                    amount: item[0] ? item[0].amount : 0
+                }
+                tempDate = getNextDate(tempDate);
+                return obj;
+            });
+            return res;
+        });
+
     },
 
     getPlatformRewardPageReport: function (constType, platformId, startTime, endTime, index, limit, sortCol, evnetId) {
@@ -555,20 +609,20 @@ var dbRewardTask = {
         limit = limit || 10;
         sortCol = sortCol || {"createTime": -1};
         var matchObj = constType ? {
-                platformId: platformId,
-                type: constType,
-                createTime: {
-                    $gte: startTime,
-                    $lt: endTime
-                },
-                eventId: evnetId
-            } : {
-                platformId: platformId,
-                createTime: {
-                    $gte: startTime,
-                    $lt: endTime
-                }
+            platformId: platformId,
+            type: constType,
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            eventId: evnetId
+        } : {
+            platformId: platformId,
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
             }
+        }
 
         var a = dbconfig.collection_rewardTask.find(matchObj).sort(sortCol).skip(index).limit(limit)
             .populate({path: "playerId", model: dbconfig.collection_players})
