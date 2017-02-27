@@ -34,7 +34,7 @@ var dbMigration = {
         //tmp error log for debugging
         console.error(service, functionName, data, error);
         dbLogger.createDataMigrationErrorLog(service, functionName, data, error);
-        dbMigration.removeRequestId(data.requestId);
+        //dbMigration.removeRequestId(data.requestId);
         return Q.reject(error);
     },
 
@@ -484,7 +484,7 @@ var dbMigration = {
         );
     },
 
-    createProposal: function (typeName, platform, creator, creatorType, createTime, entryType, userType, status, proposalData) {
+    createProposal: function (typeName, platform, creator, creatorType, createTime, entryType, userType, status, proposalData, inputData) {
         var creatorObj = {};
         creatorType = creatorType || 'system';
         var prom1 = Q.resolve({});
@@ -520,6 +520,7 @@ var dbMigration = {
                             proposalData.playerShorId = user.playerId;
                             proposalData.platformObjId = user.platform;
                             proposalData.platformId = platform;
+                            proposalData.playerName = user.name;
                         }
                     }
                     if (player) {
@@ -528,6 +529,7 @@ var dbMigration = {
                         proposalData.playerShorId = player.playerId;
                         proposalData.platformObjId = player.platform;
                         proposalData.platformId = platform;
+                        proposalData.playerName = player.name;
                     }
                     var newProposalData = proposalData;
                     return dbMigration.proposalDataConverter(typeName, proposalData).then(
@@ -553,7 +555,7 @@ var dbMigration = {
                                     status: status,
                                     noSteps: true
                                 };
-                                return dbMigration.createRequestId(data.requestId).then(
+                                return dbMigration.createRequestId(inputData.requestId).then(
                                     reId => {
                                         return dbProposal.createProposal(newRecord);
                                     }
@@ -562,6 +564,7 @@ var dbMigration = {
                                         return data;
                                     },
                                     err => {
+                                        dbMigration.removeRequestId(data.requestId);
                                         return Q.reject({
                                             name: "DataError",
                                             message: "Error when creating proposal.",
@@ -589,24 +592,22 @@ var dbMigration = {
                     if ((typeName == constProposalType.PLAYER_TOP_UP || typeName == constProposalType.PLAYER_MANUAL_TOP_UP || typeName == constProposalType.PLAYER_ALIPAY_TOP_UP)
                         && status == constProposalStatus.SUCCESS) {
                         var record = {
-                            playerName: String(creator).toLowerCase(),
+                            playerName: String(proposalData.playerName).toLowerCase(),
                             platform: platform,
                             amount: proposalData.amount,
                             topUpType: typeName == constProposalType.PLAYER_TOP_UP ? 2 : (typeName == constProposalType.PLAYER_MANUAL_TOP_UP ? 1 : 3),
                             createTime: createTime,
                             bDirty: false,
-                            proposalId: proposal.proposalId
+                            proposalId: proposal.proposalId,
+                            requestId: inputData.requestId + proposal.proposalId
                         };
                         return dbMigration.createPlayerTopUpRecord(record);
                     }
                 }
             }
         ).then(
-            res => dbMigration.resHandler(data, "proposal", "createProposal"),
-            error => dbMigration.errorHandler("proposal", "createProposal", {
-                type: typeName, platform: platform, creator: creator, creatorType: creatorType, createTime: createTime,
-                entryType: entryType, userType: userType, status: status, proposalData: proposalData
-            }, error)
+            res => dbMigration.resHandler(inputData, "proposal", "createProposal"),
+            error => dbMigration.errorHandler("proposal", "createProposal", inputData, error)
         );
     },
 
