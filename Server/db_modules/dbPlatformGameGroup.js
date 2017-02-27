@@ -7,6 +7,7 @@
 
 var dbconfig = require('./../modules/dbproperties');
 var dbGame = require('./../db_modules/dbGame');
+var constGameStatus = require('./../const/constGameStatus');
 var Q = require("q");
 
 var dbPlatformGameGroup = {
@@ -295,6 +296,7 @@ var dbPlatformGameGroup = {
      * @param {Json}  query - platform , groupId
      */
     getGameGroupGamesArr: function (query) {
+        query.status = {$ne: constGameStatus.DELETED};
         return dbconfig.collection_platformGameGroup.findOne(query)
             .populate({
                 path: "games.game",
@@ -318,22 +320,31 @@ var dbPlatformGameGroup = {
                                 return a.game.toString();
                             }
                         });
-                        return dbconfig.collection_platformGameStatus.find({platform: query.platform}).populate({
+                        return dbconfig.collection_platformGameStatus.find(
+                            {
+                                platform: query.platform,
+                                status: {$ne: constGameStatus.DELETED}
+                            }
+                        ).populate({
                             path: "game",
                             model: dbconfig.collection_game
                         }).exec();
                     } else
-                        return dbconfig.collection_platformGameStatus.find({platform: query.platform}).populate({
+                        return dbconfig.collection_platformGameStatus.find(
+                            {
+                                platform: query.platform,
+                                status: {$ne: constGameStatus.DELETED}
+                            }
+                        ).populate({
                             path: "game",
                             model: dbconfig.collection_game
                         }).exec();
                 }
-            )
-            .then(
+            ).then(
                 games => {
                     if (games) {
                         resultArr = games.filter(game => {
-                            if (game && game.game && game._id) {
+                            if (game && game.game && game.game._id && game.game.status != constGameStatus.DELETED) {
                                 return (gamesId.indexOf(game.game._id.toString()) == -1);
                             } else return false;
                         })

@@ -439,31 +439,35 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'countNewPlayerbyPlatform', sendData, function success(data1) {
                 var newPlayerData = data1.data;
+                console.log('newPlayerData', newPlayerData);
                 var newPlayerObjData = {};
-                for (var i = 0; i < newPlayerData.length; i++) {
-                    switch (vm.queryPara.newPlayer.periodText) {
-                        case 'day':
-                            newPlayerObjData[newPlayerData[i]._id.date] = newPlayerData[i].number;
-                            break;
-                        case 'week':
-                            newPlayerObjData[newPlayerData[i]._id.week] = newPlayerData[i].number;
-                            break;
-                        case 'month':
-                            newPlayerObjData[newPlayerData[i]._id.year + '' + newPlayerData[i]._id.month] = newPlayerData[i].number;
-                            break;
-                    }
-                }
+                // for (var i = 0; i < newPlayerData.length; i++) {
+                //     switch (vm.queryPara.newPlayer.periodText) {
+                //         case 'day':
+                //             newPlayerObjData[newPlayerData[i]._id.date] = newPlayerData[i].number;
+                //             break;
+                //         case 'week':
+                //             newPlayerObjData[newPlayerData[i]._id.week] = newPlayerData[i].number;
+                //             break;
+                //         case 'month':
+                //             newPlayerObjData[newPlayerData[i]._id.year + '' + newPlayerData[i]._id.month] = newPlayerData[i].number;
+                //             break;
+                //     }
+                // }
                 var graphData = [];
+                newPlayerData.map(item => {
+                    graphData.push([new Date(item._id.date), item.number]);
+                })
                 var newOptions = {};
-                var nowDate = new Date(sendData.startDate);
+                // var nowDate = new Date(sendData.startDate);
                 var xText = '';
                 switch (vm.queryPara.newPlayer.periodText) {
                     case 'day':
-                        do {
-                            var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
-                            graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
-                            nowDate.setDate(nowDate.getDate() + 1);
-                        } while (nowDate <= sendData.endDate);
+                        //         do {
+                        //             var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
+                        //             graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
+                        //             nowDate.setDate(nowDate.getDate() + 1);
+                        //         } while (nowDate <= sendData.endDate);
                         xText = 'DAY';
                         newOptions = {
                             xaxis: {
@@ -474,13 +478,13 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case 'week':
-                        var k = 0;
-                        do {
-                            // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
-                            graphData.push([nowDate.getTime(), (newPlayerObjData[k] || 0)]);
-                            nowDate.setDate(nowDate.getDate() + 7);
-                            k++;
-                        } while (nowDate <= sendData.endDate);
+                        //         var k = 0;
+                        //         do {
+                        //             // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
+                        //             graphData.push([nowDate.getTime(), (newPlayerObjData[k] || 0)]);
+                        //             nowDate.setDate(nowDate.getDate() + 7);
+                        //             k++;
+                        //         } while (nowDate <= sendData.endDate);
                         xText = 'WEEK';
                         newOptions = {
                             xaxis: {
@@ -491,15 +495,15 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case 'month' :
-                        nowDate.setDate(1);
-                        do {
-                            var nowYear = nowDate.getFullYear();
-                            var nowMonth = nowDate.getMonth() + 1;
-                            console.log('nowMonth', nowYear + '' + nowMonth);
-                            graphData.push([nowDate.getTime(), (newPlayerObjData[nowYear + '' + nowMonth] || 0)]);
-                            nowDate.setMonth(nowDate.getMonth() + 1);
-
-                        } while (nowDate <= sendData.endDate);
+                        //         nowDate.setDate(1);
+                        //         do {
+                        //             var nowYear = nowDate.getFullYear();
+                        //             var nowMonth = nowDate.getMonth() + 1;
+                        //             console.log('nowMonth', nowYear + '' + nowMonth);
+                        //             graphData.push([nowDate.getTime(), (newPlayerObjData[nowYear + '' + nowMonth] || 0)]);
+                        //             nowDate.setMonth(nowDate.getMonth() + 1);
+                        //
+                        //         } while (nowDate <= sendData.endDate);
                         xText = 'MONTH';
                         newOptions = {
                             xaxis: {
@@ -693,11 +697,11 @@ define(['js/app'], function (myApp) {
                 var xText = '';
                 switch (vm.queryPara.loginPlayer.periodText) {
                     case 'day':
-                //         do {
-                //             var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                //             graphData.push([nowDate.getTime(), (loginPlayerObjData[dateText] || 0)]);
-                //             nowDate.setDate(nowDate.getDate() + 1);
-                //         } while (nowDate <= sendData.endDate);
+                        //         do {
+                        //             var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
+                        //             graphData.push([nowDate.getTime(), (loginPlayerObjData[dateText] || 0)]);
+                        //             nowDate.setDate(nowDate.getDate() + 1);
+                        //         } while (nowDate <= sendData.endDate);
                         xText = 'DAY';
                         newOptions = {
                             xaxis: {
@@ -708,12 +712,12 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case 'week':
-                //         var k = 0;
-                //         do {
-                //             graphData.push([nowDate.getTime(), (loginPlayerObjData[k] || 0)]);
-                //             nowDate.setDate(nowDate.getDate() + 7);
-                //             k++;
-                //         } while (nowDate <= sendData.endDate);
+                        //         var k = 0;
+                        //         do {
+                        //             graphData.push([nowDate.getTime(), (loginPlayerObjData[k] || 0)]);
+                        //             nowDate.setDate(nowDate.getDate() + 7);
+                        //             k++;
+                        //         } while (nowDate <= sendData.endDate);
                         xText = 'WEEK';
                         newOptions = {
                             xaxis: {
@@ -724,15 +728,15 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case 'month' :
-                //         nowDate.setDate(1);
-                //         do {
-                //             var nowYear = nowDate.getFullYear();
-                //             var nowMonth = nowDate.getMonth() + 1;
-                //             console.log('nowMonth', nowYear + '' + nowMonth);
-                //             graphData.push([nowDate.getTime(), (loginPlayerObjData[nowYear + '' + nowMonth] || 0)]);
-                //             nowDate.setMonth(nowDate.getMonth() + 1);
-                //
-                //         } while (nowDate <= sendData.endDate);
+                        //         nowDate.setDate(1);
+                        //         do {
+                        //             var nowYear = nowDate.getFullYear();
+                        //             var nowMonth = nowDate.getMonth() + 1;
+                        //             console.log('nowMonth', nowYear + '' + nowMonth);
+                        //             graphData.push([nowDate.getTime(), (loginPlayerObjData[nowYear + '' + nowMonth] || 0)]);
+                        //             nowDate.setMonth(nowDate.getMonth() + 1);
+                        //
+                        //         } while (nowDate <= sendData.endDate);
                         xText = 'MONTH';
                         newOptions = {
                             xaxis: {
@@ -1220,33 +1224,37 @@ define(['js/app'], function (myApp) {
                 console.log('data1', data1);
                 var rewardGraphData = data1.data || [];
                 var rewardNumberData = {}, rewardAmountData = {};
-                for (var i = 0; i < rewardGraphData.length; i++) {
-                    switch (vm.queryPara.reward.periodText) {
-                        case 'day':
-                            rewardAmountData[rewardGraphData[i]._id.date] = rewardGraphData[i].amount;
-                            rewardNumberData[rewardGraphData[i]._id.date] = rewardGraphData[i].number;
-                            break;
-                        case 'week':
-                            rewardAmountData[rewardGraphData[i]._id.week] = rewardGraphData[i].amount;
-                            rewardNumberData[rewardGraphData[i]._id.week] = rewardGraphData[i].number;
-                            break;
-                        case 'month':
-                            rewardAmountData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].amount;
-                            rewardNumberData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].number;
-                            break;
-                    }
-                }
+                // for (var i = 0; i < rewardGraphData.length; i++) {
+                //     switch (vm.queryPara.reward.periodText) {
+                //         case 'day':
+                //             rewardAmountData[rewardGraphData[i]._id.date] = rewardGraphData[i].amount;
+                //             rewardNumberData[rewardGraphData[i]._id.date] = rewardGraphData[i].number;
+                //             break;
+                //         case 'week':
+                //             rewardAmountData[rewardGraphData[i]._id.week] = rewardGraphData[i].amount;
+                //             rewardNumberData[rewardGraphData[i]._id.week] = rewardGraphData[i].number;
+                //             break;
+                //         case 'month':
+                //             rewardAmountData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].amount;
+                //             rewardNumberData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].number;
+                //             break;
+                //     }
+                // }
                 var graphData1 = [], graphData2 = [];
+                rewardGraphData.map(item => {
+                    graphData1.push([new Date(item._id.date), item.amount]);
+                    graphData2.push([new Date(item._id.date), item.number]);
+                })
                 var newOptions = {};
-                var nowDate = new Date(sendData.startTime);
+                // var nowDate = new Date(sendData.startTime);
                 switch (vm.queryPara.reward.periodText) {
                     case 'day':
-                        do {
-                            var dateText = utilService.$getTimeFromStdTimeFormat(nowDate).substring(0, 10);
-                            graphData1.push([nowDate.getTime(), (rewardAmountData[dateText] || 0)]);
-                            graphData2.push([nowDate.getTime(), (rewardNumberData[dateText] || 0)]);
-                            nowDate.setDate(nowDate.getDate() + 1);
-                        } while (nowDate <= sendData.endTime);
+                        // do {
+                        //     var dateText = utilService.$getTimeFromStdTimeFormat(nowDate).substring(0, 10);
+                        //     graphData1.push([nowDate.getTime(), (rewardAmountData[dateText] || 0)]);
+                        //     graphData2.push([nowDate.getTime(), (rewardNumberData[dateText] || 0)]);
+                        //     nowDate.setDate(nowDate.getDate() + 1);
+                        // } while (nowDate <= sendData.endTime);
                         newOptions = {
                             xaxis: {
                                 tickLength: 0,
@@ -1256,14 +1264,14 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case 'week':
-                        var k = 0;
-                        do {
-                            // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                            graphData1.push([nowDate.getTime(), (rewardAmountData[k] || 0)]);
-                            graphData2.push([nowDate.getTime(), (rewardNumberData[k] || 0)]);
-                            nowDate.setDate(nowDate.getDate() + 7);
-                            k++;
-                        } while (nowDate <= sendData.endTime);
+                        // var k = 0;
+                        // do {
+                        //     // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
+                        //     graphData1.push([nowDate.getTime(), (rewardAmountData[k] || 0)]);
+                        //     graphData2.push([nowDate.getTime(), (rewardNumberData[k] || 0)]);
+                        //     nowDate.setDate(nowDate.getDate() + 7);
+                        //     k++;
+                        // } while (nowDate <= sendData.endTime);
                         newOptions = {
                             xaxes: [{
                                 position: 'bottom',
@@ -1277,16 +1285,16 @@ define(['js/app'], function (myApp) {
                         };
                         break;
                     case 'month' :
-                        nowDate.setDate(1);
-                        do {
-                            var nowYear = nowDate.getFullYear();
-                            var nowMonth = nowDate.getMonth() + 1;
-                            console.log('nowMonth', nowYear + '' + nowMonth);
-                            graphData1.push([nowDate.getTime(), (rewardAmountData[nowYear + '' + nowMonth] || 0)]);
-                            graphData2.push([nowDate.getTime(), (rewardNumberData[nowYear + '' + nowMonth] || 0)]);
-                            nowDate.setMonth(nowDate.getMonth() + 1);
-
-                        } while (nowDate <= sendData.endTime);
+                        // nowDate.setDate(1);
+                        // do {
+                        //     var nowYear = nowDate.getFullYear();
+                        //     var nowMonth = nowDate.getMonth() + 1;
+                        //     console.log('nowMonth', nowYear + '' + nowMonth);
+                        //     graphData1.push([nowDate.getTime(), (rewardAmountData[nowYear + '' + nowMonth] || 0)]);
+                        //     graphData2.push([nowDate.getTime(), (rewardNumberData[nowYear + '' + nowMonth] || 0)]);
+                        //     nowDate.setMonth(nowDate.getMonth() + 1);
+                        //
+                        // } while (nowDate <= sendData.endTime);
                         newOptions = {
                             xaxis: {
                                 tickLength: 0,
@@ -1640,7 +1648,8 @@ define(['js/app'], function (myApp) {
             }
             socketService.$socket($scope.AppSocket, 'countTopUpORConsumptionbyPlatform', sendData, function (data) {
                 vm.playerCreditData = data.data;
-                $scope.safeApply();
+                console.log('vm.playerCreditData', vm.playerCreditData);
+                // $scope.safeApply();
                 return vm.drawPlayerCreditGraph(vm.playerCreditData, sendData);
             }, function (data) {
                 console.log("player credit data not", data);
@@ -1650,30 +1659,33 @@ define(['js/app'], function (myApp) {
         vm.drawPlayerCreditGraph = function (srcData, sendData) {
             var placeholder = '#line-playerCredit';
             var playerCreditObjData = {};
-            for (var i = 0; i < srcData.length; i++) {
-                switch (vm.queryPara.playerCredit.periodText) {
-                    case 'day':
-                        playerCreditObjData[srcData[i]._id.date] = srcData[i].number;
-                        break;
-                    case 'week':
-                        playerCreditObjData[srcData[i]._id.week] = srcData[i].number;
-                        break;
-                    case 'month':
-                        playerCreditObjData[srcData[i]._id.year + '' + srcData[i]._id.month] = srcData[i].number;
-                        break;
-                }
-            }
+            // for (var i = 0; i < srcData.length; i++) {
+            //     switch (vm.queryPara.playerCredit.periodText) {
+            //         case 'day':
+            //             playerCreditObjData[srcData[i]._id.date] = srcData[i].number;
+            //             break;
+            //         case 'week':
+            //             playerCreditObjData[srcData[i]._id.week] = srcData[i].number;
+            //             break;
+            //         case 'month':
+            //             playerCreditObjData[srcData[i]._id.year + '' + srcData[i]._id.month] = srcData[i].number;
+            //             break;
+            //     }
+            // }
             var graphData = [];
+            srcData.map(item => {
+                graphData.push([new Date(item._id.date), item.number])
+            })
             var newOptions = {};
-            var nowDate = new Date(sendData.startDate);
+            // var nowDate = new Date(sendData.startDate);
             var xText = '';
             switch (vm.queryPara.playerCredit.periodText) {
                 case 'day':
-                    do {
-                        var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                        graphData.push([nowDate.getTime(), (playerCreditObjData[dateText] || 0)]);
-                        nowDate.setDate(nowDate.getDate() + 1);
-                    } while (nowDate <= sendData.endDate);
+                    // do {
+                    //     var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
+                    //     graphData.push([nowDate.getTime(), (playerCreditObjData[dateText] || 0)]);
+                    //     nowDate.setDate(nowDate.getDate() + 1);
+                    // } while (nowDate <= sendData.endDate);
                     xText = 'DAY';
                     newOptions = {
                         xaxis: {
@@ -1684,12 +1696,12 @@ define(['js/app'], function (myApp) {
                     };
                     break;
                 case 'week':
-                    var k = 0;
-                    do {
-                        graphData.push([nowDate.getTime(), (playerCreditObjData[k] || 0)]);
-                        nowDate.setDate(nowDate.getDate() + 7);
-                        k++;
-                    } while (nowDate <= sendData.endDate);
+                    // var k = 0;
+                    // do {
+                    //     graphData.push([nowDate.getTime(), (playerCreditObjData[k] || 0)]);
+                    //     nowDate.setDate(nowDate.getDate() + 7);
+                    //     k++;
+                    // } while (nowDate <= sendData.endDate);
                     xText = 'WEEK';
                     newOptions = {
                         xaxis: {
@@ -1700,15 +1712,15 @@ define(['js/app'], function (myApp) {
                     };
                     break;
                 case 'month' :
-                    nowDate.setDate(1);
-                    do {
-                        var nowYear = nowDate.getFullYear();
-                        var nowMonth = nowDate.getMonth() + 1;
-                        console.log('nowMonth', nowYear + '' + nowMonth);
-                        graphData.push([nowDate.getTime(), (playerCreditObjData[nowYear + '' + nowMonth] || 0)]);
-                        nowDate.setMonth(nowDate.getMonth() + 1);
-
-                    } while (nowDate <= sendData.endDate);
+                    // nowDate.setDate(1);
+                    // do {
+                    //     var nowYear = nowDate.getFullYear();
+                    //     var nowMonth = nowDate.getMonth() + 1;
+                    //     console.log('nowMonth', nowYear + '' + nowMonth);
+                    //     graphData.push([nowDate.getTime(), (playerCreditObjData[nowYear + '' + nowMonth] || 0)]);
+                    //     nowDate.setMonth(nowDate.getMonth() + 1);
+                    //
+                    // } while (nowDate <= sendData.endDate);
                     xText = 'MONTH';
                     newOptions = {
                         xaxis: {
@@ -1749,7 +1761,7 @@ define(['js/app'], function (myApp) {
             var tableData = [];
             for (var i in graphData) {
                 var obj = {};
-                obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]);
+                obj.date = String(utilService.$getTimeFromStdTimeFormat(new Date(graphData[i][0]))).substring(0, 10);
                 obj.amount = graphData[i][1] || 0;
                 tableData.push(obj);
             }

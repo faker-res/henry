@@ -254,6 +254,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 var consumptionSummary = consumptionSummariesByKey[typeKey];
                                 var eventRatios = eventData.param.ratio[playerLevel.value];
                                 var ratio = eventRatios && eventRatios[gameType];
+                                var applyAmount = 0;
 
                                 if (!eventRatios) {
                                     var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData.param);
@@ -277,6 +278,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         consumeValidAmount: consumeValidAmount,
                                         ratio: ratio
                                     };
+                                    applyAmount += consumeValidAmount;
                                 }
 
                                 if (consumptionSummary) {
@@ -298,10 +300,11 @@ var dbPlayerConsumptionWeekSummary = {
                                         playerId: playerData.playerId,
                                         eventName: eventData.name,
                                         eventCode: eventData.code,
-                                        rewardAmount: parseFloat(returnAmount).toFixed(2),
+                                        rewardAmount: returnAmount,
                                         returnDetail: returnDetail,
                                         summaryIds: summaryIds,
-                                        bConsumptionReturnRequest: bRequest
+                                        bConsumptionReturnRequest: bRequest,
+                                        applyAmount: applyAmount
                                     }
                                 };
                                 proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));
@@ -342,7 +345,7 @@ var dbPlayerConsumptionWeekSummary = {
                     ).lean().then(
                         summaryRecords => {
                             //only mark summary dirty if they are not removed , which means the proposal is not approved
-                            if( summaryRecords && summaryRecords.length > 0 ){
+                            if (summaryRecords && summaryRecords.length > 0) {
                                 return dbconfig.collection_playerConsumptionSummary.remove(
                                     {_id: {$in: summaryIds}}
                                 ).then(
@@ -350,8 +353,27 @@ var dbPlayerConsumptionWeekSummary = {
                                         var summaryProms = processedSummaries.map(
                                             summary => {
                                                 summary.bDirty = true;
-                                                var dirtySummary = new dbconfig.collection_playerConsumptionSummary(summary);
-                                                return dirtySummary.save();
+                                                return dbconfig.collection_playerConsumptionSummary.findOne(
+                                                    {
+                                                        playerId: summary.playerId,
+                                                        platformId: summary.platformId,
+                                                        gameType: summary.gameType,
+                                                        bDirty: summary.bDirty
+                                                    }
+                                                ).then(
+                                                    summaryData => {
+                                                        if (summaryData) {
+                                                            summaryData.amount += summary.amount;
+                                                            summaryData.validAmount += summary.validAmount;
+                                                            summaryData.consumptionRecords.concat(summary.consumptionRecords);
+                                                            return summaryData.save();
+                                                        }
+                                                        else {
+                                                            var dirtySummary = new dbconfig.collection_playerConsumptionSummary(summary);
+                                                            return dirtySummary.save();
+                                                        }
+                                                    }
+                                                );
                                             }
                                         );
                                         return Q.all(summaryProms);
@@ -429,11 +451,20 @@ var dbPlayerConsumptionWeekSummary = {
                     return Q.all(proms);
                 }
                 else {
-                    deferred.reject({status: constServerCode.REWARD_EVENT_INVALID, name: "DataError", message: "Incorrect reward event data"});
+                    deferred.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "Incorrect reward event data"
+                    });
                 }
             },
             function (error) {
-                deferred.reject({status: constServerCode.REWARD_EVENT_INVALID, name: "DBError", message: "Error finding reward event", error: error});
+                deferred.reject({
+                    status: constServerCode.REWARD_EVENT_INVALID,
+                    name: "DBError",
+                    message: "Error finding reward event",
+                    error: error
+                });
             }
         ).then(
             function (data) {
