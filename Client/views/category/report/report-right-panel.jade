@@ -1,0 +1,466 @@
+#reportRightTable.panel.panel-danger(style='width:100%;display:inline-block')
+    .panel-heading
+        .pull-left(style='margin-top: -5px;')
+            a.fa.fa-chevron-circle-left.contractIcon(ng-show='!vm.hideLeftPanel', ng-click='vm.setPanel(true)')
+            a.fa.fa-chevron-circle-right.contractIcon(ng-show='vm.hideLeftPanel', ng-click='vm.setPanel(false)')
+        label {{vm.showPageName | translate}}
+        span(ng-if='vm.currentRewardCode').margin-left-5 ({{"REWARD_CODE" | translate}} : {{vm.currentRewardCode}})
+    .panel-body
+        div(ng-if='vm.showPageName=="TOPUP_REPORT"')
+            #topUpReportQuery.block-query.col-md-12.well
+                div
+                    label {{'TYPE' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.type', ng-init='vm.queryTopup.type="all"', required)
+                        option(value='all') {{"all" | translate}}
+                        option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
+                div
+                    label.control-label {{'Start date' | translate}}
+                    .startTime
+                div
+                    label.control-label {{'End date' | translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
+                    span#topupTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}}
+            table#topupTable.common-table.display(style="min-width:100% ;overflow: scroll")
+            #topupTablePage
+        div(ng-if='vm.showPageName=="PROPOSAL_REPORT"')
+            #proposalReportQuery.block-query.col-md-12.well
+                div
+                    label {{"Proposal Type"|translate}}
+                    select.form-control(ng-model='vm.proposalQuery.proposalTypeId', style='max-width:300px', required)
+                        option(value='all') {{"all" | translate}}
+                        option(ng-repeat='(i,v) in vm.allProposalType', value='{{v._id}}', ng-selected='vm.selectedProposalType==v._id') {{v.name | translate}}
+                div
+                    label {{"Proposal Status"|translate}}
+                    select.form-control(ng-model='vm.proposalQuery.status', style='max-width:300px', required)
+                        option(value='all') {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}', ng-selected='vm.proposalQuery.status==v._id') {{v | translate}}
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label {{"Proposal No"|translate}}
+                    input.noGrey.form-control(type="text", ng-model="vm.proposalQuery.proposalId", ng-change='vm.hideOtherConditions("#proposalReportQuery",vm.proposalQuery.proposalId,".noGrey")')
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
+                    span#proposalTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.proposalQuery.totalCount}} {{"records" | translate}}
+            table.common-table#proposalTable.display(style="width:100%;overflow: scroll;max-height:700px")
+            #proposalTablePage
+
+        div(ng-if='vm.showPageName=="OPERATION_REPORT"')
+            //提供商报表
+            #operationReportQuery.block-query.col-md-12.well
+                div
+                    label {{"Provider"|translate}}
+                    select.form-control(ng-model='vm.queryOperation.providerId', style='max-width:300px', required)
+                        option(value="all") {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
+
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchOperationRecord()') {{'SEARCH' | translate}}
+                    span#operationTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.operationReportLoadingStatus}}
+            .clearfix
+            table#operationTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+            table.common-table.simple-table#operationSummaryTable.collapse(style='margin-top:10px;font-size:12px')
+                thead
+                    tr
+                        th {{'TOTAL_PLAYER' | translate}}
+                        th {{'TOTAL_CONSUMPTION' | translate}}
+                        th {{'VALID_CONSUMPTION' | translate}}
+                        th {{'TIMES_CONSUMED' | translate}}
+                        th {{'TOTAL_EARNING' | translate}}
+                        th {{'EARNING_RATIO' | translate}}
+                tbody
+                    tr
+                        td {{vm.operationSummaryData.total_player}}
+                        td {{vm.operationSummaryData.total_amount | number : 2}}
+                        td {{vm.operationSummaryData.validAmount | number : 2}}
+                        td {{vm.operationSummaryData.total_consumption}}
+                        td {{vm.operationSummaryData.bonusAmount | number : 2}}
+                        td {{(vm.operationSummaryData.total_earning/vm.operationSummaryData.validAmount*100 || 0) | number : 2 }}%
+
+        div(ng-if='vm.showPageName=="PLAYER_EXPENSE_REPORT"')
+            #playerExpenseReportQuery.block-query.col-md-12.well
+                div
+                    label {{"Player ID"|translate}}
+                    input.form-control.span.input-sm(type="text", ng-model="vm.playerExpenseQuery.playerId")
+                div
+                    label {{"Provider"|translate}}
+                    select.form-control(ng-model='vm.playerExpenseQuery.providerId', style='max-width:300px', required)
+                        option(value='all') {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}', ng-selected='vm.playerExpenseQuery.providerId==v._id') {{v.name || translate}}
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchProviderPlayerRecord(true)') {{'SEARCH' | translate}}
+                    span#playerExpenseTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.operationReportLoadingStatus}}
+            .clearfix
+            label {{"Total" | translate}} {{vm.playerExpenseQuery.totalCount}} {{"records" | translate}}
+            table.common-table#playerExpenseTable.display(style="width:100% ;overflow-x: scroll")
+            #playerExpenseTablePage
+
+        div(ng-if='vm.showPageName=="PLAYER_REPORT"')
+            .block-query.col-md-12.well
+                div
+                    label {{'REGISTRATION_TIME_START' | translate}}
+                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regDateTimePicker")')
+                    #regDateTimePicker
+                div
+                    label {{'REGISTRATION_TIME_END' | translate}}
+                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regEndDateTimePicker")')
+                    #regEndDateTimePicker
+                div
+                    label {{'LAST_ACCESS_TIME_START' | translate}}
+                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#lastAccessDateTimePicker")')
+                    #lastAccessDateTimePicker
+                div
+                    label {{'LAST_ACCESS_TIME_END' | translate}}
+                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#lastAccessEndDateTimePicker")')
+                    #lastAccessEndDateTimePicker
+                div
+                    label {{'LEVEL' | translate}}
+                    select.form-control(ng-model="vm.playerQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
+                        option(value='') {{'any' | translate}}
+                div
+                    label {{'Qty_Min' | translate}}&nbsp;{{'VALID_CREDIT' | translate}}
+                        a.fa.fa-times.text-danger.close(ng-click='vm.playerQuery.validCredit1=null')
+                    input.form-control.span.input-sm(type="number", style='width: 80px', ng-model="vm.playerQuery.validCredit1")
+                div
+                    label {{'Qty_Max' | translate}}&nbsp;{{'VALID_CREDIT' | translate}}
+                        a.fa.fa-times.text-danger.close(ng-click='vm.playerQuery.validCredit2=null')
+                    input.form-control.span.input-sm(type="number", style='width: 80px', ng-model="vm.playerQuery.validCredit2")
+                div
+                    label {{'Qty_Min' | translate}}&nbsp;{{'TopUp Sum' | translate}}
+                        a.fa.fa-times.text-danger.close(ng-click='vm.playerQuery.topupSum1=null')
+                    input.form-control.span.input-sm(type="number", style='width: 80px', ng-model="vm.playerQuery.topupSum1")
+                div
+                    label {{'Qty_Max' | translate}}&nbsp;{{'TopUp Sum' | translate}}
+                        a.fa.fa-times.text-danger.close(ng-click='vm.playerQuery.topupSum2=null')
+                    input.form-control.span.input-sm(type="number", style='width: 80px', ng-model="vm.playerQuery.topupSum2")
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPlayerReport(true)') {{'SEARCH' | translate}}
+                    span#loadingPlayerReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.playerQuery.totalCount}} {{"records" | translate}}
+            table.common-table#playerReportTable.display(style="width:100% ;overflow-x: scroll")
+            #playerReportTablePage
+
+        div(ng-if='vm.showPageName=="NEWACCOUNT_REPORT"')
+            #newPlayerReportQuery.block-query.col-md-12.well
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchNewPlayerRecord(true)') {{'SEARCH' | translate}}
+            .row.text-center
+                .col-md-3
+                    label.block {{"Total Players" | translate}}
+                    label.block.text-danger {{vm.newPlayerQuery.totalPlayerCount || 0}}
+                .col-md-3
+                    label.block {{"Player with Top-ups" | translate}}
+                    label.block.text-danger {{vm.newPlayerQuery.totalTopupPlayerCount || 0}}
+                .col-md-3
+                    label.block {{"Player with Domain" | translate}}
+                    label.block.text-danger {{vm.newPlayerQuery.totalDomainPlayerCount || 0}}
+                .col-md-3
+                    label.block {{"Player with Partner" | translate}}
+                    label.block.text-danger {{vm.newPlayerQuery.totalpartnerPlayerCount || 0}}
+            br
+            .clearfix
+            .penal.panel-info
+                .panel-heading {{'PARTNER' | translate}}
+                .penal_body
+                    .col-md-6.padding-top-5
+                        #partnerPlayerPie(style="height:380px;width:100%")
+                    .col-md-6(style='padding-top:10px')
+                        table#newPlayerPartnerTable.common-table.display(style='width:100%')
+            .clearfix
+            .penal.panel-info
+                .panel-heading {{'PLAYER_DOMAIN' | translate}}
+                .penal_body
+                    .col-md-6.padding-top-5
+                        #domainPlayerPie(style="height:380px;width:100%")
+                    .col-md-6(style='padding-top:10px')
+                        table#newPlayerDomainTable.common-table.display(style='width:100%')
+            .clearfix
+            .penal.panel-info(ng-show="vm.detailDomainPlayer.domainName")
+                .panel-heading {{'PLAYER_DOMAIN' | translate}} : {{vm.detailDomainPlayer.domainName}}
+                .penal_body
+                    table#detailDomainPlayerTable.common-table.display(style='min-width:100%')
+                    #detailDomainPlayerTablePage
+
+        div(ng-if='vm.showPageName=="PLAYERPARTNER_REPORT"')
+            //提供商报表
+            #playerPartnerReportQuery.block-query.col-md-12.well
+                div
+                    label {{"PARTNER_NAME"|translate}}
+                    input.form-control.span.input-sm(type="text", ng-model="vm.partnerQuery.partnerName")
+
+                div
+                    label {{"REGISTRATION_TIME_START"|translate}}
+                    .startTime
+                div
+                    label {{"REGISTRATION_TIME_END"|translate}}
+                    .endTime
+                div
+                    label {{"PLAYER_TYPE"|translate}}
+                    select.form-control( style='max-width:300px', ng-model="vm.partnerQuery.playerType")
+                        option(value='all') {{'all' | translate}}
+                        option(value='Real Player') {{'REAL_PLAYER' | translate}}
+                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
+
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPlayerPartnerRecord(true)') {{'SEARCH' | translate}}
+                    span#playerParnterTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.operationReportLoadingStatus}}
+            .clearfix
+            table#playerPartnerTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                label {{"Total" | translate}} {{vm.partnerQuery.totalCount}} {{"records" | translate}}
+            #playerPartnerTablePage
+            table.common-table.simple-table#playerPartnerSummaryTable.collapse(style='margin-top:10px;font-size:12px')
+                thead
+                    tr
+                        th {{'PARTNER_NAME' | translate}}
+                        th {{'TOTAL_PLAYER' | translate}}
+                        th {{'TOTAL_TOPUP_TIMES' | translate}}
+                        th {{'TOTAL_CONSUMPTION_TIMES' | translate}}
+                tbody
+                    tr(ng-repeat='(i, v) in vm.playerPartnerSummaryData')
+                        td {{v._id.partnerName}}
+                        td {{v.total_players}}
+                        td {{v.total_topup_times}}
+                        td {{v.total_consumption_times}}
+
+        div(ng-if='vm.showPageName=="PARTNERPLAYERBOUNS_REPORT"')
+            #partnerPlayerBonusQuery.block-query.col-md-12.well
+                div
+                    label *{{"partnerName"|translate}}
+                    input.form-control.span.input-sm(type="text", ng-model="vm.partnerPlayerBonusQuery.partnerName")
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPartnerPlayerBonusData(true)', ng-disabled='!vm.partnerPlayerBonusQuery.partnerName') {{'SEARCH' | translate}}
+                    span#partnerPlayerBonusTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.operationReportLoadingStatus}}
+            .clearfix
+            label {{"Total" | translate}} {{vm.partnerPlayerBonusQuery.totalCount}} {{"records" | translate}} {{vm.partnerPlayerBonusQuery.message | translate}}
+            table.common-table#partnerPlayerBonusTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
+                thead
+                    tr
+                        th(rowspan=2) {{'playerName' | translate}}
+                        th(rowspan=2) {{'registrationTime' | translate}}
+                        th(rowspan=2) {{'lastAccessTime' | translate}}
+                        th(rowspan=2) {{'lastBonusTime' | translate}}
+                        th(colspan=4) {{'total' | translate}}
+                        th(colspan=4) {{'Within Search Period' | translate}}
+                    tr
+                        th {{'TOP_UP_TIMES' | translate}}
+                        th {{'BonusTime' | translate}}
+                        th {{'TOP_UP_SUM' | translate}}
+                        th {{'BonusAmount' | translate}}
+                        th {{'TOP_UP_TIMES' | translate}}
+                        th {{'BonusTime' | translate}}
+                        th {{'TOP_UP_SUM' | translate}}
+                        th {{'BonusAmount' | translate}}
+            #partnerPlayerBonusTablePage
+        div(ng-if='vm.showPageName=="PARTNERCOMMISSION_REPORT"')
+            #partnerCommissionQuery.block-query.col-md-12.well
+                div
+                    label {{"PARTNER_NAME"|translate}}
+                    input.form-control.span.input-sm(type="text", ng-model="vm.partnerCommissionQuery.partnerName")
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPartnerCommissionData(true)') {{'SEARCH' | translate}}
+                    span#partnerCommissionTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.partnerCommissionReportLoadingStatus}}
+            .clearfix
+            label {{"Total" | translate}} {{vm.partnerCommissionQuery.totalCount}} {{"records" | translate}}
+            span.text-danger.margin-left-5 {{vm.partnerCommissionQuery.message | translate}}
+            table.common-table#partnerCommissionTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
+            #partnerCommissionTablePage
+        // rewards report
+        div(ng-if='vm.currentRewardCode')
+            .panel.panel-primary
+                .panel-heading
+                    label {{'PROPOSAL' | translate}}
+                .panel-body
+                    #generalRewardProposalQuery.block-query.col-md-12.well
+                        div
+                            label {{"Start date"|translate}}
+                            .startTime
+                        div
+                            label {{"End date"|translate}}
+                            .endTime
+                        div
+                            label &nbsp;
+                            button.btn.btn-success(ng-click='vm.generalRewardProposalSearch(true)') {{'SEARCH' | translate}}
+                            span#generalRewardProposalTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                    .clearfix
+                    label {{"Total" | translate}} {{vm.generalRewardProposalQuery.totalCount}} {{"records" | translate}}
+                    table#generalRewardProposalTable.common-table.display(style="width:100%")
+                    #generalRewardProposalTablePage
+        div(ng-if='vm.currentRewardTaskName')
+            .panel.panel-primary
+                .panel-heading
+                    label {{'Reward task' | translate}}
+                .panel-body
+                    #generalRewardTaskQuery.block-query.col-md-12.well
+                        div
+                            label {{"Start date"|translate}}
+                            .startTime
+                        div
+                            label {{"End date"|translate}}
+                            .endTime
+                        div
+                            label &nbsp;
+                            button.btn.btn-success(ng-click='vm.searchGeneralRewardTask(true)') {{'SEARCH' | translate}}
+                            span#generalRewardTaskSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                    .clearfix
+                    label {{"Total" | translate}} {{vm.generalRewardTaskTableProp.totalCount}} {{"records" | translate}}
+                    table#generalRewardTaskTable.common-table.display(style="width:100%")
+                    #generalRewardTaskTablePage
+
+        //MISCELLANEOUS_REPORT
+        div(ng-if='vm.showPageName=="PLAYER_FEEDBACK_REPORT"')
+            #playerFeedbackReportQuery.block-query.col-md-12.well
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label {{"PLAYER_NAME"|translate}}
+                    input.form-control(type='text', ng-model='vm.playerFeedbackQuery.playerName')
+                div
+                    label {{"RESULT"|translate}}
+                    select.form-control(ng-model='vm.playerFeedbackQuery.result', style='max-width:300px')
+                        option(value='all') {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.feedbackResultList', value='{{v}}') {{v | translate}}
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPlayerFeedbackQuery(true)') {{'SEARCH' | translate}}
+                    span#playerFeedbackTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.playerFeedbackQuery.totalCount}} {{"records" | translate}}
+            table.common-table#playerFeedbackTable.display(style="width:100% ;overflow-x: scroll")
+            #playerFeedbackTablePage
+
+        div(ng-if='vm.showPageName=="CREDIT_CHANGE_REPORT"')
+            #creditChangeReportQuery.block-query.col-md-12.well
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchCreditChangeQuery(true)') {{'SEARCH' | translate}}
+                    span#creditChangeTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.creditChangeQuery.totalCount}} {{"records" | translate}}
+            table.common-table#creditChangeTable.display(style="width:100% ;overflow-x: scroll")
+            #creditChangeTablePage
+
+        div(ng-if='vm.showPageName=="PLAYER_ALMOST_LEVELUP_REPORT"')
+            .block-query.col-md-12.well
+                div
+                    label {{"Level-Up Progress"|translate}}
+                    .percentage
+                        input.form-control.inlineBlk(type='number', max='100', percentage, ng-model='vm.playerAlmostLevelUpQuery.percentage')
+                //div
+                    label {{"Search limit(Max rows)"|translate}}
+                    input.form-control(type='number', ng-model='vm.playerAlmostLevelUpQuery.limit', min='1', ng-init='vm.playerAlmostLevelUpQuery.limit=20')
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPlayerAlmostLevelUp(true)') {{'SEARCH' | translate}}
+                    span#playerAlmostLevelUpTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.playerAlmostLevelUpQuery.totalCount}} {{"records" | translate}}
+            table#playerAlmostLevelUpTable.common-table.display(style="width:100%;")
+            #playerAlmostLevelUpTablePage
+        div(ng-if='vm.showPageName=="ACTIONLOG_REPORT"')
+            #actionLogReportQuery.block-query.col-md-12.well
+                div
+                    label {{'TYPE' | translate}}
+                    select.form-control(ng-options='i.action as i.text | translate group by i.group | translate for (k,i) in vm.actionLogQuery.allActions', ng-model='vm.actionLogQuery.action')
+                        option(value='') {{'any' | translate}}
+                div
+                    label {{'adminName' | translate}}
+                    input.form-control(type='text', ng-model='vm.actionLogQuery.admin')
+                div
+                    label {{'PLAYERNAME' | translate}}
+                    input.form-control(type='text', ng-model='vm.actionLogQuery.player')
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchActionLogData(true)') {{'SEARCH' | translate}}
+                    span#actionLogTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.queryProposal.totalCount}} {{"records" | translate}}
+            table#actionLogTable.common-table.display(style="width:100%;")
+            #actionLogTablePage
+include ../common-widget/telephone-popover
+script(src='js/lib/flot/jquery.flot.min.js')
+script(src='js/lib/flot/jquery.flot.pie.min.js')

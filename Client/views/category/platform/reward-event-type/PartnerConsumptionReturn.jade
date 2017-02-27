@@ -1,0 +1,19 @@
+.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.condition.condition.partnerLevel.des | translate}}
+        select.form-control(ng-model='vm.rewardCondition.partnerLevel', ng-disabled='vm.platformRewardShowEdit()', required)
+            option(ng-repeat='(i,v) in vm.allPartnerLevels', value='{{v[vm.showRewardTypeData.condition.condition.partnerLevel.field]}}') {{v.name|translate}}
+
+.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.rewardPercentage.des | translate}}
+        div(style='margin-bottom:0px;overflow:auto;width:100%')
+            table.table
+                tbody
+                    tr(ng-repeat='(row,rowdata) in vm.allPartnerLevels | orderBy: "rowdata.value"', ng-if='rowdata.value >= vm.allPartnerLevelsByName[vm.rewardCondition.partnerLevel].value')
+                        td(style='vertical-align:middle')
+                            strong {{rowdata.name | translate}}
+                        td(ng-repeat='(col,coldata) in vm.allGameTypes', style='white-space: nowrap;')
+                            text {{coldata | translate}}
+                            .percentage
+                                input.form-control(type="Number", min='0', percentage, style='min-width:80px;display:inline-block', ng-model="vm.rewardParams.rewardPercentage.data[rowdata.value][col]", ng-disabled='vm.platformRewardShowEdit()')

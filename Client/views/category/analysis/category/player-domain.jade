@@ -1,0 +1,32 @@
+//
+   Created by wanglz on 21/12/16.
+.section
+    .row
+        .titlePic
+            .title {{"PLAYER_DOMAIN" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#playerDomainAnalysis","playerDomain")')
+                        text.pull-left.margin-right-5 {{vm.optionText.playerDomain | translate}}
+    .row
+        .col-md-12
+            #playerDomainAnalysis.block-query.well(style='margin-bottom:3px;')
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-primary.common-button(ng-click='vm.domainAnalysisInit()') {{'SEARCH' | translate}}
+    .row
+        .col-md-5
+            .panel.panel-default(style='padding-bottom:5px')
+                .pieChart
+                    #pie-all-playerDomain
+        .col-md-7
+            .graph
+                .panel.panel-default
+                    #bar-all-playerDomain.barChart
+                    //label {{vm.allPlatformTopUpPie}}
+p(ng-init="vm.loadPageFunc('PLAYER_DOMAIN_ANALYSIS')")

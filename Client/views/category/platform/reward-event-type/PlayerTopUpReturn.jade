@@ -1,0 +1,35 @@
+.well
+
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.useConsumption.des | translate}}
+        input(type='checkbox', ng-model='vm.rewardParams.useConsumption', ng-disabled='vm.platformRewardShowEdit()')
+
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.targetEnable.des | translate}}
+        input.form-control(type='checkbox', ng-model='vm.rewardParams.targetEnable', ng-disabled='vm.platformRewardShowEdit()')
+        
+    .full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward'")
+        label(style='vertical-align: top;') {{"PROVIDER" | translate}}
+        div.inlineBlk
+            label.margin-right-5(ng-repeat='(i,v) in vm.platformProvider') {{v.name}}
+                input.pull-left(type='checkbox', ng-model="vm.playerTopUpReturn.providerTick[v._id]", ng-change='vm.topupProviderChange(v._id,vm.playerTopUpReturn.providerTick[v._id])')
+    .full-width-input-block(ng-if="vm.platformRewardPageName =='showReward'")
+        label(style='vertical-align: top;') {{"PROVIDER" | translate}}
+        div.inlineBlk
+            label.margin-right-5(ng-repeat='(i,v) in vm.rewardParams.providers') {{vm.getProviderText(v)|translate}}
+
+
+    label {{vm.showRewardTypeData.params.params.reward.des | translate}}
+        table.paddingTbl
+            thead
+                tr
+                    th
+                        label &nbsp;
+                    th(ng-repeat='(i,v) in vm.showRewardTypeData.params.params.reward.data') {{v.des | translate}}
+                tbody
+                    tr(ng-repeat='(r,row) in vm.allPlayerLvl')
+                        td {{row.name}}
+                        td(ng-repeat='(m,n) in vm.showRewardTypeData.params.params.reward.data')
+                            .percentage(ng-if='n.type =="Percentage"')
+                                input.form-control.inlineBlk(type='number', min='0',percentage, ng-model='vm.rewardParams.reward[row.value][m]', ng-disabled='vm.platformRewardShowEdit()')
+                            input.form-control(ng-if='n.type=="Number"', type='number', min='0', ng-model='vm.rewardParams.reward[row.value][m]', ng-disabled='vm.platformRewardShowEdit()')

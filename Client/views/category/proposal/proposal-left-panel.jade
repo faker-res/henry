@@ -1,0 +1,50 @@
+.panel.panel-primary
+    .panel-heading.panel-heading-sm
+        .fa.fa-inbox
+        label.margin-left-5 {{"PROPOSAL_TYPE" | translate}}
+    .panel-body.common-left-sub-panel-body
+        .row
+            .col-md-12
+                .search-box
+                    a.fa.fa-search.pull-right.margin-all-5
+                    input#searchProposalType.span.input-sm(type="text", placeholder='{{"SEARCH" | translate}}' )
+        p
+        //.row
+            .col-md-12
+        div#proposalTypeTree(style="height: 530px; overflow-y: auto;")
+        //p
+        //.row
+            .col-md-12
+        //div.textareaDetail
+            .well(style='padding:5px;')
+                div
+                    text {{"EXECUTION" | translate}} :
+                div
+                    label {{vm.selectedProposalType.exeTypeText | translate}}
+                div
+                    text {{"REJECTION" | translate}} :
+                div
+                    label {{vm.selectedProposalType.rejTypeText | translate}}
+
+        //p
+        //.row
+            .col-md-12
+                .btn-group.text-center(style="min-width:110px", role="group")
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Proposal', 'Update')", ng-disabled="!vm.selectedProposalType", data-toggle="modal", data-target='#modalUpdateProposalType', ng-click="vm.newProposal=vm.selectedProposalType.data;")
+                        text {{"UPDATE" | translate}}
+                        img.img-edit
+//#modalUpdateProposalType.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:50%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"UPDATE_PROPOSALTYPE" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        include ./proposalType-detail
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="form_proposalType.$invalid", ng-click="vm.updateNewProposalType();") {{"UPDATE" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+                            

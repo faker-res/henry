@@ -1,0 +1,39 @@
+.section
+    .row
+        .titlePic
+            .title {{"CLIENT_SOURCE" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#clientSourceAnalysis .block-query","clientSource")')
+                        text.pull-left.margin-right-5 {{vm.optionText.clientSource | translate}}
+    #clientSourceAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div(ng-if='vm.clientSourcePara.loading')
+                label &nbsp;
+                i.fa.fa-spin.fa-spinner
+            div
+                label {{'Client Type' | translate}}
+                select.form-control(ng-model='vm.queryPara.clientSource.clientType', ng-options="a | translate for a in vm.clientSourcePara.clientType", required)
+                    option(value='') {{'any' | translate}}
+            div
+                label {{'Access Type' | translate}}
+                select.form-control(ng-model='vm.queryPara.clientSource.accessType', ng-options="a | translate for a in vm.clientSourcePara.accessType", required)
+                    option(value='') {{'any' | translate}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.getClientSourceData()') {{'SEARCH' | translate}}
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        .pieChart
+                            div.graphDiv
+            .col-md-6
+                .graph
+                    table.display.tableDiv(style='min-width:100%')
+p(ng-init="vm.loadPageFunc('CLIENT_SOURCE')")

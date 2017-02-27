@@ -1,0 +1,363 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.col-md-6(ng-if="!checkViewPermission('Platform', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
+    .search-box
+        .fa.fa-search.pull-right.margin-all-5
+        a.fa.fa-times.pull-right.margin-all-5(ng-if='vm.searchText', ng-click='vm.searchText=null')
+        input#partnerSearch.span.input-sm(type="text", ng-model="vm.searchText", placeholder='{{"SEARCH_HERE" | translate}}')
+.col-md-12(ng-show="checkViewPermission('Platform', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
+    .col-xs-11.col-sm-10.col-md-10.search-filters-container#partnerTable-search-filters.well
+.col-md-12
+    .pull-right.margin-top-5
+        text.margin-right-5 {{"Refresh" | translate}}
+        a#partnerRefreshIcon.fa.fa-refresh(ng-click='vm.getPlatformPartnersData()')
+
+p
+.col-md-12(style="min-height:150px;")
+    table.common-table#partnerDataTable.display(style="width:100% ;overflow-x: scroll")
+
+p
+.col-md-12
+    .btn-group.text-center.margin-small
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Create')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalCreatePartner', ng-click='vm.prepareCreatePartner()')
+            text {{"CREATE" | translate}}
+            img.img-create
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Delete')",ng-disabled="vm.selectedPartnerCount==0", data-toggle="modal", data-target='#modalDeletePartner')
+            text {{"DELETE" | translate}}
+            img.img-delete
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Edit')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", data-target='#modalUpdatePartner', ng-click='vm.preUpdatePartner()')
+            text {{"EDIT" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'EditContact')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click='vm.prepareEditCritical("partner")', data-target='#modalEditCritical')
+            text {{"EDIT_CRITICAL_INFO" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'BankDetail')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click='vm.prepareEditPartnerPayment()', data-target='#modalBankDetail')
+            text {{"BANK_DETAIL" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'ResetPassword')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", data-target='#modalPartnerPasswordReset', ng-click='vm.newPartner=vm.selectedSinglePartner; vm.partnerNewPassword = false')
+            text {{"RESET_PASSWORD" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'LinkPlayer')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", data-target='#modalLinkPlayer', ng-click='vm.preLinkedPlayertoPartner()')
+            text {{"Link Player" | translate}}
+            img.img-edit
+
+#modalCreatePartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"CREATE_PARTNER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .row
+                                include partner-create-form
+            .modal-footer
+                //button.btn.btn-primary.common-button(ng-if='form_new_partner.$invalid', disabled='true') {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_new_partner.$invalid || vm.passwordLengthCheck(vm.newPlayer.password) || !vm.partnerParentValid', ng-click="vm.createNewPartner();") {{"CREATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalDeletePartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_PARTNER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete partner"|translate}}
+                                    strong.text-danger &nbsp;{{vm.selectedSinglePartner.partnerName}}
+                                    label ?
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.deletePartners();") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalUpdatePartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"EDIT_PARTNER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .row
+                                include partner-edit-form
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-primary(ng-if='!vm.isEditingPartner', ng-click="vm.isEditingPartner=true") {{"EDIT" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(ng-if='vm.isEditingPartner', ng-click="vm.preUpdatePartner()") {{"CANCEL" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-if='vm.isEditingPartner', ng-disabled='form_edit_partner.$invalid || form_edit_partner.$pristine', ng-click="vm.updatePartner();") {{"UPDATE" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+
+#modalBankDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"BANK_DETAIL" | translate}} of {{vm.selectedSinglePartner.partnerName}}
+            .modal-body
+                .well
+                    .form-group-col-md-6
+                        label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
+                        input.form-control(ng-model='vm.partnerBank.bankAccountName', disabled)
+                    .form-group-col-md-6
+                        label.control-label {{'BANK_NAME' | translate}}
+                        select.form-control(ng-model='vm.partnerBank.bankName', ng-disabled='!vm.isEditingPartnerPayment')
+                            option(ng-repeat="(i,v) in vm.allBankTypeList", value='{{i}}') {{v}}
+                    .form-group-col-md-6
+                        label.control-label {{'BANK_ACCOUNT' | translate}}
+                        div
+                            input.form-control.inlineBlk(ng-model='vm.partnerBank.bankAccount', style='width:calc(100% - 100px)', ng-disabled='!vm.isEditingPartnerPayment')
+                            button.btn.btn-info.pull-right(style='width:80px', ng-click='vm.isEditingPartnerPaymentShowVerify=!vm.isEditingPartnerPaymentShowVerify')
+                                text(ng-if='vm.isEditingPartnerPaymentShowVerify') {{::'CLOSE' | translate}}
+                                text(ng-if='!vm.isEditingPartnerPaymentShowVerify') {{::'VERIFY' | translate}}
+                    .panel.panel-default.margin-top-10(ng-if='vm.isEditingPartnerPaymentShowVerify')
+                        .panel-body
+                            label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
+                            input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="vm.verifyBankAccount")
+                            p
+                            button.btn.btn-primary.common-button(ng-disabled='!vm.verifyBankAccount', ng-click="vm.verifyPlayerBankAccount()") {{"VERIFY" | translate}}
+                            label.fa.fa-check.colorGreen(ng-if='vm.correctVerifyBankAccount')
+                            label.fa.fa-times.colorRed(ng-if='(!vm.correctVerifyBankAccount && (vm.correctVerifyBankAccount !== undefined))')
+                    .form-group-col-md-6
+                        label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
+                        select.form-control(ng-model='vm.partnerBank.bankAccountType', ng-disabled='!vm.isEditingPartnerPayment')
+                            option(value='2') {{'Debit Card'|translate}}
+                            option(value='1') {{'Credit Card'|translate}}
+                    .form-group-col-md-6
+                        label.control-label {{'BANK_ACCOUNT_CITY' | translate}}
+                        input.form-control(ng-model='vm.partnerBank.bankAccountCity', ng-disabled='!vm.isEditingPartnerPayment')
+                    .form-group-col-md-6
+                        label.control-label {{'Bank Address' | translate}}
+                        input.form-control(ng-model='vm.partnerBank.bankAddress', ng-disabled='!vm.isEditingPartnerPayment')
+                    .form-group-col-md-6
+                        label.control-label {{'BANK_BRANCH' | translate}}
+                        input.form-control(ng-model='vm.partnerBank.bankBranch', ng-disabled='!vm.isEditingPartnerPayment')
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-primary(ng-if='!vm.isEditingPartnerPayment', ng-click="vm.isEditingPartnerPayment=true") {{"EDIT" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(ng-if='vm.isEditingPartnerPayment', ng-click="vm.prepareEditPartnerPayment()") {{"CANCEL" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-if='vm.isEditingPartnerPayment', ng-click="vm.updatePartnerBank();") {{"UPDATE" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
+#modalPartnerPasswordReset.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'RESET_PARTNER_PASSWORD' | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                text.control-label {{"The password of partner"|translate}}
+                                text.text-success &nbsp;{{vm.selectedSinglePartner.partnerName}}
+                                span &nbsp;{{"will be reset. Are you sure?"|translate}}
+                        .well(ng-if='vm.partnerNewPassword')
+                            .form-group
+                                text The new password for&nbsp;
+                                span.text-success {{vm.selectedSinglePartner.name}}
+                                span &nbsp;is&nbsp;
+                                strong.text-danger {{vm.partnerNewPassword}}
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(ng-if='!vm.partnerNewPassword', ng-click='vm.submitResetPartnerPassword()') {{'RESET_PASSWORD' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-if='vm.partnerNewPassword', data-dismiss='modal') {{'OK' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.partnerNewPassword', data-dismiss='modal') {{"CANCEL" | translate}}
+//#telPopover.hide(style="width: 600px")
+//    button.playerMessage.common-button.margin-right-5.btn.btn-success() {{'MESSAGE' | translate}}
+    button.playerTelephone.common-button.margin-right-5.btn.btn-success() {{'TELPHONE' | translate}}
+#totalReferralPopover.hide(style="width: 900px")
+    label {{vm.referralPopoverTitle}} {{vm.partnerData.partnerName}}
+    br(ng-show ='vm.referralPartner.length == 0')
+    text.text-danger(ng-show ='vm.referralPartner.length == 0') No Referral.
+    table.simple-table(ng-show ='vm.referralPartner.length > 0')
+        thead
+            tr
+                th {{'INDEX' | translate}}
+                th {{'NAME' | translate}}
+                th {{'REAL_NAME' | translate}}
+                th {{'CONSUMPTION' | translate}}
+                th {{'TOP_UP_SUM' | translate}}
+                th {{'TOP_UP_TIMES' | translate}}
+                th {{'LOCKED_CREDIT' | translate}}
+                th {{'VALID_CREDIT' | translate}}
+                th {{'STATUS' | translate}}
+                th {{'TRUST_LEVEL' | translate}}
+        tbody
+            tr(ng-repeat='(i,v) in vm.referralPartner')
+                td {{i+1}}
+                td {{v.name}}
+                td {{v.realName}}
+                td {{v.consumptionSum}}
+                td {{v.topUpSum}}
+                td {{v.topUpTimes}}
+                td {{v.lockedCredit}}
+                td {{v.validCredit}}
+                td {{v.status}}
+                td {{v.trustLevel}}
+                //-label Referral Details for {{vm.selectedSinglePartner.partnerName}}
+#partnerChildrenPopover.hide(style="width: auto")
+    table.simple-table
+        thead
+            tr
+                th {{'ID' | translate}}
+                th {{'NAME' | translate}}
+                th {{'CHILDREN' | translate}}
+        tbody
+            tr(ng-repeat='(i,v) in vm.partnerChildren')
+                td {{vm.partnerIdObj[v].partnerId}}
+                td {{vm.partnerIdObj[v].partnerName}}
+                td {{vm.partnerIdObj[v].children.length || 0}}
+#modalPartnerInfo.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Partner' | translate}} : {{vm.selectedSinglePartner.partnerName}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-heading.panel-heading-sm
+                        h5.text-center {{"Partner" | translate}}
+                    .panel-body
+                        table.playerInfoModalDivs
+                            thead
+                                tr
+                                    th
+                                        div {{'Type' | translate}}
+                                    th {{'CONTENT' | translate}}
+                            tbody
+                                tr
+                                    td
+                                        div {{'Basic' | translate}}
+                                    td
+                                        .inlineBlk
+                                            label {{"PLAYER_NAME" | translate}}
+                                            text {{vm.selectedSinglePartner.name}}
+                                        .inlineBlk
+                                            label {{"NICK_NAME" | translate}}
+                                            text {{vm.selectedSinglePartner.nickName || 'NONE' | translate}}
+                                        .inlineBlk
+                                            label {{"realName" | translate}}
+                                            text {{vm.selectedSinglePartner.realName || 'NONE' | translate}}
+                                        .inlineBlk
+                                            label {{"EMAIL" | translate}}
+                                            text {{vm.selectedSinglePartner.email || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'REMARK' | translate}}
+                                            text(style='height:inherit') {{vm.selectedSinglePartner.remark || 'NONE' | translate}}
+                                //tr
+                                    td
+                                        div {{'CREDIT' | translate}}
+                                    td
+                                        .inlineBlk
+                                            label {{"Today Consumption" | translate}}
+                                            text {{vm.selectedSinglePartner.dailyConsumptionSum || 0}}
+                                        .inlineBlk
+                                            label {{"Today Topup" | translate}}
+                                            text {{vm.selectedSinglePartner.dailyTopUpSum || 0}}
+                                tr
+                                    td
+                                        div {{"TELEPHONE" | translate}}
+                                    td
+                                        .inlineBlk
+                                            label {{"TELEPHONE" | translate}}
+                                            text {{vm.selectedSinglePartner.phoneNumber || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'PHONE_CITY' | translate}}
+                                            text {{vm.selectedSinglePartner.phoneCity || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'PHONE_PROVINCE' | translate}}
+                                            text {{vm.selectedSinglePartner.phoneProvince || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'PHONE_TYPE' | translate}}
+                                            text {{vm.selectedSinglePartner.phoneType || 'Unknown' | translate}}
+                                tr
+                                    td
+                                        div {{'IP' | translate}}
+                                    td
+                                        .inlineBlk
+                                            label {{'IP' | translate}}
+                                            text {{vm.selectedSinglePartner.lastLoginIp || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'COUNTRY' | translate}}
+                                            text {{vm.selectedSinglePartner.country || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'CITY' | translate}}
+                                            text {{vm.selectedSinglePartner.city || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            button.btn.btn-primary.common-button-sm(ng-click='vm.showPartnerIPHistory()') {{"View Details" | translate}}
+                                tr
+                                    td
+                                        div {{'PaymentInformation' | translate}}
+                                    td
+                                        .inlineBlk
+                                            label {{'BANK_NAME' | translate}}
+                                            text {{vm.allBankTypeList[vm.selectedSinglePartner.bankName] || vm.selectedSinglePartner.bankName || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'BANK_ACCOUNT' | translate}}
+                                            text {{vm.selectedSinglePartner.bankAccount || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'BANK_ACCOUNT_NAME' | translate}}
+                                            text {{vm.selectedSinglePartner.bankAccountName || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'BANK_ACCOUNT_TYPE' | translate}}
+                                            text(ng-if='vm.playerPayment.bankAccountType==2') {{'Debit Card' | translate}}
+                                            text(ng-if='vm.playerPayment.bankAccountType==1') {{'Credit Card' | translate}}
+                                        .inlineBlk
+                                            label {{'BANK_ACCOUNT_CITY' | translate}}
+                                            text {{vm.selectedSinglePartner.bankAccountCity || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'Bank Address' | translate}}
+                                            text {{vm.selectedSinglePartner.bankAddress || 'Unknown' | translate}}
+                                        //.inlineBlk
+                                        //    label {{'BANK_BRANCH' | translate}}
+                                        //    text {{vm.selectedSinglePartner.bankBranch || 'Unknown' | translate}}
+
+#partnerIpHistory.collapse
+    .panel.panel-info
+        .panel-heading
+            .panel-title {{'REGISTRATION' | translate}}
+        .panel-body
+            .inlineBlk
+                text {{'registrationTime' | translate}} :&nbsp;
+                label {{vm.dateReformat(vm.partnerIpHistoryData.reg[0].loginTime)}}
+            .inlineBlk
+                text {{'IP_ADDRESS' | translate}}:&nbsp;
+                label {{vm.partnerIpHistoryData.reg[0].loginIP}}
+            .inlineBlk
+                text {{'country' | translate}}:&nbsp;
+                label {{vm.partnerIpHistoryData.reg.country || 'Unknown' | translate}}
+            .inlineBlk
+                text {{'city' | translate}}:&nbsp;
+                label {{vm.partnerIpHistoryData.reg.city || 'Unknown' | translate}}
+    .panel.panel-info
+        .panel-heading
+            .panel-title {{'LAST_LOGIN_IP' | translate}}
+        .panel-body
+            .col-md-12(style='max-height:300px')
+                table#partnerIpHistoryTable.common-table.display(style="width:100%")
+#modalLinkPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Link Player' | translate}} {{"To Partner" | translate}} : {{vm.selectedSinglePartner.partnerName}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .inlineBlk
+                                label {{'playerName' | translate}}:&nbsp;
+                                input.form-control(type='text', ng-model='vm.linkPlayerText', ng-change='vm.linkPlayerTextChange()')
+                            .inlineBlk
+                                i.linkPlayerTextFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
+                                i.linkPlayerTextTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
+                                .inlineBlk.text-danger.margin-left-5 {{vm.linkPlayerStatement}}
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-click='vm.submitLinkPlayer()', ng-disabled="!vm.linkPlayerFound") {{'Link Player' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}

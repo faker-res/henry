@@ -1,0 +1,90 @@
+script(src='js/lib/flot/jquery.flot.min.js')
+script(src='js/lib/flot/jquery.flot.pie.min.js')
+script(src='js/lib/flot/jquery.flot.barnumbers.enhanced.js')
+script(src='js/lib/flot/jquery.flot.axislabels.js')
+script(src='js/lib/flot/jquery.flot.time.min.js')
+.col-md-12.padding-all-20
+    .panel.panel-primary.padding-all-20
+        .panel-heading
+            table
+                tr
+                    td
+                        label.margin-right-5(style='font-size:2.5em') {{'DASHBOARD' | translate}}
+                    td
+                        select.form-control(ng-model='vm.platformID', ng-change='vm.changePlatform(vm.platformID)')
+                            option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}') {{v.name}}
+        .panel-body
+            .panel(ng-if="checkViewPermission('Dashboard','Platform','Read')")
+                .panel-heading
+                    h1(style='border-bottom: 1px solid #eee') {{vm.platformName}}
+                .panel-body
+                    .dashboardDiv
+                        .day
+                            .onlineNum
+                                div
+                            .topupAmount
+                                div
+                            .spendAmount
+                                div
+                            .newUser
+                                div
+                    .dashboardDiv
+                        .week
+                            .onlineNum
+                                div
+                            .topupAmount
+                                div
+                            .spendAmount
+                                div
+                            .newUser
+                                div
+            .panel(ng-if="checkViewPermission('Dashboard', 'Statistics','Read')")
+                .panel-heading
+                    h1(style='border-bottom: 1px solid #eee') {{'Statistics Data' | translate}}
+                .panel-body
+                    .col-md-3
+                        label.form-control
+                            .text-center {{'Login Player' | translate}}
+                        #onlinePlayerLine.dashboardChart
+                    .col-md-3
+                        label.form-control
+                            .text-center  {{'TOP_UP' | translate}}
+                        #topupLine.dashboardChart
+                    .col-md-3
+                        label.form-control
+                            .text-center  {{'Consumption' | translate}}
+                        #consumptionLine.dashboardChart
+                    .col-md-3
+                        label.form-control
+                            .text-center  {{'New Players' | translate}}
+                        #newPlayerLine.dashboardChart
+            .panel(ng-if="checkViewPermission('Dashboard', 'Operation','Read')")
+                .panel-heading
+                    h1(style='border-bottom: 1px solid #eee') {{'Operation Data' | translate}}
+                .panel-body
+                    .dashboardDiv
+                        .proposal
+                            div
+                        .rewardRequest
+                            div
+                        .rewardAmount
+                            div
+
+#penalModel.dashboardPanel.hide
+    .panel-width.col-md-3
+        .panel
+            .panel-heading
+                .row
+                    .col-md-3
+                        i.typeIcon.fa.fa-4x
+                    .col-md-9.text-right
+                        div(style='height:50px;width:100%')
+                            text.number.huge
+                        br
+                        text.which(style='white-space: nowrap')
+            a.href(href='/analysis')
+                .panel-footer
+                    .statement.inlineBlk
+                    i.fa.pull-right.fa-arrow-circle-right
+                    .clearfix
+#tooltip.dashboardTip

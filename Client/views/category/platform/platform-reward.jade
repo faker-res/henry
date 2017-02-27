@@ -1,0 +1,119 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.col-sm-3(ng-if="vm.curPlatformText", style='padding-left:0')
+    .panel.panel-primary(style="min-height:610px")
+        .panel-heading.panel-heading-sm
+            label {{"All Rewards" | translate}}
+        .panel-body
+            ul.list-group.treeview(style='height:567px;overflow-y:auto')
+                li.list-group-item(ng-repeat='(i,v) in vm.allRewardEvent', ng-class='{active: v == vm.showReward}', ng-click='vm.rewardEventClicked(i,v)') {{v.name}}
+            button.btn.btn-primary.common-button(style='text-align:center', ng-click='vm.initReward()')
+                text {{"Add Event"|translate}}
+                img.img-create
+.col-sm-9(ng-if="vm.curPlatformText", style='padding-left:0;padding-right:0;')
+    .panel.panel-primary(ng-if='vm.showReward || vm.platformRewardShowEdit()')
+        .panel-heading.panel-heading-sm
+            label {{"REWARD"|translate}}
+        .panel-body(ng-if='vm.platformRewardPageName')
+            form(name='form_showReward', novalidate)
+                .full-width-input-block
+                    label {{"REWARD_TYPE" | translate}}
+                    select.form-control(ng-model='vm.showRewardTypeId', ng-change='vm.platformRewardTypeChanged()', ng-disabled='vm.platformRewardShowEdit("rewardType")', required)
+                        option(ng-repeat='(i,v) in vm.allRewardTypes', value='{{v._id}}') {{v.des|translate}}
+                .full-width-input-block
+                    label {{"REWARD_NAME" | translate}}
+                    input.form-control(type='text', ng-model='vm.showReward.name', ng-disabled='vm.platformRewardShowEdit()', required)
+                .full-width-input-block
+                    label {{"REWARD_CODE" | translate}}
+                    input.form-control(type='text', ng-model='vm.showReward.code', ng-disabled='vm.platformRewardShowEdit()', required)
+                .full-width-input-block(ng-if='vm.rewardAttrConst.canApply.indexOf(vm.showRewardTypeData.name)>-1')
+                    label {{"REWARD_NEED_APPLY" | translate}}
+                    input.form-control(type='checkbox', ng-model='vm.showReward.needApply', ng-disabled='vm.platformRewardShowEdit()')
+                .full-width-input-block(ng-if='vm.rewardAttrConst.canSettle.indexOf(vm.showRewardTypeData.name)>-1')
+                    label {{"REWARD_NEED_SETTLEMENT" | translate}}
+                    input.form-control(type='checkbox', ng-model='vm.showReward.needSettlement', ng-disabled='vm.platformRewardShowEdit()')
+                .full-width-input-block(ng-if='vm.rewardAttrConst.canChangePeriod.indexOf(vm.showRewardTypeData.name)>-1')
+                    label {{"Settlement Period" | translate}}
+                    select.form-control(ng-model='vm.showReward.settlementPeriod', ng-disabled='vm.platformRewardShowEdit()', required)
+                        option(ng-repeat='(i,v) in vm.allSettlePeriod', value='{{v}}') {{i | translate}}
+                .full-width-input-block
+                    label {{"rewardValidStartTime" | translate}}
+                    #rewardValidStartTime.inlineBlk(ng-show='!vm.platformRewardShowEdit()', style='margin-right:0')
+                    label.form-control(ng-show='vm.platformRewardShowEdit()', disabled) {{vm.dateReformat(vm.showReward.validStartTime)}}
+                .full-width-input-block
+                    label {{"rewardValidEndTime" | translate}}
+                    #rewardValidEndTime.inlineBlk(ng-show='!vm.platformRewardShowEdit()', style='margin-right:0')
+                    label.form-control(ng-show='vm.platformRewardShowEdit()', disabled) {{vm.dateReformat(vm.showReward.validEndTime)}}
+                    span#rewardEndTimeValid.help-block(style='color: #b94a48')
+
+                //.full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward'")
+                //    label(style='vertical-align: top;') {{"REWARD_PROVIDER" | translate}}
+                //    select.form-control(multiple size= '3' ng-model='vm.showReward.providers', ng-disabled='vm.platformRewardShowEdit()', required)
+                //        option(ng-repeat='(i,v) in vm.allGameProvider', value='{{v._id}}') {{v.name}}
+                //.full-width-input-block(ng-if="vm.platformRewardPageName=='showReward'")
+                //    label(style='vertical-align: top;') {{"REWARD_PROVIDER" | translate}}
+                //    select.form-control(multiple)
+                //        option(ng-repeat='(i,v) in vm.showReward.providers') {{vm.getProviderText(v)}}
+                .full-width-input-block
+                    label {{"DESCRIPTION" | translate}}
+                .textareaDetail
+                    textarea.form-control(type = "textarea", rows = '5', placeholder="{{'DESCRIPTION' | translate}}", ng-model="vm.showReward.description")
+                br
+
+                div(ng-if='vm.showRewardTypeData.name=="FullAttendance"')
+                    include reward-event-type/FullAttendance
+                div(ng-if='vm.showRewardTypeData.name=="PlayerConsumptionReturn"')
+                    include ./reward-event-type/PlayerConsumptionReturn
+                div(ng-if='vm.showRewardTypeData.name=="PlayerConsumptionIncentive"')
+                    include ./reward-event-type/PlayerConsumptionIncentive
+                div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpReturn"')
+                    include ./reward-event-type/PlayerTopUpReturn
+                div(ng-if='vm.showRewardTypeData.name=="GameProviderReward"')
+                    include ./reward-event-type/GameProviderReward
+                div(ng-if='vm.showRewardTypeData.name=="FirstTopUp"')
+                    include ./reward-event-type/FirstTopUp
+                div(ng-if='vm.showRewardTypeData.name=="PlatformTransactionReward"')
+                    include ./reward-event-type/PlatformTransactionReward
+                div(ng-if='vm.showRewardTypeData.name=="PartnerConsumptionReturn"')
+                    include ./reward-event-type/PartnerConsumptionReturn
+                div(ng-if='vm.showRewardTypeData.name=="PartnerReferralReward"')
+                    include ./reward-event-type/PartnerReferralReward
+                div(ng-if='vm.showRewardTypeData.name=="PartnerIncentiveReward"')
+                    include ./reward-event-type/PartnerIncentiveReward
+                div(ng-if='vm.showRewardTypeData.name=="PartnerTopUpReturn"')
+                    include ./reward-event-type/PartnerTopUpReturn
+                div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpReward"')
+                    include ./reward-event-type/PlayerTopUpReward
+                div(ng-if='vm.showRewardTypeData.name=="PlayerReferralReward"')
+                    include ./reward-event-type/PlayerReferralReward
+                div(ng-if='vm.showRewardTypeData.name=="PlayerRegistrationReward"')
+                    include ./reward-event-type/PlayerRegistrationReward
+            .pull-right
+                //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
+                //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.
+                button.common-button.btn.btn-danger(ng-if='vm.platformRewardShowEdit("DELETE") && checkViewPermission("Platform", "Reward", "Delete")', data-toggle="modal", data-target='#modalDeleteReward') {{'DELETE' | translate}}
+                button.common-button.btn.btn-warning(ng-if='vm.platformRewardShowEdit("CANCEL")', ng-click="vm.platformRewardPageName='showReward';vm.clearRewardFormData()") {{'CANCEL' | translate}}
+                button.common-button.btn.btn-info(ng-if='vm.platformRewardShowEdit("EDIT") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.platformRewardPageName='updateReward'") {{'EDIT' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("UPDATE") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.editReward()", ng-disabled="form_showReward.$invalid || !vm.showRewardFormValid") {{'UPDATE' | translate}}
+                button.common-button.btn.btn-success(ng-if='vm.platformRewardShowEdit("CREATE") && checkViewPermission("Platform", "Reward", "Add")', ng-click="vm.submitReward()", ng-disabled="form_showReward.$invalid || !vm.showRewardFormValid") {{'CREATE' | translate}}
+            .clearfix
+
+#modalDeleteReward.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_REWARD" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete reward"|translate}}
+                                    strong.text-danger &nbsp;{{vm.showReward.name}}
+                                    label ?
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.deleteReward();") {{"DELETE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}

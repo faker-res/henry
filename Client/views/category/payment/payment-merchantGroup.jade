@@ -1,0 +1,283 @@
+.col-sm-12(ng-if='!vm.curPlatformText')
+    .text-center
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.row(ng-if='vm.curPlatformText')
+    .col-md-3
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"MERCHANT_GROUP" | translate}}
+            .panel-body
+                div(ng-if='!vm.platformMerchantGroupList || vm.platformMerchantGroupList.length==0', style="height: 50px; overflow-y: auto;")
+                    label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
+                //div#merchantGroupTree(style="height: 430px; overflow-y: auto;")
+                ul.list-group.treeview(ng-if='vm.platformMerchantGroupList.length > 0', style="height: 430px; overflow-y: auto;")
+                    li.list-group-item(ng-repeat='(i,merchantGroup) in vm.platformMerchantGroupList', ng-click='vm.merchantGroupClicked(i,merchantGroup)', ng-class='{active: vm.SelectedMerchantGroupNode === merchantGroup}')
+                        text {{merchantGroup.name}}
+                        i.fa.fa-star.pull-right.margin-right-5(ng-show='merchantGroup.bDefault')
+                .btn-group.text-center(style="border-radius:9px",role="group")
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Create')", data-toggle="modal", ng-click='vm.newMerchantGroup={};', data-target='#modalAddMerchantGroup')
+                        text {{"ADD" | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Delete')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalRemoveMerchantGroup', ng-click='')
+                        text {{"DELETE" | translate}}
+                        img.img-delete
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalRenameMerchantGroup', ng-click='vm.initRenameMerchantGroup()')
+                        text {{"EDIT" | translate}}
+                        img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformMerchantGroupList.length>0)", data-toggle="modal", data-target='#modalSetMerchantGroupDefault')
+                        text {{"Default" | translate}}
+                        img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Create')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddPlayersToMerchantGroup', ng-click='vm.preparePlayerToGroupDialog("merchantGroup","#playertoMerchantGroupDataTable")')
+                        text {{"ADD_PLAYER" | translate}}
+                        img.img-create
+                    //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
+                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", ng-click='vm.confirmDetachProvider()')
+                    //    text {{"DETACH" | translate}}
+                    //    .fa.fa-chain-broken
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"Merchant Group" | translate}} : {{vm.SelectedMerchantGroupNode.name}} ({{vm.SelectedMerchantGroupNode.displayName}})
+            .panel-body
+                .text-center(ng-if='!vm.SelectedMerchantGroupNode')
+                    label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
+                .well
+                    .inlineBlk.margin-right-5
+                        .control-label {{"TITLE" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterMerchantTitle')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"ACCOUNT" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterMerchantAcc')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Topup Type" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterMerchantTopupType', style='max-width:200px', ng-init='vm.filterMerchantTopupType="all"')
+                            option(value='all') {{'any' | translate}}
+                            option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{v | translate}}
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Merchant Use" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterMerchantUse', style='max-width:200px', ng-init='vm.filterMerchantUse="all"')
+                            option(value='all') {{'any' | translate}}
+                            option(ng-repeat='(i,v) in merchantUseTypeJson', value='{{i}}') {{v | translate}}
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Merchant Type ID" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterMerchantType', style='max-width:200px', ng-init='vm.filterMerchantType="all"')
+                            option(value='all') {{'any' | translate}}
+                            option(ng-repeat='(i,v) in vm.allMerchantTypeList', value='{{i}}') {{v.name | translate}}
+                    .inlineBlk
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantGroupClicked(1,vm.SelectedMerchantGroupNode)") {{"FILTER" | translate}}
+                #MerchantList.panel-group(ng-if='vm.SelectedMerchantGroupNode')
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#MerchantList", href='#includedMerchants', ng-click='vm.showMerchantCate="include";vm.toggleBankType()')
+                            h4.panel-title
+                                text {{'Included Merchants' | translate}}
+                                span(ng-if='vm.includedMerchants') &nbsp;:&nbsp;({{vm.includedMerchants.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.includedMerchants') {{'loading merchants' | translate}}...
+                        #includedMerchants.panel-collapse.collapse.in
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedMerchants', class='{{vm.highlightMerchant[v.merchantNo]}}', ng-click='vm.merchantClicked(i,v,"in")')
+                                    table.bg-pale
+                                        tr
+                                            td.text-center(rowspan="5")
+                                                i.fa.fa-money.text-danger
+                                            td {{'TITLE' | translate}}
+                                            td.text-success {{v.name}}
+                                        tr
+                                            td {{'ACCOUNT' | translate}}
+                                            td.text-success {{v.merchantNo}}
+                                        tr
+                                            td {{'Topup Type' | translate}}
+                                            td.text-success {{merchantTopupTypeJson[v.topupType] | translate}}
+                                        tr
+                                            td {{'Merchant Use' | translate}}
+                                            td.text-success {{merchantUseTypeJson[v.merchantUse] | translate}}
+                                        tr
+                                            td {{'Merchant Type ID' | translate}}
+                                            td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
+                                                img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#MerchantList", href='#excludedMerchants', ng-click='vm.showMerchantCate="exclude";vm.toggleBankType()')
+                            h4.panel-title
+                                text {{'Excluded Merchants' | translate}}
+                                span(ng-if='vm.excludedMerchants') &nbsp;:&nbsp;({{vm.excludedMerchants.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.excludedMerchants') {{'loading merchants' | translate}}...
+                        #excludedMerchants.panel-collapse.collapse
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedMerchants', class='{{vm.highlightMerchant[v.merchantNo]}}', ng-click='vm.merchantClicked(i,v,"ex")')
+                                    table.bg-pale
+                                        tr
+                                            td.text-center(rowspan="5")
+                                                i.fa.fa-money.text-danger
+                                            td {{'TITLE' | translate}}
+                                            td.text-success {{v.name}}
+                                        tr
+                                            td {{'ACCOUNT' | translate}}
+                                            td.text-success {{v.merchantNo}}
+                                        tr
+                                            td {{'Topup Type' | translate}}
+                                            td.text-success {{merchantTopupTypeJson[v.topupType] | translate}}
+                                        tr
+                                            td {{'Merchant Use' | translate}}
+                                            td.text-success {{merchantUseTypeJson[v.merchantUse] | translate}}
+                                        tr
+                                            td {{'Merchant Type ID' | translate}}
+                                            td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
+                                                img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
+                .panel.panel-info(ng-if='vm.curMerchant')
+                    .panel-heading.panel-heading-sm
+                        h4.panel-title(style='display:inline-block') {{'Merchant' | translate}} : {{vm.curMerchant.name}}
+                    .panel-body(style='padding:5px')
+                        .merchantPropFlex
+                            .merchantPropdiv
+                                text {{'Merchant No' | translate}}
+                                label.text-success {{vm.curMerchant.merchantNo}}
+                            .merchantPropdiv
+                                text {{'TITLE' | translate}}
+                                label.text-success {{vm.curMerchant.name}}
+                            .merchantPropdiv
+                                text {{'Merchant Type ID' | translate}}
+                                label.text-success {{vm.allMerchantTypeList[vm.curMerchant.merchantTypeId].name | translate}}
+                            .merchantPropdiv
+                                text {{'Merchant Use' | translate}}
+                                label.text-success {{merchantUseTypeJson[vm.curMerchant.merchantUse] | translate}}
+                            .merchantPropdiv
+                                text {{'REMARK' | translate}}
+                                label.text-success {{vm.curMerchant.remark}}
+                            .merchantPropdiv
+                                text {{'Target Devices' | translate}}
+                                label.text-success {{merchantTargetDeviceJson[vm.curMerchant.targetDevices] | translate}}
+                            .merchantPropdiv
+                                text {{'Topup Type' | translate}}
+                                label.text-success {{merchantTopupTypeJson[vm.curMerchant.topupType] | translate}}
+
+                            //.merchantPropdiv(ng-repeat='(i,v) in vm.curMerchant')
+                                text {{i}}
+                                label.text-success {{v}}
+                div(ng-if='vm.curMerchant')
+                    div(ng-if='vm.showMerchantCate=="include"')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-click='vm.merchanttoMerchantGroup("detach")')
+                            i.fa.fa-minus-square
+                            text {{"EXCLUDE" | translate}}
+                    div(ng-if='vm.showMerchantCate=="exclude"')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-click='vm.merchanttoMerchantGroup("attach")')
+                            i.fa.fa-plus-square
+                            text {{"INCLUDE" | translate}}
+
+#modalAddMerchantGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add Merchant Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"Merchant Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newMerchantGroup.name')
+                            .form-group
+                                .control-label {{"Merchant Group Display Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newMerchantGroup.displayName')
+                            .form-group
+                                .control-label {{"Merchant Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newMerchantGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.addMerchantGroup(vm.newMerchantGroup)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalRemoveMerchantGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Remove Merchant Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"Merchant Group Name" | translate}}
+                                label {{vm.SelectedMerchantGroupNode.name}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.removeMerchantGroup(vm.SelectedMerchantGroupNode)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalRenameMerchantGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Rename Merchant Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"Merchant Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newMerchantGroup.name')
+                            .form-group
+                                .control-label {{"Merchant Group display Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newMerchantGroup.displayName')
+                            .form-group
+                                .control-label {{"Merchant Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newMerchantGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.renameMerchantGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalSetMerchantGroupDefault.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Merchant Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                label.control-label {{"Please choose default merchant group" | translate}}
+                                div(ng-repeat='(i,v) in vm.platformMerchantGroupList')
+                                    label {{v.name}} ({{v.displayName}})
+                                        input.pull-left.margin-right-5(type='radio', name='defaultMerchantGroup', ng-model='vm.defaultMerchantGroup', ng-value='v._id')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitDefaultMerchantGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalAddPlayersToMerchantGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        label {{"ADD_PLAYER_TO_MERCHANT_GROUP"|translate}}&nbsp;:&nbsp;{{vm.SelectedMerchantGroupNode.name}}
+                        br
+                        .well
+                            .inlineBlk.margin-right-5
+                                label {{'MERCHANT_GROUP' | translate}}
+                                select.form-control(ng-model='vm.playerToGroupFilterObj.filter.merchantGroup')
+                                    option(value='all') {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.platformMerchantGroupList', value='{{v._id}}') {{v.name}}({{v.displayName}})
+                            .inlineBlk.margin-right-5
+                                label {{'PLAYER_LEVEL' | translate}}
+                                select.form-control(ng-model='vm.playerToGroupFilterObj.filter.playerLevel')
+                                    option(value='all') {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                            .inlineBlk.margin-right-5
+                                label {{'USER_NAME' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerToGroupFilterObj.filter.name')
+                            .inlineBlk.margin-right-5
+                                label {{'MIN_TOPUP_TIMES' | translate}}
+                                input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.topUpTimes')
+                            .inlineBlk.margin-right-5
+                                label {{'CREDIT' | translate}}
+                                input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.validCredit')
+                            .inlineBlk
+                                button.btn.btn-primary.common-button(ng-click='vm.playerToGroupFilter("merchant")') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-show='vm.loadingPlayerTable')
+                                label.blink.text-danger {{'Loading' | translate}}
+                        text.text-danger(ng-show='vm.players.length==0') {{"No player is found."|translate}}
+                        table#playertoMerchantGroupDataTable.display(style="width:100%")
+                            thead
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitAddPlayersToMerchantGroup()") {{"ADD" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

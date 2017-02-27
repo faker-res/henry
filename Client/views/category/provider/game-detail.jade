@@ -1,0 +1,94 @@
+.modal-dialog(style='width:80%;min-width:800px')
+    .modal-content
+        .modal-header
+            a.fa.fa-times.close(type='button', data-dismiss='modal')
+            h4.modal-title {{"GAME" | translate}}
+        .modal-body
+            .panel.panel-primary
+                .panel-body
+                    .row
+                        .gameBigIcon
+                            img.thumb(ng-if='vm.bigPicFile', ngf-thumbnail='vm.bigPicFile')
+                            img.thumb(ng-if='!vm.bigPicFile', src='{{vm.showGame.bigIcon}}')
+                            .text-center
+                                a(ng-if='vm.gameEditStatus!="delete" && (!vm.changeBigPic || !vm.bigPicFile)', ng-click='vm.triggerUploadFile("big");vm.changeBigPic=true') {{"CHANGE_PIC" | translate}}
+                            a.fa.fa-2x.fa-check-circle(ng-if='vm.bigPicFile && vm.changeBigPic', ng-click='vm.uploadPic(vm.bigPicFile,"big");vm.changeBigPic=false') {{"UPLOAD" | translate}}
+                            a.fa.fa-2x.fa-times-circle(ng-if='vm.bigPicFile && vm.changeBigPic', ng-click='vm.changeBigPic=false;vm.bigPicFile = null')
+                            form(name='uploadBigPicForm')
+                                fieldset
+                                    input#uploadBigIcon(ng-show='false', type='file', ngf-select='', ng-model='vm.bigPicFile', name='file', accept='image/*', ngf-max-size='2MB', required='', ngf-model-invalid='errorFiles')
+                                    i(ng-show='uploadBigPicForm.file.$error.maxSize')
+                                        | File too large
+                                        | {{errorFiles[0].size / 1000000|number:1}}MB: max 2M
+                                    div#uploadBigPicResult
+                                        span.progress(ng-show='vm.bigPicFile.progress >= 0')
+                                            div(style='width:{{vm.bigPicFile.progress}}%', ng-bind="vm.bigPicFile.progress + '%'")
+                                        span(ng-show='vm.bigPicFile.result') Upload Successful
+                        .gameSmallIcon
+                            img.thumb(ng-if='vm.smallPicFile', ngf-thumbnail='vm.smallPicFile')
+                            img.thumb(ng-if='!vm.smallPicFile', src='{{vm.showGame.smallIcon}}')
+                            .text-center
+                                a(ng-if='vm.gameEditStatus!="delete" && (!vm.changeSmallPic || !vm.smallPicFile)', ng-click='vm.triggerUploadFile("small");vm.changeSmallPic=true') {{"CHANGE_PIC" | translate}}
+                            a.fa.fa-2x.fa-check-circle(ng-if='vm.smallPicFile && vm.changeSmallPic', ng-click='vm.uploadPic(vm.smallPicFile,"small");vm.changeSmallPic=false') {{"UPLOAD" | translate}}
+                            a.fa.fa-2x.fa-times-circle(ng-if='vm.smallPicFile && vm.changeSmallPic', ng-click='vm.changeSmallPic=false;vm.smallPicFile = null')
+                            form(name='uploadSmallPicForm')
+                                fieldset
+                                    input#uploadSmallIcon(ng-show='false', type='file', ngf-select='', ng-model='vm.smallPicFile', name='file', accept='image/*', ngf-max-size='2MB', required='', ngf-model-invalid='errorFiles')
+                                    i(ng-show='uploadSmallPicForm.file.$error.maxSize')
+                                        | File too large
+                                        | {{errorFiles[0].size / 1000000|number:1}}MB: max 2M
+                                    div#uploadSmallPicResult
+                                        span.progress(ng-show='vm.smallPicFile.progress >= 0')
+                                            div(style='width:{{vm.smallPicFile.progress}}%', ng-bind="vm.smallPicFile.progress + '%'")
+                                        span(ng-show='vm.smallPicFile.result') Upload Successful
+                        .span.gameProperty
+                            .form-group
+                                label {{'GAME_TITLE' | translate}}
+                                input.form-control(ng-disabled='vm.gameEditStatus=="delete"',type='text', ng-model='vm.showGame.name', required)
+                            .form-group
+                                label {{'GAME_CODE' | translate}}
+                                input.form-control(ng-disabled='vm.gameEditStatus=="delete"',type='text', ng-model='vm.showGame.code', required)
+                            .form-group
+                                label {{'GAME_TYPE'|translate}}
+                                select.form-control(ng-disabled='vm.gameEditStatus=="delete"', ng-model='vm.showGame.type', required)
+                                    option(ng-repeat='v in vm.allGameTypesList', ng-selected="v.name == vm.showGame.type", value="{{v.name}}") {{v.name|translate}} ({{v.code}})
+                            .form-group
+                                label {{'SHOW_PRIORITY' | translate}}
+                                input.form-control(ng-disabled='vm.gameEditStatus=="delete"',type='number', ng-model='vm.showGame.showPriority')
+
+                    .row(ng-if='uploadImgErrorMsg') {{uploadImgErrorMsg}}
+                    .row(ng-if='vm.changeBigPic || vm.changeSmallPic')
+                        label.text-danger You have selecteded new picture but not yet uploaded, the data will not be updated until the picture is uploaded.
+                        //form(name='myForm')
+                            fieldset
+                                legend Upload on form submit
+                                //|       Username:
+                                //input(type='text', name='userName', ng-model='username', size='31', required='')
+                                //i(ng-show='myForm.userName.$error.required') *required
+                                //br
+                                //| Photo:
+                                //input(type='file', ngf-select='', ng-model='picFile', name='file', accept='image/*', ngf-max-size='2MB', required='', ngf-model-invalid='errorFiles')
+                                //i(ng-show='myForm.file.$error.required') *required
+                                //br
+                                //i(ng-show='myForm.file.$error.maxSize')
+                                //    | File too large
+                                //    | {{errorFiles[0].size / 1000000|number:1}}MB: max 2M
+                                //img.thumb(ng-show='myForm.file.$valid', ngf-thumbnail='vm.bigPicFile')
+                                //img.thumb(ng-src="{{vm.uploadFileName}}")
+                                //button(ng-click='vm.bigPicFile = null', ng-show='vm.bigPicFile') Remove
+                                br
+                                //button(ng-disabled='!myForm.$valid', ng-click='vm.uploadPic(vm.bigPicFile)') Submit
+                    p
+                    .panel.panel-info
+                        .panel-heading
+                            .text-center
+                                label {{"GAME_DESCRIPTION" | translate}}
+                        .panel-body
+                            .row
+                                .col-sm-12.textareaDetail
+                                    textarea(ng-disabled='vm.gameEditStatus=="delete"', ng-model='vm.showGame.description', rows='5', style="border:none")
+        .modal-footer
+            //button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-if='vm.gameEditStatus=="create"', ng-click="vm.submitCreateGame()", ng-disabled='!vm.showGame.name || !vm.showGame.type') {{"CREATE" | translate}}
+            //button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-if='vm.gameEditStatus=="delete"', ng-click="vm.submitDeleteGame()") {{"DELETE" | translate}}
+            //button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-if='vm.gameEditStatus=="update"', ng-click="vm.submitUpdateGame()") {{"UPDATE" | translate}}
+            button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}

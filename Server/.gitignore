@@ -1,0 +1,12 @@
+node_modules/
+node_modules/*
+.idea/
+.idea/*
+data/
+data/*
+log/
+log/*
+coverage/
+coverage/*
+out/
+out/*

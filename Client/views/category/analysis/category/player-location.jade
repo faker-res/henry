@@ -1,0 +1,107 @@
+link(rel='stylesheet', href='https://www.amcharts.com/lib/3/ammap.css', type='text/css', media='all')
+.section
+    .row
+        .titlePic
+            .title {{"PLAYER_IP_LOCATION" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#playerLocationAnalysis","playerLocation")')
+                        text.pull-left.margin-right-5 {{vm.optionText.playerLocation | translate}}
+    .row
+        .col-md-12
+            #playerLocationAnalysis.block-query.well(style='margin-bottom:3px;')
+                //div
+                    label {{"PLAYER"|translate}}
+                    label {{'ACTIVE_PLAYER' | translate}}
+                        input.pull-left.margin-right-5(type='radio', ng-model='vm.queryPara.playerLocation.player', value='active', name='playerType', checked)
+                    label {{'TOTAL_PLAYER' | translate}}
+                        input.pull-left.margin-right-5(type='radio', ng-model='vm.queryPara.playerLocation.player', value='all', name='playerType')
+                div
+                    label {{"TIME"|translate}}
+                    label {{'registrationTime' | translate}}
+                        input.pull-left.margin-right-5(type='radio', ng-model='vm.queryPara.playerLocation.date', value='registrationTime', name='dateType', checked)
+                    label {{'lastAccessTime' | translate}}
+                        input.pull-left.margin-right-5(type='radio', ng-model='vm.queryPara.playerLocation.date', value='lastAccessTime', name='dateType')
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                //div
+                //    label {{"from"|translate}}
+                //    input.form-control(type='date', ng-model='vm.queryPara.playerLocation.startTime')
+                //div
+                //    label {{"to"|translate}}
+                //    input.form-control(type='date', ng-model='vm.queryPara.playerLocation.endTime')
+                div
+                    label &nbsp;
+                    button.btn.btn-primary.common-button(ng-click='vm.playerLocationPage()') {{'SEARCH' | translate}}
+    .row
+        .col-md-5
+            .panel.panel-default(style='padding-bottom:5px;height:100%')
+                div(ng-show='vm.showCountryTable && vm.showPageName=="PLAYER_IP_LOCATION"')
+                    .breadcrumb.margin-top-bottom-small
+                        text.active {{'WORLD' | translate}}
+                    .analysisLocationTable
+                        table.common-table.border-cell.display
+                            thead
+                                th {{'country' | translate}}
+                                th {{'amount' | translate}}
+                            tbody
+                                tr(ng-repeat='(i,v) in vm.playerLocationCountries')
+                                    td
+                                        a(ng-click='vm.locationCountryClicked(v._id.country)',ng-mouseover="vm.locationCountryHover(v._id.country, 'in')" ng-mouseleave="vm.locationCountryHover(v._id.country,'out')")
+                                            text {{vm.getCountryTitle(v._id.country) || 'Unknown' | translate}}
+                                    td {{v.amount}}
+                div(ng-show='!vm.showCountryTable && vm.showPageName=="PLAYER_IP_LOCATION"')
+                    .breadcrumb.margin-top-bottom-small
+                        a(ng-click='vm.goWorld()') {{'WORLD' | translate}}
+                        text.active  >>> {{vm.getCountryTitle(vm.countryId)}}
+                    .analysisLocationTable
+                        table.common-table.border-cell.display
+                            thead
+                                th {{'city' | translate}}
+                                th {{'amount' | translate}}
+                            tbody
+                                tr(ng-repeat='(i,v) in vm.playerLocationCities')
+                                    td {{v._id.city || 'Unknown' | translate}}
+                                    td {{v.amount}}
+                div(ng-show='!vm.currentProvince && vm.showPageName=="PLAYER_PHONE_LOCATION"')
+                    .breadcrumb.margin-top-bottom-small
+                        text.active {{'China' | translate}}
+                    .analysisLocationTable
+                        table.common-table.border-cell.display
+                            thead
+                                th {{'PHONE_PROVINCE' | translate}}
+                                th {{'amount' | translate}}
+                                th {{'Shown on map' | translate}}
+                            tbody
+                                tr(ng-repeat='(i,v) in vm.playerPhoneProvince')
+                                    td
+                                        a(ng-click='vm.playerLocationPage(v._id.phoneProvince)',ng-mouseover="vm.locationProvinceHover(v._id.phoneProvince, 'in')" ng-mouseleave="vm.locationProvinceHover(v._id.phoneProvince,'out')") {{v._id.phoneProvince || 'Unknown' | translate}}
+                                    td {{v.amount}}
+                                    td
+                                        i.fa.fa-check-square-o(ng-show='v.showMap')
+                                        i.fa.fa-square-o(ng-show='!v.showMap')
+                div(ng-show='vm.currentProvince && vm.showPageName=="PLAYER_PHONE_LOCATION"')
+                    .breadcrumb.margin-top-bottom-small
+                        a(ng-click='vm.playerLocationPage()') {{'China' | translate}}
+                        text.active  >>> {{vm.currentProvince | translate}}
+                    .analysisLocationTable
+                        table.common-table.border-cell.display
+                            thead
+                                th {{'PHONE_CITY' | translate}}
+                                th {{'amount' | translate}}
+                                th {{'Shown on map' | translate}}
+                            tbody
+                                tr(ng-repeat='(i,v) in vm.playerPhoneInProvince')
+                                    td {{v._id.phoneCity || 'Unknown' | translate}}
+                                    td {{v.amount}}
+                                    td
+                                        i.fa.fa-check-square-o(ng-show='v.showMap')
+                                        i.fa.fa-square-o(ng-show='!v.showMap')
+        .col-md-7
+            .graph
+                .panel.panel-default
+                    #locationMap(style='width:100%;height:100%')
+p(ng-init="vm.loadPageFunc('PLAYER_IP_LOCATION')")

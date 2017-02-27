@@ -1,0 +1,10 @@
+.panel.panel-primary
+   .panel-heading
+      label {{vm.actionPageTitle}}
+   .panel-body
+      include ./common-table
+      .row
+         .col-lg-12
+            button.btn-sm.margin-right-5.btn.btn-primary.col-lg-2(ng-disabled="vm.totalCommonTableChecked<1", ng-class="{true: 'cbDisabled'}[vm.totalCommonTableChecked<1]", ng-click='vm.submitAction()') {{vm.actionPageButtonName}}
+
+button.btn-sm.margin-right-5.btn.btn-danger.col-lg-1(ng-click="vm.pageTag='showAll';vm.getAllMainData(vm.drawTable);") {{"GO_BACK" | translate}}

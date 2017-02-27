@@ -1,0 +1,18 @@
+.well
+    label {{vm.showRewardTypeData.params.params.ratio.des | translate}}
+    //.full-width-input-block
+        label {{vm.showRewardTypeData.params.params.playerLevel.des | translate}}
+        select.form-control(ng-model='vm.rewardParams.playerLevel', ng-disabled='vm.platformRewardShowEdit()', required)
+            option(ng-repeat='(i,v) in vm.allPlayerLevels', value='{{v[vm.showRewardTypeData.params.params.playerLevel.field]}}') {{v.name|translate}}
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.playerLevel.des | translate}}
+        select.form-control(ng-model='vm.rewardParams.playerLevel', ng-disabled='vm.platformRewardShowEdit()', required)
+            option(ng-repeat='(i,v) in vm.allPlayerLevels', value='{{v._id}}', ng-selected='vm.rewardParams.playerLevel==v._id') {{v.name}}
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.bankCardType.des | translate}}
+        select.form-control(ng-model='vm.rewardParams.bankCardType', ng-disabled='vm.platformRewardShowEdit()', multiple="multiple", required)
+            option(ng-repeat='(i,v) in vm.allBankTypeList', value='{{i}}', ng-selected='vm.rewardParams.bankCardType.indexOf(i)>-1') {{v}}
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.rewardPercentage.des | translate}}
+        span.percentage
+            input.form-control(type='number', min='0', percentage, style="width:calc(45% - 20px)", ng-model='vm.rewardParams.rewardPercentage', ng-disabled='vm.platformRewardShowEdit()', required)

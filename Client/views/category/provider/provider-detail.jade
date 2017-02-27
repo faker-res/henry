@@ -1,0 +1,27 @@
+form(name="form_provider", novalidate)
+    div.form-group.col-md-6(ng-if='!vm.editProvider')
+        label.control-label {{"PROVIDER_NAME" | translate}}
+        input.form-control(ng-disabled='!vm.editProvider', type="text", placeholder="{{'PROVIDER_NAME' | translate}}", ng-model="vm.showProvider.name", required)
+    div.form-group.col-md-6(ng-if='!vm.editProvider')
+        label.control-label {{"PROVIDER_NICKNAME" | translate}}
+        input.form-control(ng-disabled='!vm.editProvider', type="text", placeholder="{{'PROVIDER_NICKNAME' | translate}}", ng-model="vm.showProvider.nickName", required)
+    div.form-group.col-md-6(ng-if='!vm.editProvider')
+        label.control-label {{"PROVIDER_PREFIX" | translate}}
+        input.form-control(ng-disabled='!vm.editProvider', type="text", placeholder="{{'PROVIDER_PREFIX' | translate}}", ng-model="vm.showProvider.prefix", required)
+    div.form-group.col-md-6(ng-if='!vm.editProvider')
+        label.control-label {{"PROVIDER_CODE" | translate}}
+        input.form-control(ng-disabled='!vm.editProvider', type="text", placeholder="{{'PROVIDER_CODE' | translate}}", ng-model="vm.showProvider.code", required)
+    //div.form-group.col-md-6
+        label.control-label {{"STATUS" | translate}}
+        select.form-control(ng-disabled='!vm.editProvider', ng-model="vm.showProvider.status", required)
+            //option(ng-repeat='(i,v) in vm.allGameStatusString', value='{{v}}', ng-selected='vm.showProvider.status==v') {{v}}
+            option(ng-repeat='(i,v) in vm.allProviderStatusString', value='{{v}}', ng-selected='vm.showProvider.status==v') {{i | translate}}
+    .clearfix
+    div.form-group.col-md-6
+        label.control-label {{"SETTLEMENT_HOUR" | translate}}
+        select.form-control(ng-disabled='!vm.editProvider', ng-model="vm.showProvider.dailySettlementHour", ng-options='v for v in vm.hourListArray')
+            //option(ng-repeat='i in vm.hourListArray', value='{{i}}', ng-selected='vm.showProvider.dailySettlementHour.toString()==i') {{i}}
+    div.form-group.col-md-6
+        label.control-label {{"SETTLEMENT_MINUTE" | translate}}
+        select.form-control(ng-disabled='!vm.editProvider', ng-model="vm.showProvider.dailySettlementMinute", ng-options='v for v in vm.minuteListArray')
+            //option(ng-repeat='i in vm.minuteListArray', value='{{i}}', ng-selected='vm.showProvider.dailySettlementMinute.toString()==i') {{i}}

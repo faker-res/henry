@@ -1,0 +1,25 @@
+.col-lg-4(id="errorMessageFrame", style="display:none; position: absolute; bottom:3px; right:3px; z-index:10000")
+    .alert.alert-danger.alert-dismissable(ng-repeat='(k,val) in errorMessages track by $index')
+        button.close(type='button', aria-hidden='true', ng-click="errorMessages.splice($index,1)") ×
+        | {{errorMessages[k]}}
+.col-lg-4(id="confirmMessageFrame", style="display:none; position: absolute; bottom:3px; left:3px; z-index:10000")
+    .alert.alert-success.alert-dismissable(ng-repeat='(k,val) in confirmMessages track by $index')
+        button.close(type='button', aria-hidden='true', ng-click="confirmMessages.splice($index,1)") ×
+        | {{confirmMessages[k]}}
+#pagingTableFooter.collapse
+    .pagingTableFooter
+        .pull-left
+            label.pageSizeText.margin-right-5 Length Per Page
+            input.pageSize(type='number', style="width:60px;border-radius: 5px;")
+        .pull-right
+            label.jumpText
+            input.jumpPage.margin-right-5(type='number', style="width:60px;border-radius: 5px;")
+            button.btn.btnPage.prev_page
+            button.btn.btnPage.first_page
+            text.bdots ...
+            button.btn.btnPage.cur_page_b
+            label.cur_page
+            button.btn.btnPage.cur_page_a
+            text.adots ...
+            button.btn.btnPage.last_page
+            button.btn.btnPage.next_page

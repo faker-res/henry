@@ -1,0 +1,5 @@
+dbData*/
+log/
+.idea/
+backup*/
+startLocalShard.conf

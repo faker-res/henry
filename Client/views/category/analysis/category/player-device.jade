@@ -1,0 +1,42 @@
+.section
+    .row
+        .titlePic
+            .title {{"PLAYER_DEVICE_ANALYSIS" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#playerDeviceAnalysis","playerDevice")')
+                        text.pull-left.margin-right-5 {{vm.optionText.playerDevice | translate}}
+    .row
+        .col-md-12
+            #playerDeviceAnalysis.block-query.well(style='margin-bottom:3px;')
+                div
+                    label {{"User Agent type"|translate}}
+                    select.form-control(ng-model='vm.queryPara.playerDevice.type')
+                        option(value='os') {{'OS' | translate}}
+                        option(value='device') {{'Device' | translate}}
+                        option(value='browser') {{'Browser' | translate}}
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                //div
+                //    label {{"Start date"|translate}}
+                //    input.form-control(type='date', ng-model='vm.queryPara.playerDevice.startTime')
+                //div
+                //    label {{"End date"|translate}}
+                //    input.form-control(type='date', ng-model='vm.queryPara.playerDevice.endTime')
+                div
+                    label &nbsp;
+                    button.btn.btn-primary.common-button(ng-click='vm.deviceAnalysisInit()') {{'SEARCH' | translate}}
+    .row
+        .col-md-5
+            .panel.panel-default(style='padding-bottom:5px')
+                .pieChart
+                    #pie-all-playerDevice
+        .col-md-7
+            .graph
+                .panel.panel-default
+                    #bar-all-playerDevice.barChart
+                    //label {{vm.allPlatformTopUpPie}}
+p(ng-init="vm.loadPageFunc('PLAYER_DEVICE_ANALYSIS')")

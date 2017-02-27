@@ -1,0 +1,82 @@
+.linkPage {
+    width: 80%;
+    margin-left: 5%;
+    margin-bottom: 5px;
+}
+
+#pageTitleDiv {
+    background-color: #F9ECAB;
+    padding: 5px 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+#pageTitle {
+    margin: 10px;
+    font-size: 26px;
+    text-shadow: 0px 1px #FFF9D9;
+}
+
+#pageContent h3::before {
+    display: block;
+    height: 10px;
+    background-color: rgba(0, 0, 246, 0.43);
+    width: 80%;
+    content: '';
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.test-container.well {
+    /* Makes the .well only as wide as needed, not 100% width. */
+    display: inline-block;
+}
+
+.test-container textarea:not(.show) {
+    display: none;
+}
+
+.test-container textarea {
+    max-height: 400px;
+    overflow: auto;
+    /* textareas should start off at a reasonable size, not too small. */
+    /* It is nice if this min-width corresponds with the label min-width. */
+    min-width: 300px;
+    /* When there are really long lines in request or response JSON (e.g. player login 'token'), limit the textarea from growing too wide. */
+    max-width: 600px;
+}
+
+.message-container {
+    /*display: inline-block;*/
+    float: left;
+}
+
+button.linkPage.active {
+    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.5);
+}
+
+button {
+    text-shadow: 0px 1px white;
+}
+
+.api-name-view {
+    margin-bottom: 8px;
+}
+
+.api-service-name, .api-function-name {
+    color: #4488dd;
+    font-family: Monaco, mono, monospaced;
+    font-weight: bold;
+}
+
+/* This aligns all the input boxes (provided their labels are not too long). */
+/* However I think it separates the inputs from their label text.
+   Ideally we would right-align the label text to be closer to the inputs. */
+.test-container label {
+    min-width: 300px;
+    text-shadow: 0px 1px white;
+}
+.test-container label > input {
+    float: right;
+    margin-left: 5px;
+}

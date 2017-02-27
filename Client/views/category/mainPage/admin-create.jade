@@ -1,0 +1,28 @@
+form(name="form_create_admin", novalidate)
+	div.form-group.col-lg-6
+		label.control-label *{{"ADMIN_NAME" | translate}}
+		input.form-control(type="text", placeholder="Admin Name", ng-model="vm.newAdmin.adminName", required)
+	div.form-group.col-lg-6
+		label.control-label {{"EMAIL" | translate}}
+		input.form-control(type="email", name="email", placeholder="email", ng-model="vm.newAdmin.email", required)
+		span.help-block(ng-show="form_create_admin.email.$dirty && form_create_admin.email.$error.email") {{"Email is invalid"|translate}}
+	div.form-group.col-lg-6(ng-if='vm.toUpdatePassword || vm.pageTag!=="create"')
+		label.control-label {{"PASSWORD" | translate}}
+		input#password.form-control(type="password", placeholder="password", name="password1", ng-model="vm.newAdmin.password", required,match="vm.pswdverify")
+		span.help-block(style='color: #b94a48', ng-show="vm.passwordLengthCheck(vm.newAdmin.password)") {{'Minimum Password length is' | translate}} 6.
+	div.form-group.col-lg-6(ng-if='vm.toUpdatePassword || vm.pageTag!=="create"')
+		label.control-label {{"PASSWORD_RETYPE" | translate}}
+		input#pswdverify.form-control(type="password", placeholder="password", name="password2", ng-model="vm.pswdverify", required,match="vm.newAdmin.password")
+		span.help-block(ng-show="form_create_admin.password2.$dirty && form_create_admin.password2.$error.match && !form_admin.password2.$error.required") {{"Passwords don't match"|translate}}
+	div.form-group.col-lg-6
+		label.control-label {{"FIRSTNAME" | translate}}
+		input.form-control(type="text", placeholder="firstName", ng-model="vm.newAdmin.firstName")
+	div.form-group.col-lg-6
+		label.control-label {{"LASTNAME" | translate}}
+		input.form-control(type="text", placeholder="lastName", ng-model="vm.newAdmin.lastName")
+	div.form-group.col-lg-6
+		label.control-label {{"Caller ID" | translate}}
+		input.form-control(type="number", placeholder="Caller ID", ng-model="vm.newAdmin.callerId")
+	div.form-group.col-lg-6
+		label.control-label {{"DID" | translate}}
+		input.form-control(type="number", placeholder="DID", ng-model="vm.newAdmin.did")

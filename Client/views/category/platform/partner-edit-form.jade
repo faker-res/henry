@@ -1,0 +1,49 @@
+form(name="form_edit_partner", novalidate)
+    div.form-group.col-md-6
+        label.control-label {{"PARTNER_ID" | translate}}
+        input.form-control(type="text", disabled, ng-model="vm.newPartner.partnerId")
+    div.form-group.col-md-6
+        label.control-label {{"REGISTRATION_TIME" | translate}}
+        input.form-control(type="text", disabled, ng-model="vm.newPartner.registrationTime$")
+    div.form-group.col-md-6
+        label.control-label {{"REAL_NAME" | translate}}
+        input.form-control(type="text", ng-model="vm.newPartner.realName", ng-disabled="!vm.isEditingPartner")
+    div.form-group.col-md-6
+        label.control-label {{"PARTNER_NAME" | translate}}
+        input.form-control(type="text",disabled, ng-model="vm.newPartner.partnerName")
+    div.form-group.col-md-6
+        label.control-label {{"PARTNER_LEVEL_SHORT" | translate}}
+        select.form-control(ng-model="vm.newPartner.level._id", disabled)
+            option(ng-repeat='(i,v) in vm.allPartnerLevels' value='{{v._id}}' ng-selected='v._id==vm.newPartner.level._id') {{v.name|translate}}
+    div.form-group.col-md-6
+        label.control-label {{"Bind Player" | translate}}
+        span &nbsp;{{"partnerBindPlayerText" | translate}}
+        input.form-control(type="text", ng-if="!vm.newPartner.player && !vm.isEditingPartner", disabled, placeholder='{{"NONE" | translate}}')
+        input.form-control(type="text", ng-if="!vm.newPartner.player && vm.isEditingPartner", placeholder="{{'playerId' | translate}}", ng-model="vm.tempPlayerId", ng-change='vm.checkPartnerField("player",vm.tempPlayerId, form_edit_partner)')
+        span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.player.validPlayerId===false') {{'Invalid PlayerId' | translate}}
+        span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.player.exists===true') {{'playerId' | translate}}&nbsp;{{'existed already' | translate}}
+        label.form-control(type="text", ng-if="vm.newPartner.player", disabled) {{vm.playerDetail[vm.newPartner.player].name}}({{vm.playerDetail[vm.newPartner.player].playerId}})
+    div.form-group.col-md-6
+        label.control-label {{"own domain" | translate}}
+        //input.form-control(type="text", ng-disabled="!vm.isEditingPartner", ng-model="vm.newPartner.ownDomain", ng-change='vm.checkPartnerField("ownDomain",vm.newPartner.ownDomain, form_edit_partner)')
+        textarea.form-control(type="text", name='ownDomain', ng-disabled="!vm.isEditingPartner", ng-model="vm.newPartner.ownDomain$", ng-change='vm.checkOwnDomain(vm.newPartner.ownDomain$, form_edit_partner);')
+        span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.ownDomainInvalidURL==true') {{vm.partnerValidity.ownDomainInvalidName}}&nbsp;{{'is an invalid url' | translate}}
+        span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.ownDomainDuplicate==true') {{vm.partnerValidity.ownDomainName}}&nbsp;{{'existed already' | translate}}
+    div.form-group.col-md-6
+        label.control-label {{"PARENT" | translate}}
+        input.form-control(type='text', style='width:calc(100% - 20px);display: inline-block', ng-model="vm.newPartner.parentName", ng-change='vm.partnerParentChange("name")', ng-disabled="!vm.isEditingPartner")
+        i.partnerParentFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
+        i.partnerParentTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
+    //div.form-group.col-md-6
+    //    label.control-label {{"MOBILE" | translate}}
+    //    span.pull-right
+    //        label Change Phone number
+    //            input.pull-left(style='margin-right:5px' type='checkbox' ng-model='vm.changeMobile')
+    //    input.form-control(ng-if='!vm.changeMobile' type="text", placeholder="{{'MOBILE' | translate}}", ng-model="vm.newPartner.phoneNumber", disabled)
+    //    input.form-control(ng-if='vm.changeMobile' type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="vm.newPhoneNumber")
+
+    p
+    div.form-group.col-md-12
+        label.control-label {{"REMARKS" | translate}}
+        .textareaDetail
+            textarea.form-control(name = "remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.newPartner.remarks", ng-disabled="!vm.isEditingPartner")

@@ -1,0 +1,77 @@
+.col-sm-12(ng-if='!vm.curPlatformText')
+    .text-center
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
+.row(ng-if='vm.curPlatformText')
+    .col-sm-3
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"MESSAGE_TEMPLATES" | translate}}
+            .panel-body
+                ul.list-group.treeview(style="height: 430px; overflow-y: auto;")
+                    li.list-group-item(ng-repeat='(i,v) in vm.messageTemplatesForPlatform', ng-class='{active: vm.selectedMessageTemplate === v}', ng-click='vm.selectedMessageTemplate = v; vm.resetToViewMessageTemplate();')
+                        text {{v.type}} ({{v.format}})
+
+                .btn-group.text-center(style="border-radius:9px",role="group")
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'MessageTemplate', 'Create')", ng-disabled='vm.editingMessageTemplate' ng-click='vm.startCreateMessageTemplate()')
+                        text {{"CREATE" | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'MessageTemplate', 'Delete')", ng-disabled='!vm.selectedMessageTemplate', ng-click='vm.startDeleteMessageTemplate()')
+                        text {{"DELETE" | translate}}
+                        img.img-delete
+
+    .col-sm-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"MESSAGE_TEMPLATE" | translate}}&nbsp;:&nbsp;{{vm.selectedMessageTemplate.type}}
+            .panel-body
+                .text-center(ng-if='!vm.displayedMessageTemplate')
+                    label.text-danger {{"NO_MESSAGE_TEMPLATE_MESSAGE" | translate}}
+                form(name='messageTemplatesForm', ng-if='vm.displayedMessageTemplate')
+                    #message-templates-scrolling-panel(style='max-height: 510px; overflow: auto; margin-bottom: 6px')
+                        .full-width-input-block
+                            label {{"MESSAGE_TEMPLATE_TYPE" | translate}}
+                            select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.type", required)
+                                option(ng-repeat="(k, t) in vm.allMessageTypes", value="{{t}}") {{t | translate}}
+                        .full-width-input-block
+                            label {{"MESSAGE_TEMPLATE_FORMAT" | translate}}
+                            select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.format", required)
+                                option(value="email") Email
+                                option(value="sms") SMS
+                                option(value="internal") Internal Message
+                        .well(style="margin-bottom: 0px;")
+                            .full-width-input-block(ng-if="vm.displayedMessageTemplate.format === 'email'")
+                                label {{"MESSAGE_TEMPLATE_SENDER_EMAIL" | translate}}
+                                input.form-control(type="email", ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.sender", required)
+                            .full-width-input-block(ng-if="vm.displayedMessageTemplate.format === 'email'")
+                                label {{"MESSAGE_TEMPLATE_SUBJECT" | translate}}
+                                input.form-control(type="text", ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.subject", required)
+                            div(style="width: 100%; margin-top: 4px")
+                                label {{"MESSAGE_TEMPLATE_CONTENT" | translate}}
+                                span.pull-right(ng-show='vm.displayedMessageTemplate.format!="sms"')
+                                    text {{"MESSAGE_TEMPLATE_INSERT_PARAMETER" | translate}}:&nbsp;
+                                    select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.messageTemplateParameterToInsert", ng-change="vm.messageTemplateInsertParameter()",style="display: inline-block; width: 60%; margin-bottom: 4px")
+                                        option(ng-repeat="(i, p) in vm.messageTemplateAllParams", value="{{p[0]}}") {{p[0] + ' (' + p[1] + ')'}}
+                                .clearfix
+                            textarea#messageTemplateEditBox.form-control(style="max-height: 185px; overflow: auto; margin-bottom: 12px;", rows="15", ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.content", ng-change="vm.previewMessageTemplate()", required, placeholder="Example: Congratulations {{'{'+'{player.name}'+'}'}}, your top up for {{'{'+'{topUpRecord.currency}'+'}'}} {{'{'+'{topUpRecord.value}'+'}'}} has been confirmed.")
+                            label {{"PREVIEW" | translate}}
+                            //- We have two different preview elements, one for displaying HTML content, the other for displaying plain text content.
+                            //- We only show one at a time.  They are ng-non-bindable because they are managed by jQuery.
+                            .well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
+                                .messageTemplatePreview.html(style="max-height: 185px; overflow: auto; background-color: white")
+                                textarea.messageTemplatePreview.text(style="display: none; width: 100%; max-height: 192px; overflow: auto", rows="15", disabled)
+
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'MessageTemplate', 'Update') && !vm.editingMessageTemplate && vm.selectedMessageTemplate", ng-click='vm.startEditMessageTemplate()')
+                            text {{"EDIT" | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if="vm.editingMessageTemplate", ng-click="vm.resetToViewMessageTemplate()")
+                            i.fa.fa-ban
+                            text {{'CANCEL' | translate}}
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'MessageTemplate', 'Create') && vm.editingMessageTemplate && vm.messageTemplateMode == 'create'", ng-disabled="messageTemplatesForm.$invalid", ng-click="vm.createMessageTemplate()")
+                            i.fa.fa-check
+                            text {{'CREATE' | translate}}
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'MessageTemplate', 'Update') && vm.editingMessageTemplate && vm.messageTemplateMode == 'edit'", ng-disabled="messageTemplatesForm.$invalid", ng-click="vm.saveMessageTemplate()")
+                            i.fa.fa-check
+                            text {{'UPDATE' | translate}}
+                    .clearfix

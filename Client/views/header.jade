@@ -1,0 +1,211 @@
+nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bottom: 0;height: 100px')
+    .navbar-header.nav-header.visible-lg
+        img(src="{{companyLogo}}")
+    #cssmenu
+        ul.navibar.navbar-header.nav-header.navbar-brand
+            li(style="{{ checkViewPermission('Dashboard')? 'display:block' : 'display:none'}}")
+                a(href='', name='dashboard', ng-click="openHeaderPanel('dashboard')")
+                    i.fa.fa-tachometer
+                    | {{ 'DASHBOARD' | translate }}
+            li(style="{{ checkViewPermission('Admin')? 'display:block' : 'display:none'}}")
+                a(href='', name='mainPage', ng-click="openHeaderPanel('mainPage')")
+                    i.fa.fa-user
+                    | {{ 'ADMIN' | translate }}
+            //li(style="{{ checkViewPermission('Proposal')? 'display:block' : 'display:none'}}")
+            //    a(href='proposal')
+            //        i.fa.fa-inbox
+            //        | {{ 'PROPOSAL' | translate }}
+            li(style="{{ checkViewPermission('Platform')? 'display:block' : 'display:none'}}")
+                a(href='', name='platform', ng-click="openHeaderPanel('platform')")
+                    i.fa.fa-cubes
+                    | {{ 'GAME_PLATFORM' | translate }}
+            li(style="{{ checkViewPermission('Payment')? 'display:block' : 'display:none'}}")
+                a(href='', name='payment', ng-click="openHeaderPanel('payment')")
+                    i.fa.fa-money
+                    | {{ 'Payment' | translate }}
+            li(style="{{ checkViewPermission('Provider')? 'display:block' : 'display:none'}}")
+                a(href='', name='provider', ng-click="openHeaderPanel('provider')")
+                    i.fa.fa-gamepad
+                    | {{ 'GAME_PROVIDER' | translate }}
+            li(style="{{ checkViewPermission('Operation')? 'display:block' : 'display:none'}}")
+                a(href='', name='operation', ng-click="openHeaderPanel('operation')")
+                    i.fa.fa-tasks
+                    | {{ 'OPERATION' | translate }}
+            li(style="{{ checkViewPermission('Analysis')? 'display:block' : 'display:none'}}")
+                a(href='', name='analysis', ng-click="openHeaderPanel('analysis')")
+                    i.fa.fa-line-chart
+                    | {{ 'ANALYSIS' | translate }}
+            li(style="{{ checkViewPermission('Report')? 'display:block' : 'display:none'}}")
+                a(href='', name='report', ng-click="openHeaderPanel('report')")
+                    i.fa.fa-table
+                    | {{ 'REPORT' | translate }}
+            //li(style="{{ checkViewPermission('Test', 'test')? 'display:block' : 'display:none'}}")
+            //    a(href='testPage')
+            //        i.fa.fa-usd
+            //        | {{ 'TEST' | translate }}
+            li(style="{{ checkViewPermission('Test', 'test')? 'display:block' : 'display:none'}}")
+                a(herf="" name='' ng-click="openTestPage()")
+                    i.fa.fa-usd
+                    | {{'API TEST PAGE' | translate }}
+        ul.navbar-right
+            li(style='min-width:120px !important;font-size:0.8em;color:#ffffff;')
+                .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
+                    table.pull-right(style='width:100%')
+                        thead
+                            tr
+                                th {{'Server' | translate}}
+                                th {{'STATUS' | translate}}
+                        tbody
+                            tr
+                                td {{"Management" | translate}}
+                                td
+                                    i.fa.fa-circle(class='{{serverStatus.server ? "text-success" : "text-danger blink"}}')
+                            tr
+                                td {{"Payment" | translate}}
+                                td
+                                    i.fa.fa-circle(class='{{serverStatus.pServer ? "text-success" : "text-danger blink"}}')
+                            tr
+                                td {{"providers" | translate}}
+                                td
+                                    i.fa.fa-circle(class='{{serverStatus.cpServer ? "text-success" : "text-danger blink"}}')
+                .row(style='margin-left:0;margin-right:0')
+                    label {{'OPEN_NEW_TAB' | translate}}
+                        input.input-sm.pull-left.margin-right-5(style='height:inherit;margin-top:0', type='checkbox', ng-model='openInNewTab')
+            li
+                a.dropdown-toggle(href='#', data-toggle='dropdown',style='direction: rtl;', ng-mouseover='fetchAdminMailDebounced()')
+                    i.fa.fa-user
+                    text {{getUserName()}}
+                ul.dropdown-menu(role='menu')
+                    //li
+                        a(ng-click='vm.showEditPage(true)', data-toggle='modal', data-target='#modalEdit')
+                            i.fa.fa-pencil-square-o.btn-info
+                            | {{"EDIT" | translate}}
+                    //li
+                        a(ng-click='changeLogo()')
+                            i.fa.fa-picture-o.btn-success
+                            text change logo
+                    li
+                        a(ng-click='changeLanguage()')
+                            i.fa.fa-2x.fa-language.btn-success
+                            text(ng-if='langKey=="en_US"') 中文
+                            text(ng-if='langKey=="ch_SP"') English
+                    //li
+                        a(data-toggle="modal", data-target='#modalDisplayAdminMails', ng-click='presentAdminMails()')
+                            i.fa.fa-2x.fa-envelope
+                            text {{ 'VIEW_MAIL' | translate }}
+                            text {{ adminMailUnreadCount > 0 ? ' (' + adminMailUnreadCount + ')' : '' }}
+                    li
+                        a(data-toggle="modal", data-target='#modalDisplayActionLog', ng-click='presentActionLog()')
+                            i.fa.fa-2x.fa-list-alt
+                            text {{ 'VIEW_LOG' | translate }}
+                    li
+                        a(data-toggle="modal", data-target='#modalUpdatePassword', ng-click='userNewPassword = passwordVerify = ""')
+                            i.fa.fa-2x.fa-expeditedssl
+                            text {{ 'UPDATE_PASSWORD' | translate }}
+                    //li
+                        a(ng-click='changeShowConsole()')
+                            i.fa.fa-2x.fa-expeditedssl
+                            text {{ getConsoleStatusAfterClicking() | translate }}
+                    li
+                        a(ng-click='logout()')
+                            i.fa.fa-2x.fa-arrow-right
+                            text {{ 'LOG_OUT' | translate }}
+
+ez-modal(modal-id="modalDisplayAdminMails", modal-title="{{'MAIL' | translate}}")
+    ez-modal-body
+        table.simple-table(style='max-width:100%; height:400px')
+            thead
+                tr
+                    th(style='width:10%') {{'TIME' | translate}}
+                    th(style='width:15%') {{'SENDER' | translate}}
+                    th(style='width:25%') {{'TITLE' | translate}}
+                    th(style='width:45%') {{'CONTENT' | translate}}
+                    th(style='width:1%')
+                    th(style='width:1%')
+                    th(style='width:1%')
+            tbody
+                tr(ng-repeat="(i,mail) in adminMail | orderBy:'-createTime'")
+                    td(ng-class="{faint: mail.hasBeenRead}") {{timeReformat(mail.createTime)}}
+                    td(ng-class="{faint: mail.hasBeenRead}") {{mail.senderName}}
+                    td(ng-class="{faint: mail.hasBeenRead}") {{mail.title}}
+                    td(ng-class="{faint: mail.hasBeenRead}")
+                        div(style="white-space: pre-wrap; max-height: 200px; overflow: auto") {{mail.content}}
+                    td(ng-class="{faint: mail.hasBeenRead}")
+                        a(ng-click="adminMailReplyTo(mail)", title="{{'REPLY_TO_THIS_PLAYER'}}")
+                            i.fa.fa-2x.fa-reply
+                    td
+                        a(ng-click="adminMailToggleUnread(mail)", title="{{'MARK_THIS_MAIL_AS_READ'}}")
+                            i.fa.fa-2x.fa-check(ng-class="{faint: !mail.hasBeenRead}")
+                    td
+                        a(ng-click="adminMailDeleteMail(mail)", title="{{'DELETE_THIS_MAIL'}}")
+                            i.fa.fa-2x.fa-trash
+    ez-modal-footer
+        ez-normal-button {{"CLOSE" | translate}}
+
+#modalDisplayActionLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:80%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'VIEW_LOG' | translate}}
+            .modal-body
+                table.simple-table#actionLogDataTable(style='max-width:100%;height:400px')
+                    thead
+                        tr
+                            th(style='width:20%') {{'TIME' | translate}}
+                            th(style='width:20%') {{'ACTION' | translate}}
+                            th(style='width:60%') {{'PARAMETER' | translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in actionLogData')
+                            td {{timeReformat(v.operationTime)}}
+                            td {{v.action | translate}}
+                            td {{v.data}}
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click='') {{"CLOSE" | translate}}
+
+#modalUpdatePassword.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:50%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal', ng-if="!newPasswordNeeded")
+                h4.modal-title {{'UPDATE_PASSWORD' | translate}}
+            .modal-body
+                .alert.alert-info(ng-if="newPasswordNeeded")
+                    text {{"You must update your password once each month" | translate}}
+                form(name='form_update_password', novalidate)
+                    //.form-group
+                    //    label.control-label {{'OLD_PASSWORD' | translate}}
+                    //    input.form-control(type='password', )
+                    .form-group
+                        button.btn.btn-primary.common-button(ng-click="generatedPassword = generateRandomPassword()") {{"GENERATE_PASSWORD" | translate}}
+                        button.btn.btn-warning.common-button(ng-show="generatedPassword", ng-click="generatedPassword = ''") {{"HIDE" | translate}}
+                    .form-group(ng-show="generatedPassword")
+                        label.control-label {{'SUGGESTED_PASSWORD' | translate}}
+                        input.form-control(type="text", placeholder="********", ng-model="generatedPassword", ng-readonly="true")
+                    .form-group
+                        label.control-label {{'NEW_PASSWORD' | translate}}
+                        input.form-control(type="password", placeholder="********", name="password1", ng-model="userNewPassword", match="passwordVerify")
+                    .form-group
+                        label.control-label {{'REPEAT_PASSWORD' | translate}}
+                        input#pswdverify.form-control(type="password", placeholder="********", name="password2", ng-model="passwordVerify", match="userNewPassword")
+                    .form-group
+                        .alert(ng-class="{'alert-info': userNewPassword.length < 6 || !userNewPassword, 'alert-success': userNewPassword.length >= 6}")
+                            i.fa(ng-class="{'fa-info-circle': userNewPassword.length < 6 || !userNewPassword, 'fa-check': userNewPassword.length >= 6}")
+                            text.margin-left-5 {{'Minimum password length is' | translate}} 6
+                        .alert(ng-class="{'alert-info': !isValidPassword(userNewPassword), 'alert-success': isValidPassword(userNewPassword)}")
+                            i.fa(ng-class="{'fa-info-circle': !isValidPassword(userNewPassword), 'fa-check': isValidPassword(userNewPassword)}")
+                            text.margin-left-5 {{"Password should contain at least one number and one symbol, and a mixture of lower-case and upper-case letters" | translate}}
+                        .alert.alert-danger(ng-show="passwordVerify && passwordVerify.length >= userNewPassword.length && form_update_password.password2.$dirty && form_update_password.password2.$error.match && !form_admin.password2.$error.required")
+                            i.fa.fa-warning
+                            text.margin-left-5 {{"Passwords don't match"|translate}}
+                    //    select(ng-model="vm.tempNewNodeDepartment", ng-options="v.departmentName for (i,v) in vm.departments",ng-change='vm.loadDepartmentRole(vm.tempNewNodeDepartment);' required)
+                    //        option(selected) {{'DEPARTMENT' | translate}}
+                    //        //option(ng-repeat="(i,v) in vm.departments", ng-value="v") {{v.departmentName}}
+                    //.label-select-inline.width6040
+                    //    label {{'ROLE' | translate}}
+                    //    select(ng-model="vm.tempNewNodeRole", ng-options="v.roleName for (i,v) in vm.tempAllRoles",ng-change='vm.setSelectedRole(vm.tempNewNodeRole);', required)
+                    //        option(selected) {{'ROLE' | translate}}
+                    //        //option(ng-repeat="(i,v) in vm.tempAllRoles", ng-value="i") {{v.roleName}}
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-disabled="form_update_password.$invalid || userNewPassword.length < 6 || !isValidPassword(userNewPassword)", ng-click='updateUserPassword()') {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal', ng-if="!newPasswordNeeded") {{"CANCEL" | translate}}

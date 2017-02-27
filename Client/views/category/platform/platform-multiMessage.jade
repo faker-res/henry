@@ -1,0 +1,108 @@
+//
+    Created by wanglz on 19/12/16.
+.col-sm-12(ng-if='!vm.curPlatformText')
+    .text-center
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.col-sm-12(ng-if='vm.curPlatformText')
+    .panel.panel-primary(style='opacity:{{vm.toPhoneNumber ? "0.3" : "1"}}')
+        .panel-body(style='padding-left:5px;padding-right:5px')
+            #sendMultiMessageQuery.block-query.col-md-12.form-control-sm
+                .inlineBlk
+                    label {{"USER TYPE" | translate}}
+                    select.form-control(ng-model='vm.sendMultiMessage.isTestPlayer', required)
+                        option(value='') {{'ALL' | translate}}
+                        option(value=true) {{"Test Player" | translate}}
+                        option(value=false) {{"Real Player" | translate}}
+                .inlineBlk
+                    label {{"PlayerLevel" | translate}}
+                    select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
+                        option(value='') {{'ALL' | translate}}
+                        option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                .inlineBlk
+                    label {{"TrustLevel" | translate}}
+                    select.form-control(ng-model='vm.sendMultiMessage.trustLevel', required)
+                        option(value='') {{'ALL' | translate}}
+                        option(ng-repeat='(i,v) in vm.allPlayerTrustLvl', value='{{v.value}}') {{v.name | translate}}
+                .inlineBlk
+                    label {{"Qty_Min" | translate}} {{"topUpTimes" | translate}}
+                    input.form-control(type='number', ng-model='vm.sendMultiMessage.minTopupTimes', style='width: 80px;')
+                .inlineBlk
+                    label {{"Qty_Max" | translate}} {{"topUpTimes" | translate}}
+                    input.form-control(type='number', ng-model='vm.sendMultiMessage.maxTopupTimes', style='width: 80px;')
+                .inlineBlk
+                    label {{"LAST_ACCESS_TIME_START" | translate}}
+                    .accStart
+                .inlineBlk
+                    label {{"REGISTRATION_TIME_END" | translate}}
+                    .accEnd
+                .inlineBlk
+                    label {{"REGISTRATION_TIME_START" | translate}}
+                    .regStart
+                .inlineBlk
+                    label {{"REGISTRATION_TIME_END" | translate}}
+                    .regEnd
+                //.inlineBlk
+                    label {{"Length Per Page" | translate}}
+                    input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')
+                .inlineBlk
+                    label &nbsp;
+                    button.btn.common-button-sm.btn-primary(ng-click='vm.searchPlayersForSendingMessage(true)') {{'SEARCH' | translate}}
+            .col-md-12
+                label.margin-left-5 {{"total" | translate}} {{vm.sendMultiMessage.totalCount}} {{"records" | translate}}
+                table#mutilplePlayerTable.common-table.datatable-sm.display(style='width:100%;min-width:100%')
+                #mutilplePlayerTablePage
+    .panel.panel-primary
+        .panel-body
+            .inlinkBlk
+                .single.col-md-10(style='opacity:{{vm.toPhoneNumber ? "1" : "0.3"}};width:inherit')
+                    label {{"Send single message" | translate}}
+                    input.margin-left-5(type='text',ng-model='vm.toPhoneNumber', style='width:100px', ng-change="vm.sendMultiMessage.singleBtnText = 'SEND';vm.sendMultiMessage.singleSendResultText = ''")
+                    a.fa.fa-times.text-danger.margin-left-5(ng-show="vm.toPhoneNumber", ng-click='vm.toPhoneNumber=null')
+                .pull-right
+                    button.btn.btn-primary.btn-sm(data-toggle="modal", ng-click='vm.initSMSLog("multi")', data-target='#modalSMSLog') {{'SMS Send Log' | translate}}
+            .tableRow
+                .tableCell
+                    label {{"CONTENT" | translate}}:
+                .tableCell(style='min-width:60%')
+                    div.inline-block
+                        label {{"Word Count" | translate}}:
+                        text.text-danger &nbsp;{{vm.sendMultiMessage.wordCount}}
+                    | &nbsp;
+                    div.inline-block
+                        label {{"total" | translate}}:
+                        text.text-danger &nbsp;{{vm.sendMultiMessage.numUsedMessage}}
+                        label &nbsp;{{"message(s)" | translate}}
+                    | &nbsp;
+                    div.inline-block
+                        label {{"Current channel allow" | translate}}:
+                        text.text-danger &nbsp;{{vm.sendMultiMessage.channelMaxChar}}
+                        label &nbsp;{{"characters/message" | translate}}
+                    br
+                    textarea.form-control(style='width:100%;resize:none', rows='5', ng-model='vm.sendMultiMessage.messageContent', ng-change='vm.messagesChange()')
+                .tableCell(style='width:20%;', ng-show='!vm.toPhoneNumber')
+                    //label {{"SENDMESSAGENOTE" | translate}}
+                    div
+                        label {{'Recipient' | translate}} : {{vm.sendMultiMessage.numRecipient}}
+                    div
+                        label {{"Channel" | translate}} :&nbsp;
+                        select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in channelList')
+                    div
+                        button.btn.btn-primary.btn-sm(ng-click="vm.sendMessages()", ng-disabled='!vm.sendMultiMessage.messageContent || !vm.sendMultiMessage.numRecipient || vm.sendMultiMessage.sendInitiated || !vm.sendMultiMessage.channel') {{vm.sendMultiMessage.sendBtnText}}
+                    div(ng-show='vm.sendMultiMessage.numReceived+vm.sendMultiMessage.numFailed')
+                        div
+                            label {{'Received' | translate}} :&nbsp;
+                            span#messageSentReceived 0
+                        div
+                            label {{'Failed' | translate}} :&nbsp;
+                            span#messageSentFailed 0
+                .tableCell(style='width:20%;', ng-show='vm.toPhoneNumber')
+                    div
+                        label {{"Channel" | translate}} :&nbsp;
+                        select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in channelList')
+                    div
+                        button.btn.btn-primary.btn-sm(ng-click="vm.sendSingleMessages()", ng-disabled="vm.sendMultiMessage.singleSendDisable") {{vm.sendMultiMessage.singleBtnText | translate}}
+                        label.margin-left-5.text-danger(ng-show='vm.sendMultiMessage.singleSendResultText') {{vm.sendMultiMessage.singleSendResultText | translate}}
+
+
+
+

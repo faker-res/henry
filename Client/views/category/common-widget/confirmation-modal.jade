@@ -1,0 +1,14 @@
+//- Use this by calling GeneralModal.confirm(...);
+ez-modal(modal-id="generalConfirmationModal", title="Are you sure?")
+    ez-modal-body
+        .row
+            .col-md-12
+                p
+                    label {{"Are you sure" | translate}}?
+    ez-modal-footer
+        button.btn.btn-success.common-button(data-dismiss='modal', data-purpose='confirm')
+            text {{"CONFIRM" | translate}}
+            .fa.fa-check
+        button.btn.btn-danger.common-button(data-dismiss='modal', data-purpose='cancel')
+            text {{"CANCEL" | translate}}
+            .fa.fa-ban

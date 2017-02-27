@@ -1,0 +1,24 @@
+.well
+    label {{vm.showRewardTypeData.des | translate}}
+    .full-width-input-block
+        label {{vm.showRewardTypeData.condition.condition.partnerLevel.des | translate}}
+        select.form-control(ng-model='vm.rewardCondition.partnerLevel', ng-disabled='vm.platformRewardShowEdit()', required)
+            option(ng-repeat='(i,v) in vm.allPartnerLevels', value='{{v[vm.showRewardTypeData.condition.condition.partnerLevel.field]}}') {{v.name|translate}}
+
+.well
+    .full-width-input-block
+        label {{'NUMBER_OF_ENTRIES' | translate}}
+        input.form-control(type='number', min='1', ng-model='vm.rewardCondition.numOfEntries', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        //- label {{vm.showRewardTypeData.params.params.rewardAmount.des | translate}}
+        table.common-table(style='margin-bottom:0px')
+            thead
+                tr
+                    th {{'NUMBER_OF_PLAYERS_REFERRED' | translate}}
+                    th {{'REWARD_AMOUNT' | translate}}
+            tbody
+                tr(ng-repeat='_ in ((_ = []) && (_.length=vm.rewardCondition.numOfEntries) && _) track by $index')
+                    td
+                        text {{$index + 1}}
+                    td
+                        input.form-control(type="number", min='0', ng-model="vm.rewardParams.rewardAmount.data[$index]", ng-disabled='vm.platformRewardShowEdit()', required)

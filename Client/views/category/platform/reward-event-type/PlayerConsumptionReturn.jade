@@ -1,0 +1,25 @@
+//.full-width-input-block
+//    label {{vm.showRewardTypeData.params.params.spendingAmount.des | translate}}
+//    input.form-control(type='number', ng-model='vm.rewardParams.spendingAmount', disabled='vm.platformRewardShowEdit()')
+//.full-width-input-block
+//    label {{vm.showRewardTypeData.params.params.rewardAmount.des | translate}}
+//    input.form-control(type='number', ng-model='vm.rewardParams.rewardAmount', disabled='vm.platformRewardShowEdit()')
+//.full-width-input-block
+//    label {{vm.showRewardTypeData.params.params.minAmount.des | translate}}
+//    input.form-control(type='number', ng-model='vm.rewardParams.minAmount', disabled='vm.platformRewardShowEdit()')
+//.full-width-input-block
+//    label {{vm.showRewardTypeData.params.params.numOfDays.des | translate}}
+//    input.form-control(type='number', ng-model='vm.rewardParams.numOfDays', disabled='vm.platformRewardShowEdit()')
+.well
+    label {{vm.showRewardTypeData.params.params.ratio.des | translate}}
+    div(style='width:100%;overflow-x:scroll')
+        table.table
+            tbody
+                tr(ng-repeat='(row,rowdata) in vm.allPlayerLvl')
+                    td
+                        strong  {{rowdata.name | translate}}
+                    td(ng-repeat='(col,coldata) in vm.allGameTypes', style='white-space: nowrap;padding-right:20px')
+                        div
+                            text {{coldata | translate}}
+                            .percentage
+                                input.form-control(type="Number", min='0', percentage, style='display:inline-block', ng-model="vm.rewardParams.ratio[rowdata.value][col]", ng-disabled='vm.platformRewardShowEdit()')

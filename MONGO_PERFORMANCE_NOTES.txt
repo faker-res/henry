@@ -1,0 +1,52 @@
+# Find currently running operations
+> db.currentOp().inprog.filter(o => o.secs_running > 10)
+# Kill a long running process by its opid
+> db.killOp(11587458)
+
+# Note: To enable profiling in a shard cluster, you must enable profiling for each mongod instance in the cluster
+#       However, we can still *query* profiling from the mongos.
+
+# Enable profiling (logs slow queries)
+mongo mongodb://localhost:27017/playerdb --eval 'db.setProfilingLevel(1)'
+mongo mongodb://localhost:27017/logsdb --eval 'db.setProfilingLevel(1)'
+
+# For production servers, we should always disable profiling afterwards
+mongo mongodb://localhost:27017/playerdb --eval 'db.setProfilingLevel(0)'
+mongo mongodb://localhost:27017/logsdb --eval 'db.setProfilingLevel(0)'
+
+# Show all recorded slow queries (recorded by profiling above)
+mongo mongodb://localhost:27017/playerdb --eval 'db.system.profile.find({})'
+# Show 5 slowest queries
+mongo mongodb://localhost:27017/playerdb --eval 'db.system.profile.find({}).sort({millis: -1}).limit(5)'
+# Show 5 slowest queries (pretty printed but long output)
+mongo mongodb://localhost:27017/playerdb --eval 'db.system.profile.find({}).sort({millis: -1}).limit(5).forEach( printjson )' | vi -
+# Short and sweet output
+mongo mongodb://localhost:27021/logsdb --eval 'db.system.profile.find({}).sort({millis: -1}).limit(5).forEach( op => print(op.millis, JSON.stringify(op.query || op.command)) )'
+
+# Install pip (needed for dex or for mongo-perf below)
+curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+sudo python ./get-pip.py
+
+# Install dex
+sudo pip install dex
+
+# Install mongo-perf
+# As well as installing pip above, you may need to ensure that git and gcc are installed:
+sudo yum install git gcc
+# Then:
+git clone https://github.com/mongodb/mongo-perf
+cd mongo-perf
+sudo pip install -r requirements.txt
+
+# Ask dex for indexing recommendations (requires profiling above)
+dex -p mongodb://localhost:27017/playerdb
+dex -p mongodb://localhost:27017/logsdb
+
+# Watch what operations are happening in realtime
+mongo --eval 'db.setLogLevel(2)'
+# On brew install
+tail -f /opt/mongodb/logs/mongodb.log | grep -v 'Error in heartbeat'
+# On sharded localhost
+tail -f DB/log/mongod[01s].log
+# Afterwards, set log level back to default
+mongo --eval 'db.setLogLevel(0)'

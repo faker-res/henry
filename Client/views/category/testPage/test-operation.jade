@@ -1,0 +1,179 @@
+div
+    .col-md-12
+        .row
+            .col-md-6
+               button.btn.btn-primary.common-button(data-toggle="modal" ,data-target='#modalPlayerRegistration')
+                  text {{'Registration Test' | translate}}
+    .col-md-12
+        .row
+            .col-md-6
+                button.btn.btn-primary.common-button(data-toggle="modal" ,data-target='#modalPlayerTopUpIntent')
+                    text {{'Player Top Up Intent Test' | translate}}
+    .col-md-12
+        .row
+            .col-md-6
+                button.btn.btn-primary.common-button(data-toggle="modal" ,data-target='#modalPlayerConsumption')
+                    text {{'Player Consumption Test' | translate}}
+    .col-md-12
+        .row
+            .col-md-6
+                button.btn.btn-primary.common-button(data-toggle="modal" ,data-target='#modalPlayerTopUp')
+                    text {{'Player Top Up Test' | translate}}
+
+#modalPlayerRegistration.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+   .modal-dialog
+      .modal-content
+         .modal-header
+            a.fa.fa-times.close(type='button', data-dismiss='modal')
+            h4.modal-title {{"PLAYER_REGISTRATION" | translate}}
+         .modal-body
+            .panel.panel-primary
+               .panel-body
+                  .well
+                     p
+                        text {{"PLAYER_REGISTRATION" | translate}}
+                  .well
+                     .row
+                         form(name="form_new_registration", novalidate)
+
+                             div.form-group.col-md-6
+                                 label.control-label *{{"PLATFORM" | translate}}
+                                 select.form-control(ng-model="vm.newRegRecord.platformId")
+                                    option(ng-repeat='p in vm.platforms',value='{{p._id}}') {{p.platformName}}
+                            div.form-group.col-md-6
+                                label.control-label *{{"PLAYER_NAME" | translate}}
+                                input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.newRegRecord.name", required)
+                            div.form-group.col-md-6
+                                label.control-label {{"IP" | translate}}
+                                input.form-control(type="text", name="text", placeholder='{{"IP" | translate}}', ng-model="vm.newRegRecord.ip", required)
+                                span.help-block(ng-show="form_new_player.email.$dirty && form_new_player.email.$error.email") {{"EMAIL_INVALID" | translate}}
+                            div.form-group.col-md-6
+                                label.control-label {{"PASSWORD" | translate}}
+                                input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password1", ng-model="vm.newRegRecord.password", required,match="vm.playerPswverify")
+                            div.form-group.col-md-6
+                                label.control-label {{"PASSWORD_RETYPE" | translate}}
+                                input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password2", ng-model="vm.playerPswverify", required,match="vm.newRegRecord.password")
+                                span.help-block(ng-show="form_new_player.password2.$dirty && form_new_player.password2.$error.match && !form_new_player.password2.$error.required") {{"PASSWORD_NOT_MATCH" | translate}}
+                            div.form-group.col-md-6
+                                label.control-label {{"REAL_NAME" | translate}}
+                                input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="vm.newRegRecord.realName")
+                            div.form-group.col-md-6
+                                label.control-label {{"TELEPHONE" | translate}}
+                                input.form-control(type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}',ng-pattern="vm.mobilePhone", ng-model="vm.newRegRecord.mobile")
+                            p
+                            div.form-group.col-md-12
+                                label.control-label {{"REMARKS" | translate}}
+                                .textareaDetail
+                                    textarea.form-control(type="textarea", rows='4', name="Remark", placeholder='{{"REMARKS" | translate}}', ng-model="vm.newRegRecord.remark")
+
+         .modal-footer
+            a.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_new_player.$invalid', ng-click="vm.playerRegistrationTest();") {{"CREATE Registration Intent Record" | translate}}
+            a.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+
+#modalPlayerTopUpIntent.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"PLAYER_TOPUP" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            p
+                                text {{"CREATE_PLAYER_TOP_UP_INTENT_RECORD" | translate}}
+                        .well
+                            .row
+                             form(name="form_player_topup_intent", novalidate)
+                                 div.form-group.col-md-6
+                                     label.control-label *{{"PLATFORM" | translate}}
+                                     select.form-control(ng-model="vm.tutCurPlatformId" ng-change="vm.tutSelectPlatform()")
+                                         option(ng-repeat='p in vm.platforms',value='{{p._id}}' , ng-selected='vm.tutCurPlatformId==p._id') {{p.platformName}}
+                                 div.form-group.col-md-6
+                                             label.control-label {{"SELECT_TEST_PLAYER" | translate}}
+                                             select.form-control(ng-model="vm.tutCurPlayerId", ng-change="vm.tutSelectPlayer()")
+                                                 option(ng-repeat='v in vm.tutPlayers',value='{{v._id}}', ng-selected='vm.tutCurPlayerId==v._id') {{v.name}}
+                                 div.form-group.col-md-6
+                                            label.control-label *{{"PLAYER_Id" | translate}}
+                                            input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.tutSelectPlayer.playerId")
+                                 div.form-group.col-md-6
+                                    label.control-label *{{"MOBILE" | translate}}
+                                    input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.tutSelectPlayer.phoneNumber", required)
+                                 div.form-group.col-md-6
+                                    label.control-label *{{"TOPUP_CHANNEL" | translate}}
+                                    input.form-control(type="text", placeholder='{{"Topup Channel" | translate}}', ng-model="vm.tutSelectPlayer.topupChannel", required)
+
+                                .modal-footer
+                                    a.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_player_topup_intent.$invalid', ng-click="vm.createPlayerTopUpIntentRecord();") {{"Create Player TopUp Intent Record" | translate}}
+                                    a.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalPlayerConsumption.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"PLAYER_CONSUMPTION" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            p
+                                text {{"PLAYER_CONSUMPTION" | translate}}
+                        .well
+                            p
+                                label.control-label {{"SELECT_TEST_PLATFORM" | translate}}
+                                select.form-control(ng-model="vm.otCurPlatformId" ng-change="vm.otSelectPlatform()")
+                                    option(ng-repeat='v in vm.platforms',value='{{v._id}}', ng-selected='vm.otCurPlatformId==v._id') {{v.platformName}}
+                                //span.help-block.alert-danger(ng-show="!vm.gpRewardEvent") No game provider reward event for this platform, please create one first!
+                            p
+                                    label.control-label {{"SELECT_TEST_PLAYER" | translate}}
+                                    select.form-control(ng-model="vm.otCurPlayerId" ng-change="vm.otSelectPlayer()")
+                                        option(ng-repeat='v in vm.otPlayers',value='{{v._id}}', ng-selected='vm.otCurPlayerId==v._id') {{v.name}}
+                            p
+                                    label.control-label {{"SELECT_TEST_GAME" | translate}}
+                                    select.form-control(ng-model="vm.otCurPlayerId" ng-change="vm.otSelectPlayer()")
+                                        option(ng-repeat='v in vm.otPlayers',value='{{v._id}}', ng-selected='vm.otCurPlayerId==v._id') {{v.name}}
+                        .well
+                                    label.control-label *{{"CONSUMPTION_AMOUNT" | translate}}
+                                    input.form-control(type="number", ng-model="vm.consumptionAmount", required)
+
+
+            .modal-footer
+                a.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_new_player.$invalid', ng-click="vm.comsumptionAmount();") {{"Create Consumption Test Record" | translate}}
+                a.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalPlayerTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"PLAYER_CONSUMPTION" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            p
+                                text {{"PLAYER_CONSUMPTION" | translate}}
+                        .well
+                            p
+                                label.control-label {{"SELECT_TEST_PLATFORM" | translate}}
+                                select.form-control(ng-model="vm.otCurPlatformId" ng-change="vm.otSelectPlatform()")
+                                    option(ng-repeat='v in vm.platforms',value='{{v._id}}', ng-selected='vm.otCurPlatformId==v._id') {{v.platformName}}
+                                //span.help-block.alert-danger(ng-show="!vm.gpRewardEvent") No game provider reward event for this platform, please create one first!
+                            p
+                                label.control-label {{"SELECT_TEST_PLAYER" | translate}}
+                                select.form-control(ng-model="vm.otCurPlayerId" ng-change="vm.otSelectPlayer()")
+                                    option(ng-repeat='v in vm.otPlayers',value='{{v._id}}', ng-selected='vm.otCurPlayerId==v._id') {{v.name}}
+                            p
+                                label.control-label {{"SELECT_TEST_GAME" | translate}}
+                                select.form-control(ng-model="vm.otCurPlayerId" ng-change="vm.otSelectPlayer()")
+                                    option(ng-repeat='v in vm.otPlayers',value='{{v._id}}', ng-selected='vm.otCurPlayerId==v._id') {{v.name}}
+                        .well
+                            label.control-label *{{"CONSUMPTION_AMOUNT" | translate}}
+                            input.form-control(type="number", ng-model="vm.consumptionAmount", required)
+
+
+            .modal-footer
+                a.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_new_player.$invalid', ng-click="vm.comsumptionAmount();") {{"Create Consumption Test Record" | translate}}
+                a.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

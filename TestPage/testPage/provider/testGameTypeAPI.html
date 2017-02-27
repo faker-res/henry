@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Test GameType API</title>
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>-->
+    <!--<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>-->
+    <!--<script src="common/require.js" data-main="testGameTypeAPI"></script>-->
+</head>
+<body>
+
+<h3>Add GameType (添加游戏类型)</h3>
+<div class="test-container">
+    <div>
+        <label>*Game Type Id
+            <input name="gameTypeId">
+        </label>
+    </div>
+    <div>
+        <label>*Code
+            <input name="code">
+        </label>
+    </div>
+    <div>
+        <label>*Name
+            <input name="name">
+        </label>
+    </div>
+    <div>
+        <label>Description
+            <input name="description">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="add">Add GameType</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Update GameType (更新游戏类型)</h3>
+<div class="test-container">
+    <div>
+        <label>*Game Type Id
+            <input name="gameTypeId">
+        </label>
+    </div>
+    <div>
+        <label>New Code
+            <input name="code">
+        </label>
+    </div>
+    <div>
+        <label>New Name
+            <input name="name">
+        </label>
+    </div>
+    <div>
+        <label>New Description
+            <input name="description">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="update">Update GameType</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Modify GameType Code (更新游戏类型代码)</h3>
+<div class="test-container">
+    <div>
+        <label>*Old Code
+            <input type="text" name="oldCode">
+        </label>
+    </div>
+    <div>
+        <label>*New Code
+            <input type="text" name="newCode">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="modifyCode">Modify Code</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Delete GameType (删除游戏类型)</h3>
+<div class="test-container">
+    <div>
+        <label>*Game Type Id
+            <input name="gameTypeId">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="delete">Delete GameType</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Sync GameTypes Data (同步游戏类型数据)</h3>
+<div class="test-container">
+    <div>
+        <label>*Game Types
+            <input type="text" name="gameTypeUpdates">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="syncData">Sync GameTypes</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Get All GameTypes (获取所有游戏类型)</h3>
+<div class="test-container">
+    <div>
+    </div>
+    <p></p>
+    <button data-api-name="getGameTypeList">Get All GameTypes</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<script>
+    require(['services/provider/ProviderServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/providerAPITest/GameTypeAPITest', 'testAPI/providerAPITest/ConnectionAPITest'],
+            function (ProviderServices, WebSocketClient, TestHelper, GameTypeAPITest, connectionAPITest) {
+                var Client = function (url) {
+
+                    WebSocketClient.call(this, url);
+
+                    var gameTypeService = new ProviderServices.GameTypeService();
+                    this.addService(gameTypeService);
+
+                    var connectionService = new ProviderServices.ConnectionService();
+                    this.addService(connectionService);
+                };
+
+                var proto = Client.prototype = Object.create(WebSocketClient.prototype);
+                proto.constructor = Client;
+
+                $(document).ready(function () {
+                    var client = new Client("ws://" + TestHelper.websocketIP + ":9380");
+                    client.connect();
+
+                    client.addEventListener("open", function () {
+                        var gameTypeService = client.getService("gameType");
+                        var gameTypeAPITest = new GameTypeAPITest(gameTypeService);
+
+                        var connectionService = client.getService("connection");
+                        var connAPITest = new connectionAPITest(connectionService);
+
+                        connAPITest.login(function (data) {
+                        }, {
+                            name: "testApiUser",
+                            password: "123",
+                            role: "API"
+                        });
+
+
+                        TestHelper.setAPIName('ProviderServices.gameType');
+                        TestHelper.attachListeners(gameTypeAPITest);
+
+                    });
+
+                    TestHelper.addReconnectOnCloseListener(client);
+                });
+            }
+    );
+
+</script>
+</body>
+</html>

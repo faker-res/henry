@@ -1,0 +1,12 @@
+.padding-all-5
+   .panel.panel-primary
+      .panel-heading.padding-all-5
+         .panel-title.left-col
+            .fa.fa-cubes
+            text &nbsp;{{"TEST" | translate}}
+      .panel-body.common-left-panel-body
+         .search-box.margin-top-bottom-small
+            .fa.fa-search.pull-right.margin-all-5(ng-click='vm.searchTest()')
+            input.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}}' ng-model="vm.testSearchText")
+         p
+         div#testTree(style="height: 400px;")

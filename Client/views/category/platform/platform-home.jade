@@ -1,0 +1,278 @@
+.row.margin-left-5.margin-right-5(ng-show="checkViewPermission('Platform')")
+    .col-md-3(ng-class='vm.leftPanelClass')
+        include ./platform-list
+    #platformContent.col-md-9(style="padding-left:0;",ng-class='vm.rightPanelClass')
+        .padding-all-5
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs
+                        .pull-left.padding-all-5
+                            a.fa.fa-chevron-circle-left.contractIcon(ng-show='vm.showPlatformList', ng-click='vm.toggleShowPlatformList(false)')
+                            a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showPlatformList', ng-click='vm.toggleShowPlatformList(true)')
+                        li(ng-if='!vm.curPlatformText')
+                            div.platformName
+                                .fa.fa-2x.fa-cubes(style='margin:5px 10px;')
+                                text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
+                        li(ng-if='vm.curPlatformText', style='margin: 0 5px')
+                            div.platformName(ng-click='vm.showPlatformDetailModal()')
+                                .fa.fa-2x.fa-cubes(style='margin:5px 10px;')
+                                text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
+                        li.active(ng-show="checkViewPermission('Platform', 'Player', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Player", ng-click="vm.activatePlayerTab();vm.platformPageName='Player';vm.updatePageTile();")
+                                .fa.fa-users.margin-right-5
+                                text.span {{"PLAYER" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Feedback', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.submitPlayerFeedbackQuery();vm.platformPageName='Feedback';vm.updatePageTile();")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"FEEDBACK" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'FeedbackQuery', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#FeedbackAdmin", ng-click="vm.platformPageName='FeedbackAdmin';vm.initFeedbackAdmin();vm.updatePageTile();")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"Feedback Query" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Partner', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Partner", ng-click="vm.activatePartnerTab();vm.platformPageName='Partner';vm.updatePageTile();")
+                                .fa.fa-sitemap.margin-right-5
+                                text.span {{"PARTNER" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Game', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Game", ng-click="vm.platformGameTabClicked();vm.platformPageName='Game';vm.updatePageTile();")
+                                .fa.fa-gamepad.margin-right-5
+                                text.span {{"GAME" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'GameGroup', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#GameGroup", ng-click='vm.platformPageName="GameGroup";vm.updatePageTile();vm.loadGameGroupData();')
+                                .fa.fa-gamepad.margin-right-5
+                                text.span {{"GAME_GROUP" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Reward', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Reward", ng-click="vm.rewardTabClicked();vm.platformPageName='Reward';vm.updatePageTile();")
+                                .fa.fa-usd.margin-right-5
+                                text.span {{"REWARD" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Proposal', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Proposal", ng-click="vm.rewardProposalClicked();vm.platformPageName='Proposal';vm.updatePageTile();")
+                                .fa.fa-file-text-o.margin-right-5
+                                text.span {{"PROPOSAL_PROCESS" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Config', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Config", ng-click="vm.configTabClicked();vm.platformPageName='Config';vm.updatePageTile();")
+                                .fa.fa-wrench.margin-right-5
+                                text.span {{"CONFIG" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Config', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#MessageTemplates", ng-click="vm.getPlatformMessageTemplates();vm.platformPageName='MessageTemplates';vm.updatePageTile();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"MESSAGE_TEMPLATES_SHORT" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Announcement', 'PlatformAnnouncementRead')")
+                            a.common-tab(data-toggle="tab", href="#Announcement", ng-click="vm.getPlatformAnnouncements();vm.platformPageName='Announcement';vm.updatePageTile();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"ANNOUNCEMENTS" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Player', 'sendSMS')")
+                            a.common-tab(data-toggle="tab", href="#MultiMessage", ng-click="vm.platformPageName='MultiMessage';vm.updatePageTile();vm.initSendMultiMessage(true);")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"Send Messages" | translate}}
+                        //li
+                            a.common-tab(ng-show="checkViewPermission('Platform', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.platformPageName='bankCardGroup';vm.updatePageTile();")
+                                .fa.fa-credit-card.margin-right-5
+                                text.span {{"Bankcard Group" | translate}}
+                        //li
+                            a.common-tab(ng-show="checkViewPermission('Platform', 'MerchantGroup', 'Read')",data-toggle="tab", href="#merchantGroup", ng-click="vm.merchantGroupTabClicked();vm.platformPageName='merchantGroup';vm.updatePageTile();")
+                                .fa.fa-money.margin-right-5
+                                text.span {{"Merchant Group" | translate}}
+                        //li
+                            a.common-tab(ng-show="checkViewPermission('Platform', 'AlipayGroup', 'Read')",data-toggle="tab", href="#alipayGroup", ng-click="vm.platformPageName='alipayGroup';vm.updatePageTile();")
+                                img.margin-right-5(src='images/icon/aliPayBlue.png')
+                                text.span {{"Alipay" | translate}}
+                .panel-body.common-right-panel-body
+                    div.tab-content
+                        #Game.tab-pane.fade
+                            include ./platform-game
+                        #Feedback.tab-pane.fade
+                            include ./platform-feedback
+                        #FeedbackAdmin.tab-pane.fade
+                            include ./platform-feedbackAdmin
+                        #GameGroup.tab-pane.fade
+                            include ./platform-gamegroup
+                        #Player.tab-pane.fade.in.active
+                            .row
+                                include ./platform-player
+                        #Partner.tab-pane.fade
+                            .row
+                                include ./platform-partner
+                        #Reward.tab-pane.fade
+                            include platform-reward
+                        #Proposal.tab-pane.fade
+                            include ./../proposal/proposal-home
+                        #Config.tab-pane.fade
+                            include ./platform-config
+                        #MessageTemplates.tab-pane.fade
+                            include ./platform-message-templates
+                        #Announcement.tab-pane.fade
+                            include ./platform-announcement
+                        #MultiMessage.tab-pane.fade
+                            .row
+                                include ./platform-multiMessage
+                        //#bankCardGroup.tab-pane.fade
+                            include ./platform-bankCardGroup
+                        //#merchantGroup.tab-pane.fade
+                            include ./platform-merchantGroup
+                        //#alipayGroup.tab-pane.fade
+                            include ./platform-alipayGroup
+#dialogFrame.dialog-frame
+
+#modalEditCritical.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.modifyCritical.title | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            label {{'PLEASE_CHOOSE' | translate}}
+                            p
+                            label.radio-inline {{'EMAIL' | translate}}
+                                input.pull-left.relative(type='radio', ng-model='vm.modifyCritical.changeType', value='email')
+                            label.radio-inline {{'PHONE' | translate}}
+                                input.pull-left.relative(type='radio', ng-model='vm.modifyCritical.changeType', value='phone')
+                        .col-md-12.well
+                            div(ng-show='vm.modifyCritical.changeType=="email"')
+                                div.form-group.col-md-7
+                                    label.control-label {{"CURRENT_EMAIL" | translate}}
+                                    input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.modifyCritical.curEmail", disabled)
+                                form(name='form_edit_critical_email', novalidate)
+                                    div.form-group.col-md-7
+                                        label.control-label {{"NEW_EMAIL" | translate}}
+                                        input.form-control(type="email", name="email1", placeholder='{{"EMAIL" | translate}}', ng-model="vm.modifyCritical.newEmail", required)
+                                        span.help-block(ng-show="form_edit_critical_email.email1.$dirty && form_edit_critical_email.email1.$error.email") {{"EMAIL_INVALID" | translate}}
+                                    div.form-group.col-md-7
+                                        label.control-label {{"RETYPE_EMAIL" | translate}}
+                                        input.form-control(type="email", name="repeatemail", placeholder='{{"EMAIL" | translate}}', ng-model="emailConfirmation", match="vm.modifyCritical.newEmail", required)
+                                        span.help-block(ng-show="form_edit_critical_email.repeatemail.$dirty && form_edit_critical_email.repeatemail.$error.email") {{"EMAIL_INVALID" | translate}}
+                                        span.help-block(ng-show="form_edit_critical_email.repeatemail.$dirty && form_edit_critical_email.repeatemail.$error.match") {{"EMAIL_DO_NOT_MATCH" | translate}}
+                            div(ng-show='vm.modifyCritical.changeType=="phone"')
+                                div.form-group.col-md-7
+                                    label.control-label {{"CURRENT_TELEPHONE" | translate}}
+                                    input.form-control(type="text", placeholder="{{'MOBILE' | translate}}", ng-model="vm.modifyCritical.phoneNumber", disabled)
+                                div.form-group.col-md-7
+                                    label.control-label {{"VERIFY_TELEPHONE" | translate}}
+                                    input.form-control(type="text", placeholder="{{'VERIFY_TELEPHONE' | translate}}", ng-model="vm.modifyCritical.verifyPhoneNumber")
+                                    p
+                                    button.btn.btn-primary.common-button(ng-disabled='!vm.modifyCritical.verifyPhoneNumber', ng-click="vm.verifyPlayerPhoneNumber()") {{"VERIFY" | translate}}
+                                    label.fa.fa-check.colorGreen(ng-if='vm.correctVerifyPhoneNumber')
+                                    label.fa.fa-times.colorRed(ng-if='(!vm.correctVerifyPhoneNumber && (vm.correctVerifyPhoneNumber !== undefined))')
+                                form(name='form_edit_critical_phone', novalidate)
+                                    div.form-group.col-md-7
+                                        label.control-label {{"NEW_TELEPHONE" | translate}}
+                                        input.form-control(type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="vm.modifyCritical.newPhoneNumber", required)
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="email"', ng-disabled='form_edit_critical_email.$invalid || form_edit_critical_email.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="phone"', ng-disabled='form_edit_critical_phone.$invalid || form_edit_critical_phone.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalPlayerTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Top Up Records for"|translate}} {{vm.isOneSelectedPlayer().name}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        #playerTopUp.adminLogQueryDiv.well
+                            .inlineBlk
+                                label {{'START_DATE' | translate}}
+                                .startTime
+                            .inlineBlk
+                                label {{'END_DATE' | translate}}
+                                .endTime
+                            //.inlineBlk
+                                label {{'Limit' | translate}}
+                                select.form-control.limit(ng-model='vm.queryPara.playerTopUp.limit')
+                                    option 50
+                                    option 100
+                                    option 200
+                                    option(value='-1') {{'Unlimited' | translate}}
+                            .inlineBlk
+                                button.btn.btn-primary(ng-click='vm.getPagePlayerTopup(true)') {{'SEARCH' | translate}}
+                        pre
+                            text {{"Total Amount"|translate}}:
+                            label {{vm.playerTopupRecordForModal.amount || 0 | number : 2}}&nbsp
+                            text {{"Total Valid Amount"|translate}}:
+                            label {{vm.playerTopupRecordForModal.validAmount || 0 | number : 2}}&nbsp
+                            text {{"Total Bonus Amount"|translate}}:
+                            label {{vm.playerTopupRecordForModal.bonusAmount || 0 | number : 2}}
+                        p
+                        //text.text-danger(ng-show ='vm.playerAllTopupRecords.length == 0') {{"No Top Up record is found."|translate}}
+                        label {{"Total" | translate}} {{vm.playerTopUpLog.totalCount}} {{"records" | translate}}
+                        table#playerTopupRecordTable.common-table.display(style='min-width:100%')
+                        #playerTopupRecordTablePage
+#modalSMSLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width: 80%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"SMS Log" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                #smsLogQuery.block-query.well
+                    div
+                        label {{"RESULT" | translate}}
+                        select.form-control(ng-model='vm.smsLog.query.status')
+                            option(value='all') {{"any" | translate}}
+                            option(value='success') {{"Success" | translate}}
+                            option(value='failure') {{"Failure" | translate}}
+                    div
+                        label {{"Start date" | translate}}
+                        .startTime
+                        //-(ng-model='vm.smsLog.query.startTime')
+                    div
+                        label {{"End date" | translate}}
+                        .endTime
+                        //-(ng-model='vm.smsLog.query.endTime')
+                    button.btn.btn-primary.common-button(ng-click='vm.searchSMSLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                    label {{"Total" | translate}} {{vm.smsLog.totalCount}} {{"records" | translate}}
+                    table.simple-table.display(style='min-width: 100%; width: 100%')
+                        thead
+                            tr
+                                th {{"date" | translate}}
+                                th {{"Admin" | translate}}
+                                th {{"Recipient" | translate}}
+                                th {{"Channel" | translate}}
+                                th {{"CONTENT" | translate}}
+                                th {{"STATUS" | translate}}
+                        tbody
+                            tr(ng-repeat='(i,smsLog) in vm.smsLog.searchResults')
+                                td {{smsLog.createTime$}}
+                                td {{smsLog.adminName}}
+                                td {{smsLog.recipientName}}
+                                td {{smsLog.channel}}
+                                td {{smsLog.message}}
+                                td(ng-if='smsLog.status !== "failure"') {{smsLog.status$}}
+                                td(ng-if='smsLog.status === "failure"')
+                                    text.sn-hoverable-text(title='{{smsLog.error}}', sn-tooltip) {{smsLog.status$}}
+                    br
+                    #smsLogTablePage
+            .modal-footer
+                button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
+include ../common-widget/telephone-popover
+#modalSelectPartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='z-index:1201')
+    .modal-dialog(style='width:80%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"PLEASE_CHOOSE"|translate}} {{"PARTNER" | translate}}
+            .modal-body
+                .panel
+                    .panel-body
+                        .well.block-query.col-md-12
+                            .inlineBlk
+                                label {{"PARTNER_NAME" | translate}}
+                                input.form-control(type='text', ng-model="vm.showPartnerFilterName", ng-change='vm.showPartnerFilterChange()')
+                            .inlineBlk
+                                label {{"PARTNER_LEVEL" | translate}}
+                                select.form-control(ng-model='vm.showPartnerFilterLevel', ng-options='a.value as a.name | translate for a in vm.allPartnerLevels', ng-change='vm.showPartnerFilterChange()')
+                                    option(value="") {{'any' | translate}}
+                            .inlineBlk(style='margin-left:20px')
+                                label {{"Selected Partner" | translate}}
+                                label {{vm.parterSelectedforPlayer.partnerName}}
+                                    button.btn.btn-danger.common-btn.margin-left-5.span(ng-if='vm.parterSelectedforPlayer', ng-click='vm.clearPartnerSelection()') {{'DELETE' | translate}}
+                                    text.text-danger.common-btn.span(ng-if='!vm.parterSelectedforPlayer') {{'NONE' | translate}}
+                        .well.col-md-12
+                            table#partnerSelectTable.common-table.display(style='width:100%')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"CLOSE" | translate}}

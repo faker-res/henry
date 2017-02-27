@@ -1,0 +1,18 @@
+div
+   .col-md-12
+      .row
+         h4.text-primary {{"INPUT_TEST_DATA" | translate}}
+      .row
+         form(name="form_test_data", novalidate)
+            div.form-group.col-lg-3(ng-repeat=" (key, value) in vm.wctuTestData ")
+               label {{key | translate}}
+               input.form-control(type="text", placeholder="{{value}}", ng-model="vm.wctuTestData.key")
+
+      .row
+         button.btn.btn-primary.common-button(ng-click="vm.wctuRunTest()")
+            text {{'RUN_TEST' | translate}}
+
+      .row(ng-if="vm.wctuShowTestResult")
+         label {{"TEST_RESULT" | translate}}
+
+         div {{vm.wctuTestResult}}

@@ -1,0 +1,50 @@
+//
+   Created by wanglz on 9/11/16.
+table
+    tbody
+        tr
+            td(colspan=2).title {{'Player' | translate}}
+        tr
+            td {{'PLAYER' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.playerName}}
+        tr
+            td {{'playerId' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.playerId}}
+        tr
+            td(colspan=2).title {{'Player' | translate}} {{'BankDetail' | translate}}
+        tr
+            td {{'validTime' | translate}}
+            td(ng-bind-html='vm.showProposalDetailField(vm.selectedProposal,"validTime",vm.selectedProposalDetailForDisplay.validTime)')
+        tr
+            td {{'requestId' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.requestId}}
+        tr
+            td {{'lastBankcardNo' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.lastBankcardNo}}
+        tr
+            td {{'CREDIT' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.amount}}
+        tr
+            td(colspan=2).title {{'Merchant' | translate}} {{'BankDetail' | translate}}
+        tr
+            td {{'cardOwner' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.cardOwner}}
+        tr
+            td {{'bankCardNo' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.bankCardNo}}
+        tr
+            td {{'bankTypeId' | translate}}
+            td {{vm.allBankTypeList[vm.selectedProposalDetailForDisplay.bankTypeId]}}
+        tr
+            td {{'depositMethod' | translate}}
+            td {{vm.getDepositMethodbyId[vm.selectedProposalDetailForDisplay.depositMethod] | translate}}
+        tr
+            td {{'provinceId' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.provinceId}}
+        tr
+            td {{'cityId' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.cityId}}
+        tr
+            td {{'districtId' | translate}}
+            td {{vm.selectedProposalDetailForDisplay.districtId}}
+

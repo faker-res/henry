@@ -1,0 +1,247 @@
+.col-sm-12(ng-if='!vm.curPlatformText')
+    .text-center
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.row(ng-if='vm.curPlatformText')
+    .col-md-4
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"GAME_GROUP" | translate}}
+            .panel-body
+                div(ng-if='!vm.platformGameGroupList || vm.platformGameGroupList.length==0', style="height: 50px; overflow-y: auto;")
+                    label.text-danger {{"NO_GAME_GROUP_MESSAGE" | translate}}
+                .blink.text-danger(ng-if='vm.loadingGameGroup') {{"GAME_GROUP" | translate}} {{"Loading" | translate}}
+                #gameGroupTree.margin-bottom-5(style="height: 430px; overflow-y: auto;")
+                //ul.list-group.treeview(ng-if='vm.platformGameGroupList.length > 0', style="height: 430px; overflow-y: auto;")
+                    li.list-group-item(ng-repeat='(i,gameGroup) in vm.platformGameGroupList', ng-click='vm.gameGroupClicked(i,gameGroup)', ng-class='{active: vm.SelectedGameGroupNode === gameGroup}')
+                        text {{gameGroup.name}}
+                .btn-group.text-center(style="border-radius:9px",role="group")
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'GameGroup', 'Create')", data-toggle="modal", ng-click='vm.newGameGroup={};vm.newGameGroup.parent=vm.SelectedGameGroupNode.id', data-target='#modalAddGameGroup')
+                        text {{"ADD" | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'GameGroup', 'Delete')", ng-disabled="!vm.selectedPlatform || !vm.SelectedGameGroupNode", data-toggle="modal", data-target='#modalRemoveGameGroup', ng-click='')
+                        text {{"DELETE" | translate}}
+                        img.img-delete
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'GameGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !vm.SelectedGameGroupNode", data-toggle="modal", data-target='#modalRenameGameGroup', ng-click='vm.initRenameGameGroup()')
+                        text {{"RENAME" | translate}}
+                        img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'GameGroup', 'Move')", ng-disabled="!vm.selectedPlatform || !vm.SelectedGameGroupNode", data-toggle="modal", data-target='#modalMoveGameGroup', ng-click='vm.moveGameGroupDialog();')
+                        text {{"MOVE" | translate}}
+                        img.img-move
+                        //- img.img-edit
+                    //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
+                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedGameGroupNode", ng-click='vm.confirmDetachProvider()')
+                    //    text {{"DETACH" | translate}}
+                    //    .fa.fa-chain-broken
+    .col-md-8(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary(style="min-height:610px")
+            .text-center(ng-if='!vm.SelectedGameGroupNode')
+                label.text-danger {{"NO_GAME_GROUP_MESSAGE" | translate}}
+            .panel-heading.panel-heading-sm(ng-if='vm.SelectedGameGroupNode')
+                label {{vm.SelectedGameGroupNode.text}} ({{vm.SelectedGameGroupNode.groupData.displayName}})
+                //.pull-right
+                    text Filter:&nbsp;
+                    text {{vm.filterGameName}}&nbsp;:&nbsp;
+                    text {{vm.allGameTypes[vm.filterGameType]}}&nbsp;
+                    a.fa.fa-search(style='color:inherit', data-toggle="modal", data-target='#modalFilterGameGroup', ng-click='vm.filterGameType=vm.filterGameType || "all"')
+            .panel-body(ng-if='vm.SelectedGameGroupNode')
+                .well
+                    .inlineBlk.margin-right-5
+                        .control-label {{"GAME_TITLE" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterGameName')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"GAME_PROVIDER" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterGameProvider', style='max-width:150px')
+                            option(value='all', ) {{'any' | translate}}
+                            option(ng-repeat='(i,v) in vm.providerList', value='{{v._id}}') {{v.name}}
+                    .inlineBlk.margin-right-5
+                        .control-label {{"GAME_TYPE" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterGameType', style='max-width:150px')
+                            option(value='all', ) {{'any' | translate}}
+                            option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v.gameTypeId}}') {{v.name}}&nbsp;({{v.description}})
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Play Game Type" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterPlayGameType', style='max-width:150px')
+                            option(value='all') {{'any' | translate}}
+                            option(value='1') {{'flash' | translate}}
+                            option(value='2') {{'HTML5' | translate}}
+                    .inlineBlk
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.gameGroupClicked(1,vm.SelectedGameGroupNode)") {{"FILTER" | translate}}
+                label.text-danger(ng-if='vm.selectGameGroupGames.length>0') {{vm.selectGameGroupGames.length}}&nbsp;{{'game' | translate}}&nbsp;{{'is selected' | translate}}
+                #groupGameList.panel-group(ng-if='vm.SelectedGameGroupNode')
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#groupGameList", href='#includedGroupGames', ng-click='vm.showGameCate="include";vm.toggleGameType()')
+                            h4.panel-title
+                                text {{'INCLUDEDGAMES' | translate}}
+                                span(ng-if='vm.includedGames') &nbsp;:&nbsp;({{vm.includedGames.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.gameGroupClickable.inGameLoaded') {{'loading games' | translate}}...
+                                .pull-right.smallLink
+                                    a(ng-click='vm.allGametoGameGroup("add","in");$event.stopPropagation();') {{"Select All" | translate}}
+                                    a(ng-click='vm.allGametoGameGroup("remove","in");$event.stopPropagation();') {{"Clear All" | translate}}
+                        #includedGroupGames.panel-collapse.collapse.in
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                div.platformGame(ng-repeat='(i,v) in vm.includedGames | orderBy:"index"', class='{{vm.highlightGame[v._id]}}')
+                                    a(ng-click='vm.gameInGroupClicked(i,v,"in");vm.newIndex=v.index')
+                                        img(ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
+                                        div(ng-if="!vm.gameSmallShow[v._id]")
+                                            .fa.fa-square-o.divfa
+                                        .text-center
+                                            label {{v.name}}
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#groupGameList", href='#excludedGroupGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType()')
+                            h4.panel-title
+                                text {{'EXCLUDEDGAMES' | translate}}
+                                span(ng-if='vm.excludedGames') &nbsp;:&nbsp;({{vm.excludedGames.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.gameGroupClickable.outGameLoaded') {{'loading games' | translate}}...
+                                .pull-right.smallLink
+                                    a(ng-click='vm.allGametoGameGroup("add","ex");$event.stopPropagation();') {{"Select All" | translate}}
+                                    a(ng-click='vm.allGametoGameGroup("remove","ex");$event.stopPropagation();') {{"Clear All" | translate}}
+                        #excludedGroupGames.panel-collapse.collapse
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                div.platformGame(ng-repeat='(i,v) in vm.excludedGames', class='{{vm.highlightGame[v._id]}}')
+                                    a(ng-click='vm.gameInGroupClicked(i,v,"ex")')
+                                        img(ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
+                                        div(ng-if="!vm.gameSmallShow[v._id]")
+                                            .fa.fa-square-o.divfa
+                                        .text-center
+                                            label {{v.name}}
+                .panel.panel-info(ng-if='vm.SelectedGameGroupNode')
+                    .panel-heading.panel-heading-sm
+                        h4.panel-title.inlineBlk {{'GAME_DESCRIPTION' | translate}}
+                        h4.panel-title.inlineBlk(ng-show='vm.curGame') &nbsp;:&nbsp{{vm.curGame.name}}
+                        label.pull-right(ng-if='vm.curGame') {{'GAME_TYPE' | translate}}&nbsp;:&nbsp;{{vm.curGame.type ? vm.allGameTypes[vm.curGame.type] : ("VOID" | translate)}}
+                    .panel-body(style='height:80px;padding:5px')
+                        .textareaDetail
+                            textarea(ng-model='vm.curGame.description', disabled, readonly, rows="2" style="border:none")
+                div(ng-if='vm.curGame')
+                    div(ng-if='vm.showGameCate=="include"')
+                        i.fa.fa-info-circle.margin-right-5(title="display index in game group")
+                        //label {{'index' | translate}}
+                        input.margin-right-5(type='number', ng-model='vm.newIndex', style='width:60px')
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'GameGroup')", ng-click='vm.newIndex=vm.curGame.index')
+                            i.fa.fa-times
+                            text {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'GameGroup', 'Update')", ng-click='vm.updateGameIndexGameGroup(vm.newIndex)')
+                            i.fa.fa-check
+                            text {{"CONFIRM" | translate}}
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Platform', 'GameGroup', 'RemoveGameFromGroup')", ng-click='vm.gametoGameGroup("detach")')
+                            i.fa.fa-minus-square
+                            text {{"EXCLUDE" | translate}}
+                    div(ng-if='vm.showGameCate=="exclude"')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Platform', 'GameGroup', 'AddGameToGroup')", ng-click='vm.gametoGameGroup("attach")')
+                            i.fa.fa-plus-square
+                            text {{"INCLUDE" | translate}}
+
+#modalAddGameGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add Game Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{'Add new game group to' | translate}}
+
+                                label.margin-left-5.margin-right-5(ng-if='vm.SelectedGameGroupNode') {{vm.SelectedGameGroupNode.text}}
+                                    input.pull-left.margin-right-5(type='radio', ng-model='vm.newGameGroup.parent', ng-value='vm.SelectedGameGroupNode.id')
+                                label.margin-left-5.margin-right-5 {{'ROOT' | translate}}
+                                    input.pull-left.margin-right-5(type='radio', ng-model='vm.newGameGroup.parent', value=null)
+                            .form-group
+                                .control-label {{"Game Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newGameGroup.name')
+                            .form-group
+                                .control-label {{"Game Group display name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newGameGroup.displayName')
+                            //.form-group
+                            //    .control-label {{"Game Group Code" | translate}}
+                            //    input.form-control(type='text', ng-model='vm.newGameGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.addGameGroup(vm.newGameGroup)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalRemoveGameGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Remove Game Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"Game Group Name" | translate}}
+                                label {{vm.SelectedGameGroupNode.text}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.removeGameGroup(vm.SelectedGameGroupNode)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalRenameGameGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Rename Game Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"Game Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newGameGroup.name')
+                            .form-group
+                                .control-label {{"Game Group display Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newGameGroup.displayName')
+                            //.form-group
+                            //    .control-label {{"Game Group Code" | translate}}
+                            //    input.form-control(type='text', ng-model='vm.newGameGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.renameGameGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalMoveGameGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Move Game Group" | translate}} : {{vm.SelectedGameGroupNode.text}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            label {{'Please select new parent game group' | translate}}:
+
+                            label.margin-left-5.margin-right-5 {{'GAME_GROUP' | translate}}
+                                input.pull-left.margin-right-5(type='radio', ng-model='gameGroupMove.isRoot', value='1', ng-checked)
+                            label.margin-left-5.margin-right-5(ng-if='vm.SelectedGameGroupNode.parent') {{'ROOT' | translate}}
+                                input.pull-left.margin-right-5(type='radio', ng-model='gameGroupMove.isRoot', value=null)
+                            div#gameGroupTreeForMoving(ng-show='gameGroupMove.isRoot', style="max-height: 300px; overflow-y: auto;")
+                            label.text-danger(ng-if='!vm.gameGroupAllowMove && vm.newGroupParent') {{'The selected group is not valid for moving.' | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="!vm.gameGroupAllowMove && gameGroupMove.isRoot=='1'", ng-click="vm.confirmMoveGameGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalFilterGameGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Filter Games" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .row
+                                .form-group.col-md-6
+                                    .control-label {{"Game Name" | translate}}
+                                    input(type='text', ng-model='vm.filterGameName')
+                                .form-group.col-md-6
+                                    .control-label {{"Game Type" | translate}}
+                                    select(ng-model='vm.filterGameType')
+                                        option(value='all', ) {{'any' | translate}}
+                                        option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v.gameTypeId}}') {{v.name}}&nbsp;({{v.description}})
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.gameGroupClicked(1,vm.SelectedGameGroupNode)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+
+
+

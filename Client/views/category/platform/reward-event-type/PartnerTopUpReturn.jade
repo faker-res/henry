@@ -1,0 +1,23 @@
+//
+   Created by wanglz on 18/10/16.
+.well
+    label {{vm.showRewardTypeData.params.params.rewardPercentage.des | translate}}
+    div(style='margin-bottom:0px;overflow:auto;width:100%')
+        table.table.simple-table
+            thead
+                tr
+                    th {{'PARTNER_LEVEL' | translate}}
+                    th {{vm.showRewardTypeData.params.params.reward.data.rewardPercentage.des | translate}}
+                    th {{vm.showRewardTypeData.params.params.reward.data.maxRewardAmount.des | translate}}
+                    th {{vm.showRewardTypeData.params.params.reward.data.minTopUpAmount.des | translate}}
+            tbody
+                tr(ng-repeat='(row,rowdata) in vm.allPartnerLevels | orderBy: "rowdata.value"')
+                    td(style='vertical-align:middle')
+                        strong {{rowdata.name | translate}}
+                    td
+                        .percentage
+                            input.form-control.inlineBlk(type='number', min='0', percentage, ng-model='vm.rewardParams.reward[rowdata.value].rewardPercentage', ng-disabled='vm.platformRewardShowEdit()', required)
+                    td
+                        input.form-control(type='number', ng-model='vm.rewardParams.reward[rowdata.value].maxRewardAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+                    td
+                        input.form-control(type='number', ng-model='vm.rewardParams.reward[rowdata.value].minTopUpAmount', ng-disabled='vm.platformRewardShowEdit()', required)

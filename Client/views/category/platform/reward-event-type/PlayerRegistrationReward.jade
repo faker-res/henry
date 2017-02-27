@@ -1,0 +1,7 @@
+.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.rewardAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.rewardAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.unlockBonusAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.unlockBonusAmount', ng-disabled='vm.platformRewardShowEdit()', required)

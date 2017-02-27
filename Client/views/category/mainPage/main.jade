@@ -1,0 +1,37 @@
+div(ng-if="checkViewPermission('Admin')")
+    .col-md-3
+        include ./department
+    .col-md-9
+        ol.breadcrumb(style="margin:0 0 0 0;height:40px")
+            li(ng-repeat="(i,v) in vm.fullDepartmentPath")
+                a(href='#', ng-click="vm.setTreeNode(v);") {{v.text}}
+            li.active {{vm.SelectedDepartmentNode.text}}
+        p
+        .panel.panel-primary
+            .panel-heading.common-left-panel-heading
+                ul.nav.nav-tabs.common-nav-tabs
+                    li.active(ng-if="checkViewPermission('Admin', 'User')" data-toggle="tab", href="#mainUser", ng-click="vm.getDepartmentUsersData();vm.dataPage='user';")
+                        a.common-tab
+                            .fa.fa-user.margin-right-5
+                            text.span {{'USER' | translate}}
+                    //- li
+                        .divider-vertical
+                    li(ng-if="checkViewPermission('Admin', 'Role')" data-toggle="tab", href="#mainRole", ng-click="vm.activateRoleTab();vm.dataPage='role';")
+                        a.common-tab
+                            .fa.fa-users.margin-right-5
+                            text.span {{'ROLE' | translate}}
+                    //- li(ng-if='vm.showPlatformPage')
+                        .divider-vertical
+                    li(ng-if='vm.showPlatformPage')
+                        a.common-tab(data-toggle="tab", href="#mainPlatform", ng-click="vm.activatePlatformTab();vm.dataPage='platform';")
+                            .fa.fa-cubes.margin-right-5
+                            text.span {{'PLATFORM' | translate}}
+
+            .panel-body.common-right-panel-body(style="min-height: 650px;")
+                div.tab-content
+                    #mainUser.tab-pane.fade.in.active(ng-if="checkViewPermission('Admin', 'User')")
+                        include ./user
+                    #mainRole.tab-pane.fade(ng-if="checkViewPermission('Admin', 'Role')")
+                        include ./role
+                    #mainPlatform.tab-pane.fade
+                        include ./platform

@@ -1,0 +1,56 @@
+form(name="form_new_player", novalidate)
+	.row.margin-left-5.margin-right-5
+		.form-group.col-md-6
+			label.control-label *{{"PLAYER_NAME" | translate}}
+			input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.newPlayer.name", ng-change='vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player)', required)
+			span.help-block(style='color: #b94a48', ng-show='vm.duplicateNameFound') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
+		.form-group.col-md-6
+			label.control-label {{"EMAIL" | translate}}
+			input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.newPlayer.email", required)
+			span.help-block(ng-show="form_new_player.email.$dirty && form_new_player.email.$error.email") {{"EMAIL_INVALID" | translate}}
+	.row.margin-left-5.margin-right-5
+		.form-group.col-md-6
+			label.control-label {{"PASSWORD" | translate}}
+			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password1", ng-model="vm.newPlayer.password", required,match="vm.playerPswverify")
+			span.help-block(style='color: #b94a48', ng-show="form_new_player.password1.$dirty && vm.passwordLengthCheck(vm.newPlayer.password)") {{'Minimum Password length is' | translate}}&nbsp; 6.
+		.form-group.col-md-6
+			label.control-label {{"PASSWORD_RETYPE" | translate}}
+			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password2", ng-model="vm.playerPswverify", required,match="vm.newPlayer.password")
+			span.help-block(ng-show="form_new_player.password2.$dirty && form_new_player.password2.$error.match && !form_new_player.password2.$error.required") {{"PASSWORD_NOT_MATCH" | translate}}
+	.row.margin-left-5.margin-right-5
+		.form-group.col-md-6
+			label.control-label {{"REAL_NAME" | translate}}
+			input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="vm.newPlayer.realName")
+		.form-group.col-md-6
+			label.control-label {{"NICK_NAME" | translate}}
+			input.form-control(type="text", placeholder='{{"NICK_NAME" | translate}}', ng-model="vm.newPlayer.nickName")
+	//div.form-group.col-md-6
+	//	label.control-label {{"GAME_CREDIT" | translate}}
+	//	input.form-control(type="number", name="gameCredit", placeholder='{{"GAME_CREDIT" | translate}}', ng-model="vm.newPlayer.gameCredit")
+	//div.form-group.col-md-6
+		label.control-label {{"GOLD" | translate}}
+		input.form-control(type="number", name="gold", placeholder='{{"GOLD" | translate}}', ng-model="vm.newPlayer.gold")
+	.row.margin-left-5.margin-right-5
+		.form-group.col-md-6
+			label.control-label {{"PARTNER" | translate}}
+			label.form-control(ng-click='vm.showPartnerSelectModal(vm.newPlayer)') {{vm.partnerIdObj[vm.newPlayer.partner].partnerName}}
+			//select.form-control(name="partner", ng-model="vm.newPlayer.partner", ng-click='vm.showPartnerSelectModal()')
+				option(value='{{null}}', ng-selected='null==vm.newPlayer.partner') {{'NULL' | translate}}
+				option(ng-repeat='(i,v) in vm.partnerIdObj', value='{{i}}', ng-selected='i==vm.newPlayer.partner') {{v.partnerName}}
+		.form-group.col-md-6
+			label.control-label {{"TELEPHONE" | translate}}
+			input.form-control(type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}',ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber")
+	.row.margin-left-5.margin-right-5
+		.form-group.col-md-6
+			label.control-label {{"REFERRAL" | translate}}
+			input.referralValue.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='vm.newPlayer.referralName', ng-change='vm.getReferralPlayer(vm.newPlayer, "change")')
+			i.referralValidFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
+			i.referralValidTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
+		.form-group.col-md-6
+			label.control-label {{"RECEIVE_SMS" | translate}}
+				input.pull-left.margin-right-5(type="checkbox", name="telephone", ng-model="vm.newPlayer.receiveSMS")
+	.row.margin-left-5.margin-right-5
+		.form-group.col-md-12
+			label.control-label {{"REMARKS" | translate}}
+			.textareaDetail
+				textarea.form-control(type="textarea", rows='4', name="Remark", placeholder='{{"REMARKS" | translate}}', ng-model="vm.newPlayer.remark")

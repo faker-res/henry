@@ -1,0 +1,14 @@
+.well
+    label {{vm.showRewardTypeData.condition.des | translate}}
+    .full-width-input-block
+        label {{vm.showRewardTypeData.condition.condition.partnerLevel.des | translate}}
+        select.form-control(ng-model='vm.rewardCondition.partnerLevel', ng-disabled='vm.platformRewardShowEdit()', required)
+            option(ng-repeat='(i,v) in vm.allPartnerLevels', value='{{v[vm.showRewardTypeData.condition.condition.partnerLevel.field]}}') {{v.name|translate}}
+    .full-width-input-block
+        label {{vm.showRewardTypeData.condition.condition.validConsumptionSum.des | translate}}
+        input.form-control(type='number', min='1', ng-model='vm.rewardCondition.validConsumptionSum', ng-disabled='vm.platformRewardShowEdit()', required)
+
+.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.condition.condition.rewardAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardCondition.rewardAmount', ng-disabled='vm.platformRewardShowEdit()', required)

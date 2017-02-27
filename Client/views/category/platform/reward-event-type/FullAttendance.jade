@@ -1,0 +1,64 @@
+.col-md-12.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.andTopUpConsume.des | translate}}
+        input(type='checkbox', ng-model='vm.rewardParams.andTopUpConsume', ng-disabled='vm.platformRewardShowEdit()')
+    table.simple-table.table-vertical-middle.margin-medium
+        thead
+            tr
+                th {{'SECTION' | translate}}
+                th {{'DAYS_REQUIRED' | translate}}
+                th {{'MIN_SPENDING_REQUIRED' | translate}}
+        tbody
+            tr
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.checkTopUp.des | translate}}
+                        input(type='checkbox', ng-model='vm.rewardParams.checkTopUp', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.numOfTopUpDays.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.numOfTopUpDays', ng-disabled='vm.platformRewardShowEdit()', required)
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.minTopUpAmount.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.minTopUpAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+            tr
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.checkConsumption.des | translate}}
+                        input(type='checkbox', ng-model='vm.rewardParams.checkConsumption', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.numOfConsumeDays.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.numOfConsumeDays', ng-disabled='vm.platformRewardShowEdit()', required)
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.minConsumeAmount.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.minConsumeAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block(ng-if='vm.rewardParams.checkConsumption')
+        label {{vm.showRewardTypeData.params.params.andProvider.des | translate}}
+        input(type='checkbox', ng-model='vm.rewardParams.andProvider', ng-disabled='vm.platformRewardShowEdit()')
+
+.col-md-12.well(ng-repeat='(i,v) in vm.rewardParams.providers', ng-if='vm.rewardParams.checkConsumption')
+    .col-md-6
+        label {{'PROVIDER' | translate}}
+        select.form-control(ng-model='vm.rewardParams.providers[i].providerObjId', ng-change='vm.rewardWeeklyConsecutiveTopUpChangeProvider(i,vm.rewardParams.providers[i].providerObjId)', ng-disabled='vm.platformRewardShowEdit()')
+            option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{v.name}}
+        span.text-danger(ng-show="vm.rewardWeeklyConsecutiveTopUpDuplicateProvider")
+            i.fa.fa-exclamation-triangle
+            span {{"DUPLICATE_PROVIDER_SELECTED" | translate}}
+        button.btn.btn-danger.margin-all-5(ng-click='vm.rewardWeeklyConsecutiveTopUpDeleteProvider(i)', ng-disabled='vm.platformRewardShowEdit()') {{'DELETE' | translate}}
+    .col-md-6
+        label {{'GAME' | translate}}
+        select.form-control(ng-if='vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length>0', ng-model='vm.rewardParams.providers[i].games', multiple, ng-disabled='vm.platformRewardShowEdit()')
+            option(ng-repeat='(i,v) in vm.providerGame[vm.rewardParams.providers[i].providerObjId]', value='{{v._id}}') {{v.name}}
+        label.form-control(ng-if='vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length==0') {{"NO_GAME" | translate}}
+.col-md-12.well(ng-if='vm.rewardParams.checkConsumption')
+    button.btn.btn-primary(ng-click='vm.rewardWeeklyConsecutiveTopUpAddProvider()', ng-disabled='vm.platformRewardShowEdit()') {{'ADD' | translate}} {{'PROVIDER' | translate}}
+.col-md-12.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.rewardAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.rewardAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.spendingAmount.des | translate}}
+        input.form-control(type='number', min='0', ng-model='vm.rewardParams.spendingAmount', ng-disabled='vm.platformRewardShowEdit()', required)

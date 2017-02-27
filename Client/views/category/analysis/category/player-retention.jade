@@ -1,0 +1,60 @@
+.section
+    .titlePic
+        .title
+            text {{"PLAYER_RETENTION" | translate}}
+            .pull-right
+                a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#analysisPlayerRetention","playerRetention")')
+                    text.pull-left.margin-right-5 {{vm.optionText.playerRetention | translate}}
+    .col-md-12
+        #analysisPlayerRetention.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{"Start date"|translate}}
+                input.form-control(type='date', ng-model='vm.queryPara.playerRetention.startTime')
+            div
+                table.simple-table
+                    tbody
+                        tr
+                            td(colspan='{{vm.queryPara.playerRetention.days.length}}')
+                                label {{'day N' | translate}}
+                            td
+                                label {{'Add'| translate}}
+                        tr
+                            td(ng-repeat='(i,v) in vm.queryPara.playerRetention.days') {{vm.queryPara.playerRetention.days[i]}}
+                            td
+                                select(ng-model='vm.newDay')
+                                    option(ng-repeat='(i,v) in vm.dayListLength') {{vm.queryPara.playerRetention.days[vm.queryPara.playerRetention.days.length-1]+v}}
+                        tr.noBoderTable
+                            td(ng-repeat='(i,v) in vm.queryPara.playerRetention.days')
+                                a.fa.fa-minus-square(ng-show='$last', ng-click='vm.retentionRemoveDay(vm.queryPara.playerRetention.days[i])')
+                            td
+                                a.fa.fa-plus-square(ng-click='vm.retentionAddDay()')
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.getPlayerRetention()') {{'SEARCH' | translate}}
+    .col-md-5
+        .panel.panel-default(style='padding-bottom:5px')
+            div(style='width:100%;overflow-x:auto;height:100%;overflow-y:auto')
+                table.simple-table(style='width:100%;')
+                    thead
+                        tr
+                            th(rowspan=2)
+                                input(type='checkbox', ng-model='vm.retentionCheckAll', ng-click='vm.toggleRetentionCheckAll()')
+                            th(colspan=2) {{'day 0' | translate}}
+                            th(colspan='{{vm.queryPara.playerRetention.days.length}}') {{'day N' | translate}}
+                        tr
+                            th {{'date' | translate}}
+                            th {{'amount' | translate}}
+                            th(ng-repeat='(i,j) in vm.queryPara.playerRetention.days') {{vm.queryPara.playerRetention.days[i]}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.retentionData', ng-model='vm.showRetention[i]')
+                            td
+                                input(type='checkbox', ng-model='vm.showRetention[i]', ng-click='vm.drawRetentionGraph()')
+                            td {{vm.dateReformat(v.date)}}
+                            td {{v.day0}}
+                            td(ng-repeat='a in vm.queryPara.playerRetention.days') {{v[a]}}
+    .col-md-7
+        .graph
+            .panel.panel-default
+                #line-playerRetention.lineChart
+                    label(ng-show='!vm.allRetentionLineData || vm.allRetentionLineData.length==0') Please select a date at left.
+p(ng-init="vm.loadPageFunc('PLAYER_RETENTION')")

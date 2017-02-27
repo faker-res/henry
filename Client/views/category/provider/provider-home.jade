@@ -1,0 +1,136 @@
+div
+    .col-md-3(ng-if="checkViewPermission('Provider', 'Provider')",)
+        include ./provider-list
+    .col-md-9(ng-if="checkViewPermission('Provider', 'Game')",)
+        .panel(class='{{vm.selectedPenalClass}}')
+            .panel-heading
+                label.strong(ng-if='vm.SelectedProvider') {{vm.SelectedProvider.name}}
+                    text.span &nbsp;:&nbsp;{{"TOTAL_GAMES" | translate}}&nbsp;:&nbsp;
+                    text.span ({{vm.allGames.length}})
+                    i#loadingProviderGames.margin-left-5.fa.fa-spin.fa-spinner.hidden
+                label.strong(ng-if='!vm.SelectedProvider') {{"NO_PROVIDER_MESSAGE" | translate}}
+                span
+                    a.pull-right.fa.fa-2x.bg-pale.fa-info-circle(data-toggle="modal", data-target='#modalGameHelp', style='background:transparent')
+                        text.badge.pull-left(style='margin-top:4px') {{"HELP" | translate}}
+            .panel-body.common-right-panel-body
+                .text-center
+                    label.text-danger(ng-if='!vm.SelectedProvider') {{"NO_PROVIDER_MESSAGE" | translate}}
+                #providerGamesFilter.well
+                    .inlineBlk.margin-right-5
+                        .control-label {{"GAME_TITLE" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterGameName')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"GAME_CODE" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterGameCode')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"GAME_TYPE" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterGameType', style='max-width:200px')
+                            option(value='all') {{'any' | translate}}
+                            option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v.gameTypeId}}') {{v.name}}&nbsp;({{v.description}})
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Play Game Type" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterPlayGameType', style='max-width:200px')
+                            option(value='all') {{'any' | translate}}
+                            option(value='1') {{'flash' | translate}}
+                            option(value='2') {{'HTML5' | translate}}
+                    .inlineBlk
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.providerFilterClicked()") {{"FILTER" | translate}}
+                div(ng-if="checkViewPermission('Provider', 'Game', 'Read')",style='height:370px;overflow-x:hidden;overflow-y:auto')
+                    include ./game-blocks
+                br
+                .panel(class='{{vm.selectedPenalClass}}')
+                    .panel-heading.panel-heading-sm
+                        .text-center(ng-if="checkViewPermission('Provider', 'Game', 'Read')")
+                            label(ng-if='!vm.showGame') {{"GAME_DESCRIPTION" | translate}}
+                            label(ng-if='vm.showGame') {{"GAME_DESCRIPTION" | translate}} : {{vm.showGame.name}}
+                    .panel-body(ng-if="checkViewPermission('Provider', 'Game', 'Read')",style='height:100px;padding:5px;')
+                        .textareaDetail
+                            textarea(disabled,readonly, ng-model="vm.showGame.description", rows='4', style="border:none")
+                p
+                .btn-group.text-center(style="min-width:110px", role="group")
+                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Create')",ng-disabled="!vm.SelectedProvider", data-toggle="modal", data-target='#modalGame', ng-click='vm.gameEditStatus="create";vm.initGameDetail();vm.showGame={};')
+                    //    text {{'CREATE' | translate}}
+                    //    img.img-create
+                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Delete')",ng-disabled="!vm.showGame", data-toggle="modal", data-target='#modalGame', ng-click='vm.gameEditStatus="delete"')
+                    //    text {{'DELETE' | translate}}
+                    //    img.img-delete
+                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider', 'Game', 'Update')",ng-disabled="!vm.showGame", data-toggle="modal", data-target='#modalGame', ng-click='vm.gameEditStatus="update";vm.initGameDetail()')
+                    //    text {{'EDIT' | translate}}
+                    //    img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Provider','Game', 'Expense')",ng-disabled="!vm.showGame._id", ng-click='vm.initShowGameExpense()')
+                        text {{"EXPENSE" | translate}}
+                        i.fa.fa-table
+
+
+                //form(name='myForm')
+                    fieldset
+                        legend Upload on form submit
+                        |       Username:
+                        input(type='text', name='userName', ng-model='username', size='31', required='')
+                        i(ng-show='myForm.userName.$error.required') *required
+                        br
+                        | Photo:
+                        input(type='file', ngf-select='', ng-model='picFile', name='file', accept='image/*', ngf-max-size='2MB', required='', ngf-model-invalid='errorFiles')
+                        i(ng-show='myForm.file.$error.required') *required
+                        br
+                        i(ng-show='myForm.file.$error.maxSize')
+                            | File too large
+                            | {{errorFiles[0].size / 1000000|number:1}}MB: max 2M
+                        img.thumb(ng-show='myForm.file.$valid', ngf-thumbnail='picFile')
+                        img.thumb(ng-src="{{vm.uploadFileName}}")
+                        button(ng-click='picFile = null', ng-show='picFile') Remove
+                        br
+                        button(ng-disabled='!myForm.$valid', ng-click='vm.uploadPic(picFile)') Submit
+                        span.progress(ng-show='picFile.progress >= 0')
+                            div(style='width:{{picFile.progress}}%', ng-bind="picFile.progress + '%'")
+                        span(ng-show='picFile.result') Upload Successful
+                        span.err(ng-show='errorMsg') {{errorMsg}}
+
+//#modalGame.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:50%;min-width:1000px;margin-left:20%')
+    include ./game-detail
+#modalGameHelp.modal.fade(tabindex='-1', role='dialog', aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title Icon introduction
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        p The icons placed at the top left corner of each game represent the master status of the game
+                        p.fa.fa-circle.colorGreen
+                        span &nbsp;-> game is running properly
+                        p
+                        p.fa.fa-circle.colorRed
+                        span &nbsp;-> game has stopped running
+                        p
+                        p.fa.fa-circle.colorYellow
+                        span &nbsp;-> game is under maintainance
+                        p /========================
+                        p.colorRed Click the icon to change the status
+                        Changing the status in this page will update the master status of each game.
+                        p To change platform specfic game status, please go to "platform -> game -> provider" page.
+
+#modalGameExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"GAME_EXPENSES" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        label {{"Expense Records for"|translate}} {{vm.showGame.name}}
+                        .well.searchDiv
+                            .inlineBlk
+                                label {{"Start date"|translate}}
+                                .startTime
+                            .inlineBlk
+                                label {{"End date"|translate}}
+                                .endTime
+                            .inlineBlk
+                                button.common-button.btn.btn-primary(ng-click='vm.getGameExpense(true)') {{'SEARCH' | translate}}
+                        i.fa.fa-spin.fa-spinner(ng-if='vm.gameExpenseQuery.loading')
+                        label {{"Total" | translate}} {{vm.gameExpenseQuery.totalCount}} {{"records" | translate}} 
+                        table#gameExpenseDatatable.common-table.display(style='min-width:100%')
+                        #gameExpenseDatatablePage

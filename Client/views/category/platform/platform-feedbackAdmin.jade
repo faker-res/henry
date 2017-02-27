@@ -1,0 +1,56 @@
+.row
+    .col-md-12
+        .well.feedbackAdminQueryDiv
+            .inlineBlk
+                label.control-label {{'Admin' | translate}}
+                //input.form-control(ng-model='vm.feedbackAdminQuery.admin', placeholder="{{'SEARCH' | translate}}")
+                select.form-control(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName for a in vm.departmentUsers')
+                    option(value="") {{'any' | translate}}
+            .inlineBlk
+                label.control-label {{'PLAYER' | translate}}
+                input.form-control(ng-model='vm.feedbackAdminQuery.player', placeholder="{{'SEARCH' | translate}}")
+            .inlineBlk
+                label.control-label {{'FEEDBACK_RESULTS' | translate}}
+                select.form-control(ng-model='vm.feedbackAdminQuery.result', required)
+                    option(value='all') {{'ALL' | translate}}
+                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackString', value='{{v}}') {{v|translate}}
+            .inlineBlk
+                label.control-label {{'Start date' | translate}}
+                #feedbackquerystarttime.input-append.form-control
+                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                    span.add-on
+                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+            .inlineBlk
+                 label.control-label {{'End date' | translate}}
+                 #feedbackqueryendtime.input-append.form-control
+                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                    span.add-on
+                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+            //.inlineBlk
+                label.control-label {{'topUpTimes' | translate}}
+                input.form-control(type='number', ng-model='vm.feedbackAdminQuery.topupTimes')
+
+            button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'FeedbackQuery', 'Read')",ng-click='vm.submitAdminPlayerFeedbackQuery(true)') {{"SEARCH" | translate}}
+            i#loadPlayerFeedbackAdminIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
+.row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
+    .text-center.text-danger
+        label {{"NO_PLATFORM_MESSAGE" | translate}}
+.row.margin-top-bottom-small(ng-show='vm.selectedPlatform')
+    .col-md-12
+        label.margin-left-5 {{"total" | translate}} {{vm.feedbackAdmins.total}} {{"records" | translate}}
+        table#feedbackAdminTable.display.common-table(style='min-width:100%;width:100%')
+        #feedbackAdminTablePage
+    //.col-md-12
+        #feedbackAdminTableSummary
+            label
+                span 本页： (充值次数：
+                span.pageTopup
+                span &nbsp;充值额：
+                span.pageAmount
+                span )&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 总计：(充值次数：
+                span.totalTopup
+                span &nbsp;充值额：
+                span.totalAmount
+                span )
+
+

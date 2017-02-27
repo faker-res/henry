@@ -1,0 +1,211 @@
+.leftPanel-vlist {
+    padding: 0 0 !important;
+}
+
+.leftPanel-vlist .list-group-item {
+    margin-top: 5px;
+    border-radius: 5px;
+    background: rgba(5, 3, 6, 0.08);
+    /*color: rgba(247, 33, 51, 0.87);*/
+}
+
+.leftPanel-vlist li.list-group-item a:hover {
+    text-decoration: none;
+    color: rgba(0, 8, 232, 0.73);
+    font-weight: bold;
+}
+
+.leftPanel-vlist li.bg-bright a {
+    font-weight: bold;
+}
+
+#analysisPanel {
+    margin-top: 5px;
+    /*height: 700px;*/
+    overflow: auto;
+}
+
+#analysisPanel .section {
+    margin: 10px;
+    padding: 5px 0;
+    /*height: 400px;*/
+}
+
+#analysisPanel .section * {
+    /*border: solid 1px blue;*/
+}
+
+#analysisPanel .section .titlePic {
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-bottom: 3px;
+}
+
+#analysisPanel .section .titlePic > .title {
+    height: 35px;
+    font-weight: bold;
+    font-family: serif;
+    font-size: 1.2em;
+    background: #337ab7;
+    border-radius: 5px;
+    color: #fff;
+    padding: 5px 10px;
+    position: relative;
+}
+
+#analysisPanel .section .titlePic > .title text {
+    color: #ffffff;
+}
+
+#analysisPanel .section .titlePic > .title a {
+    color: #ffffff;
+}
+
+#analysisPanel .section .col-sm-7 > label {
+    height: 35px;
+    vertical-align: middle;
+}
+
+#analysisPanel .section .panel {
+    /*height: 350px;*/
+    padding-bottom: 10px;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+#analysisPanel .section .btnOption {
+    display: inline-block;
+    width: 50px;
+    vertical-align: top;
+}
+
+#analysisPanel .section .btnOption > button {
+    display: block;
+    width: 60px;
+    padding: 0;
+}
+
+#analysisPanel .section .dateOption {
+    /*margin-left: 5px;*/
+    display: inline-block;
+}
+
+#analysisPanel .section .dateOption > div {
+    display: inline-block;
+    max-width: 50%;
+}
+
+#analysisPanel .section .dateOption > div label {
+    /*margin-left: 10px;*/
+}
+
+#analysisPanel .section .dateOption > div input {
+    /*margin-left: 10px;*/
+    width: 140px;
+    max-width: calc(100% - 10px);
+}
+
+#analysisPanel .section .graph > label {
+    display: block;
+    position: absolute;
+}
+
+#analysisPanel .leftPanel,
+#analysisPanel .rightPanel {
+    min-width: 100%;
+    width: 100%;
+}
+
+#analysisPanel .leftPanel > *,
+#analysisPanel .rightPanel > * {
+    height: 100%;
+}
+
+#analysisPanel .section .graph > .panel {
+    /*height: 350px;*/
+    padding: 5px 15px 5px 15px;
+}
+
+#analysisPanel .section .graph .toggle {
+    margin-left: 10px;
+    margin-top: 10px;
+}
+
+#analysisPanel .section .graph .toggle a {
+    width: 50px;
+    display: inline-block;
+    /*margin: 0 10px;*/
+}
+
+#analysisPanel .section .graph .toggle label {
+    width: 50px;
+    display: inline-block;
+    color: red;
+    /*margin: 0 10px;*/
+}
+
+#analysisPanel .section .graph .toggle i {
+    width: 20px;
+    display: inline-block;
+    color: #e84a4e
+}
+
+#analysisPanel .section .graph .barChart {
+    width: 100%;
+    height: 100%;
+    /*border: solid 1px black;*/
+}
+
+#analysisPanel .section .graph .lineChart {
+    width: 100%;
+    height: 100%;
+    /*border: solid 1px black;*/
+}
+
+#analysisPanel .section .allPlatfong-form {
+    margin-left: 20px;
+    display: inline-block;
+    height: 100%;
+    width: calc(100% - 80px);
+    padding: 1px;
+}
+
+#analysisPanel .section .pieChart {
+    /*border: solid 1px black;*/
+    height: 100%;
+    width: 100%;
+    display: inline-block;
+}
+
+#analysisPanel .section .pieChart > * {
+    width: 100%;
+    height: 100%;
+    /*position: absolute;*/
+    /*top: 50px;*/
+    /*right: 30px;*/
+}
+
+#analysisPanel #textareaDiv {
+    height: 200px;
+    padding: 1px;
+}
+
+#analysisPanel #gameAnaTab > div:nth-child(2) {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#analysisPanel .flot-x-axis .flot-tick-label.tickLabel {
+    word-wrap: break-word;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.rotate330 {
+    transform: rotate(330deg);
+}
+
+.amcharts-main-div a[title="Interactive JavaScript maps"] {
+    display: none !important;
+}

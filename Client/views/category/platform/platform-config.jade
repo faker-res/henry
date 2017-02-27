@@ -1,0 +1,526 @@
+.row
+    .col-md-3
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                .fa.fa-wrench
+                label &nbsp;{{"CONFIGURATION" | translate}}
+            .panel-body.common-left-sub-panel-body
+                p(ng-if="!vm.curPlatformText")
+                    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+                ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "player"}', ng-click='vm.configTabClicked("player")')
+                        span {{"PLAYER_LEVEL" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partner"}', ng-click='vm.configTabClicked("partner")')
+                        span {{"PARTNER_LEVEL" | translate}}
+                    //li.list-group-item(ng-class='{active: vm.selectedConfigTab === "trust"}', ng-click='vm.configTabClicked("trust")')
+                    //    span {{"TRUST_LEVEL" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "validActive"}', ng-click='vm.configTabClicked("validActive")')
+                        span {{"VALID_ACTIVE" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerCommission"}', ng-click='vm.configTabClicked("partnerCommission")')
+                        span {{"Partner Commission" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "platformBasic"}', ng-click='vm.configTabClicked("platformBasic")')
+                        span {{"Platform Basic" | translate}}
+                    //li.list-group-item(ng-class='{active: vm.selectedConfigTab === "announcement"}', ng-click='vm.configTabClicked("announcement")')
+                        span {{"ANNOUNCEMENTS" | translate}}
+
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"CONFIGURATION_DETAIL" | translate}}
+            .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
+            .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
+                .text-center(ng-if='!vm.selectedConfigTab')
+                    label.text-danger {{'Please select a type' | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="player" && !vm.configPlayerLevelTableHasDefaultLevel()')
+                    label.text-danger {{'PLAYER_LEVEL_NOTE' | translate}}
+                div(ng-if='vm.selectedConfigTab=="player"')
+                    div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
+                        form(name="formPlatformConfigPlayerLevel")
+                            table.common-table.playerLvlTable.stronger-top.stronger-bottom(style='width:auto;min-width:99.9%')
+                                mixin playerLevelConfigHeader
+                                    tr
+                                        th(rowspan='2', ng-if='vm.configTableEdit')
+                                        th(rowspan='2') {{"LEVEL" | translate}}
+                                        th(rowspan='2') {{"VALUE" | translate}}
+                                        th(rowspan='2', ng-if='vm.configTableEdit')
+                                        th(colspan='2') {{"TOP_UP" | translate}}
+                                        th(colspan='2') {{"CONSUMPTION" |  translate}}
+                                        //th(colspan='{{vm.allGameTypeslength}}') {{"CONSUMPTION" | translate}}
+                                        th(rowspan='2') {{'ALL_CONDITIONS_MUST_MATCH_SHORT' | translate}}
+                                        th(rowspan='2', ng-if='vm.configTableEdit')
+                                        th(colspan='4') {{"REWARD" | translate}}
+                                        th(rowspan='2', ng-if='vm.configTableEdit')
+                                    tr
+                                        th {{'Limit' | translate}}
+                                        th {{'PERIOD' | translate}}
+                                        th {{'Limit' | translate}}
+                                        th {{'PERIOD' | translate}}
+                                        th {{'CREDIT' | translate}}
+                                        th {{'Required Task' | translate}}
+                                        th {{'UNLOCKAMOUNT' | translate}}
+                                        th {{'ApplyConsumptionReturn' | translate}}
+                                        //th(ng-repeat='(key,title) in vm.allGameTypes', ng-click='vm.playerTableShowCol[key]=!vm.playerTableShowCol[key]')
+                                            .fa.fa-plus(ng-if='vm.playerTableShowCol[key]')
+                                            text(ng-if='!vm.playerTableShowCol[key]') {{title | translate}}
+                                thead
+                                    +playerLevelConfigHeader
+
+                                tbody(ng-repeat='(i,level) in vm.allPlayerLvl')
+                                    tr.stronger-top
+                                        td(ng-if='vm.configTableEdit', rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            div
+                                                text(ng-if='i === 0') &nbsp;
+                                                a.fa.fa-arrow-circle-up(ng-click='vm.movePlayerLevel(i, -1)', title='{{"REDUCE_THIS_PLAYER_LEVEL" | translate}}', ng-if='i > 0')
+                                            div
+                                                a.fa.fa-arrow-circle-down(ng-click='vm.movePlayerLevel(i, +1)', title='{{"INCREASE_THIS_PLAYER_LEVEL" | translate}}', ng-if='i < vm.allPlayerLvl.length - 1')
+                                                text(ng-if='i >= vm.allPlayerLvl.length - 1') &nbsp;
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            input.form-control(ng-if='vm.configTableEdit', type='text', ng-model='level.name', required)
+                                            text(ng-if='!vm.configTableEdit') {{level.name | translate}}
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}', align="center")
+                                            text(style="width: 60px") {{level.value}}
+                                        td.static(colspan='{{vm.configTableEdit ? 7 : 5}}')
+                                            text {{"Level Up Conditions" | translate}}
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.reward.bonusCredit')
+                                            text(ng-show='!vm.configTableEdit') {{level.reward.bonusCredit | number}}
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            input(ng-show='vm.configTableEdit', type='checkbox', ng-model='level.reward.isRewardTask')
+                                            i.fa.fa-square-o(ng-show='!vm.configTableEdit && !level.reward.isRewardTask')
+                                            i.fa.fa-check-square-o(ng-show='!vm.configTableEdit && level.reward.isRewardTask')
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            input(ng-show='vm.configTableEdit && level.reward.isRewardTask', type='number', style='width:100px', ng-model='level.reward.requiredUnlockAmount')
+                                            text(ng-show='vm.configTableEdit && !level.reward.isRewardTask') {{'Required Task' | translate}}
+                                            text(ng-show='!vm.configTableEdit') {{level.reward.requiredUnlockAmount | number}}
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            input(ng-show='vm.configTableEdit', type='checkbox', ng-model='level.canApplyConsumptionReturn')
+                                            i.fa.fa-square-o(ng-show='!vm.configTableEdit && !level.canApplyConsumptionReturn')
+                                            i.fa.fa-check-square-o(ng-show='!vm.configTableEdit && level.canApplyConsumptionReturn')
+                                        td(ng-if='vm.configTableEdit', rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            a.fa.fa-trash(ng-click='vm.configTableDeleteLevelConfirm("player", level)', title='{{"DELETE_THIS_PLAYER_LEVEL" | translate}}')
+
+                                    tr(ng-repeat='(j,oneConfig) in level.levelUpConfig')
+                                        td(ng-if='vm.configTableEdit && j == 0', rowspan='{{level.levelUpConfig.length}}')
+                                            a.fa.fa-plus-circle(ng-click='level.levelUpConfig.push({andConditions: true})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
+                                        td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")
+                                            input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupLimit', required)
+                                            text(ng-if='!vm.configTableEdit') {{oneConfig.topupLimit | number : 2}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.topupPeriod | translate}}
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', required)
+                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                        td
+                                            input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionLimit', required)
+                                            text(ng-if='!vm.configTableEdit') {{oneConfig.consumptionLimit | number : 2}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', required)
+                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                        td
+                                            input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
+                                        td(ng-if='vm.configTableEdit')
+                                            a.fa.fa-times-circle(ng-if='level.levelUpConfig.length > 1', ng-click='level.levelUpConfig.splice(j,1)', title='{{"REMOVE_THIS_LEVEL_UP_CONDITION" | translate}}')
+
+                                    tr
+                                        td.static(colspan='{{vm.configTableEdit ? 7 : 5}}', ng-class='{hidden: i === 0}')
+                                            text {{"Level Down Conditions" | translate}}
+                                    tr(ng-repeat='(j,oneConfig) in level.levelDownConfig', ng-class='{hidden: i === 0}')
+                                        td(ng-if='vm.configTableEdit && j == 0', rowspan='{{level.levelDownConfig.length}}')
+                                            //a.fa.fa-plus-circle(ng-click='level.levelDownConfig.push({})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
+                                        td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")
+                                            input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupMinimum', ng-change="vm.playerLvlDownChange(i,j,'topupMinimum')", required)
+                                            text(ng-if='!vm.configTableEdit') {{oneConfig.topupMinimum | number : 2}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.topupPeriod | translate}}
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', ng-disabled="oneConfig.consumptionMinimum", required)
+                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='oneConfig.topupMinimum && j!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
+                                        td
+                                            input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionMinimum', ng-change="vm.playerLvlDownChange(i,j,'consumptionMinimum')", required)
+                                            text(ng-if='!vm.configTableEdit') {{oneConfig.consumptionMinimum | number : 2}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', ng-disabled="oneConfig.topupMinimum", required)
+                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='oneConfig.consumptionMinimum && j!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
+                                        //- TAG_MIX_PERIOD_OR_TOO_COMPLEX
+                                        td(ng-class='{warning: vm.levelDownConditionIsTooComplex(oneConfig)}', title='{{vm.levelDownConditionIsTooComplex(oneConfig) ? "OR operation with daily and weekly requirements is not currently supported" : "" | translate}}')
+                                            //input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
+                                        td(ng-if='vm.configTableEdit')
+                                            a.fa.fa-times-circle(ng-if='level.levelDownConfig.length > 1', ng-click='level.levelDownConfig.splice(j,1)', title='{{"REMOVE_THIS_LEVEL_DOWN_CONDITION" | translate}}')
+
+                                tbody(ng-if='vm.configTableAdd')
+                                    tr.stronger-top
+                                        td(colspan='10')
+                                            text &nbsp;
+                                thead(ng-if='vm.configTableAdd')
+                                    tr.stronger-top.stronger-bottom
+                                        td.static(colspan='10')
+                                            label {{"createPlayerLevel" | translate}}
+                                    +playerLevelConfigHeader
+                                tbody(ng-if='vm.configTableAdd')
+                                    tr.stronger-top
+                                        td(rowspan='4')
+                                            input#newPlayerLevelFirstInput.form-control(type='text', ng-model='vm.newPlayerLvl.name', placeholder="{{'NAME' | translate}}", required)
+                                        td(rowspan='4')
+                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.value', required, disabled)
+                                        td.static(colspan='5')
+                                            text {{"Level Up Conditions" | translate}}
+                                        td(rowspan='4')
+                                            input.form-control(type='number', min=0, ng-model='vm.newPlayerLvl.reward.bonusCredit', required)
+                                        td(rowspan='4')
+                                            input(type='checkbox', ng-model='vm.newPlayerLvl.reward.isRewardTask', required)
+                                        td(rowspan='4')
+                                            input.form-control(type='number', ng-model='vm.newPlayerLvl.reward.requiredUnlockAmount', ng-disabled='!vm.newPlayerLvl.reward.isRewardTask')
+                                    tr
+                                        td
+                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelUpConfig[0].topupLimit', required)
+                                        td
+                                            select.form-control(ng-model='vm.newPlayerLvl.levelUpConfig[0].topupPeriod', required)
+                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                        td
+                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelUpConfig[0].consumptionLimit', required)
+                                        td
+                                            select.form-control(ng-model='vm.newPlayerLvl.levelUpConfig[0].consumptionPeriod', required)
+                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                        td
+                                            input(type='checkbox', ng-model='vm.newPlayerLvl.levelUpConfig[0].andConditions')
+                                        //td(ng-repeat='(key,title) in vm.allGameTypes')
+                                            input.form-control(type='number', ng-model='vm.newPlayerLvl.consumption[key]')
+                                        //td
+                                            text {{level.reward}}
+                                        //-td
+                                    tr
+                                        td.static(colspan='5')
+                                            text {{"Level Down Conditions" | translate}}
+                                    tr
+                                        td
+                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].topupMinimum', ng-change="vm.playerLvlDownChange(-1,j,'topupMinimum')", required)
+                                        td
+                                            select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].topupPeriod',ng-disabled="vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum", required)
+                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='vm.newPlayerLvl.levelDownConfig[0].topupMinimum && i!=="NONE"', value='{{j}}') {{"LEVEL"+i | translate}}
+                                        td
+                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum', ng-change="vm.playerLvlDownChange(-1,j,'consumptionMinimum')", required)
+                                        td
+                                            select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod',ng-disabled="vm.newPlayerLvl.levelDownConfig[0].topupMinimum", required)
+                                                option(ng-repeat='(i,j) in vm.playerLvlPeriod', ng-if='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum && i!=="NONE"',value='{{j}}') {{"LEVEL"+i | translate}}
+                                        td
+                                            // input(type='checkbox', ng-model='vm.newPlayerLvl.levelDownConfig[0].andConditions')
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI();')
+                            text {{'ADD_LEVEL' | translate}}
+                            img.img-create
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player")')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player")')
+                            text {{"CANCEL" | translate}}
+                            .fa.fa-ban
+                        button.btn.btn-primary.common-button(ng-if="vm.configTableAdd", ng-disabled='formPlatformConfigPlayerLevel.$invalid || !vm.configAddPlayerLevelValid()', ng-click='vm.configTableAdd=false; vm.submitAddPlayerLvl()')
+                            text {{"SUBMIT" | translate}}
+                            .fa.fa-check
+                        button.btn.btn-primary.common-button(ng-if="vm.configTableEdit", ng-disabled='formPlatformConfigPlayerLevel.$invalid || !vm.configPlayerLevelTableIsValid()', ng-click='vm.configTableEdit=false; vm.configSubmitUpdate("player")')
+                            text {{"CONFIRM" | translate}}
+                            .fa.fa-check
+
+                div(ng-if='vm.selectedConfigTab=="partner"')
+                    div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
+                        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                            thead
+                                tr
+                                    th {{"PARTNER" | translate}}
+                                    th.narrowTableCol {{'VALUE' | translate}}
+                                    th.narrowTableCol {{"NO_OF_RECOMMANDATION" | translate}}
+                                    th.narrowTableCol {{"DEMOTION_PERIOD" | translate}}
+                                    th.narrowTableCol {{"CONSUMPTION_AMOUNT" | translate}}
+                                    th.narrowTableCol {{"CONSUMPTION_RETURN" | translate}}
+                            tbody
+                                tr(ng-repeat='(key,partner) in vm.allPartner')
+                                    td
+                                        text {{partner.name | translate}}
+                                    td
+                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].value')
+                                        text(ng-if='!vm.configTableEdit') {{partner.value}}
+                                    td
+                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].limitPlayers')
+                                        text(ng-if='!vm.configTableEdit') {{partner.limitPlayers}}
+                                    td
+                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].demoteWeeks')
+                                        text(ng-if='!vm.configTableEdit') {{partner.demoteWeeks}}
+                                    td
+                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].consumptionAmount')
+                                        text(ng-if='!vm.configTableEdit') {{partner.consumptionAmount}}
+                                    td
+                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].consumptionReturn')
+                                        text(ng-if='!vm.configTableEdit') {{partner.consumptionReturn}}
+                                tr(ng-if='vm.configTableAdd')
+                                    td
+                                        input(type='text' , ng-model='vm.newPartnerLvl.name')
+                                    td
+                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.value')
+                                    td
+                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.limitPlayers')
+                                    td
+                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.demoteWeeks')
+                                    td
+                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.consumptionAmount')
+                                    td
+                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.consumptionReturn')
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PartnerLevelCreate')", ng-click='vm.configTableAdd=!vm.configTableAdd;vm.newPartnerLvl={};')
+                            text {{'ADD_LEVEL' | translate}}
+                            img.img-create
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableAdd', ng-click='vm.configTableAdd=!vm.configTableAdd;vm.submitAddPartnerLvl()') {{"SUBMIT" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PartnerLevelUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configTableEdit=false;vm.configTableAdd=false') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("partner")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="trust"')
+                    div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
+                        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                            thead
+                                tr
+                                    th {{'NAME' | translate}}
+                                    th {{'VALUE' | translate}}
+                            tbody
+                                tr(ng-repeat='(i,v) in vm.allPlayerTrustLvl')
+                                    td {{v.name}}
+                                    td {{v.value}}
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'Trust')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("trust")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="validActive"')
+                    div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
+                        form(name="formValidActivePlayer", novalidate)
+                            table.simple-table.validActiveTable(style='width:auto;min-width:99.9%')
+                                thead
+                                    tr
+                                        th {{'MIN_REQUIREMENT' | translate}}
+                                        th {{'TOP_UP_TIMES' | translate}}
+                                        th {{'CONSUMPTION' | translate}}
+                                tbody
+                                    tr
+                                        td {{'ACTIVE_PLAYER' | translate}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerTopUpTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerConsumptionTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerConsumptionTimes')
+                                    tr
+                                        td {{'VALID_PLAYER' | translate}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerTopUpTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerConsumptionTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerConsumptionTimes')
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.partnerLevelConfigEdit=vm.partnerLevelConfig')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-disabled="formValidActivePlayer.$invalid", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="partnerCommission"')
+                    .col-md-12(ng-if='vm.partnerCommission.showConfig')
+                        h4 {{"Foundation Config" | translate}}
+                        table.common-table.paddingTbl(style='width:100%')
+                            thead
+                                tr
+                                    th(rowspan=2) {{'platformFeeRate' | translate}}
+                                    th(rowspan=2) {{'serviceFeeRate' | translate}}
+                                    th(rowspan=2) {{'Settlement Period' | translate}}
+                                    th(colspan=2) {{'Historical Bonus' | translate}}
+                                tr
+                                    th {{'CommissionHistoryTimes' | translate}}
+                                    th {{'RATIO' | translate}}
+                            tbody
+                                tr(ng-if='vm.partnerCommission.isEditing')
+                                    td
+                                        span.percentage
+                                            input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.platformFeeRate')
+                                    td
+                                        span.percentage
+                                            input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.serviceFeeRate')
+                                    td
+                                        select.form-control(ng-model='vm.partnerCommission.showConfig.commissionPeriod', required)
+                                            option(value='day') {{'day' | translate}}
+                                            option(value='week') {{'week' | translate}}
+                                            option(value='month') {{'month' | translate}}
+                                    td
+                                        input.form-control(type='number', ng-model='vm.partnerCommission.showConfig.bonusCommissionHistoryTimes')
+                                    td
+                                        span.percentage
+                                            input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.bonusRate')
+                                tr(ng-if='!vm.partnerCommission.isEditing')
+                                    td
+                                        span.percentage
+                                            input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.platformFeeRate')
+                                    td
+                                        span.percentage
+                                            input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.serviceFeeRate')
+                                    td
+                                        label.form-control {{vm.partnerCommission.showConfig.commissionPeriod | translate}}
+                                    td
+                                        label.form-control {{vm.partnerCommission.showConfig.bonusCommissionHistoryTimes}}
+                                    td
+                                        span.percentage
+                                            input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.bonusRate')
+                    .col-md-12(ng-if='vm.partnerCommission.showConfig')
+                        h4 {{'commissionLevelConfig' | translate}}
+                        table.common-table.paddingTbl.border-cell
+                            thead
+                                tr
+                                    th(rowspan=2) {{'VALUE' | translate}}
+                                    th(colspan=2) {{'Profit Amount' | translate}}
+                                    th(rowspan=2) {{'Min Active Player' | translate}}
+                                    th(rowspan=2) {{'Commission Rate' | translate}}
+                                    th(rowspan=2, ng-if='vm.partnerCommission.isEditing') {{'Delete' | translate}}
+                                tr
+                                    th {{'Qty_Min' | translate}}
+                                    th {{'Qty_Max' | translate}}
+                            thead
+                                tr(ng-if='!vm.partnerCommission.isEditing', ng-repeat='(i,v) in vm.partnerCommission.showConfig.commissionLevelConfig')
+                                    td {{v.value}}
+                                    td {{v.minProfitAmount}}
+                                    td {{v.maxProfitAmount}}
+                                    td {{v.minActivePlayer}}
+                                    td
+                                        .percentage
+                                            input.form-control.inlineBlk(percentage, disabled, ng-model='v.commissionRate')
+                                tr(ng-if='vm.partnerCommission.isEditing', ng-repeat='(i,v) in vm.partnerCommission.showConfig.commissionLevelConfig')
+                                    td {{vm.setValue(v,'value',i+1)}}
+                                    td
+                                        input.form-control(type='number', min=0, ng-model='v.minProfitAmount')
+                                    td
+                                        input.form-control(type='number', min=0, ng-model='v.maxProfitAmount')
+                                    td
+                                        input.form-control(type='number', min=0, ng-model='v.minActivePlayer')
+                                    td
+                                        .percentage
+                                            input.form-control.inlineBlk(type='number', percentage, min=0, ng-model='v.commissionRate')
+                                    td
+                                        a.fa.fa-times-circle.text-danger(ng-click='vm.removePartnerCommissionLevel("commissionLevelConfig","value",v)')
+                        button.btn.btn-info.margin-top-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.addCommissionLevel("commissionLevelConfig")') {{'ADD_LEVEL' | translate}}
+                    .col-md-12(ng-if='vm.partnerCommission.showConfig')
+                        h4 {{'childrenCommissionRate' | translate}}
+                        table.common-table.paddingTbl.border-cell
+                            tbody
+                                tr
+                                    td(style='max-width:80px') {{"LEVEL" | translate}}
+                                    td(ng-if='vm.partnerCommission.showConfig.childrenCommissionRate.length==0') {{'NULL' | translate}}
+                                    td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
+                                        text {{vm.setValue(v,'level',i+1)}}
+                                tr(ng-if='!vm.partnerCommission.isEditing')
+                                    td(style='max-width:80px') {{"RATIO" | translate}}
+                                    td(ng-if='vm.partnerCommission.showConfig.childrenCommissionRate.length==0') {{'NULL' | translate}}
+                                    td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
+                                        span.percentage
+                                            input.inlineBlk.form-control(type='number', disabled, percentage, style='max-width:60px', ng-model='v.rate')
+                                tr(ng-if='vm.partnerCommission.isEditing')
+                                    td(style='max-width:80px') {{"RATIO" | translate}}
+                                    td(ng-if='vm.partnerCommission.showConfig.childrenCommissionRate.length==0') {{'NULL' | translate}}
+                                    td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
+                                        span.percentage.form-control-sm
+                                            input.inlineBlk.form-control(type='number', percentage, style='max-width:60px', ng-model='v.rate')
+                                tr(ng-if='vm.partnerCommission.isEditing && vm.partnerCommission.showConfig.childrenCommissionRate.length>0')
+                                    td {{'Delete' | translate}}
+                                    td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
+                                        a.fa.fa-times-circle.text-danger(ng-click='vm.removePartnerCommissionLevel("childrenCommissionRate","level",v)')
+                        button.btn.btn-info.margin-top-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.addCommissionLevel("childrenCommissionRate")') {{'ADD_LEVEL' | translate}}
+                    .col-md-12.margin-top-10(ng-if='vm.partnerCommission.showConfig')
+                        .pull-right
+                            button.btn.btn-primary.margin-right-5(ng-if='!vm.partnerCommission.isEditing', ng-click='vm.partnerCommission.isEditing=true') {{'Edit' | translate}}
+                            button.btn.btn-info.margin-right-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.submitUpdatePartnerCommision()') {{'SUBMIT' | translate}}
+                            button.btn.btn-warning.margin-right-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.partnerCommission.isEditing=false;vm.partnerCommission.showConfig=vm.partnerCommission.srcConfig') {{'CANCEL' | translate}}
+                    .col-md-12(ng-if='vm.partnerCommission.showConfig===false')
+                        h4 {{'This platform has no commission config. Create one?' | translate}}
+                        button.btn.btn-success.margin-left-5(ng-click='vm.addPartnerCommissionConfig()') {{'Create' | translate}}
+                    .col-md-12(ng-if='vm.partnerCommission.loading')
+                        h4.blink {{'Loading' | translate}}...
+
+                div(ng-if='vm.selectedConfigTab=="platformBasic"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'minTopUpAmount' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("platformBasic")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("platformBasic")') {{"CONFIRM" | translate}}
+
+                //div(ng-if='vm.selectedConfigTab=="announcement"')
+                    div(style="height:265px;overflow:auto;margin-bottom:5px")
+                        form(name="platformAnnouncementsForm")
+                            table.simple-table(style='width:auto;min-width:99.9%')
+                                thead
+                                    tr
+                                        th(width="20%") {{'TITLE' | translate}}
+                                        th(width="45%") {{'CONTENT' | translate}}
+                                        th(width="15%") {{'REACH' | translate}}
+                                        th(width="20%") {{'DATE' | translate}}
+                                tbody
+                                    tr(ng-if="!vm.configTableAdd", ng-repeat="(i,ann) in vm.allPlatformAnnouncements", sn-selectable-model="vm.selectedPlatformAnnouncement", sn-selectable-value="ann", ng-click="vm.currentlyFocusedAnnouncement = ann; vm.previewPlatformAnnouncement()")
+                                        td
+                                            input.form-control(type="text", ng-disabled="!vm.configTableEdit", ng-model="ann.title", required, title="{{ann.title}}")
+                                        td
+                                            textarea.form-control.expand-on-focus(ng-disabled="!vm.configTableEdit", ng-model="ann.content", required, ng-focus="vm.currentlyFocusedAnnouncement = ann; vm.previewPlatformAnnouncement()", ng-change="vm.previewPlatformAnnouncement()", ng-blur="vm.currentlyFocusedAnnouncement = null; vm.previewPlatformAnnouncement()", title="{{ann.content}}")
+                                        td
+                                            select.form-control(ng-disabled="!vm.configTableEdit", ng-model="ann.reach", required, title="{{ann.reach}}")
+                                                option(value="all") {{"ALL" | translate}}
+                                                option(value="players") {{"PLAYERS_ONLY" | translate}}
+                                                option(value="conditional") {{"CUSTOM" | translate}}
+                                        td
+                                            input.form-control(type="datetime", date-time, ng-disabled="!vm.configTableEdit", ng-model="ann.date", title="{{ann.date | date:'medium'}}")
+                                    tr(ng-if="vm.configTableAdd")
+                                        td
+                                            input.form-control(type="text", ng-model="vm.newAnn.title", required)
+                                        td
+                                            textarea.form-control.expand-on-focus(ng-model="vm.newAnn.content", required, ng-change="vm.previewPlatformAnnouncement()")
+                                        td
+                                            select.form-control(ng-model="vm.newAnn.reach", required)
+                                                option(value="all") {{"ALL" | translate}}
+                                                option(value="players") {{"PLAYERS_ONLY" | translate}}
+                                                option(value="conditional") {{"CUSTOM" | translate}}
+                                        td
+                                            input.form-control(type="datetime", date-time, ng-model="vm.newAnn.date")
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlatformAnnouncementCreate')", ng-click="vm.configTableAdd=true; vm.newAnn={}; vm.currentlyFocusedAnnouncement = vm.newAnn")
+                            text {{'CREATE' | translate}}
+                            img.img-create
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlatformAnnouncementUpdate')", ng-disabled="!vm.selectedPlatformAnnouncement", ng-click='vm.configStartEdit("announcement")')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlatformAnnouncementDelete')", ng-disabled="!vm.selectedPlatformAnnouncement", ng-click='vm.configTableDeleteSelectedPlatformAnnouncement()')
+                            text {{'DELETE' | translate}}
+                            img.img-delete
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("announcement")')
+                            text {{"CANCEL" | translate}}
+                            .fa.fa-ban
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableAdd', ng-disabled="platformAnnouncementsForm.$invalid", ng-click='vm.configTableAdd=false; vm.submitAddAnnouncement()')
+                            text {{"SUBMIT" | translate}}
+                            .fa.fa-check
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-disabled="platformAnnouncementsForm.$invalid", ng-click='vm.configTableEdit=false; vm.configSubmitUpdate("announcement")')
+                            text {{"CONFIRM" | translate}}
+                            .fa.fa-check
+                    .clearfix
+                    label {{"PREVIEW" | translate}}
+                    .well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
+                        .announcementPreview.html(style="max-height: 185px; overflow: auto; background-color: white")
+
+
+
