@@ -1168,6 +1168,7 @@ var dbPlayerInfo = {
                         platformId: data.platform,
                         amount: amount,
                         topUpType: topUpType,
+                        createTime: proposalData ? proposalData.createTime : new Date(),
                         bDirty: false
                     };
                     var logData = null;

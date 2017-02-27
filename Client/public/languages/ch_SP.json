@@ -1765,7 +1765,8 @@
   "PlayerRegistrationReward": "注册彩金奖励",
   "GAMETYPE": "游戏类型",
   "CONSUMPTIONAMOUNT": "消费额度",
-  "RETURNAMOUNT": "返点额度"
+  "RETURNAMOUNT": "返点额度",
+  "APPLYAMOUNT": "申请额度"
 }
 
 
