@@ -57,7 +57,7 @@ angular.module('myApp.filters', []).
                                 break;
                         }
                     }
-                
+
                     if (!isDuplicate) {
                         newItems.push(item);
                     }

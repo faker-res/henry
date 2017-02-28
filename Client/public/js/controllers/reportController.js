@@ -46,7 +46,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'playerId', bSortable: true, 'aTargets': [0]},
                     {'sortCol': 'playerName', bSortable: true, 'aTargets': [1]},
                     {'sortCol': 'amount', bSortable: true, 'aTargets': [2]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'applyAmount', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -59,9 +60,15 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "sumText"},
                     {
                         title: $translate('REWARDAMOUNT'), sClass: "sumFloat alignRight", data: "$amount",
-                        // render: function (data, type, row) {
-                        //     return parseFloat(row.data.amount || row.data.rewardAmount).toFixed(2);
-                        // }
+                        render: function (data, type, row) {
+                            return parseFloat(row.data.amount || row.data.rewardAmount).toFixed(2);
+                        }
+                    },
+                    {
+                        title: $translate('APPLYAMOUNT'), sClass: "sumFloat alignRight", data: "$applyAmount",
+                        render: function (data, type, row) {
+                            return parseFloat(row.data.applyAmount).toFixed(2);
+                        }
                     },
                     {title: $translate('CREATE_TIME'), data: "$createTime"},
                 ]
@@ -2574,7 +2581,7 @@ define(['js/app'], function (myApp) {
                         item.data.rewardAmount :
                         (item.data.returnAmount ? item.data.returnAmount : 0);
                     item.$amount = parseFloat(item.$amount).toFixed(2);
-                    item.$createTime = utilService.$getTimeFromStdTimeFormat(item.createTime)
+                    item.$createTime = utilService.$getTimeFromStdTimeFormat(item.createTime);
                     if (vm.rewardTypeName == 'ALL') {
                         item.type.name$ = $translate(item.type.name);
                     }
@@ -2597,7 +2604,7 @@ define(['js/app'], function (myApp) {
                     "emptyTable": $translate("No data available in table"),
                 },
             });
-            vm.generalRewardProposalQuery.table = utilService.createDatatableWithFooter("#generalRewardProposalTable", tableOptions, {3: summary.amount});
+            vm.generalRewardProposalQuery.table = utilService.createDatatableWithFooter("#generalRewardProposalTable", tableOptions, {2: summary.amount, 3: summary.applyAmount});
             vm.generalRewardProposalQuery.pageObj.init({maxCount: size}, newSearch);
 
             $("#generalRewardProposalTable").off('order.dt');
@@ -2669,8 +2676,8 @@ define(['js/app'], function (myApp) {
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             var summaryObj = {
-                4: summary.unlockedAmountSum,
-                6: summary.currentAmountSum,
+                4: summary ? summary.unlockedAmountSum : 0,
+                6: summary ? summary.currentAmountSum : 0
             }
             vm.generalRewardTaskQuery.table = utilService.createDatatableWithFooter("#generalRewardTaskTable", tableOptions, summaryObj);
             vm.generalRewardTaskQuery.pageObj.init({maxCount: size}, newSearch);

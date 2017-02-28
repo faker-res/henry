@@ -4196,7 +4196,7 @@ define(['js/app'], function (myApp) {
 
         vm.submitManualUnlockRewardTask = function() {
             socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', vm.curRewardTask, function (data) {
-                
+
                 vm.manualUnlockRewardTask.resMsg = $translate('SUCCESS');
                 $scope.safeApply();
                 // if (callback) {
@@ -4773,7 +4773,7 @@ define(['js/app'], function (myApp) {
                     title: $translate('MODIFY_PLAYER') + ' ' + vm.selectedSinglePlayer.name,
                     changeType: 'email',
                     curEmail: vm.selectedSinglePlayer.email,
-                    phoneNumber: angular.isDefined(vm.selectedSinglePlayer.phoneNumber) ? 
+                    phoneNumber: angular.isDefined(vm.selectedSinglePlayer.phoneNumber) ?
                                     (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-3)) : "",
                 }
             } else if (which == 'partner') {

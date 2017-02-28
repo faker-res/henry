@@ -53,7 +53,7 @@ define(['js/app'], function (myApp) {
                 }
             });
             vm.playerCountLimit = 20;
-            
+
             console.log('vm.selectedPlatform', vm.allPlatformId);
             vm.getLoggedInPlayerCount();
             vm.getLoggedInPlayer();
@@ -1618,7 +1618,6 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 var storedPlatform = $cookies.get("platform");
-                console.log("Platform Cookies", storedPlatform);
                 if (storedPlatform) {
                     vm.platformList.forEach(
                         platform => {

@@ -1723,7 +1723,8 @@ var proposal = {
                         $group: {
                             _id: null,
                             sum1: {$sum: "$data.returnAmount"},
-                            sum2: {$sum: "$data.rewardAmount"}
+                            sum2: {$sum: "$data.rewardAmount"},
+                            sumApplyAmount: {$sum: "$data.applyAmount"}
                         }
                     }
                 ]);
@@ -1740,8 +1741,8 @@ var proposal = {
             function (data) {
                 if (data && data[1]) {
                     var obj = {data: data[0], size: data[1]};
-                    var temp = data[2] ? data[2][0] : {sum1: 0, sum2: 0};
-                    obj.summary = {amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2)};
+                    var temp = data[2] ? data[2][0] : {sum1: 0, sum2: 0, sumApplyAmount: 0};
+                    obj.summary = {amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2), applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)};
                     deferred.resolve(obj);
                 } else {
                     deferred.resolve({data: [], size: 0, summary: {}})
