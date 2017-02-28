@@ -13,6 +13,10 @@
                 .pull-right
                     button.btn.btn-primary.common-button(ng-disabled='!vm.proposalChanged',ng-click='vm.saveProcess();vm.proposalChanged=false;')  {{'SAVE_PROCESS' | translate}}
                     button.btn.btn-primary.common-button(ng-click='vm.resetProcess();vm.proposalChanged=false;')  {{'RESET_PROCESS' | translate}}
+
+                    button.btn.btn-primary.common-button(data-toggle="modal", data-target='#modalSetExpiryDate', title='Configure expiry date', ng-click='vm.initStep();')
+                        | {{'EXPIRY_DATE' | translate}}
+
             .col-sm-2(style='padding-left:0')
                 div(style="border:solid 1px blue;overflow: auto;padding:10px 5px;", ng-show='vm.chartViewModel.getSelectedNodes().length !== 0')
                     div(ng-if="!vm.editingNode")
@@ -67,4 +71,22 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="form_add_node.$invalid", ng-click="vm.addNewNode();vm.proposalChanged=true;") {{"CREATE" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss='modal') {{"OK" | translate}}
 
-                            
+#modalSetExpiryDate.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:20%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'EXPIRY_DATE' | translate}}
+            .modal-body
+                .label-select-inline.width6040
+                        label Duration (Hour):
+
+                        select(ng-model="vm.expDuration")
+                            -for(var i = 0;i<=12;i++){
+                            option(value="#{i}") #{i}
+                            -}       
+           
+            .modal-footer
+                button.btn.btn-danger.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-click='vm.saveDateProcess();vm.proposalChanged=false;')  {{'SAVE_PROCESS' | translate}}
+                           
