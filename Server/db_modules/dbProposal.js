@@ -193,7 +193,7 @@ var proposal = {
                         {_id: data[0]._id, createTime: data[0].createTime},
                         {
                             proposalId: (data[1].prefix + data[0].proposalId),
-                            ExpirationTime: expiredDate
+                            expirationTime: expiredDate
                         },
                         {new: true}
                     ).populate({path: 'type', model: dbconfig.collection_proposalType}).lean();

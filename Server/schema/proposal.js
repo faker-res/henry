@@ -42,7 +42,7 @@ var proposalSchema = new Schema({
     // }],
     isLocked: {type: Schema.Types.ObjectId, ref: 'adminInfo'},
     //expiry date for each proposal
-    ExpirationTime : {type: Date, default: Date.now },
+    expirationTime : {type: Date, default: Date.now },
 });
 
 /*

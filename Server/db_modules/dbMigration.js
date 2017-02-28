@@ -558,7 +558,7 @@ var dbMigration = {
                                     userType: userType,
                                     status: status,
                                     noSteps: true,
-                                    ExpirationTime: expiredDate
+                                    expirationTime: expiredDate
                                 };
                                 return dbMigration.createRequestId(inputData.requestId).then(
                                     reId => {
@@ -1379,7 +1379,7 @@ var dbMigration = {
                                     userType: userType,
                                     status: status,
                                     noSteps: true,
-                                    ExpirationTime: expiredDate
+                                    expirationTime: expiredDate
                                 };
                                 var newRequestId = new dbconfig.collection_syncDataRequestId({requestId: requestData.requestId});
                                 return newRequestId.save().then(
