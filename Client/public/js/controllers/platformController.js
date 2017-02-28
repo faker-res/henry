@@ -3524,15 +3524,18 @@ define(['js/app'], function (myApp) {
             });
         };
         vm.getRewardTaskDetail = function (playerId, callback) {
-            console.log('play', playerId);
+            var deferred = Q.defer();
+
             socketService.$socket($scope.AppSocket, 'getPlayerCurRewardTaskDetailByPlayerId', {_id: playerId}, function (data) {
-                console.log('getRewardTask', data);
                 vm.curRewardTask = data.data;
                 $scope.safeApply();
                 if (callback) {
                     callback(vm.rewardTask);
                 }
+                deferred.resolve(data);
             });
+
+            return deferred.promise;
         }
         vm.prepareShowFeedbackRecord = function () {
             vm.playerFeedbackData = [];
@@ -4176,6 +4179,34 @@ define(['js/app'], function (myApp) {
                 vm.playerAddRewadTask.resMsg = err.error.message || $translate('FAIL');
                 $scope.safeApply();
             })
+        }
+
+        vm.initManualUnlockRewardTask = function() {
+            vm.manualUnlockRewardTask = {
+                resMsg: $translate("Reward task is not available")
+            };
+            vm.getRewardTaskDetail(vm.selectedSinglePlayer._id).then(function(data) {
+                if (data) {
+                    vm.manualUnlockRewardTask.resMsg = "";
+                }
+            });
+            $('#modalManualUnlockRewardTask').modal();
+            $scope.safeApply();
+        }
+
+        vm.submitManualUnlockRewardTask = function() {
+            socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', vm.curRewardTask, function (data) {
+                
+                vm.manualUnlockRewardTask.resMsg = $translate('SUCCESS');
+                $scope.safeApply();
+                // if (callback) {
+                //     callback(vm.rewardTask);
+                // }
+            },
+            function(err) {
+                vm.manualUnlockRewardTask.resMsg = err.error.message || $translate('FAIL');
+                $scope.safeApply();
+            });
         }
 
         vm.prepareShowPlayerExpense = function () {

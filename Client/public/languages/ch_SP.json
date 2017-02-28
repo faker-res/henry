@@ -48,6 +48,10 @@
   "Permission":"权限",
   "AddRewardTask":"添加奖励任务",
 
+  "Manual Unlock Reward Task":"强制解锁奖励任务",
+  "Unlock Reward":"解锁奖励任务",
+  "Reward task is not available":"奖励任务不存在",
+
   "CREATE_POLICY":"新建策略",
   "POLICY_ACTIONS":"策略行为",
   "ATTACH_ADMIN":"添加用户",
