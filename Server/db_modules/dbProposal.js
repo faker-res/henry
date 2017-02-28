@@ -20,6 +20,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
 var pmsAPI = require('../externalAPI/pmsAPI');
+var moment = require('moment-timezone');
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
@@ -167,7 +168,7 @@ var proposal = {
                             else {
                                 var proposalProm = proposal.createProposal(proposalData);
                                 var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
-                                return Q.all([proposalProm, platProm]);
+                                return Q.all([proposalProm, platProm, data[0].ExpirationDuration]);
                             }
                         }
                     );
@@ -178,18 +179,21 @@ var proposal = {
             }
         ).then(
             function (data) {
-                if (data && data[0] && data[1]) {
+                if (data && data[0] && data[1] && data[2]) {
                     //notify the corresponding clients with new proposal
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
                         wsMessageClient.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyNewProposal", data);
                     }
 
+                    var expiredDate = moment(data[0].createTime).add('hour', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');
+
                     // We need the type to be populated, because messageDispatcher wants to read proposalData.type.name
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: data[0]._id, createTime: data[0].createTime},
                         {
-                            proposalId: (data[1].prefix + data[0].proposalId)
+                            proposalId: (data[1].prefix + data[0].proposalId),
+                            ExpirationTime: expiredDate
                         },
                         {new: true}
                     ).populate({path: 'type', model: dbconfig.collection_proposalType}).lean();
