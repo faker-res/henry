@@ -1717,8 +1717,6 @@
   "Unlock times": "解锁消费额度倍数",
   "Player Top Up Reward": "玩家充值大冒险奖励",
   "NEWACCOUNT_REPORT":"开户统计报表",
-  "PLAYERPARTNER_REPORT" : "推广渠道其用户来源报表",
-  "Minimal top up amount":"本身充值限额",
   "smsSetting":"短信设置",
   "Search referral":"查找被推荐玩家",
   "PARTNERCOMMISSION_REPORT":"推广渠道实时佣金详情报表",
@@ -1766,7 +1764,11 @@
   "GAMETYPE": "游戏类型",
   "CONSUMPTIONAMOUNT": "消费额度",
   "RETURNAMOUNT": "返点额度",
-  "APPLYAMOUNT": "申请额度"
+  "APPLYAMOUNT": "申请额度",
+
+  "Manual Unlock Reward Task":"强制解锁奖励任务",
+  "Unlock Reward":"解锁奖励任务",
+  "Reward task is not available":"奖励任务不存在"
 }
 
 
