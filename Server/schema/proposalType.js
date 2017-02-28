@@ -15,6 +15,8 @@ var proposalTypeSchema = new Schema({
     executionType: String,
     //rejection type
     rejectionType: String,
+    //Expiration duration
+    ExpirationDuration: {type: String, default: 0},
 });
 
 proposalTypeSchema.index({ platformId: 1, name: 1}, { unique: true });
