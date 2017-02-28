@@ -1,4 +1,4 @@
-# NinjaPandaManagement
+# NinjaPandaManagement dd
 The Ninja Panda Game Management System v0.1
 
 # Setp up enviorment
