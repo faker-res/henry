@@ -34,7 +34,7 @@ var roleChecker = {
         'addPlatformGameGroup', 'updateGameGroupParent', 'renamePlatformGameGroup', 'updatePlatformGameGroup', 'deleteGameGroup',
         'createRewardRuleWithType', 'createRewardCondition', 'createRewardEvent', 'deleteRewardRuleByIds', 'deleteRewardEventByIds', 'updateRewardRule', 'updateRewardTask', 'updateRewardEvent',
         'createProposalTypeProcess', 'updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep',
-        'updateProposalTypeProcessSteps', 'deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds',
+        'updateProposalTypeProcessSteps', 'deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds', 'updateProposalTypeExpiryDuration','getProposalTypeExpirationDuration',
         'updatePlayerLevel', 'createPlayerLevel', 'createPartnerLevel', 'partnerLevel/update', 'createPlatformAnnouncement',
         'updatePlatformAnnouncement', 'deletePlatformAnnouncementByIds', 'updatePartnerLevelConfig',
         'createMessageTemplate', 'deleteMessageTemplateByIds', 'updateMessageTemplate',
@@ -144,7 +144,8 @@ var roleChecker = {
         //todo::to be added to permission list
         "countTopUpORConsumptionbyPlatform": true,
         "getPlayerRetention": true,
-        "getAllActions": true
+        "getAllActions": true,
+        "updateProposalTypeExpiryDuration": true
     },
 
     /**
@@ -173,7 +174,7 @@ var roleChecker = {
                 Create: ['createDepartment', 'createDepartmentWithParent'],
                 Delete: ['deleteDepartmentsById'],
                 Move: ['updateDepartmentParent', 'removeChildrenById', 'addChildrenById'],
-                Update: ['updateAdminDepartment', 'updateDepartment']
+                Update: ['updateAdminDepartment', 'updateDepartment','updateAdmin']
             },
             User: {
                 Read: ['getAdminInfo', 'getAllAdminInfo', 'getFullAdminInfo', 'getFullAdminInfos', 'getAdminActionLog'],
@@ -302,8 +303,8 @@ var roleChecker = {
             "Proposal": {
                 Create: ['createProposalTypeProcess', 'addStepToProposalTypeProcess', 'createProposal', 'getDepartment', 'createProposalType', 'createProposalTypeProcessStep'],
                 Read: ['getAllProposalType', 'getProposalType', 'getProposalTypeByPlatformId', 'getProposalTypeByType', 'getAllProposalExecutionType', 'getAllProposalRejectionType', 'getProposalTypeProcess',
-                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal'],
-                Update: ['updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep', 'updateProposalTypeProcessSteps'],
+                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal', 'getProposalTypeExpirationDuration'],
+                Update: ['updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep', 'updateProposalTypeProcessSteps', 'updateProposalTypeExpiryDuration'],
                 Delete: ['deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds']
             },
             "Config": {
