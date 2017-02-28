@@ -7547,6 +7547,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalType = data;
                 //get process and steps data for selected proposal type
                 vm.getProposalTypeProcessSteps();
+                vm.getProposalTypeExpirationDuration();
                 console.log("vm.selectedProposalType", vm.selectedProposalType);
                 $scope.safeApply();
             });
@@ -7912,7 +7913,24 @@ define(['js/app'], function (myApp) {
             if (isValid) {
                 vm.updateProposalTypeProcessSteps(steps, links);
             }
-        }
+        };
+
+        vm.saveDateProcess = function () {
+            //var dt = $('#expDatetimepicker').data('datetimepicker').getLocalDate();
+
+            //if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && dt) {
+            if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && vm.expDuration) {
+                socketService.$socket($scope.AppSocket, 'updateProposalTypeExpiryDuration', {
+                    query: {_id: vm.selectedProposalType.data._id},
+                    expiryDuration: vm.expDuration
+                }, function (data) {
+                    //console.log("updateProposalTypeExpiryDuration", data);
+                });
+            }
+            else {
+                socketService.showErrorMessage("Incorrect expiration duration!");
+            }
+        };
 
         vm.resetProcess = function () {
             vm.getProposalTypeProcessSteps();
@@ -7942,6 +7960,17 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     console.log("getProposalTypeProcess", data);
                     vm.drawProcessSteps(data.data);
+                });
+            }
+        };
+
+        //get expiration duration for proposal type 
+        vm.getProposalTypeExpirationDuration = function () {
+            if (vm.selectedProposalType && vm.selectedProposalType.data) {
+                socketService.$socket($scope.AppSocket, 'getProposalTypeExpirationDuration', {
+                    query: {_id: vm.selectedProposalType.data._id},
+                }, function (data) {
+                    vm.expDuration = data.data.ExpirationDuration;
                 });
             }
         };
