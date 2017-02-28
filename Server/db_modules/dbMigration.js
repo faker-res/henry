@@ -27,6 +27,7 @@ const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 var dbProposal = require('../db_modules/dbProposal');
 var dbLogger = require('../modules/dbLogger');
 var proposalExecutor = require('../modules/proposalExecutor');
+var moment = require('moment-timezone');
 
 var dbMigration = {
 
@@ -544,6 +545,9 @@ var dbMigration = {
                         proposalType => {
                             if (proposalType) {
                                 createTime = createTime || new Date();
+
+                                var expiredDate = moment(createTime).add('hour', proposalType.ExpirationDuration).format('YYYY-MM-DD HH:mm:ss.sss');
+                            
                                 var newRecord = {
                                     mainType: constProposalMainType[typeName],
                                     type: proposalType._id,
@@ -553,7 +557,8 @@ var dbMigration = {
                                     entryType: entryType,
                                     userType: userType,
                                     status: status,
-                                    noSteps: true
+                                    noSteps: true,
+                                    ExpirationTime: expiredDate
                                 };
                                 return dbMigration.createRequestId(inputData.requestId).then(
                                     reId => {
@@ -1361,6 +1366,9 @@ var dbMigration = {
                             if (proposalType) {
                                 createTime = createTime || new Date();
                                 newProposalData.requestId = requestData.requestId;
+
+                                var expiredDate = moment(createTime).add('hour', proposalType.ExpirationDuration).format('YYYY-MM-DD HH:mm:ss.sss');
+
                                 var newRecord = {
                                     mainType: constProposalMainType[typeName],
                                     type: proposalType._id,
@@ -1370,7 +1378,8 @@ var dbMigration = {
                                     entryType: entryType,
                                     userType: userType,
                                     status: status,
-                                    noSteps: true
+                                    noSteps: true,
+                                    ExpirationTime: expiredDate
                                 };
                                 var newRequestId = new dbconfig.collection_syncDataRequestId({requestId: requestData.requestId});
                                 return newRequestId.save().then(
