@@ -102,17 +102,16 @@ var proposalType = {
         return dbconfig.collection_proposalType.findOne(query).then(
             function (data) {
                 if (data) {
-                    dbconfig.collection_proposalType.findOneAndUpdate(
+                    return dbconfig.collection_proposalType.findOneAndUpdate(
                         query,
                         {$set: { ExpirationDuration: expiryDuration }},
-                        {new: true},
-                        function(err, doc){
-                            if(err){
-                                return Promise.reject({name: "DBError", message: "Can't update proposal type's expiry duration"});
-                            }
-                            else{
-                                return Promise.resolve();
-                            }
+                        {new: true}
+                    ).then(
+                        function (data) {
+                            return Promise.resolve(); 
+                        },
+                        function (error) {
+                            return Promise.reject({name: "DBError", message: "Can't update proposal type's expiry duration"});  
                         }
                     )
                 }
