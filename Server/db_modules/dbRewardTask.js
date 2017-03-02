@@ -1,3 +1,5 @@
+'use strict';
+
 var dbRewardTaskFunc = function () {
 };
 module.exports = new dbRewardTaskFunc();
@@ -422,82 +424,76 @@ var dbRewardTask = {
      * @param {Object} taskData - reward task object
      */
     completeRewardTask: function (taskData) {
-        var deferred = Q.defer();
-        var bUpdateProposal = false;
+        return new Promise((resolve,reject) => {
+            let bUpdateProposal = false;
 
-        var rewardAmount = taskData.currentAmount;
-        if (taskData.requiredBonusAmount > 0 && rewardAmount > taskData.requiredBonusAmount) {
-            rewardAmount = taskData.requiredBonusAmount;
-        }
-        taskData.status = constRewardTaskStatus.COMPLETED;
-        var taskProm = dbconfig.collection_rewardTask.findOneAndUpdate(
-            {_id: taskData._id, platformId: taskData.platformId},
-            taskData
-        );
+            let rewardAmount = taskData.currentAmount;
+            if (taskData.requiredBonusAmount > 0 && rewardAmount > taskData.requiredBonusAmount) {
+                rewardAmount = taskData.requiredBonusAmount;
+            }
+            taskData.status = constRewardTaskStatus.COMPLETED;
+            let taskProm = dbconfig.collection_rewardTask.findOneAndUpdate(
+                {_id: taskData._id, platformId: taskData.platformId},
+                taskData
+            );
 
-        var updateData = {
-            $inc: {validCredit: rewardAmount},
-            lockedCredit: 0
-        };
-        //if reward task is for first top up, mark player
-        if (taskData.type == constRewardType.FIRST_TOP_UP) {
-            updateData.bFirstTopUpReward = true;
-        }
-        //if reward task if player top up return, increase the daily amount
-        // if (taskData.type == constRewardType.PLAYER_TOP_UP_RETURN) {
-        //     updateData.$inc.dailyTopUpIncentiveAmount = taskData.currentAmount;
-        // }
-        //if reward task if player top up reward, check max reward amount
-        // if (taskData.type == constRewardType.PLAYER_TOP_UP_REWARD && taskData.currentAmount > taskData.maxRewardAmount) {
-        //     bUpdateProposal = true;
-        //     rewardAmount = taskData.maxRewardAmount;
-        //     updateData.$inc = {validCredit: taskData.maxRewardAmount};
-        // }
-        var playerProm = dbconfig.collection_players.findOneAndUpdate(
-            {_id: taskData.playerId, platform: taskData.platformId},
-            updateData,
-            {new: true}
-        );
+            let updateData = {
+                $inc: {validCredit: rewardAmount},
+                lockedCredit: 0
+            };
+            //if reward task is for first top up, mark player
+            if (taskData.type == constRewardType.FIRST_TOP_UP) {
+                updateData.bFirstTopUpReward = true;
+            }
+            //if reward task if player top up return, increase the daily amount
+            // if (taskData.type == constRewardType.PLAYER_TOP_UP_RETURN) {
+            //     updateData.$inc.dailyTopUpIncentiveAmount = taskData.currentAmount;
+            // }
+            //if reward task if player top up reward, check max reward amount
+            // if (taskData.type == constRewardType.PLAYER_TOP_UP_REWARD && taskData.currentAmount > taskData.maxRewardAmount) {
+            //     bUpdateProposal = true;
+            //     rewardAmount = taskData.maxRewardAmount;
+            //     updateData.$inc = {validCredit: taskData.maxRewardAmount};
+            // }
+            let playerProm = dbconfig.collection_players.findOneAndUpdate(
+                {_id: taskData.playerId, platform: taskData.platformId},
+                updateData,
+                {new: true}
+            );
 
-        Q.all([taskProm, playerProm]).then(
-            function (data) {
+            Promise.all([taskProm, playerProm]).then((data) => {
                 if (data && data[0] && data[1]) {
                     //if (rewardAmount > 0) {
                     dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type, data[1].validCredit, 0, -rewardAmount, null, taskData);
                     //}
 
                     if (bUpdateProposal) {
-                        var diffAmount = taskData.currentAmount - taskData.maxRewardAmount;
+                        let diffAmount = taskData.currentAmount - taskData.maxRewardAmount;
+
                         return dbUtil.findOneAndUpdateForShard(
                             dbconfig.collection_proposal,
                             {proposalId: taskData.proposalId},
                             {"data.diffAmount": diffAmount},
                             constShardKeys.collection_proposal
-                        ).then(
-                            function () {
-                                deferred.resolve(taskData.currentAmount);
-                            }
-                        );
+                        ).then(() => {
+                            resolve(taskData.currentAmount);
+                        });
                     }
                     else {
-                        deferred.resolve(taskData.currentAmount);
+                        resolve(taskData.currentAmount);
                     }
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Can't update reward task and player credit"});
+                    reject({name: "DataError", message: "Can't update reward task and player credit"});
                 }
-            }
-        ).catch(
-            function (error) {
-                deferred.reject({
+            }).catch((error) => {
+                reject({
                     name: "DBError",
                     message: "Error updating reward task and player credit",
                     error: error
                 });
-            }
-        );
-
-        return deferred.promise;
+            });
+        })
     },
 
     getPlatformRewardAnalysis: function (type, period, platformId, startDate, endDate) {
