@@ -16,15 +16,7 @@ var md5 = require('md5');
 var counterManager = require('./../modules/counterManager');
 var dbUtility = require('./../modules/dbutility');
 var dbconfig = require('./../modules/dbproperties');
-var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
-var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
-var dbRewardTask = require('./../db_modules/dbRewardTask');
 var proposalExecutor = require('./../modules/proposalExecutor');
-
-var dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
-var dbProposal = require('./../db_modules/dbProposal');
-var dbProposalType = require('./../db_modules/dbProposalType');
-var dbRewardEvent = require('./../db_modules/dbRewardEvent');
 // var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbLogger = require("./../modules/dbLogger");
 // var constProposalType = require("./../const/constProposalType");
@@ -45,7 +37,6 @@ var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
-var dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 
 var moment = require('moment-timezone');
 var rewardUtility = require("../modules/rewardUtility");
@@ -59,6 +50,17 @@ var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
+
+// db_modules
+let dbGeoIp = require('./../db_modules/dbGeoIp');
+let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
+let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
+let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
+let dbProposal = require('./../db_modules/dbProposal');
+let dbProposalType = require('./../db_modules/dbProposalType');
+let dbRewardEvent = require('./../db_modules/dbRewardEvent');
+let dbRewardTask = require('./../db_modules/dbRewardTask');
 
 var PLATFORM_PREFIX_SEPARATOR = '';
 
@@ -2202,86 +2204,105 @@ var dbPlayerInfo = {
                     if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp) {
                         bUpdateIp = true;
                     }
-                    var geo = geoip.lookup(playerData.lastLoginIp);
-                    var updateData = {
+
+                    // ip location lookup
+                    let updateData = {
                         isLogin: true,
                         lastLoginIp: playerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
                     };
-                    var geoInfo = {};
-                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                        geoInfo = {
-                            country: geo ? geo.country : null,
-                            city: geo ? geo.city : null,
-                            longitude: geo && geo.ll ? geo.ll[1] : null,
-                            latitude: geo && geo.ll ? geo.ll[0] : null
-                        }
-                    }
-                    Object.assign(updateData, geoInfo);
-                    if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp) {
-                        updateData.$push = {loginIps: playerData.lastLoginIp};
-                    }
-                    dbconfig.collection_players.findOneAndUpdate({
-                        _id: playerObj._id,
-                        platform: playerObj.platform
-                    }, updateData).populate({
-                        path: "playerLevel",
-                        model: dbconfig.collection_playerLevel
-                    }).then(
-                        data => {
-                            //add player login record
-                            var recordData = {
-                                player: data._id,
-                                platform: platformId,
-                                loginIP: playerData.lastLoginIp,
-                                clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
-                                userAgent: uaObj
-                            };
-                            Object.assign(recordData, geoInfo);
-                            var record = new dbconfig.collection_playerLoginRecord(recordData);
-                            return record.save().then(
-                                function () {
-                                    if (bUpdateIp) {
-                                        return dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
-                                    }
+
+                    dbGeoIp.lookup(playerData.lastLoginIp).then(
+                        (locData) => {
+                            let geoInfo = {};
+
+                            if (locData) {
+                                geoInfo = {
+                                    continent: locData.continent,
+                                    country: locData.country,
+                                    province: locData.province,
+                                    city: locData.city,
+                                    district: locData.district,
+                                    isp: locData.isp,
+                                    areaCode: locData.area_code,
+                                    longitude: locData.longitude,
+                                    latitude: locData.latitude
                                 }
-                            ).catch(errorUtils.reportError).then(
-                                () => {
-                                    dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
-                                        path: "playerLevel",
-                                        model: dbconfig.collection_playerLevel
-                                    }).lean().then(
-                                        res => {
-                                            res.name = res.name.replace(platformPrefix, "");
-                                            retObj = res;
-                                            var a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
-                                            var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
-                                            var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
-                                            var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
-                                            return Q.all([a, b, c, creditProm]);
+                            }
+
+                            Object.assign(updateData, geoInfo);
+                            if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp) {
+                                updateData.$push = {loginIps: playerData.lastLoginIp};
+                            }
+
+                            return geoInfo;
+                        }
+                    ).then(
+                        (geoInfo) => {
+                            dbconfig.collection_players.findOneAndUpdate({
+                                _id: playerObj._id,
+                                platform: playerObj.platform
+                            }, updateData).populate({
+                                path: "playerLevel",
+                                model: dbconfig.collection_playerLevel
+                            }).then(
+                                data => {
+                                    //add player login record
+                                    var recordData = {
+                                        player: data._id,
+                                        platform: platformId,
+                                        loginIP: playerData.lastLoginIp,
+                                        clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
+                                        userAgent: uaObj
+                                    };
+                                    Object.assign(recordData, geoInfo);
+                                    var record = new dbconfig.collection_playerLoginRecord(recordData);
+                                    return record.save().then(
+                                        function () {
+                                            if (bUpdateIp) {
+                                                return dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                            }
                                         }
-                                    ).then(
-                                        zoneData => {
-                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
-                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
-                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
-                                            retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
-                                            deferred.resolve(retObj);
-                                        }, errorZone => {
-                                            deferred.resolve(retObj);
-                                        });
+                                    ).catch(errorUtils.reportError).then(
+                                        () => {
+                                            dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                                path: "playerLevel",
+                                                model: dbconfig.collection_playerLevel
+                                            }).lean().then(
+                                                res => {
+                                                    res.name = res.name.replace(platformPrefix, "");
+                                                    retObj = res;
+                                                    var a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                                    var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                                    var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                                                    var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+                                                    return Q.all([a, b, c, creditProm]);
+                                                }
+                                            ).then(
+                                                zoneData => {
+                                                    retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                                                    retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                                                    retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                                                    retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                                                    deferred.resolve(retObj);
+                                                }, errorZone => {
+                                                    deferred.resolve(retObj);
+                                                });
+                                        }
+                                    );
+                                },
+                                error => {
+                                    deferred.reject({
+                                        name: "DBError",
+                                        message: "Error in updating player",
+                                        error: error
+                                    });
                                 }
                             );
-                        },
-                        error => {
-                            deferred.reject({
-                                name: "DBError",
-                                message: "Error in updating player",
-                                error: error
-                            });
-                        }
-                    );
+                        });
+
+
                 } else {
                     deferred.reject({
                         name: "DataError",
