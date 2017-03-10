@@ -185,8 +185,7 @@ var proposal = {
                     if (wsMessageClient) {
                         wsMessageClient.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyNewProposal", data);
                     }
-
-                    var expiredDate = moment(data[0].createTime).add('hour', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');
+                    var expiredDate = moment(data[0].createTime).add('minutes', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');
 
                     // We need the type to be populated, because messageDispatcher wants to read proposalData.type.name
                     return dbconfig.collection_proposal.findOneAndUpdate(
@@ -1956,6 +1955,19 @@ var proposal = {
             {multi: true}
         );
     },
+
+     checkProposalExpiration: function () {
+        return dbconfig.collection_proposal.update(
+            {
+                status : { $regex : new RegExp(constProposalStatus.PENDING, "i") } ,
+                expirationTime: {$lt: new Date()}
+            },
+            {
+                $set:
+                {status: constProposalStatus.EXPIRED}
+            }
+        );
+    },   
 
     getPlayerPendingPaymentProposal: function (playerObjId, platformObjId) {
         return dbconfig.collection_proposalType.find(
