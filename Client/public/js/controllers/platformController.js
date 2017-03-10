@@ -7617,6 +7617,8 @@ define(['js/app'], function (myApp) {
             vm.tempNewNodeName = '';
             vm.tempNewNodeDepartment = '';
             vm.tempNewNodeRole = '';
+            vm.ExpResMsg = '';
+            vm.ExpShowSubmit = true;
         }
         vm.loadDepartmentRole = function (departmentNode) {
             vm.tempNewNodeDepartment = departmentNode;
@@ -7916,15 +7918,30 @@ define(['js/app'], function (myApp) {
         };
 
         vm.saveDateProcess = function () {
-            //var dt = $('#expDatetimepicker').data('datetimepicker').getLocalDate();
-
             //if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && dt) {
-            if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && vm.expDuration) {
+            if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && (vm.expDurationHour || vm.expDurationMin)) {
+                vm.ExpShowSubmit = false;
+                var hour=0;
+                var min=0;
+
+                if(!vm.expDurationHour ) hour=0;
+                else hour=Number(vm.expDurationHour);
+
+                if(!vm.expDurationMin ) min=0;
+                else min=Number(vm.expDurationMin);
+
+                var totalExpMinute = (hour * 60) + min;
+
                 socketService.$socket($scope.AppSocket, 'updateProposalTypeExpiryDuration', {
                     query: {_id: vm.selectedProposalType.data._id},
-                    expiryDuration: vm.expDuration
+                    expiryDuration: totalExpMinute
                 }, function (data) {
-                    //console.log("updateProposalTypeExpiryDuration", data);
+                    vm.ExpResMsg = $translate('SUCCESS');
+                    $scope.safeApply();
+
+                }, function (err) {
+                    vm.ExpResMsg = err.error.message || $translate('FAIL');
+                    $scope.safeApply();
                 });
             }
             else {
@@ -7970,7 +7987,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getProposalTypeExpirationDuration', {
                     query: {_id: vm.selectedProposalType.data._id},
                 }, function (data) {
-                    vm.expDuration = data.data.ExpirationDuration;
+                    var Hour =  Math.floor( Number(data.data.ExpirationDuration) / 60);
+                    var Min =  Number(data.data.ExpirationDuration) % 60;
+                    Hour = Hour.toString();
+                    Min = Min.toString();
+                    vm.expDurationHour =  Hour;
+                    vm.expDurationMin =  Min;
                 });
             }
         };
