@@ -259,7 +259,7 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerForAttachGroup: function getPlayerForAttachGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data.query && data.platformId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerByAdvanceQuery, [data.platformId, data.query], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPaymentPlayerByAdvanceQuery, [data.platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
         /**

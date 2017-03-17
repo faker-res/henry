@@ -61,7 +61,7 @@
                             a.common-tab(data-toggle="tab", href="#Announcement", ng-click="vm.getPlatformAnnouncements();vm.platformPageName='Announcement';vm.updatePageTile();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"ANNOUNCEMENTS" | translate}}
-                        li(ng-show="checkViewPermission('Platform', 'Player', 'sendSMS')")
+                        li(ng-show="checkViewPermission('Platform', 'groupMessage','Read')")
                             a.common-tab(data-toggle="tab", href="#MultiMessage", ng-click="vm.platformPageName='MultiMessage';vm.updatePageTile();vm.initSendMultiMessage(true);")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Send Messages" | translate}}
@@ -165,7 +165,7 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal',ng-show='vm.modifyCritical.changeType=="phone"', ng-disabled='form_edit_critical_phone.$invalid || form_edit_critical_phone.$pristine', ng-click="vm.submitCriticalUpdate();") {{"CREATE" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 #modalPlayerTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')

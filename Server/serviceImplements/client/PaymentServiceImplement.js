@@ -59,7 +59,7 @@ var PaymentServiceImplement = function () {
 
     this.applyBonus.expectsData = 'bonusId: Number|String, amount: Number|String, honoreeDetails: String';
     this.applyBonus.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data && data.bonusId && data.amount);
+        var isValidData = Boolean(conn.playerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [conn.playerId, data.bonusId, data.amount, data.honoreeDetail], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
@@ -96,7 +96,7 @@ var PaymentServiceImplement = function () {
 
     this.requestManualTopup.expectsData = 'amount: Number|String, depositMethod: ?, lastBankcardNo: ?, provinceId: String|Number, cityId: String|Number';
     this.requestManualTopup.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && data.lastBankcardNo && data.provinceId && data.cityId);
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && data.provinceId && data.cityId);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {

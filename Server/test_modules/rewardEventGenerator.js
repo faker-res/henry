@@ -99,7 +99,8 @@ function createPlayerConsumptionReturnRewardEvent(testPlatformId, generatedData)
                         },
                         executeProposal: proposalTypeId1,
                         needSettlement: true,
-                        needApply: true
+                        needApply: true,
+                        settlementPeriod: 1 //daily settlement
                     };
                     if (generatedData) {
                         generatedData.playerConsumptionReturnRewardEventData = eventData;

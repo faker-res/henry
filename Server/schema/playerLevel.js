@@ -35,7 +35,8 @@ var playerLevelSchema = new Schema({
     reward: {
         _id: false,
         bonusCredit: {type: Number, default: 20},
-        isRewardTask: {type: Boolean, default: false}
+        isRewardTask: {type: Boolean, default: false},
+        requiredUnlockAmount: {type: Number, default: 0}
     },
 
     //if player of this level can apply for consumption return

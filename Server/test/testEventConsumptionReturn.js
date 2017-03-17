@@ -281,8 +281,8 @@ describe("Test consumption return reward event", function () {
     });
 
     it('test consumption return event result', function () {
-        var expectedCreditForTestGame1 = consumeAmount * consumeDays * consumeTimesForTestGame1 * testGame1NormalRewardRatio;
-        var expectedCreditForTestGame2 = consumeAmount * consumeDays * consumeTimesForTestGame2 * testGame2NormalRewardRatio;
+        var expectedCreditForTestGame1 = consumeAmount * 1 * consumeTimesForTestGame1 * testGame1NormalRewardRatio;
+        var expectedCreditForTestGame2 = consumeAmount * 1 * consumeTimesForTestGame2 * testGame2NormalRewardRatio;
         expectedCreditForBothGameTypes = Math.round((expectedCreditForTestGame1 + expectedCreditForTestGame2) * 1000000) / 1000000;   // Fix minute rounding errors
         return dbconfig.collection_players.find({_id: testPlayersId[1]}).then(
             function (data) {
@@ -307,11 +307,11 @@ describe("Test consumption return reward event", function () {
                 // I think it may be a timing issue.  It only happens on my first test run, and not if I run again.
                 // How can we test what is going on here?
 
-                if (records.length > 0) {
-                    console.warn('Unexpected dirty record(s):', records);
-                }
+                // if (records.length > 0) {
+                //     console.warn('Unexpected dirty record(s):', records);
+                // }
 
-                records.length.should.equal(0);
+                records.length.should.equal((consumeDays-1)*testPlayersId.length*2);
             }
         );
 

@@ -32,7 +32,7 @@ const constShardKeys = {
     collection_playerConsumptionDaySummary: ["date", "_id"],
     collection_playerConsumptionWeekSummary: ["date", "_id"],
     //collection_playerConsumptionSummary: ["_id", "createTime"],
-    collection_playerConsumptionSummary: ["platformId", "playerId", "gameType", "bDirty"],
+    collection_playerConsumptionSummary: ["platformId", "playerId", "gameType", "summaryDay", "bDirty"],
 
     collection_playerLoginRecord: ["_id", "loginTime"],
     collection_playerRegistrationIntentRecord: ["createTime", "_id"],
@@ -43,7 +43,7 @@ const constShardKeys = {
     collection_settlementLog: ["createTime", "_id"],
 
     collection_systemLog: ["operationTime", "_id"],
-    collection_rewardLog: ["operationTime", "_id"],
+    collection_rewardLog: ["createTime", "_id"],
     collection_playerStatusChangeLog: ["createTime", "_id"],
     collection_playerPermissionLog: ["createTime", "_id"],
     collection_playerCreditTransferLog: ["createTime", "_id"],
