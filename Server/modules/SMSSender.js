@@ -79,7 +79,13 @@ const SMSSender = {
     },
 
     sendByPlayerObjId: function (playerObjId, type) {
-        dbconfig.collection_players.findOne({_id: playerObjId});
+        dbconfig.collection_players.findOne({_id: playerObjId}).then(
+            playerData => {
+                if( playerData ){
+                    SMSSender.sendByPlayerId(playerData.playerId, type);
+                }
+            }
+        ).then().catch(errorUtils.reportError);
     }
 
 };

@@ -4,6 +4,7 @@
 const constProposalType = {
     UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
     UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
+    FIX_PLAYER_CREDIT_TRANSFER: "FixPlayerCreditTransfer",
     UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
     UPDATE_PLAYER_PHONE: "UpdatePlayerPhone",
     UPDATE_PLAYER_BANK_INFO: "UpdatePlayerBankInfo",
@@ -32,7 +33,8 @@ const constProposalType = {
     PLAYER_REFERRAL_REWARD: "PlayerReferralReward",
     PARTNER_BONUS: "PartnerBonus",
     PLAYER_CONSUMPTION_RETURN_FIX: "PlayerConsumptionReturnFix",
-    PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward"
+    PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward",
+    PARTNER_COMMISSION: "PartnerCommission"
 };
 
 module.exports = constProposalType;

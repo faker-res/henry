@@ -32,7 +32,7 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case "PLATFORM_OVERVIEW":
                         vm.initSearchParameter('allActivePlayer', null, 4, function () {
-                            vm.queryPara.allActivePlayer = {date: utilService.setNDaysAgo(new Date(), 1)}
+                            vm.queryPara.allActivePlayer = {date: utilService.getNdayagoStartTime(1)}
                         });
 
                         vm.initSearchParameter('allNewPlayer', true, 4);
@@ -238,8 +238,8 @@ define(['js/app'], function (myApp) {
             var placeholder = "#pie-all-activePlayer";
 
             var sendData = {
-                date: vm.queryPara.allActivePlayer.date
-            };
+                date: utilService.setLocalDayStartTime(vm.queryPara.allActivePlayer.date)
+            }
             socketService.$socket($scope.AppSocket, 'countActivePlayerALLPlatform', sendData, function success(data1) {
                 console.log('allActivePlayers', data1);
                 var data = data1.data.filter(function (obj) {
@@ -577,39 +577,28 @@ define(['js/app'], function (myApp) {
             // var periodText = $('#analysisActivePlayer select').val();
             var sendData = {
                 platformId: vm.selectedPlatform._id,
-                // startDate: vm.queryPara.activePlayer.startTime,
-                // endDate: vm.queryPara.activePlayer.endTime,
                 startDate: vm.queryPara.activePlayer.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.activePlayer.endTime.data('datetimepicker').getLocalDate(),
             };
             socketService.$socket($scope.AppSocket, 'countActivePlayerbyPlatform', sendData, function success(data1) {
                 console.log('received data', data1);
-                var activePlayerData = data1.data;
-                var activePlayerObjData = {};
-                for (var i = 0; i < activePlayerData.length; i++) {
-                    activePlayerObjData[activePlayerData[i]._id.date] = activePlayerData[i].number;
-                }
+                var activePlayerData = data1 ? data1.data : [];
                 var graphData = [];
-                var newOptions = {};
-                var nowDate = new Date(sendData.startDate);
+                activePlayerData.forEach(item => {
+                    graphData.push([new Date(item.date).getTime(), item.activePlayers]);
+                })
 
-                do {
-                    var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                    graphData.push([nowDate.getTime(), (activePlayerObjData[dateText] || 0)]);
-                    nowDate.setDate(nowDate.getDate() + 1);
-                } while (nowDate <= sendData.endDate);
-                newOptions = {
+                //draw graph
+                socketService.$plotLine(placeholder, [{
+                    label: $translate('Active Player'),
+                    data: graphData
+                }], {
                     xaxis: {
                         tickLength: 0,
                         mode: "time",
                         minTickSize: [1, "day"],
                     }
-                };
-                //draw graph
-                socketService.$plotLine(placeholder, [{
-                    label: $translate('Active Player'),
-                    data: graphData
-                }], newOptions);
+                });
                 $(placeholder).bind("plothover", function (event, pos, obj) {
                     var previousPoint;
                     if (!obj) {

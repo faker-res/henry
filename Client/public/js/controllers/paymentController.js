@@ -391,10 +391,25 @@ define(['js/app'], function (myApp) {
         //getPlayersByPlatform
         vm.preparePlayerToGroupDialog = function (which, id) {
             vm.curPlayerTableId = id;
-            vm.playerToGroupFilterObj = {which: which, filter: {}};
-            vm.playerToGroupFilter(which, id);
+            vm.playerToGroupFilterObj = {
+                which: which,
+                filter: {
+                    playerLevel: 'all',
+                    merchantGroup: 'all',
+                    bankCardGroup: 'all',
+                }
+            };
+            utilService.actionAfterLoaded(id + "Page", function () {
+                vm.playerToGroupFilterObj.pageObj = utilService.createPageForPagingTable(id + "Page", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "playerToGroupFilterObj", vm.playerToGroupFilter)
+                });
+                vm.playerToGroupFilter(true, which, id);
+            })
         }
-        vm.playerToGroupFilter = function (which, id) {
+        vm.playerToGroupFilter = function (newSearch, which, id) {
+            if (!which) {
+                which = vm.playerToGroupFilterObj.which;
+            }
             vm.loadingPlayerTable = true;
             var query = {};
             if (vm.playerToGroupFilterObj.filter.name) {
@@ -422,18 +437,20 @@ define(['js/app'], function (myApp) {
             var apiQuery = {
                 platformId: vm.selectedPlatform.id,
                 query: query,
+                index: newSearch ? 0 : vm.playerToGroupFilterObj.index,
+                limit: newSearch ? 10 : (vm.playerToGroupFilterObj.limit || 10),
+                sortCol: vm.playerToGroupFilterObj.sortCol || {}
             };
             socketService.$socket($scope.AppSocket, 'getPlayerForAttachGroup', apiQuery, function (data) {
-                vm.allPlayer = data.data;
-                vm.drawPlayerAttachTable(vm.allPlayer, which, id);
+                vm.allPlayer = data.data.data;
+                vm.playerToGroupFilterObj.totalCount = data.data.size;
                 vm.loadingPlayerTable = false;
-                $scope.safeApply();
+                vm.drawPlayerAttachTable(newSearch, vm.allPlayer, vm.playerToGroupFilterObj.totalCount);
             });
         }
-        vm.drawPlayerAttachTable = function (data, which, id) {
-            var tableOptions = {
+        vm.drawPlayerAttachTable = function (newSearch, data, size) {
+            var tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
                 data: data,
-                "aaSorting": [],
                 columnDefs: [
                     {
                         targets: [0],
@@ -528,33 +545,18 @@ define(['js/app'], function (myApp) {
                         "sClass": "alignCenter"
                     }
                 ],
-                //"autoWidth": false,
-                "scrollX": true,
-                // "scrollY": "455px",
-                "scrollCollapse": true,
+                sScrollY: false,
                 "destroy": true,
-                "paging": true,
-                //"dom": '<"top">rt<"bottom"il><"clear">',
-                "language": {
-                    "info": "Total _MAX_ players",
-                    "emptyTable": $translate("No data available in table"),
-                    "sInfoFiltered": '',
-                },
-                dom: 'Zrtip',
-                fnRowCallback: preselectPlayerRowforBankcard,
-                fnDrawCallback: function (oSettings) {
-                    var container = oSettings.nTable;
-
-                    $(vm.curPlayerTableId).resize();
-                    $(vm.curPlayerTableId).resize();
-                }
-            }
-            if (which == 'bankcard') {
+                "paging": false,
+            });
+            if (vm.playerToGroupFilterObj.which == 'bankcard') {
                 tableOptions.fnRowCallback = preselectPlayerRowforBankcard
-            } else if (which == 'merchant') {
+            } else if (vm.playerToGroupFilterObj.which == 'merchant') {
                 tableOptions.fnRowCallback = preselectPlayerRowforMerchant
             }
             vm.attachPlayerTable = $(vm.curPlayerTableId).DataTable(tableOptions);
+            vm.playerToGroupFilterObj.pageObj.init({maxCount: size}, newSearch);
+
             vm.attachPlayerTable.columns.adjust().draw();
             $(vm.curPlayerTableId).resize();
             $(vm.curPlayerTableId).resize();
@@ -577,6 +579,7 @@ define(['js/app'], function (myApp) {
                 numRecipient: 0
             };
 
+            $scope.safeApply();
             function updateNumReceipient() {
                 vm.selectMultiPlayer.numRecipient = $(id + ' tbody input:checked[type="checkbox"]').length;
                 vm.selectMultiPlayer.numReceived = 0;
@@ -589,11 +592,11 @@ define(['js/app'], function (myApp) {
                 console.log("checkAll event listened");
                 vm.selectMultiPlayer.checkAllRow = !vm.selectMultiPlayer.checkAllRow;
                 if (vm.selectMultiPlayer.checkAllRow) {
-                    $(id + ' tbody tr').addClass('selected');
-                    $(id + ' tbody input[type="checkbox"]').prop("checked", vm.selectMultiPlayer.checkAllRow);
+                    $(vm.curPlayerTableId + ' tbody tr').addClass('selected');
+                    $(vm.curPlayerTableId + ' tbody input[type="checkbox"]').prop("checked", vm.selectMultiPlayer.checkAllRow);
                 } else {
-                    $(id + ' tbody tr').removeClass('selected');
-                    $(id + ' tbody input[type="checkbox"]').prop("checked", vm.selectMultiPlayer.checkAllRow);
+                    $(vm.curPlayerTableId + ' tbody tr').removeClass('selected');
+                    $(vm.curPlayerTableId + ' tbody input[type="checkbox"]').prop("checked", vm.selectMultiPlayer.checkAllRow);
                 }
                 updateNumReceipient();
             });
@@ -1035,7 +1038,37 @@ define(['js/app'], function (myApp) {
             if (!data) return '';
             return utilService.getFormatTime(data);
         };
-
+        vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+            var isChange = false;
+            if (pageSize != vm[objKey].limit) {
+                isChange = true;
+                vm[objKey].limit = pageSize;
+            }
+            if ((curP - 1) * pageSize != vm[objKey].index) {
+                isChange = true;
+                vm[objKey].index = (curP - 1) * pageSize;
+            }
+            if (isChange) return searchFunc.call(this);
+        }
+        vm.commonSortChangeHandler = function (a, objName, searchFunc) {
+            if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
+            var sortCol = a.aaSorting[0][0];
+            var sortDire = a.aaSorting[0][1];
+            var temp = a.aoColumns[sortCol];
+            var sortKey = temp ? temp.sortCol : '';
+            // console.log(a, sortCol, sortKey);
+            vm[objName].aaSorting = a.aaSorting;
+            if (sortKey) {
+                vm[objName].sortCol = vm[objName].sortCol || {};
+                var preVal = vm[objName].sortCol[sortKey];
+                vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                if (vm[objName].sortCol[sortKey] != preVal) {
+                    vm[objName].sortCol = {};
+                    vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                    searchFunc.call(this);
+                }
+            }
+        }
         //////////////////////////initial socket actions//////////////////////////////////
         vm.getPlayerStatusList = function () {
             return $scope.$socketPromise('getPlayerStatusList')
@@ -1057,7 +1090,7 @@ define(['js/app'], function (myApp) {
         $scope.$on('$viewContentLoaded', function () {
 
             setTimeout(
-                function(){
+                function () {
                     vm.queryPara = {};
 
                     vm.showPlatformList = true;

@@ -19,6 +19,7 @@ var dbConfig = require("../modules/dbproperties");
 var dbMigration = require('../db_modules/dbMigration');
 
 describe("Test Client API - Game Service", function () {
+    return;
 
     it('Should create player', function (done) {
         dbConfig.collection_players.findOne({name: "vince"}).then(

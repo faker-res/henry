@@ -411,8 +411,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         function onSuccess(data) {
             console.log('admin data', data);
             var adminData = data.data;
-
-
+            
             var sendStr = "http://www.phoneapichat.com/servlet/CallOut"
                 + "?calleeid=" + $scope.phoneCall.phone
                 + "&did=" + adminData.did

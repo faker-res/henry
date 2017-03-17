@@ -244,6 +244,7 @@ var dbPlatformGameStatus = {
             data => {
                 platformGames = data;
                 if (platformGames && platformGames.length > 0) {
+                    platformGames = platformGames.filter(game => game.status != 4);
                     var queryObj = {_id: {$in: platformGames.map(game => game.game)}};
                     if( playGameType ){
                         queryObj.playGameType = playGameType;
