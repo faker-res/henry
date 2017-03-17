@@ -348,7 +348,8 @@ describe("Test Player registration Reward event", function () {
             providerId: testProviderId,
             amount: 700,
             validAmount: 700,
-            bonusAmount: 100
+            bonusAmount: 100,
+            orderNo: new Date().getTime()
         };
 
         return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(record).then(

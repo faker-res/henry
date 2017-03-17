@@ -7,7 +7,9 @@ var playerTopUpRecordSchema = new Schema({
     // platform ID
     platformId: {type: Schema.ObjectId, required: true, index: true},
     // payment time
-    createTime: {type: Date, default: Date.now},
+    createTime: {type: Date, default: Date.now, index: true},
+    // settlement time
+    settlementTime: {type: Date, default: Date.now, index: true},
     //numerical value of the amount top-upped
     amount: {type: Number, required: true, default: 0},
     //paid through Visa. mastercard, paypal etc..

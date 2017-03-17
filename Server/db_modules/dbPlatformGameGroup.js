@@ -92,18 +92,31 @@ var dbPlatformGameGroup = {
      * @param {Number} [count]
      * @returns {*}
      */
-    getGameGroupGames: function (query, startIndex, count, playerId) {
+    getGameGroupGames: function (query, startIndex, count, playerId, providerId) {
         var gameStatusDataProm = [];
         var platformObjId = null;
         var gameGroup = [];
+        var providerObjId = null;
         return dbconfig.collection_platform.findOne({platformId: query.platformId}).lean().then(
             platformData => {
                 if (platformData) {
                     platformObjId = platformData._id;
-                    return dbconfig.collection_platformGameGroup.findOne({platform: platformObjId, code: query.code})
-                        .populate({path: "games.game", model: dbconfig.collection_game}).lean().exec();
-                    //.populate({path: "children", model: dbconfig.collection_platformGameGroup})
-                    //.populate({path: "parent", model: dbconfig.collection_platformGameGroup}).exec();
+                    var providerProm = Q.resolve(null);
+                    if (providerId != null) {
+                        providerProm = dbconfig.collection_gameProvider.findOne({providerId}).lean();
+                    }
+                    return providerProm.then(
+                        providerData => {
+                            if (providerData) {
+                                providerObjId = providerData._id;
+                            }
+                            return dbconfig.collection_platformGameGroup.findOne({
+                                platform: platformObjId,
+                                code: query.code
+                            })
+                                .populate({path: "games.game", model: dbconfig.collection_game}).lean();
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
@@ -136,8 +149,19 @@ var dbPlatformGameGroup = {
                 if (pltGameStatusData) {
                     var pltGameStatusArr = pltGameStatusData;
 
-                    //remove all null games
-                    gameGroup.games = gameGroup.games.filter(game => game.game != null);
+                    //remove all null games and filter game by providerId
+                    gameGroup.games = gameGroup.games.filter(game => {
+                        if (!game.game) {
+                            return false;
+                        }
+                        if (game.game.status == 4) {
+                            return false;
+                        }
+                        if (providerObjId && String(game.game.provider) != String(providerObjId)) {
+                            return false;
+                        }
+                        return true;
+                    });
 
                     for (var i = 0; i < gameGroup.games.length; i++) {
                         var game = gameGroup.games[i].game;
@@ -260,6 +284,9 @@ var dbPlatformGameGroup = {
                                     }
                                 }
                                 group.children = children;
+                                group.children.sort(function (a, b) {
+                                    return a.code - b.code;
+                                });
                             }
                         }
                     );

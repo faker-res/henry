@@ -87,6 +87,26 @@ var dbRewardTask = {
         return dbconfig.collection_rewardTask.findOne(query).exec();
     },
 
+    getPlayerRewardTask: function (playerId, from, to, index, limit, sortCol) {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {'createTime': -1};
+        var queryObj = {
+            playerId: playerId,
+            createTime: {
+                $gte: new Date(from),
+                $lt: new Date(to)
+            }
+        }
+        var a = dbconfig.collection_rewardTask.find(queryObj).count();
+        var b = dbconfig.collection_rewardTask.find(queryObj).sort(sortCol).skip(index).limit(limit)
+            .populate({path: "targetProviders", model: dbconfig.collection_gameProvider}).lean();
+        return Q.all([a, b]).then(
+            data => {
+                return {size: data[0], data: data[1]}
+            }
+        )
+    },
     /**
      * Get player's current reward task
      * @param {String} is player Object Id
@@ -605,20 +625,20 @@ var dbRewardTask = {
         limit = limit || 10;
         sortCol = sortCol || {"createTime": -1};
         var matchObj = constType ? {
-            platformId: platformId,
-            type: constType,
-            createTime: {
-                $gte: startTime,
-                $lt: endTime
-            },
-            eventId: evnetId
-        } : {
-            platformId: platformId,
-            createTime: {
-                $gte: startTime,
-                $lt: endTime
+                platformId: platformId,
+                type: constType,
+                createTime: {
+                    $gte: startTime,
+                    $lt: endTime
+                },
+                eventId: evnetId
+            } : {
+                platformId: platformId,
+                createTime: {
+                    $gte: startTime,
+                    $lt: endTime
+                }
             }
-        }
 
         var a = dbconfig.collection_rewardTask.find(matchObj).sort(sortCol).skip(index).limit(limit)
             .populate({path: "playerId", model: dbconfig.collection_players})

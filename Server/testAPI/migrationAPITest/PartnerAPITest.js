@@ -35,6 +35,25 @@
         });
     };
 
+    proto.updatePartner = function (callback, requestData) {
+        var data = {
+            partnerName: "vincep",
+            platform: 1,
+            updateData: {
+                parentName: "vincep3",
+                credits: 100,
+                totalReferrals: 12
+            }
+        };
+        this._service.updatePartner.request(data);
+        var self = this;
+        this._service.updatePartner.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = partnerAPITest;
     } else {

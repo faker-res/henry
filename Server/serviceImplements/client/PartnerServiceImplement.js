@@ -269,7 +269,7 @@ var PartnerServiceImplement = function () {
 
     this.applyBonus.expectsData = 'bonusId: Number|String, amount: Number|String, honoreeDetail: String';
     this.applyBonus.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.partnerId && data && data.bonusId && data.amount);
+        var isValidData = Boolean(conn.partnerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.applyBonus, [conn.partnerId, data.bonusId, data.amount, data.honoreeDetail], isValidData);
     };
 

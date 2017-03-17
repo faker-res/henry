@@ -41,6 +41,7 @@ var mongooseUtils = require("../modules/mongooseUtils");
 var dataUtils = require("../modules/dataUtils.js");
 var dbGameProvider = require("../db_modules/dbGameProvider.js");
 var commonTestActions = require("./../test_modules/commonTestActions.js");
+var dbUtil = require("../modules/dbutility");
 
 
 describe("Test partner summary settlement", function () {
@@ -50,7 +51,7 @@ describe("Test partner summary settlement", function () {
         consumeDays: 1,
         consumeAmount: 325,
         bonusAmount: -20,
-        lastConsumptionTime: new Date()
+        lastConsumptionTime: dbUtil.getTodaySGTime().startTime
     };
 
     var topUpConfig = {
@@ -105,6 +106,14 @@ describe("Test partner summary settlement", function () {
         return dataGenerator.createConsumptionRecordsForAllPlayersOnPlatform(generatedData.testPlatformId, generatedData, consumptionConfig); //, topUpConfig);
     });
 
+    it('test daily provider player summary task', function () {
+        return commonTestActions.calculateProviderPlayerDaySummaryForPastDays(consumptionConfig.consumeDays, generatedData.testGameProviderId);
+    });
+
+    it('test daily provider summary task', function () {
+        return commonTestActions.calculateProviderDaySummaryForPastDays(consumptionConfig.consumeDays, generatedData.testGameProviderId);
+    });
+
     it('add platform partner commission config', function () {
         var config ={
             //platform
@@ -152,10 +161,6 @@ describe("Test partner summary settlement", function () {
                 console.log(data);
             }
         );
-    });
-
-    it('Test player Data', function () {
-        dataGenerator.clearConsumptionData(generatedData);
     });
 
     it('Clear Consumption Data', function () {

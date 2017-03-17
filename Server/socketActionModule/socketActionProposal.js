@@ -54,6 +54,17 @@ function socketActionProposal(socketIO, socket) {
             );
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_CREDIT, data], actionName, isValidData);
         },
+
+        createFixPlayerCreditTransferProposal: function createFixPlayerCreditTransferProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.playerObjId && data.data.hasOwnProperty("updateAmount") &&
+                data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, data], actionName, isValidData);
+        },
+
         createReturnFixProposal: function createReturnFixProposal(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(

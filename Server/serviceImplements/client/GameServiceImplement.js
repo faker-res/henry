@@ -53,7 +53,7 @@ var GameServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameGroup.getGameGroupGames, [data, data.startIndex, data.requestCount, conn.playerId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameGroup.getGameGroupGames, [data, data.startIndex, data.requestCount, conn.playerId, data.providerId], isValidData, false, false, true);
     };
 
     this.getGameGroupTreeInfo.expectsData = 'platformId: String';
