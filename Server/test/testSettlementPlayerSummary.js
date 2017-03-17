@@ -26,6 +26,7 @@ var dataGenerator = require("./../test_modules/dataGenerator.js");
 var Q = require("q");
 var commonTestActions = require("./../test_modules/commonTestActions.js");
 var commonTestFun = require('../test_modules/commonTestFunc');
+var dbUtil = require('../modules/dbutility');
 
 describe("Test player summary settlement", function () {
 
@@ -34,7 +35,8 @@ describe("Test player summary settlement", function () {
     var consumptionConfig = {
         consumeTimes: 3,
         consumeDays: 3,
-        consumeAmount: 505
+        consumeAmount: 505,
+        //lastConsumptionTime: dbUtil.getLastWeekSGTime().endTime
     };
 
     var topUpDays = 2;

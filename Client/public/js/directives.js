@@ -76,7 +76,14 @@ angular.module('myApp.directives', [])
         });
         ctrl.$formatters.unshift(function(modelValue){
           //console.log("percent directive modelValue=%s", modelValue);
-          return $filter('number')(parseFloat(modelValue)*100);
+          var scaledVal = parseFloat(modelValue) * 100;
+          if (ele[0].tagName === 'INPUT') {
+            // If the value is for an <input>, we should return it raw.
+            return scaledVal;
+          } else {
+            // But for plain visual display, we may want to prettify with ','s
+            return $filter('number')(scaledVal);
+          }
         });
       }
     };

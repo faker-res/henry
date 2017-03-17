@@ -5,16 +5,16 @@ form(name="form_new_player", novalidate)
 			input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.newPlayer.name", ng-change='vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player)', required)
 			span.help-block(style='color: #b94a48', ng-show='vm.duplicateNameFound') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
 		.form-group.col-md-6
-			label.control-label {{"EMAIL" | translate}}
+			label.control-label *{{"EMAIL" | translate}}
 			input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.newPlayer.email", required)
 			span.help-block(ng-show="form_new_player.email.$dirty && form_new_player.email.$error.email") {{"EMAIL_INVALID" | translate}}
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-6
-			label.control-label {{"PASSWORD" | translate}}
+			label.control-label *{{"PASSWORD" | translate}}
 			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password1", ng-model="vm.newPlayer.password", required,match="vm.playerPswverify")
 			span.help-block(style='color: #b94a48', ng-show="form_new_player.password1.$dirty && vm.passwordLengthCheck(vm.newPlayer.password)") {{'Minimum Password length is' | translate}}&nbsp; 6.
 		.form-group.col-md-6
-			label.control-label {{"PASSWORD_RETYPE" | translate}}
+			label.control-label *{{"PASSWORD_RETYPE" | translate}}
 			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password2", ng-model="vm.playerPswverify", required,match="vm.newPlayer.password")
 			span.help-block(ng-show="form_new_player.password2.$dirty && form_new_player.password2.$error.match && !form_new_player.password2.$error.required") {{"PASSWORD_NOT_MATCH" | translate}}
 	.row.margin-left-5.margin-right-5
@@ -38,8 +38,8 @@ form(name="form_new_player", novalidate)
 				option(value='{{null}}', ng-selected='null==vm.newPlayer.partner') {{'NULL' | translate}}
 				option(ng-repeat='(i,v) in vm.partnerIdObj', value='{{i}}', ng-selected='i==vm.newPlayer.partner') {{v.partnerName}}
 		.form-group.col-md-6
-			label.control-label {{"TELEPHONE" | translate}}
-			input.form-control(type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}',ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber")
+			label.control-label *{{"TELEPHONE" | translate}}
+			input.form-control(type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}',ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber", required)
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-6
 			label.control-label {{"REFERRAL" | translate}}

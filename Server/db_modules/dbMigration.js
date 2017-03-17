@@ -622,7 +622,7 @@ var dbMigration = {
                 if (platformData) {
                     data.platform = platformData._id;
                     if (data.parent) {
-                        return dbconfig.collection_partner.findOne({partnerName: data.parent}).lean().then(
+                        return dbconfig.collection_partner.findOne({partnerName: data.parent.toLowerCase()}).lean().then(
                             parentData => {
                                 if (parentData) {
                                     data.parent = parentData._id;
@@ -982,7 +982,7 @@ var dbMigration = {
                 if (platformData) {
                     return dbconfig.collection_players.findOne({
                         platform: platformData._id,
-                        name: data.playerName
+                        name: data.playerName.toLowerCase()
                     }).lean();
                 }
                 else {
@@ -995,7 +995,7 @@ var dbMigration = {
                     playerObj = playerData;
                     return dbconfig.collection_partner.findOne({
                         platform: playerData.platform,
-                        partnerName: data.partnerName
+                        partnerName: data.partnerName.toLowerCase()
                     }).lean();
                 }
                 else {
@@ -1014,6 +1014,9 @@ var dbMigration = {
                     return Q.reject({name: "DataError", message: "Can not find partner"});
                 }
             }
+        ).then(
+            res => dbMigration.resHandler(data, "player", "addPlayerPartner"),
+            error => dbMigration.errorHandler("player", "addPlayerPartner", data, error)
         );
     },
 
@@ -1056,6 +1059,9 @@ var dbMigration = {
                     return Q.reject({name: "DataError", message: "Can not find referral"});
                 }
             }
+        ).then(
+            res => dbMigration.resHandler(data, "player", "addPlayerReferral"),
+            error => dbMigration.errorHandler("player", "addPlayerReferral", data, error)
         );
     },
 
@@ -1085,6 +1091,9 @@ var dbMigration = {
                     return Q.reject({name: "DataError", message: "Can not find platform or provider"});
                 }
             }
+        ).then(
+            res => dbMigration.resHandler(inputData, "player", "updateLastPlayedProvider"),
+            error => dbMigration.errorHandler("player", "updateLastPlayedProvider", inputData, error)
         );
     },
 
@@ -1111,7 +1120,51 @@ var dbMigration = {
                     return Q.reject({name: "DataError", message: "Can not find platform"});
                 }
             }
-        )
+        ).then(
+            res => dbMigration.resHandler(inputData, "player", "updatePlayerCredit"),
+            error => dbMigration.errorHandler("player", "updatePlayerCredit", inputData, error)
+        );
+    },
+
+    updatePlayerLevel: function (inputData) {
+        return dbconfig.collection_platform.findOne({platformId: inputData.platform}).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_players.findOne({
+                        name: inputData.playerName,
+                        platform: platformData._id
+                    }).then(
+                        playerData => {
+                            if (playerData) {
+                                return dbconfig.collection_playerLevel.findOne({
+                                    platform: playerData.platform,
+                                    name: inputData.levelName
+                                }).then(
+                                    levelData => {
+                                        if (levelData) {
+                                            playerData.playerLevel = levelData._id;
+                                            return playerData.save();
+                                        }
+                                        else {
+                                            return Q.reject({name: "DataError", message: "Can not find player level"});
+                                        }
+                                    }
+                                );
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Can not find player"});
+                            }
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            res => dbMigration.resHandler(inputData, "player", "updatePlayerCredit"),
+            error => dbMigration.errorHandler("player", "updatePlayerCredit", inputData, error)
+        );
     },
 
     validateProposalData: function (typeName, proposalData) {
@@ -1429,7 +1482,8 @@ var dbMigration = {
                     else {
                         if (status == constProposalStatus.SUCCESS) {
                             //update player credit if it is bonus proposal
-                            var updateAmount = proposal.data.amount * proposal.data.bonusCredit;
+                            //for sync data, use amount only
+                            var updateAmount = proposal.data.amount;
                             if (typeName == "PlayerBonus") {
                                 return dbPlayerInfo.changePlayerCredit(proposal.data.playerObjId, proposal.data.platformObjId, -updateAmount, typeName, proposal.data).then(
                                     player => {
@@ -1481,6 +1535,9 @@ var dbMigration = {
                     platformId = platformData._id;
                     var playerProm = dbconfig.collection_players.findOne({name: data.playerName, platform: platformId});
                     return Q.resolve(playerProm);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
                 }
             }
         ).then(
@@ -1594,6 +1651,120 @@ var dbMigration = {
                     }
                 );
             }
+        );
+    },
+
+    updatePlayer: function (data) {
+        var platformObjId = null;
+        var playerObj = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
+            platformData => {
+                if (platformData) {
+                    platformObjId = platformData._id;
+                    return dbconfig.collection_players.findOne({
+                        name: data.playerName,
+                        platform: platformObjId
+                    });
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+                    var partnerProm = null;
+                    var referralProm = null;
+                    var playerLevelProm = null;
+                    if (data.updateData.partnerName != null) {
+                        partnerProm = dbconfig.collection_partner.findOne({
+                            partnerName: data.updateData.partnerName,
+                            platform: platformObjId
+                        });
+                    }
+                    if (data.updateData.referralName) {
+                        referralProm = dbconfig.collection_players.findOne({
+                            name: data.updateData.referralName,
+                            platform: platformObjId
+                        });
+                    }
+                    if (data.updateData.playerLevelName) {
+                        playerLevelProm = dbconfig.collection_playerLevel.findOne({
+                            name: data.updateData.playerLevelName,
+                            platform: platformObjId
+                        });
+                    }
+                    return Q.all([partnerProm, referralProm, playerLevelProm]);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player"});
+                }
+            }
+        ).then(
+            promData => {
+                if(promData){
+                    delete data.updateData.partner;
+                    delete data.updateData.referral;
+                    delete data.updateData.playerLevel;
+                    if(promData[0]){
+                        data.updateData.partner = promData[0]._id;
+                    }
+                    if(promData[1]){
+                        data.updateData.referral = promData[1]._id;
+                    }
+                    if(promData[2]){
+                        data.updateData.playerLevel = promData[2]._id;
+                    }
+                }
+                return dbconfig.collection_players.findOneAndUpdate({_id: playerObj._id, platform: platformObjId}, data.updateData);
+            }
+        ).then(
+            res => dbMigration.resHandler(data, "player", "updatePlayer"),
+            error => dbMigration.errorHandler("player", "updatePlayer", data, error)
+        );
+    },
+
+    updatePartner: function(data){
+        var platformObjId = null;
+        var partnerObj = null;
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
+            platformData => {
+                if (platformData) {
+                    platformObjId = platformData._id;
+                    return dbconfig.collection_partner.findOne({
+                        partnerName: data.partnerName,
+                        platform: platformObjId
+                    });
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            partnerData => {
+                if(partnerData){
+                    var parentProm = null;
+                    partnerObj = partnerData;
+                    if( data.updateData.parentName ){
+                        parentProm = dbconfig.collection_partner.findOne({parentName: data.updateData.parentName, platform: platformObjId});
+                    }
+                    return Q.resolve(parentProm);
+                }
+                else{
+                    return Q.reject({name: "DataError", message: "Can not find partner"});
+                }
+            }
+        ).then(
+            parentData => {
+                if( parentData ){
+                    data.updateData.parent = parentData._id;
+                }
+                return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObj._id, platform: partnerObj.platform}, data.updateData);
+            }
+        ).then(
+            res => dbMigration.resHandler(data, "partner", "updatePartner"),
+            error => dbMigration.errorHandler("partner", "updatePartner", data, error)
         );
     }
 

@@ -200,6 +200,31 @@
      
 </div>
 
+<h3>Update Partner(更新玩家)</h3>
+<div class="test-container">
+    <div>
+        <label>partnerName
+            <input name="partnerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>updateData
+            <input name="updateData">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="updatePartner">Update</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/migration/MigrationServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/migrationAPITest/PartnerAPITest', 'testAPI/migrationAPITest/ConnectionAPITest'],
             function (MigrationServices, WebSocketClient, TestHelper, PartnerAPITest, connectionAPITest) {

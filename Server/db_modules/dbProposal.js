@@ -1080,13 +1080,8 @@ var proposal = {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
                             },
-                            $and: [{
-                                $or: [
-                                    {status: {$in: statusArr}},
-                                    {process: {$in: processIds}}
-                                ]
-                            }]
-                        }
+                            status: {$in: statusArr}
+                        };
                         if (relateUser) {
                             queryObj["data.playerName"] = relateUser
                         }
@@ -2028,7 +2023,7 @@ var proposal = {
     },
 
     submitRepairPaymentProposal: function (proposalId) {
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).lean().then(
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData && proposalData.data) {
                     //check if manual or online top up
@@ -2043,6 +2038,11 @@ var proposal = {
                         return pmsAPI.payment_requestRepairingOnlinePay(
                             {
                                 proposalId: proposalId
+                            }
+                        ).then(
+                            res => {
+                                proposalData.data.isRepair = true;
+                                return proposalData.save();
                             }
                         );
                     }

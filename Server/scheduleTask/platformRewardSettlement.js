@@ -58,7 +58,7 @@ var platformRewardSettlement = {
                                     return dbPlayerTopUpDaySummary.checkPlatformFullAttendanceStream(platformId, event, event.executeProposal);
                                     break;
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, event, event.executeProposal);
+                                    return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, event, event.executeProposal, event.settlementPeriod);
                                     break;
                                 case constRewardType.PARTNER_CONSUMPTION_RETURN:
                                     return dbPartnerWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, event, event.executeProposal);

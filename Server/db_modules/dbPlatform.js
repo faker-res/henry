@@ -232,6 +232,7 @@ var dbPlatform = {
         }
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
+                console.log("updatePlatform", data, query, updateData);
                 if (env.mode != "local" && env.mode != "qa") {
                     var platformData = {
                         platformId: data.platformId,
