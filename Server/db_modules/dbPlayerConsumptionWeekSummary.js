@@ -25,6 +25,7 @@ var util = require('util');
 var constServerCode = require('../const/constServerCode');
 const constProposalEntryType = require("../const/constProposalEntryType");
 const constProposalUserType = require('../const/constProposalUserType');
+const constSettlementPeriod = require('../const/constSettlementPeriod');
 
 var dbPlayerConsumptionWeekSummary = {
 
@@ -139,68 +140,50 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {JSON} eventData
      * @param {ObjectId} proposalTypeId
      */
-    checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId) {
+    checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period) {
 
-        var deferred = Q.defer();
+        var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
+        var balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
+            // var stream = dbPlayerConsumptionRecord.streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId);
 
-        //dbutility.getWeeklySettlementTimeForPlatformId(platformId).then(
-        dbutility.getLastWeekSGTimeProm().then(
-            function (settleTime) {
-                var balancer = new SettlementBalancer();
-                return balancer.initConns().then(function () {
-                    // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
-                    // var stream = dbPlayerConsumptionRecord.streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId);
-
-                    var query = dbconfig.collection_playerConsumptionSummary.aggregate(
-                        [
-                            {
-                                $match: {
-                                    platformId: platformId,
-                                    bDirty: false
-                                }
-                            },
-                            {
-                                $group: {_id: '$playerId'}
-                            }
-                        ]
-                    );
-
-                    var stream = query.cursor({batchSize: 10000}).allowDiskUse(true).exec();
-
-                    return balancer.processStream(
-                        {
-                            stream: stream,
-                            batchSize: constSystemParam.BATCH_SIZE,
-                            makeRequest: function (playerIdObjs, request) {
-                                request("player", "checkPlatformWeeklyConsumptionReturnForPlayers", {
-                                    platformId: platformId,
-                                    eventData: eventData,
-                                    proposalTypeId: proposalTypeId,
-                                    startTime: settleTime.startTime,
-                                    endTime: settleTime.endTime,
-                                    playerObjIds: playerIdObjs.map(function (playerIdObj) {
-                                        return playerIdObj._id;
-                                    })
-                                });
-                            }
+            var query = dbconfig.collection_playerConsumptionSummary.aggregate(
+                [
+                    {
+                        $match: {
+                            platformId: platformId,
+                            summaryDay: {$gte: settleTime.startTime, $lt: settleTime.endTime},
+                            bDirty: false
                         }
-                    );
+                    },
+                    {
+                        $group: {_id: '$playerId'}
+                    }
+                ]
+            );
 
-                });
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error finding platform!", error: error});
-            }
-        ).then(
-            function (data) {
-                deferred.resolve(data);
-            },
-            function (error) {
-                deferred.reject(error);
-            }
-        );
+            var stream = query.cursor({batchSize: 1000}).allowDiskUse(true).exec();
 
-        return deferred.promise;
+            return balancer.processStream(
+                {
+                    stream: stream,
+                    batchSize: constSystemParam.BATCH_SIZE,
+                    makeRequest: function (playerIdObjs, request) {
+                        request("player", "checkPlatformWeeklyConsumptionReturnForPlayers", {
+                            platformId: platformId,
+                            eventData: eventData,
+                            proposalTypeId: proposalTypeId,
+                            startTime: settleTime.startTime,
+                            endTime: settleTime.endTime,
+                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                return playerIdObj._id;
+                            })
+                        });
+                    }
+                }
+            );
+        });
     },
 
     checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest) {
@@ -210,6 +193,7 @@ var dbPlayerConsumptionWeekSummary = {
             {
                 platformId: platformId,
                 playerId: {$in: playerIds},
+                summaryDay: {$gte: startTime, $lt: endTime},
                 bDirty: false
             }
         ).lean();
@@ -223,7 +207,6 @@ var dbPlayerConsumptionWeekSummary = {
         Q.all([summaryProm, playerLevelProm, gameTypesProm]).spread(
             function (consumptionSummaries, players, allGameTypes) {
                 if (consumptionSummaries && players) {
-
                     // Process the data into key map
                     var consumptionSummariesByKey = {};
                     consumptionSummaries.forEach(
@@ -233,6 +216,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 // This is not supposed to happen: There are not supposed to be multiple summaries with the same key.
                                 // But just in case this does happen, let's not lose the player's consumption!
                                 consumptionSummariesByKey[key].amount += summary.amount;
+                                consumptionSummariesByKey[key].validAmount += summary.validAmount;
                             } else {
                                 consumptionSummariesByKey[key] = summary;
                             }
@@ -247,6 +231,7 @@ var dbPlayerConsumptionWeekSummary = {
                             // Check all game types and calculate return amount
                             var thisPlayersConsumptionSummaries = [];
                             var returnDetail = {};
+                            var applyAmount = 0;
                             for (var type in allGameTypes) {
                                 var playerLevel = playerData.playerLevel;
                                 var gameType = allGameTypes[type];
@@ -254,7 +239,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 var consumptionSummary = consumptionSummariesByKey[typeKey];
                                 var eventRatios = eventData.param.ratio[playerLevel.value];
                                 var ratio = eventRatios && eventRatios[gameType];
-                                var applyAmount = 0;
+
 
                                 if (!eventRatios) {
                                     var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData.param);
@@ -271,7 +256,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     ratio = 0;
                                 }
 
-                                if (consumptionSummary && playerLevel && ratio) {
+                                if (consumptionSummary && playerLevel && ratio >= 0) {
                                     var consumeValidAmount = consumptionSummary.validAmount || 0;
                                     returnAmount += consumeValidAmount * ratio;
                                     returnDetail["GameType:" + gameType] = {
@@ -286,8 +271,8 @@ var dbPlayerConsumptionWeekSummary = {
                                 }
                             }
 
-                            // If return reward amount larger than 0, create proposal
-                            if (returnAmount > 0) {
+                            // If return reward amount larger than 1, create proposal
+                            if (returnAmount >= 1) {
                                 var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
                                 var proposalData = {
                                     type: proposalTypeId,
@@ -300,7 +285,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         playerId: playerData.playerId,
                                         eventName: eventData.name,
                                         eventCode: eventData.code,
-                                        rewardAmount: returnAmount,
+                                        rewardAmount: returnAmount < 1 ? 0 : returnAmount,
                                         returnDetail: returnDetail,
                                         summaryIds: summaryIds,
                                         bConsumptionReturnRequest: bRequest,
@@ -358,6 +343,7 @@ var dbPlayerConsumptionWeekSummary = {
                                                         playerId: summary.playerId,
                                                         platformId: summary.platformId,
                                                         gameType: summary.gameType,
+                                                        summaryDay: summary.summaryDay,
                                                         bDirty: summary.bDirty
                                                     }
                                                 ).then(
@@ -490,7 +476,8 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {json} eventData
      */
     calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest) {
-        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, null, null, [playerData._id], bRequest);
+        var settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
+        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest);
     },
 
     /**
@@ -522,7 +509,7 @@ var dbPlayerConsumptionWeekSummary = {
                     if (eventsData && eventsData.length > 0) {
                         var proms = [];
                         for (let eventData of eventsData) {
-                            proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData.param, eventData.executeProposal, playerData._id));
+                            proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id));
                         }
                         return Q.all(proms);
                     }
@@ -566,7 +553,7 @@ var dbPlayerConsumptionWeekSummary = {
         var proms = [];
         playerObjIds.forEach(
             playerObjId => {
-                proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformId, eventData.param, eventData.executeProposal, playerObjId, true));
+                proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformId, eventData, eventData.executeProposal, playerObjId, true));
             }
         );
         return Q.all(proms).then(
@@ -586,11 +573,20 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {ObjectId} playerId
      * @param {Boolean} bDetail, if contain detailed player info
      */
-    getPlayerConsumptionReturnAmount: function (platformId, eventData, proposalTypeId, playerId, bDetail) {
+    getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail) {
+        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
+        var eventData = event.param;
+        var summaryDay = {$gte: settleTime.startTime};
+        //if preview for settlement, only calculate for settlement time
+        //if preview for player request, calculate data until now
+        if (bDetail) {
+            summaryDay["$lt"] = settleTime.endTime;
+        }
         var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
             {
                 platformId: platformId,
                 playerId: playerId,
+                summaryDay: summaryDay,
                 bDirty: false
             }
         );
@@ -601,7 +597,6 @@ var dbPlayerConsumptionWeekSummary = {
 
         return Q.all([summaryProm, playerLevelProm, gameTypesProm]).spread(
             function (consumptionSummaries, playerData, allGameTypes) {
-                //console.log("consumptionSummaries:", consumptionSummaries);
 
                 // Why is it that sometimes playerData is not found?
                 // Perhaps the player was requested because he had consumption records, but the player himself has been removed from the system
@@ -616,12 +611,12 @@ var dbPlayerConsumptionWeekSummary = {
                                 // This is not supposed to happen: There are not supposed to be multiple summaries with the same key.
                                 // But just in case this does happen, let's not lose the player's consumption!
                                 consumptionSummariesByKey[key].amount += summary.amount;
+                                consumptionSummariesByKey[key].validAmount += summary.validAmount;
                             } else {
                                 consumptionSummariesByKey[key] = summary;
                             }
                         }
                     );
-
                     var returnAmount = 0;
 
                     // Check all game types and calculate return amount
@@ -647,7 +642,7 @@ var dbPlayerConsumptionWeekSummary = {
                             console.warn(msg);
                             ratio = 0;
                         }
-                        if (consumptionSummary && playerLevel && ratio) {
+                        if (consumptionSummary && playerLevel && ratio >= 0) {
                             var consumeValidAmount = consumptionSummary.validAmount;
                             var returnForThisGameType = consumeValidAmount * ratio;
                             returnAmount += returnForThisGameType;
@@ -667,7 +662,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 };
                         }
                     }
-                    res.totalAmount = returnAmount;
+                    res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
                     if (bDetail) {
                         res.playerId = playerData.playerId;
                         res.playerName = playerData.name;

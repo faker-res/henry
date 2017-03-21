@@ -181,7 +181,7 @@ table.playerInfoModalDivs tbody tr td:first-child {
     white-space: nowrap;
     /*background-color: rgba(96, 84, 255, 0.27);*/
     padding: 5px 15px;
-    font-style: italic;
+    /*font-style: italic;*/
 }
 
 table.playerInfoModalDivs tbody tr td:first-child > div {
@@ -195,7 +195,7 @@ table.playerInfoModalDivs td label + text {
     margin-left: 5px;
     margin-right: 5px;
     font-family: serif;
-    font-style: oblique;
+    /*font-style: oblique;*/
 }
 
 table.dataTable tfoot td.sumText {

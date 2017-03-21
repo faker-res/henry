@@ -7,6 +7,7 @@ const constPlayerLevelPeriod = {
     NONE: "NONE",
     DAY: "DAY",
     WEEK: "WEEK",
+    HALF_MONTH: "HALF_MONTH",
     MONTH: "MONTH"
 };
 

@@ -436,7 +436,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded('#modalProviderExpenses.in #providerExpenseQuery', function () {
                 vm.expenseQuery.startTime = utilService.createDatePicker('#providerExpenseQuery .startTime');
                 vm.expenseQuery.endTime = utilService.createDatePicker('#providerExpenseQuery .endTime');
-                vm.expenseQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.expenseQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.expenseQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 utilService.actionAfterLoaded('#modalProviderExpenses.in #providerExpenseTablePage', function () {
                     vm.expenseQuery.pageObj = utilService.createPageForPagingTable("#providerExpenseTablePage", {}, $translate, function (curP, pageSize) {

@@ -14,6 +14,7 @@ const constProposalMainType = {
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,
     "UpdatePlayerCredit": constMainType.UPDATE_PLAYER,
+    "FixPlayerCreditTransfer": constMainType.UPDATE_PLAYER,
     "UpdatePlayerEmail": constMainType.UPDATE_PLAYER,
     "UpdatePlayerPhone": constMainType.UPDATE_PLAYER,
     "UpdatePlayerBankInfo": constMainType.UPDATE_PLAYER,
@@ -24,6 +25,7 @@ const constProposalMainType = {
     "UpdatePartnerPhone": constMainType.UPDATE_PARTNER,
     "UpdatePartnerEmail": constMainType.UPDATE_PARTNER,
     "UpdatePartnerInfo": constMainType.UPDATE_PARTNER,
+    "PartnerCommission": constMainType.UPDATE_PARTNER,
 
     //TOP_UP
     "ManualPlayerTopUp": constMainType.TOP_UP,
@@ -50,7 +52,9 @@ const constProposalMainType = {
 
     //BONUS
     "PlayerBonus": constMainType.BONUS,
-    "PartnerBonus": constMainType.BONUS
+    "PartnerBonus": constMainType.BONUS,
+
+
 };
 
 module.exports = constProposalMainType;

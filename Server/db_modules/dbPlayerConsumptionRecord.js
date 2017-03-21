@@ -4,7 +4,8 @@ var dbPlayerConsumptionRecordFunc = function () {
 module.exports = new dbPlayerConsumptionRecordFunc();
 
 var Q = require('q');
-var env = require('../config/env')
+var env = require('../config/env');
+var moment = require('moment-timezone');
 var dbconfig = require('./../modules/dbproperties');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var constRewardType = require('./../const/constRewardType');
@@ -20,7 +21,7 @@ var constServerCode = require('../const/constServerCode');
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
     if (maxAttempts === undefined) {
-        maxAttempts = 10;
+        maxAttempts = 100;
     }
     if (delayBetweenAttempts === undefined) {
         delayBetweenAttempts = 500;
@@ -304,6 +305,7 @@ var dbPlayerConsumptionRecord = {
             },
             function (error) {
                 dbconfig.collection_consumptionOrderNumModal.remove({orderNo: newOrderNo}).then();
+                console.error("Player consumption record save failed", error);
                 deferred.reject({name: "DBError", message: "Error creating consumption record", error: error});
             }
         ).then(
@@ -314,10 +316,12 @@ var dbPlayerConsumptionRecord = {
                         return record;
                     }
                     //update consumption summary record
+                    var summaryDay = moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate();
                     var query = {
                         playerId: record.playerId,
                         platformId: record.platformId,
                         gameType: record.gameType,
+                        summaryDay: summaryDay,
                         bDirty: false
                     };
                     var updateData = {
@@ -463,7 +467,7 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             platformGameData => {
-                if (verifiedData && platformGameData && (platformGameData[0] || platformGameData[1])) {
+                if (verifiedData && verifiedData[0] && verifiedData[1] && verifiedData[2] && platformGameData && (platformGameData[0] || platformGameData[1])) {
                     var data = verifiedData;
                     recordData.playerId = data[0]._id;
                     recordData.platformId = data[0].platform;
@@ -476,7 +480,7 @@ var dbPlayerConsumptionRecord = {
                 } else {
                     const missingList = [];
                     if (verifiedData && !verifiedData[0]) {
-                        missingList.push("playerId");
+                        missingList.push("userName");
                     }
                     if (verifiedData && !verifiedData[1]) {
                         missingList.push("gameId");
@@ -494,11 +498,7 @@ var dbPlayerConsumptionRecord = {
         ).catch(
             function (error) {
                 console.error("createExternalPlayerConsumptionRecord", error);
-                return resolveError ? Q.resolve(null) : Q.reject({
-                    name: "DBError",
-                    message: "Error in creating player consumption record",
-                    error: error
-                });
+                return resolveError ? Q.resolve(null) : Q.reject(error);
             }
         );
     },

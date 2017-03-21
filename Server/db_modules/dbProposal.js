@@ -348,7 +348,7 @@ var proposal = {
         );
     },
 
-    updateBonusProposal: function (proposalId, status, bonusId) {
+    updateBonusProposal: function (proposalId, status, bonusId, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING) && proposalData.data && proposalData.data.bonusId == bonusId) {
@@ -379,7 +379,7 @@ var proposal = {
                 if (status == constProposalStatus.SUCCESS) {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, true);
                 } else if (status == constProposalStatus.FAIL) {
-                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false);
+                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark);
                 } else if (status == constProposalStatus.PENDING || status == constProposalStatus.PROCESSING) {
                     return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                         proposalData => {
@@ -1077,13 +1077,8 @@ var proposal = {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
                             },
-                            $and: [{
-                                $or: [
-                                    {status: {$in: statusArr}},
-                                    {process: {$in: processIds}}
-                                ]
-                            }]
-                        }
+                            status: {$in: statusArr}
+                        };
                         if (relateUser) {
                             queryObj["data.playerName"] = relateUser
                         }
@@ -2012,7 +2007,7 @@ var proposal = {
     },
 
     submitRepairPaymentProposal: function (proposalId) {
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).lean().then(
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData && proposalData.data) {
                     //check if manual or online top up
@@ -2027,6 +2022,11 @@ var proposal = {
                         return pmsAPI.payment_requestRepairingOnlinePay(
                             {
                                 proposalId: proposalId
+                            }
+                        ).then(
+                            res => {
+                                proposalData.data.isRepair = true;
+                                return proposalData.save();
                             }
                         );
                     }

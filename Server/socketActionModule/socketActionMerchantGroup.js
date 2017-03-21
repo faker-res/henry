@@ -109,6 +109,14 @@ function socketActionMerchantGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, pmsAPI.merchant_getMerchantTypeList, [{queryId: serverInstance.getQueryId()}], actionName, true);
         },
 
+        getMerchantList: function getMerchantList(data) {
+            var actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, pmsAPI.merchant_getMerchantList, [{
+                platformId: data.platformId,
+                queryId: serverInstance.getQueryId()
+            }], actionName, true);
+        },
+
         /**
          * Add multiple players to bank card group
          * @param {json} data

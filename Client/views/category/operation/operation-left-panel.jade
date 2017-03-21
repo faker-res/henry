@@ -1,4 +1,4 @@
-#operPlatform.panel.panel-primary(ng-if="checkViewPermission('Operation', 'Proposal','Read')")
+#operPlatform.panel.panel-primary
     .panel-heading.padding-all-5
         .panel-title.left-col
             .fa.fa-cubes(ng-if='vm.selectedPlatform')
@@ -11,7 +11,7 @@
             select.platform-select(ng-model='vm.selectedPlatformID', ng-change='vm.selectPlatform(vm.selectedPlatformID)', required)
                 option(value='_allPlatform' ng-selected='vm.selectedPlatformID=="_allPlatform"') All Platforms
                 option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatformID==v._id') {{v.name}}
-    .panel-body(style='padding:5px 0')
+    .panel-body(style='padding:5px 0', ng-if="checkViewPermission('Operation', 'Proposal','Read')")
         ul.list-group(style="margin: 0")
             a.list-group-item(ng-if="checkViewPermission('Operation', 'Proposal', 'ProposalListRead')", class='{{vm.highlightProposalListSelection.total}}' ng-click='vm.proposalTypeClicked("total");', data-toggle="tab", href="#proposalDataTableDiv")
                 text {{"PROPOSAL_LIST" | translate}}
@@ -54,6 +54,6 @@
                 td(style='min-width: 9em') {{v.key | translate}}
                 td(style='min-width: 9em') {{v.func(vm.activePlayerData[v.key])}}
     p
-    button.playerMessage.common-button.margin-right-5.btn.btn-success(data-player='{{vm.activePlayerData}}') {{'MESSAGE' | translate}}
-    button.playerTelephone.common-button.margin-right-5.btn.btn-success(data-player='{{vm.activePlayerData}}') {{'TELPHONE' | translate}}
+    button.playerMessage.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Operation', 'Player', 'smsPlayer')" data-player='{{vm.activePlayerData}}') {{'MESSAGE' | translate}}
+    button.playerTelephone.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Operation', 'Player', 'callPlayer')" data-player='{{vm.activePlayerData}}') {{'TELPHONE' | translate}}
 

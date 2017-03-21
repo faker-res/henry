@@ -409,6 +409,11 @@ function socketActionReport(socketIO, socket) {
             var actionName = arguments.callee.name;
             self.socket.emit("_" + actionName, {success: true, data: constPlayerFeedbackResult});
         },
+        getPlayerDomainReport: function getPlayerDomainReport(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDomainReport, [data.platform, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
 
         getPlayerAlmostLevelupReport: function getPlayerAlmostLevelupReport(data) {
             var actionName = arguments.callee.name;
