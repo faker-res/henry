@@ -2680,6 +2680,9 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getEncPhoneNumber = function (playerData) {
+            return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-3)) : ''
+        }
         vm.showPlayerInfoModal = function (playerName) {
             vm.similarPlayersForPlayer = null;
             var watch = $scope.$watch(function () {
@@ -2696,8 +2699,6 @@ define(['js/app'], function (myApp) {
                         platformId: newV.platform
                     }
                     console.log('playerConsumptionQuery', playerConsumptionQuery);
-
-                    vm.selectedSinglePlayer.encPhoneNumber = vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-3)) : ''
 
                     socketService.$socket($scope.AppSocket, 'getSimilarPlayers', {
                         playerId: vm.selectedSinglePlayer._id
@@ -3383,7 +3384,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded(('#playerCreditChangeLog .endTime'), function () {
                 vm.playerCreditChangeLog.startTime = utilService.createDatePicker('#playerCreditChangeLog .startTime');
                 vm.playerCreditChangeLog.endTime = utilService.createDatePicker('#playerCreditChangeLog .endTime');
-                vm.playerCreditChangeLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.playerCreditChangeLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerCreditChangeLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.playerCreditChangeLog.pageObj = utilService.createPageForPagingTable("#playerCreditChangeLogTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "playerCreditChangeLog", vm.getPagedPlayerCreditChangeLog)
@@ -3461,7 +3462,7 @@ define(['js/app'], function (myApp) {
             vm.processDataTableinModal('#modalPlayerCreditChangeLog', '#playerCreditChangeLogTable', {"aaSorting": [[0, 'desc']]});
             vm.initQueryTimeFilter('playerCreditChangeLog', function () {
                 vm.queryPara.playerCreditChangeLog.type = 'none';
-                vm.queryPara.playerCreditChangeLog.startTime.data('datetimepicker').setLocalDate(utilService.setNDaysAgo(new Date(), 30));
+                vm.queryPara.playerCreditChangeLog.startTime.data('datetimepicker').setLocalDate(utilService.setNDaysAgo(new Date(), 1));
                 vm.showCreditChangeLogByFilter();
                 $scope.safeApply();
             });
@@ -3538,7 +3539,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded(('#' + field ), function () {
                 vm.queryPara[field].startTime = utilService.createDatePicker('#' + field + ' .startTime');
                 vm.queryPara[field].endTime = utilService.createDatePicker('#' + field + ' .endTime');
-                vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.queryPara[field].endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
             });
             $scope.safeApply();
@@ -3849,6 +3850,7 @@ define(['js/app'], function (myApp) {
                 vm.playerTransferErrorLog = data.data.map(item => {
                         item.createTimeText = vm.dateReformat(item.createTime);
                         item.typeText = $translate(item.type);
+                        item.providerText = vm.getProviderText(item.providerId);
                         return item;
                     }) || [];
                 console.log('errData', vm.playerTransferErrorLog);
@@ -3859,14 +3861,14 @@ define(['js/app'], function (myApp) {
                         {title: $translate("CREATETIME"), data: 'createTimeText'},
                         {title: $translate("TRANSFER") + " ID", data: 'transferId'},
                         {title: $translate("CREDIT"), data: 'amount'},
-                        {title: $translate("provider"), data: 'providerId'},
+                        {title: $translate("provider"), data: 'providerText'},
                         {title: $translate("amount"), data: 'amount'},
                         {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount'},
                         {title: $translate("TYPE"), data: 'typeText'},
                         {
                             title: $translate("STATUS"),
                             render: function (data, type, row) {
-                                return (row.status == 1 ? $translate("SUCCESS") : $translate("FAIL"));
+                                return (row.status == 1 ? $translate("SUCCESS") : row.status == 2 ? $translate("FAIL") : $translate("REQUEST"));
                             }
                         }
                     ]
@@ -3952,7 +3954,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded("#modalPlayerTopUp.in #playerTopUp .endTime", function () {
                 vm.playerTopUpLog.startTime = utilService.createDatePicker('#playerTopUp .startTime');
                 vm.playerTopUpLog.endTime = utilService.createDatePicker('#playerTopUp .endTime');
-                vm.playerTopUpLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.playerTopUpLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerTopUpLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.getPagePlayerTopup(true);
             });
@@ -4206,7 +4208,8 @@ define(['js/app'], function (myApp) {
                 currentAmount: vm.playerAddRewadTask.currentAmount,
                 amount: vm.playerAddRewadTask.currentAmount,
                 initAmount: vm.playerAddRewadTask.currentAmount,
-                useConsumption: Boolean(vm.playerAddRewadTask.useConsumption)
+                useConsumption: Boolean(vm.playerAddRewadTask.useConsumption),
+                remark: vm.playerAddRewadTask.remark,
             }
             console.log('sendObj', sendObj);
             socketService.$socket($scope.AppSocket, 'createPlayerRewardTask', sendObj, function (data) {
@@ -4724,7 +4727,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded('#modalMailLog.in #mailLogQuery .endTime', function () {
                 vm.mailLog.startTime = utilService.createDatePicker('#mailLogQuery .startTime');
                 vm.mailLog.endTime = utilService.createDatePicker('#mailLogQuery .endTime');
-                vm.mailLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.mailLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.mailLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.searchMailLog();
             });
@@ -4752,7 +4755,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded('.modal.in #smsLogQuery .endTime', function () {
                 vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogQuery .startTime');
                 vm.smsLog.query.endTime = utilService.createDatePicker('#smsLogQuery .endTime');
-                vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.smsLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.smsLog.pageObj = utilService.createPageForPagingTable("#smsLogTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLog)
@@ -4793,7 +4796,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded('#modalRewardTaskLog.in #rewardTaskLogQuery .endTime', function () {
                 vm.rewardTaskLog.query.startTime = utilService.createDatePicker('#rewardTaskLogQuery .startTime');
                 vm.rewardTaskLog.query.endTime = utilService.createDatePicker('#rewardTaskLogQuery .endTime');
-                vm.rewardTaskLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.rewardTaskLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.rewardTaskLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.rewardTaskLog.pageObj = utilService.createPageForPagingTable("#rewardTaskLogTblPage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "rewardTaskLog", vm.getRewardTaskLogData)
@@ -5099,7 +5102,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded(('#modalPlayerRewardHistory.in #playerReward .endTime' ), function () {
                 vm.playerRewardHistory.startTime = utilService.createDatePicker('#playerReward .startTime');
                 vm.playerRewardHistory.endTime = utilService.createDatePicker('#playerReward .endTime');
-                vm.playerRewardHistory.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.playerRewardHistory.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerRewardHistory.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.playerRewardHistory.type = 'all';
                 vm.playerRewardHistory.pageObj = utilService.createPageForPagingTable("#playerRewardHistoryTblPage", {}, $translate, function (curP, pageSize) {
@@ -5181,7 +5184,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded('#modalPlayerBonusHistory.in #playerBonus .endTime', function () {
                 vm.playerBonusHistory.startTime = utilService.createDatePicker('#playerBonus .startTime');
                 vm.playerBonusHistory.endTime = utilService.createDatePicker('#playerBonus .endTime');
-                vm.playerBonusHistory.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.playerBonusHistory.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerBonusHistory.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.playerBonusHistory.pageObj = utilService.createPageForPagingTable("#playerBonusHistoryTblPage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "playerBonusHistory", vm.getPlayerBonusHistoryRecord)
@@ -5322,9 +5325,9 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.lastFeedbackTime1 = utilService.createDatePicker('#lastFeedbackTime1');
                 vm.playerFeedbackQuery.lastFeedbackTime2 = utilService.createDatePicker('#lastFeedbackTime2');
 
-                vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
             })
             $scope.safeApply();
@@ -6734,12 +6737,6 @@ define(['js/app'], function (myApp) {
                     callback();
                 }
             });
-            socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
-                vm.allGameProvider = data.data;
-                console.log("vm.allGameProvider", vm.allGameProvider);
-                $scope.safeApply();
-            }, function (data) {
-            });
             socketService.$socket($scope.AppSocket, 'getAllSettlementPeriod', '', function (data) {
                 vm.allSettlePeriod = data.data;
                 console.log("vm.allSettlePeriod", vm.allSettlePeriod);
@@ -7057,7 +7054,7 @@ define(['js/app'], function (myApp) {
             if (!providerId || !vm.allGameProvider)return false;
             var result = '';
             $.each(vm.allGameProvider, function (i, v) {
-                if (providerId == v._id) {
+                if (providerId == v._id || providerId == v.providerId) {
                     result = v.name;
                     return true;
                 }
@@ -8836,6 +8833,12 @@ define(['js/app'], function (myApp) {
                         console.log('rewardType', data);
                         vm.rewardAttrConst = data.data;
                     })
+                    socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
+                        vm.allGameProvider = data.data;
+                        console.log("vm.allGameProvider", vm.allGameProvider);
+                        $scope.safeApply();
+                    }, function (data) {
+                    });
                     vm.generalDataTableOptions = {
                         "paging": true,
                         columnDefs: [{targets: '_all', defaultContent: ' '}],

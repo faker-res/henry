@@ -28,7 +28,7 @@ var PartnerServiceImplement = function () {
     this.register.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
         if (conn.captchaCode && (conn.captchaCode == data.captcha)) {
-            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+            data.lastLoginIp = conn.upgradeReq.headers['proxy_set_header X-Forwarded-For'] || conn.upgradeReq.connection.remoteAddress;
             data.loginIps = [data.lastLoginIp];
             var uaString = conn.upgradeReq.headers['user-agent'];
             var ua = uaParser(uaString);
@@ -96,7 +96,7 @@ var PartnerServiceImplement = function () {
     this.authenticate.expectsData = 'partnerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.partnerId && data.token);
-        var partnerIp = conn.upgradeReq.connection.remoteAddress;
+        var partnerIp = conn.upgradeReq.headers['proxy_set_header X-Forwarded-For'] || conn.upgradeReq.connection.remoteAddress;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.authenticate, [data.partnerId, data.token, partnerIp, conn], true, false, false, true);
     };
 
@@ -105,7 +105,7 @@ var PartnerServiceImplement = function () {
     this.login.onRequest = function (wsFunc, conn, data) {
 
         var isValidData = Boolean(data && data.name && data.password);
-        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+        data.lastLoginIp = conn.upgradeReq.headers['proxy_set_header X-Forwarded-For'] || conn.upgradeReq.connection.remoteAddress;
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.partnerLoginAPI, [data, ua], isValidData, true, true, true).then(
@@ -313,7 +313,7 @@ var PartnerServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayerPaymentReport, [conn.partnerId, data.startTime, data.endTime, data.startIndex, data.requestCount, !data.sort], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayerPaymentReport, [conn.partnerId, new Date(data.startTime), new Date(data.endTime), data.startIndex, data.requestCount, !data.sort], isValidData);
     };
 
     this.getPartnerCommission.onRequest = function (wsFunc, conn, data) {

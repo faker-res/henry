@@ -377,6 +377,11 @@ define(['js/app'], function (myApp) {
                     })
                 });
                 result = $time.prop('outerHTML') + $btn.prop('outerHTML');
+            } else if (fieldName.indexOf('providerId') > -1 || fieldName.indexOf('targetProviders') > -1) {
+                result = val ? val.map(item => {
+                        return vm.getProviderText(item);
+                    }) : '';
+                result = result.join(',');
             } else if (fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) {
                 result = utilService.getFormatTime(val);
             } else if (fieldName == 'clientType') {
@@ -1484,6 +1489,16 @@ define(['js/app'], function (myApp) {
             '0': "First Time",
             '1': "Weekly",
             '2': "Monthly"
+        }
+        vm.getProviderText = function (item) {
+            var result = '';
+            $.each(vm.allGameProviderById, (i, v) => {
+                if (v && (v._id == item || v.provierId == item)) {
+                    result = v.name;
+                    return false;
+                }
+            })
+            return result;
         }
 
         $scope.$on('$viewContentLoaded', function () {

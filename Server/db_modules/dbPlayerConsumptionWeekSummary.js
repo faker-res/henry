@@ -271,8 +271,8 @@ var dbPlayerConsumptionWeekSummary = {
                                 }
                             }
 
-                            // If return reward amount larger than 0, create proposal
-                            if (returnAmount > 0) {
+                            // If return reward amount larger than 1, create proposal
+                            if (returnAmount >= 1) {
                                 var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
                                 var proposalData = {
                                     type: proposalTypeId,

@@ -174,8 +174,10 @@ var dbPlayerInfo = {
                 data => {
                     if (data) {
                         dbPlayerInfo.createPlayerLoginRecord(data);
+                        //todo::temp disable similar player untill ip is correct
                         dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
-                        return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber);
+                        //return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber);
+                        return data;
                     }
                     else {
                         return data;
@@ -2611,6 +2613,9 @@ var dbPlayerInfo = {
                                 });
                             }
                             else {
+                                var platformId = playerData.platform ? playerData.platform.platformId : null;
+                                dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
+                                    "unknown", providerId, playerData.validCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
                                 return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
                             }
                         }
@@ -2631,6 +2636,12 @@ var dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
+                if (!err || !err.hasLog) {
+                    var platformId = playerData.platform ? playerData.platform.platformId : null;
+                    var platformObjId = playerData.platform ? playerData.platform._id : null;
+                    dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
+                        "unknown", providerId, playerData.validCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
+                }
                 deferred.reject(err);
             }
         );
@@ -2836,6 +2847,7 @@ var dbPlayerInfo = {
                                     var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                         transferId, providerShortId, transferAmount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                    error.hasLog = true;
                                     return Q.reject(error);
                                 }
                             );
@@ -2925,6 +2937,7 @@ var dbPlayerInfo = {
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
         var deferred = Q.defer();
+        var playerObj = {};
         var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
                 path: "platform",
                 model: dbconfig.collection_platform
@@ -2936,6 +2949,7 @@ var dbPlayerInfo = {
         Q.all([prom0, prom1]).then(
             function (data) {
                 if (data && data[0] && data[1]) {
+                    playerObj = data[0];
                     return dbPlayerInfo.getPlayerPendingProposalByType(data[0]._id, data[0].platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
                         hasPendingProposal => {
                             if (hasPendingProposal) {
@@ -2946,6 +2960,8 @@ var dbPlayerInfo = {
                                 });
                             }
                             else {
+                                dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
+                                    providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
                                 return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                             }
                         }
@@ -2962,6 +2978,12 @@ var dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
+                if (!err || !err.hasLog) {
+                    var platformId = playerObj.platform ? playerObj.platform.platformId : null;
+                    var platformObjId = playerObj.platform ? playerObj.platform._id : null;
+                    dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
+                        providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
+                }
                 deferred.reject(err);
             }
         );
@@ -3107,6 +3129,7 @@ var dbPlayerInfo = {
                                     var lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", transferId,
                                         providerShortId, amount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                    error.hasLog = true;
                                     return Q.reject(error);
                                 }
                             );
@@ -3757,6 +3780,9 @@ var dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkPlayerLevelUp: function (playerObjId, platformObjId) {
+        //todo::temp disable player auto level up
+        return Q.resolve(true);
+
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -4936,7 +4962,7 @@ var dbPlayerInfo = {
 
                     //check if player has enough credit
                     player = playerData;
-                    if ((playerData.validCredit < bonusDetail.credit * amount) && !bForce) {
+                    if ((playerData.validCredit < amount)) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -4954,10 +4980,10 @@ var dbPlayerInfo = {
                     //     });
                     // }
 
-                    var changeCredit = -amount * bonusDetail.credit;
-                    if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
-                        changeCredit = -playerData.validCredit;
-                    }
+                    var changeCredit = -amount;
+                    // if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
+                    //     changeCredit = -playerData.validCredit;
+                    // }
                     return dbconfig.collection_players.findOneAndUpdate(
                         {
                             _id: player._id,
@@ -4969,9 +4995,9 @@ var dbPlayerInfo = {
                         newPlayerData => {
                             if (newPlayerData) {
                                 bUpdateCredit = true;
-                                if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
-                                    bUpdateCredit = false;
-                                }
+                                // if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
+                                //     bUpdateCredit = false;
+                                // }
 
                                 if (newPlayerData.validCredit < 0) {
                                     //credit will be reset below
@@ -5135,7 +5161,7 @@ var dbPlayerInfo = {
     /*
      * update applied bonus proposal
      */
-    updatePlayerBonusProposal: function (proposalId, bSuccess) {
+    updatePlayerBonusProposal: function (proposalId, bSuccess, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: "type",
             model: dbconfig.collection_proposalType
@@ -5144,6 +5170,7 @@ var dbPlayerInfo = {
                 if (data) {
                     data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
                     data.data.lastSettleTime = new Date();
+                    data.data.remark = remark;
                     if (!bSuccess) {
                         return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
                             () => data.save()
@@ -6508,8 +6535,13 @@ var dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
                 if (playerData) {
-                    return dbconfig.collection_rewardEvent.findOne({platform: playerData.platform, code: code})
-                        .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                    //check if player's reward task is no credit now
+                    return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
+                        taskStatus => {
+                            return dbconfig.collection_rewardEvent.findOne({platform: playerData.platform, code: code})
+                                .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                        }
+                    );
                 }
                 else {
                     return Q.reject({

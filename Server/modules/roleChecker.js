@@ -150,7 +150,9 @@ var roleChecker = {
         //todo::to be added to permission list
         "countTopUpORConsumptionbyPlatform": true,
         "getPlayerRetention": true,
-        "getAllActions": true
+        "getAllActions": true,
+
+        "getAdminInfo": true
     },
 
     /**
@@ -224,7 +226,7 @@ var roleChecker = {
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
-                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider'],
+                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo"],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
                 Create: ['createPlayer', 'checkPlayerNameValidity'],
                 CreateTrial: ['createTestPlayerForPlatform'],
@@ -311,7 +313,7 @@ var roleChecker = {
             "Proposal": {
                 Create: ['createProposalTypeProcess', 'addStepToProposalTypeProcess', 'createProposal', 'createProposalType', 'createProposalTypeProcessStep'],
                 Read: ['getAllProposalType', 'getProposalType', 'getProposalTypeByPlatformId', 'getProposalTypeByType', 'getAllProposalExecutionType', 'getAllProposalRejectionType', 'getProposalTypeProcess',
-                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal'],
+                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal', "getAdminInfo"],
                 Update: ['updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep', 'updateProposalTypeProcessSteps'],
                 Delete: ['deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds']
             },
