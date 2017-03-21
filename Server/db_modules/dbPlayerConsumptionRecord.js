@@ -21,10 +21,10 @@ var constServerCode = require('../const/constServerCode');
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
     if (maxAttempts === undefined) {
-        maxAttempts = 20;
+        maxAttempts = 10;
     }
     if (delayBetweenAttempts === undefined) {
-        delayBetweenAttempts = 1000;
+        delayBetweenAttempts = 500;
     }
 
     var attemptsMade = 0;
