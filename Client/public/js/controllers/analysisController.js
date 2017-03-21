@@ -188,7 +188,7 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case "GAME_ANALYSIS":
-                        vm.getAllProvider();
+                        // vm.getAllProvider();
                         break;
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
@@ -393,7 +393,8 @@ define(['js/app'], function (myApp) {
                 startDate: vm.queryPara.allApiResponseTime.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.allApiResponseTime.endTime.data('datetimepicker').getLocalDate(),
                 service: vm.queryPara.allApiResponseTime.service,
-                functionName: vm.queryPara.allApiResponseTime.funcName
+                functionName: vm.queryPara.allApiResponseTime.funcName,
+                providerId: vm.queryPara.allApiResponseTime.providerId
             };
             $('#allApiResponseTimeAnalysis .block-query > *').last().show();
             socketService.$socket($scope.AppSocket, 'getApiResponseTimeQuery', sendData, function success(data) {
@@ -1855,11 +1856,11 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded(('#' + field + 'Analysis'), function () {
                     vm.queryPara[field].startTime = utilService.createDatePicker('#' + field + 'Analysis .startTime');
                     vm.queryPara[field].endTime = utilService.createDatePicker('#' + field + 'Analysis .endTime');
-                    vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                    vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.queryPara[field].endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 })
             } else {
-                vm.queryPara[field].startTime = utilService.setNDaysAgo(new Date(), 30);
+                vm.queryPara[field].startTime = utilService.setNDaysAgo(new Date(), 1);
                 vm.queryPara[field].endTime = new Date();
             }
 
@@ -1924,6 +1925,7 @@ define(['js/app'], function (myApp) {
 //##Mark content loaded function
         $scope.$on('$viewContentLoaded', function () {
 
+            vm.getAllProvider();
             setTimeout(
                 function () {
                     vm.optionText = {};

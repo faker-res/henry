@@ -897,7 +897,7 @@
                                     td
                                         .inlineBlk
                                             label {{"TELEPHONE" | translate}}
-                                            text {{vm.selectedSinglePlayer.encPhoneNumber || 'Unknown' | translate}}
+                                            text {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'PHONE_CITY' | translate}}
                                             text {{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}}
@@ -940,8 +940,8 @@
                                             text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_TYPE' | translate}}
-                                            text(ng-if='vm.playerPayment.bankAccountType==2') {{'Debit Card' | translate}}
-                                            text(ng-if='vm.playerPayment.bankAccountType==1') {{'Credit Card' | translate}}
+                                            text(ng-if='vm.playerPayment.bankAccountType==2 || vm.playerPayment.bankAccountType=="2"') {{'Debit Card' | translate}}
+                                            text(ng-if='vm.playerPayment.bankAccountType==1 || vm.playerPayment.bankAccountType=="1"') {{'Credit Card' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_PROVINCE' | translate}}
                                             text {{vm.showProvinceStr}}
@@ -1389,6 +1389,9 @@
                     .form-group
                         label.control-label {{'useConsumption' | translate}}
                         input.leftALignNumber.form-control(type='checkbox', ng-model='vm.playerAddRewadTask.useConsumption')
+                    .form-group
+                        label.control-label {{'remark' | translate}}
+                        textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.playerAddRewadTask.remark")
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_add_rewad_task.$invalid || form_add_rewad_task.$pristine', ng-show='vm.playerAddRewadTask.showSubmit', ng-click="vm.submitAddPlayerRewardTask()") {{'ADD' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
