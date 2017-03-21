@@ -240,7 +240,7 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}).then(
                 proposalData => {
-                    if (proposalData && proposalData.type && proposalData.type.platformId == platform) {
+                    if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
                         return null;

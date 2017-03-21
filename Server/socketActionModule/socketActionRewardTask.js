@@ -50,6 +50,12 @@ function socketActionRewardTask(socketIO, socket) {
             var isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbRewardTask.getPlayerRewardTask, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
+
+        manualUnlockRewardTask: function manualUnlockRewardTask(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbRewardTask.completeRewardTask, [data], actionName, isValidData);
+        }
     };
     socketActionRewardTask.actions = this.actions;
 };

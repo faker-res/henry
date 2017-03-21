@@ -83,7 +83,8 @@ function createTestPlatformAndPlayerAndPartner (generatedData) {
                     name: playerName,
                     platform: generatedData.testPlatformId,
                     partner: generatedData.testPartnerId,
-                    password: "123"
+                    password: "123",
+                    lastLoginIp: "1.180.233.173"
                 }
             );
         }

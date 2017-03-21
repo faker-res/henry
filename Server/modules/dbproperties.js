@@ -3,6 +3,8 @@
  *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
  *  All rights reserved.
  ******************************************************************/
+'use strict';
+
 var dbPropertiesFunc = function () {
 };
 module.exports = new dbPropertiesFunc();
@@ -127,6 +129,9 @@ var platformAlipayGroupModel = db_admin.model('platformAlipayGroup', platformAli
 
 var partnerCommissionConfigSchema = require('./../schema/partnerCommissionConfig');
 var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', partnerCommissionConfigSchema, 'partnerCommissionConfig');
+
+let geoIpSchema = require('./../schema/geoip');
+let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
@@ -309,6 +314,8 @@ var dbProperties = {
     collection_messageTemplate: messageTemplateModel,
     collection_platformAnnouncement: platformAnnouncementModel,
     collection_partnerCommissionConfig: partnerCommissionConfigModel,
+
+    collection_geoIp: geoIpModel,
 
     //logs
     collection_playerMail: playerMailModel,
