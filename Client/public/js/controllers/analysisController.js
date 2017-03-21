@@ -91,106 +91,106 @@ define(['js/app'], function (myApp) {
                         vm.showCountryTable = true;
                         $.getScript("js/lib/ammap/ammap.js").done(
                             () => {
-                                $.when(
-                                    $.getScript("js/lib/ammap/worldHigh.js"),
-                                    $.getScript("js/lib/ammap/chinaHigh.js"),
-                                    $.getScript("js/lib/ammap/singaporeHigh.js"),
-                                    $.getScript("js/lib/ammap/light.js"),
-                                    $.getScript("js/lib/ammap/cityLocationData.js"),
-                                    $.getScript("dataSource/data.js"),
-                                    $.Deferred(function (deferred) {
-                                        $(deferred.resolve);
-                                    })
-                                ).done(function (data, textStatus, jqxhr) {
-                                    setTimeout(function () {
-                                        vm.latlong = $.extend({}, latlong);
-                                        vm.allCountryName = $.extend({}, AmCharts.maps.worldHigh.svg.g.path);
-                                        vm.allProvinceId = {};
-                                        AmCharts.maps.chinaHigh.svg.g.path.map(item => {
-                                            vm.allProvinceId[item.hanTitle] = item.id;
-                                            vm.allProvinceId[item.id] = item.hanTitle;
-                                        });
-                                        vm.initSearchParameter('playerLocation', true, 2, function (height) {
-                                            vm.queryPara.playerLocation.player = 'all';
-                                            vm.queryPara.playerLocation.date = 'lastAccessTime';
-                                            var setHeight = height - 50;
-                                            $(".analysisLocationTable").height(setHeight + "px");
-                                            $scope.safeApply();
-                                            vm.playerLocationPage();
-                                        });
-                                    });
-                                });
-                            }
-                        );
-                        break;
-                    case "REWARD_ANALYSIS":
-                        vm.selectReward = {};
-                        vm.initSearchParameter('reward', 'day', 3);
-                        vm.rewardAnalysisInit(vm.plotRewardAmountLine);
-                        break;
-                    case "PLAYER_DEVICE_ANALYSIS":
-                        vm.newOptions = {
-                            xaxes: [{
-                                position: 'bottom',
-                                axisLabel: $translate('User Agent')
-                            }],
-                            yaxes: [{
-                                position: 'left',
-                                axisLabel: $translate('AMOUNT')
-                            }]
-                        };
-                        vm.initSearchParameter('playerDevice', true, 2, function () {
-                            vm.queryPara.playerDevice.type = 'os';
-                            vm.deviceAnalysisInit();
-                        });
-                        break;
-                    case "PLAYER_DOMAIN_ANALYSIS":
-                        vm.newOptions = {
-                            xaxes: [{
-                                position: 'bottom',
-                                axisLabel: $translate('Domain Name')
-                            }],
-                            yaxes: [{
-                                position: 'left',
-                                axisLabel: $translate('AMOUNT')
-                            }]
-                        };
-                        vm.initSearchParameter('playerDomain', true, 2, function () {
-                            vm.domainAnalysisInit();
-                        });
-                        break;
-                    case "PLAYER_RETENTION":
-                        vm.initSearchParameter('playerRetention', null, 2, function () {
-                            vm.queryPara.playerRetention.days = [1, 4, 8, 10, 15, 24, 30];
-                            vm.dayListLength = [];
-                            for (var i = 1; i < 31; i++) {
-                                vm.dayListLength.push(i);
-                            }
-                            vm.playerRetentionInit(function () {
-                                vm.getPlayerRetention();
+                            $.when(
+                            $.getScript("js/lib/ammap/worldHigh.js"),
+                            $.getScript("js/lib/ammap/chinaHigh.js"),
+                            $.getScript("js/lib/ammap/singaporeHigh.js"),
+                            $.getScript("js/lib/ammap/light.js"),
+                            $.getScript("js/lib/ammap/cityLocationData.js"),
+                            $.getScript("dataSource/data.js"),
+                            $.Deferred(function (deferred) {
+                                $(deferred.resolve);
+                            })
+                        ).done(function (data, textStatus, jqxhr) {
+                            setTimeout(function () {
+                                vm.latlong = $.extend({}, latlong);
+                                vm.allCountryName = $.extend({}, AmCharts.maps.worldHigh.svg.g.path);
+                                vm.allProvinceId = {};
+                                AmCharts.maps.chinaHigh.svg.g.path.map(item => {
+                                    vm.allProvinceId[item.hanTitle] = item.id;
+                                vm.allProvinceId[item.id] = item.hanTitle;
                             });
-                            $scope.safeApply();
+                                vm.initSearchParameter('playerLocation', true, 2, function (height) {
+                                    vm.queryPara.playerLocation.player = 'all';
+                                    vm.queryPara.playerLocation.date = 'lastAccessTime';
+                                    var setHeight = height - 50;
+                                    $(".analysisLocationTable").height(setHeight + "px");
+                                    $scope.safeApply();
+                                    vm.playerLocationPage();
+                                });
+                            });
                         });
-                        break;
-                    case "PLAYER_EXPENSES":
-                        vm.initSearchParameter('playerCredit', 'day', 3, function () {
-                            vm.drawPlayerCreditLine('PLAYER_EXPENSES');
-                        });
-                        break;
-                    case "PLAYER_TOPUP":
-                        vm.initSearchParameter('playerCredit', 'day', 3, function () {
-                            vm.drawPlayerCreditLine('PLAYER_TOPUP');
-                        });
-                        break;
-                    case "CLIENT_SOURCE":
-                        vm.initSearchParameter('clientSource', true, 3, function () {
-                            vm.initClientSourcePara(vm.getClientSourceData);
-                        });
-                        break;
-                    case "GAME_ANALYSIS":
-                        vm.getAllProvider();
-                        break;
                 }
+                );
+                break;
+                case "REWARD_ANALYSIS":
+                vm.selectReward = {};
+                vm.initSearchParameter('reward', 'day', 3);
+                vm.rewardAnalysisInit(vm.plotRewardAmountLine);
+                break;
+                case "PLAYER_DEVICE_ANALYSIS":
+                vm.newOptions = {
+                    xaxes: [{
+                        position: 'bottom',
+                        axisLabel: $translate('User Agent')
+                    }],
+                    yaxes: [{
+                        position: 'left',
+                        axisLabel: $translate('AMOUNT')
+                    }]
+                };
+                vm.initSearchParameter('playerDevice', true, 2, function () {
+                    vm.queryPara.playerDevice.type = 'os';
+                    vm.deviceAnalysisInit();
+                });
+                break;
+                case "PLAYER_DOMAIN_ANALYSIS":
+                vm.newOptions = {
+                    xaxes: [{
+                        position: 'bottom',
+                        axisLabel: $translate('Domain Name')
+                    }],
+                    yaxes: [{
+                        position: 'left',
+                        axisLabel: $translate('AMOUNT')
+                    }]
+                };
+                vm.initSearchParameter('playerDomain', true, 2, function () {
+                    vm.domainAnalysisInit();
+                });
+                break;
+                case "PLAYER_RETENTION":
+                vm.initSearchParameter('playerRetention', null, 2, function () {
+                    vm.queryPara.playerRetention.days = [1, 4, 8, 10, 15, 24, 30];
+                    vm.dayListLength = [];
+                    for (var i = 1; i < 31; i++) {
+                        vm.dayListLength.push(i);
+                    }
+                    vm.playerRetentionInit(function () {
+                        vm.getPlayerRetention();
+                    });
+                    $scope.safeApply();
+                });
+                break;
+                case "PLAYER_EXPENSES":
+                vm.initSearchParameter('playerCredit', 'day', 3, function () {
+                    vm.drawPlayerCreditLine('PLAYER_EXPENSES');
+                });
+                break;
+                case "PLAYER_TOPUP":
+                vm.initSearchParameter('playerCredit', 'day', 3, function () {
+                    vm.drawPlayerCreditLine('PLAYER_TOPUP');
+                });
+                break;
+                case "CLIENT_SOURCE":
+                vm.initSearchParameter('clientSource', true, 3, function () {
+                    vm.initClientSourcePara(vm.getClientSourceData);
+                });
+                break;
+                case "GAME_ANALYSIS":
+                // vm.getAllProvider();
+                break;
+            }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
 
                 $scope.safeApply();
@@ -393,7 +393,8 @@ define(['js/app'], function (myApp) {
                 startDate: vm.queryPara.allApiResponseTime.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.allApiResponseTime.endTime.data('datetimepicker').getLocalDate(),
                 service: vm.queryPara.allApiResponseTime.service,
-                functionName: vm.queryPara.allApiResponseTime.funcName
+                functionName: vm.queryPara.allApiResponseTime.funcName,
+                providerId: vm.queryPara.allApiResponseTime.providerId
             };
             $('#allApiResponseTimeAnalysis .block-query > *').last().show();
             socketService.$socket($scope.AppSocket, 'getApiResponseTimeQuery', sendData, function success(data) {
@@ -457,7 +458,7 @@ define(['js/app'], function (myApp) {
                 var graphData = [];
                 newPlayerData.map(item => {
                     graphData.push([new Date(item._id.date), item.number]);
-                })
+            })
                 var newOptions = {};
                 // var nowDate = new Date(sendData.startDate);
                 var xText = '';
@@ -586,7 +587,7 @@ define(['js/app'], function (myApp) {
                 var graphData = [];
                 activePlayerData.forEach(item => {
                     graphData.push([new Date(item.date).getTime(), item.activePlayers]);
-                })
+            })
 
                 //draw graph
                 socketService.$plotLine(placeholder, [{
@@ -663,8 +664,8 @@ define(['js/app'], function (myApp) {
                 var graphData = [];
                 data1.data.map(item => {
                     var localTime = new Date(item._id.date);
-                    graphData.push([localTime, item.number]);
-                })
+                graphData.push([localTime, item.number]);
+            })
                 // var loginPlayerData = data1.data;
                 // var loginPlayerObjData = {};
                 // for (var i = 0; i < loginPlayerData.length; i++) {
@@ -947,9 +948,9 @@ define(['js/app'], function (myApp) {
                             //this func is to complete all data and change province name from spelling to hanzi
                             data.dataProvider.areas = data.dataProvider.areas.map(item => {
                                 item.title = vm.allProvinceId[item.id];
-                                item.value = item.value || 0;
-                                return item;
-                            })
+                            item.value = item.value || 0;
+                            return item;
+                        })
                         });
                         $scope.safeApply();
                     });
@@ -1232,8 +1233,8 @@ define(['js/app'], function (myApp) {
                 var graphData1 = [], graphData2 = [];
                 rewardGraphData.map(item => {
                     graphData1.push([new Date(item._id.date), item.amount]);
-                    graphData2.push([new Date(item._id.date), item.number]);
-                })
+                graphData2.push([new Date(item._id.date), item.number]);
+            })
                 var newOptions = {};
                 // var nowDate = new Date(sendData.startTime);
                 switch (vm.queryPara.reward.periodText) {
@@ -1531,7 +1532,7 @@ define(['js/app'], function (myApp) {
                     });
                     rowData.sort((a, b) => {
                         return a[0] - b[0];
-                    });
+                });
                     var lineData = {label: vm.dateReformat(obj.date), data: rowData};
                     vm.allRetentionLineData.push(lineData);
                 }
@@ -1664,7 +1665,7 @@ define(['js/app'], function (myApp) {
             var graphData = [];
             srcData.map(item => {
                 graphData.push([new Date(item._id.date), item.number])
-            })
+        })
             var newOptions = {};
             // var nowDate = new Date(sendData.startDate);
             var xText = '';
@@ -1855,11 +1856,11 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded(('#' + field + 'Analysis'), function () {
                     vm.queryPara[field].startTime = utilService.createDatePicker('#' + field + 'Analysis .startTime');
                     vm.queryPara[field].endTime = utilService.createDatePicker('#' + field + 'Analysis .endTime');
-                    vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                    vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.queryPara[field].endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 })
             } else {
-                vm.queryPara[field].startTime = utilService.setNDaysAgo(new Date(), 30);
+                vm.queryPara[field].startTime = utilService.setNDaysAgo(new Date(), 1);
                 vm.queryPara[field].endTime = new Date();
             }
 
@@ -1924,6 +1925,7 @@ define(['js/app'], function (myApp) {
 //##Mark content loaded function
         $scope.$on('$viewContentLoaded', function () {
 
+            vm.getAllProvider();
             setTimeout(
                 function () {
                     vm.optionText = {};
