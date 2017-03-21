@@ -19,6 +19,7 @@ var cpmsAPI = require("../externalAPI/cpmsAPI");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+var dbGameProvider = require('../db_modules/dbGameProvider');
 
 var dbRewardTask = {
 
@@ -27,7 +28,11 @@ var dbRewardTask = {
      * @param {json} rewardData - The data of the reward. Refer to reward schema.
      */
     manualCreateRewardTask: function (rewardData, adminId, adminName) {
-        return dbRewardTask.getPlayerCurRewardTask(rewardData.playerId).then(data => {
+        return dbRewardTask.checkPlayerRewardTaskStatus(rewardData.playerId).then(
+            taskStatus => {
+                return dbRewardTask.getPlayerCurRewardTask(rewardData.playerId);
+            }
+        ).then(data => {
             if (data) {
                 return Q.reject({
                     status: constServerCode.PLAYER_HAS_REWARD_TASK,
@@ -678,7 +683,7 @@ var dbRewardTask = {
                     var taskProm = dbconfig.collection_rewardTask.findOne({
                         playerId: playerObjId,
                         status: constRewardTaskStatus.STARTED,
-                        inProvider: true
+                        //inProvider: true
                     }).lean();
                     return Q.all([providerProm, taskProm]);
                 }
@@ -688,12 +693,8 @@ var dbRewardTask = {
                 if (data && data[0] && data[0].length > 0 && data[1]) {
                     taskObj = data[1];
                     var proms = data[0].map(
-                        provider => cpmsAPI.player_queryCredit(
-                            {
-                                username: playerObj.name,
-                                platformId: playerObj.platform.platformId,
-                                providerId: provider.providerId
-                            })
+                        provider => dbGameProvider.getPlayerCreditInProvider(playerObj.name,
+                                playerObj.platform.platformId, provider.providerId)
                     );
                     return Q.all(proms)
                 }
@@ -701,14 +702,21 @@ var dbRewardTask = {
         ).then(
             creditData => {
                 if (creditData && taskObj) {
+                    var playerCredit = playerObj.lockedCredit;
                     var totalCredit = 0;
-                    creditData.forEach(credit => {
-                        totalCredit += parseFloat(credit.credit);
+                    creditData.forEach(
+                        credit => {
+                            var gameCredit = (parseFloat(credit.gameCredit) || 0);
+                            totalCredit += gameCredit < 1 ? 0 : gameCredit;
                     });
-                    if (totalCredit < 1) {
+                    if (totalCredit < 1 && playerCredit < 1) {
                         return dbconfig.collection_rewardTask.findOneAndUpdate(
                             {_id: taskObj._id, platformId: taskObj.platformId},
-                            {status: constRewardTaskStatus.NO_CREDIT}
+                            {
+                                status: constRewardTaskStatus.NO_CREDIT,
+                                isUnlock: true,
+                                unlockTime: new Date()
+                            }
                         );
                     }
                 }

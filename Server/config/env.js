@@ -30,19 +30,19 @@ var localConfig = {
 var devConfig = {
     mode: "development",
     db: {
-        adminDBUrl: 'adminsinonet:passwordsinonet@ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com:27017/admindb/',
-        playerDBUrl: 'playersinonet:passwordsinonet@ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com:27017/playerdb/',
-        logsDBUrl: 'ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com:27017/logsdb'
+        adminDBUrl: 'adminsinonet:passwordsinonet@ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:27017/admindb/',
+        playerDBUrl: 'playersinonet:passwordsinonet@ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:27017/playerdb/',
+        logsDBUrl: 'ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com',
     redisPort : '6379',
-    clientAPIServerUrl : "ws://ec2-54-255-174-69.ap-southeast-1.compute.amazonaws.com:9280" ,
-    providerAPIServerUrl : "ws://ec2-54-255-174-69.ap-southeast-1.compute.amazonaws.com:9380",
-    paymentAPIServerUrl : "ws://ec2-54-255-174-69.ap-southeast-1.compute.amazonaws.com:9480",
-    messageServerUrl: "ws://ec2-54-169-81-239.ap-southeast-1.compute.amazonaws.com:9580",
-    cpAPIUrl : "ws://abc",//"ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://abc",//ws://101.78.133.212:8558/acc",
+    clientAPIServerUrl : "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9280" ,
+    providerAPIServerUrl : "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9380",
+    paymentAPIServerUrl : "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9480",
+    messageServerUrl: "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9580",
+    cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
+    paymentAPIUrl: "ws://101.78.133.212:8558/acc",
     smsAPIUrl: "ws://203.192.151.12:8560/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
 };
@@ -71,19 +71,19 @@ var settleConfig = {
 //for testing
 var qaConfig = {
     mode: "qa",
-    socketServerUrl : 'ec2-54-169-72-17.ap-southeast-1.compute.amazonaws.com',
+    socketServerUrl : 'ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com',
     db: {
-        adminDBUrl: 'adminsinonet:passwordsinonet@ec2-54-169-72-17.ap-southeast-1.compute.amazonaws.com:27017/admindb/',
-        playerDBUrl: 'playersinonet:passwordsinonet@ec2-54-169-72-17.ap-southeast-1.compute.amazonaws.com:27017/playerdb/',
-        logsDBUrl: 'ec2-54-169-72-17.ap-southeast-1.compute.amazonaws.com:27017/logsdb'
+        adminDBUrl: 'adminsinonet:passwordsinonet@ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:27017/admindb/',
+        playerDBUrl: 'playersinonet:passwordsinonet@ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:27017/playerdb/',
+        logsDBUrl: 'ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'ec2-54-169-3-146.ap-southeast-1.compute.amazonaws.com',
     redisPort : '6379',
-    clientAPIServerUrl : "ws://ec2-54-169-72-17.ap-southeast-1.compute.amazonaws.com:9280",
-    providerAPIServerUrl : "ws://ec2-54-169-72-17.ap-southeast-1.compute.amazonaws.com:9380",
-    paymentAPIServerUrl: "ws://ec2-54-169-72-17.ap-southeast-1.compute.amazonaws.com:9480",
-    messageServerUrl: "ws://ec2-54-169-72-17.ap-southeast-1.compute.amazonaws.com:9580",
+    clientAPIServerUrl : "ws://ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:9280",
+    providerAPIServerUrl : "ws://ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:9380",
+    paymentAPIServerUrl: "ws://ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:9480",
+    messageServerUrl: "ws://ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
     paymentAPIUrl: "ws://101.78.133.212:8558/acc",
     smsAPIUrl: "ws://203.192.151.12:8560/sms",

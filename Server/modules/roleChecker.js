@@ -151,6 +151,7 @@ var roleChecker = {
         "countTopUpORConsumptionbyPlatform": true,
         "getPlayerRetention": true,
         "getAllActions": true,
+        "getAdminInfo": true,
         "updateProposalTypeExpiryDuration": true
     },
 
@@ -180,7 +181,7 @@ var roleChecker = {
                 Create: ['createDepartment', 'createDepartmentWithParent'],
                 Delete: ['deleteDepartmentsById'],
                 Move: ['updateDepartmentParent', 'removeChildrenById', 'addChildrenById'],
-                Update: ['updateAdminDepartment', 'updateDepartment','updateAdmin']
+                Update: ['updateAdminDepartment', 'updateDepartment']
             },
             User: {
                 Read: ['getAdminInfo', 'getAllAdminInfo', 'getFullAdminInfo', 'getFullAdminInfos', 'getAdminActionLog'],
@@ -225,7 +226,7 @@ var roleChecker = {
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
-                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider'],
+                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo"],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
                 Create: ['createPlayer', 'checkPlayerNameValidity'],
                 CreateTrial: ['createTestPlayerForPlatform'],
@@ -312,8 +313,8 @@ var roleChecker = {
             "Proposal": {
                 Create: ['createProposalTypeProcess', 'addStepToProposalTypeProcess', 'createProposal', 'createProposalType', 'createProposalTypeProcessStep'],
                 Read: ['getAllProposalType', 'getProposalType', 'getProposalTypeByPlatformId', 'getProposalTypeByType', 'getAllProposalExecutionType', 'getAllProposalRejectionType', 'getProposalTypeProcess',
-                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal', 'getProposalTypeExpirationDuration'],
-                Update: ['updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep', 'updateProposalTypeProcessSteps', 'updateProposalTypeExpiryDuration'],
+                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal', "getAdminInfo", 'getProposalTypeExpirationDuration'],
+                Update: ['updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep', 'updateProposalTypeProcessSteps'],
                 Delete: ['deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds']
             },
             "Config": {
