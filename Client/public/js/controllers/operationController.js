@@ -86,7 +86,8 @@ define(['js/app'], function (myApp) {
                                     return $translate(item);
                                 }).join(',');
                                 $($multi).find('span').text(upText)
-                            })$("select#selectProposalType").multipleSelect("checkAll");
+                            });
+                            $("select#selectProposalType").multipleSelect("checkAll");
                             vm.proposalTypeClicked("total");
                             // vm.allProposalClicked();
                         }
