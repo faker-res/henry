@@ -1134,7 +1134,7 @@ var dbPartner = {
                         {
                             $group: {
                                 _id: "$type",
-                                totalAmount: {$sum: {$multiply: ["$data.amount", "$data.bonusCredit"]}},
+                                totalAmount: {$sum: "$data.amount"},
                             }
                         }
                     );
@@ -2102,11 +2102,7 @@ var dbPartner = {
 
                 bonusProposals.forEach(
                     proposal => {
-                        var bonusCredit = proposal.data.amount * proposal.data.bonusCredit;
-                        //for migration data
-                        if (!bonusCredit) {
-                            bonusCredit = proposal.data.amount || 0;
-                        }
+                        var bonusCredit = proposal.data.amount || 0;
                         totalBonusAmount += bonusCredit;
                         if (proposal.createTime.getTime() < endTime.getTime() && proposal.createTime.getTime() >= startTime.getTime()) {
                             bonusTimes++;
@@ -2194,11 +2190,7 @@ var dbPartner = {
 
                     bonusProposals.forEach(
                         proposal => {
-                            var bonusCredit = proposal.data.amount * proposal.data.bonusCredit;
-                            //for migration data
-                            if (!bonusCredit) {
-                                bonusCredit = proposal.data.amount || 0;
-                            }
+                            var bonusCredit = proposal.data.amount || 0;
                             totalBonusAmount += bonusCredit;
                             if (proposal.createTime.getTime() < endTime.getTime() && proposal.createTime.getTime() >= startTime.getTime()) {
                                 bonusTimes++;

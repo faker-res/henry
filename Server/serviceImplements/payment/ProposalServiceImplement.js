@@ -25,7 +25,7 @@ var resLogHandler = function (conn, wsFunc, data, res, functionName) {
         functionName: functionName,
         requestData: data,
         responseData: resObj,
-        requestIp: conn.upgradeReq.connection.remoteAddress
+        requestIp: conn.upgradeReq.headers['proxy_set_header X-Forwarded-For'] || conn.upgradeReq.connection.remoteAddress
     });
     wsFunc.response(conn, resObj, data);
 };
@@ -51,7 +51,7 @@ var errorLogHandler = function (conn, wsFunc, data, err, functionName) {
             functionName: functionName,
             requestData: data,
             responseData: resObj,
-            requestIp: conn.upgradeReq.connection.remoteAddress
+            requestIp: conn.upgradeReq.headers['proxy_set_header X-Forwarded-For'] || conn.upgradeReq.connection.remoteAddress
         });
         wsFunc.response(conn, resObj, data);
     }
@@ -169,7 +169,7 @@ var ProposalServiceImplement = function () {
                 isValidData = false;
                 break;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbProposal.updateBonusProposal, [data.proposalId, statusText, data.bonusId], isValidData, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbProposal.updateBonusProposal, [data.proposalId, statusText, data.bonusId, data.remark], isValidData, true, true).then(
             res => {
                 resLogHandler(conn, wsFunc, data, res, "setBonusProposalStatus");
             },

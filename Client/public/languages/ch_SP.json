@@ -1782,7 +1782,8 @@
   "totalCommissionAmount": "总佣金额",
   "totalCommissionOfChildren": "总下线佣金额度",
   "REFERRAL_PLAYER": "下线玩家",
-  "useConsumption": "占用消费记录"
+  "useConsumption": "占用消费记录",
+  "REQUEST": "发送请求"
 }
 
 
