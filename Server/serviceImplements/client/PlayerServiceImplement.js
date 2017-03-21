@@ -30,12 +30,6 @@ var PlayerServiceImplement = function () {
     //player create api handler
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
-        // console.log("start checking conn.upgradeReq.headers=============================");
-        // for (var i in conn.upgradeReq.headers) {
-        //     console.log("name: " + i);
-        //     console.log("value: " + conn.upgradeReq.headers[i]);
-        // }
-        // console.log("end checking conn.upgradeReq.headers=============================");
         var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
         if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
             data.lastLoginIp = conn.upgradeReq.headers['x-forwarded-for'] || conn.upgradeReq.connection.remoteAddress;
@@ -134,6 +128,12 @@ var PlayerServiceImplement = function () {
     //player login api handler
     this.login.expectsData = 'name: String, password: String, platformId: String';
     this.login.onRequest = function (wsFunc, conn, data) {
+        console.log("start checking conn.upgradeReq.headers=============================");
+        for (var i in conn.upgradeReq.headers) {
+            console.log("name: " + i);
+            console.log("value: " + conn.upgradeReq.headers[i]);
+        }
+        console.log("end checking conn.upgradeReq.headers=============================");
         var isValidData = Boolean(data && data.name && data.password && data.platformId);
         data.lastLoginIp = conn.upgradeReq.headers['x-forwarded-for'] || conn.upgradeReq.connection.remoteAddress;
         var uaString = conn.upgradeReq.headers['user-agent'];
