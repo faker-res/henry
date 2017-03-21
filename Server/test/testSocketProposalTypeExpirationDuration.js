@@ -42,7 +42,7 @@ describe("Test Proposal Type", function () {
             var inputProposalType = {
                 platformId: testPlatformObjId,
                 name: formName,
-                ExpirationDuration: testExpirationMinDuration
+                expirationDuration: testExpirationMinDuration
                 // process: description
             };
 
@@ -67,7 +67,7 @@ describe("Test Proposal Type", function () {
             formName = "testProposalType" + date;
             var updateData = {
                 query: {_id: testProposalTypeObjId},
-                updateData: {name: formName, ExpirationDuration: testExpirationMinDuration}
+                updateData: {name: formName, expirationDuration: testExpirationMinDuration}
             };
 
             socket.emit('updateProposalType', updateData);
