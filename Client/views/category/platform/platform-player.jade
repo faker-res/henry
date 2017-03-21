@@ -81,6 +81,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'AddRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerAddRewardTask();')
             text {{"Add Reward Task" | translate}}
             img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initManualUnlockRewardTask();')
+        //    text {{"Manual Unlock Reward Task" | translate}}
+        //    img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'RepairPayment')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowRepairPayment("#modalRepairPayment")')
             text {{"Repair Payment" | translate}}
             img.img-edit
@@ -1416,3 +1419,46 @@
                     label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
                     table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
                     #rewardTaskLogTblPage.height30
+#modalManualUnlockRewardTask.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Manual Unlock Reward Task" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                table.simple-table
+                    thead
+                        tr
+                            th {{'PROPERTY' | translate}}
+                            th {{'VALUE' | translate}}
+                    tbody
+                        tr
+                            td {{'TYPE' | translate}}
+                            td {{vm.curRewardTask.type | translate}}
+                        tr
+                            td {{'CREATE_TIME' | translate}}
+                            td {{vm.dateReformat(vm.curRewardTask.createTime)}}
+                        tr
+                            td {{'STATUS' | translate}}
+                            td {{vm.curRewardTask.status | translate}}
+                        tr
+                            td {{'initAMOUNT' | translate}}
+                            td {{vm.curRewardTask.initAmount || 0}}
+                        tr
+                            td {{'currentAMOUNT' | translate}}
+                            td {{vm.curRewardTask.currentAmount || 0}}
+                        tr
+                            td {{'UNLOCKAMOUNT' | translate}}
+                            td {{vm.curRewardTask.unlockedAmount || vm.curRewardTask.unlockedBonusAmount || 0}} / {{vm.curRewardTask.requiredUnlockAmount || vm.curRewardTask.requiredBonusAmount}}
+                        tr
+                            td {{'REWARD_EVENT' | translate}}
+                            td {{vm.curRewardTask.eventId.name}} ({{vm.curRewardTask.eventId.code}})
+                        tr
+                            td(ng-if='vm.curRewardTask.targetEnable') {{'provider' | translate}}
+                            td(ng-if='!vm.curRewardTask.targetEnable') {{'Disabled Providers' | translate}}
+                            td
+                                label(ng-repeat='(i,v) in vm.curRewardTask.targetProviders') {{v.name}}&nbsp;
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.curRewardTask', ng-click="vm.submitManualUnlockRewardTask()") {{'Unlock Reward' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+                label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}

@@ -17,7 +17,7 @@
                         //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
                         //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
 
-                        select.form-control#selectProposalType(multiple="multiple", style='min-width:100px;height:34px;', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in vm.allProposalType track by i.name', ng-model='vm.actionLogQuery.action')
+                        select.form-control#selectProposalType(multiple="multiple", style='min-width:100px;height:34px;', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='vm.actionLogQuery.action')
 
                     .inlineBlk(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL' && checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
                         label {{'FILTER_PROPOSAL_STATUS' | translate}}

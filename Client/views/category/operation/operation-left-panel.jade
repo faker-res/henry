@@ -9,6 +9,7 @@
                 div(ng-if='vm.operSelPlatform')
                     a.fa.fa-times.text-danger(ng-click='vm.operSelPlatform=false')
             select.platform-select(ng-model='vm.selectedPlatformID', ng-change='vm.selectPlatform(vm.selectedPlatformID)', required)
+                option(value='_allPlatform' ng-selected='vm.selectedPlatformID=="_allPlatform"') All Platforms
                 option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatformID==v._id') {{v.name}}
     .panel-body(style='padding:5px 0', ng-if="checkViewPermission('Operation', 'Proposal','Read')")
         ul.list-group(style="margin: 0")
