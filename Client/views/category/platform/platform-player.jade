@@ -81,9 +81,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'AddRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerAddRewardTask();')
             text {{"Add Reward Task" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initManualUnlockRewardTask();')
-            text {{"Manual Unlock Reward Task" | translate}}
-            img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initManualUnlockRewardTask();')
+        //    text {{"Manual Unlock Reward Task" | translate}}
+        //    img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'RepairPayment')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowRepairPayment("#modalRepairPayment")')
             text {{"Repair Payment" | translate}}
             img.img-edit
