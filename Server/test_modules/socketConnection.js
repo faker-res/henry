@@ -26,8 +26,7 @@ var socketConnection = {
 
         var post_data = querystring.stringify({
             username: "admin",
-            //password: "sinonet"
-            password: "Q1w2e#"
+            password: "sinonet"
         });
 
         // An object of options to indicate where to post to

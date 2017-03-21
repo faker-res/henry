@@ -95,6 +95,6 @@
             .modal-footer
                 button.btn.btn-danger.common-button(data-dismiss='modal') {{"OK" | translate}}
                 button.btn.btn-primary.common-button(ng-click='vm.saveDateProcess();vm.proposalChanged=false;')  {{'SAVE_PROCESS' | translate}}
-                label.inlineBlktext-danger.margin-right-5(ng-if='vm.ExpResMsg') {{vm.ExpResMsg}}
-                i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.ExpShowSubmit && !vm.ExpResMsg')
+                label.inlineBlktext-danger.margin-right-5(ng-if='vm.expResMsg') {{vm.expResMsg}}
+                i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.expShowSubmit && !vm.expResMsg')
                            

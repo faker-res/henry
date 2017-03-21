@@ -7826,8 +7826,8 @@ define(['js/app'], function (myApp) {
             vm.tempNewNodeName = '';
             vm.tempNewNodeDepartment = '';
             vm.tempNewNodeRole = '';
-            vm.ExpResMsg = '';
-            vm.ExpShowSubmit = true;
+            vm.expResMsg = '';
+            vm.expShowSubmit = true;
         }
         vm.loadDepartmentRole = function (departmentNode) {
             vm.tempNewNodeDepartment = departmentNode;
@@ -8129,7 +8129,7 @@ define(['js/app'], function (myApp) {
         vm.saveDateProcess = function () {
             //if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && dt) {
             if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && (vm.expDurationHour || vm.expDurationMin)) {
-                vm.ExpShowSubmit = false;
+                vm.expShowSubmit = false;
                 var hour=0;
                 var min=0;
 
@@ -8145,11 +8145,11 @@ define(['js/app'], function (myApp) {
                     query: {_id: vm.selectedProposalType.data._id},
                     expiryDuration: totalExpMinute
                 }, function (data) {
-                    vm.ExpResMsg = $translate('SUCCESS');
+                    vm.expResMsg = $translate('SUCCESS');
                     $scope.safeApply();
 
                 }, function (err) {
-                    vm.ExpResMsg = err.error.message || $translate('FAIL');
+                    vm.expResMsg = err.error.message || $translate('FAIL');
                     $scope.safeApply();
                 });
             }
@@ -8196,12 +8196,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getProposalTypeExpirationDuration', {
                     query: {_id: vm.selectedProposalType.data._id},
                 }, function (data) {
-                    var Hour =  Math.floor( Number(data.data.ExpirationDuration) / 60);
-                    var Min =  Number(data.data.ExpirationDuration) % 60;
-                    Hour = Hour.toString();
-                    Min = Min.toString();
-                    vm.expDurationHour =  Hour;
-                    vm.expDurationMin =  Min;
+                    var hour =  Math.floor( Number(data.data.expirationDuration) / 60);
+                    var min =  Number(data.data.expirationDuration) % 60;
+                    hour = hour.toString();
+                    min = min.toString();
+                    vm.expDurationHour =  hour;
+                    vm.expDurationMin =  min;
                 });
             }
         };

@@ -546,7 +546,7 @@ var dbMigration = {
                             if (proposalType) {
                                 createTime = createTime || new Date();
 
-                                var expiredDate = moment(createTime).add('hour', proposalType.ExpirationDuration).format('YYYY-MM-DD HH:mm:ss.sss');
+                                var expiredDate = moment(createTime).add('hour', proposalType.expirationDuration).format('YYYY-MM-DD HH:mm:ss.sss');
                             
                                 var newRecord = {
                                     mainType: constProposalMainType[typeName],
@@ -1420,7 +1420,7 @@ var dbMigration = {
                                 createTime = createTime || new Date();
                                 newProposalData.requestId = requestData.requestId;
 
-                                var expiredDate = moment(createTime).add('hour', proposalType.ExpirationDuration).format('YYYY-MM-DD HH:mm:ss.sss');
+                                var expiredDate = moment(createTime).add('hour', proposalType.expirationDuration).format('YYYY-MM-DD HH:mm:ss.sss');
 
                                 var newRecord = {
                                     mainType: constProposalMainType[typeName],

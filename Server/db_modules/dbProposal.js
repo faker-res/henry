@@ -168,7 +168,7 @@ var proposal = {
                             else {
                                 var proposalProm = proposal.createProposal(proposalData);
                                 var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
-                                return Q.all([proposalProm, platProm, data[0].ExpirationDuration]);
+                                return Q.all([proposalProm, platProm, data[0].expirationDuration]);
                             }
                         }
                     );

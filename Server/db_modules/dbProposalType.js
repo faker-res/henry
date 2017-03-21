@@ -104,7 +104,7 @@ var proposalType = {
                 if (data) {
                     return dbconfig.collection_proposalType.findOneAndUpdate(
                         query,
-                        {$set: { ExpirationDuration: expiryDuration }},
+                        {$set: { expirationDuration: expiryDuration }},
                         {new: true}
                     ).then(
                         function (data) {
