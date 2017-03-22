@@ -22,6 +22,9 @@ var PaymentServiceImplement = function () {
     //add api handler
     this.createOnlineTopupProposal.expectsData = 'topupType: String, amount: Number';
     this.createOnlineTopupProposal.onRequest = function (wsFunc, conn, data) {
+        if(data){
+            data.amount = Number(data.amount);
+        }
         var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
@@ -96,6 +99,9 @@ var PaymentServiceImplement = function () {
 
     this.requestManualTopup.expectsData = 'amount: Number|String, depositMethod: ?, lastBankcardNo: ?, provinceId: String|Number, cityId: String|Number';
     this.requestManualTopup.onRequest = function (wsFunc, conn, data) {
+        if(data){
+            data.amount = Number(data.amount);
+        }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && data.provinceId && data.cityId);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
             function (res) {
@@ -110,6 +116,9 @@ var PaymentServiceImplement = function () {
 
     this.requestAlipayTopup.expectsData = 'amount: Number|String';
     this.requestAlipayTopup.onRequest = function (wsFunc, conn, data) {
+        if(data){
+            data.amount = Number(data.amount);
+        }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [conn.playerId, data.amount], isValidData);
     };

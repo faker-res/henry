@@ -1637,7 +1637,8 @@ var dbPlayerInfo = {
                         minTopUpAmount: eventData.param.minTopUpAmount,
                         eventId: eventData._id,
                         eventName: eventData.name,
-                        eventCode: eventData.code
+                        eventCode: eventData.code,
+                        eventDescription: eventData.description
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
@@ -1836,7 +1837,8 @@ var dbPlayerInfo = {
                                 games: data[1].param.games,
                                 eventId: data[1]._id,
                                 eventName: data[1].name,
-                                eventCode: data[1].code
+                                eventCode: data[1].code,
+                                eventDescription: data[1].description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -1901,7 +1903,8 @@ var dbPlayerInfo = {
                         type: data.executeProposal,
                         data: {
                             playerId: playerId,
-                            rewardAmount: data.param.rewardAmount
+                            rewardAmount: data.param.rewardAmount,
+                            eventDescription: data.description
                         }
                     };
                     dbProposal.createProposalWithTypeId(data.executeProposal, proposalData).then(
@@ -1975,7 +1978,8 @@ var dbPlayerInfo = {
                                     playerObjId: playerData._id,
                                     platformId: platformId,
                                     playerName: playerData.name,
-                                    rewardAmount: Math.floor(rewardParams[i].param.rewardPercentage * topupAmount)
+                                    rewardAmount: Math.floor(rewardParams[i].param.rewardPercentage * topupAmount),
+                                    eventDescription: rewardParams[i].description
                                 }
                             };
                             var temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
@@ -2305,11 +2309,12 @@ var dbPlayerInfo = {
                             return record.save().then(
                                 function () {
                                     if (bUpdateIp) {
-                                        return dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                        dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
                                     }
                                 }
-                            ).catch(errorUtils.reportError).then(
+                            ).then(
                                 () => {
+                                    // console.log("check player city!!!");
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
@@ -2321,18 +2326,23 @@ var dbPlayerInfo = {
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
                                             var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+                                            // console.log(a,b,c,creditProm);
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
                                         zoneData => {
+                                            // console.log("zoneData",zoneData);
                                             retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                                             deferred.resolve(retObj);
-                                        }, errorZone => {
+                                        },
+                                        errorZone => {
+                                            //console.error("errorZone", errorZone);
                                             deferred.resolve(retObj);
-                                        });
+                                        }
+                                    );
                                 }
                             );
                         },
@@ -6092,7 +6102,8 @@ var dbPlayerInfo = {
                                 useConsumption: eventData.param.useConsumption,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -6356,7 +6367,8 @@ var dbPlayerInfo = {
                                 spendingAmount: validCredit * eventParam.spendingTimes,
                                 eventId: event._id,
                                 eventName: event.name,
-                                eventCode: event.code
+                                eventCode: event.code,
+                                eventDescription: event.description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -6551,7 +6563,8 @@ var dbPlayerInfo = {
                                 useConsumption: true,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -7028,7 +7041,8 @@ var dbPlayerInfo = {
                             eventCode: rewardEvent.code,
                             referralId: referralId,
                             referralName: referralObj.name,
-                            referralTopUpAmount: topUpAmount
+                            referralTopUpAmount: topUpAmount,
+                            eventDescription: rewardEvent.description
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -7127,7 +7141,8 @@ var dbPlayerInfo = {
                             unlockBonusAmount: rewardEvent.param.unlockBonusAmount,
                             eventId: rewardEvent._id,
                             eventName: rewardEvent.name,
-                            eventCode: rewardEvent.code
+                            eventCode: rewardEvent.code,
+                            eventDescription: rewardEvent.description
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,

@@ -21,8 +21,20 @@ function callPMSAPI(service, functionName, data) {
     //         errMessage: "Invalid WebSocket client connection!  (No PMSAPI stored for this instance.)"
     //     });
     // }
-    return clientAPIInstance.createAPIConnectionInMode("PaymentAPI").then(
+    let bOpen = false;
+    var deferred = Q.defer();
+    //if can't connect in 30 seconds, treat as timeout
+    setTimeout(function(){
+        if( !bOpen ){
+            return deferred.reject({
+                status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                message: "Payment is not available"
+            });
+        }
+    }, 5*1000);
+    clientAPIInstance.createAPIConnectionInMode("PaymentAPI").then(
         con => {
+            bOpen = true;
             return con.callAPIOnce(service, functionName, data).then(
                 data => {
                     if (con && typeof con.disconnect == "function") {
@@ -47,7 +59,8 @@ function callPMSAPI(service, functionName, data) {
                 }
             );
         }
-    );
+    ).then(deferred.resolve, deferred.reject);
+    return deferred.promise;
 };
 
 const pmsAPI = {
