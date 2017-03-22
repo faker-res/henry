@@ -1595,7 +1595,6 @@ var proposalExecutor = {
         },
 
         executeManualUnlockPlayerReward: function (proposalData, deferred)  {
-            console.log('proposalData', proposalData);
             dbRewardTask.completeRewardTask(proposalData.data)
                 .then(deferred.resolve, deferred.reject);
         }
