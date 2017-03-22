@@ -25,7 +25,7 @@ var resLogHandler = function (conn, wsFunc, data, res, functionName) {
         functionName: functionName,
         requestData: data,
         responseData: resObj,
-        requestIp: conn.upgradeReq.headers['x-forwarded-for'] || conn.upgradeReq.connection.remoteAddress
+        requestIp: conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress
     });
     wsFunc.response(conn, resObj, data);
 };
@@ -51,7 +51,7 @@ var errorLogHandler = function (conn, wsFunc, data, err, functionName) {
             functionName: functionName,
             requestData: data,
             responseData: resObj,
-            requestIp: conn.upgradeReq.headers['x-forwarded-for'] || conn.upgradeReq.connection.remoteAddress
+            requestIp: conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress
         });
         wsFunc.response(conn, resObj, data);
     }

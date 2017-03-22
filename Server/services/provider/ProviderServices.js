@@ -161,6 +161,10 @@
             sinonet.WebSocketService.call(this, "consumption", connection);
 
             //define functions
+            this.addMissingConsumption = new sinonet.WebSocketAsyncFunction("addMissingConsumption");
+            this.addFunction(this.addMissingConsumption);
+
+            //define functions
             this.addConsumption = new sinonet.WebSocketAsyncFunction("addConsumption");
             this.addFunction(this.addConsumption);
 
