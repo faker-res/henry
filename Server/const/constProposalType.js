@@ -34,7 +34,8 @@ const constProposalType = {
     PARTNER_BONUS: "PartnerBonus",
     PLAYER_CONSUMPTION_RETURN_FIX: "PlayerConsumptionReturnFix",
     PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward",
-    PARTNER_COMMISSION: "PartnerCommission"
+    PARTNER_COMMISSION: "PartnerCommission",
+    MANUAL_UNLOCK_PLAYER_REWARD: "ManualUnlockPlayerReward"
 };
 
 module.exports = constProposalType;

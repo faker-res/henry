@@ -49,6 +49,7 @@ const constProposalMainType = {
     "PlayerReferralReward": constMainType.REWARD,
     "AddPlayerRewardTask": constMainType.REWARD,
     "PlayerRegistrationReward": constMainType.REWARD,
+    "ManualUnlockPlayerReward": constMainType.REWARD,
 
     //BONUS
     "PlayerBonus": constMainType.BONUS,

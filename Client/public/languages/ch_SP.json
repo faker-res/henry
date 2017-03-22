@@ -1786,8 +1786,10 @@
   "REQUEST": "发送请求",
 
   "Manual Unlock Reward Task":"强制解锁奖励任务",
+  "ManualUnlockPlayerReward":"强制解锁玩家奖励任务",
   "Unlock Reward":"解锁奖励任务",
-  "Reward task is not available":"奖励任务不存在"
+  "Reward task is not available":"奖励任务不存在",
+  "Submitted proposal for approval":"成功提交提案"
 }
 
 
