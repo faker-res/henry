@@ -289,7 +289,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         returnDetail: returnDetail,
                                         summaryIds: summaryIds,
                                         bConsumptionReturnRequest: bRequest,
-                                        applyAmount: applyAmount
+                                        applyAmount: applyAmount,
+                                        eventDescription: eventData.description
                                     }
                                 };
                                 proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));

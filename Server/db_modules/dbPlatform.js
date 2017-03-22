@@ -1187,7 +1187,8 @@ var dbPlatform = {
                                 rewardAmount: rewardAmount,
                                 spendingAmount: validCredit * eventParam.spendingTimes,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             }
                         };
                         return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
