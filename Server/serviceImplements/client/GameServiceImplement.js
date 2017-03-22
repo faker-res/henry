@@ -180,14 +180,14 @@ var GameServiceImplement = function () {
     this.getLoginURL.expectsData = 'gameId: String, clientDomainName: String';
     this.getLoginURL.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data && data.gameId && data.clientDomainName);
-        var ip = conn.upgradeReq.headers['x-forwarded-for'] || conn.upgradeReq.connection.remoteAddress;
+        var ip = conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName], isValidData);
     };
 
     this.getTestLoginURL.expectsData = 'gameId: String, clientDomainName: String';
     this.getTestLoginURL.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data && data.gameId && data.clientDomainName);
-        var ip = conn.upgradeReq.headers['x-forwarded-for'] || conn.upgradeReq.connection.remoteAddress;
+        var ip = conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURL, [conn.playerId, data.gameId, ip, conn.lang, data.clientDomainName], isValidData);
     };
 

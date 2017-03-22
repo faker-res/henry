@@ -306,13 +306,13 @@
     };
 
     // For development: If we are running the Test Page in a browser pointing at localhost, then point the sockets at localhost too
-    // if (!isNode && typeof window !== 'undefined') {
-    //     var localNames = ['localhost', '127.0.0.1', '127.0.1.1', '0.0.0.0'];
-    //     if (localNames.indexOf(window.location.hostname) >= 0) {
-    //         TestHelper.websocketIP = window.location.hostname;
-    //         TestHelper.wsMigration = window.location.hostname;
-    //     }
-    // }
+    if (!isNode && typeof window !== 'undefined') {
+        var localNames = ['localhost', '127.0.0.1', '127.0.1.1', '0.0.0.0'];
+        if (localNames.indexOf(window.location.hostname) >= 0) {
+            TestHelper.websocketIP = window.location.hostname;
+            TestHelper.wsMigration = window.location.hostname;
+        }
+    }
 
     TestHelper.websocketURL = "ws://" + TestHelper.websocketIP + ":9280";
 
