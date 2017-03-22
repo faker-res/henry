@@ -127,7 +127,7 @@ function connectToServer (serverURL, services, loginData, options) {
                     ms = 10000;
                 }
                 // Check again later if the reconnect was successful.  If not, retry.  Back off slowly.
-                checkConnectionIn(ms * 1.1);
+                checkConnectionIn(ms);
             }, ms);
         }
     });

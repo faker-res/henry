@@ -2305,11 +2305,12 @@ var dbPlayerInfo = {
                             return record.save().then(
                                 function () {
                                     if (bUpdateIp) {
-                                        return dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                        dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
                                     }
                                 }
-                            ).catch(errorUtils.reportError).then(
+                            ).then(
                                 () => {
+                                    // console.log("check player city!!!");
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
@@ -2321,18 +2322,23 @@ var dbPlayerInfo = {
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
                                             var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+                                            // console.log(a,b,c,creditProm);
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
                                         zoneData => {
+                                            // console.log("zoneData",zoneData);
                                             retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                                             deferred.resolve(retObj);
-                                        }, errorZone => {
+                                        },
+                                        errorZone => {
+                                            //console.error("errorZone", errorZone);
                                             deferred.resolve(retObj);
-                                        });
+                                        }
+                                    );
                                 }
                             );
                         },
