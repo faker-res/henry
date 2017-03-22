@@ -1954,12 +1954,11 @@ var proposal = {
      checkProposalExpiration: function () {
         return dbconfig.collection_proposal.update(
             {
-                status : { $regex : new RegExp(constProposalStatus.PENDING, "i") } ,
+                status : constProposalStatus.PENDING ,
                 expirationTime: {$lt: new Date()}
             },
             {
-                $set:
-                {status: constProposalStatus.EXPIRED}
+                status: constProposalStatus.EXPIRED
             }
         );
     },   
