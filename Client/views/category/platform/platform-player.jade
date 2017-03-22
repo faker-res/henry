@@ -1459,6 +1459,6 @@
                             td
                                 label(ng-repeat='(i,v) in vm.curRewardTask.targetProviders') {{v.name}}&nbsp;
             .modal-footer
-                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.curRewardTask || vm.submittedPropsal', ng-click="vm.submitManualUnlockRewardTask()") {{'Unlock Reward' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.curRewardTask', ng-click="vm.submitManualUnlockRewardTask()") {{'Unlock Reward' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                 label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
