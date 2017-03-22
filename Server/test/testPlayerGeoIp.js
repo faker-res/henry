@@ -27,23 +27,23 @@ describe("Test Player Geo Ip", function () {
         return dataGenerator.createTestPlayerPlatformAndGames(generatedData);
     });
 
-    it('check player last login IP', function () {
-        return dbConfig.collection_players.findOne({_id: generatedData.testPlayerId}).select('lastLoginIp').then(
-            (player) => {
-                playerLastLoginIp = player.lastLoginIp;
-                player.lastLoginIp.should.equal(ipTest);
-            }
-        );
-    });
-
-    it('should return correct location', () => {
-        return dbGeoIp.lookup(playerLastLoginIp).then(
-            (locData) => {
-                locationData = locData;
-                locationData.logitude.should.equal(111.670801);
-                locationData.latitude.should.equal(40.818311);
-            });
-    });
+    // it('check player last login IP', function () {
+    //     return dbConfig.collection_players.findOne({_id: generatedData.testPlayerId}).select('lastLoginIp').then(
+    //         (player) => {
+    //             playerLastLoginIp = player.lastLoginIp;
+    //             player.lastLoginIp.should.equal(ipTest);
+    //         }
+    //     );
+    // });
+    //
+    // it('should return correct location', () => {
+    //     return dbGeoIp.lookup(playerLastLoginIp).then(
+    //         (locData) => {
+    //             locationData = locData;
+    //             locationData.logitude.should.equal(111.670801);
+    //             locationData.latitude.should.equal(40.818311);
+    //         });
+    // });
 
     it('Clear Consumption Data', function () {
         dataGenerator.clearConsumptionData(generatedData);

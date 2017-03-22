@@ -52,9 +52,10 @@ function socketActionRewardTask(socketIO, socket) {
         },
 
         manualUnlockRewardTask: function manualUnlockRewardTask(data) {
+            // [0]: TaskData, [1]: PlayerData
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.playerId);
-            socketUtil.emitter(self.socket, dbRewardTask.completeRewardTask, [data], actionName, isValidData);
+            var isValidData = Boolean(data && data[0] && data[1] && data[0].playerId && data[0].platformId);
+            socketUtil.emitter(self.socket, dbRewardTask.manualUnlockRewardTask, [data, getAdminId(), getAdminName()], actionName, isValidData);
         }
     };
     socketActionRewardTask.actions = this.actions;

@@ -347,6 +347,10 @@ define(['js/app'], function (myApp) {
                         } else {
                             var storedPlatform = $cookies.get("platform");
                             if (storedPlatform) {
+                                if(storedPlatform === '_allPlatform') {
+                                    storedPlatform = vm.platformList[0].name;
+                                }
+
                                 vm.platformList.forEach(
                                     platform => {
                                         if (platform.name == storedPlatform) {
