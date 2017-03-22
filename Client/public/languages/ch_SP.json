@@ -541,6 +541,7 @@
   "TopUp":"充值",
   "Topup":"充值",
   "CREATOR":"创建者",
+  "LOCK_USER":"锁定者",
   "CONSUMPTION_LIMIT":"消费限度",
   "TOP_UP_LIMIT":"充值限度",
   "NO_OF_RECOMMANDATION":"推荐人数",
