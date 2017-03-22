@@ -445,6 +445,44 @@ var dbRewardTask = {
     },
 
     /**
+     * apply for manual unlock reward task
+     * @param {Object} taskData - reward task object
+     */
+    manualUnlockRewardTask: function (data, adminId, adminName) {
+        var taskData = data[0];
+        var playerData = data[1];
+
+        return new Promise((resolve,reject) => {
+            if (taskData) {
+                var platformId = taskData.platformId;
+                var proposalData = taskData;
+                // proposalData.playerObjId = playerObjId;
+                proposalData.playerId = taskData.playerId;
+                proposalData.playerName = playerData.name;
+                proposalData.amount = taskData.bonusAmount;
+                // proposalData.platformId = data[1].platform;
+                // proposalData.channel = data[0]._id;
+                // proposalData.channelName = data[0].name;
+                // proposalData.validForTransactionReward = data[0].validForTransactionReward;
+                // proposalData.amount = inputData.topUpAmount;
+                // proposalData.topUpAmount = inputData.topUpAmount;
+
+                dbProposal.createProposalWithTypeName(platformId, constProposalType.MANUAL_UNLOCK_PLAYER_REWARD, {creator: {
+                    type: 'admin',
+                    name: adminName,
+                    id: adminId
+                }, data: proposalData}).then(function(data) {
+                    resolve(data);
+                }, function(data) {
+                    reject(data);
+                });
+            } else {
+                reject({name: "DataError", message: "Cannot find player or payment channel"});
+            }
+        });
+    },
+
+    /**
      * complete a reward task and give the reward amount to player
      * @param {Object} taskData - reward task object
      */

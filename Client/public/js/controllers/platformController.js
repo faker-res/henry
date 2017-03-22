@@ -4235,22 +4235,18 @@ define(['js/app'], function (myApp) {
             });
             $('#modalManualUnlockRewardTask').modal();
             $scope.safeApply();
-        }
+        };
 
         vm.submitManualUnlockRewardTask = function() {
-            socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', vm.curRewardTask, function (data) {
-
-                vm.manualUnlockRewardTask.resMsg = $translate('SUCCESS');
+            socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', [vm.curRewardTask, vm.selectedSinglePlayer], function (data) {
+                vm.manualUnlockRewardTask.resMsg = $translate('Submitted proposal for approval');
                 $scope.safeApply();
-                // if (callback) {
-                //     callback(vm.rewardTask);
-                // }
             },
             function(err) {
                 vm.manualUnlockRewardTask.resMsg = err.error.message || $translate('FAIL');
                 $scope.safeApply();
             });
-        }
+        };
 
         vm.prepareShowPlayerExpense = function () {
             vm.playerExpenseLog = {totalCount: 0};

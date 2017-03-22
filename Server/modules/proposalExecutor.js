@@ -133,6 +133,7 @@ var proposalExecutor = {
         this.executions.executePlayerReferralReward.des = "Player Referral Reward";
         this.executions.executePartnerBonus.des = "Partner bonus";
         this.executions.executePlayerRegistrationReward.des = "Player Registration Reward";
+        this.executions.executeManualUnlockPlayerReward.des = "Manual Unlock Player Reward";
 
         this.rejections.rejectProposal.des = "Reject proposal";
         this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -166,6 +167,7 @@ var proposalExecutor = {
         this.rejections.rejectPlayerReferralReward.des = "Reject Player Referral Reward";
         this.rejections.rejectPartnerBonus.des = "Reject Partner bonus";
         this.rejections.rejectPlayerRegistrationReward.des = "Reject Player Registration Reward";
+        this.rejections.rejectManualUnlockPlayerReward.des = "Reject Manual Unlock Player Reward";
     },
 
     refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1590,6 +1592,12 @@ var proposalExecutor = {
             else {
                 deferred.reject({name: "DataError", message: "Incorrect player top up return proposal data"});
             }
+        },
+
+        executeManualUnlockPlayerReward: function (proposalData, deferred)  {
+            console.log('proposalData', proposalData);
+            dbRewardTask.completeRewardTask(proposalData.data)
+                .then(deferred.resolve, deferred.reject);
         }
     },
 
@@ -1979,6 +1987,13 @@ var proposalExecutor = {
          * reject function for player registration reward
          */
         rejectPlayerRegistrationReward: function (proposalData, deferred) {
+            deferred.resolve("Proposal is rejected");
+        },
+
+        /**
+         * reject function for manual unlock player reward
+         */
+        rejectManualUnlockPlayerReward: function (proposalData, deferred) {
             deferred.resolve("Proposal is rejected");
         }
     }
