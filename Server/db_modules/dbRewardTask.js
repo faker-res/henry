@@ -462,12 +462,12 @@ var dbRewardTask = {
 
             return dbProposal.createProposalWithTypeName(platformId, constProposalType.MANUAL_UNLOCK_PLAYER_REWARD,
                 {creator: { type: 'admin', name: adminName, id: adminId}, data: proposalData}).then(function(data) {
-                    resolve(data);
+                    Promise.resolve(data);
             }, function() {
-                reject({name: "ProposalError", message: "Failed to create proposal with this type"});
+                Promise.reject({name: "ProposalError", message: "Failed to create proposal with this type"});
             });
         } else {
-            reject({name: "DataError", message: "Cannot find player or payment channel"});
+            Promise.reject({name: "DataError", message: "Cannot find player or payment channel"});
         }
 
     },
