@@ -34,7 +34,7 @@ var roleChecker = {
         'addPlatformGameGroup', 'updateGameGroupParent', 'renamePlatformGameGroup', 'updatePlatformGameGroup', 'deleteGameGroup',
         'createRewardRuleWithType', 'createRewardCondition', 'createRewardEvent', 'deleteRewardRuleByIds', 'deleteRewardEventByIds', 'updateRewardRule', 'updateRewardTask', 'updateRewardEvent',
         'createProposalTypeProcess', 'updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep',
-        'updateProposalTypeProcessSteps', 'deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds',
+        'updateProposalTypeProcessSteps', 'deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds', 'updateProposalTypeExpiryDuration','getProposalTypeExpirationDuration',
         'updatePlayerLevel', 'createPlayerLevel', 'createPartnerLevel', 'partnerLevel/update', 'createPlatformAnnouncement',
         'updatePlatformAnnouncement', 'deletePlatformAnnouncementByIds', 'updatePartnerLevelConfig',
         'createMessageTemplate', 'deleteMessageTemplateByIds', 'updateMessageTemplate',
@@ -151,8 +151,8 @@ var roleChecker = {
         "countTopUpORConsumptionbyPlatform": true,
         "getPlayerRetention": true,
         "getAllActions": true,
-
-        "getAdminInfo": true
+        "getAdminInfo": true,
+        "updateProposalTypeExpiryDuration": true
     },
 
     /**
@@ -313,7 +313,7 @@ var roleChecker = {
             "Proposal": {
                 Create: ['createProposalTypeProcess', 'addStepToProposalTypeProcess', 'createProposal', 'createProposalType', 'createProposalTypeProcessStep'],
                 Read: ['getAllProposalType', 'getProposalType', 'getProposalTypeByPlatformId', 'getProposalTypeByType', 'getAllProposalExecutionType', 'getAllProposalRejectionType', 'getProposalTypeProcess',
-                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal', "getAdminInfo"],
+                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal', "getAdminInfo", 'getProposalTypeExpirationDuration'],
                 Update: ['updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep', 'updateProposalTypeProcessSteps'],
                 Delete: ['deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds']
             },

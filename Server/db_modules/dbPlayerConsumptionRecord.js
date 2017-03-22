@@ -278,21 +278,23 @@ var dbPlayerConsumptionRecord = {
         var record = null;
         var newOrderNo = data.orderNo;
 
-        var newOrderNumObj = {orderNo: newOrderNo};
-        if (data.createTime) {
-            newOrderNumObj.createTime = data.createTime;
-        }
-        var newConsumptionNum = new dbconfig.collection_consumptionOrderNumModal(newOrderNumObj);
-
-        newConsumptionNum.save().then(
-            newOrderNo => {
-                var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
-                return newRecord.save();
-            },
-            err => {
-                deferred.reject({status: constServerCode.CONSUMPTION_ORDERNO_ERROR, name: "DataError", error: err});
-            }
-        ).then(
+        // var newOrderNumObj = {orderNo: newOrderNo};
+        // if (data.createTime) {
+        //     newOrderNumObj.createTime = data.createTime;
+        // }
+        // var newConsumptionNum = new dbconfig.collection_consumptionOrderNumModal(newOrderNumObj);
+        //
+        // newConsumptionNum.save().then(
+        //     newOrderNo => {
+        //         var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
+        //         return newRecord.save();
+        //     },
+        //     err => {
+        //         deferred.reject({status: constServerCode.CONSUMPTION_ORDERNO_ERROR, name: "DataError", error: err});
+        //     }
+        // );
+        var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
+        newRecord.save().then(
             function (data) {
                 record = data;
                 if (record && !record.bDirty) {
@@ -304,17 +306,13 @@ var dbPlayerConsumptionRecord = {
                 }
             },
             function (error) {
-                dbconfig.collection_consumptionOrderNumModal.remove({orderNo: newOrderNo}).then();
-                console.error("Player consumption record save failed", error);
+                //dbconfig.collection_consumptionOrderNumModal.remove({orderNo: newOrderNo}).then();
+                //console.error("Player consumption record save failed", error);
                 deferred.reject({name: "DBError", message: "Error creating consumption record", error: error});
             }
         ).then(
             function (bDirty) {
                 if (!bDirty) {
-                    //for data migration purpose, only add consumption return for newly added record
-                    if( env.mode != "qa" && data && data.createTime && new Date(data.createTime).getTime() < new Date(Date.UTC(2017, 1, 19, 16, 0, 0)).getTime() ){
-                        return record;
-                    }
                     //update consumption summary record
                     var summaryDay = moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate();
                     var query = {
@@ -389,6 +387,19 @@ var dbPlayerConsumptionRecord = {
         );
 
         return deferred.promise;
+    },
+
+    addMissingConsumption: function (recordData, resolveError) {
+        return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo}).lean().then(
+            record => {
+                if( record ){
+                    return Q.reject({status: constServerCode.CONSUMPTION_ORDERNO_ERROR, name: "DataError", message: "orderNo exists"});
+                }
+                else{
+                    return dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord(recordData, resolveError);
+                }
+            }
+        );
     },
 
     /**

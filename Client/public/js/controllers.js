@@ -84,7 +84,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         }).on('connect_error', function (err) {
             console.log('connection err', err);
             // $scope.AppSocket.disconnect();
-            socketService.showErrorMessage("Cannot connect to server!");
+            //socketService.showErrorMessage("Cannot connect to server!");
         });
 
         $scope.AppSocket.on('error', function (data) {

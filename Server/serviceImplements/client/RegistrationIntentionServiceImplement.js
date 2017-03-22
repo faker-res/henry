@@ -17,7 +17,7 @@ var RegistrationIntentionServiceImplement = function () {
     this.add.expectsData = 'name: String, mobile: String, platformId: String';
     this.add.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.mobile && data.hasOwnProperty("platformId"));
-        data.ipAddress = conn.upgradeReq.headers['x-forwarded-for'] || conn.upgradeReq.connection.remoteAddress;
+        data.ipAddress = conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress;
         WebSocketUtil.responsePromise(
             conn, wsFunc, data, dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI,
             [data], isValidData, true, false, true

@@ -7783,6 +7783,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalType = data;
                 //get process and steps data for selected proposal type
                 vm.getProposalTypeProcessSteps();
+                vm.getProposalTypeExpirationDuration();
                 console.log("vm.selectedProposalType", vm.selectedProposalType);
                 $scope.safeApply();
             });
@@ -7852,6 +7853,8 @@ define(['js/app'], function (myApp) {
             vm.tempNewNodeName = '';
             vm.tempNewNodeDepartment = '';
             vm.tempNewNodeRole = '';
+            vm.expResMsg = '';
+            vm.expShowSubmit = true;
         }
         vm.loadDepartmentRole = function (departmentNode) {
             vm.tempNewNodeDepartment = departmentNode;
@@ -8148,7 +8151,39 @@ define(['js/app'], function (myApp) {
             if (isValid) {
                 vm.updateProposalTypeProcessSteps(steps, links);
             }
-        }
+        };
+
+        vm.saveDateProcess = function () {
+            //if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && dt) {
+            if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && (vm.expDurationHour || vm.expDurationMin)) {
+                vm.expShowSubmit = false;
+                var hour=0;
+                var min=0;
+
+                if(!vm.expDurationHour ) hour=0;
+                else hour=Number(vm.expDurationHour);
+
+                if(!vm.expDurationMin ) min=0;
+                else min=Number(vm.expDurationMin);
+
+                var totalExpMinute = (hour * 60) + min;
+
+                socketService.$socket($scope.AppSocket, 'updateProposalTypeExpiryDuration', {
+                    query: {_id: vm.selectedProposalType.data._id},
+                    expiryDuration: totalExpMinute
+                }, function (data) {
+                    vm.expResMsg = $translate('SUCCESS');
+                    $scope.safeApply();
+
+                }, function (err) {
+                    vm.expResMsg = err.error.message || $translate('FAIL');
+                    $scope.safeApply();
+                });
+            }
+            else {
+                socketService.showErrorMessage("Incorrect expiration duration!");
+            }
+        };
 
         vm.resetProcess = function () {
             vm.getProposalTypeProcessSteps();
@@ -8178,6 +8213,22 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     console.log("getProposalTypeProcess", data);
                     vm.drawProcessSteps(data.data);
+                });
+            }
+        };
+
+        //get expiration duration for proposal type 
+        vm.getProposalTypeExpirationDuration = function () {
+            if (vm.selectedProposalType && vm.selectedProposalType.data) {
+                socketService.$socket($scope.AppSocket, 'getProposalTypeExpirationDuration', {
+                    query: {_id: vm.selectedProposalType.data._id},
+                }, function (data) {
+                    var hour =  Math.floor( Number(data.data.expirationDuration) / 60);
+                    var min =  Number(data.data.expirationDuration) % 60;
+                    hour = hour.toString();
+                    min = min.toString();
+                    vm.expDurationHour =  hour;
+                    vm.expDurationMin =  min;
                 });
             }
         };

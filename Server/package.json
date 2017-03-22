@@ -47,5 +47,10 @@
     "md5": "^2.2.1",
     "console-stamp": "^0.2.4",
     "geoip2ws": "^1.8.8"
+  },
+
+  "scripts": {
+    "test": "mocha"
   }
 }
+
