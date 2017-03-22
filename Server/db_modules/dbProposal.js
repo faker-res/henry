@@ -179,7 +179,7 @@ var proposal = {
             }
         ).then(
             function (data) {
-                if (data && data[0] && data[1] && data[2]) {
+                if (data && data[0] && data[1] && data[2] != null) {
                     //notify the corresponding clients with new proposal
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
