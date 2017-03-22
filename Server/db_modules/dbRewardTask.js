@@ -454,11 +454,21 @@ var dbRewardTask = {
 
         if (taskData) {
             var platformId = taskData.platformId;
-            var proposalData = taskData;
+            var proposalData = {};
 
             proposalData.playerId = taskData.playerId;
             proposalData.playerName = playerData.name;
             proposalData.amount = taskData.bonusAmount;
+            proposalData.rewardType = taskData.rewardType;
+            proposalData.description = taskData.eventId.description;
+            proposalData.status = taskData.status;
+            proposalData.targetProviders = taskData.targetProviders;
+            proposalData.targetGames = taskData.targetGames;
+            proposalData.createTime = taskData.createTime;
+            proposalData.requiredUnlockAmount = taskData.requiredUnlockAmount;
+            proposalData.applyAmount = taskData.applyAmount;
+            proposalData.bonusAmount = taskData.bonusAmount;
+            proposalData.useConsumption = taskData.useConsumption;
 
             return dbProposal.createProposalWithTypeName(platformId, constProposalType.MANUAL_UNLOCK_PLAYER_REWARD,
                 {creator: { type: 'admin', name: adminName, id: adminId}, data: proposalData}).then(function(data) {
