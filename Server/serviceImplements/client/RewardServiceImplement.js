@@ -76,7 +76,7 @@ var RewardServiceImplement = function () {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
-                SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_REWARD);
+                //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_REWARD);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };

@@ -268,7 +268,7 @@ define([], function () {
                     format: 'dd/MM/yyyy hh:mm:ss',
                     pickTime: true,
                 });
-                $(datetimePickerStartTimeId).data('datetimepicker').setLocalDate(this.getNdayagoStartTime(30));
+                $(datetimePickerStartTimeId).data('datetimepicker').setLocalDate(this.getNdayagoStartTime(1));
 
                 $(datetimePickerEndTimeId).datetimepicker({
                     language: 'en',

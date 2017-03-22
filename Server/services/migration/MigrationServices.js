@@ -83,7 +83,9 @@
                 "addPlayerReferral",
                 "bindPartnerPlayer",
                 "updateLastPlayedProvider",
-                "updatePlayerCredit"
+                "updatePlayerCredit",
+                "updatePlayerLevel",
+                "updatePlayer"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -118,7 +120,8 @@
             //define functions
             var functionNames = [
                 "create",
-                "createPartnerLoginRecord"
+                "createPartnerLoginRecord",
+                "updatePartner"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

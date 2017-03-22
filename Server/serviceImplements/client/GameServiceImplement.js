@@ -53,7 +53,7 @@ var GameServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameGroup.getGameGroupGames, [data, data.startIndex, data.requestCount, conn.playerId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameGroup.getGameGroupGames, [data, data.startIndex, data.requestCount, conn.playerId, data.providerId], isValidData, false, false, true);
     };
 
     this.getGameGroupTreeInfo.expectsData = 'platformId: String';
@@ -180,13 +180,15 @@ var GameServiceImplement = function () {
     this.getLoginURL.expectsData = 'gameId: String, clientDomainName: String';
     this.getLoginURL.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data && data.gameId && data.clientDomainName);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, conn.upgradeReq.connection.remoteAddress, data.lang, data.clientDomainName], isValidData);
+        var ip = conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName], isValidData);
     };
 
     this.getTestLoginURL.expectsData = 'gameId: String, clientDomainName: String';
     this.getTestLoginURL.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data && data.gameId && data.clientDomainName);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURL, [conn.playerId, data.gameId, conn.upgradeReq.connection.remoteAddress, conn.lang, data.clientDomainName], isValidData);
+        var ip = conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURL, [conn.playerId, data.gameId, ip, conn.lang, data.clientDomainName], isValidData);
     };
 
     this.getGameUserInfo.expectsData = 'platformId: String, providerId: String';

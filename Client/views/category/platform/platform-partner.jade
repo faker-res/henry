@@ -201,6 +201,53 @@ p
                 td {{v.status}}
                 td {{v.trustLevel}}
                 //-label Referral Details for {{vm.selectedSinglePartner.partnerName}}
+#totalReferralModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Total referral players for" | translate}} : {{vm.selectedSinglePartner.partnerName}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .inlineBlk
+                                label {{"REGISTRATION_TIME_START" | translate}}
+                                .regStartTime
+                                //input.form-control(type='text', ng-model='vm.totalReferralPlayer.regStartTime')
+                            .inlineBlk
+                                label {{"REGISTRATION_TIME_END" | translate}}
+                                .regEndTime
+                                //input.form-control(type='text', ng-model='vm.totalReferralPlayer.regEndTime')
+                            .inlineBlk
+                                label {{"LAST_ACCESS_TIME_START" | translate}}
+                                .loginStartTime
+                                //input.form-control(type='text', ng-model='vm.totalReferralPlayer.loginStartTime')
+                            .inlineBlk
+                                label {{"LAST_ACCESS_TIME_END" | translate}}
+                                .loginEndTime
+                                //input.form-control(type='text', ng-model='vm.totalReferralPlayer.loginEndTime')
+                            .inlineBlk
+                                label {{"PLAYER_NAME" | translate}}
+                                input.form-control(type='text', ng-model='vm.totalReferralPlayer.playerName')
+                            .inlineBlk
+                                label {{"realName" | translate}}
+                                input.form-control(type='text', ng-model='vm.totalReferralPlayer.realName')
+                            .inlineBlk
+                                label {{"Qty_Min" | translate}} {{"topUpTimes" | translate}}
+                                input.form-control(type='number', ng-model='vm.totalReferralPlayer.minTopupTimes', style='width: 80px;')
+                            .inlineBlk
+                                label {{"Qty_Max" | translate}} {{"topUpTimes" | translate}}
+                                input.form-control(type='number', ng-model='vm.totalReferralPlayer.maxTopupTimes', style='width: 80px;')
+                            .inlineBlk
+                                label {{"source" | translate}}
+                                input.form-control(type='text', ng-model='vm.totalReferralPlayer.domain')
+                            .inlineBlk
+                                button.btn.btn-primary(ng-click='vm.getPagePartnerReferralPlayers(true)') {{'SEARCH' | translate}}
+
+                        label {{"Total" | translate}} {{vm.totalReferralPlayer.totalCount}} {{"records" | translate}}
+                        table#totalReferralPlayersTable.common-table.display(style='width:100%')
+                        #totalReferralPlayersTablePage
 #partnerChildrenPopover.hide(style="width: auto")
     table.simple-table
         thead

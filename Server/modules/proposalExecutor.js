@@ -103,6 +103,7 @@ var proposalExecutor = {
     init: function () {
         this.executions.executeUpdatePlayerInfo.des = "Update player information";
         this.executions.executeUpdatePlayerCredit.des = "Update player credit";
+        this.executions.executeFixPlayerCreditTransfer.des = "Fix player credit transfer";
         this.executions.executePlayerConsumptionReturnFix.des = "Update player credit for consumption return";
         this.executions.executeUpdatePlayerEmail.des = "Update player email";
         this.executions.executeUpdatePlayerPhone.des = "Update player phone number";
@@ -132,10 +133,12 @@ var proposalExecutor = {
         this.executions.executePlayerReferralReward.des = "Player Referral Reward";
         this.executions.executePartnerBonus.des = "Partner bonus";
         this.executions.executePlayerRegistrationReward.des = "Player Registration Reward";
+        this.executions.executeManualUnlockPlayerReward.des = "Manual Unlock Player Reward";
 
         this.rejections.rejectProposal.des = "Reject proposal";
         this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
         this.rejections.rejectUpdatePlayerCredit.des = "Reject player update credit proposal";
+        this.rejections.rejectFixPlayerCreditTransfer.des = "Reject fix player credit transfer proposal";
         this.rejections.rejectPlayerConsumptionReturnFix.des = "Reject update player credit for consumption return";
         this.rejections.rejectUpdatePlayerEmail.des = "Reject player update email proposal";
         this.rejections.rejectUpdatePlayerPhone.des = "Reject player update phone number proposal";
@@ -164,6 +167,7 @@ var proposalExecutor = {
         this.rejections.rejectPlayerReferralReward.des = "Reject Player Referral Reward";
         this.rejections.rejectPartnerBonus.des = "Reject Partner bonus";
         this.rejections.rejectPlayerRegistrationReward.des = "Reject Player Registration Reward";
+        this.rejections.rejectManualUnlockPlayerReward.des = "Reject Manual Unlock Player Reward";
     },
 
     refundPlayer: function (proposalData, refundAmount, reason) {
@@ -240,7 +244,7 @@ var proposalExecutor = {
         /**
          * execution function for update player credit proposal type
          */
-        executeUpdatePlayerCredit: function (proposalData, deferred) {
+        executeUpdatePlayerCredit: function (proposalData, deferred, bTransfer) {
             //valid data
             if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.updateAmount != null) {
                 //changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount, constProposalType.UPDATE_PLAYER_CREDIT, proposalData.data).then(deferred.resolve, deferred.reject);
@@ -303,8 +307,9 @@ var proposalExecutor = {
                                 constShardKeys.collection_playerCreditTransferLog
                             ).then().catch(console.error);
                         }
+                        var changeType = bTransfer ? constProposalType.FIX_PLAYER_CREDIT_TRANSFER : constProposalType.UPDATE_PLAYER_CREDIT;
                         dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
-                            constProposalType.UPDATE_PLAYER_CREDIT, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
                         deferred.resolve(player);
                     },
                     error => {
@@ -318,12 +323,22 @@ var proposalExecutor = {
         },
 
         /**
+         * execution function for fix player credit transfer
+         */
+        executeFixPlayerCreditTransfer: function (proposalData, deferred) {
+            proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+        },
+
+        /**
          * execution function for player consumption return fix
          */
         executePlayerConsumptionReturnFix: function (proposalData, deferred) {
             //valid data
             if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.updateAmount > 0) {
                 changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount, constProposalType.PLAYER_CONSUMPTION_RETURN_FIX, proposalData.data).then(
+                    res => {
+                        SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.CONSUMPTION_RETURN);
+                    }
                 ).then(deferred.resolve, deferred.reject);
             }
             else {
@@ -509,6 +524,7 @@ var proposalExecutor = {
                             creatorObjId: proposalData.creator ? proposalData.creator.id : null
                         }
                         dbLogger.createBankInfoLog(loggerInfo);
+                        SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                         deferred.resolve(data);
                     },
                     function (error) {
@@ -1208,7 +1224,7 @@ var proposalExecutor = {
         executePlayerConsumptionReturn: function (proposalData, deferred) {
             //create reward task for related player
             //verify data
-            if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+            if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount >= 0) {
                 changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data).then(
                     () => {
                         //remove all consumption summaries
@@ -1576,6 +1592,11 @@ var proposalExecutor = {
             else {
                 deferred.reject({name: "DataError", message: "Incorrect player top up return proposal data"});
             }
+        },
+
+        executeManualUnlockPlayerReward: function (proposalData, deferred)  {
+            dbRewardTask.completeRewardTask(proposalData.data)
+                .then(deferred.resolve, deferred.reject);
         }
     },
 
@@ -1596,6 +1617,13 @@ var proposalExecutor = {
          * reject function for UpdatePlayerCredit proposal
          */
         rejectUpdatePlayerCredit: function (proposalData, deferred) {
+            deferred.resolve("Proposal is rejected");
+        },
+
+        /**
+         * reject function for FixPlayerCreditTransfer proposal
+         */
+        rejectFixPlayerCreditTransfer: function (proposalData, deferred) {
             deferred.resolve("Proposal is rejected");
         },
 
@@ -1738,6 +1766,7 @@ var proposalExecutor = {
                                         platformId: summary.platformId,
                                         playerId: summary.playerId,
                                         gameType: summary.gameType,
+                                        summaryDay: summary.summaryDay,
                                         bDirty: false
                                     }).then(
                                         cleanRecord => {
@@ -1958,6 +1987,13 @@ var proposalExecutor = {
          */
         rejectPlayerRegistrationReward: function (proposalData, deferred) {
             deferred.resolve("Proposal is rejected");
+        },
+
+        /**
+         * reject function for manual unlock player reward
+         */
+        rejectManualUnlockPlayerReward: function (proposalData, deferred) {
+            deferred.resolve("Proposal is rejected");
         }
     }
 };
@@ -1987,6 +2023,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     ).then(
         //() => createRewardLogForProposal(taskData.rewardType, proposalData)
         () => {
+            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
             //send message if there is any template created for this reward
             return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
                 rewardTask: taskData
@@ -2043,7 +2080,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
                 player: proposalData.data.playerId,
                 rewardType: rewardType._id,
                 rewardTypeName: rewardTypeName,
-                amount: proposalData.data.unlockBonusAmount || proposalData.data.rewardAmount || proposalData.data.amount,
+                amount: proposalData.data.unlockBonusAmount || proposalData.data.rewardAmount || proposalData.data.amount || 0,
                 createTime: Date.now(),
             };
             if (rewardEvent) {

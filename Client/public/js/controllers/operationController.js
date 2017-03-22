@@ -38,12 +38,22 @@ define(['js/app'], function (myApp) {
         vm.selectPlatform = function (id) {
             vm.newProposalNum = 0;
             vm.operSelPlatform = false;
+            vm.allPlatformId = [];
+
             $.each(vm.platformList, function (i, v) {
                 if (v._id == id) {
                     vm.selectedPlatform = v;
                     vm.playerCountLimit = 20;
                     $cookies.put("platform", vm.selectedPlatform.name);
-                    console.log('vm.selectedPlatform', vm.selectedPlatform);
+                    vm.allPlatformId.push(v._id);
+                    //return;
+                } else if (id == "_allPlatform") {
+                    vm.selectedPlatform = '_allPlatform';
+                    $cookies.put("platform", id);
+                    vm.allPlatformId.push(v._id);
+                }
+            });
+            vm.playerCountLimit = 20;console.log('vm.selectedPlatform', vm.allPlatformId);
                     vm.getLoggedInPlayerCount();
                     vm.getLoggedInPlayer();
                     // vm.loadProposalData();
@@ -53,7 +63,7 @@ define(['js/app'], function (myApp) {
                     vm.allProposalString = null;
                     // vm.getPlayerTopUpIntentRecordStatusList();
                     // vm.getNewAccountProposal().done();
-                    vm.getProposalTypeByPlatformId().then(
+                    vm.getProposalTypeByPlatformId(vm.allPlatformId).then(
                         function (data) {
                             $('select#selectProposalType').multipleSelect({
                                 allSelected: $translate("All Selected"),
@@ -70,15 +80,20 @@ define(['js/app'], function (myApp) {
                                     vm.proposalTypeUpdated();
                                 }
                             });
+                            var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
+                            $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
+                                var upText = $($multi).text().split(',').map(item => {
+                                    return $translate(item);
+                                }).join(',');
+                                $($multi).find('span').text(upText)
+                            });
                             $("select#selectProposalType").multipleSelect("checkAll");
                             vm.proposalTypeClicked("total");
                             // vm.allProposalClicked();
                         }
                     );
                     $scope.safeApply();
-                    return;
-                }
-            });
+
         }
         vm.proposalTypeClicked = function (i, v) {
             //vm.highlightProposalListSelection[i];
@@ -159,7 +174,7 @@ define(['js/app'], function (myApp) {
         }
         vm.getOneProposal = function (callback) {
             socketService.$socket($scope.AppSocket, "getPlatformProposal", {
-                platformId: vm.selectedPlatform._id,
+                platformId: vm.allPlatformId,
                 proposalId: vm.queryProposalId
             }, function (data) {
                 if (data && !data.data) {
@@ -214,7 +229,7 @@ define(['js/app'], function (myApp) {
 
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.selectedPlatformID,
+                platformId: vm.allPlatformId,
                 type: vm.proposalTypeSelected,
                 startDate: startTime.getLocalDate(),
                 endDate: newEndTime,
@@ -362,6 +377,11 @@ define(['js/app'], function (myApp) {
                     })
                 });
                 result = $time.prop('outerHTML') + $btn.prop('outerHTML');
+            } else if (fieldName.indexOf('providerId') > -1 || fieldName.indexOf('targetProviders') > -1) {
+                result = val ? val.map(item => {
+                        return vm.getProviderText(item);
+                    }) : '';
+                result = result.join(',');
             } else if (fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) {
                 result = utilService.getFormatTime(val);
             } else if (fieldName == 'clientType') {
@@ -521,7 +541,10 @@ define(['js/app'], function (myApp) {
                     v.creditAmount$ = (v.data.amount != null) ?
                         parseFloat(v.data.amount).toFixed(2)
                         : (v.data.rewardAmount != null ?
-                        parseFloat(v.data.rewardAmount).toFixed(2) : $translate("N/A"));
+                            parseFloat(v.data.rewardAmount).toFixed(2) : $translate("N/A"));
+                    if (v.data.updateAmount != null) {
+                        v.creditAmount$ = parseFloat(v.data.updateAmount).toFixed(2);
+                    }
                     if (v.mainType == "PlayerBonus" && v.data.bankTypeId) {
                         v.bankType$ = vm.allBankTypeList[v.data.bankTypeId]
                     }
@@ -989,365 +1012,6 @@ define(['js/app'], function (myApp) {
         //     vm.loadProposalQueryData(true);
         // }
 
-        ///////////////////////////////// approval proposal table
-        //draw player table based on data
-        // vm.drawTopupMonitorTable = function (data) {
-        //     console.log("topMonitorTable data", data);
-        //     vm.blinkTopUp = false;
-        //     var tableOptions = {
-        //         data: data,
-        //         columns: [
-        //             //{
-        //             //    "title": $translate('ID'),
-        //             //    "data": "_id",
-        //             //    "sClass": "alignLeft"
-        //             //},
-        //             {
-        //                 "title": $translate('PLAYER_ID'),
-        //                 "data": "playerId",
-        //                 "sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('CREATION_TIME'),
-        //                 "data": "createTime",
-        //                 render: function (data, type, row) {
-        //                     return utilService.$getTimeFromStdTimeFormat(data);
-        //                 },
-        //                 "sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('OPERATION_LIST'),
-        //                 "data": "operationList",
-        //                 render: function (data, type, row) {
-        //                     data = data || [];
-        //                     var showStr = $('<div>');
-        //                     $.each(data, function (i, v) {
-        //                         if (typeof(v) == 'object') {
-        //                             $.each(v, function (key, val) {
-        //                                 showStr
-        //                                     .append($('<text>', {
-        //                                         //class: 'pull-left'
-        //                                     }).text(key))
-        //                                     .append($('<span>').html('&nbsp;:&nbsp;'))
-        //                                     .append($('<text>', {
-        //                                         class: 'colorRed'
-        //                                     }).text(val))
-        //                                     .append($('<br>'))
-        //                             })
-        //                         } else {
-        //                             showStr.append($('<text>', {
-        //                                     class: 'colorRed'
-        //                                 }).text(v))
-        //                                 .append($('<br>'));
-        //                         }
-        //                     })
-        //                     return showStr.prop('outerHTML');
-        //                     //var link = $('<a>', {
-        //                     //    'class': 'operationTopupPopover',
-        //                     //    'data-row': JSON.stringify(row),
-        //                     //    'data-toggle': 'popover',
-        //                     //    'data-trigger': 'focus',
-        //                     //    'data-placement': 'bottom',
-        //                     //    'data-container': 'body'
-        //                     //}).text(data.length);
-        //                     //return link.prop('outerHTML');
-        //                 },
-        //                 "sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('PROPOSAL_ID'),
-        //                 "data": "entryType",
-        //                 render: function (data, type, row) {
-        //                     return data;
-        //                 },
-        //                 "sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('STATUS'),
-        //                 "data": "status",
-        //                 render: function (data, type, row) {
-        //                     return data ? vm.topupIntentStatus[data] : "";
-        //                 },
-        //                 "sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('TOPUP_TIME'),
-        //                 "data": 'createTime',
-        //                 render: function (data, type, row) {
-        //                     return utilService.$getTimeFromStdTimeFormat(data);
-        //                 },
-        //                 "sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('TOPUPCHANNEL'),
-        //                 "data": 'topupChannel',
-        //                 render: function (data, type, row) {
-        //                     return data ? data : '';
-        //                 }
-        //             },
-        //             {
-        //                 "title": $translate('TOPUP_MONEY'),
-        //                 "data": 'topUpAmount',
-        //                 render: function (data, type, row) {
-        //                     return data;
-        //                 }
-        //             },
-        //             {
-        //                 "title": $translate('FINISH_TIME'),
-        //                 "data": 'finishTime',
-        //                 render: function (data, type, row) {
-        //                     return utilService.$getTimeFromStdTimeFormat(data);
-        //                 }
-        //             }
-        //         ],
-        //         //"autoWidth": true,
-        //         "bSortClasses": false,
-        //         "scrollX": true,
-        //         "sScrollX": "100%",
-        //         "scrollY": "450px",
-        //         "scrollCollapse": true,
-        //         "destroy": true,
-        //         "paging": false,
-        //         "language": {
-        //             "emptyTable": $translate("No data available in table"),
-        //         },
-        //         dom: 'Zlrtip',
-        //         fnRowCallback: vm.topupMonitorTableRow,
-        //         fnDrawCallback: function (a) {
-        //             $('#proposalDataTable').resize();
-        //             $('#proposalDataTable').resize();
-        //             function showPopover(ele, str, data, callback) {
-        //                 console.log('here', ele, str, data);
-        //                 $(ele).popover({
-        //                     html: true,
-        //                     trigger: 'focus',
-        //                     content: function () {
-        //                         return $(str).html();
-        //                     },
-        //                     callback: callback
-        //                 });
-        //                 $('[data-toggle=popover]').popover('hide');
-        //                 $(ele).popover('toggle');
-        //             }
-        //
-        //             $(".operationTopupPopover[data-toggle=popover]")
-        //                 .on('click', function (e) {
-        //                     //e.preventDefault();
-        //                     var that = this;
-        //                     var row = JSON.parse(this.dataset.row);
-        //                     var content1 = row.operationList;
-        //                     vm.operationListContent = [];
-        //                     $.each(content1, function (i, v) {
-        //                         $.each(v, function (key, val) {
-        //                             var obj = {key: key, val: val};
-        //                             vm.operationListContent.push(obj);
-        //                         })
-        //                     })
-        //                     console.log('vm.operationListContent', vm.operationListContent);
-        //                     $scope.safeApply();
-        //                     showPopover(that, '#operationListPopover', data);
-        //                 });
-        //         }
-        //     };
-        //     $.each(tableOptions.columns, function (i, v) {
-        //         v.defaultContent = "";
-        //     });
-        //     vm.topupMonitorTable = $('#topupMonitorTable').DataTable(tableOptions);
-        //     vm.timeTopupIntention = utilService.$getTimeFromStdTimeFormat();
-        //     $("#topupMonitorTableDiv .newProposalAlert").text('');
-        //     $('#topupMonitorTable').resize();
-        //     $('#topupMonitorTable').resize();
-        //     $('#topupMonitorTable tbody').on('click', 'tr', function () {
-        //         var data = vm.topupMonitorTable.row(this).data();
-        //         vm.topupMonitorTableRowClicked(data);
-        //     });
-        //     $scope.safeApply();
-        // };
-        // vm.topupMonitorTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-        //     $compile(nRow)($scope);
-        //     //console.log("row", nRow, aData, iDisplayIndex, iDisplayIndexFull);
-        //     vm.OperationIntentionTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
-        // };
-        //
-        // vm.topupMonitorTableRowClicked = function (data) {
-        //     console.log('rowData', data);
-        // }
-
-        //draw registrition table based on data
-        // vm.drawRegistrationMonitorTable = function (data) {
-        //     console.log("registrationMonitorTable data", vm.allNewAccount);
-        //     vm.blinkNewAccount = false;
-        //     //var data = vm.allNewAccount;
-        //     var tableOptions = {
-        //         data: data,
-        //         columns: [
-        //             {
-        //                 "title": $translate('IP_ADDRESS'),
-        //                 "data": "ipAddress",
-        //                 //"sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('CREATION_TIME'),
-        //                 "data": "createTime",
-        //                 render: function (data, type, row) {
-        //                     return utilService.$getTimeFromStdTimeFormat(data);
-        //                 },
-        //                 //"sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('OPERATION_LIST'),
-        //                 "data": "operationList",
-        //                 render: function (data, type, row) {
-        //                     data = data || [];
-        //                     var showStr = $('<div>');
-        //                     $.each(data, function (i, v) {
-        //                         if (typeof(v) == 'object')
-        //                             $.each(v, function (key, val) {
-        //                                 if (val) {
-        //                                     showStr
-        //                                         .append($('<text>', {}).text(key))
-        //                                         .append($('<span>').html('&nbsp;:&nbsp;'))
-        //                                         .append($('<text>', {
-        //                                             class: 'colorRed'
-        //                                         }).text(val))
-        //                                         .append($('<br>'))
-        //                                 }
-        //                             })
-        //                         else {
-        //                             showStr
-        //                                 .append($('<text>', {}).text(v))
-        //                                 .append($('<br>'))
-        //                         }
-        //                     })
-        //                     return showStr.prop('outerHTML');
-        //                 },
-        //                 "sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('STATUS'),
-        //                 "data": "status",
-        //                 render: function (data, type, row) {
-        //                     if (!vm.registrationIntentStatus) {
-        //                         return ''
-        //                     }
-        //                     return data ? vm.registrationIntentStatus[data] : "";
-        //                 },
-        //                 "sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('USER_NAME'),
-        //                 "data": 'name',
-        //                 "sClass": "alignLeft"
-        //             },
-        //             {
-        //                 "title": $translate('MOBILE'),
-        //                 "data": 'mobile',
-        //                 render: function (data, type, row) {
-        //                     data = data || '';
-        //                     return $('<a class="telPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-        //                         'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-        //                         .attr('data-row', JSON.stringify(row))
-        //                         .text(data)
-        //                         .prop('outerHTML');
-        //                 },
-        //                 "sClass": "alignLeft"
-        //             }
-        //             // {
-        //             //     "title": $translate('PLAYER_ID'),
-        //             //     "data": "mainType",
-        //             //     "sClass": "alignLeft"
-        //             // }
-        //         ],
-        //         //"autoWidth": true,
-        //         "bSortClasses": false,
-        //         "scrollX": true,
-        //         "scrollY": "450px",
-        //         "scrollCollapse": true,
-        //         "destroy": true,
-        //         "paging": false,
-        //         "language": {
-        //             "emptyTable": $translate("No data available in table"),
-        //         },
-        //         dom: 'Zlrtip',
-        //         fnRowCallback: vm.registrationMonitorTableRow,
-        //         fnDrawCallback: function (oSettings) {
-        //             var container = oSettings.nTable;
-        //             $('#proposalDataTable').resize();
-        //             $('#proposalDataTable').resize();
-        //             function showPopover(ele, str, data, callback) {
-        //                 console.log('here', ele, str, data);
-        //                 $(ele).popover({
-        //                     html: true,
-        //                     trigger: 'focus',
-        //                     content: function () {
-        //                         return $(str).html();
-        //                     },
-        //                     callback: callback
-        //                 });
-        //                 $('[data-toggle=popover]').popover('hide');
-        //                 $(ele).popover('toggle');
-        //             }
-        //
-        //             $(".operationNewPlayerPopover[data-toggle=popover]")
-        //                 .on('click', function (e) {
-        //                     //e.preventDefault();
-        //                     var that = this;
-        //                     var row = JSON.parse(this.dataset.row);
-        //                     var content1 = row.operationList;
-        //                     vm.operationListContent = [];
-        //                     $.each(content1, function (i, v) {
-        //                         $.each(v, function (key, val) {
-        //                             var obj = {key: key, val: val};
-        //                             vm.operationListContent.push(obj);
-        //                         })
-        //                     })
-        //                     console.log('vm.operationListContent', vm.operationListContent);
-        //                     $scope.safeApply();
-        //                     showPopover(that, '#operationListPopover', data);
-        //                 });
-        //
-        //             utilService.setupPopover({
-        //                 context: container,
-        //                 elem: ".telPopover",
-        //                 content: function () {
-        //                     return $('#telPopover').html();
-        //                 },
-        //                 callback: function () {
-        //                     var data = JSON.parse(this.dataset.row);
-        //                     $("button.playerMessage").on('click', function () {
-        //                         alert("will send message to " + data.name);
-        //                     });
-        //                     $("button.playerTelephone").on('click', function () {
-        //                         alert("will call " + data.name);
-        //                     });
-        //                 }
-        //             });
-        //
-        //         }
-        //     };
-        //     $.each(tableOptions.columns, function (i, v) {
-        //         v.defaultContent = "";
-        //     });
-        //     vm.registrationMonitorTable = $('#registrationMonitorTable').DataTable(tableOptions);
-        //     vm.timeNewRegistrationIntention = utilService.$getTimeFromStdTimeFormat();
-        //     $("#registrationMonitorTableDiv .newProposalAlert").text('');
-        //     $('#registrationMonitorTable').resize();
-        //     $('#registrationMonitorTable').resize();
-        //     $('#registrationMonitorTable tbody').on('click', 'tr', function () {
-        //         var data = vm.registrationMonitorTable.row(this).data();
-        //         vm.registrationMonitorTableRowClicked(data);
-        //     });
-        //     $scope.safeApply();
-        // };
-        // vm.registrationMonitorTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-        //     $compile(nRow)($scope);
-        //     vm.OperationIntentionTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
-        // }
-        //
-        // vm.registrationMonitorTableRowClicked = function (data) {
-        //     console.log('rowData', data);
-        // }
-
         // vm.OperationIntentionTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
         //     switch (aData.status) {
         //         case '1':
@@ -1365,65 +1029,26 @@ define(['js/app'], function (myApp) {
         //     }
         // }
         vm.OperationProposalTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            // console.log('nRow, aData, iDisplayIndex, iDisplayIndexFull', nRow, aData, iDisplayIndex, iDisplayIndexFull);
-            switch (aData.priority) {
-                case '0':
-                    $(nRow).css('background-color', 'rgba(255, 0, 0, 0.0)');
+            switch (true) {
+                case (aData.creditAmount$ >= 5000 && aData.creditAmount$ < 50000): {
+                    $(nRow).css('background-color', 'rgba(255, 209, 202, 100)');
                     break;
-                case '1':
-                    $(nRow).css('background-color', 'rgba(255, 0, 0, 0.10)');
-                    break;
-                case '2':
-                    $(nRow).css('background-color', 'rgba(255, 0, 0, 0.20)');
-                    break;
-                case '3':
-                    $(nRow).css('background-color', 'rgba(255, 0, 0, 0.30)');
-                    break;
-            }
-
-
-            var statusStr = aData.status || aData.process.status;
-            $(nRow).find('td').each(function () {
-                var status = $(this).text();
-                if (status == $translate(statusStr)) {
-                    $(this).addClass(allProposalStatusClr[statusStr]);
                 }
-            })
-            var amount = parseFloat($($(nRow).find('td')[6]).text());
-            if (amount > 500) {
-                $(nRow).css('background-color', 'rgba(255, 0, 0, 0.30)');
-            }
-
-            if (aData.type && aData.type.name == "PlayerBonus") {
-                // if (aData.creditAmount$ == 100) {
-                //     aData.creditAmount$ = 500000;
-                //     $($(nRow).find('td')[6]).text("500000")
-                // }
-                // if (aData.creditAmount$ == 500) {
-                //     aData.creditAmount$ = 1000000;
-                //     $($(nRow).find('td')[6]).text("1000000.00")
-                // }
-                switch (true) {
-                    case (aData.creditAmount$ >= 5000 && aData.creditAmount$ < 50000): {
-                        $(nRow).css('background-color', 'rgba(255, 209, 202, 100)');
-                        break;
-                    }
-                    case (aData.creditAmount$ >= 50000 && aData.creditAmount$ < 500000): {
-                        $(nRow).css('background-color', 'rgba(195, 39, 43, 100)');
-                        break;
-                    }
-                    case (aData.creditAmount$ >= 500000 && aData.creditAmount$ < 1000000): {
-                        $(nRow).css('background-color', 'rgba(255, 184, 133, 100)');
-                        break;
-                    }
-                    case (aData.creditAmount$ >= 1000000): {
-                        $(nRow).css('background-color', 'rgba(188, 230, 114, 100)');
-                        break;
-                    }
-                    default: {
-                        $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
-                        break;
-                    }
+                case (aData.creditAmount$ >= 50000 && aData.creditAmount$ < 500000): {
+                    $(nRow).css('background-color', 'rgba(195, 39, 43, 100)');
+                    break;
+                }
+                case (aData.creditAmount$ >= 500000 && aData.creditAmount$ < 1000000): {
+                    $(nRow).css('background-color', 'rgba(255, 184, 133, 100)');
+                    break;
+                }
+                case (aData.creditAmount$ >= 1000000): {
+                    $(nRow).css('background-color', 'rgba(188, 230, 114, 100)');
+                    break;
+                }
+                default: {
+                    $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                    break;
                 }
             }
         }
@@ -1496,14 +1121,15 @@ define(['js/app'], function (myApp) {
                             socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data._id}, function (data) {
                                 $scope.phoneCall.phone = data.data;
                                 $scope.phoneCall.loadingNumber = false;
+                                $scope.safeApply();
+                                $('#phoneCallModal').modal('show');
                             }, function (err) {
                                 $scope.phoneCall.loadingNumber = false;
                                 $scope.phoneCall.err = err.error.message;
+                                $('#phoneCallModal').modal('show');
                                 $scope.safeApply();
                             }, true);
                             $("#operPlayerList .list-group-item").popover('hide');
-                            $scope.safeApply();
-                            $('#phoneCallModal').modal('show');
                         });
                     }
                 });
@@ -1517,8 +1143,8 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.getLoggedInPlayerCount = function () {
-            socketService.$socket($scope.AppSocket, 'getLoggedInPlayersCount', {platform: vm.selectedPlatform._id}, function (data) {
-                console.log(data.data);
+            socketService.$socket($scope.AppSocket, 'getLoggedInPlayersCount', {platform: vm.allPlatformId}, function (data) {
+                console.log("getLoggedInPlayerCount", data.data);
                 vm.loggedInPlayerCount = data.data;
                 $scope.safeApply();
             });
@@ -1599,9 +1225,9 @@ define(['js/app'], function (myApp) {
         vm.getAllPlatforms = function () {
             var deferred = Q.defer();
 
-            if (!authService.checkViewPermission('Operation', 'Proposal', 'Read')) {
-                return;
-            }
+            // if (!authService.checkViewPermission('Operation', 'Proposal', 'Read')) {
+            //     return;
+            // }
 
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 vm.platformList = data.data;
@@ -1620,7 +1246,8 @@ define(['js/app'], function (myApp) {
                     );
                 }
                 if (!vm.selectedPlatform) {
-                    vm.selectedPlatform = vm.platformList[0];
+                    var objAllPlatform = { _id: "_allPlatform" };
+                    vm.selectedPlatform = objAllPlatform;
                 }
                 vm.selectedPlatformID = vm.selectedPlatform._id;
                 vm.selectPlatform(vm.selectedPlatformID);
@@ -1632,10 +1259,10 @@ define(['js/app'], function (myApp) {
             return deferred.promise;
         };
 
-        vm.getProposalTypeByPlatformId = function () {
+        vm.getProposalTypeByPlatformId = function (allPlatformId) {
             var deferred = Q.defer();
 
-            socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: vm.selectedPlatformID}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: allPlatformId}, function (data) {
                 vm.allProposalType = data.data;
                 vm.allProposalType.sort(
                     function (a, b) {
@@ -1658,6 +1285,7 @@ define(['js/app'], function (myApp) {
             switch (proposalType.name) {
                 case "UpdatePlayerInfo":
                 case "UpdatePlayerCredit":
+                case "FixPlayerCreditTransfer":
                 case "UpdatePlayerEmail":
                 case "UpdatePlayerPhone":
                 case "UpdatePlayerBankInfo":
@@ -1861,6 +1489,16 @@ define(['js/app'], function (myApp) {
             '0': "First Time",
             '1': "Weekly",
             '2': "Monthly"
+        }
+        vm.getProviderText = function (item) {
+            var result = '';
+            $.each(vm.allGameProviderById, (i, v) => {
+                if (v && (v._id == item || v.provierId == item)) {
+                    result = v.name;
+                    return false;
+                }
+            })
+            return result;
         }
 
         $scope.$on('$viewContentLoaded', function () {

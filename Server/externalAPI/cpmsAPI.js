@@ -24,8 +24,20 @@ function callCPMSAPI(service, functionName, data) {
     //         errMessage: "Invalid WebSocket client connection!  (No CPMSAPI stored for this instance.)"
     //     });
     // }
-    return clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+    let bOpen = false;
+    var deferred = Q.defer();
+    //if can't connect in 30 seconds, treat as timeout
+    setTimeout(function(){
+        if( !bOpen ){
+            return deferred.reject({
+                status: constServerCode.CP_NOT_AVAILABLE,
+                message: "Game is not available"
+            });
+        }
+    }, 30*1000);
+    clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
         wsClient => {
+            bOpen = true;
             var reqTime = new Date().getTime();
             var resFunction = function (res) {
                 var resTime = new Date().getTime();
@@ -60,7 +72,8 @@ function callCPMSAPI(service, functionName, data) {
         error => {
             return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error:error});
         }
-    );
+    ).then(deferred.resolve, deferred.reject);
+    return deferred.promise;
 };
 
 function httpGet(url) {

@@ -232,6 +232,7 @@ var dbPlatform = {
         }
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
+                console.log("updatePlatform", data, query, updateData);
                 if (env.mode != "local" && env.mode != "qa") {
                     var platformData = {
                         platformId: data.platformId,
@@ -1186,7 +1187,8 @@ var dbPlatform = {
                                 rewardAmount: rewardAmount,
                                 spendingAmount: validCredit * eventParam.spendingTimes,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             }
                         };
                         return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);

@@ -185,6 +185,11 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.partnerObjId);
             socketUtil.emitter(self.socket, dbPartner.getPartnerReferralPlayers, [data.partnerObjId], actionName, isValidData);
         },
+        getPagePartnerReferralPlayers: function getPagePartnerReferralPlayers(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.query.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartner.getPagePartnerReferralPlayers, [data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
 
         /**
          * get all active player for partner for past week

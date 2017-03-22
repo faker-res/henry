@@ -144,6 +144,11 @@
                 select.form-control(ng-model='vm.queryPara.allApiResponseTime.funcName')
                     option(ng-repeat='i in vm.apiRespFuncNames track by $index') {{i}}
             div
+                label {{"Provider" | translate}}
+                select.form-control(ng-model='vm.queryPara.allApiResponseTime.providerId', style='max-width:100px')
+                    option(value='') {{'any' | translate}}
+                    option(ng-repeat='(i,v) in vm.allGameProvider track by $index', value='{{v.providerId}}') {{v.name}}({{v.providerId}})
+            div
                 label {{"Start date"|translate}}
                 .startTime
             div

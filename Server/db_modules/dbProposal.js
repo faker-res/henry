@@ -20,6 +20,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
 var pmsAPI = require('../externalAPI/pmsAPI');
+var moment = require('moment-timezone');
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
@@ -167,7 +168,7 @@ var proposal = {
                             else {
                                 var proposalProm = proposal.createProposal(proposalData);
                                 var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
-                                return Q.all([proposalProm, platProm]);
+                                return Q.all([proposalProm, platProm, data[0].expirationDuration]);
                             }
                         }
                     );
@@ -178,18 +179,20 @@ var proposal = {
             }
         ).then(
             function (data) {
-                if (data && data[0] && data[1]) {
+                if (data && data[0] && data[1] && data[2] != null) {
                     //notify the corresponding clients with new proposal
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
                         wsMessageClient.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyNewProposal", data);
                     }
+                    var expiredDate = moment(data[0].createTime).add('minutes', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');
 
                     // We need the type to be populated, because messageDispatcher wants to read proposalData.type.name
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: data[0]._id, createTime: data[0].createTime},
                         {
-                            proposalId: (data[1].prefix + data[0].proposalId)
+                            proposalId: (data[1].prefix + data[0].proposalId),
+                            expirationTime: expiredDate
                         },
                         {new: true}
                     ).populate({path: 'type', model: dbconfig.collection_proposalType}).lean();
@@ -240,7 +243,7 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}).then(
                 proposalData => {
-                    if (proposalData && proposalData.type && proposalData.type.platformId == platform) {
+                    if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
                         return null;
@@ -348,7 +351,7 @@ var proposal = {
         );
     },
 
-    updateBonusProposal: function (proposalId, status, bonusId) {
+    updateBonusProposal: function (proposalId, status, bonusId, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING) && proposalData.data && proposalData.data.bonusId == bonusId) {
@@ -379,7 +382,7 @@ var proposal = {
                 if (status == constProposalStatus.SUCCESS) {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, true);
                 } else if (status == constProposalStatus.FAIL) {
-                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false);
+                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark);
                 } else if (status == constProposalStatus.PENDING || status == constProposalStatus.PROCESSING) {
                     return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                         proposalData => {
@@ -1077,13 +1080,8 @@ var proposal = {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
                             },
-                            $and: [{
-                                $or: [
-                                    {status: {$in: statusArr}},
-                                    {process: {$in: processIds}}
-                                ]
-                            }]
-                        }
+                            status: {$in: statusArr}
+                        };
                         if (relateUser) {
                             queryObj["data.playerName"] = relateUser
                         }
@@ -1723,7 +1721,8 @@ var proposal = {
                         $group: {
                             _id: null,
                             sum1: {$sum: "$data.returnAmount"},
-                            sum2: {$sum: "$data.rewardAmount"}
+                            sum2: {$sum: "$data.rewardAmount"},
+                            sumApplyAmount: {$sum: "$data.applyAmount"}
                         }
                     }
                 ]);
@@ -1740,8 +1739,8 @@ var proposal = {
             function (data) {
                 if (data && data[1]) {
                     var obj = {data: data[0], size: data[1]};
-                    var temp = data[2] ? data[2][0] : {sum1: 0, sum2: 0};
-                    obj.summary = {amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2)};
+                    var temp = data[2] ? data[2][0] : {sum1: 0, sum2: 0, sumApplyAmount: 0};
+                    obj.summary = {amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2), applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)};
                     deferred.resolve(obj);
                 } else {
                     deferred.resolve({data: [], size: 0, summary: {}})
@@ -1952,6 +1951,18 @@ var proposal = {
         );
     },
 
+     checkProposalExpiration: function () {
+        return dbconfig.collection_proposal.update(
+            {
+                status : constProposalStatus.PENDING ,
+                expirationTime: {$lt: new Date()}
+            },
+            {
+                status: constProposalStatus.EXPIRED
+            }
+        );
+    },   
+
     getPlayerPendingPaymentProposal: function (playerObjId, platformObjId) {
         return dbconfig.collection_proposalType.find(
             {
@@ -2011,7 +2022,7 @@ var proposal = {
     },
 
     submitRepairPaymentProposal: function (proposalId) {
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).lean().then(
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData && proposalData.data) {
                     //check if manual or online top up
@@ -2026,6 +2037,11 @@ var proposal = {
                         return pmsAPI.payment_requestRepairingOnlinePay(
                             {
                                 proposalId: proposalId
+                            }
+                        ).then(
+                            res => {
+                                proposalData.data.isRepair = true;
+                                return proposalData.save();
                             }
                         );
                     }
