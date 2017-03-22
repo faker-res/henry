@@ -222,6 +222,7 @@
   "SAVE_PROCESS":"保存流程",
   "RESET_PROCESS":"重置流程",
   "Reset":"重置",
+  "EXPIRY_DATE":"到期时间",
   "Browser":"浏览器",
 
   "CONFIGURATION_DETAIL":"配置细节",

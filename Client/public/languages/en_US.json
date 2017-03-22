@@ -157,6 +157,7 @@
   "DELETE_SELECTED":"Delete Selected",
   "SAVE_PROCESS":"Save",
   "RESET_PROCESS":"Reset",
+  "EXPIRY_DATE":"Expiration Duration",
 
   "START_PROPOSAL":"Proposal Start",
   "FAIL_PROPOSAL":"Proposal Fail",
