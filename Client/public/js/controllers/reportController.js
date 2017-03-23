@@ -2938,7 +2938,7 @@ define(['js/app'], function (myApp) {
         vm.commonInitTime = function (obj, queryId) {
             if (!obj) return;
             obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
-            var lastMonth = utilService.setNDaysAgo(new Date(), 30);
+            var lastMonth = utilService.setNDaysAgo(new Date(), 1);
             var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
             obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
 
