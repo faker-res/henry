@@ -9,6 +9,8 @@
   "Please enter your email address:" : "输入电邮",
   "true":"是",
   "false":"否",
+  "curLockedAmount":"当前锁定额度",
+  "updateLockedAmount":"更新锁定额度",
 
   "EMAIL" : "邮箱",
   "FIRST_NAME" : "名",
