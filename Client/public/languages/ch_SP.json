@@ -9,6 +9,8 @@
   "Please enter your email address:" : "输入电邮",
   "true":"是",
   "false":"否",
+  "curLockedAmount":"当前锁定额度",
+  "updateLockedAmount":"更新锁定额度",
 
   "EMAIL" : "邮箱",
   "FIRST_NAME" : "名",
@@ -541,6 +543,7 @@
   "TopUp":"充值",
   "Topup":"充值",
   "CREATOR":"创建者",
+  "LOCK_USER":"锁定者",
   "CONSUMPTION_LIMIT":"消费限度",
   "TOP_UP_LIMIT":"充值限度",
   "NO_OF_RECOMMANDATION":"推荐人数",

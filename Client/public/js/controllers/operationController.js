@@ -538,6 +538,7 @@ define(['js/app'], function (myApp) {
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
                     v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
                     v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
+                    v.lockUser$ = $translate(v.isLocked);
                     v.creditAmount$ = (v.data.amount != null) ?
                         parseFloat(v.data.amount).toFixed(2)
                         : (v.data.rewardAmount != null ?
@@ -665,6 +666,15 @@ define(['js/app'], function (myApp) {
                                 return creator;
                             }
                         }
+                    },
+                    {
+                        "title": $translate('LOCK_USER'),
+                        "data": "lockUser$",
+                        render: function (data, type, row) {
+                            var text = row.isLocked ? row.isLocked.adminName : "";
+                            return "<div>" + text + "</div>";
+                        },
+                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
                     },
                     {
                         "title": $translate('STATUS'),
