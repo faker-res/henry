@@ -323,8 +323,8 @@ var dbPlayerConsumptionRecord = {
                         bDirty: false
                     };
                     var updateData = {
-                        $inc: {amount: record.amount, validAmount: record.validAmount},
-                        $push: {consumptionRecords: record._id}
+                        $inc: {amount: record.amount, validAmount: record.validAmount}
+                        //$push: {consumptionRecords: record._id}
                     };
                     return dbPlayerConsumptionRecord.upsert(query, updateData);
                 }
