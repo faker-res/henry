@@ -1054,10 +1054,10 @@ var dbPlayerTopUpRecord = {
                         type: {$in: proposalTypes.map(type => type._id)}
                         //status: status || constProposalStatus.SUCCESS
                     };
-                    if( status ){
+                    if (status) {
                         queryObj.status = status;
                     }
-                    else{
+                    else {
                         queryObj.status = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
                     }
                     if (startTime || endTime) {

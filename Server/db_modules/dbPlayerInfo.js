@@ -4929,7 +4929,7 @@ var dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce) {
+    applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
         if (amount < 100) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
@@ -5105,7 +5105,7 @@ var dbPlayerInfo = {
                                 player.validCredit = newPlayerData.validCredit;
                                 //create proposal
                                 var proposalData = {
-                                    creator: {
+                                    creator: adminInfo || {
                                         type: 'player',
                                         name: player.name,
                                         id: playerId
@@ -5125,7 +5125,7 @@ var dbPlayerInfo = {
                                 var newProposal = {
                                     creator: proposalData.creator,
                                     data: proposalData,
-                                    entryType: constProposalEntryType.CLIENT,
+                                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                 };
                                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
