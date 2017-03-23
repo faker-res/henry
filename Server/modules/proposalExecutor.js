@@ -723,7 +723,7 @@ var proposalExecutor = {
          * execution function for player top up proposal type
          */
         executePlayerTopUp: function (proposalData, deferred) {
-            dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, proposalData.data.amount, "", constPlayerTopUpType.ONLINE, proposalData).then(
+            dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ONLINE, proposalData).then(
                 function (data) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
@@ -749,7 +749,7 @@ var proposalExecutor = {
          * execution function for player top up proposal type
          */
         executePlayerAlipayTopUp: function (proposalData, deferred) {
-            dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, proposalData.data.amount, "", constPlayerTopUpType.ALIPAY, proposalData).then(
+            dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ALIPAY, proposalData).then(
                 function (data) {
                     //todo::add top up notify here ???
                     // var wsMessageClient = serverInstance.getWebSocketMessageClient();
@@ -778,7 +778,7 @@ var proposalExecutor = {
         executeManualPlayerTopUp: function (proposalData, deferred) {
             //valid data
             if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, proposalData.data.amount, "", constPlayerTopUpType.MANUAL, proposalData).then(
+                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
                     function (data) {
                         SMSSender.sendByPlayerId(proposalData.data.playerId, constPlayerSMSSetting.MANUAL_TOPUP);
                         var wsMessageClient = serverInstance.getWebSocketMessageClient();
