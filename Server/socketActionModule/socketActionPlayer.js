@@ -565,7 +565,11 @@ function socketActionPlayer(socketIO, socket) {
         applyBonusRequest: function applyBonusRequest(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.bonusId && data.amount);
-            socketUtil.emitter(self.socket, dbPlayerInfo.applyBonus, [data.playerId, data.bonusId, data.amount, data.honoreeDetail, data.bForce], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.applyBonus, [data.playerId, data.bonusId, data.amount, data.honoreeDetail, data.bForce, {
+                type: "admin",
+                name: getAdminName(),
+                id: getAdminId()
+            }], actionName, isValidData);
         },
 
         applyRewardEvent: function applyRewardEvent(data) {
