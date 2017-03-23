@@ -222,7 +222,7 @@ define([], function () {
         this.setLocalDayEndTime = function (date) {
             if (!date) return null;
             date.setHours(23, 59, 59, 999);
-            return new Date(date.getTime() - new Date().getTimezoneOffset() * 60 * 1000);
+            return new Date(date.getTime() + 1 - new Date().getTimezoneOffset() * 60 * 1000);
         }
         this.setThisDayStartTime = function (date) {
             if (!date) return null;
@@ -233,8 +233,9 @@ define([], function () {
             return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0);
         }
         this.getTodayEndTime = function () {
-            var todayDate = new Date();
-            return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 23, 59, 59);
+            // var todayDate = new Date();
+            // return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 23, 59, 59);
+            return new Date(util.getTodayStartTime().getTime() + 24 * 3600 * 1000);
         }
         this.getYesterdayStartTime = function () {
             return new Date(util.getTodayStartTime().getTime() - 24 * 60 * 60 * 1000);
@@ -528,7 +529,6 @@ define([], function () {
                 $(id).find(".next_page").toggleClass("disabled", retObj.curPage == retObj.maxPage);
                 $(id).find(".prev_page").toggleClass("disabled", retObj.curPage == 1);
                 $(id + " .btnPage").off('click');
-                $(id).find(".jumpPage").off('keyup');
                 $(id + " .btnPage").on('click', function () {
                     retObj.updateCurPage(event);
                 });
@@ -536,16 +536,32 @@ define([], function () {
                     retObj.curPage = event.target.valueAsNumber;
                     retObj.jump();
                 });
-                $(id).find(".pageSize").on('keyup', function () {
-                    retObj.pageSize = event.target.valueAsNumber;
-                    if (retObj.pageSize < 1) {
-                        retObj.pageSize = 1
-                    } else if (retObj.pageSize > 2000) {
-                        retObj.pageSize = 2000;
+                $(id).off('focusout', ".pageSize")
+                $(id).on('focusout', ".pageSize", function () {
+                    console.log(retObj.pageSize, 'event.target', $(event.target));
+                    if (retObj.pageSize != event.target.valueAsNumber) {
+                        retObj.pageSize = event.target.valueAsNumber;
+                        if (retObj.pageSize < 1) {
+                            retObj.pageSize = 1
+                        } else if (retObj.pageSize > 2000) {
+                            retObj.pageSize = 2000;
+                        }
+                        $(id).find('.pageSize').val(retObj.pageSize);
+                        retObj.jump();
                     }
-                    $(id).find('.pageSize').val(retObj.pageSize);
-                    retObj.jump();
-                });
+                })
+
+                // $(id).find(".jumpPage").off('keyup');
+                // $(id).find(".pageSize").on('keyup', function () {
+                //     retObj.pageSize = event.target.valueAsNumber;
+                //     if (retObj.pageSize < 1) {
+                //         retObj.pageSize = 1
+                //     } else if (retObj.pageSize > 2000) {
+                //         retObj.pageSize = 2000;
+                //     }
+                //     $(id).find('.pageSize').val(retObj.pageSize);
+                //     retObj.jump();
+                // });
             }
             retObj.updateCurPage = function (event) {
                 var className = event.target.className;

@@ -1780,11 +1780,19 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('STATUS'), data: 'status',
                         render: function (data, type, row) {
-                            data = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
+                            var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
+                            var textClass = '';
+                            if (data == 4) {
+                                textClass = "text-black";
+                            } else if (data == 5) {
+                                textClass = "text-danger";
+                            }
+
                             return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
                                 'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
                                 .attr('data-row', JSON.stringify(row))
-                                .text(data)
+                                .text(showText)
+                                .addClass(textClass)
                                 .prop('outerHTML');
                         },
                         advSearch: true,
@@ -8157,14 +8165,14 @@ define(['js/app'], function (myApp) {
             //if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && dt) {
             if (vm.selectedProposalType && vm.selectedProposalType.data && vm.selectedProposalType.data.process && (vm.expDurationHour || vm.expDurationMin)) {
                 vm.expShowSubmit = false;
-                var hour=0;
-                var min=0;
+                var hour = 0;
+                var min = 0;
 
-                if(!vm.expDurationHour ) hour=0;
-                else hour=Number(vm.expDurationHour);
+                if (!vm.expDurationHour) hour = 0;
+                else hour = Number(vm.expDurationHour);
 
-                if(!vm.expDurationMin ) min=0;
-                else min=Number(vm.expDurationMin);
+                if (!vm.expDurationMin) min = 0;
+                else min = Number(vm.expDurationMin);
 
                 var totalExpMinute = (hour * 60) + min;
 
@@ -8223,12 +8231,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getProposalTypeExpirationDuration', {
                     query: {_id: vm.selectedProposalType.data._id},
                 }, function (data) {
-                    var hour =  Math.floor( Number(data.data.expirationDuration) / 60);
-                    var min =  Number(data.data.expirationDuration) % 60;
+                    var hour = Math.floor(Number(data.data.expirationDuration) / 60);
+                    var min = Number(data.data.expirationDuration) % 60;
                     hour = hour.toString();
                     min = min.toString();
-                    vm.expDurationHour =  hour;
-                    vm.expDurationMin =  min;
+                    vm.expDurationHour = hour;
+                    vm.expDurationMin = min;
                 });
             }
         };

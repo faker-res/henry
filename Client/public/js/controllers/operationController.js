@@ -289,7 +289,7 @@ define(['js/app'], function (myApp) {
                     language: 'en',
                     format: 'yyyy/MM/dd hh:mm:ss',
                 });
-                var lastMonth = utilService.setNDaysAgo(new Date(), 30);
+                var lastMonth = utilService.setNDaysAgo(new Date(), 1);
                 var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
                 vm.queryProposalstartTime = $("#datetimepicker").data('datetimepicker').setLocalDate(lastMonthDateStartTime);
 

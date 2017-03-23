@@ -9,6 +9,10 @@
   "Please enter your email address:" : "输入电邮",
   "true":"是",
   "false":"否",
+  "curLockedAmount":"当前锁定额度",
+  "updateLockedAmount":"更新锁定额度",
+  "BALCKLIST":"黑名单",
+  "ATTENTION":"关注",
 
   "EMAIL" : "邮箱",
   "FIRST_NAME" : "名",
@@ -1789,6 +1793,7 @@
 
   "Manual Unlock Reward Task":"强制解锁奖励任务",
   "ManualUnlockPlayerReward":"强制解锁玩家奖励任务",
+  "ManualUnlockRewardTask":"强制解锁玩家奖励任务",
   "Unlock Reward":"解锁奖励任务",
   "Reward task is not available":"奖励任务不存在",
   "Submitted proposal for approval":"成功提交提案"
