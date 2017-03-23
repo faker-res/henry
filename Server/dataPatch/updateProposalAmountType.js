@@ -20,10 +20,11 @@ property.forEach(
             if(proposalData.data && proposalData.data.amount != null){
                 var updateObj = {};
                 updateObj[queryParam] = Number(proposalData.data[pro]);
+                // console.log(updateObj);
                 dbconfig.collection_proposal.findOneAndUpdate(
-                    {_id: proposalData._id, createTime: proposalData.creaeteTime},
+                    {_id: proposalData._id, createTime: proposalData.createTime},
                     updateObj
-                );
+                ).then();
             }
             console.log("index", i, pro);
             i++;
