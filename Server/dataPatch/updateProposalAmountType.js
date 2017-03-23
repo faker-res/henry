@@ -19,7 +19,7 @@ property.forEach(
         cursor.eachAsync(proposalData => {
             if(proposalData.data && proposalData.data.amount != null){
                 var updateObj = {};
-                updateObj[queryParam] = parseInt(proposalData.data[pro]);
+                updateObj[queryParam] = Number(proposalData.data[pro]);
                 dbconfig.collection_proposal.findOneAndUpdate(
                     {_id: proposalData._id, createTime: proposalData.creaeteTime},
                     updateObj
