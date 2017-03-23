@@ -12,6 +12,8 @@
   "LEVELMONTH":"monthly",
   "LEVELNONE":"sum",
   "bonusAmount1":"bonusAmount",
+  "BALCKLIST":"blacklist",
+  "ATTENTION":"attention",
 
   "true":"Yes",
   "false":"No",

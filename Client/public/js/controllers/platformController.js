@@ -1780,11 +1780,19 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('STATUS'), data: 'status',
                         render: function (data, type, row) {
-                            data = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
+                            var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
+                            var textClass = '';
+                            if (data == 4) {
+                                textClass = "text-black";
+                            } else if (data == 5) {
+                                textClass = "text-danger";
+                            }
+
                             return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
                                 'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
                                 .attr('data-row', JSON.stringify(row))
-                                .text(data)
+                                .text(showText)
+                                .addClass(textClass)
                                 .prop('outerHTML');
                         },
                         advSearch: true,
