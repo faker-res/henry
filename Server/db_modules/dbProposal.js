@@ -191,7 +191,7 @@ var proposal = {
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: data[0]._id, createTime: data[0].createTime},
                         {
-                            proposalId: (data[1].prefix + data[0].proposalId),
+                            //proposalId: (data[1].prefix + data[0].proposalId),
                             expirationTime: expiredDate
                         },
                         {new: true}
