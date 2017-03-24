@@ -1283,8 +1283,10 @@ var proposal = {
                 path: "process",
                 model: dbconfig.collection_proposalProcess
             });
-            if (data.type) {
-                data.type = ObjectId(data.type);
+            if (data.type && data.type.length > 0) {
+                data.type = data.type.map(item => {
+                    return ObjectId(item);
+                })
             }
             var c = dbconfig.collection_proposal.aggregate(
                 {
@@ -1619,7 +1621,10 @@ var proposal = {
                 if (data && data[1]) {
                     var obj = {data: data[0], size: data[1]};
                     var temp = data[2] ? data[2][0] : {sum1: 0, sum2: 0, sumApplyAmount: 0};
-                    obj.summary = {amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2), applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)};
+                    obj.summary = {
+                        amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2),
+                        applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)
+                    };
                     deferred.resolve(obj);
                 } else {
                     deferred.resolve({data: [], size: 0, summary: {}})
@@ -1830,17 +1835,17 @@ var proposal = {
         );
     },
 
-     checkProposalExpiration: function () {
+    checkProposalExpiration: function () {
         return dbconfig.collection_proposal.update(
             {
-                status : constProposalStatus.PENDING ,
+                status: constProposalStatus.PENDING,
                 expirationTime: {$lt: new Date()}
             },
             {
                 status: constProposalStatus.EXPIRED
             }
         );
-    },   
+    },
 
     getPlayerPendingPaymentProposal: function (playerObjId, platformObjId) {
         return dbconfig.collection_proposalType.find(
