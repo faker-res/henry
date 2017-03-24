@@ -5260,20 +5260,34 @@ var dbPlayerInfo = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: "type",
             model: dbconfig.collection_proposalType
-        }).then(
+        }).lean().then(
             data => {
                 if (data) {
-                    data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                    data.data.lastSettleTime = new Date();
-                    data.data.remark = remark;
+                    // data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                    // data.data.lastSettleTime = new Date();
+                    // data.data.remark = remark;
                     if (!bSuccess) {
                         return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                            () => data.save()
+                            () => dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: data._id, createTime: data.createTime},
+                                {
+                                    status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
+                                    "data.lastSettleTime" : new Date(),
+                                    "data.remark" : remark
+                                }
+                            )
                         );
                     }
                     else {
                         SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
-                        return data.save();
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: data._id, createTime: data.createTime},
+                            {
+                                status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
+                                "data.lastSettleTime" : new Date(),
+                                "data.remark" : remark
+                            }
+                        );
                     }
                 }
                 else {
@@ -5292,10 +5306,16 @@ var dbPlayerInfo = {
                 data => {
                     if (data && data.type && data.status != constProposalStatus.SUCCESS
                         && data.status != constProposalStatus.FAIL) {
-                        data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                        data.data.lastSettleTime = new Date();
+                        var status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                        var lastSettleTime = new Date();
                         return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                            () => data.save()
+                            () => dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: data._id, createTime: data.createTime},
+                                {
+                                    status: status,
+                                    "data.lastSettleTime" : lastSettleTime
+                                }
+                            )
                         );
                     }
                     else {
