@@ -1855,7 +1855,7 @@ define(['js/app'], function (myApp) {
             newOptions.xaxis = {
                 tickLength: 0,
                 mode: "time",
-                minTickSize: [1, "minutes"],
+                minTickSize: [1, "minute"],
             }
             socketService.$plotLine('#line-consumptionInterval', [data], newOptions);
             vm.bindHover('#line-consumptionInterval', function (obj) {
