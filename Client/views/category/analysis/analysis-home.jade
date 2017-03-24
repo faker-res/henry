@@ -44,6 +44,8 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'PLAYER_TOPUP' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','ClientSource')",ng-click='vm.loadPage("CLIENT_SOURCE")')
                     a  {{'CLIENT_SOURCE' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','ConsumptionInterval')",ng-click='vm.loadPage("CONSUMPTION_INTERVAL")')
+                    a  {{'CONSUMPTION_INTERVAL' | translate}}
                 //li(ng-click='vm.loadPage("GAME_ANALYSIS")')
                     a  {{'GAME_ANALYSIS' | translate}}
         a.pull-right(ng-click='vm.loadPageFunc(vm.showPageName)')
@@ -81,6 +83,8 @@ div(ng-if="checkViewPermission('Analysis')")
                 include category/player-credit
             div(ng-if='vm.showPageName=="CLIENT_SOURCE"')
                 include category/client-source
+            div(ng-if='vm.showPageName=="CONSUMPTION_INTERVAL"')
+                include category/consumption-interval
             div(ng-if='vm.showPageName==""')
                 label Please select a Data type
     include category/common/input-date
