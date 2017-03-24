@@ -2054,6 +2054,12 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
                 }
                 return true;
             }
+            if (rewardTypeName == constProposalType.PLAYER_CONSUMPTION_RETURN_FIX) {
+                rewardType = {
+                    name: constProposalType.PLAYER_CONSUMPTION_RETURN_FIX
+                }
+                return true;
+            }
             return dbRewardType.getRewardType({name: rewardTypeName}).then(
                 data => (rewardType = (data || {})) || Q.reject({
                     name: "DBError",
@@ -2064,7 +2070,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
         }
     ).then(
         () => {
-            if (rewardTypeName != constRewardType.PLAYER_LEVEL_UP) {
+            if (rewardTypeName != constRewardType.PLAYER_LEVEL_UP && rewardTypeName != constProposalType.PLAYER_CONSUMPTION_RETURN_FIX) {
                 return dbRewardEvent.getRewardEvent({
                     platform: proposalData.data.platformId,
                     type: rewardType._id
@@ -2077,7 +2083,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
         () => {
             var rewardLog = {
                 platform: proposalData.data.platformId,
-                player: proposalData.data.playerId,
+                player: proposalData.data.playerId || proposalData.data.playerObjId,
                 rewardType: rewardType._id,
                 rewardTypeName: rewardTypeName,
                 amount: proposalData.data.unlockBonusAmount || proposalData.data.rewardAmount || proposalData.data.amount || 0,
