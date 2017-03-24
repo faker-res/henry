@@ -3430,7 +3430,8 @@ define(['js/app'], function (myApp) {
                 item.beforeAmount = item.beforeAmount.toFixed(2);
                 item.beforeUnlockedAmount = item.lockedAmount - item.changedLockedAmount;
                 item.beforeUnlockedAmount = item.beforeUnlockedAmount.toFixed(2);
-                item.details$ = item.detail.join(', ')
+                var remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
+                item.details$ = remark + item.detail.join(', ')
                 return item;
             })
             var option = $.extend({}, vm.generalDataTableOptions, {
