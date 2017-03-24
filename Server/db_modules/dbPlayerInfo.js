@@ -5120,6 +5120,8 @@ var dbPlayerInfo = {
                                     amount: amount,
                                     bonusCredit: bonusDetail.credit,
                                     curAmount: player.validCredit,
+                                    remark: "",
+                                    lastSettleTime: new Date()
                                     //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                 };
                                 var newProposal = {
