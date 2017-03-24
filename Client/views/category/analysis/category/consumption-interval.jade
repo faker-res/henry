@@ -1,0 +1,26 @@
+//
+   Created by wanglz on 30/5/16.
+
+.section
+    .row
+        .titlePic
+            .title
+                text {{"CONSUMPTION_INTERVAL" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#consumptionIntervalAnalysis .block-query","consumptionInterval")')
+                        text.pull-left.margin-right-5 {{vm.optionText.consumptionInterval | translate}}
+    #consumptionIntervalAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            label {{"DAYS_REQUIRED"|translate}}
+            label.margin-right-5 1
+                input.pull-left.margin-right-5(type='radio', name='pastDay', ng-model='vm.consumptionInterval.pastDay', value=1)
+            label 2
+                input.pull-left.margin-right-5(type='radio', name='pastDay', ng-model='vm.consumptionInterval.pastDay', value=2)
+            button.btn.btn-primary.common-button(ng-click='vm.getConsumptionIntervalData()') {{'SEARCH' | translate}}
+        .row
+            .col-md-12
+                .graph
+                    .panel.panel-default.rightPanel
+                        #line-consumptionInterval.lineChart
+
+p(ng-init="vm.loadPageFunc('CONSUMPTION_INTERVAL')")

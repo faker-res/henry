@@ -17,6 +17,8 @@ var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var promiseUtils = require("../modules/promiseUtils.js");
 var constGameStatus = require("./../const/constGameStatus");
 var constServerCode = require('../const/constServerCode');
+var dataUtils = require("../modules/dataUtils.js");
+
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -392,10 +394,14 @@ var dbPlayerConsumptionRecord = {
     addMissingConsumption: function (recordData, resolveError) {
         return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo}).lean().then(
             record => {
-                if( record ){
-                    return Q.reject({status: constServerCode.CONSUMPTION_ORDERNO_ERROR, name: "DataError", message: "orderNo exists"});
+                if (record) {
+                    return Q.reject({
+                        status: constServerCode.CONSUMPTION_ORDERNO_ERROR,
+                        name: "DataError",
+                        message: "orderNo exists"
+                    });
                 }
-                else{
+                else {
                     return dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord(recordData, resolveError);
                 }
             }
@@ -1480,11 +1486,30 @@ var dbPlayerConsumptionRecord = {
 
     streamPlayersWithTopUpDaySummaryInTimeFrame: function streamPlayersWithTopUpDaySummaryInTimeFrame(startTime, endTime, platformId) {
         return dbPlayerConsumptionRecord.streamPlayerRecordsInTimeFrame(dbconfig.collection_playerTopUpDaySummary, 'date', startTime, endTime, platformId);
-    }
+    },
 
     // streamPlayersWithConsumptionSummaryInTimeFrame: function streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId) {
     //     return dbPlayerConsumptionRecord.streamPlayerRecordsInTimeFrame(dbconfig.collection_playerConsumptionSummary, 'createTime', startTime, endTime, platformId);
     // }
+    getConsumptionIntervalData: function (platform, days) {
+        var seconds = days == 1 ? 24 * 3600 * 1000 : 2 * 24 * 3600 * 1000;
+        var startDate = new Date(Date.now() - seconds);
+        startDate.setMinutes(Math.floor(startDate.getMinutes() / 5) * 5, 0, 0, 0);
+        var nowDate = new Date(startDate.getTime() + seconds);
+        var timeArr = dataUtils.getTimeIntervalArr(startDate, nowDate, 5 * 60 * 1000);
+        var proms = [];
+
+        function getData(time0, time1, platform) {
+            return dbPlayerConsumptionRecord.getConsumptionTotalAmountForAllPlatform(time0, time1, platform).then(data => {
+                return {time0: time0, time1: time1, count: (data && data[0]) ? data[0].totalAmount : 0};
+            })
+        }
+
+        timeArr.forEach(timeFrame => {
+            proms.push(getData(timeFrame[0], timeFrame[1], platform));
+        })
+        return Q.all(proms)
+    }
 
 };
 

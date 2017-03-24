@@ -538,7 +538,6 @@ define([], function () {
                 });
                 $(id).off('focusout', ".pageSize")
                 $(id).on('focusout', ".pageSize", function () {
-                    console.log(retObj.pageSize, 'event.target', $(event.target));
                     if (retObj.pageSize != event.target.valueAsNumber) {
                         retObj.pageSize = event.target.valueAsNumber;
                         if (retObj.pageSize < 1) {
