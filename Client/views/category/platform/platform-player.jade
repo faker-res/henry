@@ -1221,9 +1221,9 @@
                         .clearfix
                         label.control-label(ng-show='!vm.playerAllTopupRecords') {{'Loading' | translate}}
                             i.fa.fa-spin.fa-spinner
-                        select.form-control(ng-model='vm.playerApplyRewardPara.topUpRecordId', ng-if='vm.playerAllTopupRecords && vm.playerApplyRewardShow.selectTopupRecordsMulti===false', required)
+                        select.form-control(ng-model='vm.playerApplyRewardPara.topUpRecordId', ng-if='vm.playerApplyRewardShow.selectTopupRecordsMulti===false', required)
                             option(ng-repeat='(i,v) in vm.playerAllTopupRecords', value='{{v._id}}') {{vm.dateReformat(v.createTime)}} --- (${{v.amount}})
-                        .form-control(ng-repeat='(i,v) in vm.playerAllTopupRecords', ng-if='vm.playerAllTopupRecords && vm.playerApplyRewardShow.selectTopupRecordsMulti')
+                        .form-control(ng-repeat='(i,v) in vm.playerAllTopupRecords', ng-if='vm.playerApplyRewardShow.selectTopupRecordsMulti')
                             label {{vm.dateReformat(v.createTime)}} --- (${{v.amount}})
                                 input.margin-right-5.pull-left(type='checkbox', ng-model='vm.playerApplyRewardShow.topUpRecordIds[v._id]')
                     .form-group(ng-if='vm.playerApplyRewardShow.AmountInput')
