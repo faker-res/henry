@@ -820,7 +820,7 @@ define(['js/app'], function (myApp) {
             vm.sendMultiMessage.sendBtnText =
                 vm.sendMultiMessage.sendCompleted ? $translate("DONE")
                     : vm.sendMultiMessage.sendInitiated ? $translate("Sending")
-                        : $translate("SEND");
+                    : $translate("SEND");
         }
 
         ////////////////Mark::Game Group functions//////////////////
@@ -3495,41 +3495,41 @@ define(['js/app'], function (myApp) {
 
         vm.processCreditChangeLogData = function (data) {
             return data ? data.map(a => {
-                    if (!a) return;
-                    var checkForObjIdRegExp = new RegExp(/^[a-f\d]{24}$/i);
-                    var newStr = [];
-                    a.amount = a.amount != null ? a.amount.toFixed(2) : new Number(0).toFixed(2);
-                    a.curAmount = a.curAmount != null ? a.curAmount.toFixed(2) : new Number(0).toFixed(2);
-                    a.lockedAmount = a.lockedAmount != null ? a.lockedAmount.toFixed(2) : new Number(0).toFixed(2);
-                    a.changedLockedAmount = a.changedLockedAmount != null ? a.changedLockedAmount.toFixed(2) : new Number(0).toFixed(2);
-                    var newObj = $.extend({}, a.data);
-                    delete newObj.creator;
-                    // switch (a.operationType) {
-                    //     case "TopUp":
-                    //         break;
-                    //     case "ManualTopUp":
-                    //         newObj = {proposalId: newObj.proposalId};
-                    //         break;
-                    // }
-                    if (a.data._inputCredit != null && a.data.initAmount != null) {
-                        newObj = {rewardType: a.data.rewardType};
-                    } else if (a.data.proposalId && a.operationType == 'ManualTopUp') {
-                        newObj = {proposalId: newObj.proposalId};
-                    }
-                    $.each(newObj, (i, v) => {
-                        if (!checkForObjIdRegExp.test(v)) {
-                            if (i == 'createTime') {
-                            } else if (i == '__v') {
-                            } else if (i == 'remark') {
-                            } else if (i == 'data') {
-                            } else {
-                                newStr.push($translate(i) + ':' + $translate(v))
-                            }
+                if (!a) return;
+                var checkForObjIdRegExp = new RegExp(/^[a-f\d]{24}$/i);
+                var newStr = [];
+                a.amount = a.amount != null ? a.amount.toFixed(2) : new Number(0).toFixed(2);
+                a.curAmount = a.curAmount != null ? a.curAmount.toFixed(2) : new Number(0).toFixed(2);
+                a.lockedAmount = a.lockedAmount != null ? a.lockedAmount.toFixed(2) : new Number(0).toFixed(2);
+                a.changedLockedAmount = a.changedLockedAmount != null ? a.changedLockedAmount.toFixed(2) : new Number(0).toFixed(2);
+                var newObj = $.extend({}, a.data);
+                delete newObj.creator;
+                // switch (a.operationType) {
+                //     case "TopUp":
+                //         break;
+                //     case "ManualTopUp":
+                //         newObj = {proposalId: newObj.proposalId};
+                //         break;
+                // }
+                if (a.data._inputCredit != null && a.data.initAmount != null) {
+                    newObj = {rewardType: a.data.rewardType};
+                } else if (a.data.proposalId && a.operationType == 'ManualTopUp') {
+                    newObj = {proposalId: newObj.proposalId};
+                }
+                $.each(newObj, (i, v) => {
+                    if (!checkForObjIdRegExp.test(v)) {
+                        if (i == 'createTime') {
+                        } else if (i == '__v') {
+                        } else if (i == 'remark') {
+                        } else if (i == 'data') {
+                        } else {
+                            newStr.push($translate(i) + ':' + $translate(v))
                         }
-                    })
-                    a.detail = newStr
-                    return a;
-                }) : [];
+                    }
+                })
+                a.detail = newStr
+                return a;
+            }) : [];
         }
         vm.getPlayerCreditChangeLogRecords = function (socketAction, data, callback) {
             console.log("CreditChangeLogs:Query:", data);
@@ -3812,10 +3812,10 @@ define(['js/app'], function (myApp) {
                 console.log('referral data', data);
                 vm.playerReferral.totalCount = data.data ? data.data.size : 0;
                 var tableData = data.data ? data.data.data.map(item => {
-                        item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
-                        item.registrationTime$ = vm.dateReformat(item.registrationTime);
-                        return item;
-                    }) : [];
+                    item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
+                    item.registrationTime$ = vm.dateReformat(item.registrationTime);
+                    return item;
+                }) : [];
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: tableData,
                     order: vm.playerReferral.aaSorting,
@@ -4100,10 +4100,12 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara);
             });
         }
-        vm.getPlayerTopupRecord = function (playerId) {
-            socketService.$socket($scope.AppSocket, 'getPlayerTopUpRecords', {
-                playerId: playerId || vm.isOneSelectedPlayer()._id,
-                filterDirty: true
+        vm.getPlayerTopupRecord = function (playerId, rewardObj) {
+            socketService.$socket($scope.AppSocket, 'getValidTopUpRecordList', {
+                playerId: playerId || vm.isOneSelectedPlayer().playerId,
+                playerObjId: vm.isOneSelectedPlayer()._id,
+                filterDirty: true,
+                reward: rewardObj
             }, function (data) {
                 vm.playerAllTopupRecords = data.data;
                 console.log('topups', data.data);
@@ -4128,7 +4130,7 @@ define(['js/app'], function (myApp) {
             if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn") {
                 vm.playerApplyRewardShow.TopupRecordSelect = true;
                 vm.playerAllTopupRecords = null;
-                vm.getPlayerTopupRecord();
+                vm.getPlayerTopupRecord(null, rewardObj);
             } else {
                 vm.playerApplyRewardShow.TopupRecordSelect = false;
             }
@@ -4233,11 +4235,11 @@ define(['js/app'], function (myApp) {
             })
         }
 
-        vm.initManualUnlockRewardTask = function() {
+        vm.initManualUnlockRewardTask = function () {
             vm.manualUnlockRewardTask = {
                 resMsg: $translate("Reward task is not available")
             };
-            vm.getRewardTaskDetail(vm.selectedSinglePlayer._id).then(function(data) {
+            vm.getRewardTaskDetail(vm.selectedSinglePlayer._id).then(function (data) {
                 if (data) {
                     vm.manualUnlockRewardTask.resMsg = "";
                 }
@@ -4246,15 +4248,15 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
-        vm.submitManualUnlockRewardTask = function() {
+        vm.submitManualUnlockRewardTask = function () {
             socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', [vm.curRewardTask, vm.selectedSinglePlayer], function (data) {
-                vm.manualUnlockRewardTask.resMsg = $translate('Submitted proposal for approval');
-                $scope.safeApply();
-            },
-            function(err) {
-                vm.manualUnlockRewardTask.resMsg = err.error.message || $translate('FAIL');
-                $scope.safeApply();
-            });
+                    vm.manualUnlockRewardTask.resMsg = $translate('Submitted proposal for approval');
+                    $scope.safeApply();
+                },
+                function (err) {
+                    vm.manualUnlockRewardTask.resMsg = err.error.message || $translate('FAIL');
+                    $scope.safeApply();
+                });
         };
 
         vm.prepareShowPlayerExpense = function () {
@@ -4380,11 +4382,11 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'getPlayerPendingPaymentProposal', queryData, function (data) {
                     vm.allPendingRequest = data.data ? data.data.map(item => {
-                            item.createTime$ = vm.dateReformat(item.createTime);
-                            item.merchantUseType$ = item.data.merchantUseType ? $scope.merchantUseTypeJson[item.data.merchantUseType] : "NULL";
-                            item.topupType$ = item.data.topupType ? $scope.merchantTopupTypeJson[item.data.topupType] : "NULL";
-                            return item;
-                        }) : [];
+                        item.createTime$ = vm.dateReformat(item.createTime);
+                        item.merchantUseType$ = item.data.merchantUseType ? $scope.merchantUseTypeJson[item.data.merchantUseType] : "NULL";
+                        item.topupType$ = item.data.topupType ? $scope.merchantTopupTypeJson[item.data.topupType] : "NULL";
+                        return item;
+                    }) : [];
                     $scope.safeApply();
                     vm.updateDataTableinModal(modalID, '#playerRepairPaymentTbl', null, function (tbl) {
                         $('#playerRepairPaymentTbl tbody').on('click', 'tr', function () {
@@ -4821,18 +4823,18 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                 console.log('getPlayerRewardTask', data);
                 var tblData = data && data.data ? data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
-                                    return pro.name + ' ';
-                                }) : $translate('all')) + ')';
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
+                            return pro.name + ' ';
+                        }) : $translate('all')) + ')';
 
-                        if (!item.targetEnable && item.targetProviders && item.targetProviders.length > 0) {
-                            item.provider$ = $translate('Excluded') + ' ' + item.providerStr$
-                        } else {
-                            item.provider$ = item.providerStr$;
-                        }
-                        return item;
-                    }) : [];
+                    if (!item.targetEnable && item.targetProviders && item.targetProviders.length > 0) {
+                        item.provider$ = $translate('Excluded') + ' ' + item.providerStr$
+                    } else {
+                        item.provider$ = item.providerStr$;
+                    }
+                    return item;
+                }) : [];
                 var size = data.data ? data.data.size : 0;
                 vm.rewardTaskLog.totalCount = size;
                 vm.drawRewardTaskTable(newSearch, tblData, size);
@@ -5133,14 +5135,14 @@ define(['js/app'], function (myApp) {
             console.log("Second:Query:", sendQuery);
             socketService.$socket($scope.AppSocket, 'queryRewardProposal', sendQuery, function (data) {
                 var tableData = data.data ? data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.rewardType$ = $translate(vm.platformRewardtype[item.type]);
-                        item.rewardAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
-                        item.status$ = $translate(item.status || item.process.status);
-                        item.entryType$ = $translate($scope.constProposalEntryType[item.entryType]);
-                        item.userType$ = $translate(item.userType ? $scope.constProposalUserType[item.userType] : "");
-                        return item;
-                    }) : [];
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.rewardType$ = $translate(vm.platformRewardtype[item.type]);
+                    item.rewardAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
+                    item.status$ = $translate(item.status || item.process.status);
+                    item.entryType$ = $translate($scope.constProposalEntryType[item.entryType]);
+                    item.userType$ = $translate(item.userType ? $scope.constProposalUserType[item.userType] : "");
+                    return item;
+                }) : [];
                 vm.playerRewardHistory.loading = false;
                 vm.playerRewardHistory.totalCount = data.data ? data.data.total : 0
                 console.log("RewardHist:length:", tableData);
@@ -5211,10 +5213,10 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
             socketService.$socket($scope.AppSocket, 'queryBonusProposal', sendQuery, function (data) {
                 var showData = data.data ? data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
-                        return item;
-                    }) : [];
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
+                    return item;
+                }) : [];
                 vm.playerBonusHistory.totalCount = data.data ? data.data.total : 0;
                 console.log("RewardHist:length:", showData);
                 vm.drawPlayerBonusHistoryTbl(showData, vm.playerBonusHistory.totalCount, newSearch);
@@ -5756,10 +5758,10 @@ define(['js/app'], function (myApp) {
                         data: 'level',
                         render: function (level, type, row) {
                             return level ? $('<a class="partnerLevelPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#">')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text($translate(level.name))
-                                    .prop('outerHTML') : "";
+                                'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#">')
+                                .attr('data-row', JSON.stringify(row))
+                                .text($translate(level.name))
+                                .prop('outerHTML') : "";
                         },
                         advSearch: true,
                         filterConfig: {
@@ -6389,10 +6391,10 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPagePartnerReferralPlayers', sendQuery, function (data) {
                 console.log('tableData', data);
                 var tableData = data.data.data ? data.data.data.map(item => {
-                        item.$lastAccessTime = utilService.getFormatTime(item.lastAccessTime);
-                        item.$registrationTime = utilService.getFormatTime(item.registrationTime);
-                        return item;
-                    }) : [];
+                    item.$lastAccessTime = utilService.getFormatTime(item.lastAccessTime);
+                    item.$registrationTime = utilService.getFormatTime(item.registrationTime);
+                    return item;
+                }) : [];
                 vm.totalReferralPlayer.totalCount = data.data.size;
                 vm.drawTotalReferralPlayerTable(newSearch, tableData, data.data.size)
             })

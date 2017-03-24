@@ -648,6 +648,12 @@ function socketActionPlayer(socketIO, socket) {
             var query = utility.buildPlayerQueryString(data.query);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPagePlayerByAdvanceQueryWithTopupTimes, [data.platformId, query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
+
+        getValidTopUpRecordList: function getValidTopUpRecordList(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data.reward && data.playerId && data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.getValidTopUpRecordList, [data.reward, data.playerId, data.playerObjId], actionName, isValidData);
+        }
     }
     socketActionPlayer.actions = this.actions;
 }
