@@ -4,7 +4,7 @@
  *  All rights reserved.
  ******************************************************************/
 
-'user strict'
+'use strict';
 
 const Q = require("q");
 const env = require("../config/env").config();

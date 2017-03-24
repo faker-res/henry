@@ -430,6 +430,8 @@ define(['js/app'], function (myApp) {
                     $("#ProposalDetail .proposalDistrictId").text(text);
                 });
                 result = $id.prop('outerHTML') + $name.prop('outerHTML');
+            } else if (fieldName === 'playerStatus') {
+                result = $translate($scope.constPlayerStatus[val]);
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
             }

@@ -290,12 +290,21 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         0: "ENTRY_TYPE_CLIENT",
         1: "ENTRY_TYPE_ADMIN",
         2: "ENTRY_TYPE_SYSTEM",
-    }
+    };
+
     $scope.constProposalUserType = {
         0: "PLAYERS",
         1: "PARTNERS",
         2: "SYSTEM_USERS",
         3: "TEST_PLAYERS"
+    };
+
+    $scope.constPlayerStatus = {
+        1: "NORMAL",
+        2: "FORBID_GAME",
+        3: "FORBID",
+        4: "BLACKLIST",
+        5: "ATTENTION"
     };
     //////// DOM initialisation operations ////////
 
