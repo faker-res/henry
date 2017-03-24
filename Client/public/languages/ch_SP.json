@@ -1082,6 +1082,7 @@
   "PlayerFeedback":"玩家回访",
   "CreditChange":"额度更改",
   "Miscellaneous":"其他",
+  "Others":"其它",
   "General":"一般",
   "Config":"基础数据",
   "Report":"报表",
@@ -1155,6 +1156,7 @@
   "from Provider":"从提供商转出",
   "to Provider":"转入到提供商",
   "updatePlayerStatus":"更新玩家状态",
+  "UpdatePlayerLevel":"更新玩家等级",
 
   "createPlatform":"创建平台",
   "createGameAndAddToProvider":"创建提供商游戏",
