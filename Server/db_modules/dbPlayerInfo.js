@@ -5843,7 +5843,7 @@ var dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType) {
-                                            resData.push({type: paymentData.data[i].bankTypeId, status: status});
+                                            resData.push({type: paymentData.data[i].bankTypeId, status: status, accountNumber: paymentData.data[i].accountNumber});
                                         }
                                     }
                                 }
