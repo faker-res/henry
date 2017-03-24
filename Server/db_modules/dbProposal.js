@@ -57,7 +57,8 @@ var proposal = {
         //create process for proposal
         let ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName);
         // query related player info
-        let plyProm = dbconfig.collection_players.findOne({_id: playerId}).exec();
+        let plyProm = dbconfig.collection_players.findOne({_id: playerId})
+                        .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
 
         proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
@@ -173,6 +174,7 @@ var proposal = {
                     // attach player status if available
                     if(data[2]) {
                         proposalData.data.playerStatus = data[2].status;
+                        proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
                     }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(

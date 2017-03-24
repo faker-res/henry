@@ -303,7 +303,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         1: "NORMAL",
         2: "FORBID_GAME",
         3: "FORBID",
-        4: "BLACKLIST",
+        4: "BALCKLIST",
         5: "ATTENTION"
     };
     //////// DOM initialisation operations ////////
