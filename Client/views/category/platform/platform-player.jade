@@ -742,7 +742,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")')
-                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | number : 2}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.creditTransfer.showRewardAmount || 0 | number : 2}} )
+                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | number : 2}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.selectedSinglePlayer.lockedCredit || 0 | number : 2}} )
             .modal-body
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
                 label.pull-right.blink(ng-show='vm.creditTransfer.needClose') {{'Please close the dialog to refresh the data.' | translate}}
