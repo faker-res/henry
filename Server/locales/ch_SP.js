@@ -79,7 +79,7 @@ var simplifiedChinese = {
 
     "Cannot find player for online top up proposal" : "无法找到玩家",
     "Cannot create online top up proposal": "无法创建在线充值提案",
-    "Cannot create manual top up proposal" : "无法创建手动充值提案",
+    "Cannot create manual top up proposal" : "无法创建手工充值提案",
     "Cannot find payment data" : "无法找到支付数据",
     "Cannot create online top up request": "无法创建在线充值单",
     "Cannot get player and reward data" : "无法找到玩家和奖励数据",
