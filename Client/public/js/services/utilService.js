@@ -538,7 +538,6 @@ define([], function () {
                 });
                 $(id).off('focusout', ".pageSize")
                 $(id).on('focusout', ".pageSize", function () {
-                    console.log(retObj.pageSize, 'event.target', $(event.target));
                     if (retObj.pageSize != event.target.valueAsNumber) {
                         retObj.pageSize = event.target.valueAsNumber;
                         if (retObj.pageSize < 1) {
@@ -622,6 +621,49 @@ define([], function () {
                 $ele.css("font-size", fontSize + "px");
             }
             return $ele;
+        }
+        this.getProposalGroupValue = function (proposalType) {
+            switch (proposalType.name) {
+                case "UpdatePlayerInfo":
+                case "UpdatePlayerCredit":
+                case "FixPlayerCreditTransfer":
+                case "UpdatePlayerEmail":
+                case "UpdatePlayerPhone":
+                case "UpdatePlayerBankInfo":
+                case "AddPlayerRewardTask":
+                case "UpdatePartnerBankInfo":
+                case "UpdatePartnerPhone":
+                case "UpdatePartnerEmail":
+                case "UpdatePartnerInfo":
+                    return $trans("Player Proposal");
+                case "ManualPlayerTopUp":
+                case "PlayerAlipayTopUp":
+                case "PlayerTopUp":
+                    return $trans("Topup Proposal");
+                case "PlayerBonus":
+                case "PartnerBonus":
+                    return $trans("Bonus Proposal");
+                case "PlayerLevelUp":
+                case "PlatformTransactionReward":
+                case "PlayerTopUpReturn":
+                case "PlayerConsumptionIncentive":
+                case "PartnerTopUpReturn":
+                case "PlayerTopUpReward":
+                case "PlayerReferralReward":
+                case "PlayerConsumptionReturn":
+                case "FirstTopUp":
+                case "PlayerRegistrationReward":
+                case "FullAttendance":
+                case "PartnerConsumptionReturn":
+                case "PartnerIncentiveReward":
+                case "PartnerReferralReward":
+                case "GameProviderReward":
+                    return $trans("Reward Proposal");
+                case "PlayerConsumptionReturnFix":
+                    return $trans("ReturnFix Proposal");
+                default:
+                    return $trans("Others");
+            }
         }
     };
 

@@ -25,7 +25,6 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
 var dbPlayerTopUpRecord = {
-
     /**
      * Get top up record in a certain period of time
      * @param {Json} data
@@ -112,15 +111,15 @@ var dbPlayerTopUpRecord = {
                     };
                     queryObj['$or'] = [];
                     query.topupType ? queryObj['$or'].push({
-                            'data.topupType': query.topupType
-                        }) : queryObj['$or'].push({
-                            'data.topupType': {$exists: true}
-                        });
+                        'data.topupType': query.topupType
+                    }) : queryObj['$or'].push({
+                        'data.topupType': {$exists: true}
+                    });
                     query.depositMethod ? queryObj['$or'].push({
-                            'data.depositMethod': query.depositMethod
-                        }) : queryObj['$or'].push({
-                            'data.depositMethod': {$exists: true}
-                        });
+                        'data.depositMethod': query.depositMethod
+                    }) : queryObj['$or'].push({
+                        'data.depositMethod': {$exists: true}
+                    });
                     queryObj['$or'].push({
                         $and: [
                             {'data.topupType': {$exists: false}},
@@ -707,14 +706,14 @@ var dbPlayerTopUpRecord = {
                     proposalData.remark = inputData.remark || "";
                     proposalData.lastBankcardNo = inputData.lastBankcardNo;
                     proposalData.creator = entryType == "ADMIN" ? {
-                            type: 'admin',
-                            name: adminName,
-                            id: adminId
-                        } : {
-                            type: 'player',
-                            name: playerData.name,
-                            id: playerId
-                        };
+                        type: 'admin',
+                        name: adminName,
+                        id: adminId
+                    } : {
+                        type: 'player',
+                        name: playerData.name,
+                        id: playerId
+                    };
                     var newProposal = {
                         creator: proposalData.creator,
                         data: proposalData,
@@ -1275,6 +1274,18 @@ var dbPlayerTopUpRecord = {
                     };
                 }
             );
+    },
+
+    getValidTopUpRecordList: function (rewardInfo, playerId, playerObjId) {
+        var rewardType = (rewardInfo && rewardInfo.type) ? rewardInfo.type.name : null;
+        var period = (rewardInfo && rewardInfo.param) ? rewardInfo.param.periodType : null;
+        if (rewardType == "FirstTopUp") {
+            return dbPlayerTopUpRecord.getValidFirstTopUpRecordList(playerId, period, 0, constSystemParam.REPORT_MAX_RECORD_NUM, -1).then(data => {
+                return data.records;
+            })
+        } else {
+            return dbPlayerInfo.getPlayerTopUpRecords({playerId: playerObjId}, true)
+        }
     }
 
 };

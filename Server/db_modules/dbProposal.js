@@ -1185,127 +1185,6 @@ var proposal = {
         });
     },
 
-    // getQueryProposalsForAdminId: function (adminId, platformId, typeArr, statusArr, credit, relateUser, startTime, endTime, index, size, sortCol) {
-    //     var proposalTypesId = [];
-    //     var proposalStatus = [];
-    //     size = Math.min(size, constSystemParam.MAX_RECORD_NUM);
-    //
-    //     var prom1 = dbconfig.collection_proposalType.find({platformId: platformId}).exec();
-    //     var prom2 = dbconfig.collection_admin.findOne({_id: adminId}).exec();
-    //     return Q.all([prom1, prom2]).then(
-    //         function (data) {
-    //             if (data && data[0] && data[1]) {
-    //                 for (var i = 0; i < data[0].length; i++) {
-    //                     if (typeArr.indexOf(data[0][i].name) != -1) {
-    //                         proposalTypesId.push(data[0][i]._id);
-    //                     }
-    //                 }
-    //                 //find all related proposal type process step based on user's department and role
-    //                 return dbconfig.collection_proposalProcessStep.find(
-    //                     {$and: [{department: {$in: data[1].departments}}, {role: {$in: data[1].roles}}]}
-    //                 ).exec();
-    //             }
-    //             else {
-    //                 return Q.reject({name: "DBError", message: "Can't find admin user"});
-    //             }
-    //         },
-    //         function (error) {
-    //             return Q.reject({name: "DBError", message: "Error finding admin user", error: error});
-    //         }
-    //     ).then(
-    //         function (data) {
-    //             if (data && data.length > 0) {
-    //                 //get all proposal process with current step in found steps
-    //                 var stepIds = [];
-    //                 for (var i = 0; i < data.length; i++) {
-    //                     stepIds.push(data[i]._id);
-    //                 }
-    //                 return dbconfig.collection_proposalProcess.find(
-    //                     {steps: {$elemMatch: {$in: stepIds}}}
-    //                 ).populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).exec();
-    //             }
-    //         },
-    //         function (error) {
-    //             return Q.reject({name: "DBError", message: "Error finding matching process", error: error});
-    //         }
-    //     ).then(
-    //         function (data) {
-    //             if (data && data.length > 0) {
-    //                 //get all proposal process with current step in found steps
-    //                 var processIds = [];
-    //                 for (var i = 0; i < data.length; i++) {
-    //                     if (typeArr.indexOf(data[i].type.name) != -1) {
-    //                         processIds.push(data[i]._id);
-    //                     }
-    //                 }
-    //                 var queryObj = {
-    //                     type: {$in: proposalTypesId},
-    //                     createTime: {
-    //                         $gte: startTime,
-    //                         $lt: endTime
-    //                     },
-    //                     $and: [
-    //                         {
-    //                             $or: [
-    //                                 {process: {$in: processIds}},
-    //                                 {noSteps: true}
-    //                             ]
-    //                         }
-    //                     ],
-    //                 };
-    //                 if (relateUser) {
-    //                     queryObj["data.playerName"] = relateUser
-    //                 }
-    //                 if (credit) {
-    //                     queryObj["$and"].push({
-    //                         $or: [
-    //                             {"data.amount": credit},
-    //                             {"data.rewardAmount": credit}
-    //                         ]
-    //                     })
-    //                 }
-    //                 var a = dbconfig.collection_proposal.find(queryObj)
-    //                     .populate({path: 'type', model: dbconfig.collection_proposalType})
-    //                     .populate({path: 'process', model: dbconfig.collection_proposalProcess})
-    //                     .sort(sortCol).skip(index).limit(size).then(
-    //                         function (doc) {
-    //                             return doc
-    //                                 .filter(a => {
-    //                                     return (a.process && (statusArr.indexOf(a.process.status) != -1) || (statusArr.indexOf(a.status) != -1))
-    //                                 });//.slice(0, size);
-    //                         }
-    //                     );
-    //                 var b = dbconfig.collection_proposal.find(queryObj).count();
-    //                 return Q.all([a, b]);
-    //             }
-    //             else {
-    //                 //return all no step proposal
-    //                 return dbconfig.collection_proposal.find(
-    //                     {
-    //                         type: {$in: proposalTypesId},
-    //                         createTime: {
-    //                             $gte: startTime,
-    //                             $lt: endTime
-    //                         },
-    //                         noSteps: true,
-    //                         status: {$in: statusArr}
-    //                     }).populate({path: 'type', model: dbconfig.collection_proposalType})
-    //                     .sort({createTime: -1}).lean();//.limit(size).exec();
-    //             }
-    //         },
-    //         function (error) {
-    //             return Q.reject({name: "DBError", message: "Error finding matching proposal", error: error});
-    //         }
-    //     ).then(
-    //         function (data) {
-    //             return {data: data[0], size: data[1]};
-    //         },
-    //         function (error) {
-    //             return Q.reject({name: "DBError", message: "Error finding matching proposal", error: error});
-    //         }
-    //     );
-    // },
-
     /**
      * Get all available proposals for the selected platform and selected proposal types
      * @param {JSON} -  startTime, endTime, platformId (ObjectId), type{ObjectId), status
@@ -1423,8 +1302,10 @@ var proposal = {
                 path: "process",
                 model: dbconfig.collection_proposalProcess
             });
-            if (data.type) {
-                data.type = ObjectId(data.type);
+            if (data.type && data.type.length > 0) {
+                data.type = data.type.map(item => {
+                    return ObjectId(item);
+                })
             }
             var c = dbconfig.collection_proposal.aggregate(
                 {
@@ -1759,7 +1640,10 @@ var proposal = {
                 if (data && data[1]) {
                     var obj = {data: data[0], size: data[1]};
                     var temp = data[2] ? data[2][0] : {sum1: 0, sum2: 0, sumApplyAmount: 0};
-                    obj.summary = {amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2), applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)};
+                    obj.summary = {
+                        amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2),
+                        applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)
+                    };
                     deferred.resolve(obj);
                 } else {
                     deferred.resolve({data: [], size: 0, summary: {}})
@@ -1970,17 +1854,17 @@ var proposal = {
         );
     },
 
-     checkProposalExpiration: function () {
+    checkProposalExpiration: function () {
         return dbconfig.collection_proposal.update(
             {
-                status : constProposalStatus.PENDING ,
+                status: constProposalStatus.PENDING,
                 expirationTime: {$lt: new Date()}
             },
             {
                 status: constProposalStatus.EXPIRED
             }
         );
-    },   
+    },
 
     getPlayerPendingPaymentProposal: function (playerObjId, platformObjId) {
         return dbconfig.collection_proposalType.find(

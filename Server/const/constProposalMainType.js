@@ -18,7 +18,6 @@ const constProposalMainType = {
     "UpdatePlayerEmail": constMainType.UPDATE_PLAYER,
     "UpdatePlayerPhone": constMainType.UPDATE_PLAYER,
     "UpdatePlayerBankInfo": constMainType.UPDATE_PLAYER,
-    "PlayerConsumptionReturnFix": constMainType.UPDATE_PLAYER,
 
     //UPDATE_PARTNER
     "UpdatePartnerBankInfo": constMainType.UPDATE_PARTNER,
@@ -50,6 +49,7 @@ const constProposalMainType = {
     "AddPlayerRewardTask": constMainType.REWARD,
     "PlayerRegistrationReward": constMainType.REWARD,
     "ManualUnlockPlayerReward": constMainType.REWARD,
+    "PlayerConsumptionReturnFix": constMainType.REWARD,
 
     //BONUS
     "PlayerBonus": constMainType.BONUS,

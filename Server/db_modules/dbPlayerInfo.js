@@ -5120,6 +5120,8 @@ var dbPlayerInfo = {
                                     amount: amount,
                                     bonusCredit: bonusDetail.credit,
                                     curAmount: player.validCredit,
+                                    remark: "",
+                                    lastSettleTime: new Date()
                                     //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                 };
                                 var newProposal = {
@@ -5809,12 +5811,12 @@ var dbPlayerInfo = {
                                         resData.forEach(type => {
                                             if (type.type == paymentData.merchants[i].topupType) {
                                                 bValidType = false;
-                                                if (status == 1) {
+                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED") {
                                                     type.status = status;
                                                 }
                                             }
                                         });
-                                        if (bValidType && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                        if (bValidType && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             resData.push({type: paymentData.merchants[i].topupType, status: status});
                                         }
                                     }
@@ -5841,7 +5843,7 @@ var dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType) {
-                                            resData.push({type: paymentData.data[i].bankTypeId, status: status});
+                                            resData.push({type: paymentData.data[i].bankTypeId, status: status, accountNumber: paymentData.data[i].accountNumber});
                                         }
                                     }
                                 }
