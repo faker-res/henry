@@ -433,11 +433,13 @@ define(['js/app'], function (myApp) {
                 result = $id.prop('outerHTML') + $name.prop('outerHTML');
             } else if (fieldName === 'playerStatus') {
                 result = $translate($scope.constPlayerStatus[val]);
+            } else if (fieldName === 'proposalPlayerLevel') {
+                result = $translate(val);
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
             }
             return $sce.trustAsHtml(result);
-        }
+        };
         // vm.getTopupIntentionData = function (callback) {
         //     socketService.$socket($scope.AppSocket, 'getPlayerTopUpIntentRecordByPlatform', {platformId: vm.selectedPlatform._id}, function (data) {
         //         vm.allTopupAccount = data.data;
@@ -538,8 +540,7 @@ define(['js/app'], function (myApp) {
                     }
                     v.mainType$ = $translate(v.mainType);
                     v.priority$ = $translate(v.data.proposalPlayerLevel ? v.data.proposalPlayerLevel : "Normal");
-                    v.playerStatus$ = $translate($scope.constPlayerStatus[v.data.playerStatus] ?
-                        $scope.constPlayerStatus[v.data.playerStatus] : "Normal");
+                    v.playerStatus$ = v.data.playerStatus;
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
                     v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
                     v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
@@ -619,7 +620,26 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         "title": $translate('playerStatus'),
-                        "data": "playerStatus$"
+                        "data": "playerStatus$",
+                        render: function (data, type, row) {
+                            let showText = $translate($scope.constPlayerStatus[data] ?
+                                $scope.constPlayerStatus[data] : "Normal");
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (data === 4) {
+                                textClass = "bold";
+                                fontStyle = { 'font-weight': 'bold' };
+                            } else if (data === 5) {
+                                textClass = "text-danger";
+                                fontStyle = { 'font-weight': 'bold' };
+                            }
+
+                            return $('<div>')
+                                .text(showText)
+                                .addClass(textClass)
+                                .css(fontStyle)
+                                .prop('outerHTML');
+                        }
                     },
                     {
                         "title": $translate('ENTRY_TYPE'),
@@ -1070,22 +1090,7 @@ define(['js/app'], function (myApp) {
                     break;
                 }
             }
-
-            switch (true) {
-                case (aData.playerStatus$ === 'BLACKLIST' || aData.playerStatus$ === '黑名单'): {
-                    $(nRow).css('background-color', 'rgba(0, 0, 0, 100)');
-                    break;
-                }
-                case (aData.playerStatus$ === 'ATTENTION' || aData.playerStatus$ === '关注'): {
-                    $(nRow).css('background-color', 'rgba(346, 100, 40, 100)');
-                    break;
-                }
-                default: {
-                    $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
-                    break;
-                }
-            }
-        }
+        };
 
         ///////players panel///////////////////// start
         vm.getLoggedInPlayer = function (isContinue) {
