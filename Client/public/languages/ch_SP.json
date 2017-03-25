@@ -164,6 +164,7 @@
   "Day":"日",
   "week":"周",
   "month":"月",
+  "HALF_MONTH":"半月",
   "Set Date Range":"设定日期范围",
   "date":"日期",
   "CHOOSE_DAY":"请选择星期",
@@ -1157,6 +1158,8 @@
   "to Provider":"转入到提供商",
   "updatePlayerStatus":"更新玩家状态",
   "UpdatePlayerLevel":"更新玩家等级",
+  "minCommissionAmount":"最小佣金额",
+  "resetPeriod":"清零周期",
 
   "createPlatform":"创建平台",
   "createGameAndAddToProvider":"创建提供商游戏",
