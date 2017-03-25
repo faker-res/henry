@@ -1128,7 +1128,11 @@ var dbPartner = {
                             $match: {
                                 type: bonusProposalType._id,
                                 status: constProposalStatus.SUCCESS,
-                                "data.playerObjId": {$in: playerObjIds}
+                                "data.playerObjId": {$in: playerObjIds},
+                                createTime: {
+                                    $gte: queryTime.startTime,
+                                    $lt: queryTime.endTime
+                                }
                             }
                         },
                         {
