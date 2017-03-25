@@ -221,24 +221,24 @@ var dailyPlatformSettlement = {
                     error: error
                 })
             )
-        ).then(
-            //settlement for partner commission
-            () => dbPartner.startPlatformPartnerCommissionSettlement(platformId, true).catch(
-                error => Q.reject({
-                    name: "DBError",
-                    message: "Error performing platform partner commission settlement!",
-                    error: error
-                })
-            )
-        ).then(
-            //settlement for partner children commission
-            () => dbPartner.startPlatformPartnerChildrenCommissionSettlement(platformId, true).catch(
-                error => Q.reject({
-                    name: "DBError",
-                    message: "Error performing platform partner children commission settlement!",
-                    error: error
-                })
-            )
+        // ).then(
+        //     //settlement for partner commission
+        //     () => dbPartner.startPlatformPartnerCommissionSettlement(platformId, true).catch(
+        //         error => Q.reject({
+        //             name: "DBError",
+        //             message: "Error performing platform partner commission settlement!",
+        //             error: error
+        //         })
+        //     )
+        // ).then(
+        //     //settlement for partner children commission
+        //     () => dbPartner.startPlatformPartnerChildrenCommissionSettlement(platformId, true).catch(
+        //         error => Q.reject({
+        //             name: "DBError",
+        //             message: "Error performing platform partner children commission settlement!",
+        //             error: error
+        //         })
+        //     )
         ).then(
             // We want to do this before the player level data is reset below
             () => dbPlatform.checkPlayerLevelDownForPlatform(platformId).catch(
