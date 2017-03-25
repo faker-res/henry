@@ -431,6 +431,8 @@ define(['js/app'], function (myApp) {
                     $("#ProposalDetail .proposalDistrictId").text(text);
                 });
                 result = $id.prop('outerHTML') + $name.prop('outerHTML');
+            } else if (fieldName === 'playerStatus') {
+                result = $translate($scope.constPlayerStatus[val]);
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
             }
@@ -535,7 +537,9 @@ define(['js/app'], function (myApp) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     v.mainType$ = $translate(v.mainType);
-                    v.priority$ = $translate(vm.proposalPriorityList[v.priority]);
+                    v.priority$ = $translate(v.data.proposalPlayerLevel ? v.data.proposalPlayerLevel : "Normal");
+                    v.playerStatus$ = $translate($scope.constPlayerStatus[v.data.playerStatus] ?
+                        $scope.constPlayerStatus[v.data.playerStatus] : "Normal");
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
                     v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
                     v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
@@ -612,6 +616,10 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('PRIORITY'),
                         "data": "priority$"
+                    },
+                    {
+                        "title": $translate('playerStatus'),
+                        "data": "playerStatus$"
                     },
                     {
                         "title": $translate('ENTRY_TYPE'),
@@ -1055,6 +1063,21 @@ define(['js/app'], function (myApp) {
                 }
                 case (aData.creditAmount$ >= 1000000): {
                     $(nRow).css('background-color', 'rgba(188, 230, 114, 100)');
+                    break;
+                }
+                default: {
+                    $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                    break;
+                }
+            }
+
+            switch (true) {
+                case (aData.playerStatus$ === 'BLACKLIST' || aData.playerStatus$ === '黑名单'): {
+                    $(nRow).css('background-color', 'rgba(0, 0, 0, 100)');
+                    break;
+                }
+                case (aData.playerStatus$ === 'ATTENTION' || aData.playerStatus$ === '关注'): {
+                    $(nRow).css('background-color', 'rgba(346, 100, 40, 100)');
                     break;
                 }
                 default: {
