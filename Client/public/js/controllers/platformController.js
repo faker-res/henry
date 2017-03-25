@@ -7194,6 +7194,7 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'partnerCommission':
                     vm.partnerCommission = vm.partnerCommission || {};
+                    vm.getPartnerCommissionPeriodConst();
                     vm.getPartnerCommisionConfig();
                     break;
                 case 'announcement':
@@ -8730,8 +8731,19 @@ define(['js/app'], function (myApp) {
 
         vm.getPlayerLvlPeriod = function () {
             socketService.$socket($scope.AppSocket, 'getPlayerLvlPeriodConst', '', function (data) {
-                console.log('data', data);
+                console.log('getPlayerLvlPeriodConst', data);
                 vm.playerLvlPeriod = data.data;
+                $scope.safeApply();
+            });
+        }
+
+        vm.getPartnerCommissionPeriodConst = function () {
+            if (vm.partnerCommissionPeriodConst) {
+                return
+            }
+            socketService.$socket($scope.AppSocket, 'getPartnerCommissionPeriodConst', '', function (data) {
+                console.log('getPartnerCommissionPeriodConst', data);
+                vm.partnerCommissionPeriodConst = data.data;
                 $scope.safeApply();
             });
         }

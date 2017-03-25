@@ -1705,7 +1705,7 @@ var proposal = {
                 data.map(item => {
                     proposal[item._id] = {_id: item._id, name: item.name};
                 });
-                proposalTypeArr = data.map(type => {
+                var proposalTypeArr = data.map(type => {
                     return type._id;
                 });
                 return dbconfig.collection_proposal.distinct('type', {
