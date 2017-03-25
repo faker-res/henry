@@ -12,6 +12,9 @@
   "LEVELMONTH":"monthly",
   "LEVELNONE":"sum",
   "bonusAmount1":"bonusAmount",
+  "BALCKLIST":"blacklist",
+  "ATTENTION":"attention",
+  "CONSUMPTION_INTERVAL":"Consumption History",
 
   "true":"Yes",
   "false":"No",
@@ -575,6 +578,7 @@
   "CUSTOMER_SERVICE_QQ":"Customer Service QQ",
   "CUSTOMER_SERVICE_EMAIL":"Customer service email",
   "used when sending automated messages":"used when sending automated messages",
+  "HALF_MONTH":"half month",
   "CHOOSE_HOUR":"Choose Hour",
   "CHOOSE_DAY":"Choose Day",
   "CHOOSE_MINUTE":"Choose Minute",

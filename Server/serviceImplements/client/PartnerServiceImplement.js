@@ -28,7 +28,11 @@ var PartnerServiceImplement = function () {
     this.register.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
         if (conn.captchaCode && (conn.captchaCode == data.captcha)) {
-            data.lastLoginIp = conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress;
+            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+            var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+            if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
             data.loginIps = [data.lastLoginIp];
             var uaString = conn.upgradeReq.headers['user-agent'];
             var ua = uaParser(uaString);
@@ -96,7 +100,11 @@ var PartnerServiceImplement = function () {
     this.authenticate.expectsData = 'partnerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.partnerId && data.token);
-        var partnerIp = conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress;
+        var partnerIp = conn.upgradeReq.connection.remoteAddress;
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            partnerIp = forwardedIp[0].trim();
+        }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.authenticate, [data.partnerId, data.token, partnerIp, conn], true, false, false, true);
     };
 
@@ -105,7 +113,11 @@ var PartnerServiceImplement = function () {
     this.login.onRequest = function (wsFunc, conn, data) {
 
         var isValidData = Boolean(data && data.name && data.password);
-        data.lastLoginIp = conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress;
+        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            data.lastLoginIp = forwardedIp[0].trim();
+        }
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.partnerLoginAPI, [data, ua], isValidData, true, true, true).then(

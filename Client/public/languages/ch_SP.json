@@ -9,6 +9,11 @@
   "Please enter your email address:" : "输入电邮",
   "true":"是",
   "false":"否",
+  "curLockedAmount":"当前锁定额度",
+  "updateLockedAmount":"更新锁定额度",
+  "BALCKLIST":"黑名单",
+  "ATTENTION":"关注",
+  "CONSUMPTION_INTERVAL":"消费历史分析",
 
   "EMAIL" : "邮箱",
   "FIRST_NAME" : "名",
@@ -159,6 +164,7 @@
   "Day":"日",
   "week":"周",
   "month":"月",
+  "HALF_MONTH":"半月",
   "Set Date Range":"设定日期范围",
   "date":"日期",
   "CHOOSE_DAY":"请选择星期",
@@ -706,7 +712,7 @@
   "newAlipayGroup":"新支付宝组",
   "GameTypeRead":"游戏类别读",
   "Expense":"消费",
-  "delayManualTopupRequest":"手动充值延时申请",
+  "delayManualTopupRequest":"手工充值延时申请",
   "Location":"位置",
   "Login":"登录",
   "Device":"设备",
@@ -1030,7 +1036,7 @@
   "TOTAL_EARNING":"总营收",
   "TOTAL_CONSUMPTION_TIMES" : "总消费次数",
   "TOTAL_TOPUP_TIMES":"总充值次数",
-  "ManualPlayerTopUp":"手动充值",
+  "ManualPlayerTopUp":"手工充值",
   "NO_PAYMENT_CHANNEL":"没有支付通道",
   "Process":"处理中",
   "PARTNER_INCENTIVE_REPORT":"推广渠道奖励报表",
@@ -1078,6 +1084,7 @@
   "PlayerFeedback":"玩家回访",
   "CreditChange":"额度更改",
   "Miscellaneous":"其他",
+  "Others":"其它",
   "General":"一般",
   "Config":"基础数据",
   "Report":"报表",
@@ -1151,6 +1158,9 @@
   "from Provider":"从提供商转出",
   "to Provider":"转入到提供商",
   "updatePlayerStatus":"更新玩家状态",
+  "UpdatePlayerLevel":"更新玩家等级",
+  "minCommissionAmount":"最小佣金额",
+  "resetPeriod":"清零周期",
 
   "createPlatform":"创建平台",
   "createGameAndAddToProvider":"创建提供商游戏",
@@ -1590,7 +1600,7 @@
 
   "Cannot find player for online top up proposal" : "无法找到玩家",
   "Cannot create online top up proposal": "无法创建在线充值提案",
-  "Cannot create manual top up proposal" : "无法创建手动充值提案",
+  "Cannot create manual top up proposal" : "无法创建手工充值提案",
   "Cannot find payment data" : "无法找到支付数据",
   "Cannot create online top up request": "无法创建在线充值单",
   "Cannot get player and reward data" : "无法找到玩家和奖励数据",
@@ -1790,9 +1800,13 @@
 
   "Manual Unlock Reward Task":"强制解锁奖励任务",
   "ManualUnlockPlayerReward":"强制解锁玩家奖励任务",
+  "ManualUnlockRewardTask":"强制解锁玩家奖励任务",
   "Unlock Reward":"解锁奖励任务",
   "Reward task is not available":"奖励任务不存在",
-  "Submitted proposal for approval":"成功提交提案"
+  "Submitted proposal for approval":"成功提交提案",
+
+  "playerStatus" : "玩家状态",
+  "proposalPlayerLevel" : "玩家级别"
 }
 
 

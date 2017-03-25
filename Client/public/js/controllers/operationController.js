@@ -53,46 +53,47 @@ define(['js/app'], function (myApp) {
                     vm.allPlatformId.push(v._id);
                 }
             });
-            vm.playerCountLimit = 20;console.log('vm.selectedPlatform', vm.allPlatformId);
-                    vm.getLoggedInPlayerCount();
-                    vm.getLoggedInPlayer();
-                    // vm.loadProposalData();
-                    // vm.getTopupIntentionData();
-                    vm.allTopUpIntentionString = null;
-                    vm.allNewAccountString = null;
-                    vm.allProposalString = null;
-                    // vm.getPlayerTopUpIntentRecordStatusList();
-                    // vm.getNewAccountProposal().done();
-                    vm.getProposalTypeByPlatformId(vm.allPlatformId).then(
-                        function (data) {
-                            $('select#selectProposalType').multipleSelect({
-                                allSelected: $translate("All Selected"),
-                                selectAllText: $translate("Select All"),
-                                displayValues: true,
-                                countSelected: $translate('# of % selected'),
-                                onClick: function () {
-                                    vm.proposalTypeUpdated();
-                                },
-                                onCheckAll: function () {
-                                    vm.proposalTypeUpdated();
-                                },
-                                onUncheckAll: function () {
-                                    vm.proposalTypeUpdated();
-                                }
-                            });
-                            var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
-                            $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
-                                var upText = $($multi).text().split(',').map(item => {
-                                    return $translate(item);
-                                }).join(',');
-                                $($multi).find('span').text(upText)
-                            });
-                            $("select#selectProposalType").multipleSelect("checkAll");
-                            vm.proposalTypeClicked("total");
-                            // vm.allProposalClicked();
+            vm.playerCountLimit = 20;
+            console.log('vm.selectedPlatform', vm.allPlatformId);
+            vm.getLoggedInPlayerCount();
+            vm.getLoggedInPlayer();
+            // vm.loadProposalData();
+            // vm.getTopupIntentionData();
+            vm.allTopUpIntentionString = null;
+            vm.allNewAccountString = null;
+            vm.allProposalString = null;
+            // vm.getPlayerTopUpIntentRecordStatusList();
+            // vm.getNewAccountProposal().done();
+            vm.getProposalTypeByPlatformId(vm.allPlatformId).then(
+                function (data) {
+                    $('select#selectProposalType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                        onClick: function () {
+                            vm.proposalTypeUpdated();
+                        },
+                        onCheckAll: function () {
+                            vm.proposalTypeUpdated();
+                        },
+                        onUncheckAll: function () {
+                            vm.proposalTypeUpdated();
                         }
-                    );
-                    $scope.safeApply();
+                    });
+                    var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
+                    $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multi).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multi).find('span').text(upText)
+                    });
+                    $("select#selectProposalType").multipleSelect("checkAll");
+                    vm.proposalTypeClicked("total");
+                    // vm.allProposalClicked();
+                }
+            );
+            $scope.safeApply();
 
         }
         vm.proposalTypeClicked = function (i, v) {
@@ -289,7 +290,7 @@ define(['js/app'], function (myApp) {
                     language: 'en',
                     format: 'yyyy/MM/dd hh:mm:ss',
                 });
-                var lastMonth = utilService.setNDaysAgo(new Date(), 30);
+                var lastMonth = utilService.setNDaysAgo(new Date(), 1);
                 var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
                 vm.queryProposalstartTime = $("#datetimepicker").data('datetimepicker').setLocalDate(lastMonthDateStartTime);
 
@@ -379,8 +380,8 @@ define(['js/app'], function (myApp) {
                 result = $time.prop('outerHTML') + $btn.prop('outerHTML');
             } else if (fieldName.indexOf('providerId') > -1 || fieldName.indexOf('targetProviders') > -1) {
                 result = val ? val.map(item => {
-                        return vm.getProviderText(item);
-                    }) : '';
+                    return vm.getProviderText(item);
+                }) : '';
                 result = result.join(',');
             } else if (fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) {
                 result = utilService.getFormatTime(val);
@@ -430,11 +431,15 @@ define(['js/app'], function (myApp) {
                     $("#ProposalDetail .proposalDistrictId").text(text);
                 });
                 result = $id.prop('outerHTML') + $name.prop('outerHTML');
+            } else if (fieldName === 'playerStatus') {
+                result = $translate($scope.constPlayerStatus[val]);
+            } else if (fieldName === 'proposalPlayerLevel') {
+                result = $translate(val);
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
             }
             return $sce.trustAsHtml(result);
-        }
+        };
         // vm.getTopupIntentionData = function (callback) {
         //     socketService.$socket($scope.AppSocket, 'getPlayerTopUpIntentRecordByPlatform', {platformId: vm.selectedPlatform._id}, function (data) {
         //         vm.allTopupAccount = data.data;
@@ -534,7 +539,8 @@ define(['js/app'], function (myApp) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     v.mainType$ = $translate(v.mainType);
-                    v.priority$ = $translate(vm.proposalPriorityList[v.priority]);
+                    v.priority$ = $translate(v.data.proposalPlayerLevel ? v.data.proposalPlayerLevel : "Normal");
+                    v.playerStatus$ = v.data.playerStatus;
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
                     v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
                     v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
@@ -614,6 +620,29 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('PRIORITY'),
                         "data": "priority$"
+                    },
+                    {
+                        "title": $translate('playerStatus'),
+                        "data": "playerStatus$",
+                        render: function (data, type, row) {
+                            let showText = $translate($scope.constPlayerStatus[data] ?
+                                $scope.constPlayerStatus[data] : "Normal");
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (data === 4) {
+                                textClass = "bold";
+                                fontStyle = { 'font-weight': 'bold' };
+                            } else if (data === 5) {
+                                textClass = "text-danger";
+                                fontStyle = { 'font-weight': 'bold' };
+                            }
+
+                            return $('<div>')
+                                .text(showText)
+                                .addClass(textClass)
+                                .css(fontStyle)
+                                .prop('outerHTML');
+                        }
                     },
                     {
                         "title": $translate('ENTRY_TYPE'),
@@ -1065,7 +1094,7 @@ define(['js/app'], function (myApp) {
                     break;
                 }
             }
-        }
+        };
 
         ///////players panel///////////////////// start
         vm.getLoggedInPlayer = function (isContinue) {
@@ -1260,7 +1289,7 @@ define(['js/app'], function (myApp) {
                     );
                 }
                 if (!vm.selectedPlatform) {
-                    var objAllPlatform = { _id: "_allPlatform" };
+                    var objAllPlatform = {_id: "_allPlatform"};
                     vm.selectedPlatform = objAllPlatform;
                 }
                 vm.selectedPlatformID = vm.selectedPlatform._id;
@@ -1296,47 +1325,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getProposalTypeOptionValue = function (proposalType) {
-            switch (proposalType.name) {
-                case "UpdatePlayerInfo":
-                case "UpdatePlayerCredit":
-                case "FixPlayerCreditTransfer":
-                case "UpdatePlayerEmail":
-                case "UpdatePlayerPhone":
-                case "UpdatePlayerBankInfo":
-                case "AddPlayerRewardTask":
-                case "UpdatePartnerBankInfo":
-                case "UpdatePartnerPhone":
-                case "UpdatePartnerEmail":
-                case "UpdatePartnerInfo":
-                    return $translate("Player Proposal");
-                case "ManualPlayerTopUp":
-                case "PlayerAlipayTopUp":
-                case "PlayerTopUp":
-                    return $translate("Topup Proposal");
-                case "PlayerBonus":
-                case "PartnerBonus":
-                    return $translate("Bonus Proposal");
-                case "PlayerLevelUp":
-                case "PlatformTransactionReward":
-                case "PlayerTopUpReturn":
-                case "PlayerConsumptionIncentive":
-                case "PartnerTopUpReturn":
-                case "PlayerTopUpReward":
-                case "PlayerReferralReward":
-                case "PlayerConsumptionReturn":
-                case "FirstTopUp":
-                case "PlayerRegistrationReward":
-                case "FullAttendance":
-                case "PartnerConsumptionReturn":
-                case "PartnerIncentiveReward":
-                case "PartnerReferralReward":
-                case "GameProviderReward":
-                    return $translate("Reward Proposal");
-                case "PlayerConsumptionReturnFix":
-                    return $translate("ReturnFix Proposal");
-                default:
-                    return $translate("Others");
-            }
+            var result = utilService.getProposalGroupValue(proposalType);
+            return $translate(result);
         };
 
         vm.getProposalEntryTypeList = function () {

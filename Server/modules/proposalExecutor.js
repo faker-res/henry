@@ -723,7 +723,7 @@ var proposalExecutor = {
          * execution function for player top up proposal type
          */
         executePlayerTopUp: function (proposalData, deferred) {
-            dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, proposalData.data.amount, "", constPlayerTopUpType.ONLINE, proposalData).then(
+            dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ONLINE, proposalData).then(
                 function (data) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
@@ -749,7 +749,7 @@ var proposalExecutor = {
          * execution function for player top up proposal type
          */
         executePlayerAlipayTopUp: function (proposalData, deferred) {
-            dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, proposalData.data.amount, "", constPlayerTopUpType.ALIPAY, proposalData).then(
+            dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ALIPAY, proposalData).then(
                 function (data) {
                     //todo::add top up notify here ???
                     // var wsMessageClient = serverInstance.getWebSocketMessageClient();
@@ -778,7 +778,7 @@ var proposalExecutor = {
         executeManualPlayerTopUp: function (proposalData, deferred) {
             //valid data
             if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, proposalData.data.amount, "", constPlayerTopUpType.MANUAL, proposalData).then(
+                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
                     function (data) {
                         SMSSender.sendByPlayerId(proposalData.data.playerId, constPlayerSMSSetting.MANUAL_TOPUP);
                         var wsMessageClient = serverInstance.getWebSocketMessageClient();
@@ -2054,6 +2054,12 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
                 }
                 return true;
             }
+            if (rewardTypeName == constProposalType.PLAYER_CONSUMPTION_RETURN_FIX) {
+                rewardType = {
+                    name: constProposalType.PLAYER_CONSUMPTION_RETURN_FIX
+                }
+                return true;
+            }
             return dbRewardType.getRewardType({name: rewardTypeName}).then(
                 data => (rewardType = (data || {})) || Q.reject({
                     name: "DBError",
@@ -2064,7 +2070,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
         }
     ).then(
         () => {
-            if (rewardTypeName != constRewardType.PLAYER_LEVEL_UP) {
+            if (rewardTypeName != constRewardType.PLAYER_LEVEL_UP && rewardTypeName != constProposalType.PLAYER_CONSUMPTION_RETURN_FIX) {
                 return dbRewardEvent.getRewardEvent({
                     platform: proposalData.data.platformId,
                     type: rewardType._id
@@ -2077,7 +2083,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
         () => {
             var rewardLog = {
                 platform: proposalData.data.platformId,
-                player: proposalData.data.playerId,
+                player: proposalData.data.playerId || proposalData.data.playerObjId,
                 rewardType: rewardType._id,
                 rewardTypeName: rewardTypeName,
                 amount: proposalData.data.unlockBonusAmount || proposalData.data.rewardAmount || proposalData.data.amount || 0,

@@ -4929,7 +4929,7 @@ var dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce) {
+    applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
         if (amount < 100) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
@@ -5105,7 +5105,7 @@ var dbPlayerInfo = {
                                 player.validCredit = newPlayerData.validCredit;
                                 //create proposal
                                 var proposalData = {
-                                    creator: {
+                                    creator: adminInfo || {
                                         type: 'player',
                                         name: player.name,
                                         id: playerId
@@ -5120,12 +5120,14 @@ var dbPlayerInfo = {
                                     amount: amount,
                                     bonusCredit: bonusDetail.credit,
                                     curAmount: player.validCredit,
+                                    remark: "",
+                                    lastSettleTime: new Date()
                                     //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                 };
                                 var newProposal = {
                                     creator: proposalData.creator,
                                     data: proposalData,
-                                    entryType: constProposalEntryType.CLIENT,
+                                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                 };
                                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
@@ -5258,20 +5260,34 @@ var dbPlayerInfo = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: "type",
             model: dbconfig.collection_proposalType
-        }).then(
+        }).lean().then(
             data => {
                 if (data) {
-                    data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                    data.data.lastSettleTime = new Date();
-                    data.data.remark = remark;
+                    // data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                    // data.data.lastSettleTime = new Date();
+                    // data.data.remark = remark;
                     if (!bSuccess) {
                         return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                            () => data.save()
+                            () => dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: data._id, createTime: data.createTime},
+                                {
+                                    status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
+                                    "data.lastSettleTime" : new Date(),
+                                    "data.remark" : remark
+                                }
+                            )
                         );
                     }
                     else {
                         SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
-                        return data.save();
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: data._id, createTime: data.createTime},
+                            {
+                                status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
+                                "data.lastSettleTime" : new Date(),
+                                "data.remark" : remark
+                            }
+                        );
                     }
                 }
                 else {
@@ -5290,10 +5306,29 @@ var dbPlayerInfo = {
                 data => {
                     if (data && data.type && data.status != constProposalStatus.SUCCESS
                         && data.status != constProposalStatus.FAIL) {
-                        data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                        data.data.lastSettleTime = new Date();
-                        return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                            () => data.save()
+                        var status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                        var lastSettleTime = new Date();
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: data._id, createTime: data.createTime},
+                            {
+                                status: status,
+                                "data.lastSettleTime" : lastSettleTime
+                            }
+                        ).then(
+                            updateProposal => {
+                                if(updateProposal && updateProposal.status != constProposalStatus.SUCCESS
+                                    && updateProposal.status != constProposalStatus.FAIL){
+                                    return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
+                                        () => dbconfig.collection_proposal.findOneAndUpdate(
+                                            {_id: data._id, createTime: data.createTime},
+                                            {
+                                                status: status,
+                                                "data.lastSettleTime" : lastSettleTime
+                                            }
+                                        )
+                                    );
+                                }
+                            }
                         );
                     }
                     else {
@@ -5809,12 +5844,12 @@ var dbPlayerInfo = {
                                         resData.forEach(type => {
                                             if (type.type == paymentData.merchants[i].topupType) {
                                                 bValidType = false;
-                                                if (status == 1) {
+                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED") {
                                                     type.status = status;
                                                 }
                                             }
                                         });
-                                        if (bValidType && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                        if (bValidType && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             resData.push({type: paymentData.merchants[i].topupType, status: status});
                                         }
                                     }
@@ -5841,7 +5876,7 @@ var dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType) {
-                                            resData.push({type: paymentData.data[i].bankTypeId, status: status});
+                                            resData.push({type: paymentData.data[i].bankTypeId, status: status, accountNumber: paymentData.data[i].accountNumber});
                                         }
                                     }
                                 }

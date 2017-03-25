@@ -15,6 +15,7 @@ var constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbUtil = require('./../modules/dbutility');
+var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 
 function socketActionReport(socketIO, socket) {
 
@@ -420,6 +421,12 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data && data.platform);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerAlmostLevelupReport, [data.platform, data.percentage, data.index, data.limit, data.sortCol, data.newSummary], actionName, isValidData);
         },
+
+        getConsumptionIntervalData: function getConsumptionIntervalData(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionIntervalData, [ObjectId(data.platform), data.days], actionName, isValidData);
+        }
     };
     socketActionReport.actions = this.actions;
 };

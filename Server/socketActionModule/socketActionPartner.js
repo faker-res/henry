@@ -10,6 +10,7 @@ var utility = require('./../modules/encrypt');
 var Chance = require('chance');
 var chance = new Chance();
 var constSystemParam = require('../const/constSystemParam');
+var constPartnerCommissionPeriod= require('./../const/constPartnerCommissionPeriod');
 
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -261,6 +262,10 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.platform && platform_id);
             socketUtil.emitter(self.socket, dbPartner.createPartnerCommissionConfig, [platform_id], actionName, isValidData);
         },
+        getPartnerCommissionPeriodConst: function getPartnerCommissionPeriodConst() {
+            var actionName = arguments.callee.name;
+            self.socket.emit("_" + actionName, {success: true, data: constPartnerCommissionPeriod});
+        },
 
         updatePartnerCommissionLevel: function updatePartnerCommissionLevel(data) {
             var actionName = arguments.callee.name;
@@ -284,6 +289,11 @@ function socketActionPartner(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dailyPlatformSettlement.manualPlatformPartnerCommissionSettlement, [ObjectId(data.platformId), true], actionName, isValidData);
+        },
+        startPlatformPartnerCommissionSettlement: function manualPlatformPartnerCommissionSettlement(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dailyPlatformSettlement.manualPlatformPartnerCommissionSettlement, [ObjectId(data.platformId)], actionName, isValidData);
         }
     };
 

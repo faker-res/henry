@@ -330,9 +330,25 @@ define(['js/app'], function (myApp) {
                 vm.proposalQuery = {};
                 vm.proposalQuery.status = 'all';
                 vm.proposalQuery.totalCount = 0;
-                vm.proposalQuery.proposalTypeId = 'all';
+                vm.proposalQuery.proposalTypeId = '';
                 utilService.actionAfterLoaded("#proposalTablePage", function () {
                     vm.commonInitTime(vm.proposalQuery, '#proposalReportQuery')
+
+                    $('select#selectProposalType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                    });
+                    var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
+                    $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multi).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multi).find('span').text(upText)
+                    });
+                    $("select#selectProposalType").multipleSelect("checkAll");
+
                     vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
                 })
                 $scope.safeApply();
@@ -697,30 +713,30 @@ define(['js/app'], function (myApp) {
             },
         }
 
-        vm.selectProposalType = function (id) {
-            vm.operSelPlatform = false;
-            $.each(vm.allProposalType, function (i, v) {
-                if (v._id == id) {
-                    vm.selectedProposalType = v;
-                    vm.selectedProposalTypeID = v._id;
-                    console.log('vm.selectedProposalType', vm.selectedProposalType);
-                    $scope.safeApply();
-                    return;
-                }
-            });
-        };
-        vm.selectProposalStatus = function (id) {
-            vm.operSelPlatform = false; // Check tomorow
-            console.log('vm.proposalStatusList:', vm.proposalStatusList);
-            $.each(vm.proposalStatusList, function (i, v) {
-                if (v._id == id) {
-                    vm.selectedProposalStatus = v;
-                    console.log('vm.selectProposalStatus..', vm.selectedProposalStatus);
-                    $scope.safeApply();
-                    return;
-                }
-            });
-        };
+        // vm.selectProposalType = function (id) {
+        //     vm.operSelPlatform = false;
+        //     $.each(vm.allProposalType, function (i, v) {
+        //         if (v._id == id) {
+        //             vm.selectedProposalType = v;
+        //             vm.selectedProposalTypeID = v._id;
+        //             console.log('vm.selectedProposalType', vm.selectedProposalType);
+        //             $scope.safeApply();
+        //             return;
+        //         }
+        //     });
+        // };
+        // vm.selectProposalStatus = function (id) {
+        //     vm.operSelPlatform = false; // Check tomorow
+        //     console.log('vm.proposalStatusList:', vm.proposalStatusList);
+        //     $.each(vm.proposalStatusList, function (i, v) {
+        //         if (v._id == id) {
+        //             vm.selectedProposalStatus = v;
+        //             console.log('vm.selectProposalStatus..', vm.selectedProposalStatus);
+        //             $scope.safeApply();
+        //             return;
+        //         }
+        //     });
+        // };
 
         vm.getPlatformProvider = function (id) {
             if (!id) return;
@@ -753,6 +769,13 @@ define(['js/app'], function (myApp) {
             var deferred = Q.defer();
             socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
                 vm.allProposalType = data.data;
+                vm.allProposalType.sort(
+                    function (a, b) {
+                        if (vm.getProposalTypeOptionValue(a) > vm.getProposalTypeOptionValue(b)) return 1;
+                        if (vm.getProposalTypeOptionValue(a) < vm.getProposalTypeOptionValue(b)) return -1;
+                        return 0;
+                    }
+                );
                 console.log('vm.allProposalType:', data.data);
                 // console.log('ConsumptionReturn', data.data.name["ConsumptionReturn"]);
                 deferred.resolve(true);
@@ -931,7 +954,7 @@ define(['js/app'], function (myApp) {
             var providersToSettle =
                 vm.curQueryOperation.endTime < midnightThisMorningSG ? []
                     : vm.curQueryOperation.providerId ? [getProviderWithObjId(vm.curQueryOperation.providerId)]
-                        : vm.allProviders;
+                    : vm.allProviders;
 
             var settlementDate = vm.curQueryOperation.endTime;
 
@@ -1078,12 +1101,12 @@ define(['js/app'], function (myApp) {
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'getProviderGameReport', sendData, function (data) {
                 var playerData = data.data.data ? data.data.data.map(item => {
-                        item.amount$ = parseFloat(item.amount).toFixed(2);
-                        item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
-                        item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                        item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
-                        return item;
-                    }) : [];
+                    item.amount$ = parseFloat(item.amount).toFixed(2);
+                    item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
+                    item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                    item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
+                    return item;
+                }) : [];
                 vm.drawProviderGameTable(playerData, id, data.data.size, data.data.summary, newSearch);
             });
         }
@@ -1162,11 +1185,11 @@ define(['js/app'], function (myApp) {
 
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             var summaryObj = summary ? {
-                    3: summary.times,
-                    4: summary.consumption,
-                    5: summary.validConsumption,
-                    6: summary.bonusAmount
-                } : {}
+                3: summary.times,
+                4: summary.consumption,
+                5: summary.validConsumption,
+                6: summary.bonusAmount
+            } : {}
             vm.gameTable[id] = utilService.createDatatableWithFooter('#' + id, tableOptions, summaryObj);
             vm[id].pageObj.init({maxCount: size}, newSearch);
 
@@ -1743,34 +1766,48 @@ define(['js/app'], function (myApp) {
 
             $('#playerPartnerTable').resize();
             $('#playerPartnerTable tbody').unbind('click');
-        },
+        }
 
-            // End - player partner report
+        // End - player partner report
 
 
-            //Start proposal report
-            vm.hideOtherConditions = function (id, thisVal, preservID) {
-                var te = $(id).find(".form-control");
-                if (thisVal) {
-                    te.not(preservID).prop("disabled", true).css("background-color", "#eee");
-                    te.find("input").not(preservID).prop("disabled", true).css("background-color", "#eee")
-                } else {
-                    te.not(preservID).prop("disabled", false).css("background-color", "#fff");
-                    te.find("input").not(preservID).prop("disabled", false).css("background-color", "#fff");
-                }
+        //Start proposal report
+        vm.hideOtherConditions = function (id, thisVal, preservID) {
+            var te = $(id).find(".form-control");
+            if (thisVal) {
+                te.not(preservID).prop("disabled", true).css("background-color", "#eee");
+                te.find("input").not(preservID).prop("disabled", true).css("background-color", "#eee")
+                te.find("button.ms-choice").prop("disabled", true).css("background-color", "#eee")
+            } else {
+                te.not(preservID).prop("disabled", false).css("background-color", "#fff");
+                te.find("input").not(preservID).prop("disabled", false).css("background-color", "#fff");
+                te.find("button.ms-choice").prop("disabled", false).css("background-color", "#fff");
             }
+        }
         vm.searchProposalRecord = function (newSearch) {
 
             var newproposalQuery = $.extend(true, {}, vm.proposalQuery);
-            if (newproposalQuery.proposalTypeId == "all") {
-                newproposalQuery.proposalTypeId = null;
-            }
+            // if (newproposalQuery.proposalTypeId == "all") {
+            //     newproposalQuery.proposalTypeId = null;
+            // }
+
+            var proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
+            newproposalQuery.proposalTypeId = [];
+            vm.allProposalType.filter(item => {
+                if (proposalNames.indexOf(item.name) > -1) {
+                    newproposalQuery.proposalTypeId.push(item._id);
+                }
+            });
             if (newproposalQuery.status == "all") {
                 newproposalQuery.status = null;
             }
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
-            var sendData = {
+            var sendData = newproposalQuery.proposalId ? {
+                proposalId: newproposalQuery.proposalId,
+                index: 0,
+                limit: 1,
+            } : {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 proposalTypeId: newproposalQuery.proposalTypeId,
@@ -2536,15 +2573,15 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
 
             var sumObj = summary ? {
-                    4: summary.totalTopUpTimes,
-                    5: summary.totalBonusTimes,
-                    6: summary.totalTopUpAmount,
-                    7: summary.totalBonusAmount,
-                    8: summary.topUpTimes,
-                    9: summary.bonusTimes,
-                    10: summary.topUpAmount,
-                    11: summary.bonusAmount,
-                } : {};
+                4: summary.totalTopUpTimes,
+                5: summary.totalBonusTimes,
+                6: summary.totalTopUpAmount,
+                7: summary.totalBonusAmount,
+                8: summary.topUpTimes,
+                9: summary.bonusTimes,
+                10: summary.topUpAmount,
+                11: summary.bonusAmount,
+            } : {};
 
             vm.partnerPlayerBonusTable = utilService.createDatatableWithFooter('#partnerPlayerBonusTable', tableOptions, sumObj);
             vm.partnerPlayerBonusQuery.pageObj.init({maxCount: size}, newSearch);
@@ -2938,7 +2975,7 @@ define(['js/app'], function (myApp) {
         vm.commonInitTime = function (obj, queryId) {
             if (!obj) return;
             obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
-            var lastMonth = utilService.setNDaysAgo(new Date(), 30);
+            var lastMonth = utilService.setNDaysAgo(new Date(), 1);
             var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
             obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
 
@@ -3051,6 +3088,10 @@ define(['js/app'], function (myApp) {
             return vm.allProviders.find(p => p._id === providerObjId);
         }
 
+        vm.getProposalTypeOptionValue = function (proposalType) {
+            var result = utilService.getProposalGroupValue(proposalType);
+            return $translate(result);
+        };
         $scope.$on('$viewContentLoaded', function () {
 
             setTimeout(

@@ -336,6 +336,8 @@
                                     th(rowspan=2) {{'platformFeeRate' | translate}}
                                     th(rowspan=2) {{'serviceFeeRate' | translate}}
                                     th(rowspan=2) {{'Settlement Period' | translate}}
+                                    th(rowspan=2) {{'minCommissionAmount' | translate}}
+                                    th(rowspan=2) {{'resetPeriod' | translate}}
                                     th(colspan=2) {{'Historical Bonus' | translate}}
                                 tr
                                     th {{'CommissionHistoryTimes' | translate}}
@@ -349,10 +351,11 @@
                                         span.percentage
                                             input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.serviceFeeRate')
                                     td
-                                        select.form-control(ng-model='vm.partnerCommission.showConfig.commissionPeriod', required)
-                                            option(value='day') {{'day' | translate}}
-                                            option(value='week') {{'week' | translate}}
-                                            option(value='month') {{'month' | translate}}
+                                        select.form-control(ng-model='vm.partnerCommission.showConfig.commissionPeriod', required， ng-options='a as a | translate for (a,b) in vm.partnerCommissionPeriodConst')
+                                    td
+                                        input.form-control(type='number', ng-model='vm.partnerCommission.showConfig.minCommissionAmount')
+                                    td
+                                        input.form-control(type='number', min=0 step=1, ng-model='vm.partnerCommission.showConfig.resetPeriod')
                                     td
                                         input.form-control(type='number', ng-model='vm.partnerCommission.showConfig.bonusCommissionHistoryTimes')
                                     td
@@ -366,9 +369,13 @@
                                         span.percentage
                                             input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.serviceFeeRate')
                                     td
-                                        label.form-control {{vm.partnerCommission.showConfig.commissionPeriod | translate}}
+                                        label.form-control(disabled) {{vm.partnerCommission.showConfig.commissionPeriod | translate}}
                                     td
-                                        label.form-control {{vm.partnerCommission.showConfig.bonusCommissionHistoryTimes}}
+                                        label.form-control(disabled) {{vm.partnerCommission.showConfig.minCommissionAmount}}
+                                    td
+                                        label.form-control(disabled) {{vm.partnerCommission.showConfig.resetPeriod}}
+                                    td
+                                        label.form-control(disabled) {{vm.partnerCommission.showConfig.bonusCommissionHistoryTimes}}
                                     td
                                         span.percentage
                                             input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.bonusRate')
