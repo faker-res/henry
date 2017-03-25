@@ -2477,9 +2477,10 @@ var dbPartner = {
                     partnerData.commissionHistory.push(commissionLevel);
                     if (settlementTimeToSave) {
                         profitAmount += partnerData.negativeProfitAmount;
-                        //todo::refactor the 100 here to config
-                        //todo::clear this negative amount if it is nagative for more than 3 month
-                        if (profitAmount > 100) {
+                        if( partnerData.negativeProfitAmount >= 0 && profitAmount < 0 ){
+                            partnerData.negativeProfitStartTime = endTime;
+                        }
+                        if (profitAmount > configData.minCommissionAmount) {
                             partnerData.negativeProfitAmount = 0;
                         }
                         else {
@@ -2499,8 +2500,7 @@ var dbPartner = {
                             bonusCommissionRate = configData.bonusRate;
                         }
                     }
-                    //todo::refactor the 100 here to config
-                    var commissionAmount = profitAmount > 100 ? profitAmount * (commissionRate + bonusCommissionRate) : 0;
+                    var commissionAmount = profitAmount > configData.minCommissionAmount ? profitAmount * (commissionRate + bonusCommissionRate) : 0;
                     var partnerProm = partnerData;
                     if (settlementTimeToSave) {
                         partnerData.lastCommissionSettleTime = settlementTimeToSave;
