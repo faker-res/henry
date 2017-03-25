@@ -1348,7 +1348,7 @@ define(['js/app'], function (myApp) {
 
             // If endTime is today, we will trigger the provider settlement(s) before fetching the report
             var providersToSettle =
-                endTime < midnightThisMorningSG ? []
+                endTime <= midnightThisMorningSG ? []
                     : vm.allProviders;
 
             settleProvidersInList(providersToSettle, endTime).then(
