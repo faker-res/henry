@@ -104,11 +104,13 @@ var proposal = {
      */
     createProposalWithTypeId: function (typeId, proposalData) {
         let deferred = Q.defer();
+        let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
 
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
         let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
-        let plyProm = Q.resolve();
+        let plyProm = dbconfig.collection_players.findOne({_id: playerId})
+            .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
 
         proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
@@ -150,6 +152,7 @@ var proposal = {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
+
                     //for consumption return request, skip proposal flow
                     if (proposalData.data && proposalData.data.bConsumptionReturnRequest) {
                         bExecute = true;
