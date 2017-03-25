@@ -1856,6 +1856,7 @@ define(['js/app'], function (myApp) {
                 tickLength: 0,
                 mode: "time",
                 minTickSize: [1, "minute"],
+                timezone: "browser"
             }
             socketService.$plotLine('#line-consumptionInterval', [data], newOptions);
             vm.bindHover('#line-consumptionInterval', function (obj) {
