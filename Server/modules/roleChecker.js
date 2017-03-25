@@ -222,7 +222,7 @@ var roleChecker = {
                 WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
                 RewardSettlement: ['startPlatformRewardEventSettlement'],
                 SettlementHistory: ['getSettlementHistory'],
-                PartnerCommissionSettlement: []
+                PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement']
             },
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
