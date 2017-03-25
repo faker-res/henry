@@ -5308,14 +5308,27 @@ var dbPlayerInfo = {
                         && data.status != constProposalStatus.FAIL) {
                         var status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
                         var lastSettleTime = new Date();
-                        return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                            () => dbconfig.collection_proposal.findOneAndUpdate(
-                                {_id: data._id, createTime: data.createTime},
-                                {
-                                    status: status,
-                                    "data.lastSettleTime" : lastSettleTime
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: data._id, createTime: data.createTime},
+                            {
+                                status: status,
+                                "data.lastSettleTime" : lastSettleTime
+                            }
+                        ).then(
+                            updateProposal => {
+                                if(updateProposal && updateProposal.status != constProposalStatus.SUCCESS
+                                    && updateProposal.status != constProposalStatus.FAIL){
+                                    return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
+                                        () => dbconfig.collection_proposal.findOneAndUpdate(
+                                            {_id: data._id, createTime: data.createTime},
+                                            {
+                                                status: status,
+                                                "data.lastSettleTime" : lastSettleTime
+                                            }
+                                        )
+                                    );
                                 }
-                            )
+                            }
                         );
                     }
                     else {

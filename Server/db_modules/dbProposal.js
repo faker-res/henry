@@ -42,13 +42,12 @@ var proposal = {
 
     /**
      * Create a new proposal with type name
+     * @param {string} platformId -
      * @param {string} typeName - Type name
      * @param {json} proposalData - The data of the proposal
      */
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();
-        // let bExecute = false;
-        // let proposalTypeData = null;
 
         let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
 
@@ -104,12 +103,14 @@ var proposal = {
      * @param {json} proposalData - The data of the proposal
      */
     createProposalWithTypeId: function (typeId, proposalData) {
-        var deferred = Q.defer();
+        let deferred = Q.defer();
 
         //get proposal type id
-        var ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
-        var ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
-        proposal.createProposalDataHandler(ptProm, ptpProm, proposalData, deferred);
+        let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
+        let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
+        let plyProm = Q.resolve();
+
+        proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
     },
 
@@ -125,7 +126,7 @@ var proposal = {
         let bExecute = false;
         let proposalTypeData = null;
 
-        Promise.all([ptProm, ptpProm, plyProm]).then(
+        Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
             function (data) {
                 if (data && data[0] && data[1]) {
@@ -1692,7 +1693,9 @@ var proposal = {
     },
 
     getPlatformRewardProposal: function (platform) {
-        var proposal = {};
+        let proposal = {};
+        let proposalTypeArr = [];
+
         return dbconfig.collection_proposalType.find(
             {
                 platformId: platform,

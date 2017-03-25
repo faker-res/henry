@@ -1804,7 +1804,8 @@
   "Reward task is not available":"奖励任务不存在",
   "Submitted proposal for approval":"成功提交提案",
 
-  "playerStatus" : "玩家状态"
+  "playerStatus" : "玩家状态",
+  "proposalPlayerLevel" : "玩家级别"
 }
 
 
