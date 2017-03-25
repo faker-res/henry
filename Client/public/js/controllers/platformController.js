@@ -527,6 +527,16 @@ define(['js/app'], function (myApp) {
             };
         }
 
+        vm.startPlatformPartnerCommissionSettlement = function ($event) {
+            var dom = $event.currentTarget
+            $(dom).prop('disabled', true)
+            socketService.$socket($scope.AppSocket, 'startPlatformPartnerCommissionSettlement',
+                {platformId: vm.selectedPlatform.id},
+                function (data) {
+                    console.log('partnercommission', data);
+                    $(dom).prop('disabled', false)
+                });
+        }
         //before update platform
         vm.befreUpdatePlatform = function () {
             var idStr = vm.showPlatform.department;
