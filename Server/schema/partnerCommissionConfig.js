@@ -36,8 +36,11 @@ var partnerCommissionConfigSchema = new Schema({
     //bonus commission times
     bonusCommissionHistoryTimes: Number,
     //bonus commission rate
-    bonusRate: Number
-
+    bonusRate: Number,
+    //minimum commission amount
+    minCommissionAmount: {type: Number, default: 0},
+    //reset period，number of days to clear negative value
+    resetPeriod: {type: Number, default: 0}
 });
 
 module.exports = partnerCommissionConfigSchema;

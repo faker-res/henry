@@ -1,3 +1,5 @@
+'use strict';
+
 var proposalFunc = function () {
 };
 module.exports = new proposalFunc();
@@ -40,19 +42,24 @@ var proposal = {
 
     /**
      * Create a new proposal with type name
+     * @param {string} platformId -
      * @param {string} typeName - Type name
      * @param {json} proposalData - The data of the proposal
      */
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
-        var deferred = Q.defer();
-        var bExecute = false;
-        var proposalTypeData = null;
-        //get proposal type id
-        var ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
-        //create process for proposal
-        var ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName);
+        let deferred = Q.defer();
 
-        proposal.createProposalDataHandler(ptProm, ptpProm, proposalData, deferred);
+        let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
+
+        //get proposal type id
+        let ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
+        //create process for proposal
+        let ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName);
+        // query related player info
+        let plyProm = dbconfig.collection_players.findOne({_id: playerId})
+                        .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+
+        proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
     },
 
@@ -96,23 +103,30 @@ var proposal = {
      * @param {json} proposalData - The data of the proposal
      */
     createProposalWithTypeId: function (typeId, proposalData) {
-        var deferred = Q.defer();
+        let deferred = Q.defer();
 
         //get proposal type id
-        var ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
-        var ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
-        proposal.createProposalDataHandler(ptProm, ptpProm, proposalData, deferred);
+        let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
+        let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
+        let plyProm = Q.resolve();
+
+        proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
     },
 
     /**
      * Get one proposal by _id
-     * @param {json} query - The query string
+     * @param {json} ptProm - Propm
+     * @param {json} ptpProm - Promise create proposal process
+     * @param {json} plyProm - Promise player info
+     * @param {json} proposalData - Proposal Data
+     * @param {json} deferred - Promise from parent
      */
-    createProposalDataHandler: function (ptProm, ptpProm, proposalData, deferred) {
-        var bExecute = false;
-        var proposalTypeData = null;
-        Q.all([ptProm, ptpProm]).then(
+    createProposalDataHandler: function (ptProm, ptpProm, plyProm, proposalData, deferred) {
+        let bExecute = false;
+        let proposalTypeData = null;
+
+        Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
             function (data) {
                 if (data && data[0] && data[1]) {
@@ -120,6 +134,7 @@ var proposal = {
                     proposalData.type = data[0]._id;
                     proposalData.data.platformId = data[0].platformId;
                     proposalData.mainType = constProposalMainType[data[0].name];
+
                     if (data[1]._id) {
                         proposalData.process = data[1]._id;
                         proposalData.status = constProposalStatus.PENDING;
@@ -156,6 +171,13 @@ var proposal = {
                             }
                         }
                     );
+
+                    // attach player status if available
+                    if(data[2]) {
+                        proposalData.data.playerStatus = data[2].status;
+                        proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
+                    }
+
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
                             //for online top up and player consumption return, there can be multiple pending proposals
@@ -1671,7 +1693,9 @@ var proposal = {
     },
 
     getPlatformRewardProposal: function (platform) {
-        var proposal = {};
+        let proposal = {};
+        let proposalTypeArr = [];
+
         return dbconfig.collection_proposalType.find(
             {
                 platformId: platform,

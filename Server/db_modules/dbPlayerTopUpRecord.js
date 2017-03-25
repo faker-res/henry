@@ -639,7 +639,7 @@ var dbPlayerTopUpRecord = {
                     amount: topupRequest.amount,
                     createTime: proposalData.createTime,
                     status: proposalData.status,
-                    topupDetail: merchantResponse.result,
+                    topupDetail: merchantResponse.result
                     //requestId: merchantResponse.result.requestId,
                     //result: merchantResponse.result,
                 };
