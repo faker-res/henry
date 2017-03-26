@@ -134,6 +134,7 @@ var proposalExecutor = {
         this.executions.executePartnerBonus.des = "Partner bonus";
         this.executions.executePlayerRegistrationReward.des = "Player Registration Reward";
         this.executions.executeManualUnlockPlayerReward.des = "Manual Unlock Player Reward";
+        this.executions.executePartnerCommission.des = "Partner commission";
 
         this.rejections.rejectProposal.des = "Reject proposal";
         this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -168,6 +169,7 @@ var proposalExecutor = {
         this.rejections.rejectPartnerBonus.des = "Reject Partner bonus";
         this.rejections.rejectPlayerRegistrationReward.des = "Reject Player Registration Reward";
         this.rejections.rejectManualUnlockPlayerReward.des = "Reject Manual Unlock Player Reward";
+        this.rejections.rejectPartnerCommission.des = "Reject Partner commission";
     },
 
     refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1594,9 +1596,29 @@ var proposalExecutor = {
             }
         },
 
-        executeManualUnlockPlayerReward: function (proposalData, deferred)  {
-            dbRewardTask.completeRewardTask(proposalData.data)
-                .then(deferred.resolve, deferred.reject);
+        executeManualUnlockPlayerReward: function (proposalData, deferred) {
+            dbRewardTask.completeRewardTask(proposalData.data).then(deferred.resolve, deferred.reject);
+        },
+
+        executePartnerCommission: function (proposalData, deferred) {
+            if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
+                dbconfig.collection_partner.findOneAndUpdate(
+                    {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformObjId},
+                    {
+                        lastCommissionSettleTime: proposalData.data.lastCommissionSettleTime,
+                        //
+                        negativeProfitAmount: proposalData.data.negativeProfitAmount,
+                        $push: {commissionHistory: proposalData.data.commissionLevel},
+                        negativeProfitStartTime: proposalData.data.negativeProfitStartTime,
+                        $inc: {credits: proposalData.data.commissionAmount}
+                    }
+                ).then(
+                    deferred.resolve, deferred.reject
+                );
+            }
+            else {
+                deferred.reject({name: "DataError", message: "Incorrect partner commission proposal data"});
+            }
         }
     },
 
@@ -1995,6 +2017,10 @@ var proposalExecutor = {
          * reject function for manual unlock player reward
          */
         rejectManualUnlockPlayerReward: function (proposalData, deferred) {
+            deferred.resolve("Proposal is rejected");
+        },
+
+        rejectPartnerCommission: function (proposalData, deferred) {
             deferred.resolve("Proposal is rejected");
         }
     }

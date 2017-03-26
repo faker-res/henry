@@ -178,8 +178,8 @@ var dbUtility = {
     },
 
     getLastMonthSGTime: function () {
-        var startTime = moment().tz('Asia/Singapore').subtract(1,'months').startOf('month').toDate();
-        var endTime = moment().tz('Asia/Singapore').subtract(1,'months').endOf('month').toDate();
+        var startTime = moment().tz('Asia/Singapore').subtract(1, 'months').startOf('month').toDate();
+        var endTime = moment().tz('Asia/Singapore').subtract(1, 'months').endOf('month').toDate();
         return {
             startTime: startTime,
             endTime: endTime
@@ -362,6 +362,51 @@ var dbUtility = {
         var day2 = moment(date2).tz('Asia/Singapore').toDate().toDateString();
 
         return day1 === day2;
+    },
+
+    isHalfMonthDaySG: function () {
+        var day = moment().tz('Asia/Singapore').toDate().getDate();
+        return day == 1 || day == 16;
+    },
+
+    getPastHalfMonthPeriodSG: function () {
+        let day = moment().tz('Asia/Singapore').toDate().getDate();
+        if (day >= 1 && day < 16) {
+            let startTime = moment().tz('Asia/Singapore').startOf("month").subtract(1, 'month').add(15, 'day').toDate();
+            let endTime = moment().tz('Asia/Singapore').startOf("month").toDate();
+            return {
+                startTime: startTime,
+                endTime: endTime
+            }
+        }
+        else if (day >= 16) {
+            let startTime = moment().tz('Asia/Singapore').startOf("month").toDate();
+            let endTime = moment().tz('Asia/Singapore').startOf("month").add(15, 'day').toDate();
+            return {
+                startTime: startTime,
+                endTime: endTime
+            }
+        }
+    },
+
+    getCurrentHalfMonthPeriodSG: function () {
+        let day = moment().tz('Asia/Singapore').toDate().getDate();
+        if (day >= 1 && day < 16) {
+            let startTime = moment().tz('Asia/Singapore').startOf("month").toDate();
+            let endTime = moment().tz('Asia/Singapore').startOf("month").add(15, 'day').toDate();
+            return {
+                startTime: startTime,
+                endTime: endTime
+            }
+        }
+        else if (day >= 16) {
+            let startTime = moment().tz('Asia/Singapore').startOf("month").add(15, 'day').toDate();
+            let endTime = moment().tz('Asia/Singapore').endOf("month").toDate();
+            return {
+                startTime: startTime,
+                endTime: endTime
+            }
+        }
     },
 
     /**

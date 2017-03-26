@@ -764,7 +764,8 @@ define(['js/app'], function (myApp) {
             );
             vm.queryProposal.pageObj.init({maxCount: size}, newSearch);
             $('#proposalDataTable').empty();
-            vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {7: (summary ? summary.amount : 0)});
+            //no idea why is 7, and 7 is not working, so I change it to 8
+            vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {8: (summary ? summary.amount : 0)});
             // utilService.setDataTablePageInput('proposalDataTable', vm.proposalTable, $translate);
 
             //update select all in table
