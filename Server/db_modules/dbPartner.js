@@ -20,6 +20,7 @@ const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
+const constPartnerCommissionPeriod = require('../const/constPartnerCommissionPeriod');
 
 var dbPartner = {
 
@@ -267,7 +268,7 @@ var dbPartner = {
             }
         ).then(
             function (parentObj) {
-                if(parentObj){
+                if (parentObj) {
                     return dbPartner.createPartnerDomain(partnerdata).then(
                         () => {
                             partnerdata.depthInTree = parentObj.depthInTree + 1;
@@ -2256,26 +2257,49 @@ var dbPartner = {
                     var settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
                     var bMatchPeriod = true;
                     switch (configData.commissionPeriod) {
-                        case constPlayerLevelPeriod.WEEK:
+                        case constPartnerCommissionPeriod.WEEK:
                             if (dbUtil.isFirstDayOfWeekSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentWeekSGTime() : dbUtil.getLastWeekSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentWeekSGTime();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
-                        case constPlayerLevelPeriod.MONTH:
+                        case constPartnerCommissionPeriod.HALF_MONTH:
+                            if (dbUtil.isHalfMonthDaySG()) {
+                                settleTime = isToday ? dbUtil.getCurrentHalfMonthPeriodSG() : dbUtil.getPastHalfMonthPeriodSG();
+                            }
+                            else {
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentHalfMonthPeriodSG();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
+                            }
+                            break;
+                        case constPartnerCommissionPeriod.MONTH:
                             if (dbUtil.isFirstDayOfMonthSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentMonthSGTIme() : dbUtil.getLastMonthSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentMonthSGTIme();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
                     }
                     //if period does not match, no need to settle
                     if (!bMatchPeriod) {
-                        return;
+                        return Q.reject({name: "DataError", message: "It's not settlement day"});
                     }
 
                     //if there is commission config, start settlement
@@ -2481,7 +2505,7 @@ var dbPartner = {
                     partnerData.commissionHistory.push(commissionLevel);
                     if (settlementTimeToSave) {
                         profitAmount += partnerData.negativeProfitAmount;
-                        if( partnerData.negativeProfitAmount >= 0 && profitAmount < 0 ){
+                        if (partnerData.negativeProfitAmount >= 0 && profitAmount < 0) {
                             partnerData.negativeProfitStartTime = endTime;
                         }
                         if (profitAmount > configData.minCommissionAmount) {
