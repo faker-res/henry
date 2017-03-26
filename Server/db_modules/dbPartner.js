@@ -2358,6 +2358,9 @@ var dbPartner = {
         var totalValidAmount = 0;
         var totalBonusAmount = 0;
         var maxCommissionLevel = 0;
+        var totalTopUpAmount = 0;
+        var operationAmount = 0;
+        var totalPlayerBonusAmount = 0;
         //get all partner players consumption data
         return dbconfig.collection_players.find({platform: platformObjId, partner: partnerObjId}).lean().then(
             players => {
@@ -2427,7 +2430,7 @@ var dbPartner = {
                                 return dbconfig.collection_proposal.aggregate(
                                     {
                                         $match: {
-                                            platform: platformObjId,
+                                            // platform: platformObjId,
                                             type: bonusType._id,
                                             "data.playerObjId": {$in: playerObjIds},
                                             createTime: {
@@ -2440,7 +2443,7 @@ var dbPartner = {
                                     {
                                         $group: {
                                             _id: "$platform",
-                                            totalBonusAmount: {$sum: "$amount"}
+                                            totalBonusAmount: {$sum: "$data.amount"}
                                         }
                                     }
                                 );
@@ -2459,13 +2462,13 @@ var dbPartner = {
                     var rewardInfo = data[1];
                     var topUpInfo = data[2];
                     var bonusInfo = data[3];
-                    var operationAmount = 0;
-                    let totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
-                    let totalBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
+                    // var operationAmount = 0;
+                    totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
+                    totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
                     if (consumptionInfo && consumptionInfo[0]) {
                         totalValidAmount = consumptionInfo[0].totalValidAmount;
                         totalBonusAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
-                        operationAmount = totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
+                        operationAmount = Math.abs(consumptionInfo[0].totalBonusAmount);//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
                         if (configData && configData.platformFeeRate > 0) {
                             platformFee = operationAmount * configData.platformFeeRate;
                         }
@@ -2474,9 +2477,9 @@ var dbPartner = {
                         totalRewardAmount = rewardInfo[0].totalRewardAmount;
                     }
                     if (configData && configData.serviceFeeRate > 0) {
-                        serviceFee = (totalTopUpAmount + totalBonusAmount) * configData.serviceFeeRate;
+                        serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                     }
-                    // console.log( totalTopUpAmount, totalBonusAmount, configData.serviceFeeRate );
+                    // console.log( totalTopUpAmount, totalPlayerBonusAmount, configData.serviceFeeRate );
                     profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
                     //get partner active player number
@@ -2581,6 +2584,8 @@ var dbPartner = {
                             bonusCommissionRate: bonusCommissionRate,
                             totalValidAmount: totalValidAmount,
                             totalBonusAmount: totalBonusAmount,
+                            totalPlayerBonusAmount: totalPlayerBonusAmount,
+                            totalTopUpAmount: totalTopUpAmount,
                             commissionAmount: commissionAmount,
                             lastCommissionSettleTime: startTime
                         },
@@ -2813,6 +2818,8 @@ var dbPartner = {
                                 totalRewardAmount: {$sum: "$totalRewardAmount"},
                                 totalValidAmount: {$sum: "$totalValidAmount"},
                                 totalBonusAmount: {$sum: "$totalBonusAmount"},
+                                totalTopUpAmount: {$sum: "$totalTopUpAmount"},
+                                totalPlayerBonusAmount: {$sum: "$totalPlayerBonusAmount"},
                                 totalCommissionAmount: {$sum: "$commissionAmount"},
                                 totalCommissionOfChildren: {$sum: "$totalCommissionOfChildren"}
                             }
@@ -2824,8 +2831,10 @@ var dbPartner = {
                         data.forEach(
                             eachRecord => {
                                 if (eachRecord) {
-                                    eachRecord.operationFee = eachRecord.totalValidAmount + eachRecord.totalBonusAmount;
+                                    eachRecord.operationFee = eachRecord.totalBonusAmount;
                                     eachRecord.marketCost = eachRecord.totalRewardAmount + eachRecord.platformFee + eachRecord.serviceFee;
+                                    // eachRecord.totalTopUpAmount = 0;
+                                    // eachRecord.totalBonusAmount = 0;
                                     var a = dbconfig.collection_partner.findOne({_id: eachRecord._id.partner}).then(
                                         partner => {
                                             eachRecord._id.partnerName = partner.partnerName;
@@ -2842,8 +2851,8 @@ var dbPartner = {
                                             //         console.log(err);
                                             //     }
                                             // );
-                                            eachRecord.totalTopUpAmount = 0;
-                                            eachRecord.totalBonusAmount = 0;
+                                            // eachRecord.totalTopUpAmount = 0;
+                                            // eachRecord.totalBonusAmount = 0;
                                             return eachRecord;
                                         });
                                     result.push(a);
@@ -2875,6 +2884,7 @@ var dbPartner = {
                                         summary.profitAmount += item.profitAmount;
                                         summary.serviceFee += item.serviceFee;
                                         summary.totalBonusAmount += item.totalBonusAmount;
+                                        summary.totalPlayerBonusAmount += item.totalPlayerBonusAmount;
                                         summary.totalTopUpAmount += item.totalTopUpAmount;
                                         summary.totalCommissionAmount += item.totalCommissionAmount;
                                         summary.totalCommissionOfChildren += item.totalCommissionOfChildren;
@@ -2940,6 +2950,7 @@ var dbPartner = {
                     commission => {
                         total.totalValidAmount += commission.totalValidAmount;
                         total.totalBonusAmount += commission.totalBonusAmount;
+                        total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
                         total.operationAmount += commission.operationAmount;
                         total.totalRewardAmount += commission.totalRewardAmount;
                         total.serviceFee += commission.serviceFee;
@@ -2999,7 +3010,53 @@ var dbPartner = {
             }
         );
 
-        return Q.all([consumptionProm, rewardProm]).then(
+        var topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
+            {
+                $match: {
+                    platformId: platformObjId,
+                    playerId: playerObjId,
+                    createTime: {
+                        $gte: startTime,
+                        $lt: endTime
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$platformId",
+                    totalTopUpAmount: {$sum: "$amount"}
+                }
+            }
+        );
+
+        var bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+            bonusType => {
+                if(bonusType){
+                    return dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                // platform: platformObjId,
+                                type: bonusType._id,
+                                "data.playerObjId": playerObjId,
+                                createTime: {
+                                    $gte: startTime,
+                                    $lt: endTime
+                                },
+                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$platform",
+                                totalBonusAmount: {$sum: "$data.amount"}
+                            }
+                        }
+                    );
+                }
+            }
+        );
+
+        return Q.all([consumptionProm, rewardProm, topUpProm, bonusProm]).then(
             data => {
                 //calculate profit amount
                 var totalValidAmount = 0;
@@ -3012,17 +3069,21 @@ var dbPartner = {
 
                 var consumptionInfo = data[0];
                 var rewardInfo = data[1];
+                var topUpInfo = data[2];
+                var bonusInfo = data[3];
                 var operationAmount = 0;
+                var totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
+                var totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
                 if (consumptionInfo && consumptionInfo[0]) {
                     totalValidAmount = consumptionInfo[0].totalValidAmount;
-                    totalBonusAmount = consumptionInfo[0].totalBonusAmount;
-                    operationAmount = consumptionInfo[0].totalValidAmount - consumptionInfo[0].totalBonusAmount;
+                    totalBonusAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
+                    operationAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
                 }
                 if (rewardInfo && rewardInfo[0]) {
                     totalRewardAmount = rewardInfo[0].totalRewardAmount;
                 }
                 if (configData && configData.serviceFeeRate > 0) {
-                    serviceFee = operationAmount * configData.serviceFeeRate;
+                    serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                 }
                 if (configData && configData.platformFeeRate > 0) {
                     platformFee = operationAmount * configData.platformFeeRate;
