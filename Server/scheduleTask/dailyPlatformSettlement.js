@@ -276,16 +276,18 @@ var dailyPlatformSettlement = {
                     error: error
                 })
             )
-        ).then(
-            //settlement for partner children commission
-            () => dbPartner.startPlatformPartnerChildrenCommissionSettlement(platformObjId, bUpdate, isToday).catch(
-                error => Q.reject({
-                    name: "DBError",
-                    message: "Error performing manual platform partner children commission settlement!",
-                    error: error
-                })
-            )
         );
+        //todo::enable partner children commission later
+        //     .then(
+        //     //settlement for partner children commission
+        //     () => dbPartner.startPlatformPartnerChildrenCommissionSettlement(platformObjId, bUpdate, isToday).catch(
+        //         error => Q.reject({
+        //             name: "DBError",
+        //             message: "Error performing manual platform partner children commission settlement!",
+        //             error: error
+        //         })
+        //     )
+        // );
     },
 
     /*
