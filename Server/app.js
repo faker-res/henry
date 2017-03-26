@@ -148,6 +148,13 @@ clientApiInstances.createSMSAPI().then(
     }
 );
 
+// var dbUtil = require("./modules/dbutility");
+//
+// var test1 = dbUtil.getCurrentHalfMonthPeriodSG();
+// console.log("current", test1);
+// var test2 = dbUtil.getPastHalfMonthPeriodSG();
+// console.log("past", test2);
+
 //todo::temp code to be deleted
 //if( process.env.NODE_ENV === 'development' ){
 ////config socket.io with sticky-session

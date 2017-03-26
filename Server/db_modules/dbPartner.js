@@ -20,6 +20,7 @@ const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
+const constPartnerCommissionPeriod = require('../const/constPartnerCommissionPeriod');
 
 var dbPartner = {
 
@@ -267,7 +268,7 @@ var dbPartner = {
             }
         ).then(
             function (parentObj) {
-                if(parentObj){
+                if (parentObj) {
                     return dbPartner.createPartnerDomain(partnerdata).then(
                         () => {
                             partnerdata.depthInTree = parentObj.depthInTree + 1;
@@ -2137,7 +2138,7 @@ var dbPartner = {
         //最近充值时间，最近兑奖时间，充值总次数，兑奖总次数，总充值额，总兑奖额，充值次数（查询其间），兑奖次数，充值额，兑奖额
         var bonusProposalProm = dbconfig.collection_proposal.find({
             type: bonusProposalType._id,
-            status: constProposalStatus.SUCCESS,
+            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]},
             "data.playerId": {$in: [playerObj.playerId, String(playerObj._id), playerObj._id]}
         }).sort({createTime: -1}).lean();
         var latestTopUpRecordProm = dbconfig.collection_playerTopUpRecord.find({
@@ -2256,26 +2257,49 @@ var dbPartner = {
                     var settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
                     var bMatchPeriod = true;
                     switch (configData.commissionPeriod) {
-                        case constPlayerLevelPeriod.WEEK:
+                        case constPartnerCommissionPeriod.WEEK:
                             if (dbUtil.isFirstDayOfWeekSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentWeekSGTime() : dbUtil.getLastWeekSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentWeekSGTime();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
-                        case constPlayerLevelPeriod.MONTH:
+                        case constPartnerCommissionPeriod.HALF_MONTH:
+                            if (dbUtil.isHalfMonthDaySG()) {
+                                settleTime = isToday ? dbUtil.getCurrentHalfMonthPeriodSG() : dbUtil.getPastHalfMonthPeriodSG();
+                            }
+                            else {
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentHalfMonthPeriodSG();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
+                            }
+                            break;
+                        case constPartnerCommissionPeriod.MONTH:
                             if (dbUtil.isFirstDayOfMonthSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentMonthSGTIme() : dbUtil.getLastMonthSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentMonthSGTIme();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
                     }
                     //if period does not match, no need to settle
                     if (!bMatchPeriod) {
-                        return;
+                        return; //Q.reject({name: "DataError", message: "It's not settlement day"});
                     }
 
                     //if there is commission config, start settlement
@@ -2381,7 +2405,7 @@ var dbPartner = {
                     var topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
                         {
                             $match: {
-                                platform: platformObjId,
+                                platformId: platformObjId,
                                 playerId: {$in: playerObjIds},
                                 createTime: {
                                     $gte: startTime,
@@ -2391,28 +2415,35 @@ var dbPartner = {
                         },
                         {
                             $group: {
-                                _id: "$platform",
+                                _id: "$platformId",
                                 totalTopUpAmount: {$sum: "$amount"}
                             }
                         }
                     );
 
-                    var bonusProm = dbconfig.collection_proposal.aggregate(
-                        {
-                            $match: {
-                                platform: platformObjId,
-                                "data.playerObjId": {$in: playerObjIds},
-                                createTime: {
-                                    $gte: startTime,
-                                    $lt: endTime
-                                },
-                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]}
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: "$platform",
-                                totalBonusAmount: {$sum: "$amount"}
+                    var bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+                        bonusType => {
+                            if(bonusType){
+                                return dbconfig.collection_proposal.aggregate(
+                                    {
+                                        $match: {
+                                            platform: platformObjId,
+                                            type: bonusType._id,
+                                            "data.playerObjId": {$in: playerObjIds},
+                                            createTime: {
+                                                $gte: startTime,
+                                                $lt: endTime
+                                            },
+                                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]}
+                                        }
+                                    },
+                                    {
+                                        $group: {
+                                            _id: "$platform",
+                                            totalBonusAmount: {$sum: "$amount"}
+                                        }
+                                    }
+                                );
                             }
                         }
                     );
@@ -2429,6 +2460,8 @@ var dbPartner = {
                     var topUpInfo = data[2];
                     var bonusInfo = data[3];
                     var operationAmount = 0;
+                    let totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
+                    let totalBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
                     if (consumptionInfo && consumptionInfo[0]) {
                         totalValidAmount = consumptionInfo[0].totalValidAmount;
                         totalBonusAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
@@ -2440,10 +2473,10 @@ var dbPartner = {
                     if (rewardInfo && rewardInfo[0]) {
                         totalRewardAmount = rewardInfo[0].totalRewardAmount;
                     }
-                    if (configData && configData.serviceFeeRate > 0 && topUpInfo && bonusInfo && topUpInfo[0] && bonusInfo[0]) {
-                        serviceFee = (topUpInfo[0].totalTopUpAmount + bonusInfo[0].totalBonusAmount) * configData.serviceFeeRate;
+                    if (configData && configData.serviceFeeRate > 0) {
+                        serviceFee = (totalTopUpAmount + totalBonusAmount) * configData.serviceFeeRate;
                     }
-
+                    // console.log( totalTopUpAmount, totalBonusAmount, configData.serviceFeeRate );
                     profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
                     //get partner active player number
@@ -2481,8 +2514,11 @@ var dbPartner = {
                     partnerData.commissionHistory.push(commissionLevel);
                     if (settlementTimeToSave) {
                         profitAmount += partnerData.negativeProfitAmount;
-                        if( partnerData.negativeProfitAmount >= 0 && profitAmount < 0 ){
+                        if (partnerData.negativeProfitAmount >= 0 && profitAmount < 0) {
                             partnerData.negativeProfitStartTime = endTime;
+                        }
+                        if (profitAmount >= 0) {
+                            partnerData.negativeProfitStartTime = null;
                         }
                         if (profitAmount > configData.minCommissionAmount) {
                             partnerData.negativeProfitAmount = 0;
@@ -2495,7 +2531,8 @@ var dbPartner = {
                     if (configData && configData.bonusCommissionHistoryTimes && configData.bonusCommissionHistoryTimes > 0
                         && configData.bonusRate && configData.bonusRate > 0 && commissionLevel == maxCommissionLevel) {
                         var bValid = true;
-                        for (var i = partnerData.commissionHistory.length - 1; i >= 0; i--) {
+                        let times = Math.max(0, (partnerData.commissionHistory.length-configData.bonusCommissionHistoryTimes));
+                        for (var i = partnerData.commissionHistory.length - 1; i >= times; i--) {
                             if (partnerData.commissionHistory[i] != maxCommissionLevel) {
                                 bValid = false;
                             }
@@ -2507,11 +2544,24 @@ var dbPartner = {
                     var commissionAmount = profitAmount > configData.minCommissionAmount ? profitAmount * (commissionRate + bonusCommissionRate) : 0;
                     var partnerProm = partnerData;
                     if (settlementTimeToSave) {
-                        partnerData.lastCommissionSettleTime = settlementTimeToSave;
-                        partnerData.credits += commissionAmount;
-                        //update partner data
-                        //todo::create proposal here
-                        partnerProm = partnerData.save();
+                        //partnerData.lastCommissionSettleTime = settlementTimeToSave;
+                        //partnerData.credits += commissionAmount;
+                        //create proposal for partner commission
+                        var proposalData = {
+                            entryType: constProposalEntryType.SYSTEM,
+                            userType: constProposalUserType.PARTNERS,
+                            data: {
+                                partnerObjId: partnerData._id,
+                                platformObjId: partnerData.platform,
+                                partnerName: partnerData.partnerName,
+                                lastCommissionSettleTime: settlementTimeToSave,
+                                commissionAmount: commissionAmount,
+                                negativeProfitAmount: partnerData.negativeProfitAmount,
+                                commissionLevel: commissionLevel,
+                                negativeProfitStartTime: partnerData.negativeProfitStartTime
+                            }
+                        };
+                        partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
                     }
                     //log this commission record
                     var recordProm = dbUtil.upsertForShard(
@@ -2564,20 +2614,43 @@ var dbPartner = {
                     var bMatchPeriod = true;
 
                     switch (configData.commissionPeriod) {
-                        case constPlayerLevelPeriod.WEEK:
+                        case constPartnerCommissionPeriod.WEEK:
                             if (dbUtil.isFirstDayOfWeekSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentWeekSGTime() : dbUtil.getLastWeekSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentWeekSGTime();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
-                        case constPlayerLevelPeriod.MONTH:
+                        case constPartnerCommissionPeriod.HALF_MONTH:
+                            if (dbUtil.isHalfMonthDaySG()) {
+                                settleTime = isToday ? dbUtil.getCurrentHalfMonthPeriodSG() : dbUtil.getPastHalfMonthPeriodSG();
+                            }
+                            else {
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentHalfMonthPeriodSG();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
+                            }
+                            break;
+                        case constPartnerCommissionPeriod.MONTH:
                             if (dbUtil.isFirstDayOfMonthSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentMonthSGTIme() : dbUtil.getLastMonthSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentMonthSGTIme();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
                     }
