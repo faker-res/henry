@@ -379,7 +379,7 @@ var proposal = {
     updateBonusProposal: function (proposalId, status, bonusId, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
-                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING) && proposalData.data && proposalData.data.bonusId == bonusId) {
+                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING) && proposalData.data && proposalData.data.bonusId == bonusId) {
                     return proposalData;
                 }
                 else {

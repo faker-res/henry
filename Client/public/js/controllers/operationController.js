@@ -561,6 +561,9 @@ define(['js/app'], function (myApp) {
                     if (v.mainType == "PlayerBonus" && v.data.bankTypeId) {
                         v.bankType$ = vm.allBankTypeList[v.data.bankTypeId]
                     }
+                    if (v.mainType == "PlayerBonus" && v.status == "Approved") {
+                        v.status = "approved";
+                    }
                     // v.remark$ = v.remark.map(item => {
                     //     return item ? item.content : '';
                     // });
@@ -716,6 +719,7 @@ define(['js/app'], function (myApp) {
                         "data": 'process',
                         render: function (data, type, row) {
                             var text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            var text = text == "approved" ? "Approved" : text;
                             var $link = $('<a>').text(text);
                             return $link.prop('outerHTML');
                         },
@@ -1389,7 +1393,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data, callback) {
                 delete data.data.APPROVED;
                 delete data.data.REJECTED;
-                delete data.data.PROCESSING;
+                //delete data.data.PROCESSING;
                 vm.proposalStatusList = data.data;
                 console.log('vm.getAllProposalStatus:', vm.proposalStatusList);
                 deferred.resolve(true);
