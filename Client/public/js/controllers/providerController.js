@@ -101,9 +101,9 @@ define(['js/app'], function (myApp) {
         };
 
         var providerStatusColorObj = {
-            1: 'text-success',
-            2: 'text-warning',
-            3: 'text-danger'
+            1: 'colorLimegreen',
+            2: 'colorYellow',
+            3: 'colorRed'
         }
         vm.createProviderNode = function (v) {
             var colorClass = (v && v.status) ? providerStatusColorObj[v.status] : '';

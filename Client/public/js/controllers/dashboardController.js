@@ -424,7 +424,7 @@ define(['js/app'], function (myApp) {
 
                             //common
                             $('.day .which').prepend($translate('Today') + ' ');
-                            $('.week .which').prepend($translate('This Week') + ' ');
+                            $('.week .which').prepend($translate('7 Days') + ' ');
                             $('.dashboardDiv .statement').html($translate('View Details'));
 
                             $('.dashboardDiv a.href').click(function () {
