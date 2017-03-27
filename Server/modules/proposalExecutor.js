@@ -134,6 +134,7 @@ var proposalExecutor = {
         this.executions.executePartnerBonus.des = "Partner bonus";
         this.executions.executePlayerRegistrationReward.des = "Player Registration Reward";
         this.executions.executeManualUnlockPlayerReward.des = "Manual Unlock Player Reward";
+        this.executions.executePartnerCommission.des = "Partner commission";
 
         this.rejections.rejectProposal.des = "Reject proposal";
         this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -168,6 +169,7 @@ var proposalExecutor = {
         this.rejections.rejectPartnerBonus.des = "Reject Partner bonus";
         this.rejections.rejectPlayerRegistrationReward.des = "Reject Player Registration Reward";
         this.rejections.rejectManualUnlockPlayerReward.des = "Reject Manual Unlock Player Reward";
+        this.rejections.rejectPartnerCommission.des = "Reject Partner commission";
     },
 
     refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1594,9 +1596,29 @@ var proposalExecutor = {
             }
         },
 
-        executeManualUnlockPlayerReward: function (proposalData, deferred)  {
-            dbRewardTask.completeRewardTask(proposalData.data)
-                .then(deferred.resolve, deferred.reject);
+        executeManualUnlockPlayerReward: function (proposalData, deferred) {
+            dbRewardTask.completeRewardTask(proposalData.data).then(deferred.resolve, deferred.reject);
+        },
+
+        executePartnerCommission: function (proposalData, deferred) {
+            if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
+                dbconfig.collection_partner.findOneAndUpdate(
+                    {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformObjId},
+                    {
+                        lastCommissionSettleTime: proposalData.data.lastCommissionSettleTime,
+                        //
+                        negativeProfitAmount: proposalData.data.negativeProfitAmount,
+                        $push: {commissionHistory: proposalData.data.commissionLevel},
+                        negativeProfitStartTime: proposalData.data.negativeProfitStartTime,
+                        $inc: {credits: proposalData.data.commissionAmount}
+                    }
+                ).then(
+                    deferred.resolve, deferred.reject
+                );
+            }
+            else {
+                deferred.reject({name: "DataError", message: "Incorrect partner commission proposal data"});
+            }
         }
     },
 
@@ -1753,55 +1775,57 @@ var proposalExecutor = {
          * reject function for partner consumption return reward
          */
         rejectPlayerConsumptionReturn: function (proposalData, deferred) {
-            //clean record or reset amount
-            if (proposalData && proposalData.data && proposalData.data.summaryIds) {
-                dbconfig.collection_playerConsumptionSummary.find(
-                    {_id: {$in: proposalData.data.summaryIds}}
-                ).lean().then(
-                    summaryRecords => {
-                        if (summaryRecords && summaryRecords.length > 0) {
-                            var summaryProms = summaryRecords.map(
-                                summary => {
-                                    dbconfig.collection_playerConsumptionSummary.findOne({
-                                        platformId: summary.platformId,
-                                        playerId: summary.playerId,
-                                        gameType: summary.gameType,
-                                        summaryDay: summary.summaryDay,
-                                        bDirty: false
-                                    }).then(
-                                        cleanRecord => {
-                                            if (cleanRecord) {
-                                                //recover amount
-                                                cleanRecord.amount = cleanRecord.amount + summary.amount;
-                                                cleanRecord.validAmount = cleanRecord.validAmount + summary.validAmount;
-                                                return cleanRecord.save().then(
-                                                    () => dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id})
-                                                );
-                                            }
-                                            else {
-                                                //clean record
-                                                return dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id}).then(
-                                                    () => {
-                                                        summary.bDirty = false;
-                                                        var newCleanRecord = new dbconfig.collection_playerConsumptionSummary(summary);
-                                                        return newCleanRecord.save();
-                                                    }
-                                                );
-                                            }
-                                        }
-                                    );
-                                }
-                            );
-                            return Q.all(summaryProms);
-                        }
-                    }
-                ).then(
-                    () => deferred.resolve("Proposal is rejected")
-                );
-            }
-            else {
-                deferred.resolve("Proposal is rejected");
-            }
+            deferred.resolve("Proposal is rejected");
+            //
+            // //clean record or reset amount
+            // if (proposalData && proposalData.data && proposalData.data.summaryIds) {
+            //     dbconfig.collection_playerConsumptionSummary.find(
+            //         {_id: {$in: proposalData.data.summaryIds}}
+            //     ).lean().then(
+            //         summaryRecords => {
+            //             if (summaryRecords && summaryRecords.length > 0) {
+            //                 var summaryProms = summaryRecords.map(
+            //                     summary => {
+            //                         dbconfig.collection_playerConsumptionSummary.findOne({
+            //                             platformId: summary.platformId,
+            //                             playerId: summary.playerId,
+            //                             gameType: summary.gameType,
+            //                             summaryDay: summary.summaryDay,
+            //                             bDirty: false
+            //                         }).then(
+            //                             cleanRecord => {
+            //                                 if (cleanRecord) {
+            //                                     //recover amount
+            //                                     cleanRecord.amount = cleanRecord.amount + summary.amount;
+            //                                     cleanRecord.validAmount = cleanRecord.validAmount + summary.validAmount;
+            //                                     return cleanRecord.save().then(
+            //                                         () => dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id})
+            //                                     );
+            //                                 }
+            //                                 else {
+            //                                     //clean record
+            //                                     return dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id}).then(
+            //                                         () => {
+            //                                             summary.bDirty = false;
+            //                                             var newCleanRecord = new dbconfig.collection_playerConsumptionSummary(summary);
+            //                                             return newCleanRecord.save();
+            //                                         }
+            //                                     );
+            //                                 }
+            //                             }
+            //                         );
+            //                     }
+            //                 );
+            //                 return Q.all(summaryProms);
+            //             }
+            //         }
+            //     ).then(
+            //         () => deferred.resolve("Proposal is rejected")
+            //     );
+            // }
+            // else {
+            //     deferred.resolve("Proposal is rejected");
+            // }
         },
 
         /**
@@ -1993,6 +2017,10 @@ var proposalExecutor = {
          * reject function for manual unlock player reward
          */
         rejectManualUnlockPlayerReward: function (proposalData, deferred) {
+            deferred.resolve("Proposal is rejected");
+        },
+
+        rejectPartnerCommission: function (proposalData, deferred) {
             deferred.resolve("Proposal is rejected");
         }
     }

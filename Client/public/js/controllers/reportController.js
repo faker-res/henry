@@ -2624,6 +2624,7 @@ define(['js/app'], function (myApp) {
 
                     return $scope.$socketPromise('getPartnerCommissionReport', sendData, true).then(
                         function (data) {
+                            console.log("getPartnerCommissionReport", data);
                             vm.partnerCommissionQuery.totalCount = data.data.size ? data.data.size : 0;
                             vm.partnerCommissionQuery.message = data.data.message || '';
                             $scope.safeApply();
@@ -2634,8 +2635,8 @@ define(['js/app'], function (myApp) {
                                 item.marketCost$ = parseFloat(item.marketCost).toFixed(2);
                                 item.operationFee$ = parseFloat(item.operationFee).toFixed(2);
                                 item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
-                                item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
-                                item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
+                                item.totalPlayerBonusAmount$ = parseFloat(item.totalPlayerBonusAmount).toFixed(2);
+                                // item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
                                 item.totalCommissionAmount$ = parseFloat(item.totalCommissionAmount).toFixed(2);
                                 item.totalCommissionOfChildren$ = parseFloat(item.totalCommissionOfChildren).toFixed(2);
                                 return item;
@@ -2658,7 +2659,7 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'marketCost', 'aTargets': [4]},
                     {'sortCol': 'operationFee', 'aTargets': [5]},
                     {'sortCol': 'totalTopUpAmount', 'aTargets': [6]},
-                    {'sortCol': 'totalBonusAmount', 'aTargets': [7]},
+                    {'sortCol': 'totalPlayerBonusAmount', 'aTargets': [7]},
                     {'sortCol': 'totalCommissionAmount', 'aTargets': [8]},
                     {'sortCol': 'totalCommissionOfChildren', 'aTargets': [9]},
                     {targets: '_all', defaultContent: 0, bSortable: true}
@@ -2671,7 +2672,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('marketCost'), data: "marketCost$", sClass: "sumFloat alignRight"},
                     {title: $translate('operationFee'), data: "operationFee$", sClass: "sumFloat alignRight"},
                     {title: $translate('totalTopUpAmount'), data: "totalTopUpAmount$", sClass: "sumFloat alignRight"},
-                    {title: $translate('totalBonusAmount'), data: "totalBonusAmount$", sClass: "sumFloat alignRight"},
+                    {title: $translate('totalBonusAmount'), data: "totalPlayerBonusAmount$", sClass: "sumFloat alignRight"},
                     {
                         title: $translate('totalCommissionAmount'),
                         data: "totalCommissionAmount$",
@@ -2694,7 +2695,7 @@ define(['js/app'], function (myApp) {
                 4: summary.marketCost,
                 5: summary.operationFee,
                 6: summary.totalTopUpAmount,
-                7: summary.totalBonusAmount,
+                7: summary.totalPlayerBonusAmount,
                 8: summary.totalCommissionAmount,
                 9: summary.totalCommissionOfChildren
             }

@@ -5635,7 +5635,7 @@ var dbPlayerInfo = {
                                         gameStatus: gameData.status
                                     });
                                 }
-                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
                                 }
                                 else {
