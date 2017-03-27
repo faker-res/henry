@@ -261,6 +261,7 @@ define(['js/app'], function (myApp) {
                 $('#departmentTree').on('nodeSelected', function (event, data) {
                     vm.userTableRowSelected = {};
                     vm.selectedUsers = {};
+                    vm.roleUserList = [];
                     vm.SelectedDepartmentNode = data;
                     vm.departmentID = data.departData._id;
                     vm.SelectedDepartmentText = data.text;
@@ -1457,7 +1458,7 @@ define(['js/app'], function (myApp) {
 
             $scope.$on('$viewContentLoaded', function () {
                 setTimeout(
-                    function(){
+                    function () {
                         $scope.$parent.location = $location.path();
                         vm.SelectedDepartmentText = '';
                         vm.errorMessage = [];
