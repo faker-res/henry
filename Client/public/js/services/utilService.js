@@ -533,18 +533,24 @@ define([], function () {
                     retObj.updateCurPage(event);
                 });
                 $(id).find(".jumpPage").on('keyup', function () {
+                  if(event.target.valueAsNumber){
                     retObj.curPage = event.target.valueAsNumber;
                     retObj.jump();
+                  }
                 });
                 $(id).find(".pageSize").on('keyup', function () {
+                  if(event.target.valueAsNumber){
                     retObj.pageSize = event.target.valueAsNumber;
+
                     if (retObj.pageSize < 1) {
                         retObj.pageSize = 1
                     } else if (retObj.pageSize > 2000) {
                         retObj.pageSize = 2000;
                     }
+
                     $(id).find('.pageSize').val(retObj.pageSize);
                     retObj.jump();
+                  }
                 });
             }
             retObj.updateCurPage = function (event) {
