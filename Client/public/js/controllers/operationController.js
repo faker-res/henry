@@ -385,6 +385,12 @@ define(['js/app'], function (myApp) {
                 result = result.join(',');
             } else if (fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) {
                 result = utilService.getFormatTime(val);
+            } else if (fieldName == 'bankAccountType') {
+                if (val == 1) {
+                    return $translate('Credit Card');
+                } else if (val == 2) {
+                    return $translate('Debit Card');
+                }
             } else if (fieldName == 'clientType') {
                 result = $translate($scope.merchantTargetDeviceJson[val]);
             } else if (fieldName == 'merchantUseType') {
@@ -396,7 +402,7 @@ define(['js/app'], function (myApp) {
             } else if (fieldName == 'playerId' && val && val.playerId && val.name) {
                 result = val.playerId;
                 vm.selectedProposalDetailForDisplay.playerName = val.name;
-            } else if (fieldName == 'bankTypeId' || fieldName == 'bankCardType') {
+            } else if (fieldName == 'bankTypeId' || fieldName == 'bankCardType' || fieldName == 'bankName') {
                 result = vm.allBankTypeList[val] || (val + " ! " + $translate("not in bank type list"));
             } else if (fieldName == 'depositMethod') {
                 result = $translate(vm.getDepositMethodbyId[val])
@@ -628,10 +634,10 @@ define(['js/app'], function (myApp) {
                             let fontStyle = {};
                             if (data === 4) {
                                 textClass = "bold";
-                                fontStyle = { 'font-weight': 'bold' };
+                                fontStyle = {'font-weight': 'bold'};
                             } else if (data === 5) {
                                 textClass = "text-danger";
-                                fontStyle = { 'font-weight': 'bold' };
+                                fontStyle = {'font-weight': 'bold'};
                             }
 
                             return $('<div>')
