@@ -506,6 +506,7 @@
   "Approved":"成功",
   "Rejected":"失败",
   "System":"系统",
+  "approved":"已审批",
 
   "PROPOSAL_LIST":"提案列表",
   "TOP_UP_LIST":"充值列表",
@@ -1333,7 +1334,7 @@
   "Min Active Player":"最小活跃玩家数",
   "commissionLevelConfig":"佣金等级设置",
 
-  "PlayerBonus": "玩家兑奖",
+  "PlayerBonus": "玩家提款",
   "PartnerBonus": "推广渠道兑奖",
   "GAME_ID":"游戏ID",
   "PlayerLevelUp":"升级奖励",
