@@ -1278,9 +1278,9 @@ var dbPlayerTopUpRecord = {
 
     getValidTopUpRecordList: function (rewardInfo, playerId, playerObjId) {
         var rewardType = (rewardInfo && rewardInfo.type) ? rewardInfo.type.name : null;
-        var period = (rewardInfo && rewardInfo.param) ? rewardInfo.param.periodType : null;
+        var period = (rewardInfo && rewardInfo.param) ? rewardInfo.param.periodType : 0;
         if (rewardType == "FirstTopUp") {
-            return dbPlayerTopUpRecord.getValidFirstTopUpRecordList(playerId, period, 0, constSystemParam.REPORT_MAX_RECORD_NUM, -1).then(data => {
+            return dbPlayerTopUpRecord.getValidFirstTopUpRecordList(playerId, period + 1, 0, constSystemParam.REPORT_MAX_RECORD_NUM, -1).then(data => {
                 return data.records;
             })
         } else {
