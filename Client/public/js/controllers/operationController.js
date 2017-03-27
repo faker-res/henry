@@ -385,6 +385,12 @@ define(['js/app'], function (myApp) {
                 result = result.join(',');
             } else if (fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) {
                 result = utilService.getFormatTime(val);
+            } else if (fieldName == 'bankAccountType') {
+                if (val == 1) {
+                    return $translate('Credit Card');
+                } else if (val == 2) {
+                    return $translate('Debit Card');
+                }
             } else if (fieldName == 'clientType') {
                 result = $translate($scope.merchantTargetDeviceJson[val]);
             } else if (fieldName == 'merchantUseType') {
@@ -396,7 +402,7 @@ define(['js/app'], function (myApp) {
             } else if (fieldName == 'playerId' && val && val.playerId && val.name) {
                 result = val.playerId;
                 vm.selectedProposalDetailForDisplay.playerName = val.name;
-            } else if (fieldName == 'bankTypeId' || fieldName == 'bankCardType') {
+            } else if (fieldName == 'bankTypeId' || fieldName == 'bankCardType' || fieldName == 'bankName') {
                 result = vm.allBankTypeList[val] || (val + " ! " + $translate("not in bank type list"));
             } else if (fieldName == 'depositMethod') {
                 result = $translate(vm.getDepositMethodbyId[val])
@@ -555,6 +561,9 @@ define(['js/app'], function (myApp) {
                     if (v.mainType == "PlayerBonus" && v.data.bankTypeId) {
                         v.bankType$ = vm.allBankTypeList[v.data.bankTypeId]
                     }
+                    if (v.mainType == "PlayerBonus" && v.status == "Approved") {
+                        v.status = "approved";
+                    }
                     // v.remark$ = v.remark.map(item => {
                     //     return item ? item.content : '';
                     // });
@@ -628,10 +637,10 @@ define(['js/app'], function (myApp) {
                             let fontStyle = {};
                             if (data === 4) {
                                 textClass = "bold";
-                                fontStyle = { 'font-weight': 'bold' };
+                                fontStyle = {'font-weight': 'bold'};
                             } else if (data === 5) {
                                 textClass = "text-danger";
-                                fontStyle = { 'font-weight': 'bold' };
+                                fontStyle = {'font-weight': 'bold'};
                             }
 
                             return $('<div>')
@@ -710,6 +719,7 @@ define(['js/app'], function (myApp) {
                         "data": 'process',
                         render: function (data, type, row) {
                             var text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            var text = text == "approved" ? "Approved" : text;
                             var $link = $('<a>').text(text);
                             return $link.prop('outerHTML');
                         },
@@ -1383,7 +1393,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data, callback) {
                 delete data.data.APPROVED;
                 delete data.data.REJECTED;
-                delete data.data.PROCESSING;
+                //delete data.data.PROCESSING;
                 vm.proposalStatusList = data.data;
                 console.log('vm.getAllProposalStatus:', vm.proposalStatusList);
                 deferred.resolve(true);

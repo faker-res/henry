@@ -169,6 +169,9 @@ var ProposalServiceImplement = function () {
             case 2:
                 statusText = constProposalStatus.FAIL;
                 break;
+            case 3:
+                 statusText = constProposalStatus.PROCESSING;
+                 break;
             // case 3:
             //     statusText = constProposalStatus.PENDING;
             //     break;
