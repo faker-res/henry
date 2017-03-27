@@ -20,6 +20,7 @@ const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
+const constPartnerCommissionPeriod = require('../const/constPartnerCommissionPeriod');
 
 var dbPartner = {
 
@@ -267,7 +268,7 @@ var dbPartner = {
             }
         ).then(
             function (parentObj) {
-                if(parentObj){
+                if (parentObj) {
                     return dbPartner.createPartnerDomain(partnerdata).then(
                         () => {
                             partnerdata.depthInTree = parentObj.depthInTree + 1;
@@ -2137,7 +2138,7 @@ var dbPartner = {
         //最近充值时间，最近兑奖时间，充值总次数，兑奖总次数，总充值额，总兑奖额，充值次数（查询其间），兑奖次数，充值额，兑奖额
         var bonusProposalProm = dbconfig.collection_proposal.find({
             type: bonusProposalType._id,
-            status: constProposalStatus.SUCCESS,
+            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]},
             "data.playerId": {$in: [playerObj.playerId, String(playerObj._id), playerObj._id]}
         }).sort({createTime: -1}).lean();
         var latestTopUpRecordProm = dbconfig.collection_playerTopUpRecord.find({
@@ -2256,26 +2257,49 @@ var dbPartner = {
                     var settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
                     var bMatchPeriod = true;
                     switch (configData.commissionPeriod) {
-                        case constPlayerLevelPeriod.WEEK:
+                        case constPartnerCommissionPeriod.WEEK:
                             if (dbUtil.isFirstDayOfWeekSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentWeekSGTime() : dbUtil.getLastWeekSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentWeekSGTime();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
-                        case constPlayerLevelPeriod.MONTH:
+                        case constPartnerCommissionPeriod.HALF_MONTH:
+                            if (dbUtil.isHalfMonthDaySG()) {
+                                settleTime = isToday ? dbUtil.getCurrentHalfMonthPeriodSG() : dbUtil.getPastHalfMonthPeriodSG();
+                            }
+                            else {
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentHalfMonthPeriodSG();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
+                            }
+                            break;
+                        case constPartnerCommissionPeriod.MONTH:
                             if (dbUtil.isFirstDayOfMonthSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentMonthSGTIme() : dbUtil.getLastMonthSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentMonthSGTIme();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
                     }
                     //if period does not match, no need to settle
                     if (!bMatchPeriod) {
-                        return;
+                        return; //Q.reject({name: "DataError", message: "It's not settlement day"});
                     }
 
                     //if there is commission config, start settlement
@@ -2334,6 +2358,9 @@ var dbPartner = {
         var totalValidAmount = 0;
         var totalBonusAmount = 0;
         var maxCommissionLevel = 0;
+        var totalTopUpAmount = 0;
+        var operationAmount = 0;
+        var totalPlayerBonusAmount = 0;
         //get all partner players consumption data
         return dbconfig.collection_players.find({platform: platformObjId, partner: partnerObjId}).lean().then(
             players => {
@@ -2381,7 +2408,7 @@ var dbPartner = {
                     var topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
                         {
                             $match: {
-                                platform: platformObjId,
+                                platformId: platformObjId,
                                 playerId: {$in: playerObjIds},
                                 createTime: {
                                     $gte: startTime,
@@ -2391,28 +2418,35 @@ var dbPartner = {
                         },
                         {
                             $group: {
-                                _id: "$platform",
+                                _id: "$platformId",
                                 totalTopUpAmount: {$sum: "$amount"}
                             }
                         }
                     );
 
-                    var bonusProm = dbconfig.collection_proposal.aggregate(
-                        {
-                            $match: {
-                                platform: platformObjId,
-                                "data.playerObjId": {$in: playerObjIds},
-                                createTime: {
-                                    $gte: startTime,
-                                    $lt: endTime
-                                },
-                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]}
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: "$platform",
-                                totalBonusAmount: {$sum: "$amount"}
+                    var bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+                        bonusType => {
+                            if(bonusType){
+                                return dbconfig.collection_proposal.aggregate(
+                                    {
+                                        $match: {
+                                            // platform: platformObjId,
+                                            type: bonusType._id,
+                                            "data.playerObjId": {$in: playerObjIds},
+                                            createTime: {
+                                                $gte: startTime,
+                                                $lt: endTime
+                                            },
+                                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]}
+                                        }
+                                    },
+                                    {
+                                        $group: {
+                                            _id: "$platform",
+                                            totalBonusAmount: {$sum: "$data.amount"}
+                                        }
+                                    }
+                                );
                             }
                         }
                     );
@@ -2428,11 +2462,13 @@ var dbPartner = {
                     var rewardInfo = data[1];
                     var topUpInfo = data[2];
                     var bonusInfo = data[3];
-                    var operationAmount = 0;
+                    // var operationAmount = 0;
+                    totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
+                    totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
                     if (consumptionInfo && consumptionInfo[0]) {
                         totalValidAmount = consumptionInfo[0].totalValidAmount;
                         totalBonusAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
-                        operationAmount = totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
+                        operationAmount = Math.abs(consumptionInfo[0].totalBonusAmount);//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
                         if (configData && configData.platformFeeRate > 0) {
                             platformFee = operationAmount * configData.platformFeeRate;
                         }
@@ -2440,10 +2476,10 @@ var dbPartner = {
                     if (rewardInfo && rewardInfo[0]) {
                         totalRewardAmount = rewardInfo[0].totalRewardAmount;
                     }
-                    if (configData && configData.serviceFeeRate > 0 && topUpInfo && bonusInfo && topUpInfo[0] && bonusInfo[0]) {
-                        serviceFee = (topUpInfo[0].totalTopUpAmount + bonusInfo[0].totalBonusAmount) * configData.serviceFeeRate;
+                    if (configData && configData.serviceFeeRate > 0) {
+                        serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                     }
-
+                    // console.log( totalTopUpAmount, totalPlayerBonusAmount, configData.serviceFeeRate );
                     profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
                     //get partner active player number
@@ -2481,9 +2517,13 @@ var dbPartner = {
                     partnerData.commissionHistory.push(commissionLevel);
                     if (settlementTimeToSave) {
                         profitAmount += partnerData.negativeProfitAmount;
-                        //todo::refactor the 100 here to config
-                        //todo::clear this negative amount if it is nagative for more than 3 month
-                        if (profitAmount > 100) {
+                        if (partnerData.negativeProfitAmount >= 0 && profitAmount < 0) {
+                            partnerData.negativeProfitStartTime = endTime;
+                        }
+                        if (profitAmount >= 0) {
+                            partnerData.negativeProfitStartTime = null;
+                        }
+                        if (profitAmount > configData.minCommissionAmount) {
                             partnerData.negativeProfitAmount = 0;
                         }
                         else {
@@ -2494,7 +2534,8 @@ var dbPartner = {
                     if (configData && configData.bonusCommissionHistoryTimes && configData.bonusCommissionHistoryTimes > 0
                         && configData.bonusRate && configData.bonusRate > 0 && commissionLevel == maxCommissionLevel) {
                         var bValid = true;
-                        for (var i = partnerData.commissionHistory.length - 1; i >= 0; i--) {
+                        let times = Math.max(0, (partnerData.commissionHistory.length-configData.bonusCommissionHistoryTimes));
+                        for (var i = partnerData.commissionHistory.length - 1; i >= times; i--) {
                             if (partnerData.commissionHistory[i] != maxCommissionLevel) {
                                 bValid = false;
                             }
@@ -2503,15 +2544,27 @@ var dbPartner = {
                             bonusCommissionRate = configData.bonusRate;
                         }
                     }
-                    //todo::refactor the 100 here to config
-                    var commissionAmount = profitAmount > 100 ? profitAmount * (commissionRate + bonusCommissionRate) : 0;
+                    var commissionAmount = profitAmount > configData.minCommissionAmount ? profitAmount * (commissionRate + bonusCommissionRate) : 0;
                     var partnerProm = partnerData;
                     if (settlementTimeToSave) {
-                        partnerData.lastCommissionSettleTime = settlementTimeToSave;
-                        partnerData.credits += commissionAmount;
-                        //update partner data
-                        //todo::create proposal here
-                        partnerProm = partnerData.save();
+                        //partnerData.lastCommissionSettleTime = settlementTimeToSave;
+                        //partnerData.credits += commissionAmount;
+                        //create proposal for partner commission
+                        var proposalData = {
+                            entryType: constProposalEntryType.SYSTEM,
+                            userType: constProposalUserType.PARTNERS,
+                            data: {
+                                partnerObjId: partnerData._id,
+                                platformObjId: partnerData.platform,
+                                partnerName: partnerData.partnerName,
+                                lastCommissionSettleTime: settlementTimeToSave,
+                                commissionAmount: commissionAmount,
+                                negativeProfitAmount: partnerData.negativeProfitAmount,
+                                commissionLevel: commissionLevel,
+                                negativeProfitStartTime: partnerData.negativeProfitStartTime
+                            }
+                        };
+                        partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
                     }
                     //log this commission record
                     var recordProm = dbUtil.upsertForShard(
@@ -2531,6 +2584,8 @@ var dbPartner = {
                             bonusCommissionRate: bonusCommissionRate,
                             totalValidAmount: totalValidAmount,
                             totalBonusAmount: totalBonusAmount,
+                            totalPlayerBonusAmount: totalPlayerBonusAmount,
+                            totalTopUpAmount: totalTopUpAmount,
                             commissionAmount: commissionAmount,
                             lastCommissionSettleTime: startTime
                         },
@@ -2564,20 +2619,43 @@ var dbPartner = {
                     var bMatchPeriod = true;
 
                     switch (configData.commissionPeriod) {
-                        case constPlayerLevelPeriod.WEEK:
+                        case constPartnerCommissionPeriod.WEEK:
                             if (dbUtil.isFirstDayOfWeekSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentWeekSGTime() : dbUtil.getLastWeekSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentWeekSGTime();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
-                        case constPlayerLevelPeriod.MONTH:
+                        case constPartnerCommissionPeriod.HALF_MONTH:
+                            if (dbUtil.isHalfMonthDaySG()) {
+                                settleTime = isToday ? dbUtil.getCurrentHalfMonthPeriodSG() : dbUtil.getPastHalfMonthPeriodSG();
+                            }
+                            else {
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentHalfMonthPeriodSG();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
+                            }
+                            break;
+                        case constPartnerCommissionPeriod.MONTH:
                             if (dbUtil.isFirstDayOfMonthSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentMonthSGTIme() : dbUtil.getLastMonthSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentMonthSGTIme();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
                     }
@@ -2740,6 +2818,8 @@ var dbPartner = {
                                 totalRewardAmount: {$sum: "$totalRewardAmount"},
                                 totalValidAmount: {$sum: "$totalValidAmount"},
                                 totalBonusAmount: {$sum: "$totalBonusAmount"},
+                                totalTopUpAmount: {$sum: "$totalTopUpAmount"},
+                                totalPlayerBonusAmount: {$sum: "$totalPlayerBonusAmount"},
                                 totalCommissionAmount: {$sum: "$commissionAmount"},
                                 totalCommissionOfChildren: {$sum: "$totalCommissionOfChildren"}
                             }
@@ -2751,8 +2831,10 @@ var dbPartner = {
                         data.forEach(
                             eachRecord => {
                                 if (eachRecord) {
-                                    eachRecord.operationFee = eachRecord.totalValidAmount + eachRecord.totalBonusAmount;
+                                    eachRecord.operationFee = eachRecord.totalBonusAmount;
                                     eachRecord.marketCost = eachRecord.totalRewardAmount + eachRecord.platformFee + eachRecord.serviceFee;
+                                    // eachRecord.totalTopUpAmount = 0;
+                                    // eachRecord.totalBonusAmount = 0;
                                     var a = dbconfig.collection_partner.findOne({_id: eachRecord._id.partner}).then(
                                         partner => {
                                             eachRecord._id.partnerName = partner.partnerName;
@@ -2769,8 +2851,8 @@ var dbPartner = {
                                             //         console.log(err);
                                             //     }
                                             // );
-                                            eachRecord.totalTopUpAmount = 0;
-                                            eachRecord.totalBonusAmount = 0;
+                                            // eachRecord.totalTopUpAmount = 0;
+                                            // eachRecord.totalBonusAmount = 0;
                                             return eachRecord;
                                         });
                                     result.push(a);
@@ -2802,6 +2884,7 @@ var dbPartner = {
                                         summary.profitAmount += item.profitAmount;
                                         summary.serviceFee += item.serviceFee;
                                         summary.totalBonusAmount += item.totalBonusAmount;
+                                        summary.totalPlayerBonusAmount += item.totalPlayerBonusAmount;
                                         summary.totalTopUpAmount += item.totalTopUpAmount;
                                         summary.totalCommissionAmount += item.totalCommissionAmount;
                                         summary.totalCommissionOfChildren += item.totalCommissionOfChildren;
@@ -2867,6 +2950,7 @@ var dbPartner = {
                     commission => {
                         total.totalValidAmount += commission.totalValidAmount;
                         total.totalBonusAmount += commission.totalBonusAmount;
+                        total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
                         total.operationAmount += commission.operationAmount;
                         total.totalRewardAmount += commission.totalRewardAmount;
                         total.serviceFee += commission.serviceFee;
@@ -2926,7 +3010,53 @@ var dbPartner = {
             }
         );
 
-        return Q.all([consumptionProm, rewardProm]).then(
+        var topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
+            {
+                $match: {
+                    platformId: platformObjId,
+                    playerId: playerObjId,
+                    createTime: {
+                        $gte: startTime,
+                        $lt: endTime
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$platformId",
+                    totalTopUpAmount: {$sum: "$amount"}
+                }
+            }
+        );
+
+        var bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+            bonusType => {
+                if(bonusType){
+                    return dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                // platform: platformObjId,
+                                type: bonusType._id,
+                                "data.playerObjId": playerObjId,
+                                createTime: {
+                                    $gte: startTime,
+                                    $lt: endTime
+                                },
+                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$platform",
+                                totalBonusAmount: {$sum: "$data.amount"}
+                            }
+                        }
+                    );
+                }
+            }
+        );
+
+        return Q.all([consumptionProm, rewardProm, topUpProm, bonusProm]).then(
             data => {
                 //calculate profit amount
                 var totalValidAmount = 0;
@@ -2939,17 +3069,21 @@ var dbPartner = {
 
                 var consumptionInfo = data[0];
                 var rewardInfo = data[1];
+                var topUpInfo = data[2];
+                var bonusInfo = data[3];
                 var operationAmount = 0;
+                var totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
+                var totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
                 if (consumptionInfo && consumptionInfo[0]) {
                     totalValidAmount = consumptionInfo[0].totalValidAmount;
-                    totalBonusAmount = consumptionInfo[0].totalBonusAmount;
-                    operationAmount = consumptionInfo[0].totalValidAmount - consumptionInfo[0].totalBonusAmount;
+                    totalBonusAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
+                    operationAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
                 }
                 if (rewardInfo && rewardInfo[0]) {
                     totalRewardAmount = rewardInfo[0].totalRewardAmount;
                 }
                 if (configData && configData.serviceFeeRate > 0) {
-                    serviceFee = operationAmount * configData.serviceFeeRate;
+                    serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                 }
                 if (configData && configData.platformFeeRate > 0) {
                     platformFee = operationAmount * configData.platformFeeRate;

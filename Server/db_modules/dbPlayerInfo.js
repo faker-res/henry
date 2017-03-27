@@ -5635,7 +5635,7 @@ var dbPlayerInfo = {
                                         gameStatus: gameData.status
                                     });
                                 }
-                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
                                 }
                                 else {
@@ -5844,12 +5844,12 @@ var dbPlayerInfo = {
                                         resData.forEach(type => {
                                             if (type.type == paymentData.merchants[i].topupType) {
                                                 bValidType = false;
-                                                if (status == 1 /*&& paymentData.merchants[i].status == "ENABLED"*/) {
+                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED") {
                                                     type.status = status;
                                                 }
                                             }
                                         });
-                                        if (bValidType && /*paymentData.merchants[i].status == "ENABLED" &&*/ (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                        if (bValidType && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             resData.push({type: paymentData.merchants[i].topupType, status: status});
                                         }
                                     }
