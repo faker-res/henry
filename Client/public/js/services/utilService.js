@@ -511,6 +511,7 @@ define([], function () {
             // $(id).off('click');
 
             retObj.init = function (para, resetCurPage) {
+
                 console.log('initing', id, resetCurPage);
                 retObj.maxPage = Math.ceil(parseInt(para.maxCount) / retObj.pageSize);
                 retObj.curPage = resetCurPage ? 1 : (retObj.curPage || 1);
@@ -538,20 +539,30 @@ define([], function () {
                     retObj.jump();
                   }
                 });
+                var delay = null;
                 $(id).find(".pageSize").on('keyup', function () {
+                  let delayInterval = 600;
+                  if(delay){
+                    console.log('clear');
+                    clearTimeout(delay);
+                  }
+
                   if(event.target.valueAsNumber){
                     retObj.pageSize = event.target.valueAsNumber;
-
                     if (retObj.pageSize < 1) {
                         retObj.pageSize = 1
                     } else if (retObj.pageSize > 2000) {
                         retObj.pageSize = 2000;
                     }
-
                     $(id).find('.pageSize').val(retObj.pageSize);
-                    retObj.jump();
-                  }
+
+                    delay = setTimeout(function () {
+                      retObj.jump();
+                  }, delayInterval);
+                }
+
                 });
+
             }
             retObj.updateCurPage = function (event) {
                 var className = event.target.className;
