@@ -1103,10 +1103,28 @@ var dbPlayerInfo = {
             queryObject.createTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
         }
         var a = dbconfig.collection_playerTopUpRecord.find(queryObject).count();
-        var b = dbconfig.collection_playerTopUpRecord.find(queryObject).sort(sortCol).skip(index).limit(limit);
-        return Q.all([a, b]).then(
+        var b = dbconfig.collection_playerTopUpRecord.find(queryObject).sort(sortCol).skip(index).limit(limit)
+        var c = dbconfig.collection_playerTopUpRecord.aggregate(
+            {
+                $match:{
+                    createTime: {
+                        $gte: query.startTime,
+                        $lt: query.endTime
+                    }
+                }
+            },
+            {
+                $group:{
+                    _id: "$playerId",
+                    amountSum :{$sum: "$amount"},
+                    validAmountSum :{$sum: "$validAmount"},
+                    bonusAmountSum: {$sum: "$bonusAmount"}
+                }
+            })  
+
+        return Q.all([a, b, c]).then(
             data => {
-                return {total: data[0], data: data[1]};
+                return { data: data[1],total:data[0], summary:data[2] };
             }
         )
     },
