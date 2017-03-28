@@ -192,9 +192,9 @@
                             .form-group
                                 .control-label {{"Game Group display Name" | translate}}
                                 input.form-control(type='text', ng-model='vm.newGameGroup.displayName')
-                            //.form-group
-                            //    .control-label {{"Game Group Code" | translate}}
-                            //    input.form-control(type='text', ng-model='vm.newGameGroup.code')
+                            .form-group
+                                .control-label {{"Game Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newGameGroup.code')
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.renameGameGroup()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

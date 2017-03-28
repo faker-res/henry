@@ -175,7 +175,7 @@ var dbGame = {
         index = index || 0;
         count = count || constSystemParam.MAX_RECORD_NUM;
         query = query || {};
-        query.status = {$ne: constGameStatus.DELETED};
+        query.status = {$nin: [constGameStatus.DELETED, String(constGameStatus.DELETED)]};
         var deferred = Q.defer();
         var sum = 0;
         dbconfig.collection_game.find(query).count()

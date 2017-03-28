@@ -34,7 +34,7 @@ var roleChecker = {
         'addPlatformGameGroup', 'updateGameGroupParent', 'renamePlatformGameGroup', 'updatePlatformGameGroup', 'deleteGameGroup',
         'createRewardRuleWithType', 'createRewardCondition', 'createRewardEvent', 'deleteRewardRuleByIds', 'deleteRewardEventByIds', 'updateRewardRule', 'updateRewardTask', 'updateRewardEvent',
         'createProposalTypeProcess', 'updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep',
-        'updateProposalTypeProcessSteps', 'deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds',
+        'updateProposalTypeProcessSteps', 'deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds', 'updateProposalTypeExpiryDuration', 'getProposalTypeExpirationDuration',
         'updatePlayerLevel', 'createPlayerLevel', 'createPartnerLevel', 'partnerLevel/update', 'createPlatformAnnouncement',
         'updatePlatformAnnouncement', 'deletePlatformAnnouncementByIds', 'updatePartnerLevelConfig',
         'createMessageTemplate', 'deleteMessageTemplateByIds', 'updateMessageTemplate',
@@ -64,6 +64,7 @@ var roleChecker = {
         'getPlatformByAdminId': true,
         'getPlayerStatusList': true,
         'getZoneList': true,
+        'getDepartment': true,
         'getZone': true,
         'getAPIServerStatus': true,
         "updatePlatformAlipayGroup": true,
@@ -113,6 +114,9 @@ var roleChecker = {
         "getPlayerTrustLevelByPlatformId": true,
         "countActivePlayerALLPlatform": true,
         "cancelProposal": true,
+        "playerTopUp": true,
+        'applyRewardEvent': true,
+        'getPlayerCurRewardTaskDetailByPlayerId': true,
 
         // API Actions - can be ignored
         'createApiUser': true,
@@ -141,10 +145,14 @@ var roleChecker = {
         "createGameProvider": true,
         "deleteGameProvider": true,
 
+        "getGameTypeList": true,
+
         //todo::to be added to permission list
         "countTopUpORConsumptionbyPlatform": true,
         "getPlayerRetention": true,
-        "getAllActions": true
+        "getAllActions": true,
+        "getAdminInfo": true,
+        "updateProposalTypeExpiryDuration": true
     },
 
     /**
@@ -169,7 +177,7 @@ var roleChecker = {
         },
         Admin: {
             Department: {
-                Read: ['getDepartmentTreeById', 'getDepartment', 'getAllDepartments', 'getAllRolesforAdmin', 'getUnAttachDepartments', 'getPotentialChildren'],
+                Read: ['getDepartmentTreeById', 'getAllDepartments', 'getAllRolesforAdmin', 'getUnAttachDepartments', 'getPotentialChildren'],
                 Create: ['createDepartment', 'createDepartmentWithParent'],
                 Delete: ['deleteDepartmentsById'],
                 Move: ['updateDepartmentParent', 'removeChildrenById', 'addChildrenById'],
@@ -205,7 +213,7 @@ var roleChecker = {
         },
         Platform: {
             "Platform": {
-                Read: ['getAllPlatforms', 'getPlatform', 'getDepartmentsByPlatformId', 'getPlatformAnnouncementsByPlatformId', 'getPlatformAnnouncementById', 'getAllGameTypes', 'getGameTypeList', 'getPlayerLvlPeriodConst', 'getAllGameStatus', 'getAllMessageTypes', 'syncPlatform',
+                Read: ['getAllPlatforms', 'getPlatform', 'getDepartmentsByPlatformId', 'getPlatformAnnouncementsByPlatformId', 'getPlatformAnnouncementById', 'getAllGameTypes', 'getPlayerLvlPeriodConst', 'getAllGameStatus', 'getAllMessageTypes', 'syncPlatform',
                     'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup'],
                 Create: ['createPlatform', 'getDepartmentTreeById'],
                 Delete: ['deletePlatformById'],
@@ -213,47 +221,52 @@ var roleChecker = {
                 DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
                 WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
                 RewardSettlement: ['startPlatformRewardEventSettlement'],
-                SettlementHistory: ['getSettlementHistory']
+                SettlementHistory: ['getSettlementHistory'],
+                PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement']
             },
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
-                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId'],
+                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo"],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
                 Create: ['createPlayer', 'checkPlayerNameValidity'],
                 CreateTrial: ['createTestPlayerForPlatform'],
-                Delete: ['deletePlayersById'],
+                // Delete: ['deletePlayersById'],
                 ForbidTopupTypes: [],
-                PlayerFeedback: [],
+                AddFeedback: [],
+                FeedbackHistory: [],
                 Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity'],
                 EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal'],
                 PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
                 PaymentInformationHistory: ['getPaymentHistory'],
                 ResetPassword: ['resetPlayerPassword'],
-                PlayerTopUp: ['getPlayerTopUpRecords', 'playerTopUp', 'applyManualTopUpRequest', 'cancelManualTopupRequest'],
-                PlayerBonus: ['applyBonusRequest'],
+                ApplyManualTopup: ['applyManualTopUpRequest', 'cancelManualTopupRequest'],
+                TopupRecord: ['getPlayerTopUpRecords'],
+                applyBonus: ['applyBonusRequest'],
+                BonusHistory: [],
+                CreditAdjustment: ['createUpdatePlayerCreditProposal'],
+                CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
                 PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
-                PlayerReward: ['applyRewardEvent', 'queryRewardProposal', 'getPlatformRewardProposal', 'getPlayerCurRewardTaskDetailByPlayerId'],
                 AddRewardTask: ['createPlayerRewardTask'],
-                PlayerCredit: ['createUpdatePlayerCreditProposal', 'getPlayerCreditInProvider',
-                    'getPlayerCreditChangeLogsByQuery', 'getPlayerTransferErrorLogs', 'getPagedPlayerCreditChangeLogs'],
-                PlayerPermission: ['updatePlayerPermission', 'getPlayerPermissionLog'],
-                SimilarPlayers: ['getSimilarPlayers'],
+                applyReward: [],
+                RewardHistory: ['queryRewardProposal', 'getPlatformRewardProposal'],
+                PlayerPermission: ['updatePlayerPermission'],
                 CallPlayer: [],
-                Permission: [],
-                MessagePlayer: ['sendPlayerMailFromAdminToPlayer'],
+                PermissionHistory: ['getPlayerPermissionLog'],
                 mailLog: ['searchMailLog'],
                 smsLog: ['searchSMSLog'],
                 sendSMS: ['sendSMSToPlayer'],
                 RepairPayment: ['getPlayerPendingPaymentProposal', 'submitRepairPaymentProposal'],
+                RepairTransaction: ['getPlayerTransferErrorLogs', 'getPagedPlayerCreditChangeLogs'],
                 ConsumptionReturnFix: ['createReturnFixProposal'],
+                ManualUnlockRewardTask: ['manualUnlockRewardTask']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
                 Create: ['createPlayerFeedback']
             },
             "FeedbackQuery": {
-                Read: ['getPlayerFeedbackQuery', 'getPlayerFeedbackResults', 'getAllPlayerFeedbacks', 'getDepartment']
+                Read: ['getPlayerFeedbackQuery', 'getPlayerFeedbackResults', 'getAllPlayerFeedbacks']
             },
             "Partner": {
                 Read: ['getPartnersByPlatform', 'partnerLevel/getByPlatform', 'getPartnersPlayerInfo', 'getPartner', 'getChildrenPartner', 'getAllPartner', 'getPartnerActivePlayers',
@@ -300,9 +313,9 @@ var roleChecker = {
                 Update: ['updateRewardRule', 'updateRewardTask', 'updateRewardEvent'],
             },
             "Proposal": {
-                Create: ['createProposalTypeProcess', 'addStepToProposalTypeProcess', 'createProposal', 'getDepartment', 'createProposalType', 'createProposalTypeProcessStep'],
+                Create: ['createProposalTypeProcess', 'addStepToProposalTypeProcess', 'createProposal', 'createProposalType', 'createProposalTypeProcessStep'],
                 Read: ['getAllProposalType', 'getProposalType', 'getProposalTypeByPlatformId', 'getProposalTypeByType', 'getAllProposalExecutionType', 'getAllProposalRejectionType', 'getProposalTypeProcess',
-                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal'],
+                    'getProposalTypeProcessSteps', 'getFullProposalProcess', 'getProposal', "getAdminInfo", 'getProposalTypeExpirationDuration'],
                 Update: ['updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep', 'updateProposalTypeProcessSteps'],
                 Delete: ['deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds']
             },
@@ -335,6 +348,11 @@ var roleChecker = {
                 Delete: ['deleteMessageTemplateByIds'],
                 Update: ['updateMessageTemplate']
             },
+            "groupMessage": {
+                Read: ['sendSMStoNumber'],
+                SMSSendLog: ['searchSMSLog'],
+                SendGroupMessage: []
+            }
         },
         Payment: {
             "BankCardGroup": {
@@ -358,11 +376,11 @@ var roleChecker = {
         },
         Provider: {
             "Provider": {
-                Read: ['getAllGameProviders', 'getGameProvider', 'getGameProviderPlayerCredit', 'getAllGameTypes', 'getGameTypeList', 'getAllProviderStatus', 'getCPMSAPIStatus'],
+                Read: ['getAllGameProviders', 'getGameProvider', 'getGameProviderPlayerCredit', 'getAllGameTypes', 'getAllProviderStatus', 'getCPMSAPIStatus'],
                 //Create: ['createGameProvider'],
                 Update: ['updateGameProvider'],
                 //Delete: ['removeProviderFromPlatformById','deleteGameProvider'],
-                GameTypeRead: ['getAllGameTypes', 'getGameTypeList'],
+                GameTypeRead: [],
                 // GameTypeUpdate: ['updateGameType'],
                 // GameTypeCreate: ['addGameType'],
                 // GameTypeDelete: ['deleteGameTypeByName'],
@@ -379,8 +397,7 @@ var roleChecker = {
         },
         Operation: {
             Proposal: {
-                Read: ['getCurrentActivePlayersCount', 'getActivePlayers', 'getProposalTypeByPlatformId',
-                    "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId'],
+                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId'],
                 ProposalListRead: ['getAvailableProposalsForAdminId'],
                 ProposalListDetail: ['getAvailableProposalsForAdminId'],
                 ApproveProposal: ["updateProposalProcessStep"],
@@ -399,8 +416,9 @@ var roleChecker = {
                 queryByProposalDate: [],
             },
             Player: {
-                Read: [],
-                smsPlayer: ['sendSMSToPlayer']
+                Read: ['getCurrentActivePlayersCount', 'getActivePlayers'],
+                smsPlayer: ['sendSMSToPlayer'],
+                CallPlayer: ['getPlayerPhoneNumber']
             }
         },
         Analysis: {
@@ -429,7 +447,8 @@ var roleChecker = {
                 NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData'],
                 PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],
                 PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
-                PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport']
+                PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport'],
+                PLAYERDOMAIN_REPORT: ['getPlayerDomainReport']
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType'],
@@ -660,8 +679,8 @@ function cloneWithoutArrays(obj) {
             const isBoolean = val === true || val === false;
             const outVal = isPlainObject ? cloneWithoutArrays(val)
                 : isArray ? true
-                : isBoolean ? val
-                : undefined;
+                    : isBoolean ? val
+                        : undefined;
             if (outVal === undefined) {
                 throw Error("Unexpected value in tree: " + val + "  Supported values are arrays, objects and booleans.");
             }

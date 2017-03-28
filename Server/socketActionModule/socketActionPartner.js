@@ -10,6 +10,7 @@ var utility = require('./../modules/encrypt');
 var Chance = require('chance');
 var chance = new Chance();
 var constSystemParam = require('../const/constSystemParam');
+var constPartnerCommissionPeriod= require('./../const/constPartnerCommissionPeriod');
 
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -185,6 +186,11 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.partnerObjId);
             socketUtil.emitter(self.socket, dbPartner.getPartnerReferralPlayers, [data.partnerObjId], actionName, isValidData);
         },
+        getPagePartnerReferralPlayers: function getPagePartnerReferralPlayers(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.query.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartner.getPagePartnerReferralPlayers, [data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
 
         /**
          * get all active player for partner for past week
@@ -256,6 +262,10 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.platform && platform_id);
             socketUtil.emitter(self.socket, dbPartner.createPartnerCommissionConfig, [platform_id], actionName, isValidData);
         },
+        getPartnerCommissionPeriodConst: function getPartnerCommissionPeriodConst() {
+            var actionName = arguments.callee.name;
+            self.socket.emit("_" + actionName, {success: true, data: constPartnerCommissionPeriod});
+        },
 
         updatePartnerCommissionLevel: function updatePartnerCommissionLevel(data) {
             var actionName = arguments.callee.name;
@@ -276,6 +286,11 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.getPartnerCommissionReport, [ObjectId(data.platformId), data.partnerName, startTime, endTime, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
         manualPlatformPartnerCommissionSettlement: function manualPlatformPartnerCommissionSettlement(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dailyPlatformSettlement.manualPlatformPartnerCommissionSettlement, [ObjectId(data.platformId), false, true], actionName, isValidData);
+        },
+        startPlatformPartnerCommissionSettlement: function startPlatformPartnerCommissionSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dailyPlatformSettlement.manualPlatformPartnerCommissionSettlement, [ObjectId(data.platformId), true], actionName, isValidData);

@@ -176,7 +176,7 @@ var SettlementServiceImplement = function () {
     this.calculatePartnersCommission.expectsData = 'platformObjId: ObjectId, configData: {}, partnerObjIds: [], startTime: Date, endTime: Date';
     this.calculatePartnersCommission.onRequest = function(wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformObjId && data.configData && data.partnerObjIds && data.startTime && data.endTime);
-        var args = [ObjectId(data.platformObjId), data.configData, mapIdsToMongooseIds(data.partnerObjIds), new Date(data.startTime), new Date(data.endTime)];
+        var args = [ObjectId(data.platformObjId), data.configData, mapIdsToMongooseIds(data.partnerObjIds), new Date(data.startTime), new Date(data.endTime), data.settlementTimeToSave];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.calculatePartnersCommission, args, isValidData);
     };
 

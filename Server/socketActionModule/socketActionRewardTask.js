@@ -44,6 +44,18 @@ function socketActionRewardTask(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn, [data.playerId], actionName, isValidData);
+        },
+        getPlayerRewardTask: function getPlayerRewardTask(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbRewardTask.getPlayerRewardTask, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        manualUnlockRewardTask: function manualUnlockRewardTask(data) {
+            // [0]: TaskData, [1]: PlayerData
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data[0] && data[1] && data[0].playerId && data[0].platformId);
+            socketUtil.emitter(self.socket, dbRewardTask.manualUnlockRewardTask, [data, getAdminId(), getAdminName()], actionName, isValidData);
         }
     };
     socketActionRewardTask.actions = this.actions;

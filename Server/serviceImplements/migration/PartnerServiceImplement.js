@@ -34,6 +34,15 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.createPartnerLoginRecord, [data], isValidData);
     };
 
+    this.updatePartner.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.partnerName && data.platform != null && data.updateData);
+        if (!isValidData) {
+            errorUtils.logMigrationDataInvalidError(this, data);
+        }
+        data.partnerName = String(data.partnerName).toLowerCase();
+        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.updatePartner, [data], isValidData);
+    };
+
 };
 
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
