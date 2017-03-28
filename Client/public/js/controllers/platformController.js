@@ -3721,6 +3721,90 @@ define(['js/app'], function (myApp) {
             })
         }
 
+        vm.transferAllCreditOutRecursive = function (provider, index, size) {
+            console.log('transferAllCreditOutRecursive index: ', index);
+            var limit = 10;
+            var totalPage = Math.ceil(size / limit);
+            if (index > totalPage || !vm.runTransferAllCreditOut) {
+                $('#loadingPlayerTableSpin').hide();
+                return;
+            }
+
+            var apiQuery = {
+                platformId: vm.selectedPlatform.id,
+                query: {},
+                index: index,
+                limit: limit,
+                sortCol: {registrationTime: -1}
+            };
+
+            $('#loadingPlayerTableSpin').show();
+            socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', apiQuery, function (reply) {
+                var size = reply.data.size;
+                var data = reply.data.data;
+                for (var i = 0; i < data.length; i++) {
+                    console.log("transferAllCreditOutRecursive playerId: " + data[i].playerId);
+                    var sendData = {
+                        platform: vm.selectedPlatform.data.platformId,
+                        playerId: data[i].playerId,
+                        providerId: provider,
+                        amount: -1,
+                        adminName: authService.adminName
+                    }
+                    vm.creditTransfer = {};
+                    vm.creditTransfer.apiStr = 'transferPlayerCreditFromProvider';
+                    socketService.$socket($scope.AppSocket, vm.creditTransfer.apiStr, sendData, function (data) {
+                        console.log('transferAllCreditOutRecursive data: ', data);
+                    }, function (err) {
+                        console.log('transferAllCreditOutRecursive err: ', err);
+                    })
+                }
+                vm.transferAllCreditOutRecursive(provider, index + 10, size);
+            });
+        }
+
+        vm.transferAllCreditOut = function () {
+            if (vm.runTransferAllCreditOut) {
+                vm.runTransferAllCreditOut = false;
+                return;
+            }
+            vm.runTransferAllCreditOut = true;
+            var provider = 19;
+            var apiQuery = {
+                platformId: vm.selectedPlatform.id,
+                query: {},
+                index: 0,
+                limit: 10,
+                sortCol: {registrationTime: -1}
+            };
+            console.log('transferAllCreditOut index: ', apiQuery.index);
+            $('#loadingPlayerTableSpin').show();
+            socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', apiQuery, function (reply) {
+                var size = reply.data.size;
+                var data = reply.data.data;
+                for (var i = 0; i < data.length; i++) {
+                    console.log("transferAllCreditOut playerId: " + data[i].playerId);
+
+                    var sendData = {
+                        platform: vm.selectedPlatform.data.platformId,
+                        playerId: data[i].playerId,
+                        providerId: provider,
+                        amount: -1,
+                        adminName: authService.adminName
+                    }
+                    vm.creditTransfer = {};
+                    vm.creditTransfer.apiStr = 'transferPlayerCreditFromProvider';
+                    socketService.$socket($scope.AppSocket, vm.creditTransfer.apiStr, sendData, function (data) {
+                        console.log('transferAllCreditOut data: ', data);
+                    }, function (err) {
+                        console.log('transferAllCreditOut err: ', err);
+                    })
+                }
+                vm.transferAllCreditOutRecursive(provider, 10, size);
+                $('#loadingPlayerTableSpin').hide();
+            });
+        }
+
         vm.getPlayerCreditInProvider = function (userName, providerId, targetObj) {
             var sendStr = 'getPlayerCreditInProvider';
             socketService.$socket($scope.AppSocket, sendStr, {
@@ -4039,9 +4123,9 @@ define(['js/app'], function (myApp) {
             vm.playerTopupRecordForModal.amount = summary.amountSum;
             vm.playerTopupRecordForModal.validAmount = summary.validAmount;
             vm.playerTopupRecordForModal.bonusAmount = summary.bonusAmount;
- 
+
             var aTable = utilService.createDatatableWithFooter("#playerTopupRecordTable", tableOption, {
-                4:summary.amountSum
+                4: summary.amountSum
             });
             vm.playerTopUpLog.pageObj.init({maxCount: count}, newSearch);
             $("#playerTopupRecordTable").off('order.dt');
@@ -8241,7 +8325,7 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        //get expiration duration for proposal type 
+        //get expiration duration for proposal type
         vm.getProposalTypeExpirationDuration = function () {
             if (vm.selectedProposalType && vm.selectedProposalType.data) {
                 socketService.$socket($scope.AppSocket, 'getProposalTypeExpirationDuration', {
