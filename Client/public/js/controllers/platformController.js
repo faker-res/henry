@@ -3942,18 +3942,11 @@ define(['js/app'], function (myApp) {
                     amount: 0,
                     bonusAmount: 0,
                 };
-
-                vm.playerAllTopupRecords.forEach(
-                    record => {
-                        vm.playerTopupRecordForModal.validAmount += Number(record.validAmount);
-                        vm.playerTopupRecordForModal.amount += Number(record.amount);
-                        vm.playerTopupRecordForModal.bonusAmount += Number(record.bonusAmount);
-                    }
-                );
-                vm.drawPlayerTopupRecordsTable(vm.playerAllTopupRecords, vm.playerTopUpLog.totalCount, newSearch);
+                var summary = data.data.summary ? data.data.summary[0] : [];
+                vm.drawPlayerTopupRecordsTable(vm.playerAllTopupRecords, vm.playerTopUpLog.totalCount, newSearch, summary);
             });
         }
-        vm.drawPlayerTopupRecordsTable = function (data, count, newSearch) {
+        vm.drawPlayerTopupRecordsTable = function (data, count, newSearch, summary) {
             var tableData = data.map(item => {
                 item.date$ = vm.dateReformat(item.createTime);
                 item.amount$ = item.amount ? item.amount.toFixed(2) : 0;
@@ -3965,25 +3958,38 @@ define(['js/app'], function (myApp) {
                 "order": vm.playerTopUpLog.aaSorting,
                 aoColumnDefs: [
                     {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'amount', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'topUpType', bSortable: true, 'aTargets': [2]},
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'topUpType', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'amount', bSortable: true, 'aTargets': [4]},
+
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ], columns: [
                     {title: $translate("CREATION_TIME"), data: "date$"},
-                    {title: $translate("CREDIT"), data: "amount$"},
                     {title: $translate("TOP_UP_TYPE"), data: "type$"},
-                    {title: $translate("PROPOSAL_ID"), data: "proposalId"}
+                    {title: $translate("PROPOSAL_ID"), data: "proposalId"},
+                    {title: $translate("SETTLEMENT") + $translate("TIME"), data: "settleTime$", sClass: 'sumText'},
+                    {title: $translate("CREDIT"), data: "amount$", sClass: 'alignRight sumFloat'},
+
+
+
                 ],
                 paging: false
             });
 
-            var aTable = utilService.createDatatableWithFooter("#playerTopupRecordTable", tableOption, {});
+            vm.playerTopupRecordForModal.amount = summary.amountSum;
+            vm.playerTopupRecordForModal.validAmount = summary.validAmount;
+            vm.playerTopupRecordForModal.bonusAmount = summary.bonusAmount;
+ 
+            var aTable = utilService.createDatatableWithFooter("#playerTopupRecordTable", tableOption, {
+                4:summary.amountSum
+            });
             vm.playerTopUpLog.pageObj.init({maxCount: count}, newSearch);
             $("#playerTopupRecordTable").off('order.dt');
             $("#playerTopupRecordTable").on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'playerTopUpLog', vm.getPagePlayerTopup);
             });
+            // aTable.columns.adjust().draw();
             $("#playerTopupRecordTable").resize();
             $scope.safeApply();
         }
