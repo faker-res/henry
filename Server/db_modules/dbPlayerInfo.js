@@ -1107,6 +1107,7 @@ var dbPlayerInfo = {
         var c = dbconfig.collection_playerTopUpRecord.aggregate(
             {
                 $match:{
+                    playerId:ObjectId(query.playerId),
                     createTime: {
                         $gte: query.startTime,
                         $lt: query.endTime
@@ -1124,7 +1125,7 @@ var dbPlayerInfo = {
 
         return Q.all([a, b, c]).then(
             data => {
-                return { data: data[1],total:data[0], summary:data[2] };
+                return { data: data[1],total:data[0], summary:data[2] ? data[2][0] : {}};
             }
         )
     },
