@@ -11,7 +11,7 @@ const constSystemParam = {
     VALID_PLAYER_TOP_UP_AMOUNT: 100,
     PASSWORD_LENGTH: 6,
     API_AUTH_SECRET_KEY : "$ap1U5eR$", // JWT Secret,
-    NO_OF_LOGIN_ATTEMPT: 20 , // minimum no of login attempts failed per connection
+    NO_OF_LOGIN_ATTEMPT: 3 , // minimum no of login attempts failed per connection
 
     BATCH_SIZE: 1000,
 
