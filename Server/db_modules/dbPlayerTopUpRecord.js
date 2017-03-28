@@ -7,10 +7,12 @@ var dbconfig = require('./../modules/dbproperties');
 var dataUtility = require('./../modules/encrypt');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbProposal = require('./../db_modules/dbProposal');
+var dbProposalType = require('./../db_modules/dbProposalType');
 var constProposalStatus = require('./../const/constProposalStatus');
 var constSystemParam = require('./../const/constSystemParam');
 var constProposalType = require('./../const/constProposalType');
 var constPlayerTopUpType = require('./../const/constPlayerTopUpType');
+var constProposalMainType = require('../const/constProposalMainType');
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var counterManager = require("../modules/counterManager.js");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
@@ -23,7 +25,6 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
 var dbPlayerTopUpRecord = {
-
     /**
      * Get top up record in a certain period of time
      * @param {Json} data
@@ -80,48 +81,120 @@ var dbPlayerTopUpRecord = {
      * Get total top up amount in a certain period of time
      * @param {Date} startTime,endTime - The date info
      */
-    topupReport: function (query, index, count, sortObj) {
-        var matchObj = {
+    topupReport: function (query, index, limit, sortObj) {
+        // console.log('query', query);
+        var queryObj = {
             createTime: {
                 $gte: query.startTime ? new Date(query.startTime) : new Date(0),
                 $lt: query.endTime ? new Date(query.endTime) : new Date()
-            },
-            platformId: ObjectId(query.platformId)
-        };
-        sortObj = sortObj || {};
-        index = index || 0;
-        count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM);
-        if (query.type && query.type != 'all') {
-            matchObj.topUpType = query.type;
-        }
-        if (query.paymentChannel && query.paymentChannel != 'all') {
-            matchObj.paymentId = query.paymentChannel;
-        }
-        var a = dbconfig.collection_playerTopUpRecord.find(matchObj).populate({
-            path: "playerId",
-            model: dbconfig.collection_players
-        }).count();
-        var b = dbconfig.collection_playerTopUpRecord.find(matchObj).populate({
-            path: "playerId",
-            model: dbconfig.collection_players
-        }).sort(sortObj).skip(index).limit(count);
-
-        var c = dbconfig.collection_playerTopUpRecord.aggregate(
-            {
-                $match: matchObj
-            },
-            {
-                $group: {
-                    _id: null,
-                    totalAmount: {$sum: "$amount"},
-                }
             }
-        ).exec();
-        return Q.all([a, b, c]).then(
+        }
+        if (query.status && query.status.length > 0) {
+            queryObj.status = {$in: query.status};
+        }
+        return Q.resolve().then(
+            () => {
+                var str = '';
+                if (query && query.mainTopupType == constPlayerTopUpType.ONLINE) {
+                    str = constProposalType.PLAYER_TOP_UP;
+                    query.topupType ? queryObj['data'] = {'topupType': query.topupType} : '';
+                } else if (query && query.mainTopupType == constPlayerTopUpType.ALIPAY) {
+                    str = constProposalType.PLAYER_ALIPAY_TOP_UP
+                } else if (query && query.mainTopupType == constPlayerTopUpType.MANUAL) {
+                    str = constProposalType.PLAYER_MANUAL_TOP_UP;
+                    query.depositMethod ? queryObj['data'] = {'depositMethod': query.depositMethod} : '';
+                } else {
+                    str = {
+                        $in: [constProposalType.PLAYER_TOP_UP,
+                            constProposalType.PLAYER_ALIPAY_TOP_UP,
+                            constProposalType.PLAYER_MANUAL_TOP_UP]
+                    };
+                    queryObj['$or'] = [];
+                    query.topupType ? queryObj['$or'].push({
+                        'data.topupType': query.topupType
+                    }) : queryObj['$or'].push({
+                        'data.topupType': {$exists: true}
+                    });
+                    query.depositMethod ? queryObj['$or'].push({
+                        'data.depositMethod': query.depositMethod
+                    }) : queryObj['$or'].push({
+                        'data.depositMethod': {$exists: true}
+                    });
+                    queryObj['$or'].push({
+                        $and: [
+                            {'data.topupType': {$exists: false}},
+                            {'data.depositMethod': {$exists: false}}
+                        ]
+                    })
+
+                }
+                return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
+            }
+        ).then(
+            proposalType => {
+                var typeIds = proposalType.map(type => {
+                    return type._id;
+                });
+                queryObj.type = {$in: typeIds};
+                // console.log('queryObj', JSON.stringify(queryObj, null, 4));
+                var a = dbconfig.collection_proposal.find(queryObj).count();
+                var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit);
+                var c = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
+                    $group: {
+                        _id: null,
+                        totalAmount: {$sum: "$data.amount"},
+                    }
+                });
+                return Q.all([a, b, c])
+            }
+        ).then(
             data => {
                 return {data: data[1], size: data[0], total: data[2][0] ? data[2][0].totalAmount : 0};
             }
         )
+
+        // dbProposalType.getProposalTypeByPlatformId(query.platformId).then(data => {
+        //     console.log('data', data);
+        // });
+
+        // var matchObj = {
+        //     createTime: {
+        //         $gte: query.startTime ? new Date(query.startTime) : new Date(0),
+        //         $lt: query.endTime ? new Date(query.endTime) : new Date()
+        //     },
+        //     platformId: ObjectId(query.platformId)
+        // };
+        // sortObj = sortObj || {};
+        // index = index || 0;
+        // count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM);
+        // if (query.type && query.type != 'all') {
+        //     matchObj.topUpType = query.type;
+        // }
+        // if (query.paymentChannel && query.paymentChannel != 'all') {
+        //     matchObj.paymentId = query.paymentChannel;
+        // }
+        // var a = dbconfig.collection_playerTopUpRecord.find(matchObj).count();
+        // var b = dbconfig.collection_playerTopUpRecord.find(matchObj).populate({
+        //     path: "playerId",
+        //     model: dbconfig.collection_players
+        // }).sort(sortObj).skip(index).limit(count);
+        //
+        // var c = dbconfig.collection_playerTopUpRecord.aggregate(
+        //     {
+        //         $match: matchObj
+        //     },
+        //     {
+        //         $group: {
+        //             _id: null,
+        //             totalAmount: {$sum: "$amount"},
+        //         }
+        //     }
+        // ).exec();
+        // return Q.all([a, b, c]).then(
+        //     data => {
+        //         return {data: data[1], size: data[0], total: data[2][0] ? data[2][0].totalAmount : 0};
+        //     }
+        // )
     },
 
     /**
@@ -465,7 +538,7 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
-                            errorMessage: "Player does not have this permission"
+                            errorMessage: "Player does not have online topup permission"
                         });
                     }
                     //check player foridb topup type list
@@ -516,7 +589,7 @@ var dbPlayerTopUpRecord = {
                         merchantUseType: merchantUseType,
                         clientType: clientType
                     };
-                    //console.log("requestData:", requestData);
+                    // console.log("requestData:", requestData);
                     return pmsAPI.payment_requestOnlineMerchant(requestData);
                     //     .catch(
                     //     err => Q.reject({name: "DataError", message: "Failure with requestOnlineMerchant", error: err, requestData: requestData})
@@ -534,13 +607,15 @@ var dbPlayerTopUpRecord = {
         ).then(
             merchantResponseData => {
                 if (merchantResponseData) {
+                    // console.log("merchantResponseData", merchantResponseData);
                     merchantResponse = merchantResponseData;
                     //add request data to proposal and update proposal status to pending
                     var updateData = {
                         status: constProposalStatus.PENDING
                     };
                     updateData.data = Object.assign({}, proposal.data);
-                    updateData.data.requestId = merchantResponseData.result.requestId;
+                    updateData.data.requestId = merchantResponseData.result ? merchantResponseData.result.requestId : "";
+                    updateData.data.merchantNo = merchantResponseData.result ? merchantResponseData.result.merchantNo : "";
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
                         updateData,
@@ -564,7 +639,7 @@ var dbPlayerTopUpRecord = {
                     amount: topupRequest.amount,
                     createTime: proposalData.createTime,
                     status: proposalData.status,
-                    topupDetail: merchantResponse.result,
+                    topupDetail: merchantResponse.result
                     //requestId: merchantResponse.result.requestId,
                     //result: merchantResponse.result,
                 };
@@ -615,7 +690,7 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
-                            errorMessage: "Player does not have this permission"
+                            errorMessage: "Player does not have manual topup permission"
                         });
                     }
                     var proposalData = Object.assign({}, inputData);
@@ -628,15 +703,17 @@ var dbPlayerTopUpRecord = {
                     proposalData.playerName = playerData.name;
                     proposalData.depositMethod = inputData.depositMethod;
                     proposalData.realName = inputData.realName;
+                    proposalData.remark = inputData.remark || "";
+                    proposalData.lastBankcardNo = inputData.lastBankcardNo;
                     proposalData.creator = entryType == "ADMIN" ? {
-                            type: 'admin',
-                            name: adminName,
-                            id: adminId
-                        } : {
-                            type: 'player',
-                            name: playerData.name,
-                            id: playerId
-                        };
+                        type: 'admin',
+                        name: adminName,
+                        id: adminId
+                    } : {
+                        type: 'player',
+                        name: playerData.name,
+                        id: playerId
+                    };
                     var newProposal = {
                         creator: proposalData.creator,
                         data: proposalData,
@@ -649,7 +726,7 @@ var dbPlayerTopUpRecord = {
                     return Q.reject({
                         status: constServerCode.INVALID_DATA,
                         name: "DataError",
-                        errorMessage: "Invalid player data"
+                        errorMessage: "Invalid player bankcard group data"
                     });
                 }
             }
@@ -667,9 +744,13 @@ var dbPlayerTopUpRecord = {
                         case "2":
                             depositMethod = "ATM";
                             break;
-                        case 2:
-                        case "2":
+                        case 3:
+                        case "3":
                             depositMethod = "柜台存款";
+                            break;
+                        case 4:
+                        case "4":
+                            depositMethod = "其他";
                             break;
                         default:
                             break;
@@ -683,13 +764,13 @@ var dbPlayerTopUpRecord = {
                         ip: player.lastLoginIp,
                         depositMethod: depositMethod,
                         bankTypeId: inputData.bankTypeId,
-                        bankCardNo: inputData.lastBankcardNo,
+                        bankCardNo: inputData.lastBankcardNo || "",
                         provinceId: inputData.provinceId,
                         cityId: inputData.cityId,
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : []
                     };
-                    //console.log("requestData", requestData);
+                    // console.log("requestData", requestData);
                     return pmsAPI.payment_requestManualBankCard(requestData);
                 }
                 else {
@@ -969,9 +1050,15 @@ var dbPlayerTopUpRecord = {
                 if (proposalTypes && proposalTypes.length > 0) {
                     var queryObj = {
                         "data.playerObjId": playerData._id,
-                        type: {$in: proposalTypes.map(type => type._id)},
-                        status: status || constProposalStatus.SUCCESS
+                        type: {$in: proposalTypes.map(type => type._id)}
+                        //status: status || constProposalStatus.SUCCESS
                     };
+                    if (status) {
+                        queryObj.status = status;
+                    }
+                    else {
+                        queryObj.status = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    }
                     if (startTime || endTime) {
                         queryObj.createTime = {};
                     }
@@ -1187,6 +1274,18 @@ var dbPlayerTopUpRecord = {
                     };
                 }
             );
+    },
+
+    getValidTopUpRecordList: function (rewardInfo, playerId, playerObjId) {
+        var rewardType = (rewardInfo && rewardInfo.type) ? rewardInfo.type.name : null;
+        var period = (rewardInfo && rewardInfo.param) ? parseInt(rewardInfo.param.periodType) : 0;
+        if (rewardType == "FirstTopUp") {
+            return dbPlayerTopUpRecord.getValidFirstTopUpRecordList(playerId, period + 1, 0, constSystemParam.REPORT_MAX_RECORD_NUM, -1).then(data => {
+                return data.records;
+            })
+        } else {
+            return dbPlayerInfo.getPlayerTopUpRecords({playerId: playerObjId}, true)
+        }
     }
 
 };

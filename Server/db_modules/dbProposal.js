@@ -1,3 +1,5 @@
+'use strict';
+
 var proposalFunc = function () {
 };
 module.exports = new proposalFunc();
@@ -20,6 +22,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
 var pmsAPI = require('../externalAPI/pmsAPI');
+var moment = require('moment-timezone');
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
@@ -39,19 +42,24 @@ var proposal = {
 
     /**
      * Create a new proposal with type name
+     * @param {string} platformId -
      * @param {string} typeName - Type name
      * @param {json} proposalData - The data of the proposal
      */
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
-        var deferred = Q.defer();
-        var bExecute = false;
-        var proposalTypeData = null;
-        //get proposal type id
-        var ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
-        //create process for proposal
-        var ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName);
+        let deferred = Q.defer();
 
-        proposal.createProposalDataHandler(ptProm, ptpProm, proposalData, deferred);
+        let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
+
+        //get proposal type id
+        let ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
+        //create process for proposal
+        let ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName);
+        // query related player info
+        let plyProm = dbconfig.collection_players.findOne({_id: playerId})
+                        .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+
+        proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
     },
 
@@ -95,23 +103,32 @@ var proposal = {
      * @param {json} proposalData - The data of the proposal
      */
     createProposalWithTypeId: function (typeId, proposalData) {
-        var deferred = Q.defer();
+        let deferred = Q.defer();
+        let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
 
         //get proposal type id
-        var ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
-        var ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
-        proposal.createProposalDataHandler(ptProm, ptpProm, proposalData, deferred);
+        let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
+        let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
+        let plyProm = dbconfig.collection_players.findOne({_id: playerId})
+            .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+
+        proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
     },
 
     /**
      * Get one proposal by _id
-     * @param {json} query - The query string
+     * @param {json} ptProm - Propm
+     * @param {json} ptpProm - Promise create proposal process
+     * @param {json} plyProm - Promise player info
+     * @param {json} proposalData - Proposal Data
+     * @param {json} deferred - Promise from parent
      */
-    createProposalDataHandler: function (ptProm, ptpProm, proposalData, deferred) {
-        var bExecute = false;
-        var proposalTypeData = null;
-        Q.all([ptProm, ptpProm]).then(
+    createProposalDataHandler: function (ptProm, ptpProm, plyProm, proposalData, deferred) {
+        let bExecute = false;
+        let proposalTypeData = null;
+
+        Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
             function (data) {
                 if (data && data[0] && data[1]) {
@@ -119,6 +136,7 @@ var proposal = {
                     proposalData.type = data[0]._id;
                     proposalData.data.platformId = data[0].platformId;
                     proposalData.mainType = constProposalMainType[data[0].name];
+
                     if (data[1]._id) {
                         proposalData.process = data[1]._id;
                         proposalData.status = constProposalStatus.PENDING;
@@ -134,6 +152,7 @@ var proposal = {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
+
                     //for consumption return request, skip proposal flow
                     if (proposalData.data && proposalData.data.bConsumptionReturnRequest) {
                         bExecute = true;
@@ -155,6 +174,13 @@ var proposal = {
                             }
                         }
                     );
+
+                    // attach player status if available
+                    if(data[2]) {
+                        proposalData.data.playerStatus = data[2].status;
+                        proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
+                    }
+
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
                             //for online top up and player consumption return, there can be multiple pending proposals
@@ -167,7 +193,7 @@ var proposal = {
                             else {
                                 var proposalProm = proposal.createProposal(proposalData);
                                 var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
-                                return Q.all([proposalProm, platProm]);
+                                return Q.all([proposalProm, platProm, data[0].expirationDuration]);
                             }
                         }
                     );
@@ -178,18 +204,20 @@ var proposal = {
             }
         ).then(
             function (data) {
-                if (data && data[0] && data[1]) {
+                if (data && data[0] && data[1] && data[2] != null) {
                     //notify the corresponding clients with new proposal
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
                         wsMessageClient.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyNewProposal", data);
                     }
+                    var expiredDate = moment(data[0].createTime).add('minutes', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');
 
                     // We need the type to be populated, because messageDispatcher wants to read proposalData.type.name
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: data[0]._id, createTime: data[0].createTime},
                         {
-                            proposalId: (data[1].prefix + data[0].proposalId)
+                            //proposalId: (data[1].prefix + data[0].proposalId),
+                            expirationTime: expiredDate
                         },
                         {new: true}
                     ).populate({path: 'type', model: dbconfig.collection_proposalType}).lean();
@@ -240,7 +268,7 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}).then(
                 proposalData => {
-                    if (proposalData && proposalData.type && proposalData.type.platformId == platform) {
+                    if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
                         return null;
@@ -348,10 +376,10 @@ var proposal = {
         );
     },
 
-    updateBonusProposal: function (proposalId, status, bonusId) {
+    updateBonusProposal: function (proposalId, status, bonusId, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
-                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING) && proposalData.data && proposalData.data.bonusId == bonusId) {
+                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING) && proposalData.data && proposalData.data.bonusId == bonusId) {
                     return proposalData;
                 }
                 else {
@@ -379,7 +407,7 @@ var proposal = {
                 if (status == constProposalStatus.SUCCESS) {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, true);
                 } else if (status == constProposalStatus.FAIL) {
-                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false);
+                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark);
                 } else if (status == constProposalStatus.PENDING || status == constProposalStatus.PROCESSING) {
                     return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                         proposalData => {
@@ -1077,13 +1105,8 @@ var proposal = {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
                             },
-                            $and: [{
-                                $or: [
-                                    {status: {$in: statusArr}},
-                                    {process: {$in: processIds}}
-                                ]
-                            }]
-                        }
+                            status: {$in: statusArr}
+                        };
                         if (relateUser) {
                             queryObj["data.playerName"] = relateUser
                         }
@@ -1167,127 +1190,6 @@ var proposal = {
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
         });
     },
-
-    // getQueryProposalsForAdminId: function (adminId, platformId, typeArr, statusArr, credit, relateUser, startTime, endTime, index, size, sortCol) {
-    //     var proposalTypesId = [];
-    //     var proposalStatus = [];
-    //     size = Math.min(size, constSystemParam.MAX_RECORD_NUM);
-    //
-    //     var prom1 = dbconfig.collection_proposalType.find({platformId: platformId}).exec();
-    //     var prom2 = dbconfig.collection_admin.findOne({_id: adminId}).exec();
-    //     return Q.all([prom1, prom2]).then(
-    //         function (data) {
-    //             if (data && data[0] && data[1]) {
-    //                 for (var i = 0; i < data[0].length; i++) {
-    //                     if (typeArr.indexOf(data[0][i].name) != -1) {
-    //                         proposalTypesId.push(data[0][i]._id);
-    //                     }
-    //                 }
-    //                 //find all related proposal type process step based on user's department and role
-    //                 return dbconfig.collection_proposalProcessStep.find(
-    //                     {$and: [{department: {$in: data[1].departments}}, {role: {$in: data[1].roles}}]}
-    //                 ).exec();
-    //             }
-    //             else {
-    //                 return Q.reject({name: "DBError", message: "Can't find admin user"});
-    //             }
-    //         },
-    //         function (error) {
-    //             return Q.reject({name: "DBError", message: "Error finding admin user", error: error});
-    //         }
-    //     ).then(
-    //         function (data) {
-    //             if (data && data.length > 0) {
-    //                 //get all proposal process with current step in found steps
-    //                 var stepIds = [];
-    //                 for (var i = 0; i < data.length; i++) {
-    //                     stepIds.push(data[i]._id);
-    //                 }
-    //                 return dbconfig.collection_proposalProcess.find(
-    //                     {steps: {$elemMatch: {$in: stepIds}}}
-    //                 ).populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).exec();
-    //             }
-    //         },
-    //         function (error) {
-    //             return Q.reject({name: "DBError", message: "Error finding matching process", error: error});
-    //         }
-    //     ).then(
-    //         function (data) {
-    //             if (data && data.length > 0) {
-    //                 //get all proposal process with current step in found steps
-    //                 var processIds = [];
-    //                 for (var i = 0; i < data.length; i++) {
-    //                     if (typeArr.indexOf(data[i].type.name) != -1) {
-    //                         processIds.push(data[i]._id);
-    //                     }
-    //                 }
-    //                 var queryObj = {
-    //                     type: {$in: proposalTypesId},
-    //                     createTime: {
-    //                         $gte: startTime,
-    //                         $lt: endTime
-    //                     },
-    //                     $and: [
-    //                         {
-    //                             $or: [
-    //                                 {process: {$in: processIds}},
-    //                                 {noSteps: true}
-    //                             ]
-    //                         }
-    //                     ],
-    //                 };
-    //                 if (relateUser) {
-    //                     queryObj["data.playerName"] = relateUser
-    //                 }
-    //                 if (credit) {
-    //                     queryObj["$and"].push({
-    //                         $or: [
-    //                             {"data.amount": credit},
-    //                             {"data.rewardAmount": credit}
-    //                         ]
-    //                     })
-    //                 }
-    //                 var a = dbconfig.collection_proposal.find(queryObj)
-    //                     .populate({path: 'type', model: dbconfig.collection_proposalType})
-    //                     .populate({path: 'process', model: dbconfig.collection_proposalProcess})
-    //                     .sort(sortCol).skip(index).limit(size).then(
-    //                         function (doc) {
-    //                             return doc
-    //                                 .filter(a => {
-    //                                     return (a.process && (statusArr.indexOf(a.process.status) != -1) || (statusArr.indexOf(a.status) != -1))
-    //                                 });//.slice(0, size);
-    //                         }
-    //                     );
-    //                 var b = dbconfig.collection_proposal.find(queryObj).count();
-    //                 return Q.all([a, b]);
-    //             }
-    //             else {
-    //                 //return all no step proposal
-    //                 return dbconfig.collection_proposal.find(
-    //                     {
-    //                         type: {$in: proposalTypesId},
-    //                         createTime: {
-    //                             $gte: startTime,
-    //                             $lt: endTime
-    //                         },
-    //                         noSteps: true,
-    //                         status: {$in: statusArr}
-    //                     }).populate({path: 'type', model: dbconfig.collection_proposalType})
-    //                     .sort({createTime: -1}).lean();//.limit(size).exec();
-    //             }
-    //         },
-    //         function (error) {
-    //             return Q.reject({name: "DBError", message: "Error finding matching proposal", error: error});
-    //         }
-    //     ).then(
-    //         function (data) {
-    //             return {data: data[0], size: data[1]};
-    //         },
-    //         function (error) {
-    //             return Q.reject({name: "DBError", message: "Error finding matching proposal", error: error});
-    //         }
-    //     );
-    // },
 
     /**
      * Get all available proposals for the selected platform and selected proposal types
@@ -1406,8 +1308,10 @@ var proposal = {
                 path: "process",
                 model: dbconfig.collection_proposalProcess
             });
-            if (data.type) {
-                data.type = ObjectId(data.type);
+            if (data.type && data.type.length > 0) {
+                data.type = data.type.map(item => {
+                    return ObjectId(item);
+                })
             }
             var c = dbconfig.collection_proposal.aggregate(
                 {
@@ -1742,7 +1646,10 @@ var proposal = {
                 if (data && data[1]) {
                     var obj = {data: data[0], size: data[1]};
                     var temp = data[2] ? data[2][0] : {sum1: 0, sum2: 0, sumApplyAmount: 0};
-                    obj.summary = {amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2), applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)};
+                    obj.summary = {
+                        amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2),
+                        applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)
+                    };
                     deferred.resolve(obj);
                 } else {
                     deferred.resolve({data: [], size: 0, summary: {}})
@@ -1789,7 +1696,9 @@ var proposal = {
     },
 
     getPlatformRewardProposal: function (platform) {
-        var proposal = {};
+        let proposal = {};
+        let proposalTypeArr = [];
+
         return dbconfig.collection_proposalType.find(
             {
                 platformId: platform,
@@ -1799,7 +1708,7 @@ var proposal = {
                 data.map(item => {
                     proposal[item._id] = {_id: item._id, name: item.name};
                 });
-                proposalTypeArr = data.map(type => {
+                var proposalTypeArr = data.map(type => {
                     return type._id;
                 });
                 return dbconfig.collection_proposal.distinct('type', {
@@ -1953,6 +1862,18 @@ var proposal = {
         );
     },
 
+    checkProposalExpiration: function () {
+        return dbconfig.collection_proposal.update(
+            {
+                status: constProposalStatus.PENDING,
+                expirationTime: {$lt: new Date()}
+            },
+            {
+                status: constProposalStatus.EXPIRED
+            }
+        );
+    },
+
     getPlayerPendingPaymentProposal: function (playerObjId, platformObjId) {
         return dbconfig.collection_proposalType.find(
             {
@@ -2012,7 +1933,7 @@ var proposal = {
     },
 
     submitRepairPaymentProposal: function (proposalId) {
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).lean().then(
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData && proposalData.data) {
                     //check if manual or online top up
@@ -2027,6 +1948,11 @@ var proposal = {
                         return pmsAPI.payment_requestRepairingOnlinePay(
                             {
                                 proposalId: proposalId
+                            }
+                        ).then(
+                            res => {
+                                proposalData.data.isRepair = true;
+                                return proposalData.save();
                             }
                         );
                     }

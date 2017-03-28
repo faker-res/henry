@@ -8,8 +8,8 @@
 .common-form-input-label {
     /*text-align: right;*/
     clear: both;
-    float:left;
-    margin-right:15px;
+    float: left;
+    margin-right: 15px;
     margin-top: 6px;
     max-width: 20%;
     min-width: 15%;
@@ -21,8 +21,8 @@
 
 input.ng-invalid.ng-dirty {
     border-color: #b94a48;
-    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
-    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 }
 
 input.ng-invalid.ng-dirty ~ .help-block {
@@ -31,8 +31,8 @@ input.ng-invalid.ng-dirty ~ .help-block {
 
 input.ng-valid.ng-dirty {
     border-color: #468847;
-    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
-    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 }
 
 @-webkit-keyframes rotating {
@@ -56,7 +56,7 @@ input.ng-valid.ng-dirty {
     background-position: -239px -24px;
 }
 
-.footerVersion{
+.footerVersion {
     margin: 0px;
 }
 
@@ -136,17 +136,18 @@ Style for connections.
     fill: gray;
 }
 
-.connection-name{
+.connection-name {
     fill: black;
 }
 
-.selected-connection-name{
+.selected-connection-name {
     fill: red;
 }
 
-.mouseover-connection-name{
+.mouseover-connection-name {
     fill: gray;
 }
+
 /*
 Style for the connection being dragged out.
 */
@@ -184,7 +185,7 @@ Drag selection rectangle.
 }
 
 .popover {
-    width:auto!important;
+    width: auto !important;
     max-width: none
 }
 
@@ -202,17 +203,20 @@ angular-datepicker
 #wrapper [date-picker] table {
     min-width: 200px;
 }
+
 /* The datepicker was too tall for the available space, and didn't need to be, so we reduce the height of the cells here. */
 #wrapper [date-picker] span {
     height: 18px;
     line-height: 19px;
 }
+
 #wrapper [date-picker] [ng-switch-when=year] span,
 #wrapper [date-picker] [ng-switch-when=month] span,
 #wrapper [date-picker] [ng-switch-when=minutes] span {
     height: 30px;
     line-height: 30px;
 }
+
 /* The default "now" highlight is a bit too overwhelming (white on an orange background).  Instead of shading the whole background, we just draw a border. */
 #wrapper [date-picker] .now {
     color: black;
@@ -221,6 +225,7 @@ angular-datepicker
     /* We use outline because border affects the size of the element, and causes mis-alignments. */
     outline: 2px solid #ee905b;
 }
+
 /* Now there is no reason why "now" and "active" highlights can't appear on the same element. */
 /*
 [date-picker] .active:hover, [date-picker] .now:hover,
@@ -230,3 +235,7 @@ angular-datepicker
     background-color: #04c !important;
 }
 */
+
+.text-black {
+    color: #000000;
+}

@@ -49,7 +49,7 @@ function socketActionLogger(socketIO, socket) {
             var isValidData = Boolean(data && data.startDate && data.endDate && data.service && data.functionName);
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbApiResponseTimeLog.getApiResponseTimeQuery, [data.startDate, data.endDate, data.service, data.functionName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbApiResponseTimeLog.getApiResponseTimeQuery, [data.startDate, data.endDate, data.service, data.functionName, data.providerId], actionName, isValidData);
         },
 
         getClientSourceQuery: function getClientSourceQuery(data) {

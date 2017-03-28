@@ -29,6 +29,10 @@ var PartnerServiceImplement = function () {
         var isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
         if (conn.captchaCode && (conn.captchaCode == data.captcha)) {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+            var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+            if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
             data.loginIps = [data.lastLoginIp];
             var uaString = conn.upgradeReq.headers['user-agent'];
             var ua = uaParser(uaString);
@@ -97,6 +101,10 @@ var PartnerServiceImplement = function () {
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.partnerId && data.token);
         var partnerIp = conn.upgradeReq.connection.remoteAddress;
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            partnerIp = forwardedIp[0].trim();
+        }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.authenticate, [data.partnerId, data.token, partnerIp, conn], true, false, false, true);
     };
 
@@ -106,6 +114,10 @@ var PartnerServiceImplement = function () {
 
         var isValidData = Boolean(data && data.name && data.password);
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            data.lastLoginIp = forwardedIp[0].trim();
+        }
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.partnerLoginAPI, [data, ua], isValidData, true, true, true).then(
@@ -269,7 +281,7 @@ var PartnerServiceImplement = function () {
 
     this.applyBonus.expectsData = 'bonusId: Number|String, amount: Number|String, honoreeDetail: String';
     this.applyBonus.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.partnerId && data && data.bonusId && data.amount);
+        var isValidData = Boolean(conn.partnerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.applyBonus, [conn.partnerId, data.bonusId, data.amount, data.honoreeDetail], isValidData);
     };
 
@@ -313,7 +325,7 @@ var PartnerServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayerPaymentReport, [conn.partnerId, data.startTime, data.endTime, data.startIndex, data.requestCount, !data.sort], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayerPaymentReport, [conn.partnerId, new Date(data.startTime), new Date(data.endTime), data.startIndex, data.requestCount, !data.sort], isValidData);
     };
 
     this.getPartnerCommission.onRequest = function (wsFunc, conn, data) {

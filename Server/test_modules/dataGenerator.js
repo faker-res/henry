@@ -83,7 +83,8 @@ function createTestPlatformAndPlayerAndPartner (generatedData) {
                     name: playerName,
                     platform: generatedData.testPlatformId,
                     partner: generatedData.testPartnerId,
-                    password: "123"
+                    password: "123",
+                    lastLoginIp: "1.180.233.173"
                 }
             );
         }
@@ -142,14 +143,14 @@ function createTestGame2(generatedData) {
 function createConsumptionRecordsForPlayer(playerId, consumptionConfig, generatedData, bulkPlayerConsumptionRecordOps, bulkPlayerConsumptionSummaryOps) {
     var proms = [];
     var lastConsumptionDay = new Date(consumptionConfig.lastConsumptionTime || dbUtil.getLastWeekSGTime().endTime);
-    lastConsumptionDay.setHours(0, 0, 0, 0);
+    //lastConsumptionDay.setHours(0, 0, 0, 0);
     //console.log("lastConsumptionDay", lastConsumptionDay);
     // Uncommenting these will disable bulk inserts, useful to test collision (avoidance) during createPlayerConsumptionRecord()
     //bulkPlayerConsumptionRecordOps = null;
     //bulkPlayerConsumptionSummaryOps = null;
 
     for (var j = 0; j < consumptionConfig.consumeDays; j++) {
-        var curDate = dbUtil.getLastWeekSGTime().endTime;
+        var curDate = new Date(lastConsumptionDay);
         //curDate.setHours(0, 0, 0, 0);
         curDate.setDate(lastConsumptionDay.getDate() - (j + 1));
 

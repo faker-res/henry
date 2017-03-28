@@ -274,8 +274,19 @@ define(['js/app'], function (myApp) {
                 vm.queryTopup.type = 'all';
                 vm.queryTopup.paymentChannel = 'all';
                 vm.queryTopup.totalCount = 0;
+                socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
+                    delete data.data.APPROVED;
+                    delete data.data.REJECTED;
+                    // delete data.data.PROCESSING;
+                    console.log('proposalStatusList', data.data);
+                    vm.proposalStatusList = data.data;
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("cannot find proposal status", data);
+                });
                 utilService.actionAfterLoaded("#topupTablePage", function () {
                     vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
+                    vm.queryTopup.merchantType = null;
                     vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryTopup", vm.searchTopupRecord)
                     });
@@ -319,9 +330,25 @@ define(['js/app'], function (myApp) {
                 vm.proposalQuery = {};
                 vm.proposalQuery.status = 'all';
                 vm.proposalQuery.totalCount = 0;
-                vm.proposalQuery.proposalTypeId = 'all';
+                vm.proposalQuery.proposalTypeId = '';
                 utilService.actionAfterLoaded("#proposalTablePage", function () {
                     vm.commonInitTime(vm.proposalQuery, '#proposalReportQuery')
+
+                    $('select#selectProposalType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                    });
+                    var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
+                    $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multi).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multi).find('span').text(upText)
+                    });
+                    $("select#selectProposalType").multipleSelect("checkAll");
+
                     vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
                 })
                 $scope.safeApply();
@@ -358,6 +385,23 @@ define(['js/app'], function (myApp) {
                     vm.playerExpenseQuery.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerExpenseQuery", vm.searchProviderPlayerRecord)
                     });
+                })
+            } else if (choice == "PLAYERDOMAIN_REPORT") {
+                vm.playerDomain = {totalCount: 0};
+                vm.playerDomain.topUpTimesOptionArr = [
+                    {label: $translate('any'), value: null},
+                    {label: '0', value: 0},
+                    {label: '1', value: 1},
+                    {label: '2', value: 2},
+                    {label: '3-?', value: {$gt: 2}},
+                ]
+                vm.playerDomain.topUpTimes = vm.playerDomain.topUpTimesOptionArr[0];
+                utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
+                    vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
+                    vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
+                    });
+                    vm.searchPlayerDomainRepport(true);
                 })
             } else if (choice == "NEWACCOUNT_REPORT") {
                 vm.newPlayerQuery = {totalCount: 0};
@@ -669,30 +713,30 @@ define(['js/app'], function (myApp) {
             },
         }
 
-        vm.selectProposalType = function (id) {
-            vm.operSelPlatform = false;
-            $.each(vm.allProposalType, function (i, v) {
-                if (v._id == id) {
-                    vm.selectedProposalType = v;
-                    vm.selectedProposalTypeID = v._id;
-                    console.log('vm.selectedProposalType', vm.selectedProposalType);
-                    $scope.safeApply();
-                    return;
-                }
-            });
-        };
-        vm.selectProposalStatus = function (id) {
-            vm.operSelPlatform = false; // Check tomorow
-            console.log('vm.proposalStatusList:', vm.proposalStatusList);
-            $.each(vm.proposalStatusList, function (i, v) {
-                if (v._id == id) {
-                    vm.selectedProposalStatus = v;
-                    console.log('vm.selectProposalStatus..', vm.selectedProposalStatus);
-                    $scope.safeApply();
-                    return;
-                }
-            });
-        };
+        // vm.selectProposalType = function (id) {
+        //     vm.operSelPlatform = false;
+        //     $.each(vm.allProposalType, function (i, v) {
+        //         if (v._id == id) {
+        //             vm.selectedProposalType = v;
+        //             vm.selectedProposalTypeID = v._id;
+        //             console.log('vm.selectedProposalType', vm.selectedProposalType);
+        //             $scope.safeApply();
+        //             return;
+        //         }
+        //     });
+        // };
+        // vm.selectProposalStatus = function (id) {
+        //     vm.operSelPlatform = false; // Check tomorow
+        //     console.log('vm.proposalStatusList:', vm.proposalStatusList);
+        //     $.each(vm.proposalStatusList, function (i, v) {
+        //         if (v._id == id) {
+        //             vm.selectedProposalStatus = v;
+        //             console.log('vm.selectProposalStatus..', vm.selectedProposalStatus);
+        //             $scope.safeApply();
+        //             return;
+        //         }
+        //     });
+        // };
 
         vm.getPlatformProvider = function (id) {
             if (!id) return;
@@ -725,6 +769,13 @@ define(['js/app'], function (myApp) {
             var deferred = Q.defer();
             socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
                 vm.allProposalType = data.data;
+                vm.allProposalType.sort(
+                    function (a, b) {
+                        if (vm.getProposalTypeOptionValue(a) > vm.getProposalTypeOptionValue(b)) return 1;
+                        if (vm.getProposalTypeOptionValue(a) < vm.getProposalTypeOptionValue(b)) return -1;
+                        return 0;
+                    }
+                );
                 console.log('vm.allProposalType:', data.data);
                 // console.log('ConsumptionReturn', data.data.name["ConsumptionReturn"]);
                 deferred.resolve(true);
@@ -760,15 +811,31 @@ define(['js/app'], function (myApp) {
             console.log('vm.queryTopup', vm.queryTopup);
             vm.queryTopup.platformId = vm.curPlatformId;
             $('#topupTableSpin').show();
+
+            var staArr = vm.queryTopup.status ? [vm.queryTopup.status] : [];
+            if (vm.queryTopup.status == "Success") {
+                staArr.push("Approved");
+            }
+            if (vm.queryTopup.status == "Fail") {
+                staArr.push("Rejected");
+            }
+
             var sendObj = {
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
                 platformId: vm.curPlatformId,
-                type: vm.queryTopup.type,
+                mainTopupType: vm.queryTopup.mainTopupType,
+                topupType: vm.queryTopup.topupType,
+                depositMethod: vm.queryTopup.depositMethod,
+                // merchant: vm.queryTopup.merchant,
+                status: staArr,
                 index: newSearch ? 0 : (vm.queryTopup.index || 0),
-                limit: vm.queryTopup.limit,
+                limit: newSearch ? 10 : (vm.queryTopup.limit || 10),
                 sortCol: vm.queryTopup.sortCol
             }
+            // if (vm.queryTopup.status) {
+            //     sendObj.status = {'$in': staArr}
+            // }
 
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
                 $('#topupTableSpin').hide();
@@ -777,7 +844,8 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 vm.drawTopupReport(
                     data.data.data.map(item => {
-                        item.amount$ = parseFloat(item.amount).toFixed(2);
+                        item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                        item.status$ = $translate(item.status);
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
@@ -786,24 +854,23 @@ define(['js/app'], function (myApp) {
             }, true);
         };
         vm.drawTopupReport = function (data, size, summary, newSearch) {
-
             console.log('data', data);
             var tableOptions = {
                 data: data,
-                "order": vm.queryTopup.aaSorting,
+                "order": vm.queryTopup.aaSorting || [[5, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [9]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [5]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('DINGDAN_ID'), data: null},
+                    // {title: $translate('DINGDAN_ID'), data: null},
                     // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
-                    {title: $translate('STATUS'), data: null},
-                    {title: $translate('ISNEWPLAYER'), data: null},
-                    {title: $translate('ACCOUNT'), data: null},
-                    {title: $translate('PLAYER_NAME'), data: "playerId.name"},
-                    {title: $translate('PARTNER'), data: null, sClass: "sumText"},
+                    {title: $translate('STATUS'), data: "status$"},
+                    // {title: $translate('ISNEWPLAYER'), data: null},
+                    {title: $translate('ACCOUNT'), data: "data.bankAccount"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "sumText"},
+                    // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
                     {
                         title: $translate('Topup Type'), data: "topUpType",
@@ -811,48 +878,44 @@ define(['js/app'], function (myApp) {
                             return $translate(vm.topupTypeJson[data] || "Unknown");
                         }
                     },
-                    {title: $translate('IP'), data: null},
+                    // {title: $translate('IP'), data: null},
                     {
-                        title: $translate('START_TIME'), data: "createTime",
+                        title: $translate('TIME'), data: "createTime",
                         render: function (data, type, row) {
                             return utilService.$getTimeFromStdTimeFormat(data);
                         }
                     },
-                    {title: $translate('END_TIME'), data: null},
-                    {title: $translate('REMARK'), data: null},
+                    // {title: $translate('END_TIME'), data: null},
+                    // {title: $translate('REMARK'), data: null},
                 ],
                 "paging": false,
                 // dom: 'RZrtlp',
-                "language": {
-                    "info": "Total _MAX_ records",
-                    // "emptyTable": $translate("No data available in table"),
-                },
-                fnDrawCallback: function (oSettings) {
-                    var container = oSettings.nTable;
-                    utilService.setupPopover({
-                        context: container,
-                        elem: '.telPopover',
-                        content: function () {
-                            vm.telphonePlayer = JSON.parse(this.dataset.row);
-                            $scope.safeApply();
-                            return $('#telPopover').html();
-                        },
-                        callback: function () {
-                            $("button.playerMessage").on('click', function () {
-                                console.log('message', this);
-                                alert("will send message to " + vm.telphonePlayer.name);
-                            });
-                            $("button.playerTelephone").on('click', function () {
-                                alert("will call " + vm.telphonePlayer.name);
-                            });
-                        }
-                    });
-                },
+                // fnDrawCallback: function (oSettings) {
+                //     var container = oSettings.nTable;
+                //     utilService.setupPopover({
+                //         context: container,
+                //         elem: '.telPopover',
+                //         content: function () {
+                //             vm.telphonePlayer = JSON.parse(this.dataset.row);
+                //             $scope.safeApply();
+                //             return $('#telPopover').html();
+                //         },
+                //         callback: function () {
+                //             $("button.playerMessage").on('click', function () {
+                //                 console.log('message', this);
+                //                 alert("will send message to " + vm.telphonePlayer.name);
+                //             });
+                //             $("button.playerTelephone").on('click', function () {
+                //                 alert("will call " + vm.telphonePlayer.name);
+                //             });
+                //         }
+                //     });
+                // },
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
 
-            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
+            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {3: summary.amount});
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
@@ -1285,7 +1348,7 @@ define(['js/app'], function (myApp) {
 
             // If endTime is today, we will trigger the provider settlement(s) before fetching the report
             var providersToSettle =
-                endTime < midnightThisMorningSG ? []
+                endTime <= midnightThisMorningSG ? []
                     : vm.allProviders;
 
             settleProvidersInList(providersToSettle, endTime).then(
@@ -1454,6 +1517,71 @@ define(['js/app'], function (myApp) {
         }
 
         //////////////////// draw player table - end /////////////////
+
+        /////// player domain report
+        vm.searchPlayerDomainRepport = function (newSearch) {
+            $('#playerDomainReportTableSpin').show();
+
+            console.log(vm.playerDomain);
+            var sendquery = {
+                platform: vm.curPlatformId,
+                query: {
+                    name: vm.playerDomain.name,
+                    realName: vm.playerDomain.realName,
+                    domain: vm.playerDomain.domain,
+                    topUpTimes: vm.playerDomain.topUpTimes.value,
+                    startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate(),
+                },
+                index: newSearch ? 0 : (vm.playerDomain.index || 0),
+                limit: newSearch ? 10 : (vm.playerDomain.limit || 10),
+                sortCol: vm.playerDomain.sortCol || {},
+            }
+            socketService.$socket($scope.AppSocket, 'getPlayerDomainReport', sendquery, function (data) {
+                console.log('retData', data);
+                vm.playerDomain.totalCount = data.data.size;
+                $('#playerDomainReportTableSpin').hide();
+                vm.drawPlayerDomainReport(data.data.data.map(item => {
+                    item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                    item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                    return item;
+                }), data.data.size, newSearch);
+                $scope.safeApply();
+            });
+        }
+        vm.drawPlayerDomainReport = function (tableData, size, newSearch) {
+            var tableOptions = {
+                data: tableData,
+                "order": vm.playerDomain.aaSorting || [[2, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'registrationTime', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'lastAccessTime', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [5], bSortable: true},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PLAYER_NAME'), data: "name"},
+                    {title: $translate('realName'), data: "realName", sClass: "realNameCell wordWrap"},
+                    {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
+                    {title: $translate('Partner'), data: "partner.name"},
+                    {title: $translate('LAST_ACCESS_TIME'), data: "registrationTime$"},
+                    {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
+                    {title: $translate('Domain Name'), data: "domain"}
+                ],
+                "paging": false,
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            utilService.createDatatableWithFooter('#playerDomainReportTable', tableOptions, {});
+
+            vm.playerDomain.pageObj.init({maxCount: size}, newSearch);
+
+            $('#playerDomainReportTable').off('order.dt');
+            $('#playerDomainReportTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'playerDomain', vm.searchPlayerDomainRepport);
+            });
+        }
+        /////// player domain report end
+
 
         // player report
         vm.clearDatePicker = function (id) {
@@ -1638,34 +1766,48 @@ define(['js/app'], function (myApp) {
 
             $('#playerPartnerTable').resize();
             $('#playerPartnerTable tbody').unbind('click');
-        },
+        }
 
-            // End - player partner report
+        // End - player partner report
 
 
-            //Start proposal report
-            vm.hideOtherConditions = function (id, thisVal, preservID) {
-                var te = $(id).find(".form-control");
-                if (thisVal) {
-                    te.not(preservID).prop("disabled", true).css("background-color", "#eee");
-                    te.find("input").not(preservID).prop("disabled", true).css("background-color", "#eee")
-                } else {
-                    te.not(preservID).prop("disabled", false).css("background-color", "#fff");
-                    te.find("input").not(preservID).prop("disabled", false).css("background-color", "#fff");
-                }
+        //Start proposal report
+        vm.hideOtherConditions = function (id, thisVal, preservID) {
+            var te = $(id).find(".form-control");
+            if (thisVal) {
+                te.not(preservID).prop("disabled", true).css("background-color", "#eee");
+                te.find("input").not(preservID).prop("disabled", true).css("background-color", "#eee")
+                te.find("button.ms-choice").prop("disabled", true).css("background-color", "#eee")
+            } else {
+                te.not(preservID).prop("disabled", false).css("background-color", "#fff");
+                te.find("input").not(preservID).prop("disabled", false).css("background-color", "#fff");
+                te.find("button.ms-choice").prop("disabled", false).css("background-color", "#fff");
             }
+        }
         vm.searchProposalRecord = function (newSearch) {
 
             var newproposalQuery = $.extend(true, {}, vm.proposalQuery);
-            if (newproposalQuery.proposalTypeId == "all") {
-                newproposalQuery.proposalTypeId = null;
-            }
+            // if (newproposalQuery.proposalTypeId == "all") {
+            //     newproposalQuery.proposalTypeId = null;
+            // }
+
+            var proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
+            newproposalQuery.proposalTypeId = [];
+            vm.allProposalType.filter(item => {
+                if (proposalNames.indexOf(item.name) > -1) {
+                    newproposalQuery.proposalTypeId.push(item._id);
+                }
+            });
             if (newproposalQuery.status == "all") {
                 newproposalQuery.status = null;
             }
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
-            var sendData = {
+            var sendData = newproposalQuery.proposalId ? {
+                proposalId: newproposalQuery.proposalId,
+                index: 0,
+                limit: 1,
+            } : {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 proposalTypeId: newproposalQuery.proposalTypeId,
@@ -2482,6 +2624,7 @@ define(['js/app'], function (myApp) {
 
                     return $scope.$socketPromise('getPartnerCommissionReport', sendData, true).then(
                         function (data) {
+                            console.log("getPartnerCommissionReport", data);
                             vm.partnerCommissionQuery.totalCount = data.data.size ? data.data.size : 0;
                             vm.partnerCommissionQuery.message = data.data.message || '';
                             $scope.safeApply();
@@ -2492,7 +2635,10 @@ define(['js/app'], function (myApp) {
                                 item.marketCost$ = parseFloat(item.marketCost).toFixed(2);
                                 item.operationFee$ = parseFloat(item.operationFee).toFixed(2);
                                 item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
-                                item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
+                                item.totalPlayerBonusAmount$ = parseFloat(item.totalPlayerBonusAmount).toFixed(2);
+                                // item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
+                                item.totalCommissionAmount$ = parseFloat(item.totalCommissionAmount).toFixed(2);
+                                item.totalCommissionOfChildren$ = parseFloat(item.totalCommissionOfChildren).toFixed(2);
                                 return item;
                             }), vm.partnerCommissionQuery.totalCount, data.data.summary, newSearch);
                         }
@@ -2513,7 +2659,9 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'marketCost', 'aTargets': [4]},
                     {'sortCol': 'operationFee', 'aTargets': [5]},
                     {'sortCol': 'totalTopUpAmount', 'aTargets': [6]},
-                    {'sortCol': 'totalBonusAmount', 'aTargets': [7]},
+                    {'sortCol': 'totalPlayerBonusAmount', 'aTargets': [7]},
+                    {'sortCol': 'totalCommissionAmount', 'aTargets': [8]},
+                    {'sortCol': 'totalCommissionOfChildren', 'aTargets': [9]},
                     {targets: '_all', defaultContent: 0, bSortable: true}
                 ],
                 columns: [
@@ -2524,7 +2672,17 @@ define(['js/app'], function (myApp) {
                     {title: $translate('marketCost'), data: "marketCost$", sClass: "sumFloat alignRight"},
                     {title: $translate('operationFee'), data: "operationFee$", sClass: "sumFloat alignRight"},
                     {title: $translate('totalTopUpAmount'), data: "totalTopUpAmount$", sClass: "sumFloat alignRight"},
-                    {title: $translate('totalBonusAmount'), data: "totalBonusAmount$", sClass: "sumFloat alignRight"},
+                    {title: $translate('totalBonusAmount'), data: "totalPlayerBonusAmount$", sClass: "sumFloat alignRight"},
+                    {
+                        title: $translate('totalCommissionAmount'),
+                        data: "totalCommissionAmount$",
+                        sClass: "sumFloat alignRight"
+                    },
+                    {
+                        title: $translate('totalCommissionOfChildren'),
+                        data: "totalCommissionOfChildren$",
+                        sClass: "sumFloat alignRight"
+                    },
                 ],
                 "bAutoWidth": true,
                 "paging": false,
@@ -2537,7 +2695,9 @@ define(['js/app'], function (myApp) {
                 4: summary.marketCost,
                 5: summary.operationFee,
                 6: summary.totalTopUpAmount,
-                7: summary.totalBonusAmount,
+                7: summary.totalPlayerBonusAmount,
+                8: summary.totalCommissionAmount,
+                9: summary.totalCommissionOfChildren
             }
             vm.partnerCommissionTable = utilService.createDatatableWithFooter('#partnerCommissionTable', tableOptions, summaryObj);
             vm.partnerCommissionQuery.pageObj.init({maxCount: size}, newSearch);
@@ -2604,7 +2764,10 @@ define(['js/app'], function (myApp) {
                     "emptyTable": $translate("No data available in table"),
                 },
             });
-            vm.generalRewardProposalQuery.table = utilService.createDatatableWithFooter("#generalRewardProposalTable", tableOptions, {2: summary.amount, 3: summary.applyAmount});
+            vm.generalRewardProposalQuery.table = utilService.createDatatableWithFooter("#generalRewardProposalTable", tableOptions, {
+                2: summary.amount,
+                3: summary.applyAmount
+            });
             vm.generalRewardProposalQuery.pageObj.init({maxCount: size}, newSearch);
 
             $("#generalRewardProposalTable").off('order.dt');
@@ -2813,7 +2976,7 @@ define(['js/app'], function (myApp) {
         vm.commonInitTime = function (obj, queryId) {
             if (!obj) return;
             obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
-            var lastMonth = utilService.setNDaysAgo(new Date(), 30);
+            var lastMonth = utilService.setNDaysAgo(new Date(), 1);
             var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
             obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
 
@@ -2926,6 +3089,10 @@ define(['js/app'], function (myApp) {
             return vm.allProviders.find(p => p._id === providerObjId);
         }
 
+        vm.getProposalTypeOptionValue = function (proposalType) {
+            var result = utilService.getProposalGroupValue(proposalType);
+            return $translate(result);
+        };
         $scope.$on('$viewContentLoaded', function () {
 
             setTimeout(

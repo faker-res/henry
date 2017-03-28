@@ -79,7 +79,7 @@ var simplifiedChinese = {
 
     "Cannot find player for online top up proposal" : "无法找到玩家",
     "Cannot create online top up proposal": "无法创建在线充值提案",
-    "Cannot create manual top up proposal" : "无法创建手动充值提案",
+    "Cannot create manual top up proposal" : "无法创建手工充值提案",
     "Cannot find payment data" : "无法找到支付数据",
     "Cannot create online top up request": "无法创建在线充值单",
     "Cannot get player and reward data" : "无法找到玩家和奖励数据",
@@ -114,7 +114,7 @@ var simplifiedChinese = {
     "Invalid player consumption incentive event data for platform": "奖励活动数据无效",
     "Cannot find player consumption incentive event data for platform": "无法找到奖励活动数据",
     "Can not find player bonus proposal type": "无法找到相关数据",
-    "Player does not have enough top up amount": "玩家额度不够",
+    "Player does not have enough top up amount": "自身充值额度不够",
     "Player has too much credit": "玩家额度过多",
     "Not enough reward amount": "奖励额度不够",
     "Can not find player bonus proposal or provider credit": "无法找到相关数据",
@@ -141,7 +141,12 @@ var simplifiedChinese = {
     "Player has too much valid credit": "玩家额度过多",
     "Player has applied for this reward": "玩家以申请过该奖励",
     "Amount is not enough": "申请兑奖数量过少",
-    "This proposal has been processed": "该提案已在处理中"
+    "This proposal has been processed": "该提案已在处理中",
+    "Invalid player bankcard group data": "玩家无可支付的银行卡",
+    "Player does not have online topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",
+    "Player does not have manual topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",
+    "Please contact customer service": "请联系在线客服",
+    "Referral does not have enough topup amount": "被推荐人充值额度不够"
     //todo::add missing messages here
 
     /*

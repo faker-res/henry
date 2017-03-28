@@ -18,11 +18,15 @@ var RegistrationIntentionServiceImplement = function () {
     this.add.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.mobile && data.hasOwnProperty("platformId"));
         data.ipAddress = conn.upgradeReq.connection.remoteAddress;
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            data.ipAddress = forwardedIp[0].trim();
+        }
         WebSocketUtil.responsePromise(
             conn, wsFunc, data, dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI,
             [data], isValidData, true, false, true
         ).then(
-            function(res){
+            function (res) {
                 wsFunc.response(conn, {status: constServerCode.SUCCESS, data: res}, data);
                 self.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyRegistrationIntentionUpdate", res);
             }
