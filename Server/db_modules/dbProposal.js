@@ -1337,7 +1337,8 @@ var proposal = {
                     dataDeferred.reject({
                         name: "DataError",
                         message: "Error in getting proposals type in the selected platform.",
-                        error: err
+                        error: err,
+                        reqData: reqData
                     })
                 }
             );
