@@ -494,9 +494,9 @@ var dbRewardTask = {
             var bUpdateProposal = false;
 
             var rewardAmount = taskData.currentAmount;
-            if (taskData.requiredBonusAmount > 0 && rewardAmount > taskData.requiredBonusAmount) {
-                rewardAmount = taskData.requiredBonusAmount;
-            }
+            // if (taskData.requiredBonusAmount > 0 && rewardAmount > taskData.requiredBonusAmount) {
+            //     rewardAmount = taskData.requiredBonusAmount;
+            // }
             taskData.status = constRewardTaskStatus.COMPLETED;
             var taskProm = dbconfig.collection_rewardTask.findOneAndUpdate(
                 {_id: taskData._id, platformId: taskData.platformId},
