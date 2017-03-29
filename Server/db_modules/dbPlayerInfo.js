@@ -3595,7 +3595,9 @@ var dbPlayerInfo = {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
                         rewardEventItem.platformId = platformId;
-                        rewardEventArray.push(rewardEventItem);
+                        if (rewardEventItem.canApplyFromClient) {
+                            rewardEventArray.push(rewardEventItem);
+                        }
                     }
                     return rewardEventArray;
                 }
