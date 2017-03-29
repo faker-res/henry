@@ -1478,7 +1478,7 @@
   "remark":"备注",
   "partnerName":"推广渠道名称",
   "spendingAmount":"解锁额度",
-  "HONOREE_DETAIL":"兑奖详情",
+  "HONOREE_DETAIL":"兑奖备注",
   "DEPOSIT_METHOD":"手工存款方式",
   "APPLY_MANUAL_TOPUP":"申请手工充值",
   "ApplyManualTopup":"申请手工充值",
@@ -1812,5 +1812,3 @@
   "playerStatus" : "玩家状态",
   "proposalPlayerLevel" : "玩家级别"
 }
-
-
