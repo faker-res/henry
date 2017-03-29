@@ -3139,6 +3139,7 @@ define(['js/app'], function (myApp) {
                 receiveSMS: updateData.receiveSMS != null ? updateData.receiveSMS : undefined,
                 smsSetting: updateData.smsSetting ? updateData.smsSetting : undefined
             }
+            var updateBankData = {};
             delete updateData.smsSetting;
             delete updateData.receiveSMS;
 
@@ -3147,7 +3148,19 @@ define(['js/app'], function (myApp) {
             }
             if (Object.keys(updateData).length > 0) {
                 updateData._id = playerId;
+                var isUpdate = false
                 updateData.playerName = newPlayerData.name || vm.editPlayer.name
+                // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
+                Object.keys(newPlayerData).forEach(function(key) {
+                    if(newPlayerData[key] != oldPlayerData[key]){
+                        if(key=="alipayGroup"||key=="smsSetting"||key=="bankCardGroup"||key=="merchantGroup"){
+                            //do nothing
+                        }else{
+                            isUpdate = true;
+                        }
+                    }
+                });
+
                 if (updateData.partner == null) {
                     updateData.partnerName = '';
                 }
@@ -3170,35 +3183,40 @@ define(['js/app'], function (myApp) {
                 //     // delete updateData.merchantGroup;
                 // }
                 if (updateData.bankCardGroup) {
-                    var oldBankCardGroup = vm.platformBankCardGroupList.find(g => g._id === oldPlayerData.bankCardGroup);
-                    var newBankCardGroup = vm.platformBankCardGroupList.find(g => g._id === newPlayerData.bankCardGroup);
-                    updateData.oldBankCardGroupName = oldBankCardGroup ? oldBankCardGroup.displayName : "";
-                    updateData.newBankCardGroupName = newBankCardGroup ? newBankCardGroup.displayName : "";
+                    updateBankData.bankCardGroup = updateData.bankCardGroup;               
                 }
                 if (updateData.merchantGroup) {
-                    var oldMerchantGroup = vm.platformMerchantGroupList.find(g => g._id === oldPlayerData.merchantGroup);
-                    var newMerchantGroup = vm.platformMerchantGroupList.find(g => g._id === newPlayerData.merchantGroup);
-                    updateData.oldMerchantGroupName = oldMerchantGroup ? oldMerchantGroup.displayName : "";
-                    updateData.newMerchantGroupName = newMerchantGroup ? newMerchantGroup.displayName : "";
+                    updateBankData.merchantGroup = updateData.merchantGroup;              
                 }
                 if (updateData.alipayGroup) {
-                    var oldAlipayGroup = vm.platformAlipayGroupList.find(g => g._id === oldPlayerData.alipayGroup);
-                    var newAlipayGroup = vm.platformAlipayGroupList.find(g => g._id === newPlayerData.alipayGroup);
-                    updateData.oldAlipayGroup = oldAlipayGroup ? oldAlipayGroup.displayName : "";
-                    updateData.newAlipayGroup = newAlipayGroup ? newAlipayGroup.displayName : "";
+                    updateBankData.alipayGroup = updateData.alipayGroup;             
                 }
-                socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
-                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                    data: updateData,
-                    platformId: vm.selectedPlatform.id
-                }, function (data) {
-                    if (data.data && data.data.stepInfo) {
-                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
-                    }
-                    vm.getPlatformPlayersData();
-                }, null, true);
-            }
+                delete updateData.bankCardGroup;
+                delete updateData.merchantGroup;
+                delete updateData.aliPayGroup;
 
+                if(isUpdate){
+                    socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                        data: updateData,
+                        platformId: vm.selectedPlatform.id
+                    }, function (data) {
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPlayersData();
+                    }, null, true);
+                }
+            }
+            if (Object.keys(updateBankData).length > 0) {
+                socketService.$socket($scope.AppSocket, 'updatePlayer', {
+                    query: {_id: playerId},
+                    updateData: updateBankData
+                }, function (updated) {
+                    console.log('updated', updated);
+                    vm.getPlatformPlayersData();
+                });
+            }
             if (Object.keys(updateSMS).length > 0) {
                 socketService.$socket($scope.AppSocket, 'updatePlayer', {
                     query: {_id: playerId},
