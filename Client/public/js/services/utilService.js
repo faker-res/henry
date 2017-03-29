@@ -512,6 +512,7 @@ define([], function () {
             // $(id).off('click');
 
             retObj.init = function (para, resetCurPage) {
+
                 console.log('initing', id, resetCurPage);
                 retObj.maxPage = Math.ceil(parseInt(para.maxCount) / retObj.pageSize);
                 retObj.curPage = resetCurPage ? 1 : (retObj.curPage || 1);
@@ -533,9 +534,12 @@ define([], function () {
                     retObj.updateCurPage(event);
                 });
                 $(id).find(".jumpPage").on('keyup', function () {
+                  if(event.target.valueAsNumber){
                     retObj.curPage = event.target.valueAsNumber;
                     retObj.jump();
+                  }
                 });
+
                 $(id).off('focusout', ".pageSize")
                 $(id).on('focusout', ".pageSize", function () {
                     if (retObj.pageSize != event.target.valueAsNumber) {
