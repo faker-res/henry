@@ -3150,7 +3150,7 @@ define(['js/app'], function (myApp) {
                 updateData._id = playerId;
                 var isUpdate = false
                 updateData.playerName = newPlayerData.name || vm.editPlayer.name
-                
+                // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                 Object.keys(newPlayerData).forEach(function(key) {
                     if(newPlayerData[key] != oldPlayerData[key]){
                         if(key=="alipayGroup"||key=="smsSetting"||key=="bankCardGroup"||key=="merchantGroup"){
