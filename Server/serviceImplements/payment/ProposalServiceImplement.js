@@ -20,12 +20,17 @@ const lang = require("../../modules/localization").lang;
 
 var resLogHandler = function (conn, wsFunc, data, res, functionName) {
     var resObj = {status: constServerCode.SUCCESS, data: res};
+    var ip = conn.upgradeReq.connection.remoteAddress;
+    var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+    if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+        ip = forwardedIp[0].trim();
+    }
     dbLogger.createPaymentAPILog({
         service: "payment",
         functionName: functionName,
         requestData: data,
         responseData: resObj,
-        requestIp: conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress
+        requestIp: ip
     });
     wsFunc.response(conn, resObj, data);
 };
@@ -46,12 +51,17 @@ var errorLogHandler = function (conn, wsFunc, data, err, functionName) {
             data: null
         };
         resObj.errorMessage = err.errMessage || resObj.errorMessage;
+        var ip = conn.upgradeReq.connection.remoteAddress;
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            ip = forwardedIp[0].trim();
+        }
         dbLogger.createPaymentAPILog({
             service: "payment",
             functionName: functionName,
             requestData: data,
             responseData: resObj,
-            requestIp: conn.upgradeReq.headers['x-real-ip'] || conn.upgradeReq.connection.remoteAddress
+            requestIp: ip
         });
         wsFunc.response(conn, resObj, data);
     }
@@ -159,6 +169,9 @@ var ProposalServiceImplement = function () {
             case 2:
                 statusText = constProposalStatus.FAIL;
                 break;
+            case 3:
+                 statusText = constProposalStatus.PROCESSING;
+                 break;
             // case 3:
             //     statusText = constProposalStatus.PENDING;
             //     break;

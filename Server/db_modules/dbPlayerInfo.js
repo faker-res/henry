@@ -1103,10 +1103,29 @@ var dbPlayerInfo = {
             queryObject.createTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
         }
         var a = dbconfig.collection_playerTopUpRecord.find(queryObject).count();
-        var b = dbconfig.collection_playerTopUpRecord.find(queryObject).sort(sortCol).skip(index).limit(limit);
-        return Q.all([a, b]).then(
+        var b = dbconfig.collection_playerTopUpRecord.find(queryObject).sort(sortCol).skip(index).limit(limit)
+        var c = dbconfig.collection_playerTopUpRecord.aggregate(
+            {
+                $match:{
+                    playerId:ObjectId(query.playerId),
+                    createTime: {
+                        $gte: query.startTime,
+                        $lt: query.endTime
+                    }
+                }
+            },
+            {
+                $group:{
+                    _id: "$playerId",
+                    amountSum :{$sum: "$amount"},
+                    validAmountSum :{$sum: "$validAmount"},
+                    bonusAmountSum: {$sum: "$bonusAmount"}
+                }
+            })  
+
+        return Q.all([a, b, c]).then(
             data => {
-                return {total: data[0], data: data[1]};
+                return { data: data[1],total:data[0], summary:data[2] ? data[2][0] : {}};
             }
         )
     },
@@ -1637,7 +1656,8 @@ var dbPlayerInfo = {
                         minTopUpAmount: eventData.param.minTopUpAmount,
                         eventId: eventData._id,
                         eventName: eventData.name,
-                        eventCode: eventData.code
+                        eventCode: eventData.code,
+                        eventDescription: eventData.description
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
@@ -1836,7 +1856,8 @@ var dbPlayerInfo = {
                                 games: data[1].param.games,
                                 eventId: data[1]._id,
                                 eventName: data[1].name,
-                                eventCode: data[1].code
+                                eventCode: data[1].code,
+                                eventDescription: data[1].description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -1901,7 +1922,8 @@ var dbPlayerInfo = {
                         type: data.executeProposal,
                         data: {
                             playerId: playerId,
-                            rewardAmount: data.param.rewardAmount
+                            rewardAmount: data.param.rewardAmount,
+                            eventDescription: data.description
                         }
                     };
                     dbProposal.createProposalWithTypeId(data.executeProposal, proposalData).then(
@@ -1975,7 +1997,8 @@ var dbPlayerInfo = {
                                     playerObjId: playerData._id,
                                     platformId: platformId,
                                     playerName: playerData.name,
-                                    rewardAmount: Math.floor(rewardParams[i].param.rewardPercentage * topupAmount)
+                                    rewardAmount: Math.floor(rewardParams[i].param.rewardPercentage * topupAmount),
+                                    eventDescription: rewardParams[i].description
                                 }
                             };
                             var temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
@@ -2305,11 +2328,12 @@ var dbPlayerInfo = {
                             return record.save().then(
                                 function () {
                                     if (bUpdateIp) {
-                                        return dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                        dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
                                     }
                                 }
-                            ).catch(errorUtils.reportError).then(
+                            ).then(
                                 () => {
+                                    // console.log("check player city!!!");
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
@@ -2321,18 +2345,23 @@ var dbPlayerInfo = {
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
                                             var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+                                            // console.log(a,b,c,creditProm);
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
                                         zoneData => {
+                                            // console.log("zoneData",zoneData);
                                             retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                                             deferred.resolve(retObj);
-                                        }, errorZone => {
+                                        },
+                                        errorZone => {
+                                            //console.error("errorZone", errorZone);
                                             deferred.resolve(retObj);
-                                        });
+                                        }
+                                    );
                                 }
                             );
                         },
@@ -4919,7 +4948,7 @@ var dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce) {
+    applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
         if (amount < 100) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
@@ -5095,7 +5124,7 @@ var dbPlayerInfo = {
                                 player.validCredit = newPlayerData.validCredit;
                                 //create proposal
                                 var proposalData = {
-                                    creator: {
+                                    creator: adminInfo || {
                                         type: 'player',
                                         name: player.name,
                                         id: playerId
@@ -5110,12 +5139,14 @@ var dbPlayerInfo = {
                                     amount: amount,
                                     bonusCredit: bonusDetail.credit,
                                     curAmount: player.validCredit,
+                                    remark: "",
+                                    lastSettleTime: new Date()
                                     //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                 };
                                 var newProposal = {
                                     creator: proposalData.creator,
                                     data: proposalData,
-                                    entryType: constProposalEntryType.CLIENT,
+                                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                 };
                                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
@@ -5248,20 +5279,34 @@ var dbPlayerInfo = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: "type",
             model: dbconfig.collection_proposalType
-        }).then(
+        }).lean().then(
             data => {
                 if (data) {
-                    data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                    data.data.lastSettleTime = new Date();
-                    data.data.remark = remark;
+                    // data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                    // data.data.lastSettleTime = new Date();
+                    // data.data.remark = remark;
                     if (!bSuccess) {
                         return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                            () => data.save()
+                            () => dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: data._id, createTime: data.createTime},
+                                {
+                                    status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
+                                    "data.lastSettleTime" : new Date(),
+                                    "data.remark" : remark
+                                }
+                            )
                         );
                     }
                     else {
                         SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
-                        return data.save();
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: data._id, createTime: data.createTime},
+                            {
+                                status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
+                                "data.lastSettleTime" : new Date(),
+                                "data.remark" : remark
+                            }
+                        );
                     }
                 }
                 else {
@@ -5280,10 +5325,29 @@ var dbPlayerInfo = {
                 data => {
                     if (data && data.type && data.status != constProposalStatus.SUCCESS
                         && data.status != constProposalStatus.FAIL) {
-                        data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                        data.data.lastSettleTime = new Date();
-                        return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                            () => data.save()
+                        var status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                        var lastSettleTime = new Date();
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: data._id, createTime: data.createTime},
+                            {
+                                status: status,
+                                "data.lastSettleTime" : lastSettleTime
+                            }
+                        ).then(
+                            updateProposal => {
+                                if(updateProposal && updateProposal.status != constProposalStatus.SUCCESS
+                                    && updateProposal.status != constProposalStatus.FAIL){
+                                    return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
+                                        () => dbconfig.collection_proposal.findOneAndUpdate(
+                                            {_id: data._id, createTime: data.createTime},
+                                            {
+                                                status: status,
+                                                "data.lastSettleTime" : lastSettleTime
+                                            }
+                                        )
+                                    );
+                                }
+                            }
                         );
                     }
                     else {
@@ -5517,7 +5581,7 @@ var dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
         var platformData = null;
         var providerData = null;
         var playerData = null;
@@ -5590,7 +5654,7 @@ var dbPlayerInfo = {
                                         gameStatus: gameData.status
                                     });
                                 }
-                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
                                 }
                                 else {
@@ -5653,7 +5717,8 @@ var dbPlayerInfo = {
                     gameId: gameId,
                     clientDomainName: clientDomainName || "Can not find domain",
                     lang: lang || localization.lang.ch_SP,
-                    ip: ip
+                    ip: ip,
+                    clientType: clientType
                 };
                 return cpmsAPI.player_getLoginURL(sendData);
             }
@@ -5662,7 +5727,7 @@ var dbPlayerInfo = {
         );
     },
 
-    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName) {
+    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
 
         var platformData = null;
         var providerData = null;
@@ -5699,7 +5764,8 @@ var dbPlayerInfo = {
                         gameId: gameId,
                         clientDomainName: clientDomainName || "Can not find domain",
                         lang: lang || localization.lang.ch_SP,
-                        ip: ip
+                        ip: ip,
+                        clientType: clientType
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     return cpmsAPI.player_getTestLoginURL(sendData);
@@ -5799,12 +5865,12 @@ var dbPlayerInfo = {
                                         resData.forEach(type => {
                                             if (type.type == paymentData.merchants[i].topupType) {
                                                 bValidType = false;
-                                                if (status == 1) {
+                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED") {
                                                     type.status = status;
                                                 }
                                             }
                                         });
-                                        if (bValidType && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                        if (bValidType && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             resData.push({type: paymentData.merchants[i].topupType, status: status});
                                         }
                                     }
@@ -5831,7 +5897,7 @@ var dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType) {
-                                            resData.push({type: paymentData.data[i].bankTypeId, status: status});
+                                            resData.push({type: paymentData.data[i].bankTypeId, status: status, accountNumber: paymentData.data[i].accountNumber});
                                         }
                                     }
                                 }
@@ -6092,7 +6158,8 @@ var dbPlayerInfo = {
                                 useConsumption: eventData.param.useConsumption,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -6356,7 +6423,8 @@ var dbPlayerInfo = {
                                 spendingAmount: validCredit * eventParam.spendingTimes,
                                 eventId: event._id,
                                 eventName: event.name,
-                                eventCode: event.code
+                                eventCode: event.code,
+                                eventDescription: event.description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -6551,7 +6619,8 @@ var dbPlayerInfo = {
                                 useConsumption: true,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -7028,7 +7097,8 @@ var dbPlayerInfo = {
                             eventCode: rewardEvent.code,
                             referralId: referralId,
                             referralName: referralObj.name,
-                            referralTopUpAmount: topUpAmount
+                            referralTopUpAmount: topUpAmount,
+                            eventDescription: rewardEvent.description
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -7127,7 +7197,8 @@ var dbPlayerInfo = {
                             unlockBonusAmount: rewardEvent.param.unlockBonusAmount,
                             eventId: rewardEvent._id,
                             eventName: rewardEvent.name,
-                            eventCode: rewardEvent.code
+                            eventCode: rewardEvent.code,
+                            eventDescription: rewardEvent.description
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,

@@ -99,12 +99,20 @@ define(['js/app'], function (myApp) {
                 callback();
             }
         };
+
+        var providerStatusColorObj = {
+            1: 'colorLimegreen',
+            2: 'colorYellow',
+            3: 'colorRed'
+        }
         vm.createProviderNode = function (v) {
+            var colorClass = (v && v.status) ? providerStatusColorObj[v.status] : '';
             var obj = {
                 text: v.name,
                 id: v._id,
                 selectable: true,
                 data: v,
+                icon: 'fa fa-circle ' + colorClass,
             };
             return obj;
         };

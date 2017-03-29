@@ -272,7 +272,12 @@ var dbPlayerConsumptionWeekSummary = {
                             }
 
                             // If return reward amount larger than 1, create proposal
-                            if (returnAmount >= 1) {
+                            var bReturn = Boolean(returnAmount >= 1);
+                            if (bRequest) {
+                                //todo:: move the 100 here to system param
+                                bReturn = Boolean(returnAmount >= 100);
+                            }
+                            if (bReturn) {
                                 var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
                                 var proposalData = {
                                     type: proposalTypeId,
@@ -289,7 +294,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         returnDetail: returnDetail,
                                         summaryIds: summaryIds,
                                         bConsumptionReturnRequest: bRequest,
-                                        applyAmount: applyAmount
+                                        applyAmount: applyAmount,
+                                        eventDescription: eventData.description
                                     }
                                 };
                                 proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));
@@ -301,6 +307,7 @@ var dbPlayerConsumptionWeekSummary = {
                     if (proms.length > 0) {
                         return Q.all(proms);
                     } else {
+                        //todo::update the error message here for client
                         //no consumption return
                         deferred.resolve(null);
                     }

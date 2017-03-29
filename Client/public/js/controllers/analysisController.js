@@ -190,6 +190,12 @@ define(['js/app'], function (myApp) {
                     case "GAME_ANALYSIS":
                         // vm.getAllProvider();
                         break;
+                    case "CONSUMPTION_INTERVAL":
+                        vm.consumptionInterval = {};
+                        vm.initSearchParameter('consumptionInterval', null, 1);
+                        vm.consumptionInterval.pastDay = '1';
+                        vm.getConsumptionIntervalData();
+                        break;
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
 
@@ -1818,6 +1824,54 @@ define(['js/app'], function (myApp) {
             $('#clientSourceAnalysis table').dataTable(options);
         }
         //client source =============================================
+
+        //consumption interval ////////////////////////////////////
+        vm.getConsumptionIntervalData = function () {
+            var sendObj = {
+                platform: vm.selectedPlatform._id,
+                days: vm.consumptionInterval.pastDay
+            }
+            socketService.$socket($scope.AppSocket, 'getConsumptionIntervalData', sendObj, function (data) {
+                console.log('data', data);
+                vm.consumptionInterval.data = data.data || [];
+                var graphData = [];
+                vm.consumptionInterval.data.forEach(item => {
+                    graphData.push([new Date(item.time0), item.count, new Date(item.time1)]);
+                })
+                vm.drawConsumptionIntervalLine('#line-consumptionInterval', graphData, {});
+            });
+        };
+        vm.drawConsumptionIntervalLine = function (dom, graphData, option) {
+            var data = {label: '', data: graphData};
+            var newOptions = {};
+            newOptions.yaxes = [{
+                position: 'left',
+                axisLabel: $translate('amount'),
+            }];
+            newOptions.xaxes = [{
+                position: 'bottom',
+                axisLabel: $translate('TIME')
+            }];
+            newOptions.xaxis = {
+                tickLength: 0,
+                mode: "time",
+                minTickSize: [1, "minute"],
+                timezone: "browser"
+            }
+            socketService.$plotLine('#line-consumptionInterval', [data], newOptions);
+            vm.bindHover('#line-consumptionInterval', function (obj) {
+                var x = obj.datapoint[0],
+                    y = obj.datapoint[1].toFixed(0);
+                var t0 = obj.series.data[obj.dataIndex][0];
+                var t1 = obj.series.data[obj.dataIndex][2];
+                var showText = $translate('from') + ' : ' + utilService.getFormatTime(t0) + '<br>'
+                    + $translate('to') + ' : ' + utilService.getFormatTime(t1) + '<br>'
+                    + $translate('amount') + ' : ' + y;
+                $("#tooltip").html(showText)
+                    .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                    .fadeIn(200);
+            })
+        }
 
         //common functions======================================================
         vm.bindHover = function (placeholder, callback) {

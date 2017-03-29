@@ -34,7 +34,7 @@ var roleChecker = {
         'addPlatformGameGroup', 'updateGameGroupParent', 'renamePlatformGameGroup', 'updatePlatformGameGroup', 'deleteGameGroup',
         'createRewardRuleWithType', 'createRewardCondition', 'createRewardEvent', 'deleteRewardRuleByIds', 'deleteRewardEventByIds', 'updateRewardRule', 'updateRewardTask', 'updateRewardEvent',
         'createProposalTypeProcess', 'updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep',
-        'updateProposalTypeProcessSteps', 'deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds', 'updateProposalTypeExpiryDuration','getProposalTypeExpirationDuration',
+        'updateProposalTypeProcessSteps', 'deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds', 'updateProposalTypeExpiryDuration', 'getProposalTypeExpirationDuration',
         'updatePlayerLevel', 'createPlayerLevel', 'createPartnerLevel', 'partnerLevel/update', 'createPlatformAnnouncement',
         'updatePlatformAnnouncement', 'deletePlatformAnnouncementByIds', 'updatePartnerLevelConfig',
         'createMessageTemplate', 'deleteMessageTemplateByIds', 'updateMessageTemplate',
@@ -221,7 +221,8 @@ var roleChecker = {
                 DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
                 WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
                 RewardSettlement: ['startPlatformRewardEventSettlement'],
-                SettlementHistory: ['getSettlementHistory']
+                SettlementHistory: ['getSettlementHistory'],
+                PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement']
             },
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
@@ -258,6 +259,7 @@ var roleChecker = {
                 RepairPayment: ['getPlayerPendingPaymentProposal', 'submitRepairPaymentProposal'],
                 RepairTransaction: ['getPlayerTransferErrorLogs', 'getPagedPlayerCreditChangeLogs'],
                 ConsumptionReturnFix: ['createReturnFixProposal'],
+                ManualUnlockRewardTask: ['manualUnlockRewardTask']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],

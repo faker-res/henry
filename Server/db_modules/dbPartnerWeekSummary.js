@@ -753,7 +753,8 @@ var dbPartnerWeekSummary = {
                                     platformId: platformId,
                                     rewardAmount: rewardAmount,
                                     eventName: eventData.name,
-                                    eventCode: eventData.code
+                                    eventCode: eventData.code,
+                                    eventDescription: eventData.description
                                 }
                             };
 
@@ -882,7 +883,8 @@ var dbPartnerWeekSummary = {
                                         platformId: platformId,
                                         rewardAmount: rewardAmount,
                                         eventName: eventData.name,
-                                        eventCode: eventData.code
+                                        eventCode: eventData.code,
+                                        eventDescription: eventData.description
                                     }
                                 };
 
@@ -997,7 +999,8 @@ var dbPartnerWeekSummary = {
                                     platformId: platformId,
                                     rewardAmount: eventData.condition.rewardAmount,
                                     eventName: eventData.name,
-                                    eventCode: eventData.code
+                                    eventCode: eventData.code,
+                                    eventDescription: eventData.description
                                 }
                             };
 
@@ -1087,7 +1090,8 @@ var dbPartnerWeekSummary = {
                                 rewardAmount: rewardAmount,
                                 startTime: startTime,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             }
                         };
                         return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData).then(

@@ -1548,6 +1548,10 @@ table.stronger-bottom, tr.stronger-bottom > td, td.stronger-bottom {
     background: transparent;
 }
 
+.form-control button.ms-choice {
+    border: 0;
+}
+
 #proposalRight #proposalDataTableDiv #search .ms-parent
 #OPERATIONQUICKPANEL {
     /*margin-top: 200px;*/
