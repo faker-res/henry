@@ -1308,11 +1308,14 @@ var proposal = {
                 path: "process",
                 model: dbconfig.collection_proposalProcess
             });
+            var reqBefore = Object.assign({}, reqData);
             if (reqData.type && reqData.type.length > 0) {
                 reqData.type = reqData.type.map(item => {
                     return ObjectId(item);
                 })
             }
+            var reqAfter = Object.assign({}, reqData);
+
             var c = dbconfig.collection_proposal.aggregate(
                 {
                     $match: reqData
@@ -1337,7 +1340,7 @@ var proposal = {
                     dataDeferred.reject({
                         name: "DataError",
                         message: "Error in getting proposals type in the selected platform.",
-                        error: err,
+                        error: {reqBefore: reqBefore, reqAfter: reqAfter, err: err},
                         reqData: reqData
                     })
                 }
