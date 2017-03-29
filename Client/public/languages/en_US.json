@@ -15,6 +15,7 @@
   "BALCKLIST":"blacklist",
   "ATTENTION":"attention",
   "CONSUMPTION_INTERVAL":"Consumption History",
+  "REWARD_CLIENT_APPLY":"Can apply from client",
 
   "true":"Yes",
   "false":"No",
