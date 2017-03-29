@@ -1300,19 +1300,12 @@ var proposal = {
             );
         }
         else {
-            var reqBefore = Object.assign({}, reqData);
-            var testArr = [];
             if (reqData.type && reqData.type.length > 0) {
                 var arr = reqData.type.map(item => {
-                    testArr.push('*');
-                    testArr.push(item);
-                    testArr.push(ObjectId(item));
                     return ObjectId(item);
                 })
                 reqData.type = {$in: arr}
             }
-            var reqAfter = Object.assign({}, reqData);
-
             var a = dbconfig.collection_proposal.find(reqData).count();
             var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                 .populate({path: "type", model: dbconfig.collection_proposalType})
@@ -1341,7 +1334,7 @@ var proposal = {
                     dataDeferred.reject({
                         name: "DataError",
                         message: "Error in getting proposals type in the selected platform.",
-                        error: {reqBefore: reqBefore, reqAfter: reqAfter, err: err, testArr: testArr},
+                        error: err,
                     })
                 }
             );
@@ -1393,7 +1386,6 @@ var proposal = {
                     size: totalSize,
                     data: resultArray,
                     summary: {amount: parseFloat(total).toFixed(2)},
-                    reqData: reqData
                 });
             },
             function (error) {
