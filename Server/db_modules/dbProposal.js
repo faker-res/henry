@@ -1310,9 +1310,10 @@ var proposal = {
             });
             var reqBefore = Object.assign({}, reqData);
             if (reqData.type && reqData.type.length > 0) {
-                reqData.type = reqData.type.map(item => {
+                var arr = reqData.type.map(item => {
                     return ObjectId(item);
                 })
+                reqData.type = {$in: arr}
             }
             var reqAfter = Object.assign({}, reqData);
 
