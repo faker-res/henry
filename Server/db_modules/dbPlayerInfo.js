@@ -5727,7 +5727,7 @@ var dbPlayerInfo = {
         );
     },
 
-    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName) {
+    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
 
         var platformData = null;
         var providerData = null;
@@ -5764,7 +5764,8 @@ var dbPlayerInfo = {
                         gameId: gameId,
                         clientDomainName: clientDomainName || "Can not find domain",
                         lang: lang || localization.lang.ch_SP,
-                        ip: ip
+                        ip: ip,
+                        clientType: clientType
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     return cpmsAPI.player_getTestLoginURL(sendData);
