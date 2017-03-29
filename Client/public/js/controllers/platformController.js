@@ -4449,6 +4449,7 @@ define(['js/app'], function (myApp) {
                         //     sClass: "alignRight sumFloat"
                         // },
                     ],
+                    destroy: true,
                     paging: false
                 });
                 // $('#playerExpenseTable').DataTable(option);
