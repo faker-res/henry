@@ -542,7 +542,7 @@ define([], function () {
 
                 $(id).off('focusout', ".pageSize")
                 $(id).on('focusout', ".pageSize", function () {
-                    if (retObj.pageSize != event.target.valueAsNumber) {
+                    if (retObj.pageSize != event.target.valueAsNumber && (event.target.valueAsNumber)) {
                         retObj.pageSize = event.target.valueAsNumber;
                         if (retObj.pageSize < 1) {
                             retObj.pageSize = 1
@@ -552,7 +552,7 @@ define([], function () {
                         $(id).find('.pageSize').val(retObj.pageSize);
                         retObj.jump();
                     }
-                })
+                });
 
                 // $(id).find(".jumpPage").off('keyup');
                 // $(id).find(".pageSize").on('keyup', function () {
