@@ -7203,6 +7203,7 @@ define(['js/app'], function (myApp) {
                 type: vm.showReward.type._id,
                 needApply: vm.showReward.needApply,
                 needSettlement: vm.showReward.needSettlement,
+                canApplyFromClient: vm.showReward.canApplyFromClient,
                 settlementPeriod: vm.showReward.settlementPeriod,
                 description: vm.showReward.description,
                 platform: vm.showReward.platform,
@@ -7246,6 +7247,7 @@ define(['js/app'], function (myApp) {
             sendData.param = vm.rewardParams;
             sendData.condition = vm.rewardCondition;
             sendData.type = vm.showRewardTypeData._id;
+            sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
             sendData.validStartTime = vm.showReward.validStartTime || null;
             sendData.validEndTime = vm.showReward.validEndTime || null;
             console.log('vm.showRewardTypeStringData', vm.showRewardTypeStringData);
