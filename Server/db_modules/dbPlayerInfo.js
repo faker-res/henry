@@ -3188,7 +3188,7 @@ var dbPlayerInfo = {
                                 //console.log("transferPlayerCreditFromProviderbyPlayerObjId:", rewardTask);
                                 //amount = Math.min(amount, rewardTask.requiredBonusAmount);
                                 rewardTask.currentAmount = amount;
-                                validCreditToAdd = Math.min(amount, rewardTask.requiredBonusAmount);
+                                validCreditToAdd = 0;
                                 rewardTask.inProvider = false;
                                 rewardTaskCredit = rewardTask.currentAmount;
                             }
