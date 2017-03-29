@@ -3732,7 +3732,7 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform.id,
                 query: {},
                 index: index,
-                limit: 10,
+                limit: 500,
                 sortCol: {registrationTime: -1}
             };
 
@@ -3757,7 +3757,7 @@ define(['js/app'], function (myApp) {
                         console.log('transferAllCreditOutRecursive err: ', err);
                     })
                 }
-                vm.transferAllCreditOutRecursive(provider, index + 10, size);
+                vm.transferAllCreditOutRecursive(provider, apiQuery.index + 500, size);
             });
         }
 
@@ -3772,7 +3772,7 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform.id,
                 query: {},
                 index: vm.startTransferIndex || 0,
-                limit: 10,
+                limit: 500,
                 sortCol: {registrationTime: -1}
             };
             console.log('transferAllCreditOut index: ', apiQuery.index);
@@ -3798,7 +3798,7 @@ define(['js/app'], function (myApp) {
                         console.log('transferAllCreditOut err: ', err);
                     })
                 }
-                vm.transferAllCreditOutRecursive(provider, apiQuery.index + 10, size);
+                vm.transferAllCreditOutRecursive(provider, apiQuery.index + 500, size);
                 $('#loadingPlayerTableSpin').hide();
             });
         }
@@ -4449,6 +4449,7 @@ define(['js/app'], function (myApp) {
                         //     sClass: "alignRight sumFloat"
                         // },
                     ],
+                    destroy: true,
                     paging: false
                 });
                 // $('#playerExpenseTable').DataTable(option);
