@@ -151,7 +151,7 @@ var PlayerServiceImplement = function () {
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(
             function (playerData) {
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (data.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                    if (conn.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;
