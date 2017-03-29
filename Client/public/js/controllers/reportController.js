@@ -1786,6 +1786,7 @@ define(['js/app'], function (myApp) {
         }
         vm.searchProposalRecord = function (newSearch) {
 
+            vm.curPlatformId = vm.selectedPlatform._id;
             var newproposalQuery = $.extend(true, {}, vm.proposalQuery);
             // if (newproposalQuery.proposalTypeId == "all") {
             //     newproposalQuery.proposalTypeId = null;
