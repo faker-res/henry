@@ -15,6 +15,8 @@ var rewardEventSchema = new Schema({
     priority: {type: Number, default: 0},
     //if reward event need to apply, if false, means the reward result will be calculated by system
     needApply: {type: Boolean, default: false},
+    //if this reward can be applied from client
+    canApplyFromClient: {type: Boolean, default: false},
     //provider ID
     //providers: [{type:Schema.Types.ObjectId, ref:'gameProvider'}],
     //platform id
