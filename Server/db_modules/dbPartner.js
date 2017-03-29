@@ -2971,12 +2971,12 @@ var dbPartner = {
     },
 
     getPartnerPlayerCommissionInfo: function (platformObjId, playerObjId, playerName, configData, startTime, endTime) {
-        var consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+        var consumptionProm = dbconfig.collection_providerPlayerDaySummary.aggregate(
             {
                 $match: {
                     platformId: platformObjId,
                     playerId: playerObjId,
-                    createTime: {
+                    date: {
                         $gte: startTime,
                         $lt: endTime
                     }
