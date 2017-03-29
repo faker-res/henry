@@ -1301,8 +1301,12 @@ var proposal = {
         }
         else {
             var reqBefore = Object.assign({}, reqData);
+            var testArr = [];
             if (reqData.type && reqData.type.length > 0) {
                 var arr = reqData.type.map(item => {
+                    testArr.push('*');
+                    testArr.push(item);
+                    testArr.push(ObjectId(item));
                     return ObjectId(item);
                 })
                 reqData.type = {$in: arr}
@@ -1337,8 +1341,7 @@ var proposal = {
                     dataDeferred.reject({
                         name: "DataError",
                         message: "Error in getting proposals type in the selected platform.",
-                        error: {reqBefore: reqBefore, reqAfter: reqAfter, err: err},
-                        reqData: reqData
+                        error: {reqBefore: reqBefore, reqAfter: reqAfter, err: err, testArr: testArr},
                     })
                 }
             );
