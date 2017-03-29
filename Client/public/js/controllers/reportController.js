@@ -1814,7 +1814,6 @@ define(['js/app'], function (myApp) {
                 proposalTypeId: newproposalQuery.proposalTypeId,
                 platformId: vm.curPlatformId,
                 status: newproposalQuery.status,
-                proposalId: newproposalQuery.proposalId,
                 index: newSearch ? 0 : (newproposalQuery.index || 0),
                 limit: newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
