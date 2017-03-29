@@ -30,6 +30,9 @@
                 .full-width-input-block(ng-if='vm.rewardAttrConst.canApply.indexOf(vm.showRewardTypeData.name)>-1')
                     label {{"REWARD_NEED_APPLY" | translate}}
                     input.form-control(type='checkbox', ng-model='vm.showReward.needApply', ng-disabled='vm.platformRewardShowEdit()')
+                .full-width-input-block
+                    label {{"REWARD_CLIENT_APPLY" | translate}}
+                    input.form-control(type='checkbox', ng-model='vm.showReward.canApplyFromClient', ng-disabled='vm.platformRewardShowEdit()')
                 .full-width-input-block(ng-if='vm.rewardAttrConst.canSettle.indexOf(vm.showRewardTypeData.name)>-1')
                     label {{"REWARD_NEED_SETTLEMENT" | translate}}
                     input.form-control(type='checkbox', ng-model='vm.showReward.needSettlement', ng-disabled='vm.platformRewardShowEdit()')
