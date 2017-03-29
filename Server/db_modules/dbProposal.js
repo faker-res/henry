@@ -1300,14 +1300,6 @@ var proposal = {
             );
         }
         else {
-            var a = dbconfig.collection_proposal.find({$and: [reqData]}).count();
-            var b = dbconfig.collection_proposal.find({$and: [reqData]}).populate({
-                path: "type",
-                model: dbconfig.collection_proposalType
-            }).sort(sortObj).skip(index).limit(count).populate({
-                path: "process",
-                model: dbconfig.collection_proposalProcess
-            });
             var reqBefore = Object.assign({}, reqData);
             if (reqData.type && reqData.type.length > 0) {
                 var arr = reqData.type.map(item => {
@@ -1317,6 +1309,10 @@ var proposal = {
             }
             var reqAfter = Object.assign({}, reqData);
 
+            var a = dbconfig.collection_proposal.find(reqData).count();
+            var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+                .populate({path: "type", model: dbconfig.collection_proposalType})
+                .populate({path: "process", model: dbconfig.collection_proposalProcess});
             var c = dbconfig.collection_proposal.aggregate(
                 {
                     $match: reqData
