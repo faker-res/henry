@@ -20,7 +20,7 @@ const lang = require("../../modules/localization").lang;
 
 var resLogHandler = function (conn, wsFunc, data, res, functionName) {
     var resObj = {status: constServerCode.SUCCESS, data: res};
-    var ip = conn.upgradeReq.connection.remoteAddress;
+    var ip = conn.upgradeReq.connection.remoteAddress || '';
     var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
     if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
         ip = forwardedIp[0].trim();
@@ -51,7 +51,7 @@ var errorLogHandler = function (conn, wsFunc, data, err, functionName) {
             data: null
         };
         resObj.errorMessage = err.errMessage || resObj.errorMessage;
-        var ip = conn.upgradeReq.connection.remoteAddress;
+        var ip = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             ip = forwardedIp[0].trim();
@@ -170,8 +170,8 @@ var ProposalServiceImplement = function () {
                 statusText = constProposalStatus.FAIL;
                 break;
             case 3:
-                 statusText = constProposalStatus.PROCESSING;
-                 break;
+                statusText = constProposalStatus.PROCESSING;
+                break;
             // case 3:
             //     statusText = constProposalStatus.PENDING;
             //     break;

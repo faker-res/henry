@@ -180,7 +180,7 @@ var GameServiceImplement = function () {
     this.getLoginURL.expectsData = 'gameId: String, clientDomainName: String';
     this.getLoginURL.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data && data.gameId && data.clientDomainName);
-        var ip = conn.upgradeReq.connection.remoteAddress;
+        var ip = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             ip = forwardedIp[0].trim();
@@ -191,7 +191,7 @@ var GameServiceImplement = function () {
     this.getTestLoginURL.expectsData = 'gameId: String, clientDomainName: String';
     this.getTestLoginURL.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data && data.gameId && data.clientDomainName);
-        var ip = conn.upgradeReq.connection.remoteAddress;
+        var ip = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             ip = forwardedIp[0].trim();
