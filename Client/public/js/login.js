@@ -1,9 +1,8 @@
 'use strict';
 
-define(['js/services/authService', 'js/login'], function () {
-    var myLoginApp = angular.module('myApp');
+define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
+    let myLoginApp = angular.module('myApp');
     myLoginApp.requires.push('pascalprecht.translate', 'ngCookies', 'LocalStorageModule', 'authService');
-
     myLoginApp.config(function ($translateProvider) {
         $translateProvider.useStaticFilesLoader({
             prefix: 'languages/',
@@ -14,7 +13,7 @@ define(['js/services/authService', 'js/login'], function () {
         $translateProvider.preferredLanguage('en_US');
     });
 
-    myLoginApp.controller('loginCtrl', function ($scope, $rootScope, $http, $window, $location, $cookies, localStorageService, $log, authService, CONFIG, WSCONFIG) {
+    myLoginApp.controller('loginCtrl', function ($scope, $rootScope, $http, $window, $location, $cookies, localStorageService, $log, authService, CONFIG) {
         //if there is token(user login), go to dashboard page for authentication
         if (authService.isValid($cookies, localStorageService)) {
             // The client may think his cookie is valid, even though the server does not!  (E.g. if server caches were cleared, or cookie expiry time was reduced on the server.)
