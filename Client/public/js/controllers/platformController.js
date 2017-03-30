@@ -3183,13 +3183,13 @@ define(['js/app'], function (myApp) {
                 //     // delete updateData.merchantGroup;
                 // }
                 if (updateData.bankCardGroup) {
-                    updateBankData.bankCardGroup = updateData.bankCardGroup;               
+                    updateBankData.bankCardGroup = updateData.bankCardGroup;
                 }
                 if (updateData.merchantGroup) {
-                    updateBankData.merchantGroup = updateData.merchantGroup;              
+                    updateBankData.merchantGroup = updateData.merchantGroup;
                 }
                 if (updateData.alipayGroup) {
-                    updateBankData.alipayGroup = updateData.alipayGroup;             
+                    updateBankData.alipayGroup = updateData.alipayGroup;
                 }
                 delete updateData.bankCardGroup;
                 delete updateData.merchantGroup;
@@ -5353,7 +5353,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('bonusCredit'), data: "data.bonusCredit"},
                     {title: $translate('amount'), data: "data.amount"},
                     {title: $translate('CUR_AMOUNT'), data: "curAmount$"},
-                    {title: $translate('HONOREE_DETAIL'), data: "data.requestDetail.honoreeDetail"},
+                    {title: $translate('HONOREE_DETAIL'), data: "data.honoreeDetail"},
                 ],
                 "paging": false,
             });
