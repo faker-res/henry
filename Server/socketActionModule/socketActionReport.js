@@ -30,8 +30,8 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data && data.index != null && data.limit != null);
             var query = null;
 
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : new Date();
+            var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+            var endTime = data.endTime ? new Date(data.endTime) : new Date();
             data ["startTime"] = startTime;
             data["endTime"] = endTime;
             query = utility.buildProposalReportQueryString(data);
