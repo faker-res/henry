@@ -250,7 +250,7 @@ var dbPlayerInfo = {
         });
         proms.push(prom_findByPhNo);
 
-        var ignoredIpList = ["", "10.168.11.178", "161.202.63.242"];//ignore if lastLoginIp equals to server's ip
+        var ignoredIpList = ["", "10.168.11.178", "161.202.63.242", "undefined", undefined];//ignore if lastLoginIp equals to server's ip
         if (ignoredIpList.indexOf(data.lastLoginIp) === -1) {
             var prom_findByIp = dbconfig.collection_players.find({
                 lastLoginIp: data.lastLoginIp,
