@@ -47,7 +47,8 @@
                 "getPlatformWeeklyConsumptionReturnInfoForPlayers",
                 "calculatePartnersCommission",
                 "calculatePartnersChildrenCommission",
-                "checkPlatformPlayersRewardTask"
+                "checkPlatformPlayersRewardTask",
+                "getPartnerPlayersCommissionInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
