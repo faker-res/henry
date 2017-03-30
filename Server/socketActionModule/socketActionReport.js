@@ -104,8 +104,8 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data);
 
             var time = dbUtil.getYesterdaySGTime();
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : time.startTime;
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : time.endTime;
+            var startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            var endTime = data.endTime ? new Date(data.endTime) : time.endTime;
             var providerId = data.providerId ? ObjectId(data.providerId) : '';
             var playerId = data.playerId ? data.playerId : '';
             var platformId = data.platformId ? ObjectId(data.platformId) : '';
@@ -128,8 +128,8 @@ function socketActionReport(socketIO, socket) {
             var args = null;
             var actionName = arguments.callee.name;
             var time = dbUtil.getYesterdaySGTime();
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : time.startTime;
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : time.endTime;
+            var startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            var endTime = data.endTime ? new Date(data.endTime) : time.endTime;
             var providerId = data.providerId ? ObjectId(data.providerId) : data.providerId;
 
             var limit = data.limit || 20;
@@ -149,8 +149,8 @@ function socketActionReport(socketIO, socket) {
             var args = null;
             var actionName = arguments.callee.name;
             var time = dbUtil.getYesterdaySGTime();
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : time.startTime;
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : time.endTime;
+            var startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            var endTime = data.endTime ? new Date(data.endTime) : time.endTime;
             var isValidData = Boolean(data && data.platformId);
             // var limit = data.limit || 20;
 
