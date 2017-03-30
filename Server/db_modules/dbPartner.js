@@ -2473,7 +2473,7 @@ var dbPartner = {
                         totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
                         operationAmount = -consumptionInfo[0].totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
                         if (configData && configData.platformFeeRate > 0) {
-                            platformFee = operationAmount * configData.platformFeeRate;
+                            platformFee = Math.max(0, operationAmount * configData.platformFeeRate);
                         }
                     }
                     if (rewardInfo && rewardInfo[0]) {
@@ -3170,7 +3170,7 @@ var dbPartner = {
                     serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                 }
                 if (configData && configData.platformFeeRate > 0) {
-                    platformFee = operationAmount * configData.platformFeeRate;
+                    platformFee = Math.max(0, operationAmount * configData.platformFeeRate);
                 }
                 profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
