@@ -2424,9 +2424,12 @@ var dbPartner = {
                         }
                     );
 
-                    var bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+                    var bonusProm = dbconfig.collection_proposalType.findOne({
+                        platformId: platformObjId,
+                        name: constProposalType.PLAYER_BONUS
+                    }).then(
                         bonusType => {
-                            if(bonusType){
+                            if (bonusType) {
                                 return dbconfig.collection_proposal.aggregate(
                                     {
                                         $match: {
@@ -2534,7 +2537,7 @@ var dbPartner = {
                     if (configData && configData.bonusCommissionHistoryTimes && configData.bonusCommissionHistoryTimes > 0
                         && configData.bonusRate && configData.bonusRate > 0 && commissionLevel == maxCommissionLevel) {
                         var bValid = true;
-                        let times = Math.max(0, (partnerData.commissionHistory.length-configData.bonusCommissionHistoryTimes));
+                        let times = Math.max(0, (partnerData.commissionHistory.length - configData.bonusCommissionHistoryTimes));
                         for (var i = partnerData.commissionHistory.length - 1; i >= times; i--) {
                             if (partnerData.commissionHistory[i] != maxCommissionLevel) {
                                 bValid = false;
@@ -2869,6 +2872,7 @@ var dbPartner = {
                                     marketCost: 0,
                                     operationFee: 0,
                                     platformFee: 0,
+                                    totalRewardAmount: 0,
                                     profitAmount: 0,
                                     serviceFee: 0,
                                     totalBonusAmount: 0,
@@ -2881,6 +2885,7 @@ var dbPartner = {
                                         summary.marketCost += item.marketCost;
                                         summary.operationFee += item.operationFee;
                                         summary.platformFee += item.platformFee;
+                                        summary.totalRewardAmount += item.totalRewardAmount;
                                         summary.profitAmount += item.profitAmount;
                                         summary.serviceFee += item.serviceFee;
                                         summary.totalBonusAmount += item.totalBonusAmount;
@@ -3029,9 +3034,12 @@ var dbPartner = {
             }
         );
 
-        var bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+        var bonusProm = dbconfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: constProposalType.PLAYER_BONUS
+        }).then(
             bonusType => {
-                if(bonusType){
+                if (bonusType) {
                     return dbconfig.collection_proposal.aggregate(
                         {
                             $match: {
