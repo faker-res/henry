@@ -3005,7 +3005,8 @@ var dbPartner = {
                     serviceFee: 0,
                     platformFee: 0,
                     profitAmount: 0,
-                    totalTopUpAmount: 0
+                    totalTopUpAmount: 0,
+                    totalPlayerBonusAmount: 0
                 };
                 playerCommissions.forEach(
                     commission => {
@@ -3019,6 +3020,7 @@ var dbPartner = {
                             total.platformFee += commission.platformFee;
                             total.profitAmount += commission.profitAmount;
                             total.totalTopUpAmount += commission.totalTopUpAmount;
+                            total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
                         }
                     }
                 );
@@ -3182,7 +3184,8 @@ var dbPartner = {
                         totalTopUpAmount: totalTopUpAmount,
                         serviceFee: serviceFee,
                         platformFee: platformFee,
-                        profitAmount: profitAmount
+                        profitAmount: profitAmount,
+                        totalPlayerBonusAmount: totalPlayerBonusAmount
                     };
                 }
             }
