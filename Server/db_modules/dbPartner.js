@@ -2915,24 +2915,79 @@ var dbPartner = {
                     return Q.reject({name: "DataError", message: "Cannot find partner data"});
                 }
             }
+        // ).then(
+        //     configData => {
+        //         if (configData) {
+        //             configObj = configData;
+        //             return dbconfig.collection_players.find({partner: partnerObj._id}).lean();
+        //         }
+        //         else {
+        //             return Q.reject({name: "DataError", message: "Cannot find partner commission config data"});
+        //         }
+        //     }
+        // ).then(
+        //     players => {
+        //         if (players && players.length > 0) {
+        //             var proms = players.map(player => dbPartner.getPartnerPlayerCommissionInfo(player.platform, player._id, player.name, configObj, startTime, endTime));
+        //             return Q.all(proms);
+        //         }
+        //         else {
+        //             return [];
+        //         }
+        //     }
         ).then(
             configData => {
                 if (configData) {
                     configObj = configData;
-                    return dbconfig.collection_players.find({partner: partnerObj._id}).lean();
+                    // return dbconfig.collection_players.find({partner: partnerObj._id}).lean();
+                    var query = dbconfig.collection_players.aggregate(
+                        [
+                            {
+                                $match: {
+                                    partner: partnerObj._id,
+                                    platform: partnerObj.platform
+                                }
+                            },
+                            {
+                                $group: {_id: '$_id'}
+                            }
+                        ]
+                    );
+
+                    var stream = query.cursor({batchSize: 100}).allowDiskUse(true).exec();
+                    var balancer = new SettlementBalancer();
+                    var res = [];
+                    return balancer.initConns().then(function () {
+                        return Q(
+                            balancer.processStream(
+                                {
+                                    stream: stream,
+                                    batchSize: 1000,
+                                    makeRequest: function (playerIdObjs, request) {
+                                        request("player", "getPartnerPlayersCommissionInfo", {
+                                            platformObjId: partnerObj.platform,
+                                            configData: configObj,
+                                            startTime: startTime,
+                                            endTime: endTime,
+                                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                                return playerIdObj._id;
+                                            })
+                                        });
+                                    },
+                                    processResponse: function (record) {
+                                        res = res.concat(record.data);
+                                    }
+                                }
+                            )
+                        );
+                    }).then(
+                        data => {
+                            return res;
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find partner commission config data"});
-                }
-            }
-        ).then(
-            players => {
-                if (players && players.length > 0) {
-                    var proms = players.map(player => dbPartner.getPartnerPlayerCommissionInfo(player.platform, player._id, player.name, configObj, startTime, endTime));
-                    return Q.all(proms);
-                }
-                else {
-                    return [];
                 }
             }
         ).then(
@@ -2948,14 +3003,16 @@ var dbPartner = {
                 };
                 playerCommissions.forEach(
                     commission => {
-                        total.totalValidAmount += commission.totalValidAmount;
-                        total.totalBonusAmount += commission.totalBonusAmount;
-                        total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
-                        total.operationAmount += commission.operationAmount;
-                        total.totalRewardAmount += commission.totalRewardAmount;
-                        total.serviceFee += commission.serviceFee;
-                        total.platformFee += commission.platformFee;
-                        total.profitAmount += commission.profitAmount;
+                        if(commission){
+                            total.totalValidAmount += commission.totalValidAmount;
+                            total.totalBonusAmount += commission.totalBonusAmount;
+                            total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
+                            total.operationAmount += commission.operationAmount;
+                            total.totalRewardAmount += commission.totalRewardAmount;
+                            total.serviceFee += commission.serviceFee;
+                            total.platformFee += commission.platformFee;
+                            total.profitAmount += commission.profitAmount;
+                        }
                     }
                 );
                 return {
@@ -2968,6 +3025,21 @@ var dbPartner = {
                 };
             }
         );
+    },
+
+    getPartnerPlayersCommissionInfo: function(platformObjId, configData, playerObjIds, startTime, endTime){
+        var proms = playerObjIds.map(
+            playerObjId => {
+                return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+                    playerData => {
+                        if(playerData){
+                            return dbPartner.getPartnerPlayerCommissionInfo(platformObjId, playerObjId, playerData.name, configData, startTime, endTime);
+                        }
+                    }
+                );
+            }
+        );
+        return Q.all(proms);
     },
 
     getPartnerPlayerCommissionInfo: function (platformObjId, playerObjId, playerName, configData, startTime, endTime) {
