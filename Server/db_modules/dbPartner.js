@@ -2055,7 +2055,7 @@ var dbPartner = {
     getPlayerPaymentSummary: function (playerObj, startTime, endTime, bonusProposalType) {
         var bonusProposalProm = dbconfig.collection_proposal.find({
             type: bonusProposalType._id,
-            status: constProposalStatus.SUCCESS,
+            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]},
             "data.playerId": {$in: [playerObj.playerId, String(playerObj._id), playerObj._id]}
         }).sort({createTime: -1}).lean();
 
