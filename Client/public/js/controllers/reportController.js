@@ -2633,6 +2633,7 @@ define(['js/app'], function (myApp) {
                                 item.serviceFee$ = parseFloat(item.serviceFee).toFixed(2);
                                 item.platformFee$ = parseFloat(item.platformFee).toFixed(2);
                                 item.marketCost$ = parseFloat(item.marketCost).toFixed(2);
+                                item.totalRewardAmount$ = parseFloat(item.totalRewardAmount).toFixed(2);
                                 item.operationFee$ = parseFloat(item.operationFee).toFixed(2);
                                 item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
                                 item.totalPlayerBonusAmount$ = parseFloat(item.totalPlayerBonusAmount).toFixed(2);
@@ -2656,12 +2657,13 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'profitAmount', 'aTargets': [1]},
                     {'sortCol': 'serviceFee', 'aTargets': [2]},
                     {'sortCol': 'platformFee', 'aTargets': [3]},
-                    {'sortCol': 'marketCost', 'aTargets': [4]},
-                    {'sortCol': 'operationFee', 'aTargets': [5]},
-                    {'sortCol': 'totalTopUpAmount', 'aTargets': [6]},
-                    {'sortCol': 'totalPlayerBonusAmount', 'aTargets': [7]},
-                    {'sortCol': 'totalCommissionAmount', 'aTargets': [8]},
-                    {'sortCol': 'totalCommissionOfChildren', 'aTargets': [9]},
+                    {'sortCol': 'totalRewardAmount', 'aTargets': [4]},
+                    {'sortCol': 'marketCost', 'aTargets': [5]},
+                    {'sortCol': 'operationFee', 'aTargets': [6]},
+                    {'sortCol': 'totalTopUpAmount', 'aTargets': [7]},
+                    {'sortCol': 'totalPlayerBonusAmount', 'aTargets': [8]},
+                    {'sortCol': 'totalCommissionAmount', 'aTargets': [9]},
+                    {'sortCol': 'totalCommissionOfChildren', 'aTargets': [10]},
                     {targets: '_all', defaultContent: 0, bSortable: true}
                 ],
                 columns: [
@@ -2669,10 +2671,15 @@ define(['js/app'], function (myApp) {
                     {title: $translate('profitAmount'), data: "profitAmount$", sClass: "sumFloat alignRight"},
                     {title: $translate('serviceFee'), data: "serviceFee$", sClass: "sumFloat alignRight"},
                     {title: $translate('platformFee'), data: "platformFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('REWARDAMOUNT'), data: "totalRewardAmount$", sClass: "sumFloat alignRight"},
                     {title: $translate('marketCost'), data: "marketCost$", sClass: "sumFloat alignRight"},
                     {title: $translate('operationFee'), data: "operationFee$", sClass: "sumFloat alignRight"},
                     {title: $translate('totalTopUpAmount'), data: "totalTopUpAmount$", sClass: "sumFloat alignRight"},
-                    {title: $translate('totalBonusAmount'), data: "totalPlayerBonusAmount$", sClass: "sumFloat alignRight"},
+                    {
+                        title: $translate('totalBonusAmount'),
+                        data: "totalPlayerBonusAmount$",
+                        sClass: "sumFloat alignRight"
+                    },
                     {
                         title: $translate('totalCommissionAmount'),
                         data: "totalCommissionAmount$",
@@ -2692,12 +2699,13 @@ define(['js/app'], function (myApp) {
                 1: summary.profitAmount,
                 2: summary.serviceFee,
                 3: summary.platformFee,
-                4: summary.marketCost,
-                5: summary.operationFee,
-                6: summary.totalTopUpAmount,
-                7: summary.totalPlayerBonusAmount,
-                8: summary.totalCommissionAmount,
-                9: summary.totalCommissionOfChildren
+                4: summary.totalRewardAmount,
+                5: summary.marketCost,
+                6: summary.operationFee,
+                7: summary.totalTopUpAmount,
+                8: summary.totalPlayerBonusAmount,
+                9: summary.totalCommissionAmount,
+                10: summary.totalCommissionOfChildren
             }
             vm.partnerCommissionTable = utilService.createDatatableWithFooter('#partnerCommissionTable', tableOptions, summaryObj);
             vm.partnerCommissionQuery.pageObj.init({maxCount: size}, newSearch);
