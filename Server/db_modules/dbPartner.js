@@ -2470,8 +2470,8 @@ var dbPartner = {
                     totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
                     if (consumptionInfo && consumptionInfo[0]) {
                         totalValidAmount = consumptionInfo[0].totalValidAmount;
-                        totalBonusAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
-                        operationAmount = Math.abs(consumptionInfo[0].totalBonusAmount);//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
+                        totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
+                        operationAmount = -consumptionInfo[0].totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
                         if (configData && configData.platformFeeRate > 0) {
                             platformFee = operationAmount * configData.platformFeeRate;
                         }
@@ -3160,8 +3160,8 @@ var dbPartner = {
                 var totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
                 if (consumptionInfo && consumptionInfo[0]) {
                     totalValidAmount = consumptionInfo[0].totalValidAmount;
-                    totalBonusAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
-                    operationAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
+                    totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
+                    operationAmount = -consumptionInfo[0].totalBonusAmount;
                 }
                 if (rewardInfo && rewardInfo[0]) {
                     totalRewardAmount = rewardInfo[0].totalRewardAmount;
