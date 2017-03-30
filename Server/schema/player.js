@@ -31,7 +31,7 @@ var playerSchema = new Schema({
     //store player's icon
     icon: {type: String, default: ""},
     //contact number
-    phoneNumber: {type: String, minlength: 6},
+    phoneNumber: {type: String, minlength: 6, index: true},
     //is test player, convertion rate = total(isTestPlayer && isRealPlayer)/total(isTestPlayer)
     isTestPlayer: {type: Boolean, default: false},
     //is real player
@@ -45,7 +45,7 @@ var playerSchema = new Schema({
     //whether player want to receive SMS
     receiveSMS: {type: Boolean, default: true},
     //player real name
-    realName: {type: String, default: ""},
+    realName: {type: String, default: "", index: true},
     //platform
     platform: {type: Schema.ObjectId, ref: 'platform', index: true},
     //Registration data
@@ -55,7 +55,7 @@ var playerSchema = new Schema({
     //if player has login
     isLogin: {type: Boolean, default: false},
     // Last Login Ip
-    lastLoginIp: {type: String, default: ""}, //login
+    lastLoginIp: {type: String, default: "", index: true}, //login
     //login ip records
     loginIps: [],
     // player trust level (trust or untrust, cheated player)
