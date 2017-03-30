@@ -48,6 +48,10 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                     i.fa.fa-usd
                     | {{'API TEST PAGE' | translate }}
         ul.navbar-right
+            li(style='min-width:150px !important; font-size:0.7em; color:#ffffff;')
+                label.control-label {{"Server" | translate}}
+                select.form-control(ng-model="mgntServer", ng-change='changeServer(mgntServer)')
+                    option(ng-repeat='(i,v) in mgntServerList', value='{{i}}', ng-selected='currentServer' ng-disabled='!v.latency') {{i + ": " + v.latency + "ms"}}
             li(style='min-width:120px !important;font-size:0.8em;color:#ffffff;')
                 .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
                     table.pull-right(style='width:100%')
