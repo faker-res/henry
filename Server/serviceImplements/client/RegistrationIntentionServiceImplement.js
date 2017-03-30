@@ -17,7 +17,7 @@ var RegistrationIntentionServiceImplement = function () {
     this.add.expectsData = 'name: String, mobile: String, platformId: String';
     this.add.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.mobile && data.hasOwnProperty("platformId"));
-        data.ipAddress = conn.upgradeReq.connection.remoteAddress;
+        data.ipAddress = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             data.ipAddress = forwardedIp[0].trim();
