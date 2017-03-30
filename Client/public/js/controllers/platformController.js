@@ -4061,7 +4061,7 @@ define(['js/app'], function (myApp) {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
-                            playerObjId: playerTransfer._id,
+                            playerObjId: playerTransfer.playerObjId,
                             playerName: playerTransfer.playerName,
                             updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
                             curAmount: vm.isOneSelectedPlayer().validCredit,
