@@ -1,67 +1,71 @@
 extends layout
 
 block body
-	.container#loginContainer(style="display:none")
-		.row
-			.col-md-4.col-md-offset-4
-				.login-panel.panel.panel-default
-					.panel-heading
-						h3.panel-title {{ 'LOGIN_TITLE' | translate }}
-					.panel-body
-						div(ng-controller='loginCtrl')
+    .container#loginContainer(style="display:none")
+        .row
+            .col-md-4.col-md-offset-4
+                .login-panel.panel.panel-default
+                    .panel-heading
+                        h3.panel-title {{ 'LOGIN_TITLE' | translate }}
+                    .panel-body
+                        div(ng-controller='loginCtrl')
 
-							form(ng-if="!showResetPasswordForm", name='form', role='form', method="post", ng-submit="login()")
-								fieldset
-									.form-group
-										input.form-control(placeholder="{{ 'USER_NAME' | translate }}", id='username', type='text', autofocus='autofocus', required)
-									.form-group
-										input.form-control(placeholder="{{ 'PASSWORD' | translate }}", id='password', type='password', value='', required)
-									//.checkbox
-									//	label
-									//		input(name='remember', type='checkbox', value='Remember Me')
-									//		| Remember Me
+                            form(ng-if="!showResetPasswordForm", name='form', role='form', method="post", ng-submit="login()")
+                                fieldset
+                                    .form-group
+                                        input.form-control(placeholder="{{ 'USER_NAME' | translate }}", id='username', type='text', autofocus='autofocus', required)
+                                    .form-group
+                                        input.form-control(placeholder="{{ 'PASSWORD' | translate }}", id='password', type='password', value='', required)
+                                    .form-group
+                                        select.form-control(id='mgntServer')
+                                            option(value='' selected='selected') Fastest Server
+                                            option(ng-repeat='(i,v) in mgntServerList', value='{{ i }}', ng-disabled='!v.latency') {{i + ": " + v.latency + "ms" }}
+                                    //.checkbox
+                                    //	label
+                                    //		input(name='remember', type='checkbox', value='Remember Me')
+                                    //		| Remember Me
 
-									span.error.help-block(ng-show="showError") {{errorMessage}}
-									input.btn.btn-lg.btn-success.btn-block(type="submit", value="{{ 'LOGIN_BUTTON' | translate }}", ng-disabled="form.$invalid")
-									div.text-center.margin-top-10
-										a(style='opacity: 0.7', ng-click="toggleShowResetPasswordForm()") {{ "I have forgotten my password" | translate}}
+                                    span.error.help-block(ng-show="showError") {{errorMessage}}
+                                    input.btn.btn-lg.btn-success.btn-block(type="submit", value="{{ 'LOGIN_BUTTON' | translate }}", ng-disabled="form.$invalid")
+                                    div.text-center.margin-top-10
+                                        a(style='opacity: 0.7', ng-click="toggleShowResetPasswordForm()") {{ "I have forgotten my password" | translate}}
 
-							form(ng-if="showResetPasswordForm", name='reset-password-form', role='form', method="post", ng-submit="requestPasswordReset()")
-								fieldset
-									.form-group
-										span.info.help-block {{"Please enter your email address:" | translate}}
-										input.form-control(placeholder="{{ 'EMAIL' | translate }}", name='email', type='email', autofocus='autofocus', required)
-									span.error.help-block(ng-show="showError") {{errorMessage}}
-									input.btn.btn-lg.btn-success.btn-block(type="submit", value="{{ 'RESET_PASSWORD_BUTTON' | translate }}", ng-disabled="form.$invalid")
-									div.text-center.margin-top-10
-										a(style='opacity: 0.7', ng-click="toggleShowResetPasswordForm()") {{ "Back to login" | translate}}
+                            form(ng-if="showResetPasswordForm", name='reset-password-form', role='form', method="post", ng-submit="requestPasswordReset()")
+                                fieldset
+                                    .form-group
+                                        span.info.help-block {{"Please enter your email address:" | translate}}
+                                        input.form-control(placeholder="{{ 'EMAIL' | translate }}", name='email', type='email', autofocus='autofocus', required)
+                                    span.error.help-block(ng-show="showError") {{errorMessage}}
+                                    input.btn.btn-lg.btn-success.btn-block(type="submit", value="{{ 'RESET_PASSWORD_BUTTON' | translate }}", ng-disabled="form.$invalid")
+                                    div.text-center.margin-top-10
+                                        a(style='opacity: 0.7', ng-click="toggleShowResetPasswordForm()") {{ "Back to login" | translate}}
 
-		//
-				jQuery
-		script(src='js/lib/jquery/jquery-2.1.4.min.js')
-		//
-				angular
-		script(src='js/lib/angular/angular.min.js')
-		//
-				angular cookies
-		script(src='js/lib/angular/angular-cookies.js')
-		script(src='js/lib/angular/lib/angular-local-storage.min.js')
-		//
-				socket io client
-		script(src='js/lib/socket.io.js')
-		//
-				Bootstrap Core JavaScript
-		script(src='sb-admin-2/js/bootstrap.min.js')
-		//
-				Metis Menu Plugin JavaScript
-		script(src='sb-admin-2/js/plugins/metisMenu/metisMenu.min.js')
-		//
-				Custom Theme JavaScript
-		script(src='sb-admin-2/js/sb-admin-2.js')
-		//
-				localization JavaScript
-		script(src='js/lib/angular-translate.min.js')
-		script(src='js/lib/angular-translate-loader-static-files.min.js')
-		//
-			javascript for login
-		script(src="js/lib/require.js" data-main="js/login_main")
+        //
+                jQuery
+        script(src='js/lib/jquery/jquery-2.1.4.min.js')
+        //
+                angular
+        script(src='js/lib/angular/angular.min.js')
+        //
+                angular cookies
+        script(src='js/lib/angular/angular-cookies.js')
+        script(src='js/lib/angular/lib/angular-local-storage.min.js')
+        //
+                socket io client
+        script(src='js/lib/socket.io.js')
+        //
+                Bootstrap Core JavaScript
+        script(src='sb-admin-2/js/bootstrap.min.js')
+        //
+                Metis Menu Plugin JavaScript
+        script(src='sb-admin-2/js/plugins/metisMenu/metisMenu.min.js')
+        //
+                Custom Theme JavaScript
+        script(src='sb-admin-2/js/sb-admin-2.js')
+        //
+                localization JavaScript
+        script(src='js/lib/angular-translate.min.js')
+        script(src='js/lib/angular-translate-loader-static-files.min.js')
+        //
+            javascript for login
+        script(src="js/lib/require.js" data-main="js/login_main")
