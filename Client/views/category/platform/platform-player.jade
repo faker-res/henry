@@ -943,8 +943,8 @@
                                             text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_TYPE' | translate}}
-                                            text(ng-if='vm.playerPayment.bankAccountType==2 || vm.playerPayment.bankAccountType=="2"') {{'Debit Card' | translate}}
-                                            text(ng-if='vm.playerPayment.bankAccountType==1 || vm.playerPayment.bankAccountType=="1"') {{'Credit Card' | translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card' | translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_PROVINCE' | translate}}
                                             text {{vm.showProvinceStr}}
