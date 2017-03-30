@@ -958,6 +958,7 @@ define(['js/app'], function (myApp) {
             delete vm.selectedProposalDetailForDisplay.playerObjId;
             delete vm.selectedProposalDetailForDisplay.playerLevelName;
             delete vm.selectedProposalDetailForDisplay.playerLevelValue;
+            delete vm.selectedProposalDetailForDisplay.remark;
             function canCancelProposal(proposal) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;
                 var creatorId = (proposal && proposal.creator) ? proposal.creator.id : '';

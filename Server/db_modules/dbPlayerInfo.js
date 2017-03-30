@@ -5141,7 +5141,7 @@ var dbPlayerInfo = {
                                     amount: amount,
                                     bonusCredit: bonusDetail.credit,
                                     curAmount: player.validCredit,
-                                    remark: honoreeDetail,
+                                    remark: player.remark,
                                     lastSettleTime: new Date(),
                                     honoreeDetail: honoreeDetail
                                     //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
