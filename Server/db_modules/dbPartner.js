@@ -2997,7 +2997,7 @@ var dbPartner = {
             }
         ).then(
             playerCommissions => {
-                playerCommissions.filter(commission => commission);
+                playerCommissions = playerCommissions.filter(commission => commission);
                 var total = {
                     totalValidAmount: 0,
                     totalBonusAmount: 0,
