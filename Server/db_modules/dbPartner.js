@@ -3014,7 +3014,6 @@ var dbPartner = {
                         if(commission){
                             total.totalValidAmount += commission.totalValidAmount;
                             total.totalBonusAmount += commission.totalBonusAmount;
-                            total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
                             total.operationAmount += commission.operationAmount;
                             total.totalRewardAmount += commission.totalRewardAmount;
                             total.serviceFee += commission.serviceFee;
