@@ -2999,7 +2999,8 @@ var dbPartner = {
                     totalRewardAmount: 0,
                     serviceFee: 0,
                     platformFee: 0,
-                    profitAmount: 0
+                    profitAmount: 0,
+                    totalTopUpAmount: 0
                 };
                 playerCommissions.forEach(
                     commission => {
@@ -3012,6 +3013,7 @@ var dbPartner = {
                             total.serviceFee += commission.serviceFee;
                             total.platformFee += commission.platformFee;
                             total.profitAmount += commission.profitAmount;
+                            total.totalTopUpAmount += commission.totalTopUpAmount;
                         }
                     }
                 );
@@ -3162,16 +3164,19 @@ var dbPartner = {
                 }
                 profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
-                return {
-                    playerName: playerName,
-                    totalValidAmount: totalValidAmount,
-                    totalBonusAmount: totalBonusAmount,
-                    operationAmount: operationAmount,
-                    totalRewardAmount: totalRewardAmount,
-                    serviceFee: serviceFee,
-                    platformFee: platformFee,
-                    profitAmount: profitAmount
-                };
+                if( profitAmount ){
+                    return {
+                        playerName: playerName,
+                        totalValidAmount: totalValidAmount,
+                        totalBonusAmount: totalBonusAmount,
+                        operationAmount: operationAmount,
+                        totalRewardAmount: totalRewardAmount,
+                        totalTopUpAmount: totalTopUpAmount,
+                        serviceFee: serviceFee,
+                        platformFee: platformFee,
+                        profitAmount: profitAmount
+                    };
+                }
             }
         );
     },
