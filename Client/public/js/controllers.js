@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, $route, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter, WSCONFIG) {
+angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, $route, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
     //todo::disable console log for production
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
