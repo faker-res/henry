@@ -2056,7 +2056,7 @@ var dbPartner = {
         var bonusProposalProm = dbconfig.collection_proposal.find({
             type: bonusProposalType._id,
             status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]},
-            "data.playerId": {$in: [playerObj.playerId, String(playerObj._id), playerObj._id]}
+            "data.playerObjId": playerObj._id
         }).sort({createTime: -1}).lean();
 
         var topUpRecordProm = dbconfig.collection_playerTopUpRecord.aggregate(
@@ -2139,7 +2139,7 @@ var dbPartner = {
         var bonusProposalProm = dbconfig.collection_proposal.find({
             type: bonusProposalType._id,
             status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]},
-            "data.playerId": {$in: [playerObj.playerId, String(playerObj._id), playerObj._id]}
+            "data.playerObjId": playerObj._id
         }).sort({createTime: -1}).lean();
         var latestTopUpRecordProm = dbconfig.collection_playerTopUpRecord.find({
             platformId: playerObj.platform,
@@ -3014,7 +3014,6 @@ var dbPartner = {
                         if(commission){
                             total.totalValidAmount += commission.totalValidAmount;
                             total.totalBonusAmount += commission.totalBonusAmount;
-                            total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
                             total.operationAmount += commission.operationAmount;
                             total.totalRewardAmount += commission.totalRewardAmount;
                             total.serviceFee += commission.serviceFee;
