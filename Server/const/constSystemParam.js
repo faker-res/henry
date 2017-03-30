@@ -5,7 +5,7 @@
 const constSystemParam = {
     SALT_WORK_FACTOR: 10,
     MAX_RECORD_NUM: 100,
-    REPORT_MAX_RECORD_NUM: 2000,
+    REPORT_MAX_RECORD_NUM: 1000,
     MIN_RECORD_NUM: 10,
     //TODO::update this value later
     VALID_PLAYER_TOP_UP_AMOUNT: 100,
