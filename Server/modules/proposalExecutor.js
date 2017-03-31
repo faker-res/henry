@@ -1554,7 +1554,7 @@ var proposalExecutor = {
             //create reward task for related player
             //verify data
             if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount && proposalData.data.unlockBonusAmount != null) {
-                if( proposalData.data.unlockBonusAmount > 0 ){
+                if (proposalData.data.unlockBonusAmount > 0) {
                     dbRewardTask.getRewardTask(
                         {
                             playerId: proposalData.data.playerObjId,
@@ -1592,7 +1592,7 @@ var proposalExecutor = {
                         }
                     );
                 }
-                else{
+                else {
                     changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constProposalType.PLAYER_REGISTRATION_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
                 }
             }
@@ -2119,7 +2119,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
                 player: proposalData.data.playerId || proposalData.data.playerObjId,
                 rewardType: rewardType._id,
                 rewardTypeName: rewardTypeName,
-                amount: proposalData.data.unlockBonusAmount || proposalData.data.rewardAmount || proposalData.data.amount || 0,
+                amount: proposalData.data.rewardAmount || proposalData.data.amount || 0,
                 createTime: Date.now(),
             };
             if (rewardEvent) {
