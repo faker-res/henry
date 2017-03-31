@@ -2532,6 +2532,7 @@ var dbPartner = {
                             bonusCommissionRate = configData.bonusRate;
                         }
                     }
+                    let negativeProfitAmount = partnerData.negativeProfitAmount;
                     profitAmount += partnerData.negativeProfitAmount;
                     var commissionAmount = profitAmount * (commissionRate + bonusCommissionRate);
                     var partnerProm = partnerData;
@@ -2543,10 +2544,10 @@ var dbPartner = {
                             partnerData.negativeProfitStartTime = null;
                         }
                         if (commissionAmount > configData.minCommissionAmount) {
-                            partnerData.negativeProfitAmount = 0;
+                            negativeProfitAmount = 0;
                         }
                         else {
-                            partnerData.negativeProfitAmount = profitAmount;
+                            negativeProfitAmount = profitAmount;
                         }
 
                         //partnerData.lastCommissionSettleTime = settlementTimeToSave;
@@ -2555,21 +2556,25 @@ var dbPartner = {
                         if(commissionAmount < configData.minCommissionAmount){
                             commissionAmount = 0;
                         }
-                        var proposalData = {
-                            entryType: constProposalEntryType.SYSTEM,
-                            userType: constProposalUserType.PARTNERS,
-                            data: {
-                                partnerObjId: partnerData._id,
-                                platformObjId: partnerData.platform,
-                                partnerName: partnerData.partnerName,
-                                lastCommissionSettleTime: settlementTimeToSave,
-                                commissionAmount: commissionAmount,
-                                negativeProfitAmount: partnerData.negativeProfitAmount,
-                                commissionLevel: commissionLevel,
-                                negativeProfitStartTime: partnerData.negativeProfitStartTime
-                            }
-                        };
-                        partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
+                        if( commissionAmount != 0 || partnerData.negativeProfitAmount != 0 ){
+                            var proposalData = {
+                                entryType: constProposalEntryType.SYSTEM,
+                                userType: constProposalUserType.PARTNERS,
+                                data: {
+                                    partnerObjId: partnerData._id,
+                                    platformObjId: partnerData.platform,
+                                    partnerName: partnerData.partnerName,
+                                    lastCommissionSettleTime: settlementTimeToSave,
+                                    commissionAmount: commissionAmount,
+                                    negativeProfitAmount: negativeProfitAmount,
+                                    commissionLevel: commissionLevel,
+                                    negativeProfitStartTime: partnerData.negativeProfitStartTime,
+                                    preNegativeProfitAmount: partnerData.negativeProfitAmount,
+
+                                }
+                            };
+                            partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
+                        }
                     }
                     if(commissionAmount < configData.minCommissionAmount){
                         commissionAmount = 0;
