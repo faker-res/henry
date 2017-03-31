@@ -3178,7 +3178,6 @@ var dbPartner = {
                 var commissionAmount = 0;
 
                 var consumptionInfo = data[0];
-                console.log("consumptionInfo", consumptionInfo);
                 var rewardInfo = data[1];
                 var topUpInfo = data[2];
                 var bonusInfo = data[3];
