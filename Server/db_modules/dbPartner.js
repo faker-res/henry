@@ -2477,6 +2477,7 @@ var dbPartner = {
                                 platformFeeAmount += Math.abs(conInfo.totalBonusAmount);
                             }
                         );
+                        totalBonusAmount = -totalBonusAmount;
                         operationAmount = totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
                         if (configData && configData.platformFeeRate > 0) {
                             platformFee = Math.max(0, platformFeeAmount * configData.platformFeeRate);
