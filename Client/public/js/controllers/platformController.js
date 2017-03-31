@@ -3959,91 +3959,97 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.prepareShowPlayerCredit = function () {
-            vm.creditChange = {
-                finalValidAmount: $translate("Unknown"),
-                finalLockedAmount: $translate("Unknown"),
-                number: 0,
-                remark: ''
-            };
-            vm.creditChange.socketStr = "createUpdatePlayerCreditProposal";
-            vm.creditChange.modaltitle = "CREDIT_ADJUSTMENT";
-            vm.linkedPlayerTransferId = null;
-            vm.playerTransferErrorLog = null;
-            socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}, function (data) {
-                vm.playerTransferErrorLog = data.data.map(item => {
-                        item.createTimeText = vm.dateReformat(item.createTime);
-                        item.typeText = $translate(item.type);
-                        item.providerText = vm.getProviderText(item.providerId);
-                        return item;
-                    }) || [];
-                console.log('errData', vm.playerTransferErrorLog);
-                $scope.safeApply();
-                var newTblOption = $.extend({}, vm.generalDataTableOptions, {
-                    data: vm.playerTransferErrorLog,
-                    columns: [
-                        {title: $translate("CREATETIME"), data: 'createTimeText'},
-                        {title: $translate("TRANSFER") + " ID", data: 'transferId'},
-                        {title: $translate("CREDIT"), data: 'amount'},
-                        {title: $translate("provider"), data: 'providerText'},
-                        {title: $translate("amount"), data: 'amount'},
-                        {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount'},
-                        {title: $translate("TYPE"), data: 'typeText'},
-                        {
-                            title: $translate("STATUS"),
-                            render: function (data, type, row) {
-                                return (row.status == 1 ? $translate("SUCCESS") : row.status == 2 ? $translate("FAIL") : $translate("REQUEST"));
-                            }
-                        }
-                    ]
-                })
-                var table = $('#playerCreditAdjustTbl').DataTable(newTblOption);
-                $('#playerCreditAdjustTbl tbody').off('click', "**");
-                $('#playerCreditAdjustTbl tbody').on('click', 'tr', function () {
-                    if ($(this).hasClass('selected')) {
-                        $(this).removeClass('selected');
-                        vm.linkedPlayerTransferId = null;
-                        $scope.safeApply();
-                    } else {
-                        table.$('tr.selected').removeClass('selected');
-                        $(this).addClass('selected');
-                        var record = table.row(this).data();
-                        socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId}, function (data) {
-                            var playerTransfer;
-                            data.data.forEach(function(playerTransLog){
-                                if(playerTransLog._id == record._id){
-                                    playerTransfer = playerTransLog
+            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
+            .then(function(){
+                vm.creditChange = {
+                    finalValidAmount: $translate("Unknown"),
+                    finalLockedAmount: $translate("Unknown"),
+                    number: 0,
+                    remark: ''
+                };
+                vm.creditChange.socketStr = "createUpdatePlayerCreditProposal";
+                vm.creditChange.modaltitle = "CREDIT_ADJUSTMENT";
+                vm.linkedPlayerTransferId = null;
+                vm.playerTransferErrorLog = null;
+                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}, function (data) {
+                    vm.playerTransferErrorLog = data.data.map(item => {
+                            item.createTimeText = vm.dateReformat(item.createTime);
+                            item.typeText = $translate(item.type);
+                            item.providerText = vm.getProviderText(item.providerId);
+                            return item;
+                        }) || [];
+                    console.log('errData', vm.playerTransferErrorLog);
+                    $scope.safeApply();
+                    var newTblOption = $.extend({}, vm.generalDataTableOptions, {
+                        data: vm.playerTransferErrorLog,
+                        columns: [
+                            {title: $translate("CREATETIME"), data: 'createTimeText'},
+                            {title: $translate("TRANSFER") + " ID", data: 'transferId'},
+                            {title: $translate("CREDIT"), data: 'amount'},
+                            {title: $translate("provider"), data: 'providerText'},
+                            {title: $translate("amount"), data: 'amount'},
+                            {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount'},
+                            {title: $translate("TYPE"), data: 'typeText'},
+                            {
+                                title: $translate("STATUS"),
+                                render: function (data, type, row) {
+                                    return (row.status == 1 ? $translate("SUCCESS") : row.status == 2 ? $translate("FAIL") : $translate("REQUEST"));
                                 }
-                            })
-
-                            vm.linkedPlayerTransferId = playerTransfer.transferId;
-                            vm.creditChange.finalValidAmount = playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit;
-                            vm.creditChange.finalLockedAmount = playerTransfer.lockedAmount;
+                            }
+                        ]
+                    })
+                    var table = $('#playerCreditAdjustTbl').DataTable(newTblOption);
+                    $('#playerCreditAdjustTbl tbody').off('click', "**");
+                    $('#playerCreditAdjustTbl tbody').on('click', 'tr', function () {
+                        if ($(this).hasClass('selected')) {
+                            $(this).removeClass('selected');
+                            vm.linkedPlayerTransferId = null;
                             $scope.safeApply();
-                        });
-                    }
-                    
-                })
-                $('#playerCreditAdjustTbl').resize();
-                $('#playerCreditAdjustTbl').resize();
-                table.columns.adjust().draw();
+                        } else {
+                            table.$('tr.selected').removeClass('selected');
+                            $(this).addClass('selected');
+                            var record = table.row(this).data();
+                            socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId}, function (data) {
+                                var playerTransfer;
+                                data.data.forEach(function(playerTransLog){
+                                    if(playerTransLog._id == record._id){
+                                        playerTransfer = playerTransLog
+                                    }
+                                })
+
+                                vm.linkedPlayerTransferId = playerTransfer.transferId;
+                                vm.creditChange.finalValidAmount = playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit;
+                                vm.creditChange.finalLockedAmount = playerTransfer.lockedAmount;
+                                $scope.safeApply();
+                            });
+                        }
+                        
+                    })
+                    $('#playerCreditAdjustTbl').resize();
+                    $('#playerCreditAdjustTbl').resize();
+                    table.columns.adjust().draw();
+                });
             });
         };
         vm.prepareShowPlayerCreditAdjustment = function (type) {
-            vm.creditChange = {
-                finalValidAmount: vm.isOneSelectedPlayer().validCredit,
-                finalLockedAmount: null,
-                remark: '',
-                updateAmount: 0
-            };
-            vm.linkedPlayerTransferId = null;
-            vm.playerTransferErrorLog = null;
-            if (type == "adjust") {
-                vm.creditChange.socketStr = "createUpdatePlayerCreditProposal";
-                vm.creditChange.modaltitle = "CREDIT_ADJUSTMENT";
-            } else if (type == "returnFix") {
-                vm.creditChange.socketStr = "createReturnFixProposal";
-                vm.creditChange.modaltitle = "ConsumptionReturnFix";
-            }
+            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
+            .then(function(){
+                vm.creditChange = {
+                    finalValidAmount: vm.isOneSelectedPlayer().validCredit,
+                    finalLockedAmount: null,
+                    remark: '',
+                    updateAmount: 0
+                };
+                vm.linkedPlayerTransferId = null;
+                vm.playerTransferErrorLog = null;
+                if (type == "adjust") {
+                    vm.creditChange.socketStr = "createUpdatePlayerCreditProposal";
+                    vm.creditChange.modaltitle = "CREDIT_ADJUSTMENT";
+                } else if (type == "returnFix") {
+                    vm.creditChange.socketStr = "createReturnFixProposal";
+                    vm.creditChange.modaltitle = "ConsumptionReturnFix";
+                }
+            });
         }
         vm.updatePlayerCredit = function () {
 
@@ -4355,6 +4361,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
                 console.log('sent', data);
                 vm.playerApplyEventResult = data;
+                vm.getPlatformPlayersData();
                 $scope.safeApply();
             }, function (err) {
                 vm.playerApplyEventResult = err;
@@ -4544,37 +4551,40 @@ define(['js/app'], function (myApp) {
         };
 
         vm.prepareShowRepairPayment = function (modalID) {
-            vm.repairProposalId = null;
-            vm.submitRepairePayementStep = 0;
-            vm.processDataTableinModal(modalID, '#playerRepairPaymentTbl', null, function () {
-                var queryData = {
-                    playerId: vm.isOneSelectedPlayer()._id,
-                    platformId: vm.selectedPlatform.data._id
-                }
-                socketService.$socket($scope.AppSocket, 'getPlayerPendingPaymentProposal', queryData, function (data) {
-                    vm.allPendingRequest = data.data ? data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.merchantUseType$ = item.data.merchantUseType ? $scope.merchantUseTypeJson[item.data.merchantUseType] : "NULL";
-                        item.topupType$ = item.data.topupType ? $scope.merchantTopupTypeJson[item.data.topupType] : "NULL";
-                        return item;
-                    }) : [];
-                    $scope.safeApply();
-                    vm.updateDataTableinModal(modalID, '#playerRepairPaymentTbl', null, function (tbl) {
-                        $('#playerRepairPaymentTbl tbody').on('click', 'tr', function () {
-                            if ($(this).hasClass('selected')) {
-                                $(this).removeClass('selected');
-                                vm.repairProposalId = null;
-                            } else {
-                                tbl.$('tr.selected').removeClass('selected');
-                                $(this).addClass('selected');
-                                vm.repairProposalId = tbl.row(this).data()[1]
-                            }
-                            $scope.safeApply();
+            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
+            .then(function(){
+
+                vm.repairProposalId = null;
+                vm.submitRepairePayementStep = 0;
+                vm.processDataTableinModal(modalID, '#playerRepairPaymentTbl', null, function () {
+                    var queryData = {
+                        playerId: vm.isOneSelectedPlayer()._id,
+                        platformId: vm.selectedPlatform.data._id
+                    }
+                    socketService.$socket($scope.AppSocket, 'getPlayerPendingPaymentProposal', queryData, function (data) {
+                        vm.allPendingRequest = data.data ? data.data.map(item => {
+                            item.createTime$ = vm.dateReformat(item.createTime);
+                            item.merchantUseType$ = item.data.merchantUseType ? $scope.merchantUseTypeJson[item.data.merchantUseType] : "NULL";
+                            item.topupType$ = item.data.topupType ? $scope.merchantTopupTypeJson[item.data.topupType] : "NULL";
+                            return item;
+                        }) : [];
+                        $scope.safeApply();
+                        vm.updateDataTableinModal(modalID, '#playerRepairPaymentTbl', null, function (tbl) {
+                            $('#playerRepairPaymentTbl tbody').on('click', 'tr', function () {
+                                if ($(this).hasClass('selected')) {
+                                    $(this).removeClass('selected');
+                                    vm.repairProposalId = null;
+                                } else {
+                                    tbl.$('tr.selected').removeClass('selected');
+                                    $(this).addClass('selected');
+                                    vm.repairProposalId = tbl.row(this).data()[1]
+                                }
+                                $scope.safeApply();
+                            });
                         });
                     });
                 });
-            });
-
+            })
         }
         vm.submitRepairPayment = function () {
             vm.submitRepairePayementStep = 1;
@@ -4698,10 +4708,12 @@ define(['js/app'], function (myApp) {
                 function (data) {
                     console.log('manualTopup success', data);
                     vm.playerManualTopUp.responseData = data.data;
+                    vm.getPlatformPlayersData();
                     $scope.safeApply();
                 }, function (error) {
                     vm.playerManualTopUp.responseMsg = error.error.errorMessage;
                     socketService.showErrorMessage(error.error.errorMessage);
+                    vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
         }
