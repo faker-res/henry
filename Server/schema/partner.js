@@ -117,7 +117,7 @@ var partnerSchema = new Schema({
     //negative profit amount
     negativeProfitAmount: {type: Number, default: 0},
     //negative profit amount start since which date
-    negativeProfitStartTime: {type: Number, default: 0},
+    negativeProfitStartTime: {type: Date},
     //last commission settlement time
     lastCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO},
     //last children commission settlement time
