@@ -1,9 +1,8 @@
 'use strict';
 
-define(['js/services/authService', 'js/login'], function () {
-    var myLoginApp = angular.module('myApp');
+define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
+    let myLoginApp = angular.module('myApp');
     myLoginApp.requires.push('pascalprecht.translate', 'ngCookies', 'LocalStorageModule', 'authService');
-
     myLoginApp.config(function ($translateProvider) {
         $translateProvider.useStaticFilesLoader({
             prefix: 'languages/',
