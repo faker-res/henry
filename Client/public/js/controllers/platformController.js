@@ -4720,6 +4720,7 @@ define(['js/app'], function (myApp) {
                 console.log('applyBonusRequest', data);
                 vm.playerBonus.resMsg = $translate('Approved');
                 vm.playerBonus.showSubmit = false;
+                vm.getPlatformPlayersData();
                 $scope.safeApply();
             }, function (data) {
                 console.log('applyBonusRequest', data);
