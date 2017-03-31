@@ -977,7 +977,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         }
     };
     $('body').click(function (a, b, c) {
-        var pop = $(a.target).closest('.popover');
+        let pop = $(a.target).closest('.popover');
         $(".popover.in").not(pop).popover('hide');
     });
 

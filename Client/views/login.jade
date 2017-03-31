@@ -19,7 +19,7 @@ block body
                                     .form-group
                                         select.form-control(id='mgntServer')
                                             option(value='' selected='selected') Fastest Server
-                                            option(ng-repeat='(i,v) in mgntServerList', value='{{ i }}', ng-disabled='!v.latency') {{i + ": " + v.latency + "ms" }}
+                                            option(ng-repeat='(i,v) in mgntServerList', value='{{ i }}', ng-disabled='!v.latency') {{i + ":  " + v.latency + "ms" }}
                                     //.checkbox
                                     //	label
                                     //		input(name='remember', type='checkbox', value='Remember Me')
