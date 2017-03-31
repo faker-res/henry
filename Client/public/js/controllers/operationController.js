@@ -383,7 +383,7 @@ define(['js/app'], function (myApp) {
                     return vm.getProviderText(item);
                 }) : '';
                 result = result.join(',');
-            } else if (fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) {
+            } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
             } else if (fieldName == 'bankAccountType') {
                 if (val == 1) {
