@@ -176,7 +176,7 @@ var dbPlayerInfo = {
                         dbPlayerInfo.createPlayerLoginRecord(data);
                         //todo::temp disable similar player untill ip is correct
                         dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
-                        //return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber);
+                        dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
                     }
                     else {
@@ -250,12 +250,15 @@ var dbPlayerInfo = {
         });
         proms.push(prom_findByPhNo);
 
-        var prom_findByIp = dbconfig.collection_players.find({
-            lastLoginIp: data.lastLoginIp,
-            platform: platformObjId,
-            _id: {$ne: newPlayerObjId}
-        });
-        proms.push(prom_findByIp);
+        var ignoredIpList = ["", "10.168.11.178", "161.202.63.242", "undefined", undefined];//ignore if lastLoginIp equals to server's ip
+        if (ignoredIpList.indexOf(data.lastLoginIp) === -1) {
+            var prom_findByIp = dbconfig.collection_players.find({
+                lastLoginIp: data.lastLoginIp,
+                platform: platformObjId,
+                _id: {$ne: newPlayerObjId},
+            });
+            proms.push(prom_findByIp);
+        }
 
         if (data.realName) {
             var prom_findByName = dbconfig.collection_players.find({

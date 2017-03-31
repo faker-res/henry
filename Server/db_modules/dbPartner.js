@@ -2056,7 +2056,7 @@ var dbPartner = {
         var bonusProposalProm = dbconfig.collection_proposal.find({
             type: bonusProposalType._id,
             status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]},
-            "data.playerId": {$in: [playerObj.playerId, String(playerObj._id), playerObj._id]}
+            "data.playerObjId": playerObj._id
         }).sort({createTime: -1}).lean();
 
         var topUpRecordProm = dbconfig.collection_playerTopUpRecord.aggregate(
@@ -2139,7 +2139,7 @@ var dbPartner = {
         var bonusProposalProm = dbconfig.collection_proposal.find({
             type: bonusProposalType._id,
             status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]},
-            "data.playerId": {$in: [playerObj.playerId, String(playerObj._id), playerObj._id]}
+            "data.playerObjId": playerObj._id
         }).sort({createTime: -1}).lean();
         var latestTopUpRecordProm = dbconfig.collection_playerTopUpRecord.find({
             platformId: playerObj.platform,
@@ -2424,9 +2424,12 @@ var dbPartner = {
                         }
                     );
 
-                    var bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+                    var bonusProm = dbconfig.collection_proposalType.findOne({
+                        platformId: platformObjId,
+                        name: constProposalType.PLAYER_BONUS
+                    }).then(
                         bonusType => {
-                            if(bonusType){
+                            if (bonusType) {
                                 return dbconfig.collection_proposal.aggregate(
                                     {
                                         $match: {
@@ -2467,10 +2470,10 @@ var dbPartner = {
                     totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
                     if (consumptionInfo && consumptionInfo[0]) {
                         totalValidAmount = consumptionInfo[0].totalValidAmount;
-                        totalBonusAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
-                        operationAmount = Math.abs(consumptionInfo[0].totalBonusAmount);//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
+                        totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
+                        operationAmount = -consumptionInfo[0].totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
                         if (configData && configData.platformFeeRate > 0) {
-                            platformFee = operationAmount * configData.platformFeeRate;
+                            platformFee = Math.max(0, operationAmount * configData.platformFeeRate);
                         }
                     }
                     if (rewardInfo && rewardInfo[0]) {
@@ -2534,7 +2537,7 @@ var dbPartner = {
                     if (configData && configData.bonusCommissionHistoryTimes && configData.bonusCommissionHistoryTimes > 0
                         && configData.bonusRate && configData.bonusRate > 0 && commissionLevel == maxCommissionLevel) {
                         var bValid = true;
-                        let times = Math.max(0, (partnerData.commissionHistory.length-configData.bonusCommissionHistoryTimes));
+                        let times = Math.max(0, (partnerData.commissionHistory.length - configData.bonusCommissionHistoryTimes));
                         for (var i = partnerData.commissionHistory.length - 1; i >= times; i--) {
                             if (partnerData.commissionHistory[i] != maxCommissionLevel) {
                                 bValid = false;
@@ -2869,6 +2872,7 @@ var dbPartner = {
                                     marketCost: 0,
                                     operationFee: 0,
                                     platformFee: 0,
+                                    totalRewardAmount: 0,
                                     profitAmount: 0,
                                     serviceFee: 0,
                                     totalBonusAmount: 0,
@@ -2881,6 +2885,7 @@ var dbPartner = {
                                         summary.marketCost += item.marketCost;
                                         summary.operationFee += item.operationFee;
                                         summary.platformFee += item.platformFee;
+                                        summary.totalRewardAmount += item.totalRewardAmount;
                                         summary.profitAmount += item.profitAmount;
                                         summary.serviceFee += item.serviceFee;
                                         summary.totalBonusAmount += item.totalBonusAmount;
@@ -2992,6 +2997,7 @@ var dbPartner = {
             }
         ).then(
             playerCommissions => {
+                playerCommissions = playerCommissions.filter(commission => commission);
                 var total = {
                     totalValidAmount: 0,
                     totalBonusAmount: 0,
@@ -2999,19 +3005,22 @@ var dbPartner = {
                     totalRewardAmount: 0,
                     serviceFee: 0,
                     platformFee: 0,
-                    profitAmount: 0
+                    profitAmount: 0,
+                    totalTopUpAmount: 0,
+                    totalPlayerBonusAmount: 0
                 };
                 playerCommissions.forEach(
                     commission => {
                         if(commission){
                             total.totalValidAmount += commission.totalValidAmount;
                             total.totalBonusAmount += commission.totalBonusAmount;
-                            total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
                             total.operationAmount += commission.operationAmount;
                             total.totalRewardAmount += commission.totalRewardAmount;
                             total.serviceFee += commission.serviceFee;
                             total.platformFee += commission.platformFee;
                             total.profitAmount += commission.profitAmount;
+                            total.totalTopUpAmount += commission.totalTopUpAmount;
+                            total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
                         }
                     }
                 );
@@ -3101,9 +3110,12 @@ var dbPartner = {
             }
         );
 
-        var bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+        var bonusProm = dbconfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: constProposalType.PLAYER_BONUS
+        }).then(
             bonusType => {
-                if(bonusType){
+                if (bonusType) {
                     return dbconfig.collection_proposal.aggregate(
                         {
                             $match: {
@@ -3148,8 +3160,8 @@ var dbPartner = {
                 var totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
                 if (consumptionInfo && consumptionInfo[0]) {
                     totalValidAmount = consumptionInfo[0].totalValidAmount;
-                    totalBonusAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
-                    operationAmount = Math.abs(consumptionInfo[0].totalBonusAmount);
+                    totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
+                    operationAmount = -consumptionInfo[0].totalBonusAmount;
                 }
                 if (rewardInfo && rewardInfo[0]) {
                     totalRewardAmount = rewardInfo[0].totalRewardAmount;
@@ -3158,20 +3170,24 @@ var dbPartner = {
                     serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                 }
                 if (configData && configData.platformFeeRate > 0) {
-                    platformFee = operationAmount * configData.platformFeeRate;
+                    platformFee = Math.max(0, operationAmount * configData.platformFeeRate);
                 }
                 profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
-                return {
-                    playerName: playerName,
-                    totalValidAmount: totalValidAmount,
-                    totalBonusAmount: totalBonusAmount,
-                    operationAmount: operationAmount,
-                    totalRewardAmount: totalRewardAmount,
-                    serviceFee: serviceFee,
-                    platformFee: platformFee,
-                    profitAmount: profitAmount
-                };
+                if( profitAmount ){
+                    return {
+                        playerName: playerName,
+                        totalValidAmount: totalValidAmount,
+                        totalBonusAmount: totalBonusAmount,
+                        operationAmount: operationAmount,
+                        totalRewardAmount: totalRewardAmount,
+                        totalTopUpAmount: totalTopUpAmount,
+                        serviceFee: serviceFee,
+                        platformFee: platformFee,
+                        profitAmount: profitAmount,
+                        totalPlayerBonusAmount: totalPlayerBonusAmount
+                    };
+                }
             }
         );
     },

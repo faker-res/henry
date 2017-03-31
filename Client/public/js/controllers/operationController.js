@@ -554,7 +554,9 @@ define(['js/app'], function (myApp) {
                     v.creditAmount$ = (v.data.amount != null) ?
                         parseFloat(v.data.amount).toFixed(2)
                         : (v.data.rewardAmount != null ?
-                            parseFloat(v.data.rewardAmount).toFixed(2) : $translate("N/A"));
+                            parseFloat(v.data.rewardAmount).toFixed(2) :
+                            v.data.commissionAmount != null ?
+                                parseFloat(v.data.commissionAmount).toFixed(2) : $translate("N/A"));
                     if (v.data.updateAmount != null) {
                         v.creditAmount$ = parseFloat(v.data.updateAmount).toFixed(2);
                     }
@@ -678,6 +680,9 @@ define(['js/app'], function (myApp) {
                             }
                             if (data && data.data && data.data.playerName) {
                                 return data.data.playerName;
+                            }
+                            else if(data && data.data && data.data.partnerName){
+                                return data.data.partnerName;
                             }
                             else {
                                 return "";
