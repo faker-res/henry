@@ -3024,6 +3024,27 @@ var dbPartner = {
                         }
                     }
                 );
+                let profitAmount = total.profitAmount;
+                let maxCommissionLevel = 0;
+                let commissionLevel = 0;
+                let commissionRate = 0;
+                if (configObj && configObj.commissionLevelConfig && configObj.commissionLevelConfig.length > 0) {
+                    configObj.commissionLevelConfig.forEach(
+                        level => {
+                            if (level.value >= maxCommissionLevel) {
+                                maxCommissionLevel = level.value;
+                            }
+                            //todo:: add valid player count here
+                            if (level.minProfitAmount <= profitAmount && profitAmount <= level.maxProfitAmount /*&& validPlayerCount >= level.minActivePlayer*/) {
+                                if (level.value >= commissionLevel) {
+                                    commissionLevel = level.value;
+                                    commissionRate = level.commissionRate;
+                                }
+                            }
+                        }
+                    );
+                }
+                total.commissionAmount = profitAmount*commissionRate;
                 return {
                     stats: {
                         startIndex: startIndex,
