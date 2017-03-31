@@ -32,7 +32,7 @@ var PlayerServiceImplement = function () {
     this.create.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
         if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
-            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
                 data.lastLoginIp = forwardedIp[0].trim();
@@ -140,7 +140,7 @@ var PlayerServiceImplement = function () {
             console.log("value: " + conn.upgradeReq.headers[i]);
         }
         console.log("end checking conn.upgradeReq.headers=============================");
-        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             data.lastLoginIp = forwardedIp[0].trim();
@@ -151,7 +151,7 @@ var PlayerServiceImplement = function () {
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(
             function (playerData) {
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (data.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                    if (conn.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;
@@ -355,7 +355,7 @@ var PlayerServiceImplement = function () {
     this.authenticate.expectsData = 'playerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.playerId && data.token);
-        var playerIp = conn.upgradeReq.connection.remoteAddress;
+        var playerIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             playerIp = forwardedIp[0].trim();

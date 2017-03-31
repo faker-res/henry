@@ -193,6 +193,12 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardTask.checkPlatformPlayersRewardTask, args, isValidData);
     };
 
+    this.getPartnerPlayersCommissionInfo.onRequest = function(wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformObjId && data.configData && data.playerObjIds && data.startTime && data.endTime);
+        var args = [ObjectId(data.platformObjId), data.configData, mapIdsToMongooseIds(data.playerObjIds), new Date(data.startTime), new Date(data.endTime)];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayersCommissionInfo, args, isValidData);
+    };
+
 };
 
 var proto = SettlementServiceImplement.prototype = Object.create(PlayerService.prototype);

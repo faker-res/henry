@@ -1196,31 +1196,31 @@ var proposal = {
      * @param {JSON} -  startTime, endTime, platformId (ObjectId), type{ObjectId), status
      *
      */
-    getProposalsByAdvancedQuery: function (data, index, count, sortObj) {
-        count = Math.min(count, constSystemParam.MAX_RECORD_NUM)
+    getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
+        count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM)
         sortObj = sortObj || {};
         var dataDeferred = Q.defer();
         var deferred = Q.defer();
         var proposalTypeList = [];
-        var queryData = data;
+        var queryData = reqData;
         var resultArray = null;
         var totalSize = 0;
         var summary = {};
 
-        if (data.status) {
-            if (data.status == constProposalStatus.SUCCESS) {
-                data.status = {
+        if (reqData.status) {
+            if (reqData.status == constProposalStatus.SUCCESS) {
+                reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
             }
-            if (data.status == constProposalStatus.FAIL) {
-                data.status = {
+            if (reqData.status == constProposalStatus.FAIL) {
+                reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]
                 };
             }
         }
-        if (!data.type && data.platformId) {
-            dbconfig.collection_proposalType.find({platformId: (ObjectId(data.platformId))}).then(
+        if (!reqData.type && reqData.platformId) {
+            dbconfig.collection_proposalType.find({platformId: (ObjectId(reqData.platformId))}).then(
                 function (data) {
                     if (data && data.length > 0) {
                         for (var i = 0; i < data.length; i++) {
@@ -1300,22 +1300,19 @@ var proposal = {
             );
         }
         else {
-            var a = dbconfig.collection_proposal.find({$and: [data]}).count();
-            var b = dbconfig.collection_proposal.find({$and: [data]}).populate({
-                path: "type",
-                model: dbconfig.collection_proposalType
-            }).sort(sortObj).skip(index).limit(count).populate({
-                path: "process",
-                model: dbconfig.collection_proposalProcess
-            });
-            if (data.type && data.type.length > 0) {
-                data.type = data.type.map(item => {
+            if (reqData.type && reqData.type.length > 0) {
+                var arr = reqData.type.map(item => {
                     return ObjectId(item);
                 })
+                reqData.type = {$in: arr}
             }
+            var a = dbconfig.collection_proposal.find(reqData).count();
+            var b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+                .populate({path: "type", model: dbconfig.collection_proposalType})
+                .populate({path: "process", model: dbconfig.collection_proposalProcess});
             var c = dbconfig.collection_proposal.aggregate(
                 {
-                    $match: data
+                    $match: reqData
                 },
                 {
                     $group: {
@@ -1337,7 +1334,7 @@ var proposal = {
                     dataDeferred.reject({
                         name: "DataError",
                         message: "Error in getting proposals type in the selected platform.",
-                        error: err
+                        error: err,
                     })
                 }
             );
@@ -1385,7 +1382,11 @@ var proposal = {
                     total += summary[0].totalRewardAmount;
                     total += summary[0].totalTopUpAmount;
                 }
-                deferred.resolve({size: totalSize, data: resultArray, summary: {amount: parseFloat(total).toFixed(2)}});
+                deferred.resolve({
+                    size: totalSize,
+                    data: resultArray,
+                    summary: {amount: parseFloat(total).toFixed(2)},
+                });
             },
             function (error) {
                 deferred.reject({

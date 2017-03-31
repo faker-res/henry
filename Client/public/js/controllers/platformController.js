@@ -3754,7 +3754,7 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform.id,
                 query: {},
                 index: index,
-                limit: 10,
+                limit: 500,
                 sortCol: {registrationTime: -1}
             };
 
@@ -3779,7 +3779,7 @@ define(['js/app'], function (myApp) {
                         console.log('transferAllCreditOutRecursive err: ', err);
                     })
                 }
-                vm.transferAllCreditOutRecursive(provider, index + 10, size);
+                vm.transferAllCreditOutRecursive(provider, apiQuery.index + 500, size);
             });
         }
 
@@ -3794,7 +3794,7 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform.id,
                 query: {},
                 index: vm.startTransferIndex || 0,
-                limit: 10,
+                limit: 500,
                 sortCol: {registrationTime: -1}
             };
             console.log('transferAllCreditOut index: ', apiQuery.index);
@@ -3820,7 +3820,7 @@ define(['js/app'], function (myApp) {
                         console.log('transferAllCreditOut err: ', err);
                     })
                 }
-                vm.transferAllCreditOutRecursive(provider, apiQuery.index + 10, size);
+                vm.transferAllCreditOutRecursive(provider, apiQuery.index + 500, size);
                 $('#loadingPlayerTableSpin').hide();
             });
         }
@@ -4502,6 +4502,7 @@ define(['js/app'], function (myApp) {
                         //     sClass: "alignRight sumFloat"
                         // },
                     ],
+                    destroy: true,
                     paging: false
                 });
                 // $('#playerExpenseTable').DataTable(option);
@@ -7255,6 +7256,7 @@ define(['js/app'], function (myApp) {
                 type: vm.showReward.type._id,
                 needApply: vm.showReward.needApply,
                 needSettlement: vm.showReward.needSettlement,
+                canApplyFromClient: vm.showReward.canApplyFromClient,
                 settlementPeriod: vm.showReward.settlementPeriod,
                 description: vm.showReward.description,
                 platform: vm.showReward.platform,
@@ -7298,6 +7300,7 @@ define(['js/app'], function (myApp) {
             sendData.param = vm.rewardParams;
             sendData.condition = vm.rewardCondition;
             sendData.type = vm.showRewardTypeData._id;
+            sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
             sendData.validStartTime = vm.showReward.validStartTime || null;
             sendData.validEndTime = vm.showReward.validEndTime || null;
             console.log('vm.showRewardTypeStringData', vm.showRewardTypeStringData);

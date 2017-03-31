@@ -176,7 +176,7 @@ var dbPlayerInfo = {
                         dbPlayerInfo.createPlayerLoginRecord(data);
                         //todo::temp disable similar player untill ip is correct
                         dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
-                        //return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber);
+                        dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
                     }
                     else {
@@ -250,12 +250,15 @@ var dbPlayerInfo = {
         });
         proms.push(prom_findByPhNo);
 
-        var prom_findByIp = dbconfig.collection_players.find({
-            lastLoginIp: data.lastLoginIp,
-            platform: platformObjId,
-            _id: {$ne: newPlayerObjId}
-        });
-        proms.push(prom_findByIp);
+        var ignoredIpList = ["", "10.168.11.178", "161.202.63.242", "undefined", undefined];//ignore if lastLoginIp equals to server's ip
+        if (ignoredIpList.indexOf(data.lastLoginIp) === -1) {
+            var prom_findByIp = dbconfig.collection_players.find({
+                lastLoginIp: data.lastLoginIp,
+                platform: platformObjId,
+                _id: {$ne: newPlayerObjId},
+            });
+            proms.push(prom_findByIp);
+        }
 
         if (data.realName) {
             var prom_findByName = dbconfig.collection_players.find({
@@ -1106,8 +1109,8 @@ var dbPlayerInfo = {
         var b = dbconfig.collection_playerTopUpRecord.find(queryObject).sort(sortCol).skip(index).limit(limit)
         var c = dbconfig.collection_playerTopUpRecord.aggregate(
             {
-                $match:{
-                    playerId:ObjectId(query.playerId),
+                $match: {
+                    playerId: ObjectId(query.playerId),
                     createTime: {
                         $gte: query.startTime,
                         $lt: query.endTime
@@ -1115,17 +1118,17 @@ var dbPlayerInfo = {
                 }
             },
             {
-                $group:{
+                $group: {
                     _id: "$playerId",
-                    amountSum :{$sum: "$amount"},
-                    validAmountSum :{$sum: "$validAmount"},
+                    amountSum: {$sum: "$amount"},
+                    validAmountSum: {$sum: "$validAmount"},
                     bonusAmountSum: {$sum: "$bonusAmount"}
                 }
-            })  
+            })
 
         return Q.all([a, b, c]).then(
             data => {
-                return { data: data[1],total:data[0], summary:data[2] ? data[2][0] : {}};
+                return {data: data[1], total: data[0], summary: data[2] ? data[2][0] : {}};
             }
         )
     },
@@ -2693,12 +2696,12 @@ var dbPlayerInfo = {
     transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
         var deferred = Q.defer();
         var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            });
+            path: "platform",
+            model: dbconfig.collection_platform
+        }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        });
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         var playerData = null;
         var providerData = null;
@@ -3051,12 +3054,12 @@ var dbPlayerInfo = {
         var deferred = Q.defer();
         var playerObj = {};
         var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            });
+            path: "platform",
+            model: dbconfig.collection_platform
+        }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        });
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
@@ -3188,7 +3191,7 @@ var dbPlayerInfo = {
                                 //console.log("transferPlayerCreditFromProviderbyPlayerObjId:", rewardTask);
                                 //amount = Math.min(amount, rewardTask.requiredBonusAmount);
                                 rewardTask.currentAmount = amount;
-                                validCreditToAdd = Math.min(amount, rewardTask.requiredBonusAmount);
+                                validCreditToAdd = 0;
                                 rewardTask.inProvider = false;
                                 rewardTaskCredit = rewardTask.currentAmount;
                             }
@@ -3595,7 +3598,9 @@ var dbPlayerInfo = {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
                         rewardEventItem.platformId = platformId;
-                        rewardEventArray.push(rewardEventItem);
+                        if (rewardEventItem.canApplyFromClient) {
+                            rewardEventArray.push(rewardEventItem);
+                        }
                     }
                     return rewardEventArray;
                 }
@@ -5139,8 +5144,9 @@ var dbPlayerInfo = {
                                     amount: amount,
                                     bonusCredit: bonusDetail.credit,
                                     curAmount: player.validCredit,
-                                    remark: "",
-                                    lastSettleTime: new Date()
+                                    remark: honoreeDetail,
+                                    lastSettleTime: new Date(),
+                                    honoreeDetail: honoreeDetail
                                     //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                 };
                                 var newProposal = {
@@ -5291,8 +5297,8 @@ var dbPlayerInfo = {
                                 {_id: data._id, createTime: data.createTime},
                                 {
                                     status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
-                                    "data.lastSettleTime" : new Date(),
-                                    "data.remark" : remark
+                                    "data.lastSettleTime": new Date(),
+                                    "data.remark": remark
                                 }
                             )
                         );
@@ -5303,8 +5309,8 @@ var dbPlayerInfo = {
                             {_id: data._id, createTime: data.createTime},
                             {
                                 status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
-                                "data.lastSettleTime" : new Date(),
-                                "data.remark" : remark
+                                "data.lastSettleTime": new Date(),
+                                "data.remark": remark
                             }
                         );
                     }
@@ -5331,18 +5337,18 @@ var dbPlayerInfo = {
                             {_id: data._id, createTime: data.createTime},
                             {
                                 status: status,
-                                "data.lastSettleTime" : lastSettleTime
+                                "data.lastSettleTime": lastSettleTime
                             }
                         ).then(
                             updateProposal => {
-                                if(updateProposal && updateProposal.status != constProposalStatus.SUCCESS
-                                    && updateProposal.status != constProposalStatus.FAIL){
+                                if (updateProposal && updateProposal.status != constProposalStatus.SUCCESS
+                                    && updateProposal.status != constProposalStatus.FAIL) {
                                     return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
                                         () => dbconfig.collection_proposal.findOneAndUpdate(
                                             {_id: data._id, createTime: data.createTime},
                                             {
                                                 status: status,
-                                                "data.lastSettleTime" : lastSettleTime
+                                                "data.lastSettleTime": lastSettleTime
                                             }
                                         )
                                     );
@@ -5897,7 +5903,11 @@ var dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType) {
-                                            resData.push({type: paymentData.data[i].bankTypeId, status: status, accountNumber: paymentData.data[i].accountNumber});
+                                            resData.push({
+                                                type: paymentData.data[i].bankTypeId,
+                                                status: status,
+                                                accountNumber: paymentData.data[i].accountNumber
+                                            });
                                         }
                                     }
                                 }

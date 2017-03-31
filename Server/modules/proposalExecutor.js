@@ -1553,43 +1553,48 @@ var proposalExecutor = {
         executePlayerRegistrationReward: function (proposalData, deferred) {
             //create reward task for related player
             //verify data
-            if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount && proposalData.data.unlockBonusAmount) {
-                dbRewardTask.getRewardTask(
-                    {
-                        playerId: proposalData.data.playerObjId,
-                        status: constRewardTaskStatus.STARTED
-                    }
-                ).then(
-                    function (curData) {
-                        if (!curData) {
-                            var taskData = {
-                                playerId: proposalData.data.playerObjId,
-                                type: constRewardType.PLAYER_REGISTRATION_REWARD,
-                                rewardType: constRewardType.PLAYER_REGISTRATION_REWARD,
-                                platformId: proposalData.data.platformId,
-                                requiredBonusAmount: proposalData.data.unlockBonusAmount,
-                                currentAmount: proposalData.data.rewardAmount,
-                                initAmount: proposalData.data.rewardAmount,
-                                eventId: proposalData.data.eventId,
-                                proposalId: proposalData.proposalId
-                            };
-                            createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_REGISTRATION_REWARD, proposalData);
+            if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount && proposalData.data.unlockBonusAmount != null) {
+                if( proposalData.data.unlockBonusAmount > 0 ){
+                    dbRewardTask.getRewardTask(
+                        {
+                            playerId: proposalData.data.playerObjId,
+                            status: constRewardTaskStatus.STARTED
                         }
-                        else {
+                    ).then(
+                        function (curData) {
+                            if (!curData) {
+                                var taskData = {
+                                    playerId: proposalData.data.playerObjId,
+                                    type: constRewardType.PLAYER_REGISTRATION_REWARD,
+                                    rewardType: constRewardType.PLAYER_REGISTRATION_REWARD,
+                                    platformId: proposalData.data.platformObjId,
+                                    requiredBonusAmount: proposalData.data.unlockBonusAmount,
+                                    currentAmount: proposalData.data.rewardAmount,
+                                    initAmount: proposalData.data.rewardAmount,
+                                    eventId: proposalData.data.eventId,
+                                    proposalId: proposalData.proposalId
+                                };
+                                createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_REGISTRATION_REWARD, proposalData);
+                            }
+                            else {
+                                deferred.reject({
+                                    name: "DBError",
+                                    message: "Player already has reward task ongoing",
+                                });
+                            }
+                        },
+                        function (error) {
                             deferred.reject({
                                 name: "DBError",
-                                message: "Player already has reward task ongoing",
+                                message: "Error finding reward task for player top up reward",
+                                error: error
                             });
                         }
-                    },
-                    function (error) {
-                        deferred.reject({
-                            name: "DBError",
-                            message: "Error finding reward task for player top up reward",
-                            error: error
-                        });
-                    }
-                );
+                    );
+                }
+                else{
+                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constProposalType.PLAYER_REGISTRATION_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
+                }
             }
             else {
                 deferred.reject({name: "DataError", message: "Incorrect player top up return proposal data"});
