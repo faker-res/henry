@@ -4049,6 +4049,37 @@ define(['js/app'], function (myApp) {
 
             vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
             .then(function(){
+
+                    var sendData = {
+                        platformId: vm.selectedPlatform.id,
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                        data: {
+                            playerObjId: vm.isOneSelectedPlayer()._id,
+                            playerName: vm.isOneSelectedPlayer().name,
+                            updateAmount: vm.creditChange.updateAmount, 
+                            curAmount: vm.isOneSelectedPlayer().validCredit,
+                            realName: vm.isOneSelectedPlayer().realName,
+                            remark: vm.creditChange.remark,
+                            adminName: authService.adminName
+                        }
+                    }
+
+                    console.log('send credit', sendData);
+                    socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
+                        var newData = data.data;
+                        console.log('credit proposal', newData);
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPlayersData();
+                        $scope.safeApply();
+                    });
+            })
+        };
+        vm.repairTransaction = function () {
+
+            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
+            .then(function(){
                 socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}
                 ,function(pData){
                     var playerTransfer;
@@ -4077,7 +4108,7 @@ define(['js/app'], function (myApp) {
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
                     }
 
-                    console.log('send credit', sendData);
+                    console.log('repairTransaction', sendData);
                     socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
                         var newData = data.data;
                         console.log('credit proposal', newData);
@@ -4088,16 +4119,8 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
                 });
-
-
             })
-
-
-
-
-
         };
-
         vm.showPlayerTopupModal = function (row) {
             return vm.prepareShowPlayerTopup(row._id);
         }
