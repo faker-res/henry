@@ -528,13 +528,27 @@ define(['js/app'], function (myApp) {
         }
 
         vm.startPlatformPartnerCommissionSettlement = function ($event) {
-            var dom = $event.currentTarget
-            $(dom).prop('disabled', true)
+            vm.partnerCommissionSettlement = {
+                result: false,
+                status: 'ready'
+            }
+            $('#partnerCommissionSettlementModal').modal('show');
+            $scope.safeApply();
+        }
+        vm.performPartnerCommissionSetlement = function () {
+            vm.partnerCommissionSettlement.status = 'processing';
             socketService.$socket($scope.AppSocket, 'startPlatformPartnerCommissionSettlement',
                 {platformId: vm.selectedPlatform.id},
                 function (data) {
                     console.log('partnercommission', data);
-                    $(dom).prop('disabled', false)
+                    vm.partnerCommissionSettlement.status = 'completed';
+                    vm.partnerCommissionSettlement.result = $translate('Success');
+                    $scope.safeApply();
+                }, function (err) {
+                    console.log('err', err);
+                    vm.partnerCommissionSettlement.status = 'completed';
+                    vm.partnerCommissionSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                    $scope.safeApply();
                 });
         }
         //before update platform
@@ -3151,11 +3165,11 @@ define(['js/app'], function (myApp) {
                 var isUpdate = false
                 updateData.playerName = newPlayerData.name || vm.editPlayer.name
                 // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
-                Object.keys(newPlayerData).forEach(function(key) {
-                    if(newPlayerData[key] != oldPlayerData[key]){
-                        if(key=="alipayGroup"||key=="smsSetting"||key=="bankCardGroup"||key=="merchantGroup"){
+                Object.keys(newPlayerData).forEach(function (key) {
+                    if (newPlayerData[key] != oldPlayerData[key]) {
+                        if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup") {
                             //do nothing
-                        }else{
+                        } else {
                             isUpdate = true;
                         }
                     }
@@ -3183,19 +3197,19 @@ define(['js/app'], function (myApp) {
                 //     // delete updateData.merchantGroup;
                 // }
                 if (updateData.bankCardGroup) {
-                    updateBankData.bankCardGroup = updateData.bankCardGroup;               
+                    updateBankData.bankCardGroup = updateData.bankCardGroup;
                 }
                 if (updateData.merchantGroup) {
-                    updateBankData.merchantGroup = updateData.merchantGroup;              
+                    updateBankData.merchantGroup = updateData.merchantGroup;
                 }
                 if (updateData.alipayGroup) {
-                    updateBankData.alipayGroup = updateData.alipayGroup;             
+                    updateBankData.alipayGroup = updateData.alipayGroup;
                 }
                 delete updateData.bankCardGroup;
                 delete updateData.merchantGroup;
                 delete updateData.aliPayGroup;
 
-                if(isUpdate){
+                if (isUpdate) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateData,
