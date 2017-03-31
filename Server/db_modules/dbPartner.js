@@ -3017,7 +3017,8 @@ var dbPartner = {
                     platformFee: 0,
                     profitAmount: 0,
                     totalTopUpAmount: 0,
-                    totalPlayerBonusAmount: 0
+                    totalPlayerBonusAmount: 0,
+                    operationCost: 0
                 };
                 playerCommissions.forEach(
                     commission => {
@@ -3031,6 +3032,7 @@ var dbPartner = {
                             total.profitAmount += commission.profitAmount;
                             total.totalTopUpAmount += commission.totalTopUpAmount;
                             total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
+                            total.operationCost += commission.operationCost;
                         }
                     }
                 );
@@ -3055,6 +3057,7 @@ var dbPartner = {
                     );
                 }
                 total.commissionAmount = profitAmount*commissionRate;
+                total.preNegativeProfitAmount = partnerObj.negativeProfitAmount;
                 return {
                     stats: {
                         startIndex: startIndex,
@@ -3204,6 +3207,7 @@ var dbPartner = {
                     platformFee = operationAmount * configData.platformFeeRate;
                 }
                 profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
+                var operationCost =  platformFee + serviceFee + totalRewardAmount;
 
                 if( profitAmount ){
                     return {
@@ -3216,7 +3220,8 @@ var dbPartner = {
                         serviceFee: serviceFee,
                         platformFee: platformFee,
                         profitAmount: profitAmount,
-                        totalPlayerBonusAmount: totalPlayerBonusAmount
+                        totalPlayerBonusAmount: totalPlayerBonusAmount,
+                        operationCost: operationCost
                     };
                 }
             }
