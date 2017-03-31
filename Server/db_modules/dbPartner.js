@@ -2518,21 +2518,6 @@ var dbPartner = {
             partnerData => {
                 if (partnerData) {
                     partnerData.commissionHistory.push(commissionLevel);
-                    if (settlementTimeToSave) {
-                        profitAmount += partnerData.negativeProfitAmount;
-                        if (partnerData.negativeProfitAmount >= 0 && profitAmount < 0) {
-                            partnerData.negativeProfitStartTime = endTime;
-                        }
-                        if (profitAmount >= 0) {
-                            partnerData.negativeProfitStartTime = null;
-                        }
-                        if (profitAmount > configData.minCommissionAmount) {
-                            partnerData.negativeProfitAmount = 0;
-                        }
-                        else {
-                            partnerData.negativeProfitAmount = profitAmount;
-                        }
-                    }
                     //check past commission history
                     if (configData && configData.bonusCommissionHistoryTimes && configData.bonusCommissionHistoryTimes > 0
                         && configData.bonusRate && configData.bonusRate > 0 && commissionLevel == maxCommissionLevel) {
@@ -2547,12 +2532,29 @@ var dbPartner = {
                             bonusCommissionRate = configData.bonusRate;
                         }
                     }
-                    var commissionAmount = profitAmount > configData.minCommissionAmount ? profitAmount * (commissionRate + bonusCommissionRate) : 0;
+                    profitAmount += partnerData.negativeProfitAmount;
+                    var commissionAmount = profitAmount * (commissionRate + bonusCommissionRate);
                     var partnerProm = partnerData;
                     if (settlementTimeToSave) {
+                        if (partnerData.negativeProfitAmount >= 0 && profitAmount < 0) {
+                            partnerData.negativeProfitStartTime = endTime;
+                        }
+                        if (profitAmount >= 0) {
+                            partnerData.negativeProfitStartTime = null;
+                        }
+                        if (commissionAmount > configData.minCommissionAmount) {
+                            partnerData.negativeProfitAmount = 0;
+                        }
+                        else {
+                            partnerData.negativeProfitAmount = profitAmount;
+                        }
+
                         //partnerData.lastCommissionSettleTime = settlementTimeToSave;
                         //partnerData.credits += commissionAmount;
                         //create proposal for partner commission
+                        if(commissionAmount < configData.minCommissionAmount){
+                            commissionAmount = 0;
+                        }
                         var proposalData = {
                             entryType: constProposalEntryType.SYSTEM,
                             userType: constProposalUserType.PARTNERS,
@@ -2568,6 +2570,9 @@ var dbPartner = {
                             }
                         };
                         partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
+                    }
+                    if(commissionAmount < configData.minCommissionAmount){
+                        commissionAmount = 0;
                     }
                     //log this commission record
                     var recordProm = dbUtil.upsertForShard(
@@ -3173,6 +3178,7 @@ var dbPartner = {
                 var commissionAmount = 0;
 
                 var consumptionInfo = data[0];
+                console.log("consumptionInfo", consumptionInfo);
                 var rewardInfo = data[1];
                 var topUpInfo = data[2];
                 var bonusInfo = data[3];
@@ -3191,7 +3197,7 @@ var dbPartner = {
                     serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                 }
                 if (configData && configData.platformFeeRate > 0) {
-                    platformFee = Math.max(0, operationAmount * configData.platformFeeRate);
+                    platformFee = operationAmount * configData.platformFeeRate;
                 }
                 profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
