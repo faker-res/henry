@@ -5504,12 +5504,12 @@ define(['js/app'], function (myApp) {
                     case "1"://today
                         sendQuery.topUpTimes = {
                             $gte: 1,
-                            $lt: 5
+                            $lte: 2
                         };
                         break;
                     case "2":
                         sendQuery.topUpTimes = {
-                            $gte: 6,
+                            $gte: 3,
                             // $lt: 100
                         };
                         break;
