@@ -2563,7 +2563,7 @@ var dbPartner = {
                         if(commissionAmount < configData.minCommissionAmount){
                             commissionAmount = 0;
                         }
-                        if( commissionAmount != 0 || partnerData.negativeProfitAmount != 0 ){
+                        if( commissionAmount != 0 || negativeProfitAmount != 0 ){
                             var proposalData = {
                                 entryType: constProposalEntryType.SYSTEM,
                                 userType: constProposalUserType.PARTNERS,
