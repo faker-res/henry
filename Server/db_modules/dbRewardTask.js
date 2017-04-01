@@ -477,7 +477,11 @@ var dbRewardTask = {
                     return data;
                 },
                 function (error) {
-                    return Q.reject({name: "ProposalError", message: "Failed to create proposal with this type", error: error});
+                    return Q.reject({
+                        name: "ProposalError",
+                        message: "Failed to create proposal with this type",
+                        error: error
+                    });
                 }
             );
         } else {
@@ -493,10 +497,11 @@ var dbRewardTask = {
         return new Promise((resolve, reject) => {
             var bUpdateProposal = false;
 
+            var originalReward = taskData.currentAmount;
             var rewardAmount = taskData.currentAmount;
-            // if (taskData.requiredBonusAmount > 0 && rewardAmount > taskData.requiredBonusAmount) {
-            //     rewardAmount = taskData.requiredBonusAmount;
-            // }
+            if (taskData.requiredBonusAmount > 0 && rewardAmount > taskData.requiredBonusAmount) {
+                rewardAmount = taskData.requiredBonusAmount;
+            }
             taskData.status = constRewardTaskStatus.COMPLETED;
             var taskProm = dbconfig.collection_rewardTask.findOneAndUpdate(
                 {_id: taskData._id, platformId: taskData.platformId},
@@ -530,7 +535,7 @@ var dbRewardTask = {
             Promise.all([taskProm, playerProm]).then((data) => {
                 if (data && data[0] && data[1]) {
                     //if (rewardAmount > 0) {
-                    dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type, data[1].validCredit, 0, -rewardAmount, null, taskData);
+                    dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type, data[1].validCredit, originalReward, -rewardAmount, null, taskData);
                     //}
 
                     if (bUpdateProposal) {

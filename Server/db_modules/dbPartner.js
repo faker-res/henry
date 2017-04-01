@@ -2379,7 +2379,7 @@ var dbPartner = {
                         },
                         {
                             $group: {
-                                _id: "$platformId",
+                                _id: "$playerId",
                                 totalValidAmount: {$sum: "$validAmount"},
                                 totalBonusAmount: {$sum: "$bonusAmount"}
                             }
@@ -2468,12 +2468,19 @@ var dbPartner = {
                     // var operationAmount = 0;
                     totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
                     totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
-                    if (consumptionInfo && consumptionInfo[0]) {
-                        totalValidAmount = consumptionInfo[0].totalValidAmount;
-                        totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
-                        operationAmount = -consumptionInfo[0].totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
+                    var platformFeeAmount = 0;
+                    if (consumptionInfo && consumptionInfo.length > 0) {
+                        consumptionInfo.forEach(
+                            conInfo => {
+                                totalValidAmount += conInfo.totalValidAmount;
+                                totalBonusAmount += conInfo.totalBonusAmount;
+                                platformFeeAmount += Math.abs(conInfo.totalBonusAmount);
+                            }
+                        );
+                        totalBonusAmount = -totalBonusAmount;
+                        operationAmount = totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
                         if (configData && configData.platformFeeRate > 0) {
-                            platformFee = Math.max(0, operationAmount * configData.platformFeeRate);
+                            platformFee = Math.max(0, platformFeeAmount * configData.platformFeeRate);
                         }
                     }
                     if (rewardInfo && rewardInfo[0]) {
@@ -3192,10 +3199,12 @@ var dbPartner = {
                 var operationAmount = 0;
                 var totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
                 var totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
+                var platformFeeAmount = 0;
                 if (consumptionInfo && consumptionInfo[0]) {
                     totalValidAmount = consumptionInfo[0].totalValidAmount;
                     totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
-                    operationAmount = -consumptionInfo[0].totalBonusAmount;
+                    operationAmount = totalBonusAmount;
+                    platformFeeAmount = Math.abs(totalBonusAmount);
                 }
                 if (rewardInfo && rewardInfo[0]) {
                     totalRewardAmount = rewardInfo[0].totalRewardAmount;
@@ -3204,7 +3213,7 @@ var dbPartner = {
                     serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                 }
                 if (configData && configData.platformFeeRate > 0) {
-                    platformFee = operationAmount * configData.platformFeeRate;
+                    platformFee = platformFeeAmount * configData.platformFeeRate;
                 }
                 profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
                 var operationCost =  platformFee + serviceFee + totalRewardAmount;
