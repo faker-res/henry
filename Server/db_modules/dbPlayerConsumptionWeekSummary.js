@@ -461,7 +461,16 @@ var dbPlayerConsumptionWeekSummary = {
             }
         ).then(
             function (data) {
-                deferred.resolve(true);
+                if( data && data[0] ){
+                    deferred.resolve(true);
+                }
+                else{
+                    deferred.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DBError",
+                        message: "Player does not have enough return amount"
+                    });
+                }
             },
             function (error) {
                 deferred.reject({
