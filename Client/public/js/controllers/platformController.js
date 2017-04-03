@@ -5215,6 +5215,7 @@ define(['js/app'], function (myApp) {
                 var showData = data.data ? data.data.data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
+                    item.status$ = $translate(item.status);
                     return item;
                 }) : [];
                 vm.playerBonusHistory.totalCount = data.data ? data.data.total : 0;
@@ -5236,6 +5237,7 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate('date'), data: "createTime$"},
                     {title: $translate('proposalId'), data: "proposalId"},
+                    {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('bonusId'), data: "data.bonusId"},
                     {title: $translate('bonusCredit'), data: "data.bonusCredit"},
                     {title: $translate('amount'), data: "data.amount"},
