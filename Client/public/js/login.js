@@ -45,16 +45,35 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
             $("#loginContainer").show();
         }, 200);
 
+        let fastestServer = '', lowestLatency = 9999;
+
+        // FPMS Server List
+        $scope.mgntServerList = WSCONFIG;
+
+        for (let server in WSCONFIG) {
+            pingHTTPServer(CONFIG[WSCONFIG[server].configName].MANAGEMENT_SERVER_URL, server);
+        }
+
         /* login user button handler */
         $scope.login = function () {
-            var formData = {};
-            var userName = $('#username').val();
-            var password = $('#password').val();
+            let formData = {};
+            let userName = $('#username').val();
+            let password = $('#password').val();
+            let selectedServer = $('#mgntServer').val();
+            let url = '';
 
             formData['username'] = userName;
             formData['password'] = password;
 
             $scope.showError = false;
+
+            if (selectedServer === '') {
+                url = CONFIG[WSCONFIG[fastestServer].configName].MANAGEMENT_SERVER_URL;
+                $cookies.put('curFPMSServer', fastestServer);
+            } else {
+                url = CONFIG[WSCONFIG[selectedServer].configName].MANAGEMENT_SERVER_URL;
+                $cookies.put('curFPMSServer', selectedServer);
+            }
 
             function gotoPage(page) {
                 if (page) {
@@ -65,12 +84,12 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
                 }
             }
 
-            var url = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
             $.ajax(
                 {
                     type: 'post',
                     data: formData,
-                    url: url + '/login'
+                    url: url + '/login',
+                    timeout: 5000
                 }
             )
                 .done(function (data) {
@@ -171,6 +190,36 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
                         showError('Service is not available, please try again later.');
                     }
                 });
+        }
+
+        // internal function to ping server
+        function pingHTTPServer(serverURL, server) {
+            let sendTime, receiveTime, latency;
+
+            $.ajax({
+                type: "HEAD",
+                url: serverURL,
+                timeout: 3000,
+                beforeSend: () => {
+                    sendTime = (new Date()).getTime();
+                },
+                success: function(){
+                    receiveTime = (new Date()).getTime();
+                    latency = receiveTime - sendTime;
+                    WSCONFIG[server].latency = latency;
+
+                    if (latency < lowestLatency) {
+                        lowestLatency = latency;
+                        fastestServer = server;
+                    }
+
+                    WSCONFIG[server].isAvailable = true;
+                    $scope.$apply();
+                },
+                error: function(data) {
+                    WSCONFIG[server].isAvailable = false;
+                }
+            });
         }
     });
 });
