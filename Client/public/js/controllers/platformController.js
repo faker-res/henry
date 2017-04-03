@@ -5428,7 +5428,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('bonusCredit'), data: "data.bonusCredit"},
                     {title: $translate('amount'), data: "data.amount"},
                     {title: $translate('CUR_AMOUNT'), data: "curAmount$"},
-                    {title: $translate('HONOREE_DETAIL'), data: "data.requestDetail.honoreeDetail"},
+                    {title: $translate('HONOREE_DETAIL'), data: "data.honoreeDetail"},
                 ],
                 "paging": false,
             });
