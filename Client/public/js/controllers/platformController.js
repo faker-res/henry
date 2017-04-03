@@ -4591,9 +4591,11 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
             socketService.$socket($scope.AppSocket, 'submitRepairPaymentProposal', {proposalId: vm.repairProposalId}, function (data) {
                 vm.submitRepairePayementStep = 2;
+                vm.getPlatformPlayersData();
                 $scope.safeApply();
             }, function (error) {
                 vm.submitRepairePayementStep = 3;
+                vm.getPlatformPlayersData();
                 $scope.safeApply();
             })
         }
