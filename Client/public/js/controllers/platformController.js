@@ -1664,9 +1664,23 @@ define(['js/app'], function (myApp) {
                             }
                         })
                         if (!found) {
-                            vm.selectedSinglePlayer = null;
-                            vm.selectedPlayersCount = 0;
+                                vm.selectedSinglePlayer = null;
+                                vm.selectedPlayersCount = 0;
+                            
                         }
+                    }else{
+                            if(size==1){
+                                vm.playerTable.rows(function (idx, rowData, node) {
+                                    if (rowData._id == result[0]._id) {
+                                        vm.playerTableRowClick(node, rowData);
+                                        vm.playerTableRowClicked(rowData);
+                                        vm.selectedPlayersCount = 1;
+                                        $(node).addClass('selected');
+                                        found = true;
+                                    }
+                                })
+
+                            }
                     }
                     $scope.safeApply();
                 });
@@ -2933,6 +2947,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedSinglePlayer.bankAccount ?
                         vm.selectedSinglePlayer.bankAccount.slice(0, 3) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-3)
                         : null;
+
                 $scope.safeApply();
                 deferred.resolve();
             }, function (err) {
