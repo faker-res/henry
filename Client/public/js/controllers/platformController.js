@@ -815,6 +815,7 @@ define(['js/app'], function (myApp) {
                 })
             })
             vm.sendMultiMessage.sendInitiated = true;
+            vm.sendMultiMessage.messageContent = "";
             updateMultiMessageButton();
         }
 
@@ -838,6 +839,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             })
             vm.toPhoneNumber = null;
+            vm.sendMultiMessage.messageContent = "";
             $scope.safeApply();
         }
         function updateMultiMessageButton() {
@@ -4139,7 +4141,7 @@ define(['js/app'], function (myApp) {
                                 $scope.safeApply();
                             });
                         }
-                        
+
                     })
                     $('#playerCreditAdjustTbl').resize();
                     $('#playerCreditAdjustTbl').resize();
@@ -4170,7 +4172,7 @@ define(['js/app'], function (myApp) {
                 data: {
                     playerObjId: vm.isOneSelectedPlayer()._id,
                     playerName: vm.isOneSelectedPlayer().name,
-                    updateAmount: vm.creditChange.updateAmount, 
+                    updateAmount: vm.creditChange.updateAmount,
                     curAmount: vm.isOneSelectedPlayer().validCredit,
                     realName: vm.isOneSelectedPlayer().realName,
                     remark: vm.creditChange.remark,
@@ -4188,6 +4190,7 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformPlayersData();
                 $scope.safeApply();
             });
+
         };
         vm.repairTransaction = function () {
 
