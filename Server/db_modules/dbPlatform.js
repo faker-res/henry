@@ -1435,6 +1435,26 @@ var dbPlatform = {
             }
         )
     },
+
+    getPagedPlatformCreditTransferLog: function(startTime, endTime, index, limit, sortCol, status) {
+        let queryObject = {};
+        sortCol = sortCol || {createTime: -1};
+        index = index || 0;
+        limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        let time0 = startTime ? new Date(startTime) : new Date(0);
+        let time1 = endTime ? new Date(endTime) : new Date();
+        queryObject.createTime = {$gte: time0, $lt: time1};
+
+        if (status) {
+            queryObject.status = status;
+        }
+
+        let countProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).count();
+        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).sort(sortCol).skip(index).limit(limit);
+        return Q.all([countProm, recordProm]).then(data => {
+            return {total: data[0], data: data[1]};
+        })
+    }
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
