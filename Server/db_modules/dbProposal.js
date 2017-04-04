@@ -175,8 +175,9 @@ var proposal = {
                         }
                     );
 
-                    // attach player status if available
+                    // attach player info if available
                     if(data[2]) {
+                        proposalData.data.playerName = data[2].name;
                         proposalData.data.playerStatus = data[2].status;
                         proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
                     }
