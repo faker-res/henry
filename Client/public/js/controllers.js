@@ -141,9 +141,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                     WSCONFIG[server].latency = latency * 2;
                     $scope.safeApply();
 
-                    // setTimeout(() => {
-                    //     resolve(serverPing.disconnect());
-                    // }, 1000);
+                    setTimeout(() => {
+                        resolve(serverPing.disconnect());
+                    }, 1000);
                 });
 
                 serverPing.emit('ping');
