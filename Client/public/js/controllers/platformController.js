@@ -4077,8 +4077,6 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.prepareShowPlayerCredit = function () {
-            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
-            .then(function(){
                 vm.creditChange = {
                     finalValidAmount: $translate("Unknown"),
                     finalLockedAmount: $translate("Unknown"),
@@ -4147,63 +4145,52 @@ define(['js/app'], function (myApp) {
                     $('#playerCreditAdjustTbl').resize();
                     table.columns.adjust().draw();
                 });
-            });
         };
         vm.prepareShowPlayerCreditAdjustment = function (type) {
-            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
-            .then(function(){
-                vm.creditChange = {
-                    finalValidAmount: vm.isOneSelectedPlayer().validCredit,
-                    finalLockedAmount: null,
-                    remark: '',
-                    updateAmount: 0
-                };
-                vm.linkedPlayerTransferId = null;
-                vm.playerTransferErrorLog = null;
-                if (type == "adjust") {
-                    vm.creditChange.socketStr = "createUpdatePlayerCreditProposal";
-                    vm.creditChange.modaltitle = "CREDIT_ADJUSTMENT";
-                } else if (type == "returnFix") {
-                    vm.creditChange.socketStr = "createReturnFixProposal";
-                    vm.creditChange.modaltitle = "ConsumptionReturnFix";
-                }
-            });
+            vm.creditChange = {
+                finalValidAmount: vm.isOneSelectedPlayer().validCredit,
+                finalLockedAmount: null,
+                remark: '',
+                updateAmount: 0
+            };
+            vm.linkedPlayerTransferId = null;
+            vm.playerTransferErrorLog = null;
+            if (type == "adjust") {
+                vm.creditChange.socketStr = "createUpdatePlayerCreditProposal";
+                vm.creditChange.modaltitle = "CREDIT_ADJUSTMENT";
+            } else if (type == "returnFix") {
+                vm.creditChange.socketStr = "createReturnFixProposal";
+                vm.creditChange.modaltitle = "ConsumptionReturnFix";
+            }
         }
         vm.updatePlayerCredit = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.id,
+                creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                data: {
+                    playerObjId: vm.isOneSelectedPlayer()._id,
+                    playerName: vm.isOneSelectedPlayer().name,
+                    updateAmount: vm.creditChange.updateAmount, 
+                    curAmount: vm.isOneSelectedPlayer().validCredit,
+                    realName: vm.isOneSelectedPlayer().realName,
+                    remark: vm.creditChange.remark,
+                    adminName: authService.adminName
+                }
+            }
 
-            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
-            .then(function(){
-
-                    var sendData = {
-                        platformId: vm.selectedPlatform.id,
-                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                        data: {
-                            playerObjId: vm.isOneSelectedPlayer()._id,
-                            playerName: vm.isOneSelectedPlayer().name,
-                            updateAmount: vm.creditChange.updateAmount, 
-                            curAmount: vm.isOneSelectedPlayer().validCredit,
-                            realName: vm.isOneSelectedPlayer().realName,
-                            remark: vm.creditChange.remark,
-                            adminName: authService.adminName
-                        }
-                    }
-
-                    console.log('send credit', sendData);
-                    socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
-                        var newData = data.data;
-                        console.log('credit proposal', newData);
-                        if (data.data && data.data.stepInfo) {
-                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
-                        }
-                        vm.getPlatformPlayersData();
-                        $scope.safeApply();
-                    });
-            })
+            console.log('send credit', sendData);
+            socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
+                var newData = data.data;
+                console.log('credit proposal', newData);
+                if (data.data && data.data.stepInfo) {
+                    socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                }
+                vm.getPlatformPlayersData();
+                $scope.safeApply();
+            });
         };
         vm.repairTransaction = function () {
 
-            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
-            .then(function(){
                 socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}
                 ,function(pData){
                     var playerTransfer;
@@ -4243,7 +4230,6 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
                 });
-            })
         };
         vm.showPlayerTopupModal = function (row) {
             return vm.prepareShowPlayerTopup(row._id);
@@ -4669,8 +4655,6 @@ define(['js/app'], function (myApp) {
         };
 
         vm.prepareShowRepairPayment = function (modalID) {
-            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
-            .then(function(){
 
                 vm.repairProposalId = null;
                 vm.submitRepairePayementStep = 0;
@@ -4702,7 +4686,6 @@ define(['js/app'], function (myApp) {
                         });
                     });
                 });
-            })
         }
         vm.submitRepairPayment = function () {
             vm.submitRepairePayementStep = 1;
