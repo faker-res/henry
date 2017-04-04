@@ -4023,8 +4023,8 @@ define(['js/app'], function (myApp) {
                         var record = table.row(this).data();
                         socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId}, function (data) {
                             var playerTransfer;
-                            data.data.forEach(function(playerTransLog){
-                                if(playerTransLog._id == record._id){
+                            data.data.forEach(function (playerTransLog) {
+                                if (playerTransLog._id == record._id) {
                                     playerTransfer = playerTransLog
                                 }
                             })
@@ -4035,7 +4035,7 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         });
                     }
-                    
+
                 })
                 $('#playerCreditAdjustTbl').resize();
                 $('#playerCreditAdjustTbl').resize();
@@ -4061,8 +4061,8 @@ define(['js/app'], function (myApp) {
         }
         vm.updatePlayerCredit = function () {
 
-            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
-            .then(function(){
+            vm.playerTableRowClicked({_id: vm.isOneSelectedPlayer()._id})
+                .then(function () {
 
                     var sendData = {
                         platformId: vm.selectedPlatform.id,
@@ -4070,7 +4070,7 @@ define(['js/app'], function (myApp) {
                         data: {
                             playerObjId: vm.isOneSelectedPlayer()._id,
                             playerName: vm.isOneSelectedPlayer().name,
-                            updateAmount: vm.creditChange.updateAmount, 
+                            updateAmount: vm.creditChange.updateAmount,
                             curAmount: vm.isOneSelectedPlayer().validCredit,
                             realName: vm.isOneSelectedPlayer().realName,
                             remark: vm.creditChange.remark,
@@ -4088,52 +4088,52 @@ define(['js/app'], function (myApp) {
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     });
-            })
+                })
         };
         vm.repairTransaction = function () {
 
-            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
-            .then(function(){
-                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}
-                ,function(pData){
-                    var playerTransfer;
-                    pData.data.forEach(function(playerTransLog){
-                        if(playerTransLog.transferId==vm.linkedPlayerTransferId){
-                            playerTransfer = playerTransLog
-                        }
-                    })
-                    var sendData = {
-                        platformId: vm.selectedPlatform.id,
-                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                        data: {
-                            playerObjId: playerTransfer.playerObjId,
-                            playerName: playerTransfer.playerName,
-                            updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
-                            curAmount: vm.isOneSelectedPlayer().validCredit,
-                            realName: vm.isOneSelectedPlayer().realName,
-                            remark: vm.creditChange.remark,
-                            adminName: authService.adminName
-                        }
-                    }
-                    if (vm.linkedPlayerTransferId) {
-                        sendData.data.transferId = vm.linkedPlayerTransferId;
-                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
-                        sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
-                        vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
-                    }
+            vm.playerTableRowClicked({_id: vm.isOneSelectedPlayer()._id})
+                .then(function () {
+                    socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}
+                        , function (pData) {
+                            var playerTransfer;
+                            pData.data.forEach(function (playerTransLog) {
+                                if (playerTransLog.transferId == vm.linkedPlayerTransferId) {
+                                    playerTransfer = playerTransLog
+                                }
+                            })
+                            var sendData = {
+                                platformId: vm.selectedPlatform.id,
+                                creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                                data: {
+                                    playerObjId: playerTransfer.playerObjId,
+                                    playerName: playerTransfer.playerName,
+                                    updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
+                                    curAmount: vm.isOneSelectedPlayer().validCredit,
+                                    realName: vm.isOneSelectedPlayer().realName,
+                                    remark: vm.creditChange.remark,
+                                    adminName: authService.adminName
+                                }
+                            }
+                            if (vm.linkedPlayerTransferId) {
+                                sendData.data.transferId = vm.linkedPlayerTransferId;
+                                sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
+                                sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
+                                vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
+                            }
 
-                    console.log('repairTransaction', sendData);
-                    socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
-                        var newData = data.data;
-                        console.log('credit proposal', newData);
-                        if (data.data && data.data.stepInfo) {
-                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
-                        }
-                        vm.getPlatformPlayersData();
-                        $scope.safeApply();
-                    });
-                });
-            })
+                            console.log('repairTransaction', sendData);
+                            socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
+                                var newData = data.data;
+                                console.log('credit proposal', newData);
+                                if (data.data && data.data.stepInfo) {
+                                    socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                                }
+                                vm.getPlatformPlayersData();
+                                $scope.safeApply();
+                            });
+                        });
+                })
         };
         vm.showPlayerTopupModal = function (row) {
             return vm.prepareShowPlayerTopup(row._id);
@@ -4980,6 +4980,38 @@ define(['js/app'], function (myApp) {
                 vm.smsLog.totalCount = result.data.size;
                 vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
                 $scope.safeApply();
+            }).catch(console.error);
+        }
+
+        vm.initGameCreditLog = function () {
+            vm.gameCreditLog = vm.smsLog || {index: 0, limit: 10};
+            // vm.gameCreditLog.type = type;
+            vm.gameCreditLog.query = {};
+            vm.gameCreditLog.searchResults = [{}];
+            vm.gameCreditLog.query.status = "all";
+            utilService.actionAfterLoaded('.modal.in #gameCreditLogQuery .endTime', function () {
+                vm.gameCreditLog.query.startTime = utilService.createDatePicker('#gameCreditLogQuery .startTime');
+                vm.gameCreditLog.query.endTime = utilService.createDatePicker('#gameCreditLogQuery .endTime');
+                vm.gameCreditLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.gameCreditLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.gameCreditLog.pageObj = utilService.createPageForPagingTable("#gameCreditLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "gameCreditLog", vm.getGameCreditLog)
+                });
+                // Be user friendly: Fetch some results immediately!
+                vm.getGameCreditLog();
+            }); 
+        }
+        vm.getGameCreditLog = function () {
+            var requestData = {
+                "playerName": "uaeson2test",
+                "providerId": "41",
+                "startDate": "2017-04-03 00:00:00",
+                "endDate": "2017-04-04 00:00:00",
+                "page": "1",
+                "platformId": 1,
+            };
+            $scope.$socketPromise('getGameCreditLog', requestData).then(result => {
+                debugger
             }).catch(console.error);
         }
 

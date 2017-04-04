@@ -1,0 +1,46 @@
+#modalGameCreditLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width: 80%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"GAME_CREDIT_LOG" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                #gameCreditLogQuery.block-query.well
+                    div
+                        label {{"PROVIDERID" | translate}}
+                        select.form-control(ng-model='vm.smsLog.query.status')
+                            option(value='41') {{"MG" | translate}}
+                    div
+                        label {{"Start date" | translate}}
+                        .startTime
+                        //-(ng-model='vm.smsLog.query.startTime')
+                    div
+                        label {{"End date" | translate}}
+                        .endTime
+                        //-(ng-model='vm.smsLog.query.endTime')
+                    button.btn.btn-primary.common-button(ng-click='vm.searchGameCreditLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                    label {{"Total" | translate}} {{vm.smsLog.totalCount}} {{"records" | translate}}
+                    table.simple-table.display(style='min-width: 100%; width: 100%')
+                        thead
+                            tr
+                                th {{"date" | translate}}
+                                th {{"Admin" | translate}}
+                                th {{"Recipient" | translate}}
+                                th {{"Channel" | translate}}
+                                th {{"CONTENT" | translate}}
+                                th {{"STATUS" | translate}}
+                        tbody
+                            tr(ng-repeat='(i,smsLog) in vm.smsLog.searchResults')
+                                td {{smsLog.createTime$}}
+                                td {{smsLog.adminName}}
+                                td {{smsLog.recipientName}}
+                                td {{smsLog.channel}}
+                                td {{smsLog.message}}
+                                td(ng-if='smsLog.status !== "failure"') {{smsLog.status$}}
+                                td(ng-if='smsLog.status === "failure"')
+                                    text.sn-hoverable-text(title='{{smsLog.error}}', sn-tooltip) {{smsLog.status$}}
+                    br
+                    #smsLogTablePage
+            .modal-footer
+                button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
