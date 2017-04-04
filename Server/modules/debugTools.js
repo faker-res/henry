@@ -40,7 +40,7 @@ var DebugTools = {
         mongooseCountQueriesInterval: 2000,
         mongooseCountQueriesMinQueriesForLog: 100,
         warnAboutUnclosedWebSocketClients: true,
-        performHeapDiffWhenLeakIsDetected: true,
+        performHeapDiffWhenLeakIsDetected: false,
     },
 
     init: function (_options) {
