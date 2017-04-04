@@ -1,15 +1,9 @@
 let WSCONFIG = {
-    "Server_1" : {
-        "socketURL": "ws://localhost:9000",
-        "configName": "local"
+    "ext_server_1": {
+        "socketURL": "localhost:9000"
     },
-    "Server_2" : {
-        "socketURL": "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9000",
-        "configName": "development"
-    },
-    "Server_3" : {
-        "socketURL": "ws://localhost:9000",
-        "configName": "production"
+    "ext_server_2": {
+        "socketURL": "ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9000"
     }
     // ,
     // "Server_4" : {
