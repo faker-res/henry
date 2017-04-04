@@ -5440,6 +5440,7 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.drawPlayerRewardHistoryTbl = function (showData, size, newSearch) {
+          console.log('reward',JSON.stringify(showData));
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: showData,
                 "aaSorting": vm.playerRewardHistory.aaSorting || [],
@@ -5462,6 +5463,8 @@ define(['js/app'], function (myApp) {
                     {title: $translate('REWARD_NAME'), data: "data.eventName"},
                     {title: $translate('CREDIT'), data: "rewardAmount$", sClass: "alignRight"},
                     {title: $translate('STATUS'), data: "status$"},
+                    {title: $translate('DESCRIPTION'), data: "data.eventDescription"}
+
                 ],
                 "paging": false,
             });
