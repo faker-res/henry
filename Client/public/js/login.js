@@ -48,10 +48,15 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
         let fastestServer = '', lowestLatency = 9999;
 
         // FPMS Server List
+        WSCONFIG.Default = CONFIG[CONFIG.NODE_ENV];
         $scope.mgntServerList = WSCONFIG;
 
         for (let server in WSCONFIG) {
-            pingHTTPServer(CONFIG[WSCONFIG[server].configName].MANAGEMENT_SERVER_URL, server);
+            if (server === 'Default') {
+                pingHTTPServer(CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL, server);
+            } else {
+                pingHTTPServer(WSCONFIG[server].socketURL, server);
+            }
         }
 
         /* login user button handler */
@@ -60,19 +65,18 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
             let userName = $('#username').val();
             let password = $('#password').val();
             let selectedServer = $('#mgntServer').val();
-            let url = '';
 
             formData['username'] = userName;
             formData['password'] = password;
 
             $scope.showError = false;
 
-            if (selectedServer === '') {
-                url = CONFIG[WSCONFIG[fastestServer].configName].MANAGEMENT_SERVER_URL;
-                $cookies.put('curFPMSServer', fastestServer);
-            } else {
-                url = CONFIG[WSCONFIG[selectedServer].configName].MANAGEMENT_SERVER_URL;
-                $cookies.put('curFPMSServer', selectedServer);
+            selectedServer = selectedServer === '' ? fastestServer : selectedServer;
+            $cookies.put('curFPMSServer', selectedServer);
+            let url = 'http://' + WSCONFIG[selectedServer].socketURL;
+
+            if (selectedServer === 'Default') {
+                url = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
             }
 
             function gotoPage(page) {
@@ -195,6 +199,10 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
         // internal function to ping server
         function pingHTTPServer(serverURL, server) {
             let sendTime, receiveTime, latency;
+
+            if (!serverURL.startsWith("http")) {
+                serverURL = "http://" + serverURL;
+            }
 
             $.ajax({
                 type: "HEAD",
