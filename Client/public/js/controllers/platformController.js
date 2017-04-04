@@ -5440,7 +5440,6 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.drawPlayerRewardHistoryTbl = function (showData, size, newSearch) {
-          console.log('reward',JSON.stringify(showData));
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: showData,
                 "aaSorting": vm.playerRewardHistory.aaSorting || [],
