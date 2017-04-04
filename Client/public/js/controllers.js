@@ -31,6 +31,8 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         }, 2000);
     }
 
+    let wsProtocol = "ws://";
+
     $scope.connectSocket = function () {
         if (!authService.isValid($cookies, localStorageService)) {
             forceRelogin();
@@ -38,17 +40,22 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         }
 
         $scope.langKey = authService.language;
-        $scope.mgntServerList = WSCONFIG;
         $translate.use($scope.langKey);
 
+        WSCONFIG.Default = CONFIG[CONFIG.NODE_ENV];
+        $scope.mgntServerList = WSCONFIG;
+
+        let url;
         let token = authService.token;
         let serverCookie = $cookies.get('curFPMSServer');
 
         $scope.mgntServer = serverCookie;
 
-        // create socket connection
-        let url = serverCookie ? CONFIG[WSCONFIG[serverCookie].configName].MANAGEMENT_SERVER_URL :
-            CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
+        if (serverCookie === 'Default') {
+            url = wsProtocol + CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL.substr(7);
+        } else {
+            url = wsProtocol + WSCONFIG[serverCookie].socketURL
+        }
 
         $scope.AppSocket = io.connect(url, {
             query: 'token=' + token,
@@ -116,8 +123,14 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
 
         // internal function to ping server
         function pingServer(server) {
+            let urlToPing = WSCONFIG[server].socketURL;
+
+            if (server === 'Default') {
+                urlToPing = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL.substr(7);
+            }
+
             return new Promise ((resolve, reject) => {
-                let serverPing = io.connect(WSCONFIG[server].socketURL, {
+                let serverPing = io.connect(urlToPing, {
                     query: 'token=' + authService.token,
                     timeout: 50000,
                     reconnection: false,
@@ -983,6 +996,6 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
 
     $scope.changeServer = (server) => {
         $cookies.put('curFPMSServer', server);
-        $window.location.reload();
+        $scope.connectSocket();
     }
 });
