@@ -1,18 +1,14 @@
 let WSCONFIG = {
-    "Server_1" : {
-        "socketURL": "ws://localhost:9000",
-        "configName": "local"
+    "pacnet": {
+        "socketURL": "papi-pacnet.fpms8.me:9000",
     },
-    "Server_2" : {
-        "socketURL": "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9000",
-        "configName": "development"
+    "globe": {
+        "socketURL": "papi-globe.fpms8.me:9000",
     },
-    "Server_3" : {
-        "socketURL": "ws://localhost:9000",
-        "configName": "production"
+    "wtt": {
+        "socketURL": "papi-wtt.fpms8.me:9000",
     },
-    "Server_4" : {
-        "socketURL": "ws://54.169.235.54:9000",
-        "configName": "bottesting"
+    "pccw": {
+        "socketURL": "papi-pccw.fpms8.me:9000",
     }
 };
