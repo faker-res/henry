@@ -1674,6 +1674,7 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate('CREATE_TIME'), data: 'createTime$'},
                     {title: $translate("TRANSFER") + " ID", data: 'transferId'},
+                    {title: $translate('playerName'), data: 'playerName'},
                     {
                         title: $translate("CREDIT"),
                         data: 'amount',
