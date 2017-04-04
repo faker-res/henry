@@ -49,6 +49,11 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         let token = authService.token;
         let serverCookie = $cookies.get('curFPMSServer');
 
+        if(!WSCONFIG[serverCookie]) {
+            serverCookie = 'Default';
+            $cookies.put('curFPMSServer', 'Default');
+        }
+
         $scope.mgntServer = serverCookie;
 
         if (serverCookie === 'Default') {

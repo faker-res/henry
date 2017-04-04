@@ -5462,6 +5462,8 @@ define(['js/app'], function (myApp) {
                     {title: $translate('REWARD_NAME'), data: "data.eventName"},
                     {title: $translate('CREDIT'), data: "rewardAmount$", sClass: "alignRight"},
                     {title: $translate('STATUS'), data: "status$"},
+                    {title: $translate('DESCRIPTION'), data: "data.eventDescription"}
+
                 ],
                 "paging": false,
             });
