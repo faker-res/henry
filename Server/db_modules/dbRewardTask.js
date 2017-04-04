@@ -449,12 +449,14 @@ var dbRewardTask = {
      * @param {Object} taskData - reward task object
      */
     manualUnlockRewardTask: function (data, adminId, adminName) {
-        var taskData = data[0];
-        var playerData = data[1];
+        let taskData = data[0];
 
         if (taskData) {
-            var platformId = taskData.platformId;
-            var proposalData = Object.assign({}, taskData);
+            let platformId = taskData.platformId;
+            let proposalData = Object.assign({}, taskData);
+
+            proposalData.playerObjId = taskData.playerId;
+            proposalData.amount = Number(taskData.currentAmount);
             //
             // proposalData.playerId = taskData.playerId;
             // proposalData.playerName = playerData.name;

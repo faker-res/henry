@@ -259,7 +259,8 @@ var roleChecker = {
                 RepairPayment: ['getPlayerPendingPaymentProposal', 'submitRepairPaymentProposal'],
                 RepairTransaction: ['getPlayerTransferErrorLogs', 'getPagedPlayerCreditChangeLogs'],
                 ConsumptionReturnFix: ['createReturnFixProposal'],
-                ManualUnlockRewardTask: ['manualUnlockRewardTask']
+                ManualUnlockRewardTask: ['manualUnlockRewardTask'],
+                PlatformCreditTransferLog: ['getPagedPlatformCreditTransferLog', 'getAllPlayerCreditTransferStatus']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
