@@ -4180,7 +4180,6 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-<<<<<<< Updated upstream
             console.log('send credit', sendData);
             socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
                 var newData = data.data;
@@ -4191,36 +4190,7 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformPlayersData();
                 $scope.safeApply();
             });
-=======
-            vm.playerTableRowClicked({_id:vm.isOneSelectedPlayer()._id })
-            .then(function(){
 
-                    var sendData = {
-                        platformId: vm.selectedPlatform.id,
-                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                        data: {
-                            playerObjId: vm.isOneSelectedPlayer()._id,
-                            playerName: vm.isOneSelectedPlayer().name,
-                            updateAmount: vm.creditChange.updateAmount,
-                            curAmount: vm.isOneSelectedPlayer().validCredit,
-                            realName: vm.isOneSelectedPlayer().realName,
-                            remark: vm.creditChange.remark,
-                            adminName: authService.adminName
-                        }
-                    }
-
-                    console.log('send credit', sendData);
-                    socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
-                        var newData = data.data;
-                        console.log('credit proposal', newData);
-                        if (data.data && data.data.stepInfo) {
-                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
-                        }
-                        vm.getPlatformPlayersData();
-                        $scope.safeApply();
-                    });
-            })
->>>>>>> Stashed changes
         };
         vm.repairTransaction = function () {
 
