@@ -1652,10 +1652,11 @@ define(['js/app'], function (myApp) {
                     utilService.hideAllPopoversExcept();
                     vm.searchPlayerCount = size;
                     vm.playerTableQuery.pageObj.init({maxCount: size}, true);
-                    if (vm.selectedSinglePlayer) {
-                        var found = false;
+
+                    var found = false;
+                    if(size==1){
                         vm.playerTable.rows(function (idx, rowData, node) {
-                            if (rowData._id == vm.selectedSinglePlayer._id) {
+                            if (rowData._id == result[0]._id) {
                                 vm.playerTableRowClick(node, rowData);
                                 vm.playerTableRowClicked(rowData);
                                 vm.selectedPlayersCount = 1;
@@ -1663,25 +1664,12 @@ define(['js/app'], function (myApp) {
                                 found = true;
                             }
                         })
-                        if (!found) {
-                                vm.selectedSinglePlayer = null;
-                                vm.selectedPlayersCount = 0;
-                            
-                        }
-                    }else{
-                            if(size==1){
-                                vm.playerTable.rows(function (idx, rowData, node) {
-                                    if (rowData._id == result[0]._id) {
-                                        vm.playerTableRowClick(node, rowData);
-                                        vm.playerTableRowClicked(rowData);
-                                        vm.selectedPlayersCount = 1;
-                                        $(node).addClass('selected');
-                                        found = true;
-                                    }
-                                })
-
-                            }
                     }
+                    if (!found) {
+                            vm.selectedSinglePlayer = null;
+                            vm.selectedPlayersCount = 0;
+                    }
+
                     $scope.safeApply();
                 });
             } else {
