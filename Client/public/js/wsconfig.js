@@ -8,12 +8,15 @@ let WSCONFIG = {
         "configName": "development"
     },
     "Server_3" : {
-        "socketURL": "ws://localhost:9000",
+        "socketURL": "ws://papi.fpms8.me:9000",
+        "configName": "production"
+    },
+    "Server_4" : {
+        "socketURL": "ws://papi.fpms8.me:9000",
+        "configName": "production"
+    },
+    "Server_5" : {
+        "socketURL": "ws://papi.fpms8.me:9000",
         "configName": "production"
     }
-    // ,
-    // "Server_4" : {
-    //     "socketURL": "ws://54.169.235.54:9000",
-    //     "configName": "bottesting"
-    // }
 };
