@@ -4123,7 +4123,6 @@ define(['js/app'], function (myApp) {
                             $(this).removeClass('selected');
                             vm.linkedPlayerTransferId = null;
                             $scope.safeApply();
-<<<<<<< Updated upstream
                         } else {
                             table.$('tr.selected').removeClass('selected');
                             $(this).addClass('selected');
@@ -4148,16 +4147,6 @@ define(['js/app'], function (myApp) {
                     $('#playerCreditAdjustTbl').resize();
                     table.columns.adjust().draw();
                 });
-=======
-                        });
-                    }
-
-                })
-                $('#playerCreditAdjustTbl').resize();
-                $('#playerCreditAdjustTbl').resize();
-                table.columns.adjust().draw();
-            });
->>>>>>> Stashed changes
         };
         vm.prepareShowPlayerCreditAdjustment = function (type) {
             vm.creditChange = {
