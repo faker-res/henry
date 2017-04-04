@@ -2379,7 +2379,7 @@ var dbPartner = {
                         },
                         {
                             $group: {
-                                _id: "$platformId",
+                                _id: "$playerId",
                                 totalValidAmount: {$sum: "$validAmount"},
                                 totalBonusAmount: {$sum: "$bonusAmount"}
                             }
@@ -2468,12 +2468,19 @@ var dbPartner = {
                     // var operationAmount = 0;
                     totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
                     totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
-                    if (consumptionInfo && consumptionInfo[0]) {
-                        totalValidAmount = consumptionInfo[0].totalValidAmount;
-                        totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
-                        operationAmount = -consumptionInfo[0].totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
+                    var platformFeeAmount = 0;
+                    if (consumptionInfo && consumptionInfo.length > 0) {
+                        consumptionInfo.forEach(
+                            conInfo => {
+                                totalValidAmount += conInfo.totalValidAmount;
+                                totalBonusAmount += conInfo.totalBonusAmount;
+                                platformFeeAmount += Math.abs(conInfo.totalBonusAmount);
+                            }
+                        );
+                        totalBonusAmount = -totalBonusAmount;
+                        operationAmount = totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
                         if (configData && configData.platformFeeRate > 0) {
-                            platformFee = Math.max(0, operationAmount * configData.platformFeeRate);
+                            platformFee = Math.max(0, platformFeeAmount * configData.platformFeeRate);
                         }
                     }
                     if (rewardInfo && rewardInfo[0]) {
@@ -2518,21 +2525,6 @@ var dbPartner = {
             partnerData => {
                 if (partnerData) {
                     partnerData.commissionHistory.push(commissionLevel);
-                    if (settlementTimeToSave) {
-                        profitAmount += partnerData.negativeProfitAmount;
-                        if (partnerData.negativeProfitAmount >= 0 && profitAmount < 0) {
-                            partnerData.negativeProfitStartTime = endTime;
-                        }
-                        if (profitAmount >= 0) {
-                            partnerData.negativeProfitStartTime = null;
-                        }
-                        if (profitAmount > configData.minCommissionAmount) {
-                            partnerData.negativeProfitAmount = 0;
-                        }
-                        else {
-                            partnerData.negativeProfitAmount = profitAmount;
-                        }
-                    }
                     //check past commission history
                     if (configData && configData.bonusCommissionHistoryTimes && configData.bonusCommissionHistoryTimes > 0
                         && configData.bonusRate && configData.bonusRate > 0 && commissionLevel == maxCommissionLevel) {
@@ -2547,27 +2539,52 @@ var dbPartner = {
                             bonusCommissionRate = configData.bonusRate;
                         }
                     }
-                    var commissionAmount = profitAmount > configData.minCommissionAmount ? profitAmount * (commissionRate + bonusCommissionRate) : 0;
+                    let negativeProfitAmount = partnerData.negativeProfitAmount;
+                    profitAmount += partnerData.negativeProfitAmount;
+                    var commissionAmount = profitAmount * (commissionRate + bonusCommissionRate);
                     var partnerProm = partnerData;
                     if (settlementTimeToSave) {
+                        if (partnerData.negativeProfitAmount >= 0 && profitAmount < 0) {
+                            partnerData.negativeProfitStartTime = endTime;
+                        }
+                        if (profitAmount >= 0) {
+                            partnerData.negativeProfitStartTime = null;
+                        }
+                        if (commissionAmount > configData.minCommissionAmount) {
+                            negativeProfitAmount = 0;
+                        }
+                        else {
+                            negativeProfitAmount = profitAmount;
+                        }
+
                         //partnerData.lastCommissionSettleTime = settlementTimeToSave;
                         //partnerData.credits += commissionAmount;
                         //create proposal for partner commission
-                        var proposalData = {
-                            entryType: constProposalEntryType.SYSTEM,
-                            userType: constProposalUserType.PARTNERS,
-                            data: {
-                                partnerObjId: partnerData._id,
-                                platformObjId: partnerData.platform,
-                                partnerName: partnerData.partnerName,
-                                lastCommissionSettleTime: settlementTimeToSave,
-                                commissionAmount: commissionAmount,
-                                negativeProfitAmount: partnerData.negativeProfitAmount,
-                                commissionLevel: commissionLevel,
-                                negativeProfitStartTime: partnerData.negativeProfitStartTime
-                            }
-                        };
-                        partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
+                        if(commissionAmount < configData.minCommissionAmount){
+                            commissionAmount = 0;
+                        }
+                        if( commissionAmount != 0 || negativeProfitAmount != 0 ){
+                            var proposalData = {
+                                entryType: constProposalEntryType.SYSTEM,
+                                userType: constProposalUserType.PARTNERS,
+                                data: {
+                                    partnerObjId: partnerData._id,
+                                    platformObjId: partnerData.platform,
+                                    partnerName: partnerData.partnerName,
+                                    lastCommissionSettleTime: settlementTimeToSave,
+                                    commissionAmount: commissionAmount,
+                                    negativeProfitAmount: negativeProfitAmount,
+                                    commissionLevel: commissionLevel,
+                                    negativeProfitStartTime: partnerData.negativeProfitStartTime,
+                                    preNegativeProfitAmount: partnerData.negativeProfitAmount,
+
+                                }
+                            };
+                            partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
+                        }
+                    }
+                    if(commissionAmount < configData.minCommissionAmount){
+                        commissionAmount = 0;
                     }
                     //log this commission record
                     var recordProm = dbUtil.upsertForShard(
@@ -3007,7 +3024,8 @@ var dbPartner = {
                     platformFee: 0,
                     profitAmount: 0,
                     totalTopUpAmount: 0,
-                    totalPlayerBonusAmount: 0
+                    totalPlayerBonusAmount: 0,
+                    operationCost: 0
                 };
                 playerCommissions.forEach(
                     commission => {
@@ -3021,9 +3039,32 @@ var dbPartner = {
                             total.profitAmount += commission.profitAmount;
                             total.totalTopUpAmount += commission.totalTopUpAmount;
                             total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
+                            total.operationCost += commission.operationCost;
                         }
                     }
                 );
+                let profitAmount = total.profitAmount;
+                let maxCommissionLevel = 0;
+                let commissionLevel = 0;
+                let commissionRate = 0;
+                if (configObj && configObj.commissionLevelConfig && configObj.commissionLevelConfig.length > 0) {
+                    configObj.commissionLevelConfig.forEach(
+                        level => {
+                            if (level.value >= maxCommissionLevel) {
+                                maxCommissionLevel = level.value;
+                            }
+                            //todo:: add valid player count here
+                            if (level.minProfitAmount <= profitAmount && profitAmount <= level.maxProfitAmount /*&& validPlayerCount >= level.minActivePlayer*/) {
+                                if (level.value >= commissionLevel) {
+                                    commissionLevel = level.value;
+                                    commissionRate = level.commissionRate;
+                                }
+                            }
+                        }
+                    );
+                }
+                total.commissionAmount = profitAmount*commissionRate;
+                total.preNegativeProfitAmount = partnerObj.negativeProfitAmount;
                 return {
                     stats: {
                         startIndex: startIndex,
@@ -3158,10 +3199,12 @@ var dbPartner = {
                 var operationAmount = 0;
                 var totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
                 var totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
+                var platformFeeAmount = 0;
                 if (consumptionInfo && consumptionInfo[0]) {
                     totalValidAmount = consumptionInfo[0].totalValidAmount;
                     totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
-                    operationAmount = -consumptionInfo[0].totalBonusAmount;
+                    operationAmount = totalBonusAmount;
+                    platformFeeAmount = Math.abs(totalBonusAmount);
                 }
                 if (rewardInfo && rewardInfo[0]) {
                     totalRewardAmount = rewardInfo[0].totalRewardAmount;
@@ -3170,9 +3213,10 @@ var dbPartner = {
                     serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                 }
                 if (configData && configData.platformFeeRate > 0) {
-                    platformFee = Math.max(0, operationAmount * configData.platformFeeRate);
+                    platformFee = platformFeeAmount * configData.platformFeeRate;
                 }
                 profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
+                var operationCost =  platformFee + serviceFee + totalRewardAmount;
 
                 if( profitAmount ){
                     return {
@@ -3185,7 +3229,8 @@ var dbPartner = {
                         serviceFee: serviceFee,
                         platformFee: platformFee,
                         profitAmount: profitAmount,
-                        totalPlayerBonusAmount: totalPlayerBonusAmount
+                        totalPlayerBonusAmount: totalPlayerBonusAmount,
+                        operationCost: operationCost
                     };
                 }
             }

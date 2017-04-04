@@ -528,13 +528,27 @@ define(['js/app'], function (myApp) {
         }
 
         vm.startPlatformPartnerCommissionSettlement = function ($event) {
-            var dom = $event.currentTarget
-            $(dom).prop('disabled', true)
+            vm.partnerCommissionSettlement = {
+                result: false,
+                status: 'ready'
+            }
+            $('#partnerCommissionSettlementModal').modal('show');
+            $scope.safeApply();
+        }
+        vm.performPartnerCommissionSetlement = function () {
+            vm.partnerCommissionSettlement.status = 'processing';
             socketService.$socket($scope.AppSocket, 'startPlatformPartnerCommissionSettlement',
                 {platformId: vm.selectedPlatform.id},
                 function (data) {
                     console.log('partnercommission', data);
-                    $(dom).prop('disabled', false)
+                    vm.partnerCommissionSettlement.status = 'completed';
+                    vm.partnerCommissionSettlement.result = $translate('Success');
+                    $scope.safeApply();
+                }, function (err) {
+                    console.log('err', err);
+                    vm.partnerCommissionSettlement.status = 'completed';
+                    vm.partnerCommissionSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                    $scope.safeApply();
                 });
         }
         //before update platform
@@ -1596,6 +1610,107 @@ define(['js/app'], function (myApp) {
         }
 
         /////////////////////////////////Mark::player functions//////////////////
+
+        /////////////////////////////////Mark::Platform players functions//////////////////
+        vm.showPlatformCreditTransferLog = function () {
+            $('#modalPlatformCreditTransferLog').modal().show();
+            vm.platformCreditTransferLog = {};
+            utilService.actionAfterLoaded(('#platformCreditTransferLog'), function () {
+                vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#platformCreditTransferLog .startTime');
+                vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#platformCreditTransferLog .endTime');
+                vm.platformCreditTransferLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable("#platformCreditTransferLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "platformCreditTransferLog", vm.getPagedPlatformCreditTransferLog)
+                });
+                vm.getPagedPlatformCreditTransferLog(true);
+            });
+        };
+
+        vm.getPagedPlatformCreditTransferLog = function (newSearch) {
+            vm.platformCreditTransferLog.loading = true;
+            let sendQuery = {
+                startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
+                index: newSearch ? 0 : vm.platformCreditTransferLog.index,
+                limit: newSearch ? 10 : vm.platformCreditTransferLog.limit,
+                sortCol: vm.platformCreditTransferLog.sortCol
+            };
+
+            if (vm.queryPlatformCreditTransferStatus) {
+                sendQuery.status = vm.queryPlatformCreditTransferStatus
+            }
+
+            socketService.$socket($scope.AppSocket, "getPagedPlatformCreditTransferLog", sendQuery, function (data) {
+                vm.platformCreditTransferLogData= data.data.data;
+                vm.platformCreditTransferLog.totalCount = data.data.total || 0;
+                vm.platformCreditTransferLog.loading = false;
+                vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch);
+            });
+
+            function getAllPlayerCreditTransferStatus () {
+                vm.playerIDArr = [];
+                return $scope.$socketPromise('getAllPlayerCreditTransferStatus')
+                    .then(data => {
+                        vm.allPlayerCreditTransferStatus = data.data;
+                        $scope.safeApply();
+                    });
+            }
+            getAllPlayerCreditTransferStatus();
+        };
+
+        vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch) {
+            let tableData = data.map(item => {
+                item.createTime$ = vm.dateReformat(item.createTime);
+                item.typeText = $translate(item.type);
+                item.providerText = vm.getProviderText(item.providerId);
+
+                return item;
+            });
+            let option = $.extend({}, vm.generalDataTableOptions, {
+                data: tableData,
+                columns: [
+                    {title: $translate('CREATE_TIME'), data: 'createTime$'},
+                    {title: $translate("TRANSFER") + " ID", data: 'transferId'},
+                    {
+                        title: $translate("CREDIT"),
+                        data: 'amount',
+                        render: function (data, type, row) {
+                            return parseFloat(data).toFixed(2);
+                        }
+                    },
+                    {title: $translate("provider"), data: 'providerText'},
+                    {
+                        title: $translate("amount"),
+                        data: 'amount',
+                        render: function (data, type, row) {
+                            return parseFloat(data).toFixed(2);
+                        }
+                    },
+                    {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount'},
+                    {title: $translate("TYPE"), data: 'typeText'},
+                    {
+                        title: $translate("STATUS"),
+                        render: function (data, type, row) {
+                            return (row.status == 1 ? $translate("SUCCESS") : row.status == 2 ? $translate("FAIL") : $translate("REQUEST"));
+                        }
+                    }
+                ],
+                paging: false,
+            });
+
+            let a = utilService.createDatatableWithFooter('#platformCreditTransferLogTable', option, {});
+            vm.platformCreditTransferLog.pageObj.init({maxCount: size}, newSearch);
+
+            $('#platformCreditTransferLogTable').off('order.dt');
+            $('#platformCreditTransferLogTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'playerCreditChangeLog', vm.getPagedPlayerCreditChangeLog);
+            });
+            $("#platformCreditTransferLogTable").resize();
+            $scope.safeApply();
+        };
+
+        /////////////////////////////////Mark::Platform players functions//////////////////
 
         //get all platform players data from server
         vm.getPlatformPlayersData = function (newSearch) {
@@ -3158,11 +3273,11 @@ define(['js/app'], function (myApp) {
                 var isUpdate = false
                 updateData.playerName = newPlayerData.name || vm.editPlayer.name
                 // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
-                Object.keys(newPlayerData).forEach(function(key) {
-                    if(newPlayerData[key] != oldPlayerData[key]){
-                        if(key=="alipayGroup"||key=="smsSetting"||key=="bankCardGroup"||key=="merchantGroup"){
+                Object.keys(newPlayerData).forEach(function (key) {
+                    if (newPlayerData[key] != oldPlayerData[key]) {
+                        if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup") {
                             //do nothing
-                        }else{
+                        } else {
                             isUpdate = true;
                         }
                     }
@@ -3190,19 +3305,19 @@ define(['js/app'], function (myApp) {
                 //     // delete updateData.merchantGroup;
                 // }
                 if (updateData.bankCardGroup) {
-                    updateBankData.bankCardGroup = updateData.bankCardGroup;               
+                    updateBankData.bankCardGroup = updateData.bankCardGroup;
                 }
                 if (updateData.merchantGroup) {
-                    updateBankData.merchantGroup = updateData.merchantGroup;              
+                    updateBankData.merchantGroup = updateData.merchantGroup;
                 }
                 if (updateData.alipayGroup) {
-                    updateBankData.alipayGroup = updateData.alipayGroup;             
+                    updateBankData.alipayGroup = updateData.alipayGroup;
                 }
                 delete updateData.bankCardGroup;
                 delete updateData.merchantGroup;
                 delete updateData.aliPayGroup;
 
-                if(isUpdate){
+                if (isUpdate) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateData,
@@ -5404,6 +5519,7 @@ define(['js/app'], function (myApp) {
                 var showData = data.data ? data.data.data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
+                    item.status$ = $translate(item.status);
                     return item;
                 }) : [];
                 vm.playerBonusHistory.totalCount = data.data ? data.data.total : 0;
@@ -5425,11 +5541,12 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate('date'), data: "createTime$"},
                     {title: $translate('proposalId'), data: "proposalId"},
+                    {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('bonusId'), data: "data.bonusId"},
                     {title: $translate('bonusCredit'), data: "data.bonusCredit"},
                     {title: $translate('amount'), data: "data.amount"},
                     {title: $translate('CUR_AMOUNT'), data: "curAmount$"},
-                    {title: $translate('HONOREE_DETAIL'), data: "data.requestDetail.honoreeDetail"},
+                    {title: $translate('HONOREE_DETAIL'), data: "data.honoreeDetail"},
                 ],
                 "paging": false,
             });
@@ -5566,12 +5683,12 @@ define(['js/app'], function (myApp) {
                     case "1"://today
                         sendQuery.topUpTimes = {
                             $gte: 1,
-                            $lt: 5
+                            $lte: 2
                         };
                         break;
                     case "2":
                         sendQuery.topUpTimes = {
-                            $gte: 6,
+                            $gte: 3,
                             // $lt: 100
                         };
                         break;

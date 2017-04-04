@@ -288,6 +288,7 @@ function socketActionPartner(socketIO, socket) {
         manualPlatformPartnerCommissionSettlement: function manualPlatformPartnerCommissionSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
+            //todo:: for temp testing, change the flag here later
             socketUtil.emitter(self.socket, dailyPlatformSettlement.manualPlatformPartnerCommissionSettlement, [ObjectId(data.platformId), false, true], actionName, isValidData);
         },
         startPlatformPartnerCommissionSettlement: function startPlatformPartnerCommissionSettlement(data) {

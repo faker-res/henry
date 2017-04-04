@@ -38,7 +38,7 @@ var RewardServiceImplement = function () {
     this.requestConsumeRebate.expectsData = '';
     this.requestConsumeRebate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn, [conn.playerId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn, [conn.playerId, true], isValidData);
     };
 
     this.getConsumeRebateAmount.expectsData = '';

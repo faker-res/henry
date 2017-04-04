@@ -653,8 +653,14 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data.reward && data.playerId && data.playerObjId);
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.getValidTopUpRecordList, [data.reward, data.playerId, data.playerObjId], actionName, isValidData);
+        },
+
+        getPagedPlatformCreditTransferLog: function getPagedPlatformCreditTransferLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.getPagedPlatformCreditTransferLog, [data.startTime, data.endTime, data.index, data.limit, data.sortCol, data.status], actionName, isValidData);
         }
-    }
+    };
     socketActionPlayer.actions = this.actions;
 }
 module.exports = socketActionPlayer;

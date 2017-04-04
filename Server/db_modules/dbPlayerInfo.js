@@ -176,7 +176,7 @@ var dbPlayerInfo = {
                         dbPlayerInfo.createPlayerLoginRecord(data);
                         //todo::temp disable similar player untill ip is correct
                         dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
-                        dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
+                        //return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber);
                         return data;
                     }
                     else {
@@ -250,15 +250,12 @@ var dbPlayerInfo = {
         });
         proms.push(prom_findByPhNo);
 
-        var ignoredIpList = ["", "10.168.11.178", "161.202.63.242", "undefined", undefined];//ignore if lastLoginIp equals to server's ip
-        if (ignoredIpList.indexOf(data.lastLoginIp) === -1) {
-            var prom_findByIp = dbconfig.collection_players.find({
-                lastLoginIp: data.lastLoginIp,
-                platform: platformObjId,
-                _id: {$ne: newPlayerObjId},
-            });
-            proms.push(prom_findByIp);
-        }
+        var prom_findByIp = dbconfig.collection_players.find({
+            lastLoginIp: data.lastLoginIp,
+            platform: platformObjId,
+            _id: {$ne: newPlayerObjId}
+        });
+        proms.push(prom_findByIp);
 
         if (data.realName) {
             var prom_findByName = dbconfig.collection_players.find({
@@ -1503,30 +1500,47 @@ var dbPlayerInfo = {
      * @param {Boolean} checkConsumption
      */
     applyForFirstTopUpRewardProposal: function (playerObjId, playerId, topUpRecordIds, code, ifAdmin) {
-        var deferred = Q.defer();
-        var platformId = null;
-        var player = {};
-        var records = [];
-        var recordAmount = 0;
-        var eventData = {};
-        var playerLvlData;
-        var deductionAmount = 0;
-        var bDoneDeduction = false;
-        var adminInfo = ifAdmin;
+        let deferred = Q.defer();
+        let platformId = null;
+        let player = {};
+        let records = [];
+        let recordAmount = 0;
+        let eventData = {};
+        let playerLvlData;
+        let deductionAmount = 0;
+        let bDoneDeduction = false;
+        let adminInfo = ifAdmin;
+        let startTime = dbUtility.getCurrentWeekSGTime().startTime;
+        let endTime = dbUtility.getCurrentWeekSGTime().endTime;
 
-        var query = playerObjId ? {_id: playerObjId} : {playerId: playerId};
-        var recordProm = dbconfig.collection_playerTopUpRecord.find({_id: {$in: topUpRecordIds}});
-        var playerProm = dbconfig.collection_players.findOne(query).populate({
+        let query = playerObjId ? {_id: playerObjId} : {playerId: playerId};
+        let recordProm = dbconfig.collection_playerTopUpRecord.find({_id: {$in: topUpRecordIds}});
+        let playerProm = dbconfig.collection_players.findOne(query).populate({
             path: "playerLevel",
             model: dbconfig.collection_playerLevel
         });
+
         Q.all([playerProm, recordProm]).then(
-            function (data) {
+            data => {
                 player = data[0];
                 records = data[1];
 
+                let queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
+
+                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime:1}).limit(1).exec();
+            }
+        ).then(
+            firstRecordData => {
+                if (String(topUpRecordIds) !== String(firstRecordData[0]._id)) {
+                    deferred.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Top up record is not the first top up of this week"
+                    });
+                }
+
                 //check all top up records
-                var bValid = true;
+                let bValid = true;
                 if (records.length > 0) {
                     records.forEach(
                         rec => {
@@ -5144,7 +5158,7 @@ var dbPlayerInfo = {
                                     amount: amount,
                                     bonusCredit: bonusDetail.credit,
                                     curAmount: player.validCredit,
-                                    remark: honoreeDetail,
+                                    remark: player.remark,
                                     lastSettleTime: new Date(),
                                     honoreeDetail: honoreeDetail
                                     //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
