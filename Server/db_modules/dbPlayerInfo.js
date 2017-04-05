@@ -176,7 +176,7 @@ var dbPlayerInfo = {
                         dbPlayerInfo.createPlayerLoginRecord(data);
                         //todo::temp disable similar player untill ip is correct
                         dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
-                        //return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber);
+                        dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
                     }
                     else {
@@ -1416,7 +1416,7 @@ var dbPlayerInfo = {
                         if (playerData.bFirstTopUpReward) {
                             deferred.reject({
                                 name: "RegistrationTimeTooRecent",
-                                message: "Player hasn't been rewarded for first time top up event!"
+                                message: "Player has been rewarded for first time top up event!"
                             });
                             return;
                         }
