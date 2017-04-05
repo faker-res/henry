@@ -6341,6 +6341,13 @@ define(['js/app'], function (myApp) {
                 //    console.log('single partner selected', vm.selectedSinglePartner);
                 //}
                 vm.selectedSinglePartner = aData;
+
+                // Mask partners bank account
+                vm.selectedSinglePartner.bankAccount =
+                    vm.selectedSinglePartner.bankAccount ?
+                        vm.selectedSinglePartner.bankAccount.slice(0, 3) + "**********" + vm.selectedSinglePartner.bankAccount.slice(-3)
+                        : null;
+
                 vm.selectedPartnerCount = 1;
                 console.log('partner selected', vm.selectedSinglePartner);
                 $scope.safeApply();
