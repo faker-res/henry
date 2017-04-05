@@ -1416,7 +1416,7 @@ var dbPlayerInfo = {
                         if (playerData.bFirstTopUpReward) {
                             deferred.reject({
                                 name: "RegistrationTimeTooRecent",
-                                message: "Player hasn't been rewarded for first time top up event!"
+                                message: "Player has been rewarded for first time top up event!"
                             });
                             return;
                         }
