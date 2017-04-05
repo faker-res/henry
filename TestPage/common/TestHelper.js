@@ -289,8 +289,8 @@
 
     var TestHelper = {
         // This is the default.  It may be overridden below if we are running in development
-        websocketIP: "101.78.133.210",
-        wsMigration: "101.78.133.210",
+        websocketIP: "10.167.11.110",
+        wsMigration: "10.167.11.110",
         // This will be set later, based on WebSocketIP
         websocketURL: null,
         //

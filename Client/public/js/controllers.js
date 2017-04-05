@@ -31,6 +31,8 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         }, 2000);
     }
 
+    let wsProtocol = "ws://";
+
     $scope.connectSocket = function () {
         if (!authService.isValid($cookies, localStorageService)) {
             forceRelogin();
@@ -40,10 +42,26 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         $scope.langKey = authService.language;
         $translate.use($scope.langKey);
 
-        var token = authService.token;
+        WSCONFIG.Default = CONFIG[CONFIG.NODE_ENV];
+        $scope.mgntServerList = WSCONFIG;
 
-        // create socket connection
-        var url = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
+        let url;
+        let token = authService.token;
+        let serverCookie = $cookies.get('curFPMSServer');
+
+        if(!WSCONFIG[serverCookie]) {
+            serverCookie = 'Default';
+            $cookies.put('curFPMSServer', 'Default');
+        }
+
+        $scope.mgntServer = serverCookie;
+
+        if (serverCookie === 'Default') {
+            url = wsProtocol + CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL.substr(7);
+        } else {
+            url = wsProtocol + WSCONFIG[serverCookie].socketURL
+        }
+
         $scope.AppSocket = io.connect(url, {
             query: 'token=' + token,
             //todo::add secure flag for https
@@ -98,6 +116,44 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             console.log("PermissionUpdate event");
             authService.updateRoleDataFromServer($scope, $cookies, $route);
         });
+
+        // 6 seconds interval to poll server status and ping
+        setInterval(() => {
+            $scope.AppSocket.emit('getAPIServerStatus', {});
+
+            for (let server in WSCONFIG) {
+                pingServer(server);
+            }
+        }, 6000);
+
+        // internal function to ping server
+        function pingServer(server) {
+            let urlToPing = WSCONFIG[server].socketURL;
+
+            if (server === 'Default') {
+                urlToPing = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL.substr(7);
+            }
+
+            return new Promise ((resolve, reject) => {
+                let serverPing = io.connect(urlToPing, {
+                    query: 'token=' + authService.token,
+                    timeout: 50000,
+                    reconnection: false,
+                    "transports": ["websocket"]
+                });
+
+                serverPing.on('pong', (latency) => {
+                    WSCONFIG[server].latency = latency * 2;
+                    $scope.safeApply();
+
+                    setTimeout(() => {
+                        resolve(serverPing.disconnect());
+                    }, 1000);
+                });
+
+                serverPing.emit('ping');
+            })
+        }
     };
     $scope.connectSocket();
 
@@ -774,9 +830,8 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                 };
                 $scope.serverStatus = {};
                 $scope.AppSocket.emit('getAPIServerStatus', {});
-                setInterval(() => {
-                    $scope.AppSocket.emit('getAPIServerStatus', {});
-                }, 6000);
+
+                // Get API server status response
                 $scope.AppSocket.on('_getAPIServerStatus', function (data) {
                     if (($scope.serverStatus.server != $scope.AppSocket.connected) || ($scope.serverStatus.cpServer != data.cpms) || ($scope.serverStatus.pServer != data.pms)) {
                         $scope.serverStatus.server = $scope.AppSocket.connected;
@@ -784,7 +839,8 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                         $scope.serverStatus.pServer = data.pms;
                         $scope.$apply();
                     }
-                })
+                });
+
                 $scope.getChannelList();
                 $scope.phoneCall = {};
                 utilService.initTranslate($filter('translate'));
@@ -939,8 +995,12 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         }
     };
     $('body').click(function (a, b, c) {
-        var pop = $(a.target).closest('.popover');
+        let pop = $(a.target).closest('.popover');
         $(".popover.in").not(pop).popover('hide');
-    })
+    });
 
+    $scope.changeServer = (server) => {
+        $cookies.put('curFPMSServer', server);
+        $scope.connectSocket();
+    }
 });

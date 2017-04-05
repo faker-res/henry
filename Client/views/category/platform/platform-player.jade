@@ -141,6 +141,15 @@
             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initGameCreditLog()', data-target='#modalGameCreditLog')
                 text {{"GAME_CREDIT_LOG" | translate}}
                 img.img-edit
+// All Players Query
+.col-md-12.playerBtn
+    hr.margin-top-bottom-small
+    .btn-group.margin-small
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'platformCreditTransferLog')", data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
+            text {{"Platform Credit Transfer Log" | translate}}
+            img.img-edit
+
+// Sub-views
 #modalCreatePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
@@ -1465,3 +1474,33 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.curRewardTask', ng-click="vm.submitManualUnlockRewardTask()") {{'Unlock Reward' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                 label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
+
+// Platform related sub-views
+#modalPlatformCreditTransferLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Platform Credit Transfer Log" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        #platformCreditTransferLog.adminLogQueryDiv
+                            .inlineBlk
+                                label {{ 'START_DATE' | translate }}
+                                .startTime
+                            .inlineBlk
+                                label {{ 'END_DATE' | translate }}
+                                .endTime
+                            .inlineBlk
+                                label {{ 'STATUS' | translate }}
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferStatus', style='min-width:100px;height:34px;')
+                                    option(value='') {{'all' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allPlayerCreditTransferStatus', value='{{v}}') {{i | translate}}
+                            .inlineBlk
+                                button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true)') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-if='vm.platformCreditTransferLog.loading')
+                                i.fa.fa-spin.fa-spinner
+                        label {{"Total" | translate}} {{vm.platformCreditTransferLog.totalCount}} {{"records" | translate}}
+                        table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                        #platformCreditTransferLogTablePage

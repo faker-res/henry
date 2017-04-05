@@ -815,6 +815,7 @@ define(['js/app'], function (myApp) {
                 })
             })
             vm.sendMultiMessage.sendInitiated = true;
+            vm.sendMultiMessage.messageContent = "";
             updateMultiMessageButton();
         }
 
@@ -838,6 +839,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             })
             vm.toPhoneNumber = null;
+            vm.sendMultiMessage.messageContent = "";
             $scope.safeApply();
         }
         function updateMultiMessageButton() {
@@ -1611,6 +1613,108 @@ define(['js/app'], function (myApp) {
 
         /////////////////////////////////Mark::player functions//////////////////
 
+        /////////////////////////////////Mark::Platform players functions//////////////////
+        vm.showPlatformCreditTransferLog = function () {
+            $('#modalPlatformCreditTransferLog').modal().show();
+            vm.platformCreditTransferLog = {};
+            utilService.actionAfterLoaded(('#platformCreditTransferLog'), function () {
+                vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#platformCreditTransferLog .startTime');
+                vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#platformCreditTransferLog .endTime');
+                vm.platformCreditTransferLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable("#platformCreditTransferLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "platformCreditTransferLog", vm.getPagedPlatformCreditTransferLog)
+                });
+                vm.getPagedPlatformCreditTransferLog(true);
+            });
+        };
+
+        vm.getPagedPlatformCreditTransferLog = function (newSearch) {
+            vm.platformCreditTransferLog.loading = true;
+            let sendQuery = {
+                startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
+                index: newSearch ? 0 : vm.platformCreditTransferLog.index,
+                limit: newSearch ? 10 : vm.platformCreditTransferLog.limit,
+                sortCol: vm.platformCreditTransferLog.sortCol
+            };
+
+            if (vm.queryPlatformCreditTransferStatus) {
+                sendQuery.status = vm.queryPlatformCreditTransferStatus
+            }
+
+            socketService.$socket($scope.AppSocket, "getPagedPlatformCreditTransferLog", sendQuery, function (data) {
+                vm.platformCreditTransferLogData = data.data.data;
+                vm.platformCreditTransferLog.totalCount = data.data.total || 0;
+                vm.platformCreditTransferLog.loading = false;
+                vm.drawPagedPlatformCreditTransferQueryTable(vm.platformCreditTransferLogData, vm.platformCreditTransferLog.totalCount, newSearch);
+            });
+
+            function getAllPlayerCreditTransferStatus() {
+                vm.playerIDArr = [];
+                return $scope.$socketPromise('getAllPlayerCreditTransferStatus')
+                    .then(data => {
+                        vm.allPlayerCreditTransferStatus = data.data;
+                        $scope.safeApply();
+                    });
+            }
+
+            getAllPlayerCreditTransferStatus();
+        };
+
+        vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch) {
+            let tableData = data.map(item => {
+                item.createTime$ = vm.dateReformat(item.createTime);
+                item.typeText = $translate(item.type);
+                item.providerText = vm.getProviderText(item.providerId);
+
+                return item;
+            });
+            let option = $.extend({}, vm.generalDataTableOptions, {
+                data: tableData,
+                columns: [
+                    {title: $translate('CREATE_TIME'), data: 'createTime$'},
+                    {title: $translate("TRANSFER") + " ID", data: 'transferId'},
+                    {
+                        title: $translate("CREDIT"),
+                        data: 'amount',
+                        render: function (data, type, row) {
+                            return parseFloat(data).toFixed(2);
+                        }
+                    },
+                    {title: $translate("provider"), data: 'providerText'},
+                    {
+                        title: $translate("amount"),
+                        data: 'amount',
+                        render: function (data, type, row) {
+                            return parseFloat(data).toFixed(2);
+                        }
+                    },
+                    {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount'},
+                    {title: $translate("TYPE"), data: 'typeText'},
+                    {
+                        title: $translate("STATUS"),
+                        render: function (data, type, row) {
+                            return (row.status == 1 ? $translate("SUCCESS") : row.status == 2 ? $translate("FAIL") : $translate("REQUEST"));
+                        }
+                    }
+                ],
+                paging: false,
+            });
+
+            let a = utilService.createDatatableWithFooter('#platformCreditTransferLogTable', option, {});
+            vm.platformCreditTransferLog.pageObj.init({maxCount: size}, newSearch);
+
+            $('#platformCreditTransferLogTable').off('order.dt');
+            $('#platformCreditTransferLogTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'playerCreditChangeLog', vm.getPagedPlayerCreditChangeLog);
+            });
+            $("#platformCreditTransferLogTable").resize();
+            $scope.safeApply();
+        };
+
+        /////////////////////////////////Mark::Platform players functions//////////////////
+
         //get all platform players data from server
         vm.getPlatformPlayersData = function (newSearch) {
             // $('#loadingPlayerTableSpin').show();
@@ -1666,10 +1770,11 @@ define(['js/app'], function (myApp) {
                     utilService.hideAllPopoversExcept();
                     vm.searchPlayerCount = size;
                     vm.playerTableQuery.pageObj.init({maxCount: size}, true);
-                    if (vm.selectedSinglePlayer) {
-                        var found = false;
+
+                    var found = false;
+                    if (size == 1) {
                         vm.playerTable.rows(function (idx, rowData, node) {
-                            if (rowData._id == vm.selectedSinglePlayer._id) {
+                            if (rowData._id == result[0]._id) {
                                 vm.playerTableRowClick(node, rowData);
                                 vm.playerTableRowClicked(rowData);
                                 vm.selectedPlayersCount = 1;
@@ -1677,11 +1782,12 @@ define(['js/app'], function (myApp) {
                                 found = true;
                             }
                         })
-                        if (!found) {
-                            vm.selectedSinglePlayer = null;
-                            vm.selectedPlayersCount = 0;
-                        }
                     }
+                    if (!found) {
+                        vm.selectedSinglePlayer = null;
+                        vm.selectedPlayersCount = 0;
+                    }
+
                     $scope.safeApply();
                 });
             } else {
@@ -2947,6 +3053,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedSinglePlayer.bankAccount ?
                         vm.selectedSinglePlayer.bankAccount.slice(0, 3) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-3)
                         : null;
+
                 $scope.safeApply();
                 deferred.resolve();
             }, function (err) {
@@ -4060,25 +4167,63 @@ define(['js/app'], function (myApp) {
             }
         }
         vm.updatePlayerCredit = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.id,
+                creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                data: {
+                    playerObjId: vm.isOneSelectedPlayer()._id,
+                    playerName: vm.isOneSelectedPlayer().name,
+                    updateAmount: vm.creditChange.updateAmount,
+                    curAmount: vm.isOneSelectedPlayer().validCredit,
+                    realName: vm.isOneSelectedPlayer().realName,
+                    remark: vm.creditChange.remark,
+                    adminName: authService.adminName
+                }
+            }
 
-            vm.playerTableRowClicked({_id: vm.isOneSelectedPlayer()._id})
-                .then(function () {
+            console.log('send credit', sendData);
+            socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
+                var newData = data.data;
+                console.log('credit proposal', newData);
+                if (data.data && data.data.stepInfo) {
+                    socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                }
+                vm.getPlatformPlayersData();
+                $scope.safeApply();
+            });
 
+        };
+        vm.repairTransaction = function () {
+
+            socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}
+                , function (pData) {
+                    var playerTransfer;
+                    pData.data.forEach(function (playerTransLog) {
+                        if (playerTransLog.transferId == vm.linkedPlayerTransferId) {
+                            playerTransfer = playerTransLog
+                        }
+                    })
                     var sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
-                            playerObjId: vm.isOneSelectedPlayer()._id,
-                            playerName: vm.isOneSelectedPlayer().name,
-                            updateAmount: vm.creditChange.updateAmount,
+                            playerObjId: playerTransfer.playerObjId,
+                            playerName: playerTransfer.playerName,
+                            updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
                             curAmount: vm.isOneSelectedPlayer().validCredit,
                             realName: vm.isOneSelectedPlayer().realName,
                             remark: vm.creditChange.remark,
                             adminName: authService.adminName
                         }
                     }
+                    if (vm.linkedPlayerTransferId) {
+                        sendData.data.transferId = vm.linkedPlayerTransferId;
+                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
+                        sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
+                        vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
+                    }
 
-                    console.log('send credit', sendData);
+                    console.log('repairTransaction', sendData);
                     socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
                         var newData = data.data;
                         console.log('credit proposal', newData);
@@ -4088,52 +4233,7 @@ define(['js/app'], function (myApp) {
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     });
-                })
-        };
-        vm.repairTransaction = function () {
-
-            vm.playerTableRowClicked({_id: vm.isOneSelectedPlayer()._id})
-                .then(function () {
-                    socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}
-                        , function (pData) {
-                            var playerTransfer;
-                            pData.data.forEach(function (playerTransLog) {
-                                if (playerTransLog.transferId == vm.linkedPlayerTransferId) {
-                                    playerTransfer = playerTransLog
-                                }
-                            })
-                            var sendData = {
-                                platformId: vm.selectedPlatform.id,
-                                creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                                data: {
-                                    playerObjId: playerTransfer.playerObjId,
-                                    playerName: playerTransfer.playerName,
-                                    updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
-                                    curAmount: vm.isOneSelectedPlayer().validCredit,
-                                    realName: vm.isOneSelectedPlayer().realName,
-                                    remark: vm.creditChange.remark,
-                                    adminName: authService.adminName
-                                }
-                            }
-                            if (vm.linkedPlayerTransferId) {
-                                sendData.data.transferId = vm.linkedPlayerTransferId;
-                                sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
-                                sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
-                                vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
-                            }
-
-                            console.log('repairTransaction', sendData);
-                            socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
-                                var newData = data.data;
-                                console.log('credit proposal', newData);
-                                if (data.data && data.data.stepInfo) {
-                                    socketService.showProposalStepInfo(data.data.stepInfo, $translate);
-                                }
-                                vm.getPlatformPlayersData();
-                                $scope.safeApply();
-                            });
-                        });
-                })
+                });
         };
         vm.showPlayerTopupModal = function (row) {
             return vm.prepareShowPlayerTopup(row._id);
@@ -4369,6 +4469,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
                 console.log('sent', data);
                 vm.playerApplyEventResult = data;
+                vm.getPlatformPlayersData();
                 $scope.safeApply();
             }, function (err) {
                 vm.playerApplyEventResult = err;
@@ -4558,6 +4659,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.prepareShowRepairPayment = function (modalID) {
+
             vm.repairProposalId = null;
             vm.submitRepairePayementStep = 0;
             vm.processDataTableinModal(modalID, '#playerRepairPaymentTbl', null, function () {
@@ -4588,16 +4690,17 @@ define(['js/app'], function (myApp) {
                     });
                 });
             });
-
         }
         vm.submitRepairPayment = function () {
             vm.submitRepairePayementStep = 1;
             $scope.safeApply();
             socketService.$socket($scope.AppSocket, 'submitRepairPaymentProposal', {proposalId: vm.repairProposalId}, function (data) {
                 vm.submitRepairePayementStep = 2;
+                vm.getPlatformPlayersData();
                 $scope.safeApply();
             }, function (error) {
                 vm.submitRepairePayementStep = 3;
+                vm.getPlatformPlayersData();
                 $scope.safeApply();
             })
         }
@@ -4712,10 +4815,12 @@ define(['js/app'], function (myApp) {
                 function (data) {
                     console.log('manualTopup success', data);
                     vm.playerManualTopUp.responseData = data.data;
+                    vm.getPlatformPlayersData();
                     $scope.safeApply();
                 }, function (error) {
                     vm.playerManualTopUp.responseMsg = error.error.errorMessage;
                     socketService.showErrorMessage(error.error.errorMessage);
+                    vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
         }
@@ -4984,34 +5089,71 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initGameCreditLog = function () {
-            vm.gameCreditLog = vm.smsLog || {index: 0, limit: 10};
+            vm.gameCreditLog = vm.gameCreditLog || {index: 0, limit: 20, pageSize: 20};
             // vm.gameCreditLog.type = type;
             vm.gameCreditLog.query = {};
             vm.gameCreditLog.searchResults = [{}];
-            vm.gameCreditLog.query.status = "all";
+            vm.gameCreditLog.query.status = "41";
+            vm.gameCreditLog.query.type = "0001";
             utilService.actionAfterLoaded('.modal.in #gameCreditLogQuery .endTime', function () {
                 vm.gameCreditLog.query.startTime = utilService.createDatePicker('#gameCreditLogQuery .startTime');
                 vm.gameCreditLog.query.endTime = utilService.createDatePicker('#gameCreditLogQuery .endTime');
                 vm.gameCreditLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.gameCreditLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                vm.gameCreditLog.pageObj = utilService.createPageForPagingTable("#gameCreditLogTablePage", {}, $translate, function (curP, pageSize) {
+                vm.gameCreditLog.pageObj = utilService.createPageForPagingTable("#gameCreditLogTablePage", vm.gameCreditLog, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "gameCreditLog", vm.getGameCreditLog)
-                });
+                }, true);
                 // Be user friendly: Fetch some results immediately!
-                vm.getGameCreditLog();
-            }); 
+                vm.getGameCreditLog(true);
+            });
         }
-        vm.getGameCreditLog = function () {
+        vm.getGameCreditLog = function (newSearch) {
             var requestData = {
-                "playerName": "uaeson2test",
-                "providerId": "41",
-                "startDate": "2017-04-03 00:00:00",
-                "endDate": "2017-04-04 00:00:00",
-                "page": "1",
-                "platformId": 1,
+                "playerName": vm.selectedSinglePlayer.name,
+                "providerId": vm.gameCreditLog.query.status || "41",
+                "startDate": vm.gameCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
+                "endDate": vm.gameCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
+                "page": newSearch ? "1" : "1",
+                "type": vm.gameCreditLog.query.type,
+                "platformId": vm.selectedPlatform.data.platformId,
             };
             $scope.$socketPromise('getGameCreditLog', requestData).then(result => {
-                debugger
+                console.log(JSON.stringify(result))
+                // {
+                //     "id": "1009924",
+                //     "date": "2017-04-03 15:45:11",
+                //     "type": "0001",
+                //     "previousCredit": 0.82,
+                //     "remit": 100,
+                //     "newCredit": 100.82,
+                //     "username": "l47uaeson2test"
+                // }
+                //vm.gameCreditLog.searchResults = result.data.data;
+                vm.gameCreditLog.searchResults = result.data.data.map(item => {
+                    // item.createTime$ = vm.dateReformat(item.createTime);
+                    // item.status$ = $translate(item.status);
+                    // transfer in  = 0001
+                    // transfer out = 0002
+                    // bet = 0004
+                    // payout = 0005
+                    if (item.type && item.type === "0001") {
+                        item.typeText = "TRANSFER_IN";
+                    }
+                    else if (item.type && item.type === "0002") {
+                        item.typeText = "TRANSFER_OUT";
+                    }
+                    else if (item.type && item.type === "0004") {
+                        item.typeText = "BET";
+                    }
+                    else if (item.type && item.type === "0005") {
+                        item.typeText = "PAYOUT";
+                    }
+                    item.typeText = $translate(item.typeText);
+                    return item;
+                });
+                vm.gameCreditLog.totalCount = (result.data.pageSize || 20) * result.data.totalPages;
+                vm.gameCreditLog.pageObj.init({maxCount: vm.gameCreditLog.totalCount}, newSearch);
+                $scope.safeApply();
             }).catch(console.error);
         }
 
@@ -5390,6 +5532,8 @@ define(['js/app'], function (myApp) {
                     {title: $translate('REWARD_NAME'), data: "data.eventName"},
                     {title: $translate('CREDIT'), data: "rewardAmount$", sClass: "alignRight"},
                     {title: $translate('STATUS'), data: "status$"},
+                    {title: $translate('DESCRIPTION'), data: "data.eventDescription"}
+
                 ],
                 "paging": false,
             });
@@ -5433,6 +5577,7 @@ define(['js/app'], function (myApp) {
                 var showData = data.data ? data.data.data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
+                    item.status$ = $translate(item.status);
                     return item;
                 }) : [];
                 vm.playerBonusHistory.totalCount = data.data ? data.data.total : 0;
@@ -5454,11 +5599,12 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate('date'), data: "createTime$"},
                     {title: $translate('proposalId'), data: "proposalId"},
+                    {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('bonusId'), data: "data.bonusId"},
                     {title: $translate('bonusCredit'), data: "data.bonusCredit"},
                     {title: $translate('amount'), data: "data.amount"},
                     {title: $translate('CUR_AMOUNT'), data: "curAmount$"},
-                    {title: $translate('HONOREE_DETAIL'), data: "data.requestDetail.honoreeDetail"},
+                    {title: $translate('HONOREE_DETAIL'), data: "data.honoreeDetail"},
                 ],
                 "paging": false,
             });
