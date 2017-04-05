@@ -363,3 +363,26 @@ var param16Cursor = db.rewardParam.find({"name": type16});
 var param16 = param16Cursor.next();
 
 db.rewardType.insert({"name": type16, params: param16._id, des: "Player Referral Reward"});
+
+//Player double top up reward
+var type17 = "PlayerDoubleTopUpReward";
+db.rewardParam.insert({
+    "name": type17, params: {
+        reward: {
+            type: "Table",
+            data: {
+                minPlayerLevel: {type: "Number", des: "Player Level"},
+                topUpAmount: {type: "Number", des: "Top up amount"},
+                rewardAmount: {type: "Number", des: "Reward amount"},
+                consumptionTimes: {type: "Number", des: "Consumption Times"},
+                maxRewardAmount: {type: "Number", des: "Max reward amount"}
+            },
+            des: "Reward parameter for each level"
+        }
+    }
+});
+
+var param17Cursor = db.rewardParam.find({"name": type17});
+var param17 = param17Cursor.next();
+
+db.rewardType.insert({"name": type17, params: param17._id, des: "Player Double Top Up Reward"});
