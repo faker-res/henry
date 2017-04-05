@@ -851,7 +851,8 @@ define(['js/app'], function (myApp) {
 
         vm.loadGameGroupData = function () {
             //init gametab start===============================
-            vm.showGameGroupCate = "include";
+            // vm.showGameGroupCate = "include";
+            vm.showGameCate = "include";
             vm.toggleGameType();
             //init gameTab end==================================
             if (!vm.selectedPlatform) {
@@ -923,8 +924,11 @@ define(['js/app'], function (myApp) {
         vm.gameGroupClicked = function (index, obj) {
             vm.SelectedGameGroupNode = obj;
 
-            vm.includedGames = [];
-            vm.excludedGames = [];
+            vm.includedGamesGroup = [];
+            vm.excludedGamesGroup = [];
+            vm.selectGameGroupGames = [];
+            vm.selectGameGroupGamesName = [];
+
             //get included games list
             var query = {
                 platform: vm.selectedPlatform.id,
@@ -940,12 +944,12 @@ define(['js/app'], function (myApp) {
                     }
                     var newObj = v.game;
                     newObj.index = (v && v.index) ? v.index : 1;
-                    vm.includedGames.push(newObj);
+                    vm.includedGamesGroup.push(newObj);
                     vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
                 })
-                console.log("vm.includedGames", vm.includedGames);
+                console.log("vm.includedGamesGroup", vm.includedGamesGroup);
                 if (vm.showGameCate == "include") {
-                    vm.gameInGroupClicked(0, vm.includedGames[0], "in");
+                    vm.gameInGroupClicked(0, vm.includedGamesGroup[0], "in");
                 }
                 vm.gameGroupClickable.inGameLoaded = true;
                 $scope.safeApply();
@@ -956,13 +960,13 @@ define(['js/app'], function (myApp) {
                     if (!v || !v.game) {
                         return true;
                     }
-                    vm.excludedGames.push(v.game);
+                    vm.excludedGamesGroup.push(v.game);
                     vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, v.game.smallShow);
 
                 })
-                console.log('vm.excludedGames', vm.excludedGames);
+                console.log('vm.excludedGamesGroup', vm.excludedGamesGroup);
                 if (vm.showGameCate == "exclude") {
-                    vm.gameInGroupClicked(0, vm.excludedGames[0], "ex");
+                    vm.gameInGroupClicked(0, vm.excludedGamesGroup[0], "ex");
                 }
                 vm.gameGroupClickable.outGameLoaded = true;
                 $scope.safeApply();
@@ -1011,6 +1015,7 @@ define(['js/app'], function (myApp) {
                     console.log(data);
                     vm.selectGameGroupGames = [];
                     vm.selectGameGroupGamesName = [];
+                    vm.selectedAllGroupType = '';
                     vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
                     $scope.safeApply();
                 }
@@ -1160,7 +1165,6 @@ define(['js/app'], function (myApp) {
                 return;
             }
             console.log('game clicked', v);
-
             var index = vm.selectGameGroupGames.indexOf(v._id);
             if (index == -1) {
                 vm.selectGameGroupGames.push(v._id);
@@ -1172,10 +1176,28 @@ define(['js/app'], function (myApp) {
                 vm.selectGameGroupGamesName.splice(index, 1);
                 delete vm.highlightGame[v._id];
             }
+
             // console.log('vm.selectGameGroupGames', vm.selectGameGroupGames, index);
             console.log('vm.curGame', vm.curGame);
         }
+        vm.groupGameListCollapseIn = function(){
+            $('#includedGroupGames').collapse('show');
+            $('#excludedGroupGames').collapse('hide');
 
+        }
+        vm.groupGameListCollapseOut = function(){
+            $('#includedGroupGames').collapse('hide');
+            $('#excludedGroupGames').collapse('show');
+        }
+
+        vm.gameListCollapseIn = function(){
+            $('#includedGames').collapse('show');
+            $('#excludedGames').collapse('hide');
+        }
+        vm.gameListCollapseOut = function(){
+            $('#includedGames').collapse('hide');
+            $('#excludedGames').collapse('show');
+        }
         vm.allGametoGameGroup = function (type, which) {
             vm.selectGameGroupGames = [];
             vm.selectGameGroupGamesName = [];
@@ -1184,9 +1206,17 @@ define(['js/app'], function (myApp) {
             if (type == "add") {
                 var src = [];
                 if (which == "in") {
-                    src = vm.includedGames;
+                    vm.showGameCate="include";
+                    src = vm.includedGamesGroup;
+                    $('#includedGroupGames').collapse('show');
+                    $('#excludedGroupGames').collapse('hide');
+
                 } else if (which === "ex") {
-                    src = vm.excludedGames;
+                    vm.showGameCate="exclude";
+                    src = vm.excludedGamesGroup;
+                    $('#includedGroupGames').collapse('hide');
+                    $('#excludedGroupGames').collapse('show');
+                    
                 }
                 src.map(item => {
                     vm.selectGameGroupGames.push(item._id);
@@ -1195,6 +1225,7 @@ define(['js/app'], function (myApp) {
                 })
                 vm.curGame = src.length ? src[src.length - 1] : null;
             }
+            $scope.safeApply();
         }
 
         //////////////////////////////////////////// draw game group tree
@@ -1253,6 +1284,10 @@ define(['js/app'], function (myApp) {
         ////////////////Mark::Game functions//////////////////
 
         vm.platformGameTabClicked = function () {
+            //reset to unselected state
+            vm.SelectedProvider = null;
+            vm.showGameCate = "include";
+            vm.curGame = null;
         }
         //get all platform data from server
         vm.getPlatformGameData = function () {
@@ -1390,7 +1425,7 @@ define(['js/app'], function (myApp) {
             var query = {
                 platform: vm.selectedPlatform.id,
                 provider: data._id
-            }
+            }            
             vm.includedGames = '';
             socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndProvider', query, function (data2) {
                 console.log("attached", data2.data);
@@ -1478,9 +1513,13 @@ define(['js/app'], function (myApp) {
             if (type == "add") {
                 var src = [];
                 if (which == "in") {
+                    vm.showGameCate="include";
                     src = vm.includedGames;
+                    vm.gameListCollapseIn();
                 } else if (which === "ex") {
+                    vm.showGameCate="exclude";
                     src = vm.excludedGames;
+                    vm.gameListCollapseOut();
                 }
                 src.map(item => {
                     vm.selectedGamesInGameGroup.push(item);
@@ -1488,6 +1527,7 @@ define(['js/app'], function (myApp) {
                 })
                 vm.curGame = vm.selectedGamesInGameGroup.length ? vm.selectedGamesInGameGroup[vm.selectedGamesInGameGroup.length - 1] : null;
             }
+            // $scope.apply();
         }
 
         vm.updateGameStat = function (type, bool) {
