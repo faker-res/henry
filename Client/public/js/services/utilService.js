@@ -487,7 +487,7 @@ define([], function () {
             var newD = $(tableId).DataTable(option);
             return newD;
         }
-        this.createPageForPagingTable = function (id, tblObj, trans, funcName) {
+        this.createPageForPagingTable = function (id, tblObj, trans, funcName, removePageSize) {
             $(id).html('');
             var newPage = $('#pagingTableFooter').clone().removeAttr('id').removeClass("collapse");
             //para curPage, maxPage
@@ -510,6 +510,10 @@ define([], function () {
             $(id).find(".bdots").hide();
             $(id).find(".adots").hide();
             // $(id).off('click');
+ 
+            if (removePageSize) {
+                $(id).find('.pageSizeText').parent().remove();
+            }
 
             retObj.init = function (para, resetCurPage) {
 
@@ -534,10 +538,10 @@ define([], function () {
                     retObj.updateCurPage(event);
                 });
                 $(id).find(".jumpPage").on('keyup', function () {
-                  if(event.target.valueAsNumber){
-                    retObj.curPage = event.target.valueAsNumber;
-                    retObj.jump();
-                  }
+                    if (event.target.valueAsNumber) {
+                        retObj.curPage = event.target.valueAsNumber;
+                        retObj.jump();
+                    }
                 });
 
                 $(id).off('focusout', ".pageSize")

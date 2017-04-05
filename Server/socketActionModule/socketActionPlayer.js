@@ -18,6 +18,7 @@ var ObjectId = mongoose.Types.ObjectId;
 var queryPhoneLocation = require('query-mobile-phone-area');
 var dbUtil = require('./../modules/dbutility');
 var smsAPI = require('../externalAPI/smsAPI');
+var cpmsAPI = require('../externalAPI/cpmsAPI');
 var Chance = require('chance');
 var chance = new Chance();
 
@@ -655,12 +656,21 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.getValidTopUpRecordList, [data.reward, data.playerId, data.playerObjId], actionName, isValidData);
         },
 
+        getGameCreditLog: function getGameCreditLog(data) {
+            var actionName = arguments.callee.name;
+            console.log("getGameCreditLog: " + data);
+            var isValidData = Boolean(data.playerName && data.platformId && data.providerId && data.startDate && data.endDate && data.page && data.type);
+            socketUtil.emitter(self.socket, cpmsAPI.player_getCreditLog, [data], actionName, isValidData);
+        },
+
         getPagedPlatformCreditTransferLog: function getPagedPlatformCreditTransferLog(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPlatform.getPagedPlatformCreditTransferLog, [data.startTime, data.endTime, data.index, data.limit, data.sortCol, data.status], actionName, isValidData);
+
         }
     };
     socketActionPlayer.actions = this.actions;
 }
+
 module.exports = socketActionPlayer;
