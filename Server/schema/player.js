@@ -83,7 +83,7 @@ var playerSchema = new Schema({
     //registration domain
     domain: {type: String},
     //external registration domain
-    externalDomain: {type: String},
+    sourceUrl: {type: String},
     //User agent containing 3 sub fields: browser, os, device
     userAgent: [{
         _id: false,
