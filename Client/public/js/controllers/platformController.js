@@ -1180,21 +1180,21 @@ define(['js/app'], function (myApp) {
             // console.log('vm.selectGameGroupGames', vm.selectGameGroupGames, index);
             console.log('vm.curGame', vm.curGame);
         }
-        vm.groupGameListCollapseIn = function(){
+        vm.groupGameListCollapseIn = function () {
             $('#includedGroupGames').collapse('show');
             $('#excludedGroupGames').collapse('hide');
 
         }
-        vm.groupGameListCollapseOut = function(){
+        vm.groupGameListCollapseOut = function () {
             $('#includedGroupGames').collapse('hide');
             $('#excludedGroupGames').collapse('show');
         }
 
-        vm.gameListCollapseIn = function(){
+        vm.gameListCollapseIn = function () {
             $('#includedGames').collapse('show');
             $('#excludedGames').collapse('hide');
         }
-        vm.gameListCollapseOut = function(){
+        vm.gameListCollapseOut = function () {
             $('#includedGames').collapse('hide');
             $('#excludedGames').collapse('show');
         }
@@ -1206,15 +1206,15 @@ define(['js/app'], function (myApp) {
             if (type == "add") {
                 var src = [];
                 if (which == "in") {
-                    vm.showGameCate="include";
+                    vm.showGameCate = "include";
                     src = vm.includedGamesGroup;
                     vm.groupGameListCollapseIn();
 
                 } else if (which === "ex") {
-                    vm.showGameCate="exclude";
+                    vm.showGameCate = "exclude";
                     src = vm.excludedGamesGroup;
                     vm.groupGameListCollapseOut();
-                    
+
                 }
                 src.map(item => {
                     vm.selectGameGroupGames.push(item._id);
@@ -1511,11 +1511,11 @@ define(['js/app'], function (myApp) {
             if (type == "add") {
                 var src = [];
                 if (which == "in") {
-                    vm.showGameCate="include";
+                    vm.showGameCate = "include";
                     src = vm.includedGames;
                     vm.gameListCollapseIn();
                 } else if (which === "ex") {
-                    vm.showGameCate="exclude";
+                    vm.showGameCate = "exclude";
                     src = vm.excludedGames;
                     vm.gameListCollapseOut();
                 }
@@ -6624,7 +6624,7 @@ define(['js/app'], function (myApp) {
                     vm.partnerValidity.ownDomainInvalidURL = true;
                 }
             }
-            form.ownDomain.$setValidity('invalidOwnDomainURL', !vm.partnerValidity.ownDomainInvalidURL);
+            //form.ownDomain.$setValidity('invalidOwnDomainURL', !vm.partnerValidity.ownDomainInvalidURL);
             var time = new Date().getTime();
             var newDomains = difArrays(vm.selectedSinglePartner.ownDomain, value.split('\n'));
             socketService.$socket($scope.AppSocket, 'checkOwnDomainValidity', {
