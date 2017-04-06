@@ -5759,7 +5759,7 @@ var dbPlayerInfo = {
                     if (data) {
                         playerData = data;
                         platformData = data.platform;
-                        if (playerData.status != constPlayerStatus.NORMAL) {
+                        if (playerData.status != constPlayerStatus.NORMAL && playerData.status != constPlayerStatus.ATTENTION) {
                             return Q.reject({
                                 name: "DataError",
                                 message: "Player is not enable",
