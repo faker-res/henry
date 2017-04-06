@@ -140,6 +140,11 @@ var dbPlayerInfo = {
                         //check if player's domain matches any partner
                         else if (inputData.domain) {
                             delete inputData.referral;
+                            var filteredDomain = inputData.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "");
+                            while (filteredDomain.indexOf("/") != -1) {
+                                filteredDomain = filteredDomain.replace("/", "");
+                            }
+                            inputData.domain = filteredDomain;
                             return dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                 data => {
                                     if (data) {
