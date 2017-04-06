@@ -1527,7 +1527,7 @@ var dbPlayerInfo = {
 
                 let queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
 
-                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime:1}).limit(1).exec();
+                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: 1}).limit(1).exec();
             }
         ).then(
             firstRecordData => {
@@ -6797,6 +6797,16 @@ var dbPlayerInfo = {
                         case constRewardType.PLAYER_REGISTRATION_REWARD:
                             return dbPlayerInfo.applyPlayerRegistrationReward(playerId, code, adminInfo);
                             break;
+                        case constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD:
+                            if (data.topUpRecordId == null) {
+                                return Q.reject({
+                                    status: constServerCode.INVALID_DATA,
+                                    name: "DataError",
+                                    message: "Invalid Data"
+                                });
+                            }
+                            return dbPlayerInfo.applyPlayerDoubleTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
+                            break;
                         default:
                             return Q.reject({
                                 status: constServerCode.INVALID_DATA,
@@ -7238,6 +7248,10 @@ var dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    applyPlayerDoubleTopUpReward: function (playerId, code, topUpRecordId, adminInfo) {
+
     },
 
     /**
