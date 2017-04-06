@@ -851,7 +851,6 @@ define(['js/app'], function (myApp) {
 
         vm.loadGameGroupData = function () {
             //init gametab start===============================
-            // vm.showGameGroupCate = "include";
             vm.showGameCate = "include";
             vm.toggleGameType();
             //init gameTab end==================================
@@ -1423,7 +1422,7 @@ define(['js/app'], function (myApp) {
             var query = {
                 platform: vm.selectedPlatform.id,
                 provider: data._id
-            }            
+            }
             vm.includedGames = '';
             socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndProvider', query, function (data2) {
                 console.log("attached", data2.data);
@@ -1525,7 +1524,7 @@ define(['js/app'], function (myApp) {
                 })
                 vm.curGame = vm.selectedGamesInGameGroup.length ? vm.selectedGamesInGameGroup[vm.selectedGamesInGameGroup.length - 1] : null;
             }
-            // $scope.apply();
+            $scope.safeApply();
         }
 
         vm.updateGameStat = function (type, bool) {
