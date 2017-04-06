@@ -1014,7 +1014,6 @@ define(['js/app'], function (myApp) {
                     console.log(data);
                     vm.selectGameGroupGames = [];
                     vm.selectGameGroupGamesName = [];
-                    vm.selectedAllGroupType = '';
                     vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
                     $scope.safeApply();
                 }
