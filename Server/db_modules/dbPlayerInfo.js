@@ -1527,7 +1527,7 @@ var dbPlayerInfo = {
 
                 let queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
 
-                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime:1}).limit(1).exec();
+                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: 1}).limit(1).exec();
             }
         ).then(
             firstRecordData => {
@@ -5759,7 +5759,7 @@ var dbPlayerInfo = {
                     if (data) {
                         playerData = data;
                         platformData = data.platform;
-                        if (playerData.status != constPlayerStatus.NORMAL) {
+                        if (playerData.status != constPlayerStatus.NORMAL && playerData.status != constPlayerStatus.ATTENTION) {
                             return Q.reject({
                                 name: "DataError",
                                 message: "Player is not enable",
