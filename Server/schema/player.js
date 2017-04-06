@@ -82,6 +82,8 @@ var playerSchema = new Schema({
     photoUrl: {type: String},
     //registration domain
     domain: {type: String},
+    //external registration domain
+    externalDomain: {type: String},
     //User agent containing 3 sub fields: browser, os, device
     userAgent: [{
         _id: false,
