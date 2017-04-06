@@ -1527,7 +1527,7 @@ var dbPlayerInfo = {
 
                 let queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
 
-                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime:1}).limit(1).exec();
+                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: 1}).limit(1).exec();
             }
         ).then(
             firstRecordData => {
@@ -4292,6 +4292,7 @@ var dbPlayerInfo = {
                 }
             );
     },
+
     getPlayerDomainReport: function (platform, para, index, limit, sortCol) {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
@@ -4303,7 +4304,7 @@ var dbPlayerInfo = {
         para.name ? query.name = para.name : null;
         para.realName ? query.realName = para.realName : null;
         para.topUpTimes != null ? query.topUpTimes = para.topUpTimes : null;
-        para.domain ? query.domain = para.domain : null;
+        para.domain ? query.domain = (".*" + para.domain + "*.") : null;
         var count = dbconfig.collection_players.find(query).count();
         var detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partnerId', model: dbconfig.collection_partner});
@@ -4313,6 +4314,7 @@ var dbPlayerInfo = {
             }
         )
     },
+
     getNewAccountReportData: function (platform, startTime, endTime) {
         var retData = {};
         var timeQuery = {
@@ -5759,7 +5761,7 @@ var dbPlayerInfo = {
                     if (data) {
                         playerData = data;
                         platformData = data.platform;
-                        if (playerData.status != constPlayerStatus.NORMAL) {
+                        if (playerData.status != constPlayerStatus.NORMAL && playerData.status != constPlayerStatus.ATTENTION) {
                             return Q.reject({
                                 name: "DataError",
                                 message: "Player is not enable",
@@ -6797,6 +6799,16 @@ var dbPlayerInfo = {
                         case constRewardType.PLAYER_REGISTRATION_REWARD:
                             return dbPlayerInfo.applyPlayerRegistrationReward(playerId, code, adminInfo);
                             break;
+                        case constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD:
+                            if (data.topUpRecordId == null) {
+                                return Q.reject({
+                                    status: constServerCode.INVALID_DATA,
+                                    name: "DataError",
+                                    message: "Invalid Data"
+                                });
+                            }
+                            return dbPlayerInfo.applyPlayerDoubleTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
+                            break;
                         default:
                             return Q.reject({
                                 status: constServerCode.INVALID_DATA,
@@ -7238,6 +7250,10 @@ var dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    applyPlayerDoubleTopUpReward: function (playerId, code, topUpRecordId, adminInfo) {
+
     },
 
     /**

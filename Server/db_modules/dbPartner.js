@@ -1280,11 +1280,11 @@ var dbPartner = {
     /*
      * Apply bonus
      */
-    applyBonus: function (partnerId, bonusId, amount, honoreeDetail) {
-        var partner = null;
-        var bonusDetail = null;
-        var bUpdateCredit = false;
-        var resetCredit = function (partnerObjId, platformObjId, credit, error) {
+    applyBonus: function (partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
+        let partner = null;
+        let bonusDetail = null;
+        let bUpdateCredit = false;
+        let resetCredit = function (partnerObjId, platformObjId, credit, error) {
             //reset partner credit if credit is incorrect
             return dbconfig.collection_partner.findOneAndUpdate({
                 _id: partnerObjId,
@@ -1305,7 +1305,7 @@ var dbPartner = {
         return pmsAPI.bonus_getBonusList({}).then(
             bonusData => {
                 if (bonusData && bonusData.bonuses && bonusData.bonuses.length > 0) {
-                    var bValid = false;
+                    let bValid = false;
                     bonusData.bonuses.forEach(
                         bonus => {
                             if (bonus.bonus_id == bonusId) {
@@ -1343,7 +1343,7 @@ var dbPartner = {
                                         ).then(
                                             proposals => {
                                                 if (proposals && proposals.length > 0) {
-                                                    var bExist = false;
+                                                    let bExist = false;
                                                     proposals.forEach(
                                                         proposal => {
                                                             if (proposal.status == constProposalStatus.PENDING ||
@@ -1352,7 +1352,7 @@ var dbPartner = {
                                                             }
                                                         }
                                                     );
-                                                    if (!bExist) {
+                                                    if (!bExist || bForce) {
                                                         return partnerData;
                                                     }
                                                     else {
@@ -1447,8 +1447,8 @@ var dbPartner = {
 
                                 partner.validCredit = newPartnerData.validCredit;
                                 //create proposal
-                                var proposalData = {
-                                    creator: {
+                                let proposalData = {
+                                    creator: adminInfo || {
                                         type: 'partner',
                                         name: partner.name,
                                         id: partnerId
@@ -1464,10 +1464,10 @@ var dbPartner = {
                                     curAmount: partner.credits,
                                     requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                 };
-                                var newProposal = {
+                                let newProposal = {
                                     creator: proposalData.creator,
                                     data: proposalData,
-                                    entryType: constProposalEntryType.CLIENT,
+                                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: constProposalUserType.PARTNERS,
                                 };
                                 return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
