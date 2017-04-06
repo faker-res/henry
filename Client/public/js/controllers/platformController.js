@@ -9331,18 +9331,21 @@ define(['js/app'], function (myApp) {
                         console.log("cannot get topup type", err);
                     });
 
-                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                        if (data && data.data && data.data.data) {
-                            vm.allBankTypeList = {};
-                            console.log('banktype', data.data.data);
-                            data.data.data.forEach(item => {
-                                if (item && item.bankTypeId) {
-                                    vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
-                                }
-                            })
-                        }
-                        $scope.safeApply();
-                    })
+                    // Get bank list from pmsAPI
+                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {},
+                        data => {
+                            if (data && data.data && data.data.data) {
+                                vm.allBankTypeList = {};
+                                console.log('banktype', data.data.data);
+                                data.data.data.forEach(item => {
+                                    if (item && item.bankTypeId) {
+                                        vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                                    }
+                                })
+                            }
+                            $scope.safeApply();
+                    });
+
                     socketService.$socket($scope.AppSocket, 'getRewardTypesConfig', {}, function (data) {
                         console.log('rewardType', data);
                         vm.rewardAttrConst = data.data;
