@@ -1814,5 +1814,11 @@
   "Platform Credit Transfer Log": "平台转账记录",
   "PlatformCreditTransferLog": "平台转账记录",
   "playerStatus" : "玩家状态",
-  "proposalPlayerLevel" : "玩家级别"
+  "proposalPlayerLevel" : "玩家级别",
+
+  "GAME_CREDIT_LOG": "游戏额度",
+  "TRANSFER_IN":"转入",
+  "TRANSFER_OUT":"转出",
+  "BET":"投注",
+  "PAYOUT":"派彩"
 }

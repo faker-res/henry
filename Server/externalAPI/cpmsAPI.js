@@ -27,14 +27,14 @@ function callCPMSAPI(service, functionName, data) {
     let bOpen = false;
     var deferred = Q.defer();
     //if can't connect in 30 seconds, treat as timeout
-    setTimeout(function(){
-        if( !bOpen ){
+    setTimeout(function () {
+        if (!bOpen) {
             return deferred.reject({
                 status: constServerCode.CP_NOT_AVAILABLE,
                 message: "Game is not available"
             });
         }
-    }, 30*1000);
+    }, 30 * 1000);
     clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
         wsClient => {
             bOpen = true;
@@ -56,7 +56,7 @@ function callCPMSAPI(service, functionName, data) {
                     if (wsClient && typeof wsClient.disconnect == "function") {
                         wsClient.disconnect();
                     }
-                    if(error.status){
+                    if (error.status) {
                         return Q.reject(error);
                     }
                     else {
@@ -70,7 +70,7 @@ function callCPMSAPI(service, functionName, data) {
             );
         },
         error => {
-            return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error:error});
+            return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error: error});
         }
     ).then(deferred.resolve, deferred.reject);
     return deferred.promise;
@@ -145,6 +145,10 @@ const cpmsAPI = {
 
     player_checkExist: function (data) {
         return callCPMSAPI("player", "player_checkExist", data);
+    },
+
+    player_getCreditLog: function (data) {
+        return callCPMSAPI("player", "getCreditLog", data);
     }
 
 };
