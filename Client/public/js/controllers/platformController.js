@@ -6879,8 +6879,42 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformPartnersData();
                 $scope.safeApply();
             });
-        }
+        };
 
+        // Partner apply bonus
+        vm.initPartnerBonus = function () {
+            vm.partnerBonus = {
+                resMsg: '',
+                showSubmit: true,
+                notSent: true,
+            };
+        };
+
+        vm.applyPartnerBonus = function () {
+            let sendData = {
+                partnerId: vm.selectedSinglePartner.partnerId,
+                amount: vm.partnerBonus.amount,
+                bonusId: vm.partnerBonus.bonusId,
+                honoreeDetail: vm.partnerBonus.honoreeDetail,
+                bForce: vm.partnerBonus.bForce
+            };
+            vm.partnerBonus.resMsg = '';
+            vm.partnerBonus.showSubmit = true;
+            socketService.$socket($scope.AppSocket, 'applyPartnerBonusRequest', sendData, function (data) {
+                vm.partnerBonus.resMsg = $translate('Approved');
+                vm.partnerBonus.showSubmit = false;
+                vm.getPlatformPartnersData();
+                $scope.safeApply();
+            }, function (data) {
+                vm.partnerBonus.showSubmit = false;
+                if (data.error.errorMessage) {
+                    vm.partnerBonus.resMsg = data.error.errorMessage;
+                    socketService.showErrorMessage(data.error.errorMessage);
+                    $scope.safeApply();
+                }
+                $scope.safeApply();
+            });
+        };
         /////////////////////////////////////// bank card start  /////////////////////////////////////////////////
 
         vm.bankCardGroupTabClicked = function () {

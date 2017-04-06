@@ -43,7 +43,8 @@ var roleChecker = {
         'addPlatformMerchantGroup', 'addPlayersToMerchantGroup', 'renamePlatformMerchantGroup', 'updatePlatformMerchantGroup', 'setPlatformDefaultMerchantGroup',
         'deleteMerchantGroup', 'addPlatformAlipayGroup',
         'renamePlatformAlipayGroup', 'setPlatformDefaultAlipayGroup', 'getPlayerForAttachGroup', 'addPlayersToAlipayGroup',
-        'deleteAlipayGroup', 'updateGameProvider', 'startProviderDailySettlement', 'delayManualTopupRequest', 'createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig'
+        'deleteAlipayGroup', 'updateGameProvider', 'startProviderDailySettlement', 'delayManualTopupRequest', 'createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig',
+        'applyPartnerBonusRequest'
     ],
 
     publicActions: {
@@ -278,7 +279,8 @@ var roleChecker = {
                 Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
                 EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal'],
                 BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPlayerBankAccount'],
-                ResetPassword: ['resetPartnerPassword']
+                ResetPassword: ['resetPartnerPassword'],
+                ApplyBonus: ['applyPartnerBonusRequest']
             },
             "Game": {
                 Read: ['getAllGameProviders', 'getGamesByPlatformAndProvider', 'getGamesNotAttachedToPlatform'],
