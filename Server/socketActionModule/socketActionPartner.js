@@ -21,7 +21,16 @@ function socketActionPartner(socketIO, socket) {
     this.socketIO = socketIO;
     this.socket = socket;
 
-    var self = this;
+    let self = this;
+
+    function getAdminId() {
+        return self.socket.decoded_token && self.socket.decoded_token._id;
+    }
+
+    function getAdminName() {
+        return self.socket.decoded_token && self.socket.decoded_token.adminName;
+    }
+
     this.actions = {
 
         /**
@@ -295,10 +304,22 @@ function socketActionPartner(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dailyPlatformSettlement.manualPlatformPartnerCommissionSettlement, [ObjectId(data.platformId), true], actionName, isValidData);
-        }
+        },
+        /**
+         *  Apply partner bonus
+         */
+        applyPartnerBonusRequest: function applyPartnerBonusRequest(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerId && data.bonusId && data.amount);
+            socketUtil.emitter(self.socket, dbPartner.applyBonus, [data.partnerId, data.bonusId, data.amount, data.honoreeDetail, data.bForce, {
+                type: "admin",
+                name: getAdminName(),
+                id: getAdminId()
+            }], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;
-};
+}
 
 module.exports = socketActionPartner;

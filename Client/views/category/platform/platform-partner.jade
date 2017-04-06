@@ -42,6 +42,15 @@ p
             text {{"Link Player" | translate}}
             img.img-edit
 
+// Partner actions
+p
+.col-md-12
+    hr.margin-top-bottom-small
+    .btn-group.text-center.margin-small
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'ApplyBonus')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click='vm.initPartnerBonus();', data-target='#modalPartnerBonus')
+            text {{"APPLY_BONUS" | translate}}
+            img.img-edit
+
 #modalCreatePartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
@@ -408,3 +417,30 @@ p
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-click='vm.submitLinkPlayer()', ng-disabled="!vm.linkPlayerFound") {{'Link Player' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
+// Partner actions - Modal
+#modalPartnerBonus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"APPLY_BONUS" | translate}} : {{vm.selectedSinglePartner.name}}
+            .modal-body
+                form(name='form_partner_bonus').well
+                    .form-group-col-md-6
+                        label.control-label {{'CREDIT' | translate}}
+                        input.leftALignNumber.form-control(type='number', ng-model='vm.partnerBonus.amount', required)
+                    .form-group-col-md-6
+                        label.control-label {{'BONUS_ID' | translate}}
+                        input.form-control(ng-model='vm.partnerBonus.bonusId', required)
+                    .form-group-col-md-6
+                        label.control-label {{'HONOREE_DETAIL' | translate}}
+                        input.form-control(ng-model='vm.partnerBonus.honoreeDetail')
+                    .form-group-col-md-6.margin-top-5
+                        label.control-label.margin-right-5 {{'FORCE' | translate}}
+                        input(type='checkbox', ng-model='vm.partnerBonus.bForce')
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_partner_bonus.$invalid || form_partner_bonus.$pristine', ng-show='vm.partnerBonus.showSubmit', ng-click='vm.applyPartnerBonus()') {{'APPLY' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+                label.inlineBlk.margin-right-5(ng-if='vm.partnerBonus.resMsg') {{vm.partnerBonus.resMsg}}
+                i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.partnerBonus.showSubmit && !vm.partnerBonus.resMsg')
