@@ -62,7 +62,7 @@
                 #gameList.panel-group(ng-if='vm.SelectedProvider')
                     label.text-danger(ng-if='vm.selectedGamesInGameGroup.length>0') {{vm.selectedGamesInGameGroup.length}}&nbsp;{{'game' | translate}}&nbsp;{{'is selected' | translate}}
                     .panel.panel-default
-                        .panel-heading.panel-heading-sm(data-toggle='collapse',data-parent="#gameList", href='#includedGames', ng-click='vm.showGameCate="include";vm.toggleGameType();gameListCollapseIn();')
+                        .panel-heading.panel-heading-sm(data-toggle='collapse',data-parent="#gameList", href='#includedGames', ng-click='vm.showGameCate="include";vm.toggleGameType();vm.gameListCollapseIn();')
                             h4.panel-title
                                 text {{'INCLUDEDGAMES' | translate}}
                                 span(ng-if='vm.includedGames') &nbsp;:&nbsp;({{vm.includedGames.length}})
@@ -83,7 +83,7 @@
                                         .fa.fa-circle.statusIcon(class='{{vm.getGameStatusClass(vm.gameStatus[v._id])}}')
 
                     .panel.panel-default
-                        .panel-heading.panel-heading-sm(data-toggle='collapse',data-parent="#gameList", href='#excludedGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType();gameListCollapseOut();')
+                        .panel-heading.panel-heading-sm(data-toggle='collapse',data-parent="#gameList", href='#excludedGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType();vm.gameListCollapseOut();')
                             h4.panel-title
                                 text {{'EXCLUDEDGAMES' | translate}}
                                 span(ng-if='vm.excludedGames') &nbsp;:&nbsp;({{vm.excludedGames.length}})

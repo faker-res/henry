@@ -1208,14 +1208,12 @@ define(['js/app'], function (myApp) {
                 if (which == "in") {
                     vm.showGameCate="include";
                     src = vm.includedGamesGroup;
-                    $('#includedGroupGames').collapse('show');
-                    $('#excludedGroupGames').collapse('hide');
+                    vm.groupGameListCollapseIn();
 
                 } else if (which === "ex") {
                     vm.showGameCate="exclude";
                     src = vm.excludedGamesGroup;
-                    $('#includedGroupGames').collapse('hide');
-                    $('#excludedGroupGames').collapse('show');
+                    vm.groupGameListCollapseOut();
                     
                 }
                 src.map(item => {
