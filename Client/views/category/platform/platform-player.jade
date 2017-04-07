@@ -1235,20 +1235,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerAlipayTopUp.submitted') {{'Submitted' | translate}}
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_alipay_topup.$invalid || form_alipay_topup.$pristine || (vm.existingAlipayTopup && !vm.existingAlipayTopup.isCanceled)', ng-show='!vm.playerAlipayTopUp.submitted', ng-click='vm.applyPlayerAlipayTopUp()') {{'APPLY' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
-                table.simple-table.display(style="width: calc(100% - 210px);min-width:inherit", ng-show="vm.playerManualTopUp.submitted && vm.playerManualTopUp.responseData")
-                    thead
-                        tr
-                            th {{"proposalId" | translate}}
-                            th {{"bankCardNo" | translate}}
-                            th {{"cardOwner" | translate}}
-                            th {{"validTime" | translate}}
-                    tbody
-                        tr
-                            td {{vm.playerManualTopUp.responseData.proposalId}}
-                            td {{vm.playerManualTopUp.responseData.result.bankCardNo}}
-                            td {{vm.playerManualTopUp.responseData.result.cardOwner}}
-                            td {{vm.playerManualTopUp.responseData.result.validTime}}
-                label.inlineBlk.wordWrap(ng-if='vm.playerManualTopUp.submitted && vm.playerManualTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerManualTopUp.responseMsg}}
+                label.inlineBlk.wordWrap(ng-if='vm.playerAlipayTopUp.submitted && vm.playerAlipayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerAlipayTopUp.responseMsg}}
 
 #modalPlayerBonus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
