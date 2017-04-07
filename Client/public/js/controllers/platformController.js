@@ -4136,15 +4136,35 @@ define(['js/app'], function (myApp) {
                     }) || [];
                 console.log('errData', vm.playerTransferErrorLog);
                 $scope.safeApply();
+
                 var newTblOption = $.extend({}, vm.generalDataTableOptions, {
                     data: vm.playerTransferErrorLog,
                     columns: [
                         {title: $translate("CREATETIME"), data: 'createTimeText'},
                         {title: $translate("TRANSFER") + " ID", data: 'transferId'},
-                        {title: $translate("CREDIT"), data: 'amount'},
+                        {
+                          title: $translate("CREDIT"),
+                          data: 'amount',
+                          render: function (data, type, row) {
+                              return parseFloat(data).toFixed(2);
+                          }
+                        },
                         {title: $translate("provider"), data: 'providerText'},
-                        {title: $translate("amount"), data: 'amount'},
-                        {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount'},
+                        {
+                          title: $translate("amount"),
+                          data: 'amount',
+                          render: function (data, type, row) {
+                              return parseFloat(data).toFixed(2);
+                          }
+                        },
+                        {
+                          title: $translate("LOCKED_CREDIT"),
+                          data: 'lockedAmount',
+                          data: 'amount',
+                          render: function (data, type, row) {
+                              return parseFloat(data).toFixed(2);
+                          }
+                        },
                         {title: $translate("TYPE"), data: 'typeText'},
                         {
                             title: $translate("STATUS"),
@@ -4174,8 +4194,8 @@ define(['js/app'], function (myApp) {
                             })
 
                             vm.linkedPlayerTransferId = playerTransfer.transferId;
-                            vm.creditChange.finalValidAmount = playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit;
-                            vm.creditChange.finalLockedAmount = playerTransfer.lockedAmount;
+                            vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit).toFixed(2);
+                            vm.creditChange.finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
                             $scope.safeApply();
                         });
                     }
