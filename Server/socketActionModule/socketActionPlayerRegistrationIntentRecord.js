@@ -1,8 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var encrypt = require('./../modules/encrypt');
 var dbPlayerRegistrationIntentRecord = require('./../db_modules/dbPlayerRegistrationIntentRecord');
 var socketUtil = require('./../modules/socketutility');

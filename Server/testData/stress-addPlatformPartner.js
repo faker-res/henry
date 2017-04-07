@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 // Configurable inputs:
 var totalPartners = totalPartners || arg1;
 var platformId = platformId || arg2;

@@ -1,8 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var should = require('should');
 var WebSocketClient = require('../server_common/WebSocketClient');
 var RegistrationIntentionService = require('../services/client/ClientServices').RegistrationIntentionService;

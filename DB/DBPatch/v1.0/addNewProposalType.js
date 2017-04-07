@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 /*
  * how to use:
  * mongo --eval "var type='PartnerCommission';" addNewProposalType.js

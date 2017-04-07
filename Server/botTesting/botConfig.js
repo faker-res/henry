@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var botConfig = {
     botPlatformId: process.env.BOT_PLATFORM || "4",
     botPlayerNum: 2,

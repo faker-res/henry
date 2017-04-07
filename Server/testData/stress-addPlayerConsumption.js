@@ -1,9 +1,3 @@
-/******************************************************************
- *        Server
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 // Configurable inputs:
 var platformId = platformId || arg1;
 var gameId = gameId || arg2;

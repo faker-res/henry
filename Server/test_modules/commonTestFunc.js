@@ -1,8 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var Q = require("q");
 var env = require('../config/env').config();
 var dbconfig = require('./../modules/dbproperties');
