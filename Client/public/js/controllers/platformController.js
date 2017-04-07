@@ -5713,7 +5713,9 @@ define(['js/app'], function (myApp) {
         vm.applyPlayerAlipayTopUp = () => {
             let sendData = {
                 playerId: vm.isOneSelectedPlayer().playerId,
-                amount: vm.playerAlipayTopUp.amount
+                amount: vm.playerAlipayTopUp.amount,
+                alipayName: vm.playerAlipayTopUp.alipayName,
+                alipayAccount: vm.playerAlipayTopUp.alipayAccount
             };
             vm.playerAlipayTopUp.submitted = true;
             $scope.safeApply();

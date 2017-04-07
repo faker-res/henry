@@ -1225,6 +1225,12 @@ include modalGameCreditLog
                                     label {{'CREDIT' | translate}}
                                     text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
                                 input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerAlipayTopUp.amount', required)
+                                .control-label
+                                    label {{'alipayName' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
+                                .control-label
+                                    label {{'alipayAccount' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerAlipayTopUp.submitted') {{'Submitted' | translate}}
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_alipay_topup.$invalid || form_alipay_topup.$pristine || (vm.existingAlipayTopup && !vm.existingAlipayTopup.isCanceled)', ng-show='!vm.playerAlipayTopUp.submitted', ng-click='vm.applyPlayerAlipayTopUp()') {{'APPLY' | translate}}

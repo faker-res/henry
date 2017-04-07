@@ -1304,6 +1304,7 @@
   "MARK_THIS_MAIL_AS_READ": "已读",
   "Basic":"基本",
   "alipayQRCode":"支付宝QR码",
+  "alipayName": "支付宝名",
   "alipayAccount":"支付宝账号",
 
   "WORLD":"世界",
