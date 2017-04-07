@@ -18,17 +18,19 @@ cursor.eachAsync(
             while (filteredDomain.indexOf("/") != -1) {
                 filteredDomain = filteredDomain.replace("/", "");
             }
-            newDomains.push(item);
-            if (item !== filteredDomain) {
+            if (newDomains.indexOf(item) === -1) {
+                newDomains.push(item);
+            }
+            if (newDomains.indexOf(filteredDomain) === -1) {
                 newDomains.push(filteredDomain);
             }
-            console.log("newDomains: " + JSON.stringify(newDomains));
-            dbconfig.collection_partner.findOneAndUpdate(
-                {_id: partnerData._id},
-                {ownDomain: newDomains}
-            ).then(updatedData => {
-                console.log(updatedData.partnerName + "'s ownDomain updated");
-            });
+        });
+        console.log("newDomains: " + JSON.stringify(newDomains));
+        dbconfig.collection_partner.findOneAndUpdate(
+            {_id: partnerData._id},
+            {ownDomain: newDomains}
+        ).then(updatedData => {
+            console.log(updatedData.partnerName + "'s ownDomain updated");
         });
         i++;
     }
