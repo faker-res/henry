@@ -1488,6 +1488,7 @@
   "APPLY_MANUAL_TOPUP":"申请手工充值",
   "APPLY_ALIPAY_TOPUP":"申请支付宝充值",
   "ApplyManualTopup":"申请手工充值",
+  "ApplyAlipayTopup":"申请支付宝充值",
   "Daily TopUp Sum":"日充值额",
   "Weekly TopUp Sum":"周充值额",
   "Daily Consumption Sum":"日消费额",
@@ -1828,4 +1829,5 @@
   "TRANSFER_OUT":"转出",
   "BET":"投注",
   "PAYOUT":"派彩"
+
 }
