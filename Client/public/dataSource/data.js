@@ -1,8 +1,3 @@
-/******************************************************************
- *        Project
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 latlong = {};
 latlong["AD"] = {"latitude": 42.5, "longitude": 1.5};
 latlong["AE"] = {"latitude": 24, "longitude": 54};

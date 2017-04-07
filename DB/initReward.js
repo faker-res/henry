@@ -372,11 +372,11 @@ db.rewardParam.insert({
         reward: {
             type: "Table",
             data: {
-                minPlayerLevel: {type: "Number", des: "Player Level"},
-                topUpAmount: {type: "Number", des: "Top up amount"},
+                minPlayerLevel: {type: "Number", des: "PlayerLevel"},
+                topUpAmount: {type: "Number", des: "Topup Amount"},
                 rewardAmount: {type: "Number", des: "Reward amount"},
                 consumptionTimes: {type: "Number", des: "Consumption Times"},
-                maxRewardAmount: {type: "Number", des: "Max reward amount"}
+                maxRewardAmount: {type: "Number", des: "Maximum reward amount"}
             },
             des: "Reward parameter for each level"
         }

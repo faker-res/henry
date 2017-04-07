@@ -1,8 +1,3 @@
-/******************************************************************
- *        Project
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var cityLocationData = {
     上海: {
         上海: {longitude: 121.48, latitude: 31.22},

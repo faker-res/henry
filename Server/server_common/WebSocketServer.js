@@ -1,8 +1,3 @@
-/******************************************************************
- *        Fantasy Player Management System
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 //Server side only
 
 var ws = require("ws");

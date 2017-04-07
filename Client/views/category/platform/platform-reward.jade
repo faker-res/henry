@@ -70,6 +70,8 @@
                     include ./reward-event-type/PlayerConsumptionReturn
                 div(ng-if='vm.showRewardTypeData.name=="PlayerConsumptionIncentive"')
                     include ./reward-event-type/PlayerConsumptionIncentive
+                div(ng-if='vm.showRewardTypeData.name=="PlayerDoubleTopUpReward"')
+                    include ./reward-event-type/PlayerDoubleTopUpReward
                 div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpReturn"')
                     include ./reward-event-type/PlayerTopUpReturn
                 div(ng-if='vm.showRewardTypeData.name=="GameProviderReward"')

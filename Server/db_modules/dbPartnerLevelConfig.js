@@ -1,12 +1,3 @@
-/******************************************************************
- *        Project
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
-/**
- * Created by hninpwinttin on 29/1/16.
- */
 var dbconfig = require('./../modules/dbproperties');
 var dbPartnerLevelConfig = {
 

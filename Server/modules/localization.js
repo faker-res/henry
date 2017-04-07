@@ -1,9 +1,3 @@
-/******************************************************************
- *  Fantasy Player Management Tool
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 // var localization = new (require('i18n-2'))({
 //
 //     // setup some locales - other locales default to the first locale

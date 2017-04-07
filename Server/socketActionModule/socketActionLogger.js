@@ -1,8 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var socketUtil = require('./../modules/socketutility');
 var dbApiResponseTimeLog = require('./../db_modules/dbApiResponseTimeLog');
 var dbSettlementLog = require('./../db_modules/dbSettlementLog');

@@ -1,9 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var dbPartnerWeekSummary = require('../db_modules/dbPartnerWeekSummary');
 var dbutility = require("../modules/dbutility.js");
 var dbconfig = require("../modules/dbproperties.js");

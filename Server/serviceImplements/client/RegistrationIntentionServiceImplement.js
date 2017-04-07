@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var RegistrationIntentionService = require("./../../services/client/ClientServices").RegistrationIntentionService;
 var dbPlayerRegistrationIntentRecord = require('./../../db_modules/dbPlayerRegistrationIntentRecord');

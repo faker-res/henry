@@ -1,9 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var constRewardType = require("../const/constRewardType");
 
 function isValidRewardEvent(type, eventData) {

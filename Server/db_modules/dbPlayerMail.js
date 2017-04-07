@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 const dbconfig = require('./../modules/dbproperties');
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
