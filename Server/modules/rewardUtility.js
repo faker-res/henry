@@ -58,6 +58,11 @@ function isValidRewardEvent(type, eventData) {
                 return true;
             }
             break;
+        case constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD:
+            if (eventData && eventData.param && eventData.executeProposal && eventData.param.reward) {
+                return true;
+            }
+            break;
         default :
             return false;
     }

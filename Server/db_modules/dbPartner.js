@@ -703,8 +703,8 @@ var dbPartner = {
                             $lt: times.endTime
                         }
                     };
-                    const consumptionSummariesProm = dbconfig.collection_playerConsumptionWeekSummary.find(matchPlayerSummaries);
-                    const topUpSummariesProm = dbconfig.collection_playerTopUpWeekSummary.find(matchPlayerSummaries);
+                    const consumptionSummariesProm = dbconfig.collection_playerConsumptionDaySummary.find(matchPlayerSummaries);
+                    const topUpSummariesProm = dbconfig.collection_playerTopUpDaySummary.find(matchPlayerSummaries);
 
                     return Q.all([consumptionSummariesProm, topUpSummariesProm]).then(
                         function (data) {

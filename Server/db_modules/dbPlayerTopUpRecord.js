@@ -1169,7 +1169,7 @@ var dbPlayerTopUpRecord = {
      * @param playerID
      * @param inputData
      */
-    requestAlipayTopup: function (playerId, amount) {
+    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount) {
         var player = null;
         var proposal = null;
         var request = null;
@@ -1203,6 +1203,8 @@ var dbPlayerTopUpRecord = {
                         proposalData.platform = playerData.platform.platformId;
                         proposalData.playerName = playerData.name;
                         proposalData.amount = Number(amount);
+                        proposalData.alipayName = alipayName;
+                        proposalData.alipayAccount = alipayAccount;
                         proposalData.creator = {
                             type: 'player',
                             name: playerData.name,
@@ -1228,10 +1230,14 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: player.realName || "",
+                            realName: alipayName,//player.realName || "",
+                            aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : []
                         };
+                        if( alipayAccount ){
+                            requestData.groupAlipayList = [alipayAccount];
+                        }
                         //console.log("requestData", requestData);
                         return pmsAPI.payment_requestAlipayAccount(requestData);
                     }
