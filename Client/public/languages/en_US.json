@@ -232,6 +232,7 @@
   "BANK_ACCOUNT_CITY": "Bank Account City",
   "INTERNET_BANKING": "Internet Banking",
   "APPLY_MANUAL_TOPUP" : "Apply Manual TopUp",
+  "APPLY_ALIPAY_TOPUP" : "Apply Alipay TopUp",
   "LAST_BANK_CARD_NUMBER" : "Last Bank Card No",
   "BANK_TYPE_ID": "BankType Id",
   "DEPOSIT_METHOD": "Deposit Method",
