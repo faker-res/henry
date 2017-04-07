@@ -5734,6 +5734,24 @@ define(['js/app'], function (myApp) {
             );
         };
 
+        vm.cancelPlayerAlipayTopUp = () => {
+            if (!vm.existingAlipayTopup) {
+                return;
+            }
+            let sendQuery = {
+                playerId: vm.selectedSinglePlayer.playerId,
+                proposalId: vm.existingAlipayTopup.proposalId
+            };
+            socketService.$socket($scope.AppSocket, 'cancelAlipayTopup', sendQuery,
+                data => {
+                    if (vm.existingAlipayTopup.proposalId == data.data.proposalId) {
+                        vm.existingAlipayTopup.isCanceled = true;
+                    }
+                    $scope.safeApply();
+                }
+            );
+        };
+
         vm.cancelPlayerManualTop = function () {
             if (!vm.existingManualTopup) {
                 return;
