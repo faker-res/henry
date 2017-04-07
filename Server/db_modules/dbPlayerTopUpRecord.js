@@ -1174,7 +1174,7 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName) {
+    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark) {
         let player = null;
         let proposal = null;
         let request = null;
@@ -1242,7 +1242,8 @@ var dbPlayerTopUpRecord = {
                             realName: alipayName,//player.realName || "",
                             aliPayAccount: 1,
                             amount: amount,
-                            groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : []
+                            groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
+                            remark: remark
                         };
                         if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];
