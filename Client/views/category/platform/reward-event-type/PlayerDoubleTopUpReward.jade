@@ -1,0 +1,50 @@
+//
+   Created by wanglz on 7/4/17.
+.well
+    label {{vm.showRewardTypeData.params.params.reward.des | translate}}
+    div(style='margin-bottom:0px;overflow:auto;width:100%')
+        table.table.simple-table
+            thead
+                tr
+                    th #
+                    th {{vm.showRewardTypeData.params.params.reward.data.minPlayerLevel.des | translate}}
+                    th {{vm.showRewardTypeData.params.params.reward.data.topUpAmount.des | translate}}
+                    th {{vm.showRewardTypeData.params.params.reward.data.rewardAmount.des | translate}}
+                    th {{vm.showRewardTypeData.params.params.reward.data.consumptionTimes.des | translate}}
+                    th {{vm.showRewardTypeData.params.params.reward.data.maxRewardAmount.des | translate}}
+                    th(ng-if='!vm.platformRewardShowEdit()')
+            tbody
+                tr(ng-repeat='(rowIndex,rowdata) in vm.rewardParams.reward')
+                    td {{rowIndex}}
+                    td
+                        select.form-control(ng-model='vm.rewardParams.reward[rowIndex].minPlayerLevel',ng-options='a.value as a.name | translate for a in vm.allPlayerLvl', ng-disabled='vm.platformRewardShowEdit()', required)
+                    td
+                        input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].topUpAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+                    td
+                        input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].rewardAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+                    td
+                        input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].consumptionTimes', ng-disabled='vm.platformRewardShowEdit()', required)
+                    td
+                        input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].maxRewardAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+                    td(ng-if='!vm.platformRewardShowEdit()')
+                        i.fa.fa-minus(ng-click='vm.updateDoubleTopupReward("remove",rowIndex)')
+                tr(ng-if='!vm.platformRewardShowEdit()')
+                    td(colspan=7) {{'ADD' | translate}}
+
+                tr(ng-if='!vm.platformRewardShowEdit()')
+                    td
+                    td
+                        select(ng-model='vm.tempNewRewardEntry.minPlayerLevel',ng-options='a.value as a.name | translate for a in vm.allPlayerLvl', ng-disabled='vm.platformRewardShowEdit()')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.topUpAmount')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.rewardAmount')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.consumptionTimes')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.maxRewardAmount')
+                    td
+                        i.fa.fa-plus(ng-click='vm.updateDoubleTopupReward("add",vm.tempNewRewardEntry);vm.tempNewRewardEntry={}')
+
+                    
+
