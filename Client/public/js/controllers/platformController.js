@@ -5707,6 +5707,10 @@ define(['js/app'], function (myApp) {
                     vm.existingAlipayTopup = data.data ? data.data : false;
                     $scope.safeApply();
             });
+            utilService.actionAfterLoaded('#modalPlayerAlipayTopUp', function () {
+                vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerAlipayTopUp .createTime');
+                vm.playerAlipayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
+            });
             $scope.safeApply();
         };
 
@@ -5715,7 +5719,9 @@ define(['js/app'], function (myApp) {
                 playerId: vm.isOneSelectedPlayer().playerId,
                 amount: vm.playerAlipayTopUp.amount,
                 alipayName: vm.playerAlipayTopUp.alipayName,
-                alipayAccount: vm.playerAlipayTopUp.alipayAccount
+                alipayAccount: vm.playerAlipayTopUp.alipayAccount,
+                remark: vm.playerAlipayTopUp.remark,
+                createTime: vm.playerAlipayTopUp.createTime.data('datetimepicker').getLocalDate()
             };
             vm.playerAlipayTopUp.submitted = true;
             $scope.safeApply();
@@ -5747,6 +5753,10 @@ define(['js/app'], function (myApp) {
                     if (vm.existingAlipayTopup.proposalId == data.data.proposalId) {
                         vm.existingAlipayTopup.isCanceled = true;
                     }
+                    $scope.safeApply();
+                },
+                error => {
+                    vm.playerAlipayTopUp.responseMsg = error.error.errorMessage;
                     $scope.safeApply();
                 }
             );
