@@ -7311,7 +7311,7 @@ var dbPlayerInfo = {
                             }
                         }
                     );
-                    return Q.all([eventProm, taskProm]);
+                    return Q.all([eventProm, taskProm, rewardProm]);
                 }
                 else {
                     if (data[1] && data[1].bDirty) {

@@ -1244,7 +1244,8 @@ var dbPlayerTopUpRecord = {
                             aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
-                            remark: remark
+                            remark: remark,
+                            createTime: createTime ? new Date(createTime) : new Date(),
                         };
                         if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];
