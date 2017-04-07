@@ -5721,7 +5721,7 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
             socketService.$socket($scope.AppSocket, 'applyAlipayTopUpRequest', sendData,
                 data => {
-                    vm.playerAlipayTopUp.responseData = data.data;
+                    vm.playerAlipayTopUp.responseMsg = $translate('SUCCESS')
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 },
