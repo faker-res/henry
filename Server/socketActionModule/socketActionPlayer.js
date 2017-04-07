@@ -648,7 +648,7 @@ function socketActionPlayer(socketIO, socket) {
         applyAlipayTopUpRequest: function applyAlipayTopUpRequest(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.amount && data.alipayName && data.alipayAccount);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [data.playerId, data.amount, data.alipayName, data.alipayAccount, 'ADMIN', getAdminId(), getAdminName()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [data.playerId, data.amount, data.alipayName, data.alipayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark], actionName, isValidData);
         },
 
         verifyPlayerBankAccount: function verifyPlayerBankAccount(data) {

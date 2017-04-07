@@ -1174,7 +1174,7 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName) {
+    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark) {
         let player = null;
         let proposal = null;
         let request = null;
@@ -1210,6 +1210,7 @@ var dbPlayerTopUpRecord = {
                         proposalData.amount = Number(amount);
                         proposalData.alipayName = alipayName;
                         proposalData.alipayAccount = alipayAccount;
+                        proposalData.remark = remark;
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
                             name: adminName,

@@ -5715,7 +5715,8 @@ define(['js/app'], function (myApp) {
                 playerId: vm.isOneSelectedPlayer().playerId,
                 amount: vm.playerAlipayTopUp.amount,
                 alipayName: vm.playerAlipayTopUp.alipayName,
-                alipayAccount: vm.playerAlipayTopUp.alipayAccount
+                alipayAccount: vm.playerAlipayTopUp.alipayAccount,
+                remark: vm.playerAlipayTopUp.remark
             };
             vm.playerAlipayTopUp.submitted = true;
             $scope.safeApply();
@@ -5747,6 +5748,10 @@ define(['js/app'], function (myApp) {
                     if (vm.existingAlipayTopup.proposalId == data.data.proposalId) {
                         vm.existingAlipayTopup.isCanceled = true;
                     }
+                    $scope.safeApply();
+                },
+                error => {
+                    vm.playerAlipayTopUp.responseMsg = error.error.errorMessage;
                     $scope.safeApply();
                 }
             );
