@@ -1244,7 +1244,7 @@ var dbPlayerTopUpRecord = {
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : []
                         };
-                        if( alipayAccount ){
+                        if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];
                         }
                         //console.log("requestData", requestData);
@@ -1268,7 +1268,9 @@ var dbPlayerTopUpRecord = {
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.alipayAccount = requestData.result.alipayAccount;
                         updateData.data.alipayQRCode = requestData.result.alipayQRCode;
-
+                        if (requestData.result.validTime) {
+                            updateData.data.validTime = new Date(requestData.result.validTime);
+                        }
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,
