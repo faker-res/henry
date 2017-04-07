@@ -1,8 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var GameTypeService = require("./../../services/provider/ProviderServices").GameTypeService;
 var dbGameType = require('./../../db_modules/dbGameType');

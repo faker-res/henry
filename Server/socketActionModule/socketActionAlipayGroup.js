@@ -1,8 +1,3 @@
-/******************************************************************
- *        Project
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var dbPlatformAlipayGroup = require('./../db_modules/dbPlatformAlipayGroup');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;

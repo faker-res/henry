@@ -1,9 +1,3 @@
-/******************************************************************
- *        fpms-vin
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var db = db.getSiblingDB("logsdb");
 
 var docs = db.playerConsumptionRecord.aggregate(

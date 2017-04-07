@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var env = require("./config/env").config();
 var settlementEnv = require("./config/settlementEnv").config();
 var WebSocketServer = require("./server_common/WebSocketServer");

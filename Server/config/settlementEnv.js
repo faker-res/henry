@@ -1,9 +1,3 @@
-/******************************************************************
- *        Server
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 //for local development environment
 var localConfig = {
     mode: "local",

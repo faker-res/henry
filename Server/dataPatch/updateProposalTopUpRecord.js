@@ -1,10 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
-
 const env = require("../config/env").config();
 const dbconfig = require("../modules/dbproperties");
 const constProposalType = require("../const/constProposalType");

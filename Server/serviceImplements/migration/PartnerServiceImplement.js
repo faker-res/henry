@@ -1,9 +1,3 @@
-/******************************************************************
- *        Fantasy Player Management System
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 "use strict";
 
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");

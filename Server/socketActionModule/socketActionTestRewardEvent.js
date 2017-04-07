@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var socketUtil = require('./../modules/socketutility');
 var testFirstTopUpRewardEvent = require('./../testEvent/testFirstTopUpRewardEvent');
 var testGameProviderRewardEvent = require('./../testEvent/testGameProviderRewardEvent');

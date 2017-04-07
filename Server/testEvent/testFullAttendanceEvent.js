@@ -1,9 +1,3 @@
-/******************************************************************
- *  Fantasy Player Management Tool
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 var dbPlayerTopUpDaySummary = require('../db_modules/dbPlayerTopUpDaySummary');

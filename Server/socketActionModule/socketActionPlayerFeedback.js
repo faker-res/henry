@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var dbPlayerFeedback = require('./../db_modules/dbPlayerFeedback');
 var constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
 var socketUtil = require('./../modules/socketutility');

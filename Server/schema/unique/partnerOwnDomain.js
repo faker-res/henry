@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 /*
  * This schema is to ensure the uniqueness of domain name
  */
