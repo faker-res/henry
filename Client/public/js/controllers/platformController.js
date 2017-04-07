@@ -5696,7 +5696,62 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
             $scope.safeApply();
-        }
+        };
+
+        // Player alipay topup
+        vm.initPlayerAlipayTopUp = function () {
+            vm.playerAlipayTopUp = {submitted: false};
+            vm.existingAlipayTopup = null;
+            socketService.$socket($scope.AppSocket, 'getAlipayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
+                data => {
+                    vm.existingAlipayTopup = data.data ? data.data : false;
+                    $scope.safeApply();
+            });
+            $scope.safeApply();
+        };
+
+        vm.applyPlayerAlipayTopUp = () => {
+            let sendData = {
+                playerId: vm.isOneSelectedPlayer().playerId,
+                amount: vm.playerAlipayTopUp.amount,
+                alipayName: vm.playerAlipayTopUp.alipayName,
+                alipayAccount: vm.playerAlipayTopUp.alipayAccount
+            };
+            vm.playerAlipayTopUp.submitted = true;
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'applyAlipayTopUpRequest', sendData,
+                data => {
+                    vm.playerAlipayTopUp.responseData = data.data;
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                },
+                error => {
+                    vm.playerAlipayTopUp.responseMsg = error.error.errorMessage;
+                    socketService.showErrorMessage(error.error.errorMessage);
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                }
+            );
+        };
+
+        vm.cancelPlayerAlipayTopUp = () => {
+            if (!vm.existingAlipayTopup) {
+                return;
+            }
+            let sendQuery = {
+                playerId: vm.selectedSinglePlayer.playerId,
+                proposalId: vm.existingAlipayTopup.proposalId
+            };
+            socketService.$socket($scope.AppSocket, 'cancelAlipayTopup', sendQuery,
+                data => {
+                    if (vm.existingAlipayTopup.proposalId == data.data.proposalId) {
+                        vm.existingAlipayTopup.isCanceled = true;
+                    }
+                    $scope.safeApply();
+                }
+            );
+        };
+
         vm.cancelPlayerManualTop = function () {
             if (!vm.existingManualTopup) {
                 return;

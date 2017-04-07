@@ -673,7 +673,8 @@
   "Settlement History":"结算历史",
   "Alipay Group":"支付宝组",
   "Alipay":"支付宝",
-  "Searching existing manual topup request...":"查找已有玩家手工记录。。。",
+  "Searching existing manual topup request...":"查找现有玩家手工充值记录。。。",
+  "Searching existing Alipay topup request...":"查找现有玩家支付宝充值记录。。。",
   "This platform has no commission config. Create one?":"此平台没有佣金设置，创建?",
   "Commission Rate":"佣金比例",
   "Cancel Proposal":"取消提案",
@@ -1303,6 +1304,7 @@
   "MARK_THIS_MAIL_AS_READ": "已读",
   "Basic":"基本",
   "alipayQRCode":"支付宝QR码",
+  "alipayName": "支付宝名",
   "alipayAccount":"支付宝账号",
 
   "WORLD":"世界",
@@ -1484,7 +1486,9 @@
   "honoreeDetail":"兑奖备注",
   "DEPOSIT_METHOD":"手工存款方式",
   "APPLY_MANUAL_TOPUP":"申请手工充值",
+  "APPLY_ALIPAY_TOPUP":"申请支付宝充值",
   "ApplyManualTopup":"申请手工充值",
+  "ApplyAlipayTopup":"申请支付宝充值",
   "Daily TopUp Sum":"日充值额",
   "Weekly TopUp Sum":"周充值额",
   "Daily Consumption Sum":"日消费额",
@@ -1632,6 +1636,7 @@
   "Player does not have this permission": "玩家无此权限",
   "Top up type is forbidden for this player": "支付服务维护中...",
   "Player has pending manual topup request already.":"玩家已有手工充值记录",
+  "Player has pending Alipay topup request already.":"玩家已有支付宝充值记录",
   "The player has not unlocked the previous reward task. Not valid for new reward": "玩家已有奖励任务，无法申请新的奖励",
   "Player does not have enought top up amount": "玩家额度不足",
   "Player has too much credit": "玩家额度过多",
@@ -1824,4 +1829,5 @@
   "TRANSFER_OUT":"转出",
   "BET":"投注",
   "PAYOUT":"派彩"
+
 }

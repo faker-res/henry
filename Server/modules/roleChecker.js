@@ -236,6 +236,7 @@ var roleChecker = {
                 PaymentInformationHistory: ['getPaymentHistory'],
                 ResetPassword: ['resetPlayerPassword'],
                 ApplyManualTopup: ['applyManualTopUpRequest', 'cancelManualTopupRequest'],
+                ApplyAlipayTopup: ['getAlipayTopUpRequestList', 'applyAlipayTopUpRequest', 'cancelAlipayTopup'],
                 TopupRecord: ['getPlayerTopUpRecords'],
                 applyBonus: ['applyBonusRequest'],
                 BonusHistory: [],
