@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var should = require('should');
 var dbconfig = require('../modules/dbproperties');
 var WebSocketClient = require('../server_common/WebSocketClient');

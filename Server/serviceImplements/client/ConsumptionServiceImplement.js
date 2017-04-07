@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var ConsumptionService = require("./../../services/client/ClientServices").ConsumptionService;
 var dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
