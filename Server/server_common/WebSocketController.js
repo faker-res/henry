@@ -1,9 +1,3 @@
-/******************************************************************
- *        Fantasy Player Management System
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 //todo:: to be replaced by WebSocketServer 应该改名叫WebSocketServer
 
 var WebSocketServer = require("ws").Server;

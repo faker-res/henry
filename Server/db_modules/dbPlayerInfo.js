@@ -140,7 +140,7 @@ var dbPlayerInfo = {
                         //check if player's domain matches any partner
                         else if (inputData.domain) {
                             delete inputData.referral;
-                            var filteredDomain = inputData.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "");
+                            var filteredDomain = inputData.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
