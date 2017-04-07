@@ -7388,15 +7388,15 @@ define(['js/app'], function (myApp) {
             if (onCreationForm) {
                 if (vm.showRewardTypeData.name == "PartnerConsumptionReturn") {
                     setInitialPartnerLevel();
-                }
-                if (vm.showRewardTypeData.name == "PartnerReferralReward") {
+                } else if (vm.showRewardTypeData.name == "PartnerReferralReward") {
                     vm.rewardCondition.numOfEntries = 1;
                     vm.rewardParams = Lodash.cloneDeep(vm.showRewardTypeData.params.params);
                     setInitialPartnerLevel();
-                }
-                if (vm.showRewardTypeData.name == "PartnerIncentiveReward") {
+                } else if (vm.showRewardTypeData.name == "PartnerIncentiveReward") {
                     vm.rewardCondition.rewardAmount = 200;
                     setInitialPartnerLevel();
+                } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
+                    vm.rewardParams = {reward: []};
                 }
             }
 
@@ -7447,7 +7447,6 @@ define(['js/app'], function (myApp) {
 
             if (vm.platformRewardPageName == "newReward" || vm.platformRewardPageName == "updateReward")return false;
             else return true;
-
         }
         vm.clearRewardFormData = function () {
             vm.rewardCondition = null;
@@ -7493,6 +7492,14 @@ define(['js/app'], function (myApp) {
             vm.showRewardFormValid = !vm.rewardWeeklyConsecutiveTopUpDuplicateProvider;
             $scope.safeApply();
         }
+        vm.updateDoubleTopupReward = function (type, data) {
+            if (type == 'add') {
+                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+            } else if (type == 'remove') {
+                vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
+            }
+        }
+
 
         vm.topupProviderChange = function (provider, checked) {
             if (!provider) {
@@ -9364,7 +9371,7 @@ define(['js/app'], function (myApp) {
                                 })
                             }
                             $scope.safeApply();
-                    });
+                        });
 
                     socketService.$socket($scope.AppSocket, 'getRewardTypesConfig', {}, function (data) {
                         console.log('rewardType', data);
