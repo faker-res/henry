@@ -1174,7 +1174,7 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark) {
+    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
         let player = null;
         let proposal = null;
         let request = null;
@@ -1223,6 +1223,7 @@ var dbPlayerTopUpRecord = {
                             creator: proposalData.creator,
                             data: proposalData,
                             entryType: constProposalEntryType[entryType],
+                            createTime: createTime ? new Date(createTime) : new Date(),
                             userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                         };
                         return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
@@ -1243,7 +1244,8 @@ var dbPlayerTopUpRecord = {
                             aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
-                            remark: remark
+                            remark: remark,
+                            createTime: createTime ? new Date(createTime) : new Date(),
                         };
                         if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];

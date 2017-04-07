@@ -1231,6 +1231,12 @@ include modalGameCreditLog
                                 .control-label
                                     label {{'alipayAccount' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
+                                .control-label
+                                    label {{'REMARK' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.remark')
+                                .inlineBlk
+                                    label {{'CREATE_TIME' | translate}}
+                                    .createTime
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerAlipayTopUp.submitted') {{'Submitted' | translate}}
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_alipay_topup.$invalid || form_alipay_topup.$pristine || (vm.existingAlipayTopup && !vm.existingAlipayTopup.isCanceled)', ng-show='!vm.playerAlipayTopUp.submitted', ng-click='vm.applyPlayerAlipayTopUp()') {{'APPLY' | translate}}
