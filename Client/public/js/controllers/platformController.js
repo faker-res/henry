@@ -3636,12 +3636,54 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {'title': $translate('CREATE_TIME'), data: 'createTime$'},
                     {'title': $translate('Type'), data: 'operationType$', sClass: "tbodyNoWrap"},
-                    {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "wordWrap"},
-                    {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "tbodyNoWrap"},
-                    {'title': $translate('CUR_AMOUNT'), data: 'curAmount', sClass: "tbodyNoWrap"},
-                    {'title': $translate('Before UnlockedAmount'), data: 'beforeUnlockedAmount', sClass: "tbodyNoWrap"},
-                    {'title': $translate('Change UnlockedAmount'), data: 'changedLockedAmount', sClass: "tbodyNoWrap"},
-                    {'title': $translate('UNLOCKAMOUNT'), data: 'lockedAmount', sClass: "tbodyNoWrap"},
+                    {
+                      'title': $translate('Before Amount'),
+                      data: 'beforeAmount',
+                      sClass: "wordWrap",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      'title': $translate('CHANGE_AMOUNT'),
+                      data: 'amount',
+                      sClass: "tbodyNoWrap",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      'title': $translate('CUR_AMOUNT'),
+                      data: 'curAmount',
+                      sClass: "tbodyNoWrap",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      'title': $translate('Before UnlockedAmount'),
+                      data: 'beforeUnlockedAmount',
+                      sClass: "tbodyNoWrap",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      'title': $translate('Change UnlockedAmount'),
+                      data: 'changedLockedAmount',
+                      sClass: "tbodyNoWrap",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      'title': $translate('UNLOCKAMOUNT'),
+                      data: 'lockedAmount',
+                      sClass: "tbodyNoWrap",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
                     {'title': $translate('View Details'), data: 'details$', sClass: "wordWrap width30Per"}
                 ],
                 paging: false,
@@ -4360,7 +4402,14 @@ define(['js/app'], function (myApp) {
                     {title: $translate("TOP_UP_TYPE"), data: "type$"},
                     {title: $translate("PROPOSAL_ID"), data: "proposalId"},
                     {title: $translate("SETTLEMENT") + $translate("TIME"), data: "settleTime$", sClass: 'sumText'},
-                    {title: $translate("CREDIT"), data: "amount$", sClass: 'alignRight sumFloat'}
+                    {
+                      title: $translate("CREDIT"),
+                      data: "amount$",
+                      sClass: 'alignRight sumFloat',
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    }
                 ],
                 paging: false
             });
@@ -4685,11 +4734,29 @@ define(['js/app'], function (myApp) {
                         {title: $translate('GAME_TITLE'), data: "gameId.name"},
                         {title: $translate('GAME_TYPE'), data: "gameType$", sClass: 'sumText'},
                         // {title: $translate('Game Round'), data: "roundNo", sClass: 'sumText'},
-                        {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
-                        {title: $translate('CREDIT'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
+                        {
+                          title: $translate('VALID_AMOUNT'),
+                          data: "validAmount$",
+                          sClass: 'alignRight sumFloat',
+                          render: function (data, type, row) {
+                              return parseFloat(data).toFixed(2);
+                          }
+                        },
+                        {
+                           title: $translate('CREDIT'),
+                           data: "amount$", bSortable: true,
+                           sClass: 'alignRight sumFloat',
+                           render: function (data, type, row) {
+                               return parseFloat(data).toFixed(2);
+                           }
+                        },
                         {
                             title: $translate('bonusAmount1'),
-                            data: "bonusAmount$", sClass: 'alignRight sumFloat'
+                            data: "bonusAmount$",
+                            sClass: 'alignRight sumFloat',
+                            render: function (data, type, row) {
+                                return parseFloat(data).toFixed(2);
+                            }
                         },
                         // {
                         //     title: $translate('commissionAmount'),
@@ -5267,14 +5334,62 @@ define(['js/app'], function (myApp) {
                     {title: $translate('CREATETIME'), data: "createTime$"},
                     {title: $translate('rewardType'), data: "rewardType"},
                     {title: $translate('ISUNLOCK'), data: "isUnlock"},
-                    {title: $translate('applyAmount'), data: "applyAmount"},
-                    {title: $translate('initAMOUNT'), data: "initAmount"},
-                    {title: $translate('currentAMOUNT'), data: "currentAmount"},
-                    {title: $translate('bonusAmount'), data: "bonusAmount"},
-                    {title: $translate('requiredUnlockAmount'), data: "requiredUnlockAmount"},
-                    {title: $translate('unlockedAmount'), data: "unlockedAmount"},
-                    {title: $translate('requiredBonusAmount'), data: "requiredBonusAmount"},
-                    {title: $translate('unlockedBonusAmount'), data: "unlockedBonusAmount"},
+                    {
+                      title: $translate('applyAmount'),
+                      data: "applyAmount",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      title: $translate('initAMOUNT'),
+                      data: "initAmount",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      title: $translate('currentAMOUNT'),
+                      data: "currentAmount",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      title: $translate('bonusAmount'),
+                      data: "bonusAmount",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      title: $translate('requiredUnlockAmount'),
+                      data: "requiredUnlockAmount",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      title: $translate('unlockedAmount'),
+                      data: "unlockedAmount",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      title: $translate('requiredBonusAmount'),
+                      data: "requiredBonusAmount",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      title: $translate('unlockedBonusAmount'),
+                      data: "unlockedBonusAmount",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
                     // {title: $translate('targetEnable'), data: "targetEnable"},
                     {title: $translate('targetProviders'), data: "provider$"},
                     {title: $translate('useConsumption'), data: "useConsumption"},
@@ -5587,7 +5702,14 @@ define(['js/app'], function (myApp) {
                     {title: $translate('USER_TYPE'), data: "userType$"},
                     {title: $translate('REWARD_CODE'), data: "data.eventCode"},
                     {title: $translate('REWARD_NAME'), data: "data.eventName"},
-                    {title: $translate('CREDIT'), data: "rewardAmount$", sClass: "alignRight"},
+                    {
+                      title: $translate('CREDIT'),
+                      data: "rewardAmount$",
+                      sClass: "alignRight",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('DESCRIPTION'), data: "data.eventDescription"}
 
@@ -5659,8 +5781,20 @@ define(['js/app'], function (myApp) {
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('bonusId'), data: "data.bonusId"},
                     {title: $translate('bonusCredit'), data: "data.bonusCredit"},
-                    {title: $translate('amount'), data: "data.amount"},
-                    {title: $translate('CUR_AMOUNT'), data: "curAmount$"},
+                    {
+                      title: $translate('amount'),
+                      data: "data.amount",
+                      render: function (data, type, row) {
+                        return parseFloat(data).toFixed(2);
+                      }
+                    },
+                    {
+                      title: $translate('CUR_AMOUNT'),
+                      data: "curAmount$",
+                      render: function (data, type, row) {
+                          return parseFloat(data).toFixed(2);
+                      }
+                    },
                     {title: $translate('HONOREE_DETAIL'), data: "data.honoreeDetail"},
                 ],
                 "paging": false,
@@ -6071,8 +6205,12 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('CREDIT'),
-                        data: "amount$", bSortable: true,
-                        className: "feedbackAdminAmount alignRight sumFloat"
+                        data: "amount$",
+                        bSortable: true,
+                        className: "feedbackAdminAmount alignRight sumFloat",
+                        render: function (data, type, row) {
+                            return parseFloat(data).toFixed(2);
+                        }
                     },
                 ],
                 "paging": false,
@@ -6231,7 +6369,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('CREDIT'),
                         "sClass": "alignRight sumFloat",
-                        data: 'credits'
+                        data: 'credits',
+                        render: function (data, type, row) {
+                            return parseFloat(data).toFixed(2);
+                        }
                     },
                     {
                         title: $translate('REGISTRATION_TIME'), data: 'registrationTime',
