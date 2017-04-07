@@ -140,7 +140,7 @@ var dbPlayerInfo = {
                         //check if player's domain matches any partner
                         else if (inputData.domain) {
                             delete inputData.referral;
-                            var filteredDomain = inputData.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "");
+                            var filteredDomain = inputData.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
@@ -7258,7 +7258,219 @@ var dbPlayerInfo = {
     },
 
     applyPlayerDoubleTopUpReward: function (playerId, code, topUpRecordId, adminInfo) {
+        var platformId = null;
+        var player = {};
+        var record = {};
+        var deductionAmount;
+        var bDoneDeduction = false;
 
+        var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
+        var playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "playerLevel", model: dbconfig.collection_playerLevel}
+        ).lean();
+        return Q.all([playerProm, recordProm]).then(
+            data => {
+                //get player's platform reward event data
+                if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
+                    player = data[0];
+                    record = data[1];
+                    platformId = player.platform;
+                    var taskProm = dbRewardTask.getRewardTask(
+                        {
+                            playerId: player._id,
+                            status: constRewardTaskStatus.STARTED
+                        }
+                    );
+                    //get reward event data
+                    var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, code);
+                    //get today's double top up reward
+                    var rewardProm = dbconfig.collection_proposalType.findOne({
+                        name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD,
+                        platform: player.platform
+                    }).lean(
+                        type => {
+                            if( type ){
+                                let todayTime = dbUtility.getTodaySGTime();
+                                return dbconfig.collection_proposal.find(
+                                    {
+                                        type: type._id,
+                                        "data.playerObjId": player._id,
+                                        status: constProposalStatus.APPROVED,
+                                        createTime: {
+                                            $gte: todayTime.startTime,
+                                            $lt: todayTime.endTime
+                                        }
+                                    }
+                                ).count();
+                            }
+                            else{
+                                return Q.reject({
+                                    name: "DataError",
+                                    message: "Can not find player double top up reward proposal type"
+                                });
+                            }
+                        }
+                    );
+                    return Q.all([eventProm, taskProm]);
+                }
+                else {
+                    if (data[1] && data[1].bDirty) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: "This top up record has been used"
+                        });
+                    }
+                    else {
+                        return Q.reject({
+                            status: constServerCode.INVALID_DATA,
+                            name: "DataError",
+                            message: "Invalid data"
+                        });
+                    }
+                }
+            }
+        ).then(
+            function (data) {
+                if (!data) {
+                    return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "Cannot find player double top up reward event data for platform"
+                    });
+                }
+
+                var eventData = data[0];
+                var taskData = data[1];
+                if (taskData) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_HAS_REWARD_TASK,
+                        name: "DataError",
+                        message: "The player has not unlocked the previous reward task. Not valid for new reward"
+                    });
+                }
+
+                if (!rewardUtility.isValidRewardEvent(constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, eventData)) {
+                    return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "Invalid player top up reward event data for platform"
+                    });
+                }
+
+                let rewardParam = eventData.param.reward;
+                if (!rewardParam) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player is not valid for this reward"
+                    });
+                }
+
+                //find player reward amount
+                let rewardAmount = 0;
+                let maxRewardAmount = 0;
+                let consumptionTimes = 0;
+                eventData.param.reward.forEach(
+                    rewardRow => {
+                        if( player.playerLevel.value >= rewardRow.minPlayerLevel && record.amount >= rewardRow.topUpAmount && rewardRow.rewardAmount > rewardAmount ){
+                            rewardAmount = rewardRow.rewardAmount;
+                            maxRewardAmount = rewardRow.maxRewardAmount;
+                            consumptionTimes = rewardRow.consumptionTimes;
+                        }
+                    }
+                );
+
+                if (rewardAmount <= 0) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Topup amount is less than minimum topup requirement"
+                    });
+                }
+
+                // All conditions have been satisfied.
+                deductionAmount = record.amount;
+                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerDoubleTopUpReward:Deduction", record).then(
+                    function () {
+                        bDoneDeduction = true;
+
+                        var rewardAmount = rewardParam.rewardAmount;
+                        var proposalData = {
+                            type: eventData.executeProposal,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: player.name,
+                                    id: playerId
+                                },
+                            data: {
+                                playerObjId: player._id,
+                                playerId: player.playerId,
+                                playerName: player.name,
+                                platformId: platformId,
+                                topUpRecordId: topUpRecordId,
+                                applyAmount: deductionAmount,
+                                rewardAmount: rewardAmount,
+                                spendingAmount: (record.amount + rewardAmount) * rewardParam.unlockTimes,
+                                minTopUpAmount: rewardParam.minTopUpAmount,
+                                maxRewardAmount: rewardParam.maxRewardAmount,
+                                useConsumption: true,
+                                eventId: eventData._id,
+                                eventName: eventData.name,
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
+                            },
+                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                            userType: constProposalUserType.PLAYERS,
+                        };
+                        return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
+                            {_id: record._id, createTime: record.createTime, bDirty: false},
+                            {bDirty: true},
+                            {new: true}
+                        ).then(
+                            data => {
+                                if (data && data.bDirty) {
+                                    return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
+                                        data => data,
+                                        error => {
+                                            //clean top up record if create proposal failed
+                                            console.error({
+                                                name: "DBError",
+                                                message: "Create player double top up reward proposal failed",
+                                                data: proposalData,
+                                                error: error
+                                            });
+                                            return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
+                                                {
+                                                    _id: record._id,
+                                                    createTime: record.createTime
+                                                }, {bDirty: false}
+                                            ).catch(errorUtils.reportError).then(
+                                                () => Q.reject(error)
+                                            );
+                                        }
+                                    );
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "This top up record has been used"
+                                    });
+                                }
+                            }
+                        );
+                    }
+                );
+            }
+        ).catch(
+            error => Q.resolve().then(
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyPlayerTopUpReward:ProposalFailedRefund", error)
+            ).then(
+                () => Q.reject(error)
+            )
+        );
     },
 
     /**

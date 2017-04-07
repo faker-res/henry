@@ -923,7 +923,7 @@ define(['js/app'], function (myApp) {
             vm.repairPaymentStage = 0;
             console.log('vm.selectedProposal', vm.selectedProposal);
             vm.thisProposalSteps = [];
-            if (vm.selectedProposal.process != null) {
+            if (vm.selectedProposal.process != null && typeof vm.selectedProposal.process == 'object') {
                 socketService.$socket($scope.AppSocket, 'getFullProposalProcess', {_id: vm.selectedProposal.process._id}, processSuccess);
             }
             function processSuccess(data) {

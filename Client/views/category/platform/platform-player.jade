@@ -739,15 +739,15 @@ include modalGameCreditLog
 #playerFeedbackPopover.hide(style="width: 600px")
     label {{"Feedback History"| translate}}
     div(style='max-height:400px;overflow-y:auto;')
-        text(ng-if='vm.playerFeedbackData.data.length==0')
+        text(ng-if='vm.playerFeedbackData.length==0')
         table.simple-table
             thead
                 tr
                     th(style='min-width:90px;') {{'TIME' | translate}}
                     th {{'RESULT' | translate}}
                     th {{'CONTENT' | translate}}
-            tbody(ng-if='vm.playerFeedbackData.data.length>0', style='max-height:500px;overflow-y:auto')
-                tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
+            tbody(ng-if='vm.playerFeedbackData.length>0', style='max-height:500px;overflow-y:auto')
+                tr(ng-repeat='(i,v) in vm.playerFeedbackData')
                     td {{vm.dateReformat(v.createTime)}}
                     td {{v.result | translate}}
                     td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}

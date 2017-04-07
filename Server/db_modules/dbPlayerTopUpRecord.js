@@ -1172,21 +1172,18 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount, entryType, adminId, adminName) {
-        let player = null;
-        let proposal = null;
-        let request = null;
+    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount) {
+        var player = null;
+        var proposal = null;
+        var request = null;
 
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
-                        let minTopUpAmount = playerData.platform.minTopUpAmount || 0;
-                        let proposalData = {};
-
                         player = playerData;
-
+                        var minTopUpAmount = playerData.platform.minTopUpAmount || 0;
                         if (amount < minTopUpAmount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_TOP_UP_FAIL,
@@ -1201,7 +1198,7 @@ var dbPlayerTopUpRecord = {
                                 errorMessage: "Player does not have this permission"
                             });
                         }
-
+                        var proposalData = {};
                         proposalData.playerId = playerId;
                         proposalData.playerObjId = playerData._id;
                         proposalData.platformId = playerData.platform._id;
@@ -1209,19 +1206,17 @@ var dbPlayerTopUpRecord = {
                         proposalData.platform = playerData.platform.platformId;
                         proposalData.playerName = playerData.name;
                         proposalData.amount = Number(amount);
-                        proposalData.creator = entryType === "ADMIN" ? {
-                            type: 'admin',
-                            name: adminName,
-                            id: adminId
-                        } : {
+                        proposalData.alipayName = alipayName;
+                        proposalData.alipayAccount = alipayAccount;
+                        proposalData.creator = {
                             type: 'player',
                             name: playerData.name,
                             id: playerId
                         };
-                        let newProposal = {
+                        var newProposal = {
                             creator: proposalData.creator,
                             data: proposalData,
-                            entryType: entryType || constProposalEntryType.CLIENT,
+                            entryType: constProposalEntryType.CLIENT,
                             userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                         };
                         return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
@@ -1234,14 +1229,19 @@ var dbPlayerTopUpRecord = {
                 proposalData => {
                     if (proposalData) {
                         proposal = proposalData;
-                        let requestData = {
+                        var requestData = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: player.realName || "",
+                            realName: alipayName,//player.realName || "",
+                            aliPayAccount: 1,
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : []
                         };
+                        if( alipayAccount ){
+                            requestData.groupAlipayList = [alipayAccount];
+                        }
+                        //console.log("requestData", requestData);
                         return pmsAPI.payment_requestAlipayAccount(requestData);
                     }
                     else {
@@ -1250,10 +1250,11 @@ var dbPlayerTopUpRecord = {
                 }
             ).then(
                 requestData => {
+                    //console.log("request response", requestData);
                     if (requestData && requestData.result) {
                         request = requestData;
                         //add request data to proposal and update proposal status to pending
-                        let updateData = {
+                        var updateData = {
                             status: constProposalStatus.PENDING
                         };
                         updateData.data = Object.assign({}, proposal.data);

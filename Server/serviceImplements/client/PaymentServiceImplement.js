@@ -113,8 +113,8 @@ var PaymentServiceImplement = function () {
         if(data){
             data.amount = Number(data.amount);
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [conn.playerId, data.amount], isValidData);
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [conn.playerId, data.amount, data.alipayName, data.alipayAccount], isValidData);
     };
 
     this.cancelManualTopupRequest.expectsData = 'proposalId: String';

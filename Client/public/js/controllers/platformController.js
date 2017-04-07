@@ -4136,15 +4136,35 @@ define(['js/app'], function (myApp) {
                     }) || [];
                 console.log('errData', vm.playerTransferErrorLog);
                 $scope.safeApply();
+
                 var newTblOption = $.extend({}, vm.generalDataTableOptions, {
                     data: vm.playerTransferErrorLog,
                     columns: [
                         {title: $translate("CREATETIME"), data: 'createTimeText'},
                         {title: $translate("TRANSFER") + " ID", data: 'transferId'},
-                        {title: $translate("CREDIT"), data: 'amount'},
+                        {
+                          title: $translate("CREDIT"),
+                          data: 'amount',
+                          render: function (data, type, row) {
+                              return parseFloat(data).toFixed(2);
+                          }
+                        },
                         {title: $translate("provider"), data: 'providerText'},
-                        {title: $translate("amount"), data: 'amount'},
-                        {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount'},
+                        {
+                          title: $translate("amount"),
+                          data: 'amount',
+                          render: function (data, type, row) {
+                              return parseFloat(data).toFixed(2);
+                          }
+                        },
+                        {
+                          title: $translate("LOCKED_CREDIT"),
+                          data: 'lockedAmount',
+                          data: 'amount',
+                          render: function (data, type, row) {
+                              return parseFloat(data).toFixed(2);
+                          }
+                        },
                         {title: $translate("TYPE"), data: 'typeText'},
                         {
                             title: $translate("STATUS"),
@@ -4174,8 +4194,8 @@ define(['js/app'], function (myApp) {
                             })
 
                             vm.linkedPlayerTransferId = playerTransfer.transferId;
-                            vm.creditChange.finalValidAmount = playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit;
-                            vm.creditChange.finalLockedAmount = playerTransfer.lockedAmount;
+                            vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit).toFixed(2);
+                            vm.creditChange.finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
                             $scope.safeApply();
                         });
                     }
@@ -7403,15 +7423,15 @@ define(['js/app'], function (myApp) {
             if (onCreationForm) {
                 if (vm.showRewardTypeData.name == "PartnerConsumptionReturn") {
                     setInitialPartnerLevel();
-                }
-                if (vm.showRewardTypeData.name == "PartnerReferralReward") {
+                } else if (vm.showRewardTypeData.name == "PartnerReferralReward") {
                     vm.rewardCondition.numOfEntries = 1;
                     vm.rewardParams = Lodash.cloneDeep(vm.showRewardTypeData.params.params);
                     setInitialPartnerLevel();
-                }
-                if (vm.showRewardTypeData.name == "PartnerIncentiveReward") {
+                } else if (vm.showRewardTypeData.name == "PartnerIncentiveReward") {
                     vm.rewardCondition.rewardAmount = 200;
                     setInitialPartnerLevel();
+                } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
+                    vm.rewardParams = {reward: []};
                 }
             }
 
@@ -7462,7 +7482,6 @@ define(['js/app'], function (myApp) {
 
             if (vm.platformRewardPageName == "newReward" || vm.platformRewardPageName == "updateReward")return false;
             else return true;
-
         }
         vm.clearRewardFormData = function () {
             vm.rewardCondition = null;
@@ -7508,6 +7527,14 @@ define(['js/app'], function (myApp) {
             vm.showRewardFormValid = !vm.rewardWeeklyConsecutiveTopUpDuplicateProvider;
             $scope.safeApply();
         }
+        vm.updateDoubleTopupReward = function (type, data) {
+            if (type == 'add') {
+                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+            } else if (type == 'remove') {
+                vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
+            }
+        }
+
 
         vm.topupProviderChange = function (provider, checked) {
             if (!provider) {
@@ -9379,7 +9406,7 @@ define(['js/app'], function (myApp) {
                                 })
                             }
                             $scope.safeApply();
-                    });
+                        });
 
                     socketService.$socket($scope.AppSocket, 'getRewardTypesConfig', {}, function (data) {
                         console.log('rewardType', data);
