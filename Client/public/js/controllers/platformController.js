@@ -5676,7 +5676,42 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
             $scope.safeApply();
-        }
+        };
+
+        // Player alipay topup
+        vm.initPlayerAlipayTopUp = function () {
+            vm.playerAlipayTopUp = {submitted: false};
+            vm.existingAlipayTopup = null;
+            socketService.$socket($scope.AppSocket, 'getAlipayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
+                data => {
+                    vm.existingAlipayTopup = data.data ? data.data : false;
+                    $scope.safeApply();
+            });
+            $scope.safeApply();
+        };
+
+        vm.applyPlayerAlipayTopUp = () => {
+            let sendData = {
+                playerId: vm.isOneSelectedPlayer().playerId,
+                amount: vm.playerAlipayTopUp.amount
+            };
+            vm.playerAlipayTopUp.submitted = true;
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'applyAlipayTopUpRequest', sendData,
+                data => {
+                    vm.playerAlipayTopUp.responseData = data.data;
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                },
+                error => {
+                    vm.playerAlipayTopUp.responseMsg = error.error.errorMessage;
+                    socketService.showErrorMessage(error.error.errorMessage);
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                }
+            );
+        };
+
         vm.cancelPlayerManualTop = function () {
             if (!vm.existingManualTopup) {
                 return;

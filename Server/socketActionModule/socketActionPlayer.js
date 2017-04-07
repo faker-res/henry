@@ -625,6 +625,7 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.verifyPlayerPhoneNumber, [data.playerObjId, data.phoneNumber], actionName, isValidData);
         },
 
+        // Manual TopUp
         getManualTopupRequestList: function getManualTopupRequestList(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId != null);
@@ -635,6 +636,19 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId != null && data.proposalId != null);
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelManualTopupRequest, [data.playerId, data.proposalId], actionName, isValidData);
+        },
+
+        // Alipay TopUp
+        getAlipayTopUpRequestList: function getAlipayTopUpRequestList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId !== null);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getAlipayTopupRequestList, [data.playerId], actionName, isValidData);
+        },
+
+        applyAlipayTopUpRequest: function applyAlipayTopUpRequest(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.amount);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [data.playerId, data.amount, 'ADMIN', getAdminId(), getAdminName()], actionName, isValidData);
         },
 
         verifyPlayerBankAccount: function verifyPlayerBankAccount(data) {
