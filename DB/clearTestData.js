@@ -1,9 +1,3 @@
-/******************************************************************
- *        Project
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var count = 0;
 var dbArray = ['admin', 'admindb', 'logsdb', 'playerdb'];
 for (var dbName in dbArray) {

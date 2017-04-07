@@ -1,8 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var Q = require("q");
 var should = require('should');
 var dbProposalType = require('../db_modules/dbProposalType');
