@@ -2442,18 +2442,25 @@ define(['js/app'], function (myApp) {
             });
 
         };
+
+        // Get detail on domain's player data
         vm.getDetailDomainPlayerData = function (newSearch) {
-            var sendData = {
+            let sendData = {
                 platformId: vm.curPlatformId,
                 query: {
                     startTime: vm.newPlayerQuery.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.newPlayerQuery.endTime.data('datetimepicker').getLocalDate(),
-                    domain: vm.detailDomainPlayer.domainName
+                    domain: vm.detailDomainPlayer.domainName,
+                    registrationTime: {
+                        $gte: vm.newPlayerQuery.startTime.data('datetimepicker').getLocalDate(),
+                        $lt: vm.newPlayerQuery.endTime.data('datetimepicker').getLocalDate()
+                    }
                 },
                 index: newSearch ? 0 : vm.detailDomainPlayer.index,
                 limit: vm.detailDomainPlayer.limit || 10,
                 sortCol: vm.detailDomainPlayer.sortCol || {}
-            }
+            };
+
             socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQueryWithTopupTimes', sendData, function (data) {
                 vm.drawDetailDomainPlayerTable(data.data.data.map(item => {
                     item.registrationTime$ = $scope.timeReformat(item.registrationTime);
@@ -2465,7 +2472,8 @@ define(['js/app'], function (myApp) {
                 }), data.data.size, newSearch);
                 $scope.safeApply();
             });
-        }
+        };
+
         vm.drawDetailDomainPlayerTable = function (tableData, size, newSearch) {
             console.log('detailDomain', tableData);
             var options = $.extend({}, $scope.getGeneralDataTableOption, {

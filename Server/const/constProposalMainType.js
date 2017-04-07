@@ -50,11 +50,11 @@ const constProposalMainType = {
     "PlayerRegistrationReward": constMainType.REWARD,
     "ManualUnlockPlayerReward": constMainType.REWARD,
     "PlayerConsumptionReturnFix": constMainType.REWARD,
+    "PlayerDoubleTopUpReward": constMainType.REWARD,
 
     //BONUS
     "PlayerBonus": constMainType.BONUS,
-    "PartnerBonus": constMainType.BONUS,
-
+    "PartnerBonus": constMainType.BONUS
 
 };
 
