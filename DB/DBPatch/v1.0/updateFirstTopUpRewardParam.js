@@ -145,6 +145,7 @@ db.rewardType.insert({"name": type16, params: param16._id, des: "Player Registra
 var type17 = "PlayerDoubleTopUpReward";
 db.rewardParam.insert({
     "name": type17, params: {
+        maxRewardTimes: {type: "Number", des: "Max Reward Times"},
         reward: {
             type: "Table",
             data: {
