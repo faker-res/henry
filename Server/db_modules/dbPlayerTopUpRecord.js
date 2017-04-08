@@ -23,6 +23,7 @@ const constProposalUserType = require('../const/constProposalUserType');
 var constShardKeys = require('../const/constShardKeys');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
+var moment = require('moment-timezone');
 
 var dbPlayerTopUpRecord = {
     /**
@@ -1236,6 +1237,8 @@ var dbPlayerTopUpRecord = {
                 proposalData => {
                     if (proposalData) {
                         proposal = proposalData;
+                        let cTime = createTime ? new Date(createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                         let requestData = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
@@ -1245,7 +1248,7 @@ var dbPlayerTopUpRecord = {
                             amount: amount,
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
                             remark: remark,
-                            createTime: createTime ? new Date(createTime) : new Date(),
+                            createTime: cTimeString,
                         };
                         if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];
