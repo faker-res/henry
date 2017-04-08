@@ -1211,6 +1211,7 @@ var dbPlayerTopUpRecord = {
                         proposalData.amount = Number(amount);
                         proposalData.alipayName = alipayName;
                         proposalData.alipayAccount = alipayAccount;
+                        proposalData.remark = remark;
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
                             name: adminName,
