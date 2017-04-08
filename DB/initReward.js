@@ -369,6 +369,8 @@ var type17 = "PlayerDoubleTopUpReward";
 db.rewardParam.insert({
     "name": type17, params: {
         maxRewardTimes: {type: "Number", des: "Max Reward Times"},
+        targetEnable: {type: "Boolean", des: "If target is enabled"},
+        providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
         reward: {
             type: "Table",
             data: {

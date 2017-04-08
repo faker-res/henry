@@ -4468,7 +4468,7 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardShow.selectTopupRecordsMulti = false;
                 vm.playerApplyRewardShow.topUpRecordIds = {};
             }
-            if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn") {
+            if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward") {
                 vm.playerApplyRewardShow.TopupRecordSelect = true;
                 vm.playerAllTopupRecords = null;
                 vm.getPlayerTopupRecord(null, rewardObj);
