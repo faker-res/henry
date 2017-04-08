@@ -7295,7 +7295,7 @@ var dbPlayerInfo = {
                                     {
                                         type: type._id,
                                         "data.playerObjId": player._id,
-                                        status: constProposalStatus.APPROVED,
+                                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]},
                                         createTime: {
                                             $gte: todayTime.startTime,
                                             $lt: todayTime.endTime
@@ -7367,6 +7367,14 @@ var dbPlayerInfo = {
                     });
                 }
 
+                if( eventData.param && eventData.param.maxRewardTimes != null && data[2] >= eventData.param.maxRewardTimes ){
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player has applied for max reward times"
+                    });
+                }
+
                 //find player reward amount
                 let rewardAmount = 0;
                 let maxRewardAmount = 0;
@@ -7412,9 +7420,8 @@ var dbPlayerInfo = {
                                 topUpRecordId: topUpRecordId,
                                 applyAmount: deductionAmount,
                                 rewardAmount: rewardAmount,
-                                spendingAmount: (record.amount + rewardAmount) * rewardParam.unlockTimes,
-                                minTopUpAmount: rewardParam.minTopUpAmount,
-                                maxRewardAmount: rewardParam.maxRewardAmount,
+                                spendingAmount: (record.amount + rewardAmount) * consumptionTimes,
+                                maxRewardAmount: maxRewardAmount,
                                 useConsumption: true,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
