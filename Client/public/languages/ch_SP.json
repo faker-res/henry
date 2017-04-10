@@ -1831,6 +1831,8 @@
   "TRANSFER_OUT":"转出",
   "BET":"投注",
   "PAYOUT":"派彩",
-  "Max Reward Times":"每日申请次数"
+  "Max Reward Times":"每日申请次数",
 
+  "TopUp - Bonus": "下线会员总存款-下线会员总提款",
+  "operationAmount - platformFee - serviceFee - totalRewardAmount": "运营值-平台费用-服务费用-奖励额度"
 }
