@@ -55,11 +55,13 @@ var dbPartner = {
 
     /**
      * Create a new partner
-     * @param {json} data - The data of the partner user. Refer to Partner schema.
+     * @param {json} partnerdata - The data of the partner user. Refer to Partner schema.
      */
     createPartner: function (partnerdata) {
-        var deferred = Q.defer();
-        if (partnerdata.parent == '') {
+        let deferred = Q.defer();
+        let partnerName = partnerdata.partnerName;
+
+        if (partnerdata.parent === '') {
             partnerdata.parent = null;
         }
         if (!partnerdata.platform) {
@@ -69,23 +71,21 @@ var dbPartner = {
             });
         }
         dbconfig.collection_partner.findOne({partnerName: partnerdata.partnerName.toLowerCase()}).then(
-            function (data) {
+            data => {
                 if (!data) {
                     // If level was provided then use that, otherwise select the first level on the platform
-                    const levelProm = partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
+                    return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
                         platform: partnerdata.platform,
                         value: partnerdata.level || 0
                     });
-                    return levelProm;
-
                 } else {
                     deferred.reject({
                         name: "DataError",
                         message: "Username already exists"
                     });
                 }
-            }, function (error) {
-
+            },
+            error => {
                 deferred.reject({
                     name: "DataError",
                     message: "Error in checking partner name validity",
@@ -96,9 +96,9 @@ var dbPartner = {
             function (level) {
                 return dbPartner.createPartnerDomain(partnerdata).then(
                     () => {
-                        var partner = new dbconfig.collection_partner(partnerdata);
+                        let partner = new dbconfig.collection_partner(partnerdata);
                         partner.level = level;
-                        partner.partnerName = partner.partnerName.toLowerCase();
+                        partner.partnerName = partnerName.toLowerCase();
                         return partner.save();
                     },
                     error => {
@@ -178,7 +178,7 @@ var dbPartner = {
         return Q.resolve().then(
             () => {
                 if (partnerData && partnerData.ownDomain && Array.isArray(partnerData.ownDomain) && partnerData.ownDomain.length > 0) {
-                    var proms = partnerData.ownDomain.map(
+                    let proms = partnerData.ownDomain.map(
                         domain => new dbconfig.collection_partnerOwnDomain({name: domain}).save()
                     );
                     return Q.all(proms);
