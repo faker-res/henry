@@ -7286,8 +7286,8 @@ var dbPlayerInfo = {
                     //get today's double top up reward
                     var rewardProm = dbconfig.collection_proposalType.findOne({
                         name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD,
-                        platform: player.platform
-                    }).lean(
+                        platformId: player.platform
+                    }).lean().then(
                         type => {
                             if( type ){
                                 let todayTime = dbUtility.getTodaySGTime();
@@ -7366,7 +7366,7 @@ var dbPlayerInfo = {
                         message: "Player is not valid for this reward"
                     });
                 }
-
+                
                 if( eventData.param && eventData.param.maxRewardTimes != null && data[2] >= eventData.param.maxRewardTimes ){
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
