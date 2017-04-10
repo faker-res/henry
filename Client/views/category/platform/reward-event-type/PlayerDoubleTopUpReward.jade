@@ -1,6 +1,24 @@
 //
    Created by wanglz on 7/4/17.
 .well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.maxRewardTimes.des | translate}}
+        input.form-control(type='number', min=0, ng-model='vm.rewardParams.maxRewardTimes', ng-disabled='vm.platformRewardShowEdit()')
+
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.targetEnable.des | translate}}
+        input.form-control(type='checkbox', ng-model='vm.rewardParams.targetEnable', ng-disabled='vm.platformRewardShowEdit()')
+
+    .full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward'")
+        label(style='vertical-align: top;') {{"PROVIDER" | translate}}
+        div.inlineBlk
+            label.margin-right-5(ng-repeat='(i,v) in vm.platformProvider') {{v.name}}
+                input.pull-left(type='checkbox', ng-model="vm.firstTopUp.providerTick[v._id]", ng-change='vm.topupProviderChange(v._id,vm.firstTopUp.providerTick[v._id])')
+    .full-width-input-block(ng-if="vm.platformRewardPageName =='showReward'")
+        label(style='vertical-align: top;') {{"PROVIDER" | translate}}
+        div.inlineBlk
+            label.margin-right-5(ng-repeat='(i,v) in vm.rewardParams.providers') {{vm.getProviderText(v)|translate}}
+.well
     label {{vm.showRewardTypeData.params.params.reward.des | translate}}
     div(style='margin-bottom:0px;overflow:auto;width:100%')
         table.table.simple-table
