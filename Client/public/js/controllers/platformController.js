@@ -4185,27 +4185,27 @@ define(['js/app'], function (myApp) {
                         {title: $translate("CREATETIME"), data: 'createTimeText'},
                         {title: $translate("TRANSFER") + " ID", data: 'transferId'},
                         {
-                          title: $translate("CREDIT"),
-                          data: 'amount',
-                          render: function (data, type, row) {
-                              return parseFloat(data).toFixed(2);
-                          }
+                            title: $translate("CREDIT"),
+                            data: 'amount',
+                            render: function (data, type, row) {
+                                return parseFloat(data).toFixed(2);
+                            }
                         },
                         {title: $translate("provider"), data: 'providerText'},
                         {
-                          title: $translate("amount"),
-                          data: 'amount',
-                          render: function (data, type, row) {
-                              return parseFloat(data).toFixed(2);
-                          }
+                            title: $translate("amount"),
+                            data: 'amount',
+                            render: function (data, type, row) {
+                                return parseFloat(data).toFixed(2);
+                            }
                         },
                         {
-                          title: $translate("LOCKED_CREDIT"),
-                          data: 'lockedAmount',
-                          data: 'amount',
-                          render: function (data, type, row) {
-                              return parseFloat(data).toFixed(2);
-                          }
+                            title: $translate("LOCKED_CREDIT"),
+                            data: 'lockedAmount',
+                            data: 'amount',
+                            render: function (data, type, row) {
+                                return parseFloat(data).toFixed(2);
+                            }
                         },
                         {title: $translate("TYPE"), data: 'typeText'},
                         {
@@ -5840,7 +5840,7 @@ define(['js/app'], function (myApp) {
                 data => {
                     vm.existingAlipayTopup = data.data ? data.data : false;
                     $scope.safeApply();
-            });
+                });
             utilService.actionAfterLoaded('#modalPlayerAlipayTopUp', function () {
                 vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerAlipayTopUp .createTime');
                 vm.playerAlipayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
@@ -7534,6 +7534,22 @@ define(['js/app'], function (myApp) {
                         //vm.rewardTabClicked();
                     });
                 }
+            } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
+                console.log('vm.rewardParams', vm.rewardParams);
+                vm.rewardParams.providers = vm.rewardParams.providers || [];
+
+                vm.firstTopUp = {providerTick: {}};
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                    vm.platformProvider = data.data.gameProviders;
+                    vm.platformProvider.forEach(a => {
+                        if (vm.rewardParams.providers) {
+                            vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                        }
+                    })
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("cannot get gameProvider", data);
+                });
             }
             else if (vm.showRewardTypeData.name == "PlayerTopUpReturn") {
                 console.log('vm.rewardParams', vm.rewardParams);
@@ -7602,7 +7618,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardCondition.rewardAmount = 200;
                     setInitialPartnerLevel();
                 } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
-                    vm.rewardParams = {reward: []};
+                    vm.rewardParams.reward = [];
                 }
             }
 
