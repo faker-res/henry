@@ -1341,6 +1341,7 @@
   "Minimum total consumption amount":"最低总消费额",
   "Min Active Player":"最小活跃玩家数",
   "commissionLevelConfig":"佣金等级设置",
+  "PARTNER_COMMISSION_SETTLEMENT_MODE":"代理佣金结算模式",
 
   "PlayerBonus": "玩家提款",
   "PartnerBonus": "推广渠道兑奖",

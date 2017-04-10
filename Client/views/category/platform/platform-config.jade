@@ -442,6 +442,9 @@
                                         td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
                                             a.fa.fa-times-circle.text-danger(ng-click='vm.removePartnerCommissionLevel("childrenCommissionRate","level",v)')
                             button.btn.btn-info.margin-top-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.addCommissionLevel("childrenCommissionRate")') {{'ADD_LEVEL' | translate}}
+                        .col-md-12(ng-if='vm.partnerCommission.showConfig')
+                            h4 {{'PARTNER_COMMISSION_SETTLEMENT_MODE' | translate}}
+                            select.form-control(ng-model='vm.partnerCommission.showConfig.settlementMode', ng-options='i as v for (i,v) in vm.partnerCommissionSettlementModeConst', required)
                         .col-md-12.margin-top-10(ng-if='vm.partnerCommission.showConfig')
                             .pull-right
                                 button.btn.btn-primary.margin-right-5(ng-if='!vm.partnerCommission.isEditing', ng-click='vm.partnerCommission.isEditing=true') {{'Edit' | translate}}

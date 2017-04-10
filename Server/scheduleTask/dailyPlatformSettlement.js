@@ -259,6 +259,8 @@ var dailyPlatformSettlement = {
      * re-calculated again later at the usual settlement time.  This is used to prepare data for the report.
      *
      * @param platformObjId
+     * @param bUpdate
+     * @param isToday
      */
     manualPlatformPartnerCommissionSettlement: function (platformObjId, bUpdate, isToday) {
         return Q.resolve().then(

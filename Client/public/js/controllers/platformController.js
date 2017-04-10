@@ -7735,6 +7735,7 @@ define(['js/app'], function (myApp) {
                 case 'partnerCommission':
                     vm.partnerCommission = vm.partnerCommission || {};
                     vm.getPartnerCommissionPeriodConst();
+                    vm.getPartnerCommissionSettlementModeConst();
                     vm.getPartnerCommisionConfig();
                     break;
                 case 'announcement':
@@ -9286,7 +9287,17 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommissionPeriodConst = data.data;
                 $scope.safeApply();
             });
-        }
+        };
+
+        vm.getPartnerCommissionSettlementModeConst = () => {
+            if (vm.partnerCommissionSettlementModeConst) {
+                return
+            }
+            socketService.$socket($scope.AppSocket, 'getPartnerCommissionSettlementModeConst', '', function (data) {
+                vm.partnerCommissionSettlementModeConst = data.data;
+                $scope.safeApply();
+            });
+        };
 
         vm.setValue = function (obj, key, val) {
             if (obj && key) {

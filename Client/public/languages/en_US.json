@@ -791,5 +791,7 @@
   "APPROVAL_PROPOSAL":"Approval Proposal",
   "proposalStepShow":"Proposal Status：Pending， Department：",
   "Qty_Min":"Min",
-  "Qty_Max":"Max"
+  "Qty_Max":"Max",
+
+  "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode"
 }
