@@ -4134,37 +4134,23 @@ define(['js/app'], function (myApp) {
                         item.providerText = vm.getProviderText(item.providerId);
                         return item;
                     }) || [];
-                console.log('errData', vm.playerTransferErrorLog);
+                console.log('errData',JSON.stringify(vm.playerTransferErrorLog));
                 $scope.safeApply();
+
+                for(var i = 0; i < vm.playerTransferErrorLog.length; i++){
+                  vm.playerTransferErrorLog[i].amount = parseFloat(vm.playerTransferErrorLog[i].amount).toFixed(2);
+                  vm.playerTransferErrorLog[i].lockedAmount =  parseFloat(vm.playerTransferErrorLog[i].lockedAmount).toFixed(2);
+                }
 
                 var newTblOption = $.extend({}, vm.generalDataTableOptions, {
                     data: vm.playerTransferErrorLog,
                     columns: [
                         {title: $translate("CREATETIME"), data: 'createTimeText'},
                         {title: $translate("TRANSFER") + " ID", data: 'transferId'},
-                        {
-                            title: $translate("CREDIT"),
-                            data: 'amount',
-                            render: function (data, type, row) {
-                                return parseFloat(data).toFixed(2);
-                            }
-                        },
+                        {title: $translate("CREDIT"),data: 'amount'},
                         {title: $translate("provider"), data: 'providerText'},
-                        {
-                            title: $translate("amount"),
-                            data: 'amount',
-                            render: function (data, type, row) {
-                                return parseFloat(data).toFixed(2);
-                            }
-                        },
-                        {
-                            title: $translate("LOCKED_CREDIT"),
-                            data: 'lockedAmount',
-                            data: 'amount',
-                            render: function (data, type, row) {
-                                return parseFloat(data).toFixed(2);
-                            }
-                        },
+                        {title: $translate("amount"),data: 'amount'},
+                        {title: $translate("LOCKED_CREDIT"),data: 'lockedAmount',data: 'amount'},
                         {title: $translate("TYPE"), data: 'typeText'},
                         {
                             title: $translate("STATUS"),
