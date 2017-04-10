@@ -1828,6 +1828,7 @@
   "TRANSFER_IN":"转入",
   "TRANSFER_OUT":"转出",
   "BET":"投注",
-  "PAYOUT":"派彩"
+  "PAYOUT":"派彩",
+  "Max Reward Times":"每日申请次数"
 
 }
