@@ -16,7 +16,7 @@ let queryPhoneLocation = require('query-mobile-phone-area');
 let constProposalEntryType = require('./../../const/constProposalEntryType');
 let constProposalUserType = require('./../../const/constProposalUserType');
 let dbLogger = require('./../../modules/dbLogger');
-let dbPartner = require('../../db_modules/dbPartner');
+let dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
 
 let PlayerServiceImplement = function () {
     PlayerService.call(this);
@@ -121,12 +121,16 @@ let PlayerServiceImplement = function () {
                 device: ua.device.name || '',
                 os: ua.os.name || ''
             }];
-            let geo = geoip.lookup(data.lastLoginIp);
-            if (geo) {
-                data.country = geo.country;
-                data.city = geo.city;
-                data.longitude = geo.ll ? geo.ll[1] : null;
-                data.latitude = geo.ll ? geo.ll[0] : null;
+
+            // attach geoip if available
+            if (data.lastLoginIp) {
+                let geo = geoip.lookup(data.lastLoginIp);
+                if (geo) {
+                    data.country = geo.country;
+                    data.city = geo.city;
+                    data.longitude = geo.ll ? geo.ll[1] : null;
+                    data.latitude = geo.ll ? geo.ll[0] : null;
+                }
             }
 
             if (data.phoneNumber) {
@@ -141,24 +145,22 @@ let PlayerServiceImplement = function () {
             data.isOnline = true;
             data.partnerName = data.name;
 
-            // Promise create partner
-            WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createPartnerAPI, [data], isValidData, false, false, true);
-
-            // Promise create player
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, true, false, true).then(
-                function (playerData) {
+            // Promise create player and partner
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.createPlayerPartnerAPI, [data], isValidData, true, false, true).then(
+                playerPartnerData => {
                     conn.isAuth = true;
-                    conn.playerId = playerData.playerId;
-                    conn.playerObjId = playerData._id;
+                    conn.playerId = playerPartnerData.playerId;
+                    conn.playerObjId = playerPartnerData._id;
                     conn.noOfAttempt = 0;
-                    conn.onclose = function (event) {
-                        dbPlayerInfo.playerLogout({playerId: playerData.playerId});
-                    };
-                    let profile = {name: playerData.name, password: playerData.password};
+                    conn.onclose =
+                        event => {
+                            dbPlayerInfo.playerLogout({playerId: playerPartnerData.playerId});
+                        };
+                    let profile = {name: playerPartnerData.name, password: playerPartnerData.password};
                     let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
-                        data: playerData,
+                        data: playerPartnerData,
                         token: token,
                     }, data);
                 }
