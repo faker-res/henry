@@ -23,7 +23,7 @@ var dataUtils = require("../modules/dataUtils.js");
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
     if (maxAttempts === undefined) {
-        maxAttempts = 10;
+        maxAttempts = 20;
     }
     if (delayBetweenAttempts === undefined) {
         delayBetweenAttempts = 500;
