@@ -14,7 +14,7 @@ form(name="form_new_platform" ,novalidate)
         input.form-control(type="text", placeholder="{{'PLATFORM_PREFIX' | translate}}", ng-model="vm.showPlatform.prefix", required)
     div.form-group.col-md-6
         label.control-label *{{"PLATFORM_PARTNER_PREFIX" | translate}}
-        input.form-control(type="text", placeholder="{{'PLATFORM_PARTNER_PREFIX' | translate}}", ng-model="vm.showPlatform.partnerPrefix", required)
+        input.form-control(type="text", placeholder="{{'PLATFORM_PARTNER_PREFIX' | translate}}", ng-model="vm.showPlatform.partnerPrefix")
     div.form-group.col-md-6
         label.control-label {{"PLATFORM_ICON" | translate}}
         input.form-control(type="text", placeholder="{{'PLATFORM ICON URL' | translate}}", ng-model="vm.showPlatform.icon", style='width:calc(100% - 50px);display:inline-block')
