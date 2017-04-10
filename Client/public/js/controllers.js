@@ -144,7 +144,8 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
 
                 serverPing.on('pong', (latency) => {
                     WSCONFIG[server].latency = latency * 2;
-                    $scope.safeApply();
+                    //todo::too much safe apply here. use a different way
+                    //$scope.safeApply();
 
                     setTimeout(() => {
                         resolve(serverPing.disconnect());
