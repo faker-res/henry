@@ -141,7 +141,8 @@ var simplifiedChinese = {
     "Player does not have manual topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",
     "Please contact customer service": "请联系在线客服",
     "Referral does not have enough topup amount": "被推荐人充值额度不够",
-    "Player does not have enough return amount": "您的洗码额度不足100元，无法提前结算洗码，谢谢"
+    "Player does not have enough return amount": "您的洗码额度不足100元，无法提前结算洗码，谢谢",
+    "Player has applied for max reward times": "您已经达到了该奖励今日的申请上限"
     //todo::add missing messages here
 
     /*

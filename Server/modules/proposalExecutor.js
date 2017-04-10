@@ -130,6 +130,7 @@ var proposalExecutor = {
         this.executions.executePlayerRegistrationReward.des = "Player Registration Reward";
         this.executions.executeManualUnlockPlayerReward.des = "Manual Unlock Player Reward";
         this.executions.executePartnerCommission.des = "Partner commission";
+        this.executions.executePlayerDoubleTopUpReward.des = "Player double top up reward";
 
         this.rejections.rejectProposal.des = "Reject proposal";
         this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -165,6 +166,7 @@ var proposalExecutor = {
         this.rejections.rejectPlayerRegistrationReward.des = "Reject Player Registration Reward";
         this.rejections.rejectManualUnlockPlayerReward.des = "Reject Manual Unlock Player Reward";
         this.rejections.rejectPartnerCommission.des = "Reject Partner commission";
+        this.rejections.rejectPlayerDoubleTopUpReward.des = "Reject Player double top up return";
     },
 
     refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1619,7 +1621,75 @@ var proposalExecutor = {
             else {
                 deferred.reject({name: "DataError", message: "Incorrect partner commission proposal data"});
             }
-        }
+        },
+
+        /**
+         * execution function for player top up return proposal type
+         */
+        executePlayerDoubleTopUpReward: function (proposalData, deferred) {
+            //create reward task for related player
+            //verify data
+            if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                dbRewardTask.getRewardTask(
+                    {
+                        playerId: proposalData.data.playerObjId,
+                        status: constRewardTaskStatus.STARTED
+                    }
+                ).then(
+                    function (curData) {
+                        if (!curData) {
+                            var taskData = {
+                                playerId: proposalData.data.playerObjId,
+                                type: constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
+                                rewardType: constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
+                                platformId: proposalData.data.platformId,
+                                requiredUnlockAmount: proposalData.data.spendingAmount,
+                                currentAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
+                                initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
+                                useConsumption: proposalData.data.useConsumption,
+                                eventId: proposalData.data.eventId,
+                                applyAmount: proposalData.data.applyAmount
+                            };
+                            if (proposalData.data.providers) {
+                                taskData.targetProviders = proposalData.data.providers;
+                            }
+                            var deferred1 = Q.defer();
+                            createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, proposalData);
+                            deferred1.promise.then(
+                                data => {
+                                    dbconfig.collection_players.findOneAndUpdate(
+                                        {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                        {$inc: {dailyTopUpIncentiveAmount: proposalData.data.rewardAmount}}
+                                    ).then(
+                                        () => {
+                                            deferred.resolve(data);
+                                        },
+                                        deferred.reject
+                                    );
+                                },
+                                deferred.reject
+                            );
+                        }
+                        else {
+                            deferred.reject({
+                                name: "DBError",
+                                message: "Player already has reward task ongoing",
+                            });
+                        }
+                    },
+                    function (error) {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Error finding reward task for player top up return",
+                            error: error
+                        });
+                    }
+                );
+            }
+            else {
+                deferred.reject({name: "DataError", message: "Incorrect player top up return proposal data"});
+            }
+        },
     },
 
     /**
@@ -2022,7 +2092,14 @@ var proposalExecutor = {
 
         rejectPartnerCommission: function (proposalData, deferred) {
             deferred.resolve("Proposal is rejected");
-        }
+        },
+
+        rejectPlayerDoubleTopUpReward: function (proposalData, deferred) {
+            //clean top up records that are used for application
+            proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectPlayerDoubleTopUpReward").then(
+                () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
+            );
+        },
     }
 };
 

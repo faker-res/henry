@@ -7295,7 +7295,7 @@ var dbPlayerInfo = {
                                     {
                                         type: type._id,
                                         "data.playerObjId": player._id,
-                                        status: constProposalStatus.APPROVED,
+                                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]},
                                         createTime: {
                                             $gte: todayTime.startTime,
                                             $lt: todayTime.endTime
@@ -7367,10 +7367,18 @@ var dbPlayerInfo = {
                     });
                 }
 
+                if( eventData.param && eventData.param.maxRewardTimes != null && data[2] >= eventData.param.maxRewardTimes ){
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player has applied for max reward times"
+                    });
+                }
+
                 //find player reward amount
-                let rewardAmount = 0;
-                let maxRewardAmount = 0;
-                let consumptionTimes = 0;
+                var rewardAmount = 0;
+                var maxRewardAmount = 0;
+                var consumptionTimes = 0;
                 eventData.param.reward.forEach(
                     rewardRow => {
                         if( player.playerLevel.value >= rewardRow.minPlayerLevel && record.amount >= rewardRow.topUpAmount && rewardRow.rewardAmount > rewardAmount ){
@@ -7381,7 +7389,7 @@ var dbPlayerInfo = {
                     }
                 );
 
-                if (rewardAmount <= 0) {
+                if (!rewardAmount || rewardAmount <= 0) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
@@ -7394,8 +7402,6 @@ var dbPlayerInfo = {
                 return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerDoubleTopUpReward:Deduction", record).then(
                     function () {
                         bDoneDeduction = true;
-
-                        var rewardAmount = rewardParam.rewardAmount;
                         var proposalData = {
                             type: eventData.executeProposal,
                             creator: adminInfo ? adminInfo :
@@ -7412,14 +7418,15 @@ var dbPlayerInfo = {
                                 topUpRecordId: topUpRecordId,
                                 applyAmount: deductionAmount,
                                 rewardAmount: rewardAmount,
-                                spendingAmount: (record.amount + rewardAmount) * rewardParam.unlockTimes,
-                                minTopUpAmount: rewardParam.minTopUpAmount,
-                                maxRewardAmount: rewardParam.maxRewardAmount,
+                                spendingAmount: (record.amount + rewardAmount) * consumptionTimes,
+                                maxRewardAmount: maxRewardAmount,
                                 useConsumption: true,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
-                                eventDescription: eventData.description
+                                eventDescription: eventData.description,
+                                providers: eventData.param.providers,
+                                targetEnable: eventData.param.targetEnable
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
