@@ -6651,9 +6651,7 @@ var dbPlayerInfo = {
                                 eventId: eventData._id,
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
-                                eventDescription: eventData.description,
-                                providers: eventData.param.providers,
-                                targetEnable: eventData.param.targetEnable
+                                eventDescription: eventData.description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -7426,7 +7424,9 @@ var dbPlayerInfo = {
                                 eventId: eventData._id,
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
-                                eventDescription: eventData.description
+                                eventDescription: eventData.description,
+                                providers: eventData.param.providers,
+                                targetEnable: eventData.param.targetEnable
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
