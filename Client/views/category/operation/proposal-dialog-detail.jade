@@ -10,7 +10,7 @@ div
         label {{vm.selectedProposal.type.name || 'none'|translate}}
     .label-value
         label {{'STATUS' | translate}}&nbsp;:&nbsp;
-        label {{vm.selectedProposal.process.status || vm.selectedProposal.status || 'none' | translate}}
+        label {{vm.selectedProposal.status || vm.selectedProposal.process.status || 'none' | translate}}
     .label-value
         label {{'PROPOSAL_NO' | translate}}&nbsp;:&nbsp;
         label {{vm.selectedProposal.proposalId || 'none' | translate}}
