@@ -131,6 +131,32 @@
 
     };
 
+    proto.createPlayerPartner = function (callback, requestData) {
+        date = new Date().getTime();
+        let thisObj = this;
+        let data = requestData ||
+            {
+                "name": "testPlayer" + date,
+                "realName": "testPlayerRealName",
+                "password": "123456",
+                "platformId": platformId,
+                "phoneNumber": "97787654",
+                "email": "testPlayer123@gmail.com",
+                smsCode: smsCode,
+                isTestPlayer: true,
+                requestId: "testRequestId123"
+            };
+
+        thisObj.playerService.createPlayerPartner.request(data);
+        thisObj.playerService.createPlayerPartner.once(function (data) {
+            newTestPlayerObjId = data && data.data ? data.data._id : null;
+            newTestPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.get = function (callback, requestData) {
         var data = requestData || {name: 'testclientplayer'};
         this.playerService.get.request(data);

@@ -37,6 +37,7 @@
             var functionNames = [
                 "create",
                 "playerQuickReg",
+                "createPlayerPartner",
                 "get",
                 "update",
                 "captcha",
