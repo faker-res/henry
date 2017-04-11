@@ -16,7 +16,7 @@ var jwt = require('jsonwebtoken');
 var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 
-var SettlementBalancer = require('../settlementModule/settlementBalancer');
+let SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
 const constPartnerCommissionPeriod = require('../const/constPartnerCommissionPeriod');
