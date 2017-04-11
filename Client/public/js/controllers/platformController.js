@@ -2230,6 +2230,9 @@ define(['js/app'], function (myApp) {
                             link.append($('<i>', {
                                 'class': 'fa fa-folder-open margin-right-5 ' + (perm.topupManual === true ? "text-primary" : "text-danger"),
                             }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === true ? "text-primary" : "text-danger"),
+                            }));
                             link.append($('<img>', {
                                 'src': "images/icon/" + (perm.alipayTransaction === true ? "aliPayBlue.png" : "aliPayRed.png"),
                                 height: "15px",
@@ -2529,8 +2532,9 @@ define(['js/app'], function (myApp) {
                                 transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
                                 topupOnline: {imgType: 'i', iconClass: "fa fa-pencil-square"},
                                 topupManual: {imgType: 'i', iconClass: "fa fa-folder-open"},
-                                alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
-                            }
+                                banReward: {imgType: 'i', iconClass: "fa fa-ban"},
+                                alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"}
+                            };
                             $("#playerPermissionTable td").removeClass('hide');
                             $.each(vm.playerPermissionTypes, function (key, v) {
                                 if (row.permission && row.permission[key]) {
@@ -2538,7 +2542,7 @@ define(['js/app'], function (myApp) {
                                 } else {
                                     $("#playerPermissionTable .permitOn." + key).addClass('hide');
                                 }
-                            })
+                            });
                             $scope.safeApply();
                             showPopover(that, '#playerPermissionPopover', row);
                         },
