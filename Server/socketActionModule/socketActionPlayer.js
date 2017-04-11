@@ -651,6 +651,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [data.playerId, data.amount, data.alipayName, data.alipayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
         },
 
+        cancelAlipayTopup: function cancelAlipayTopup(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data.playerId && data.proposalId);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelAlipayTopup, [data.playerId, data.proposalId], actionName, isValidData);
+        },
+
         verifyPlayerBankAccount: function verifyPlayerBankAccount(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerObjId != null && data.bankAccount != null);
