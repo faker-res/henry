@@ -1225,7 +1225,7 @@ var dbPlayerTopUpRecord = {
                             creator: proposalData.creator,
                             data: proposalData,
                             entryType: constProposalEntryType[entryType],
-                            createTime: createTime ? new Date(createTime) : new Date(),
+                            //createTime: createTime ? new Date(createTime) : new Date(),
                             userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                         };
                         return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
