@@ -947,6 +947,7 @@ var dbPlayerTopUpRecord = {
             modifyData => {
                 var updateData = {};
                 delete data.proposalId;
+                delete data.requestId;
                 for (var property in data) {
                     if (data.hasOwnProperty(property)) {
                         if (data[property] != proposal.data[property]) {
@@ -1212,6 +1213,9 @@ var dbPlayerTopUpRecord = {
                         proposalData.alipayName = alipayName;
                         proposalData.alipayAccount = alipayAccount;
                         proposalData.remark = remark;
+                        if(createTime){
+                            proposalData.depositeTime = new Date(createTime);
+                        }
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
                             name: adminName,
@@ -1225,7 +1229,7 @@ var dbPlayerTopUpRecord = {
                             creator: proposalData.creator,
                             data: proposalData,
                             entryType: constProposalEntryType[entryType],
-                            createTime: createTime ? new Date(createTime) : new Date(),
+                            //createTime: createTime ? new Date(createTime) : new Date(),
                             userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                         };
                         return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);

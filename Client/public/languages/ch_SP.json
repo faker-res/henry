@@ -651,7 +651,7 @@
   "Player Consumption Return":"玩家消费返点奖励",
   "Partner Consumption Return":"推广渠道消费返点奖励",
   "Partner Weekly Consumption Return Reward":"推广渠道每周消费返点奖励",
-  "Player First Time Top Up":"初次充值",
+  "Player First Time Top Up":"首次充值",
   "Partner Incentive Reward":"推广渠道奖励",
   "Partner Referral Reward":"推广渠道推荐人奖励",
   "Platform Transaction Reward":"银行转账奖励",
@@ -1477,7 +1477,7 @@
   "merchantGroup":"商户组",
   "_id":"ID",
   "playerName":"玩家姓名",
-  "referralName":"被推荐人姓名",
+  "referralName":"推荐人姓名",
   "referralTopUpAmount": "被推荐人充值额",
   "updateAmount":"变更额度",
   "curAmount":"当前额度",
@@ -1832,6 +1832,9 @@
   "BET":"投注",
   "PAYOUT":"派彩",
   "Max Reward Times":"每日申请次数",
+  "PlayerDoubleTopUpReward":"玩家多次充值",
+  "banReward": "禁止奖励",
+  "DEPOSITE_TIME": "存款时间",
 
   "TopUp - Bonus": "下线会员总存款-下线会员总提款",
   "operationAmount - platformFee - serviceFee - totalRewardAmount": "运营值-平台费用-服务费用-奖励额度"

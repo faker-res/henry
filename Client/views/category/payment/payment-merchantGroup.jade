@@ -91,6 +91,9 @@
                                             td {{'Merchant Use' | translate}}
                                             td.text-success {{merchantUseTypeJson[v.merchantUse] | translate}}
                                         tr
+                                            td {{'Status' | translate}}
+                                            td.text-success {{v.status | translate}}
+                                        tr
                                             td {{'Merchant Type ID' | translate}}
                                             td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
                                                 img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')

@@ -142,7 +142,8 @@ var simplifiedChinese = {
     "Please contact customer service": "请联系在线客服",
     "Referral does not have enough topup amount": "被推荐人充值额度不够",
     "Player does not have enough return amount": "您的洗码额度不足100元，无法提前结算洗码，谢谢",
-    "Player has applied for max reward times": "您已经达到了该奖励今日的申请上限"
+    "Player has applied for max reward times": "您已经达到了该奖励今日的申请上限",
+    "Player do not have permission for reward": "您好， 您目前暂无申请优惠的权限，请联系客服。"
     //todo::add missing messages here
 
     /*

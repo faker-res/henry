@@ -2233,11 +2233,19 @@ var dbPlayerInfo = {
                 if (platformData) {
                     platformId = platformData._id;
                     platformPrefix = platformData.prefix;
-                    playerData.name = platformData.prefix + playerData.name;
-                    return dbconfig.collection_players.findOne({
-                        name: playerData.name.toLowerCase(),
-                        platform: platformData._id
-                    }).lean();
+                    playerData.prefixName = platformData.prefix + playerData.name;
+
+                        return dbconfig.collection_players.findOne(
+                            {$or:[
+                                {
+                                    name: playerData.prefixName.toLowerCase(),
+                                    platform: platformData._id
+                                },
+                                {
+                                    phoneNumber: playerData.name,
+                                    platform: platformData._id
+                                }
+                            ]}).lean();
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Cannot find platform"});
@@ -6718,6 +6726,13 @@ var dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
                 if (playerData) {
+                    if( playerData.permission && playerData.permission.banReward ){
+                        return Q.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: "Player do not have permission for reward"
+                        });
+                    }
                     //check if player's reward task is no credit now
                     return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
                         taskStatus => {
