@@ -947,6 +947,7 @@ var dbPlayerTopUpRecord = {
             modifyData => {
                 var updateData = {};
                 delete data.proposalId;
+                delete data.requestId;
                 for (var property in data) {
                     if (data.hasOwnProperty(property)) {
                         if (data[property] != proposal.data[property]) {
