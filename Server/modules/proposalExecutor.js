@@ -264,12 +264,12 @@ var proposalExecutor = {
                     data => {
                         var updateObj = {
                             $inc: {
-                                validCredit: proposalData.data.updateAmount
+                                validCredit: proposalData.data.updateAmount > 0 ? proposalData.data.updateAmount : 0
                             }
                         };
                         if (proposalData.data.updateLockedAmount != null) {
                             updateObj.lockedCredit = proposalData.data.updateLockedAmount;
-                            updateObj.lastPlayedProvider = null;
+                            //updateObj.lastPlayedProvider = null;
                         }
                         return dbconfig.collection_players.findOneAndUpdate(
                             {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
@@ -1709,7 +1709,17 @@ var proposalExecutor = {
          * reject function for UpdatePlayerCredit proposal
          */
         rejectUpdatePlayerCredit: function (proposalData, deferred) {
-            deferred.resolve("Proposal is rejected");
+            if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
+                //todo::add more reasons here, ex:cancel request
+                return proposalExecutor.refundPlayer(proposalData, -proposalData.data.updateAmount, "rejectUpdatePlayerCredit")
+                    .then(
+                        res => deferred.resolve("Proposal is rejected"),
+                        error => deferred.reject(error)
+                    );
+            }
+            else {
+                deferred.resolve("Proposal is rejected");
+            }
         },
 
         /**
