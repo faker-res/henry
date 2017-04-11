@@ -100,6 +100,7 @@ var playerSchema = new Schema({
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},
         alipayTransaction: {type: Boolean, default: true},
+        banReward: {type: Boolean, default: false}
     },
 
     //country

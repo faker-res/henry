@@ -2235,6 +2235,9 @@ define(['js/app'], function (myApp) {
                                 height: "15px",
                                 width: "15px",
                             }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-money margin-right-5 ' + (perm.banReward === true ? "text-primary" : "text-danger"),
+                            }));
                             return link.prop('outerHTML');
                         },
                         "sClass": "alignLeft"
@@ -2530,7 +2533,8 @@ define(['js/app'], function (myApp) {
                                 topupOnline: {imgType: 'i', iconClass: "fa fa-pencil-square"},
                                 topupManual: {imgType: 'i', iconClass: "fa fa-folder-open"},
                                 alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
-                            }
+                                banReward: {imgType: 'i', iconClass: "fa fa-money"}
+                            };
                             $("#playerPermissionTable td").removeClass('hide');
                             $.each(vm.playerPermissionTypes, function (key, v) {
                                 if (row.permission && row.permission[key]) {
