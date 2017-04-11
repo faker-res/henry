@@ -8,13 +8,9 @@ let dataGenerator = require("./../test_modules/dataGenerator.js");
 let dbPartner = require('../db_modules/dbPartner');
 let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 
-describe("Test Partner Commission Settlement TB Mode", () => {
-    let consumptionConfig = {
-        consumeTimes: 1,
-        consumeDays: 1,
-        consumeAmount: 325
-    };
+let dailyPlatformSettlement = require('./../scheduleTask/dailyPlatformSettlement');
 
+describe("Test Partner Commission Settlement TB Mode", () => {
     let partnerTreeConfig = {
         topLevelPartners: 1,
         depth: 1,
@@ -63,18 +59,32 @@ describe("Test Partner Commission Settlement TB Mode", () => {
     });
 
     it ('should set the platform settlemode as TB', () => {
-        return dbPartner.updatePartnerCommissionLevel({platform: generatedData.testPlatformId}, {settlementMode: 'TB'});
+        return dbPartner.updatePartnerCommissionLevel({platform: generatedData.testPlatformId}, {
+            settlementMode: 'TB',
+            commissionLevelConfig: [{
+                value: 1,
+                maxProfitAmount: 100000000,
+                commissionRate: 0.4,
+                minProfitAmount: 100,
+                minActivePlayer: 3
+            }]
+        });
+    });
+
+    it('start platform daily settlement', function () {
+        this.timeout(15*60*1000);
+        return dailyPlatformSettlement.calculateTodayPlatformSettlement(generatedData.testPlatformId);
     });
 
     it ('perform platform settlement', () => {
-        return dbPartner.startPlatformPartnerCommissionSettlement(generatedData.testPlatformId, false, true);
+        return dbPartner.startPlatformPartnerCommissionSettlement(generatedData.testPlatformId, true, true);
     });
 
     it ('check partner commission amount', () => {
         dbPartner.getPartnersByPlatform(generatedData.testPlatformId)
         .then(
             data => {
-                console.log('data', data[0]);
+                data[1].credits.should.equal(600);
             }
         )
     });

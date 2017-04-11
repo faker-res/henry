@@ -293,9 +293,10 @@ var commonTestFunc = {
         let pmO1 = dbconfig.collection_rewardTask.remove({playerId: {$in: playerObjIds}});
 
         let pmP = dbconfig.collection_partnerCommissionRecord.remove({platform:platformObjId});
+        let pmQ = dbconfig.collection_partnerCommissionConfig.remove({platform:platformObjId});
 
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
-            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ,pmK, pmL ,pmM, pmN, pmO, pmO1, pmP]);
+            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ,pmK, pmL ,pmM, pmN, pmO, pmO1, pmP, pmQ]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {

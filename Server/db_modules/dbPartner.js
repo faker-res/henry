@@ -678,18 +678,21 @@ let dbPartner = {
     getPartnerActiveValidPlayers: function (platformObjId, partnerObjId, bActive, queryTime) {
         let times = {};
         let partnerLevelConfig = {};
+        let partnerCommissionConfig = {};
         let configProm = dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId});
         //var timeProm = dbUtil.getWeeklySettlementTimeForPlatformId(platformObjId);
         let timeProm = dbUtil.getLastWeekSGTimeProm();
+        let commConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({platform: platformObjId});
 
-        return Q.all([timeProm, configProm]).then(
+        return Q.all([timeProm, configProm, commConfigProm]).then(
             data => {
-                if (data && data[0] && data[1]) {
+                if (data && data[0] && data[1] && data[2]) {
                     times = data[0];
                     if (queryTime) {
                         times = queryTime;
                     }
                     partnerLevelConfig = data[1];
+                    partnerCommissionConfig = data[2];
                     return dbconfig.collection_players.find(
                         {
                             platform: platformObjId,
@@ -715,6 +718,7 @@ let dbPartner = {
                             $lt: times.endTime
                         }
                     };
+
                     const consumptionSummariesProm = dbconfig.collection_playerConsumptionDaySummary.find(matchPlayerSummaries);
                     const topUpSummariesProm = dbconfig.collection_playerTopUpDaySummary.find(matchPlayerSummaries);
 
@@ -731,12 +735,17 @@ let dbPartner = {
                                 playerId => {
                                     const consumptionSummary = consumptionSummariesByPlayerId[playerId];
                                     const topUpSummary = topUpSummariesByPlayerId[playerId];
-                                    if (consumptionSummary && topUpSummary) {
-                                        let playerIsValid = consumptionSummary.times >= partnerLevelConfig.validPlayerConsumptionTimes
-                                            && topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes;
+                                    if (topUpSummary && (consumptionSummary || partnerCommissionConfig.settlementMode === 'TB')) {
+                                        let playerIsValid, playerIsActive;
 
-                                        let playerIsActive = consumptionSummary.times >= partnerLevelConfig.activePlayerConsumptionTimes
-                                            && topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes;
+                                        if (consumptionSummary) {
+                                            playerIsValid = consumptionSummary.times >= partnerLevelConfig.validPlayerConsumptionTimes && topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes;
+                                            playerIsActive = consumptionSummary.times >= partnerLevelConfig.activePlayerConsumptionTimes && topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes;
+                                        }
+                                        else {
+                                            playerIsValid = topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes;
+                                            playerIsActive = topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes;
+                                        }
 
                                         if (bActive && playerIsActive) {
                                             playersObj.push(partnerDataMap[playerId]);
