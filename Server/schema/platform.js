@@ -12,6 +12,8 @@ var platformSchema = new Schema({
     code: {type: String, unique: true, required: true, dropDups: true, index: true},
     //platform prefix
     prefix: {type: String, default: ""},
+    //platform partner prefix
+    partnerPrefix: {type: String, default: ""},
     //platform description
     description: String,
     //platform url

@@ -1,5 +1,9 @@
 'use strict';
 
+let Q = require("q");
+
+let constServerCode = require('../const/constServerCode');
+
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
 
@@ -12,7 +16,11 @@ let dbPlayerPartner = {
             return Promise.all([plyProm, partnerProm])
                 .catch(
                     error => {
-                        console.log('error', error);
+                        return Q.reject({
+                            status: constServerCode.DB_ERROR,
+                            name: "DBError",
+                            message: error.message
+                        });
                 }
             )
         }
