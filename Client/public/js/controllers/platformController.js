@@ -550,15 +550,17 @@ define(['js/app'], function (myApp) {
                     vm.partnerCommissionSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
                     $scope.safeApply();
                 });
-        }
+        };
+
         //before update platform
         vm.befreUpdatePlatform = function () {
-            var idStr = vm.showPlatform.department;
+            let idStr = vm.showPlatform.department;
             vm.showPlatform.department = {_id: idStr};
             console.log('require', vm.selectedPlatform);
             vm.updatePlatform._id = vm.selectedPlatform.id;
             console.log('department ID', vm.showPlatform.department);
-        }
+        };
+
         //update selected platform data
         vm.updatePlatformAction = function () {
             if (vm.showPlatform.department.hasOwnProperty('_id')) {

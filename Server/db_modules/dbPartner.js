@@ -29,6 +29,12 @@ var dbPartner = {
             platformData => {
                 if (platformData) {
                     partnerData.platform = platformData._id;
+
+                    // attach platform prefix to player name if available
+                    if (platformData.partnerPrefix) {
+                        partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
+                    }
+
                     if (partnerData.parent) {
                         return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
                             parentData => {

@@ -390,6 +390,7 @@
   "ADD_DEPARTMENT":"添加部门",
   "PLATFORM_NAME":"平台名称",
   "PLATFORM_PREFIX":"平台字首",
+  "PLATFORM_PARTNER_PREFIX":"平台推广渠道字首",
   "OPERATION_DEPARTMENT":"运营部门",
   "CREATE_PLATFORM":"创建平台",
   "MOVE_DEPARTMENT":"移动部门",
@@ -1829,6 +1830,7 @@
   "TRANSFER_OUT":"转出",
   "BET":"投注",
   "PAYOUT":"派彩",
-  "Max Reward Times":"每日申请次数"
+  "Max Reward Times":"每日申请次数",
+  "PlayerDoubleTopUpReward":"玩家多次充值"
 
 }
