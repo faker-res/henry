@@ -1475,7 +1475,7 @@
   "merchantGroup":"商户组",
   "_id":"ID",
   "playerName":"玩家姓名",
-  "referralName":"被推荐人姓名",
+  "referralName":"推荐人姓名",
   "referralTopUpAmount": "被推荐人充值额",
   "updateAmount":"变更额度",
   "curAmount":"当前额度",
