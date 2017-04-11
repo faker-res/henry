@@ -1832,5 +1832,6 @@
   "PAYOUT":"派彩",
   "Max Reward Times":"每日申请次数",
   "PlayerDoubleTopUpReward":"玩家多次充值",
-  "banReward": "禁止奖励"
+  "banReward": "禁止奖励",
+  "DEPOSITE_TIME": "存款时间"
 }
