@@ -85,6 +85,9 @@ var proposal = {
 
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
+                if( proposalData && proposalData.data && proposalData.data.updateAmount < 0 ){
+                    dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data).then();
+                }
                 if (data && data.process) {
                     return getStepInfo(Object.assign({}, data));
                 } else {

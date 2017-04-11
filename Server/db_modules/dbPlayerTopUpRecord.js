@@ -1213,6 +1213,9 @@ var dbPlayerTopUpRecord = {
                         proposalData.alipayName = alipayName;
                         proposalData.alipayAccount = alipayAccount;
                         proposalData.remark = remark;
+                        if(createTime){
+                            proposalData.depositeTime = new Date(createTime);
+                        }
                         proposalData.creator = entryType === "ADMIN" ? {
                             type: 'admin',
                             name: adminName,
