@@ -252,6 +252,7 @@
   "RESET_PASSWORD":"Reset Password",
   "PAYMENT":"Payment Information",
   "TOP_UP_TIMES": "Top Up Times",
+  "TOP_UP_AMOUNT": "Top Up Amount",
   "FEEDBACK_TIMES": "Feedback Times",
   "PLAYER_TOPUP": "Player Top Up",
   "PLAYER_EXPENSES": "Player Expenses",

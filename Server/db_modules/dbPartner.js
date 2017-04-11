@@ -743,8 +743,8 @@ let dbPartner = {
                                             playerIsActive = consumptionSummary.times >= partnerLevelConfig.activePlayerConsumptionTimes && topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes;
                                         }
                                         else {
-                                            playerIsValid = topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes;
-                                            playerIsActive = topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes;
+                                            playerIsValid = topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes && topUpSummary.amount >= partnerLevelConfig.validPlayerTopUpAmount;
+                                            playerIsActive = topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes && topUpSummary.amount >= partnerLevelConfig.activePlayerTopUpAmount;
                                         }
 
                                         if (bActive && playerIsActive) {

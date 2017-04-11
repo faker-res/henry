@@ -302,6 +302,7 @@
                                     tr
                                         th {{'MIN_REQUIREMENT' | translate}}
                                         th {{'TOP_UP_TIMES' | translate}}
+                                        th {{'TOP_UP_AMOUNT' | translate}}
                                         th {{'CONSUMPTION' | translate}}
                                 tbody
                                     tr
@@ -310,6 +311,9 @@
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerTopUpTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerTopUpTimes')
                                         td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerTopUpAmount')
+                                        td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerConsumptionTimes')
                                     tr
@@ -317,6 +321,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerTopUpTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerTopUpAmount')
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerConsumptionTimes')
