@@ -666,6 +666,7 @@ define([], function () {
                 case "PartnerIncentiveReward":
                 case "PartnerReferralReward":
                 case "GameProviderReward":
+                case "PlayerDoubleTopUpReward":
                     return $trans("Reward Proposal");
                 case "PlayerConsumptionReturnFix":
                     return $trans("ReturnFix Proposal");

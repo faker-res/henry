@@ -6718,6 +6718,13 @@ var dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
                 if (playerData) {
+                    if( playerData.permission && playerData.permission.banReward ){
+                        return Q.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: "Player do not have permission for reward"
+                        });
+                    }
                     //check if player's reward task is no credit now
                     return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
                         taskStatus => {

@@ -1,25 +1,26 @@
 "use strict";
 
-var WebSocketUtil = require("./../../server_common/WebSocketUtil");
-var PlayerService = require("./../../services/client/ClientServices").PlayerService;
-var dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
-var dbPlayerMail = require('./../../db_modules/dbPlayerMail');
-var constServerCode = require('./../../const/constServerCode');
-var constSystemParam = require('./../../const/constSystemParam');
-var jwt = require('jsonwebtoken');
-var uaParser = require('ua-parser-js');
-var geoip = require('geoip-lite');
-var localization = require('../../modules/localization').localization;
-var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
-var SMSSender = require('../../modules/SMSSender');
-var queryPhoneLocation = require('query-mobile-phone-area');
-var constProposalEntryType = require('./../../const/constProposalEntryType');
-var constProposalUserType = require('./../../const/constProposalUserType');
-var dbLogger = require('./../../modules/dbLogger');
+let WebSocketUtil = require("./../../server_common/WebSocketUtil");
+let PlayerService = require("./../../services/client/ClientServices").PlayerService;
+let dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
+let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
+let constServerCode = require('./../../const/constServerCode');
+let constSystemParam = require('./../../const/constSystemParam');
+let jwt = require('jsonwebtoken');
+let uaParser = require('ua-parser-js');
+let geoip = require('geoip-lite');
+let localization = require('../../modules/localization').localization;
+let constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
+let SMSSender = require('../../modules/SMSSender');
+let queryPhoneLocation = require('query-mobile-phone-area');
+let constProposalEntryType = require('./../../const/constProposalEntryType');
+let constProposalUserType = require('./../../const/constProposalUserType');
+let dbLogger = require('./../../modules/dbLogger');
+let dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
 
-var PlayerServiceImplement = function () {
+let PlayerServiceImplement = function () {
     PlayerService.call(this);
-    var self = this;
+    let self = this;
 
     //player create api handler
     this.create.expectsData = 'platformId: String, password: String';
@@ -86,6 +87,7 @@ var PlayerServiceImplement = function () {
             }, data);
         }
     };
+
     //player create api handler
     this.playerQuickReg.expectsData = 'platformId: String, password: String';
     this.playerQuickReg.onRequest = function (wsFunc, conn, data) {
@@ -99,6 +101,80 @@ var PlayerServiceImplement = function () {
             }
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, false, false, true);
+    };
+
+    // player and partner create api handler
+    this.createPlayerPartner.expectsData = 'platformId: String, password: String';
+    this.createPlayerPartner.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
+        if ((conn.smsCode && (conn.smsCode === data.smsCode) && (conn.phoneNumber === data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode === data.captcha)) || data.captcha === 'testCaptcha') {
+            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+            let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+            if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
+            data.loginIps = [data.lastLoginIp];
+            let uaString = conn.upgradeReq.headers['user-agent'];
+            let ua = uaParser(uaString);
+            data.userAgent = [{
+                browser: ua.browser.name || '',
+                device: ua.device.name || '',
+                os: ua.os.name || ''
+            }];
+
+            // attach geoip if available
+            if (data.lastLoginIp) {
+                let geo = geoip.lookup(data.lastLoginIp);
+                if (geo) {
+                    data.country = geo.country;
+                    data.city = geo.city;
+                    data.longitude = geo.ll ? geo.ll[1] : null;
+                    data.latitude = geo.ll ? geo.ll[0] : null;
+                }
+            }
+
+            if (data.phoneNumber) {
+                let queryRes = queryPhoneLocation(data.phoneNumber);
+                if (queryRes) {
+                    data.phoneProvince = queryRes.province;
+                    data.phoneCity = queryRes.city;
+                    data.phoneType = queryRes.type;
+                }
+            }
+            conn.captchaCode = null;
+            data.isOnline = true;
+            data.partnerName = data.name;
+
+            // Promise create player and partner
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.createPlayerPartnerAPI, [data], isValidData, true, false, true).then(
+                playerPartnerData => {
+                    conn.isAuth = true;
+                    conn.playerId = playerPartnerData.playerId;
+                    conn.playerObjId = playerPartnerData._id;
+                    conn.noOfAttempt = 0;
+                    conn.onclose =
+                        event => {
+                            dbPlayerInfo.playerLogout({playerId: playerPartnerData.playerId});
+                        };
+                    let profile = {name: playerPartnerData.name, password: playerPartnerData.password};
+                    let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                    wsFunc.response(conn, {
+                        status: constServerCode.SUCCESS,
+                        data: playerPartnerData,
+                        token: token,
+                    }, data);
+                }
+            ).catch(WebSocketUtil.errorHandler)
+                .done();
+        }
+        else {
+            conn.captchaCode = null;
+            wsFunc.response(conn, {
+                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                errorMessage: localization.translate("Verification code invalid", conn.lang),
+                data: null
+            }, data);
+        }
     };
 
     //player get api handler
