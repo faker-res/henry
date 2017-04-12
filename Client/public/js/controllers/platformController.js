@@ -4881,13 +4881,13 @@ define(['js/app'], function (myApp) {
             vm.playerBonus.resMsg = '';
             vm.playerBonus.showSubmit = true;
             socketService.$socket($scope.AppSocket, 'applyBonusRequest', sendData, function (data) {
-                console.log('applyBonusRequest', data);
+                console.log('applyBonusRequest success', data);
                 vm.playerBonus.resMsg = $translate('Approved');
                 vm.playerBonus.showSubmit = false;
                 vm.getPlatformPlayersData();
                 $scope.safeApply();
             }, function (data) {
-                console.log('applyBonusRequest', data);
+                console.log('applyBonusRequest Fail', data);
                 vm.playerBonus.showSubmit = false;
                 if (data.error.errorMessage) {
                     vm.playerBonus.resMsg = data.error.errorMessage;
@@ -7743,6 +7743,10 @@ define(['js/app'], function (myApp) {
                 case 'platformBasic':
                     vm.getPlatformBasic();
                     break;
+                case 'bonusBasic':
+                    vm.getBonusBasic();
+                    break;
+
             }
         }
 
@@ -8002,6 +8006,14 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             $scope.safeApply();
         }
+        vm.getBonusBasic = () => {
+          console.log('getBonusBasic',JSON.stringify(vm.selectedPlatform.data));
+          vm.bonusBasic = vm.bonusBasic || {};
+          vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
+          vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
+          $scope.safeApply();
+        }
+
         vm.submitAddPlayerLvl = function () {
             var sendData = vm.newPlayerLvl;
             vm.newPlayerLvl.platform = vm.selectedPlatform.id;
@@ -8101,6 +8113,9 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'platformBasic':
                     updatePlatformBasic(vm.platformBasic);
+                    break;
+                case 'bonusBasic':
+                    updateBonusBasic(vm.bonusBasic);
                     break;
             }
         };
@@ -8214,6 +8229,23 @@ define(['js/app'], function (myApp) {
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                vm.loadPlatformData({loadAll: false});
+            });
+        }
+
+        function updateBonusBasic(srcData) {
+          console.log('\n\n\nupdateBonusBasic',JSON.stringify(srcData));
+            var sendData = {
+                query: {_id: vm.selectedPlatform.id},
+                updateData: {
+                    bonusPercentageCharges: srcData.bonusPercentageCharges,
+                    bonusCharges : srcData.bonusCharges
+                }
+            };
+            console.log('\n\n\nupdateBonusBasic sendData',JSON.stringify(sendData));
+
+            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+              console.log('update bonus socket',JSON.stringify(data));
                 vm.loadPlatformData({loadAll: false});
             });
         }

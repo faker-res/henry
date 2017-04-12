@@ -57,9 +57,12 @@ var platformSchema = new Schema({
     playerInvitationUrl: {type: String},
     //invitatio url for partner from partner
     partnerInvitationUrl: {type: String},
-
     //min top up amount
-    minTopUpAmount: {type: Number, default: 0}
+    minTopUpAmount: {type: Number, default: 0},
+    //percentage charges of apply bonus
+    bonusPercentageCharges:{type: Number, default: 0},
+    //numbers of times apply bonus without charges
+    bonusCharges:{type:Number}
 });
 
 //add platform id before save
