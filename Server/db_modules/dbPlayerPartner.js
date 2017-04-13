@@ -13,14 +13,22 @@ let dbPlayerPartner = {
             let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
             let partnerProm = dbPartner.createPartnerAPI(registerData);
 
-            return Promise.all([plyProm, partnerProm])
-                .catch(
-                    error => {
-                        return Q.reject({
-                            status: constServerCode.DB_ERROR,
-                            name: "DBError",
-                            message: error.message
-                        });
+            return Promise.all([plyProm, partnerProm]).then(
+                promsData => {
+                    return dbPartner.bindPartnerPlayer(promsData[1].partnerId, promsData[0].name).then(
+                        () => {
+                            return promsData;
+                        }
+                    )
+                }
+            )
+            .catch(
+                error => {
+                    return Q.reject({
+                        status: constServerCode.DB_ERROR,
+                        name: "DBError",
+                        message: error.message
+                    });
                 }
             )
         }
