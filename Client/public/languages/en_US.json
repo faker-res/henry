@@ -12,8 +12,8 @@
   "LEVELMONTH":"monthly",
   "LEVELNONE":"sum",
   "bonusAmount1":"bonusAmount",
-  "BALCKLIST":"blacklist",
-  "ATTENTION":"attention",
+  "BALCKLIST":"Blacklist",
+  "ATTENTION":"Attention",
   "CONSUMPTION_INTERVAL":"Consumption History",
   "REWARD_CLIENT_APPLY":"Can apply from client",
 
@@ -361,7 +361,9 @@
 
   "MAIN_TYPE":"Proposal Type",
   "PRIORITY":"Priority",
+  "playerStatus": "Player Status",
   "ENTRY_TYPE":"Entry Type",
+  "ENTRY_TYPE_ADMIN":"Admin",
   "USER_TYPE":"User Type",
   "GENERAL":"General",
   "ADMIN":"Admin",
