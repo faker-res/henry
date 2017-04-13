@@ -473,17 +473,16 @@ var dbRewardTask = {
             // proposalData.useConsumption = taskData.useConsumption;
             // proposalData.currentAmount = Number(taskData.currentAmount);
 
-            return dbProposal.createProposalWithTypeName(platformId, constProposalType.MANUAL_UNLOCK_PLAYER_REWARD,
-                {creator: {type: 'admin', name: adminName, id: adminId}, data: proposalData}).then(
-                function (data) {
-                    return data;
-                },
-                function (error) {
-                    return Q.reject({
-                        name: "ProposalError",
-                        message: "Failed to create proposal with this type",
-                        error: error
-                    });
+            //check reward task status here
+            return dbconfig.collection_rewardTask.findOne({_id: taskData._id}).lean().then(
+                rewardTask => {
+                    if (rewardTask && rewardTask.status == constRewardTaskStatus.STARTED) {
+                        return dbProposal.createProposalWithTypeName(platformId, constProposalType.MANUAL_UNLOCK_PLAYER_REWARD,
+                            {creator: {type: 'admin', name: adminName, id: adminId}, data: proposalData});
+                    }
+                    else {
+                        return Q.reject({name: "DataError", message: "Invalid reward task data or status"});
+                    }
                 }
             );
         } else {
@@ -534,38 +533,50 @@ var dbRewardTask = {
                 {new: true}
             );
 
-            Promise.all([taskProm, playerProm]).then((data) => {
-                if (data && data[0] && data[1]) {
-                    //if (rewardAmount > 0) {
-                    dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type, data[1].validCredit, originalReward, -rewardAmount, null, taskData);
-                    //}
-
-                    if (bUpdateProposal) {
-                        var diffAmount = taskData.currentAmount - taskData.maxRewardAmount;
-
-                        return dbUtil.findOneAndUpdateForShard(
-                            dbconfig.collection_proposal,
-                            {proposalId: taskData.proposalId},
-                            {"data.diffAmount": diffAmount},
-                            constShardKeys.collection_proposal
-                        ).then(() => {
-                            resolve(taskData.currentAmount);
-                        });
+            taskProm.then(
+                rewardTask => {
+                    if (rewardTask && rewardTask.status != constRewardTaskStatus.COMPLETED) {
+                        return playerProm;
                     }
                     else {
-                        resolve(taskData.currentAmount);
+                        reject({name: "DataError", message: "Incorrect reward task status"});
                     }
                 }
-                else {
-                    reject({name: "DataError", message: "Can't update reward task and player credit"});
+            ).then(
+                data => {
+                    if (data) {
+                        //if (rewardAmount > 0) {
+                        dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type, data.validCredit, originalReward, -rewardAmount, null, taskData);
+                        //}
+
+                        if (bUpdateProposal) {
+                            var diffAmount = taskData.currentAmount - taskData.maxRewardAmount;
+
+                            return dbUtil.findOneAndUpdateForShard(
+                                dbconfig.collection_proposal,
+                                {proposalId: taskData.proposalId},
+                                {"data.diffAmount": diffAmount},
+                                constShardKeys.collection_proposal
+                            ).then(() => {
+                                resolve(taskData.currentAmount);
+                            });
+                        }
+                        else {
+                            resolve(taskData.currentAmount);
+                        }
+                    }
+                    else {
+                        reject({name: "DataError", message: "Can't update reward task and player credit"});
+                    }
                 }
-            }).catch((error) => {
-                reject({
-                    name: "DBError",
-                    message: "Error updating reward task and player credit",
-                    error: error
+            ).catch(
+                error => {
+                    reject({
+                        name: "DBError",
+                        message: "Error updating reward task and player credit",
+                        error: error
+                    });
                 });
-            });
         })
     },
 

@@ -181,6 +181,8 @@ var playerSchema = new Schema({
     merchantGroup: {type: Schema.ObjectId, ref: 'platformMerchantGroup'},
     //ali pay group
     alipayGroup: {type: Schema.ObjectId, ref: 'platformAlipayGroup'},
+    //wechat pay group
+    wechatPayGroup: {type: Schema.ObjectId, ref: 'platformWechatPayGroup'},
     //forbid top up types
     forbidTopUpType: [{type: String}],
     //reward info

@@ -124,6 +124,19 @@
         });
     };
 
+    proto.requestWechatTopup = function (callback, requestData) {
+        var data = requestData || {
+                playerId: testPlayerId,
+                amount: 100
+            };
+        this._service.requestWechatTopup.request(data);
+        this._service.requestWechatTopup.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback (data);
+            }
+        });
+    };
+
     proto.getBonusList = function (callback, requestData) {
         var data = requestData || {};
         this._service.getBonusList.request(data);
@@ -166,6 +179,12 @@
         var data = requestData || {};
         this._service.cancelAlipayTopup.request(data);
         this._service.cancelAlipayTopup.once(callback);
+    };
+
+    proto.cancelWechatTopup = function (callback, requestData) {
+        var data = requestData || {};
+        this._service.cancelWechatTopup.request(data);
+        this._service.cancelWechatTopup.once(callback);
     };
 
     proto.delayManualTopupRequest = function (callback, requestData) {
