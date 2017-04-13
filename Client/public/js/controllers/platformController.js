@@ -3615,9 +3615,10 @@ define(['js/app'], function (myApp) {
                 vm.playerCreditChangeLog.loading = false;
                 vm.drawPagedCreditChangeQueryTable(vm.playerCreditChangeLogs, vm.playerCreditChangeLog.totalCount, newSearch);
             })
-        }
+        };
+
         vm.drawPagedCreditChangeQueryTable = function (data, size, newSearch) {
-            var tableData = data.map(item => {
+            let tableData = data.map(item => {
                 item.createTime$ = vm.dateReformat(item.operationTime);
                 item.operationType$ = $translate(item.operationType);
                 item.beforeAmount = item.curAmount - item.amount;
@@ -3627,11 +3628,13 @@ define(['js/app'], function (myApp) {
                 item.beforeAmount = item.beforeAmount.toFixed(2);
                 item.beforeUnlockedAmount = item.lockedAmount - item.changedLockedAmount;
                 item.beforeUnlockedAmount = item.beforeUnlockedAmount.toFixed(2);
-                var remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
-                item.details$ = remark + item.detail.join(', ')
+                let remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
+                item.details$ = remark + item.detail.join(', ');
+                item.proposalId$ = item.data ? item.data.proposalId : item.data[0] ? item.data[0].proposalId : '';
                 return item;
-            })
-            var option = $.extend({}, vm.generalDataTableOptions, {
+            });
+
+            let option = $.extend({}, vm.generalDataTableOptions, {
                 data: tableData,
                 order: vm.playerCreditChangeLog.aaSorting || [[0, 'desc']],
                 columnDefs: [
@@ -3643,6 +3646,7 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {'title': $translate('CREATE_TIME'), data: 'createTime$'},
                     {'title': $translate('Type'), data: 'operationType$', sClass: "tbodyNoWrap"},
+                    {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
                     {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "wordWrap"},
                     {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "tbodyNoWrap"},
                     {'title': $translate('CUR_AMOUNT'), data: 'curAmount', sClass: "tbodyNoWrap"},
