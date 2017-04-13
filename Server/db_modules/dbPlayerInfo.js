@@ -5126,7 +5126,27 @@ var dbPlayerInfo = {
                     //     });
                     // }
 
-                    var changeCredit = -amount;
+                    let todayTime = dbUtility.getTodaySGTime();
+                    return  dbconfig.collection_proposal
+                        .find({
+                          mainType : "PlayerBonus",
+                          createTime: {
+                              $gte: todayTime.startTime,
+                              $lt: todayTime.endTime
+                          },
+                          "data.playerId":playerId
+                        })
+                        .populate({path: "process", model: dbconfig.collection_proposalProcess})
+                        .lean()
+                        .then(todayBonusApply => {
+
+                          var changeCredit = -amount;
+
+
+                          if(todayBonusApply.length >= playerData.platform.bonusCharges && playerData.platform.bonusPercentageCharges > 0){
+                            changeCredit = changeCredit + ((changeCredit*playerData.platform.bonusPercentageCharges)*0.01);
+                          }
+
                     // if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
                     //     changeCredit = -playerData.validCredit;
                     // }
@@ -5186,8 +5206,8 @@ var dbPlayerInfo = {
                                 };
                                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
                             }
-                        }
-                    );
+                        });
+                      });
                 } else {
                     return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
                 }
@@ -7381,7 +7401,7 @@ var dbPlayerInfo = {
                         message: "Player is not valid for this reward"
                     });
                 }
-                
+
                 if( eventData.param && eventData.param.maxRewardTimes != null && data[2] >= eventData.param.maxRewardTimes ){
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
