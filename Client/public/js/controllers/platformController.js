@@ -4536,18 +4536,19 @@ define(['js/app'], function (myApp) {
 
         vm.submitAddPlayerRewardTask = function () {
             vm.playerAddRewadTask.showSubmit = false;
-            var providerArr = [];
-            for (var key in vm.playerAddRewadTask.provider) {
+            let providerArr = [];
+            for (let key in vm.playerAddRewadTask.provider) {
                 if (vm.playerAddRewadTask.provider[key]) {
                     providerArr.push(key);
                 }
             }
-            var sendObj = {
+            let sendObj = {
                 targetProviders: providerArr,
                 type: vm.playerAddRewadTask.type,
                 rewardType: vm.playerAddRewadTask.type,
                 platformId: vm.selectedSinglePlayer.platform,
                 playerId: vm.selectedSinglePlayer._id,
+                playerObjId: vm.selectedSinglePlayer._id,
                 playerName: vm.selectedSinglePlayer.name,
                 requiredUnlockAmount: vm.playerAddRewadTask.requiredUnlockAmount,
                 currentAmount: vm.playerAddRewadTask.currentAmount,
@@ -4567,7 +4568,7 @@ define(['js/app'], function (myApp) {
                 vm.playerAddRewadTask.resMsg = err.error.message || $translate('FAIL');
                 $scope.safeApply();
             })
-        }
+        };
 
         vm.initManualUnlockRewardTask = function () {
             vm.manualUnlockRewardTask = {
