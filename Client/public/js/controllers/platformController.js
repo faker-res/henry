@@ -1670,6 +1670,7 @@ define(['js/app'], function (myApp) {
         vm.getPagedPlatformCreditTransferLog = function (newSearch) {
             vm.platformCreditTransferLog.loading = true;
             let sendQuery = {
+                PlatformObjId: vm.selectedPlatform.id,
                 startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : vm.platformCreditTransferLog.index,
