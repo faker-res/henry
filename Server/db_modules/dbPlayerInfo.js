@@ -2233,11 +2233,19 @@ var dbPlayerInfo = {
                 if (platformData) {
                     platformId = platformData._id;
                     platformPrefix = platformData.prefix;
-                    playerData.name = platformData.prefix + playerData.name;
-                    return dbconfig.collection_players.findOne({
-                        name: playerData.name.toLowerCase(),
-                        platform: platformData._id
-                    }).lean();
+                    playerData.prefixName = platformData.prefix + playerData.name;
+
+                        return dbconfig.collection_players.findOne(
+                            {$or:[
+                                {
+                                    name: playerData.prefixName.toLowerCase(),
+                                    platform: platformData._id
+                                },
+                                {
+                                    phoneNumber: playerData.name,
+                                    platform: platformData._id
+                                }
+                            ]}).lean();
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Cannot find platform"});
