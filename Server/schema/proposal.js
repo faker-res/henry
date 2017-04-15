@@ -28,9 +28,9 @@ var proposalSchema = new Schema({
     //priority  - {0 - general , 1 - high, 2 - higher, 3 - the highest }
     priority: {type: String, default: constProposalPriority.GENERAL},
     // Determine type of entry from which submitted the proposal - 0 - client Side, 1 - admin side
-    entryType: {type: String, default: constProposalEntryType.ADMIN},
+    entryType: {type: String, default: constProposalEntryType.ADMIN, index: true},
     //User type - for whom create the proposal - real player/partners/system users/demoPlayers
-    userType: {type: String, default: constProposalUserType.SYSTEM_USERS},
+    userType: {type: String, default: constProposalUserType.SYSTEM_USERS, index: true},
     //if this proposal has any step
     noSteps: {type: Boolean, default: false},
     //status
