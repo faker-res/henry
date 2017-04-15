@@ -45,7 +45,7 @@ var simplifiedChinese = {
     "No consumption records found" :"没有消费记录",
     "No platform providers found": "发现没有平台供应商",
     "No player found matching query": "没有玩家找到匹配的查询",
-    "Game is not available on platform":"游戏在平台中",
+    "Game is not available on platform":"游戏在维护中",
 
     "Cannot find player or provider":"找不到玩家或供应商",
     "Cannot find partner":"找不到推广渠道",
