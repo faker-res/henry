@@ -102,7 +102,8 @@
                 "requestRepairingOnlinePay",
                 "checkExpiredManualTopup",
                 "requestAlipayAccount",
-                "requestCancellationPayOrder"
+                "requestCancellationPayOrder",
+                "requestWeChatAccount"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames1, ["proposalId"]);
 
@@ -190,6 +191,24 @@
             var functionNames = [
                 "getAliPayList",
                 "getAliPay",
+            ];
+            addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
+        };
+
+        AlipayService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        AlipayService.prototype.constructor = AlipayService;
+
+        rootObj.AlipayService = AlipayService;
+    };
+
+    var defineWechatService = function (sinonet) {
+        var AlipayService = function (connection) {
+            sinonet.WebSocketService.call(this, "weChat", connection);
+
+            //define functions
+            var functionNames = [
+                "getWechatList",
+                "getWechat",
             ];
             addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
         };
