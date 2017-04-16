@@ -202,7 +202,7 @@
     };
 
     var defineWechatService = function (sinonet) {
-        var AlipayService = function (connection) {
+        var WechatService = function (connection) {
             sinonet.WebSocketService.call(this, "weChat", connection);
 
             //define functions
@@ -213,10 +213,10 @@
             addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
         };
 
-        AlipayService.prototype = Object.create(sinonet.WebSocketService.prototype);
-        AlipayService.prototype.constructor = AlipayService;
+        WechatService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        WechatService.prototype.constructor = WechatService;
 
-        rootObj.AlipayService = AlipayService;
+        rootObj.WechatService = WechatService;
     };
 
     if (isNode) {
@@ -229,6 +229,7 @@
         defineBankcardService(sinonet);
         defineMerchantService(sinonet);
         defineAlipayService(sinonet);
+        defineWechatService(sinonet);
         module.exports = rootObj;
     } else {
         define(["common/WebSocketService"], function (sinonet) {
