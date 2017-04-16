@@ -241,6 +241,7 @@
             defineBankcardService(sinonet);
             defineMerchantService(sinonet);
             defineAlipayService(sinonet);
+            defineWechatService(sinonet);
             return rootObj;
         });
     }
