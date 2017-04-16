@@ -117,6 +117,15 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [conn.playerId, data.amount, data.alipayName, data.alipayAccount], isValidData);
     };
 
+    this.requestWechatTopup.expectsData = 'amount: Number|String';
+    this.requestWechatTopup.onRequest = function (wsFunc, conn, data) {
+        if(data){
+            data.amount = Number(data.amount);
+        }
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.wechatName);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [conn.playerId, data.amount, data.wechatName, data.wechatAccount], isValidData);
+    };
+
     this.cancelManualTopupRequest.expectsData = 'proposalId: String';
     this.cancelManualTopupRequest.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data.proposalId);
@@ -127,6 +136,12 @@ var PaymentServiceImplement = function () {
     this.cancelAlipayTopup.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data.proposalId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.cancelAlipayTopup, [conn.playerId, data.proposalId], isValidData);
+    };
+
+    this.cancelWechatTopup.expectsData = 'proposalId: String';
+    this.cancelWechatTopup.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId && data.proposalId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.cancelWechatTopup, [conn.playerId, data.proposalId], isValidData);
     };
 
     this.delayManualTopupRequest.expectsData = 'proposalId: String, delayTime: Number|String';

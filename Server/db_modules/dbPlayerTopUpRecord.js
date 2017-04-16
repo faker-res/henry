@@ -882,6 +882,33 @@ var dbPlayerTopUpRecord = {
         );
     },
 
+    cancelWechatTopup: function (playerId, proposalId) {
+        var proposal = null;
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+            proposalData => {
+                if (proposalData) {
+                    if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
+                        proposal = proposalData;
+
+                        return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
+                    }
+                    else {
+                        return Q.reject({name: "DBError", message: 'Invalid proposal'});
+                    }
+                }
+                else {
+                    return Q.reject({name: "DBError", message: 'Cannot find proposal'});
+                }
+            }
+        ).then(
+            request => {
+                return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            }
+        ).then(
+            data => ({proposalId: proposalId})
+        );
+    },
+
     delayManualTopupRequest: function (playerId, proposalId, delayTime) {
         var proposal = null;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
@@ -1314,7 +1341,146 @@ var dbPlayerTopUpRecord = {
         } else {
             return dbPlayerInfo.getPlayerTopUpRecords({playerId: playerObjId}, true)
         }
-    }
+    },
+
+    /**
+     * add wechat topup records of the player
+     * @param playerId
+     * @param amount
+     * @param alipayName
+     * @param alipayAccount
+     * @param entryType
+     * @param adminId
+     * @param adminName
+     */
+    requestWechatTopup: function (playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+        let player = null;
+        let proposal = null;
+        let request = null;
+
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "wechatGroup", model: dbconfig.collection_platformAlipayGroup}).then(
+                playerData => {
+                    if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
+                        player = playerData;
+                        let minTopUpAmount = playerData.platform.minTopUpAmount || 0;
+                        if (amount < minTopUpAmount) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_TOP_UP_FAIL,
+                                name: "DataError",
+                                errorMessage: "Top up amount is not enough"
+                            });
+                        }
+                        //todo::add wechat pay permission later
+                        // if (!playerData.permission || !playerData.permission.wech) {
+                        //     return Q.reject({
+                        //         status: constServerCode.PLAYER_NO_PERMISSION,
+                        //         name: "DataError",
+                        //         errorMessage: "Player does not have this permission"
+                        //     });
+                        // }
+                        let proposalData = {};
+                        proposalData.playerId = playerId;
+                        proposalData.playerObjId = playerData._id;
+                        proposalData.platformId = playerData.platform._id;
+                        proposalData.playerLevel = playerData.playerLevel;
+                        proposalData.platform = playerData.platform.platformId;
+                        proposalData.playerName = playerData.name;
+                        proposalData.amount = Number(amount);
+                        proposalData.wechatName = wechatName;
+                        proposalData.wechatAccount = wechatAccount;
+                        proposalData.remark = remark;
+                        if(createTime){
+                            proposalData.depositeTime = new Date(createTime);
+                        }
+                        proposalData.creator = entryType === "ADMIN" ? {
+                            type: 'admin',
+                            name: adminName,
+                            id: adminId
+                        } : {
+                            type: 'player',
+                            name: playerData.name,
+                            id: playerId
+                        };
+                        let newProposal = {
+                            creator: proposalData.creator,
+                            data: proposalData,
+                            entryType: constProposalEntryType[entryType],
+                            //createTime: createTime ? new Date(createTime) : new Date(),
+                            userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                        };
+                        return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
+                    }
+                    else {
+                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                    }
+                }
+            ).then(
+                proposalData => {
+                    if (proposalData) {
+                        proposal = proposalData;
+                        let cTime = createTime ? new Date(createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                        let requestData = {
+                            proposalId: proposalData.proposalId,
+                            platformId: player.platform.platformId,
+                            userName: player.name,
+                            realName: wechatName,//player.realName || "",
+                            aliPayAccount: 1,
+                            amount: amount,
+                            groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
+                            remark: remark,
+                            createTime: cTimeString,
+                        };
+                        if (wechatAccount) {
+                            requestData.groupWechatList = [wechatAccount];
+                        }
+                        //console.log("requestData", requestData);
+                        return pmsAPI.payment_requestWeChatAccount(requestData);
+                    }
+                    else {
+                        return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
+                    }
+                }
+            ).then(
+                requestData => {
+                    //console.log("request response", requestData);
+                    if (requestData && requestData.result) {
+                        request = requestData;
+                        //add request data to proposal and update proposal status to pending
+                        var updateData = {
+                            status: constProposalStatus.PENDING
+                        };
+                        updateData.data = Object.assign({}, proposal.data);
+                        updateData.data.requestId = requestData.result.requestId;
+                        updateData.data.proposalId = proposal.proposalId;
+                        updateData.data.weChatAccount = requestData.result.weChatAccount;
+                        updateData.data.weChatQRCode = requestData.result.weChatQRCode;
+                        if (requestData.result.validTime) {
+                            updateData.data.validTime = new Date(requestData.result.validTime);
+                        }
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposal._id, createTime: proposal.createTime},
+                            updateData,
+                            {new: true}
+                        );
+                    }
+                    else {
+                        return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
+                    }
+                }
+            ).then(
+                data => {
+                    return {
+                        proposalId: data.proposalId,
+                        requestId: request.result.requestId,
+                        status: data.status,
+                        result: request.result
+                    };
+                }
+            );
+    },
 
 };
 

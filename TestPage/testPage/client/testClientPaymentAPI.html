@@ -651,6 +651,33 @@
     </div>
 </div>
 
+<h3>wechat top up (微信充值)</h3>
+<div class="test-container">
+    <div>
+        <label>Amount
+            <input name="amount">
+        </label>
+    </div>
+    <button data-api-name="requestWechatTopup">Topup</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Cancel wechat TopUp Request(取消微信充值)</h3>
+<div class="test-container">
+    <div>
+        <label>Proposal Id
+            <input name="proposalId">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="cancelWechatTopup">Cancel</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPaymentAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPaymentAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

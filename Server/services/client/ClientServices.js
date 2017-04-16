@@ -141,7 +141,10 @@
                 "getValidTopUpReturnRecordList",
                 "requestAlipayTopup",
                 "cancelAlipayTopup",
-                "getValidTopUpRewardRecordList"
+                "getValidTopUpRewardRecordList",
+                "getWechatTopupRequestList",
+                "requestWechatTopup",
+                "cancelWechatTopup",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

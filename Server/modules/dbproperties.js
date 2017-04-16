@@ -122,6 +122,9 @@ var platformMerchantGroupModel = db_admin.model('platformMerchantGroup', platfor
 var platformAlipayGroupSchema = require('./../schema/platformAlipayGroup');
 var platformAlipayGroupModel = db_admin.model('platformAlipayGroup', platformAlipayGroupSchema, 'platformAlipayGroup');
 
+var platformWechatPayGroupSchema = require('./../schema/platformWechatPayGroup');
+var platformWechatPayGroupModel = db_admin.model('platformWechatPayGroup', platformWechatPayGroupSchema, 'platformWechatPayGroup');
+
 var partnerCommissionConfigSchema = require('./../schema/partnerCommissionConfig');
 var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', partnerCommissionConfigSchema, 'partnerCommissionConfig');
 
@@ -295,7 +298,7 @@ var dbProperties = {
     collection_platformBankCardGroup: platformBankCardGroupModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
     collection_platformAlipayGroup: platformAlipayGroupModel,
-
+    collection_platformWechatPayGroup: platformWechatPayGroupModel,
 
     collection_gameType: gameTypeModel,
     collection_game: gameModel,
