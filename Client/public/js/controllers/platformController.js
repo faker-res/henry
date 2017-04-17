@@ -2894,10 +2894,14 @@ define(['js/app'], function (myApp) {
                         vm.updateDataTableinModal('#modalPlayerInfo', '#similarPlayersTable');
                     });
                     if (vm.selectedSinglePlayer.partner) {
-                        socketService.$socket($scope.AppSocket, 'getPartner', {_id: vm.selectedSinglePlayer.partner}, function (data) {
-                            vm.selectedSinglePlayer.partnerName = data.data.partnerName;
-                            $scope.safeApply();
-                        })
+                        if (vm.selectedSinglePlayer.partner.partnerName) {
+                            vm.selectedSinglePlayer.partnerName = vm.selectedSinglePlayer.partner.partnerName;
+                        } else {
+                            socketService.$socket($scope.AppSocket, 'getPartner', {_id: vm.selectedSinglePlayer.partner}, function (data) {
+                                vm.selectedSinglePlayer.partnerName = data.data.partnerName;
+                                $scope.safeApply();
+                            })
+                        }
                     }
                     vm.processDataTableinModal('#modalPlayerInfo', '#similarPlayersTable');
                     vm.showProvinceStr = '';
