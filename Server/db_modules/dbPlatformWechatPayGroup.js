@@ -62,10 +62,10 @@ let dbPlatformWechatPayGroup = {
                         let allProm = [];
                         for (let i in data) {
                             if (data.hasOwnProperty(i)) {
-                                if (data[i].bDefault && data[i]._id !== defaultID) {
+                                if (data[i].bDefault && data[i]._id != defaultID) {
                                     let prom = dbconfig.collection_platformWechatPayGroup.findOneAndUpdate({_id: data[i]._id}, {bDefault: false}, {upsert: true, new: true});
                                     allProm.push(prom);
-                                } else if (!data[i].bDefault && data[i]._id === defaultID) {
+                                } else if (!data[i].bDefault && data[i]._id == defaultID) {
                                     let prom = dbconfig.collection_platformWechatPayGroup.findOneAndUpdate({_id: data[i]._id}, {bDefault: true}, {upsert: true, new: true});
                                     allProm.push(prom);
                                 }

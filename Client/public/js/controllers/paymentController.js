@@ -97,9 +97,12 @@ define(['js/app'], function (myApp) {
                     vm.loadWechatPayGroupData();
                     break;
             }
+
+            // Initial Loading
             vm.loadBankCardGroupData();
             vm.loadMerchantGroupData();
             vm.loadAlipayGroupData();
+            vm.loadWechatPayGroupData();
             vm.getAllPlayerLevels();
             $scope.safeApply();
         };
@@ -1153,9 +1156,9 @@ define(['js/app'], function (myApp) {
                 default: vm.defaultWechatPayGroup
             };
 
-            socketService.$socket($scope.AppSocket, 'setPlatformDefaultWechatPayGroup', sendData, function (data) {
-                vm.loadAlipayGroupData();
-            })
+            socketService.$socket($scope.AppSocket, 'setPlatformDefaultWechatPayGroup', sendData, () => {
+                vm.loadWechatPayGroupData();
+            });
         };
 
         vm.wechatPayClicked = function (i, v, which) {
