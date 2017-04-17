@@ -411,7 +411,8 @@ define(['js/app'], function (myApp) {
                 });
                 vm.playerToGroupFilter(true, which, id);
             })
-        }
+        };
+
         vm.playerToGroupFilter = function (newSearch, which, id) {
             if (!which) {
                 which = vm.playerToGroupFilterObj.which;
@@ -453,9 +454,10 @@ define(['js/app'], function (myApp) {
                 vm.loadingPlayerTable = false;
                 vm.drawPlayerAttachTable(newSearch, vm.allPlayer, vm.playerToGroupFilterObj.totalCount);
             });
-        }
+        };
+
         vm.drawPlayerAttachTable = function (newSearch, data, size) {
-            var tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
+            let tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
                 data: data,
                 columnDefs: [
                     {
@@ -548,6 +550,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: "<div>" + $translate('Alipay Group') + "</div>",
                         "data": $translate('alipayGroup.name') || '',
+                        "sClass": "alignCenter"
+                    },
+                    {
+                        title: "<div>" + $translate('WechatPay Group') + "</div>",
+                        "data": $translate('wechatPayGroup.name') || '',
                         "sClass": "alignCenter"
                     }
                 ],

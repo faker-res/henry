@@ -26,7 +26,7 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformWechatPayGroupList.length>0)", data-toggle="modal", data-target='#modalSetWechatPayGroupDefault')
                         text {{"Default" | translate}}
                         img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Create')", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalAddPlayersToWechatPayroup', ng-click='vm.preparePlayerToGroupDialog("WechatPayGroup","#playertoWechatPayGroupDataTable")')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Create')", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalAddPlayersToWechatPayGroup', ng-click='vm.preparePlayerToGroupDialog("WechatPayGroup","#playertoWechatPayGroupDataTable")')
                         text {{"ADD_PLAYER" | translate}}
                         img.img-create
     .col-md-9(style="padding-left:0;padding-right:15px")
@@ -190,7 +190,7 @@
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
 // Modal - Add players to wechat pay group
-#modalAddPlayersToAlipayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+#modalAddPlayersToWechatPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header
@@ -227,9 +227,9 @@
                                 label.blink.text-danger {{'Loading' | translate}}
                         text.text-danger(ng-show='vm.players.length==0') {{"No player is found."|translate}}
                         label {{"Total" | translate}} {{vm.playerToGroupFilterObj.totalCount}} {{"records" | translate}}
-                        table#playertoAlipayGroupDataTable.display(style="width:100%")
+                        table#playertoWechatPayGroupDataTable.display(style="width:100%")
                             thead
-                        #playertoAlipayGroupDataTablePage
+                        #playertoWechatPayGroupDataTablePage
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitAddPlayersToWechatPayGroup()") {{"ADD" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

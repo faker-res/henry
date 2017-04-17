@@ -2124,6 +2124,9 @@ var dbPlayerInfo = {
                         }).populate({
                             path: "alipayGroup",
                             model: dbconfig.collection_platformAlipayGroup
+                        }).populate({
+                            path: "wechatPayGroup",
+                            model: dbconfig.collection_platformWechatPayGroup
                         }).lean())
                 })
                 return Q.all(proms).then(newPlayer => {
