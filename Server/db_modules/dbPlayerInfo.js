@@ -118,7 +118,7 @@ var dbPlayerInfo = {
                         });
                     }
                     else {
-                        return Q.reject({name: "DBError", message: "Cannot find platform"});
+                        return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
                 }
             ).then(
