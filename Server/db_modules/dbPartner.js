@@ -84,9 +84,9 @@ let dbPartner = {
                 if (!data) {
                     // If level was provided then use that, otherwise select the first level on the platform
                     return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
-                        platform: partnerdata.platform,
-                        value: partnerdata.level || 0
-                    });
+                            platform: partnerdata.platform,
+                            value: partnerdata.level || 0
+                        });
                 } else {
                     deferred.reject({
                         name: "DataError",
@@ -2599,11 +2599,11 @@ let dbPartner = {
                         //partnerData.lastCommissionSettleTime = settlementTimeToSave;
                         //partnerData.credits += commissionAmount;
                         //create proposal for partner commission
-                        if(commissionAmount < configData.minCommissionAmount){
+                        if (commissionAmount < configData.minCommissionAmount) {
                             commissionAmount = 0;
                         }
-                        if( commissionAmount != 0 || negativeProfitAmount != 0 ){
-                            let proposalData = {
+                        if (commissionAmount != 0 || negativeProfitAmount != 0) {
+                            var proposalData = {
                                 entryType: constProposalEntryType.SYSTEM,
                                 userType: constProposalUserType.PARTNERS,
                                 data: {
@@ -2622,7 +2622,7 @@ let dbPartner = {
                             partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
                         }
                     }
-                    if(commissionAmount < configData.minCommissionAmount){
+                    if (commissionAmount < configData.minCommissionAmount) {
                         commissionAmount = 0;
                     }
                     //log this commission record
@@ -2976,26 +2976,26 @@ let dbPartner = {
                     return Q.reject({name: "DataError", message: "Cannot find partner data"});
                 }
             }
-        // ).then(
-        //     configData => {
-        //         if (configData) {
-        //             configObj = configData;
-        //             return dbconfig.collection_players.find({partner: partnerObj._id}).lean();
-        //         }
-        //         else {
-        //             return Q.reject({name: "DataError", message: "Cannot find partner commission config data"});
-        //         }
-        //     }
-        // ).then(
-        //     players => {
-        //         if (players && players.length > 0) {
-        //             var proms = players.map(player => dbPartner.getPartnerPlayerCommissionInfo(player.platform, player._id, player.name, configObj, startTime, endTime));
-        //             return Q.all(proms);
-        //         }
-        //         else {
-        //             return [];
-        //         }
-        //     }
+            // ).then(
+            //     configData => {
+            //         if (configData) {
+            //             configObj = configData;
+            //             return dbconfig.collection_players.find({partner: partnerObj._id}).lean();
+            //         }
+            //         else {
+            //             return Q.reject({name: "DataError", message: "Cannot find partner commission config data"});
+            //         }
+            //     }
+            // ).then(
+            //     players => {
+            //         if (players && players.length > 0) {
+            //             var proms = players.map(player => dbPartner.getPartnerPlayerCommissionInfo(player.platform, player._id, player.name, configObj, startTime, endTime));
+            //             return Q.all(proms);
+            //         }
+            //         else {
+            //             return [];
+            //         }
+            //     }
         ).then(
             configData => {
                 if (configData) {
@@ -3068,7 +3068,7 @@ let dbPartner = {
                 };
                 playerCommissions.forEach(
                     commission => {
-                        if(commission){
+                        if (commission) {
                             total.totalValidAmount += commission.totalValidAmount;
                             total.totalBonusAmount += commission.totalBonusAmount;
                             total.operationAmount += commission.operationAmount;
@@ -3102,7 +3102,7 @@ let dbPartner = {
                         }
                     );
                 }
-                total.commissionAmount = profitAmount*commissionRate;
+                total.commissionAmount = profitAmount * commissionRate;
                 total.preNegativeProfitAmount = partnerObj.negativeProfitAmount;
                 return {
                     stats: {
@@ -3116,12 +3116,12 @@ let dbPartner = {
         );
     },
 
-    getPartnerPlayersCommissionInfo: function(platformObjId, configData, playerObjIds, startTime, endTime){
+    getPartnerPlayersCommissionInfo: function (platformObjId, configData, playerObjIds, startTime, endTime) {
         var proms = playerObjIds.map(
             playerObjId => {
                 return dbconfig.collection_players.findOne({_id: playerObjId}).then(
                     playerData => {
-                        if(playerData){
+                        if (playerData) {
                             return dbPartner.getPartnerPlayerCommissionInfo(platformObjId, playerObjId, playerData.name, configData, startTime, endTime);
                         }
                     }
@@ -3255,9 +3255,9 @@ let dbPartner = {
                     platformFee = platformFeeAmount * configData.platformFeeRate;
                 }
                 profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
-                var operationCost =  platformFee + serviceFee + totalRewardAmount;
+                var operationCost = platformFee + serviceFee + totalRewardAmount;
 
-                if( profitAmount ){
+                if (profitAmount) {
                     return {
                         playerName: playerName,
                         totalValidAmount: totalValidAmount,

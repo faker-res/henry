@@ -380,8 +380,8 @@ define(['js/app'], function (myApp) {
                 result = $time.prop('outerHTML') + $btn.prop('outerHTML');
             } else if (fieldName.indexOf('providerId') > -1 || fieldName.indexOf('targetProviders') > -1) {
                 result = val ? val.map(item => {
-                    return vm.getProviderText(item);
-                }) : '';
+                        return vm.getProviderText(item);
+                    }) : '';
                 result = result.join(',');
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
@@ -683,7 +683,7 @@ define(['js/app'], function (myApp) {
                             if (data && data.data && data.data.playerName) {
                                 return data.data.playerName;
                             }
-                            else if(data && data.data && data.data.partnerName){
+                            else if (data && data.data && data.data.partnerName) {
                                 return data.data.partnerName;
                             }
                             else {
