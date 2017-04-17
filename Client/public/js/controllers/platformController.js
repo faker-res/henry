@@ -245,6 +245,7 @@ define(['js/app'], function (myApp) {
                     // case "merchantGroup":
                     vm.loadMerchantGroupData();
                     vm.loadAlipayGroupData();
+                    vm.loadWechatPayGroupData();
                     vm.getPlatformAnnouncements();
                     //     break;
                     // }
@@ -3087,6 +3088,7 @@ define(['js/app'], function (myApp) {
                     bankCardGroup: vm.selectedSinglePlayer.bankCardGroup,
                     merchantGroup: vm.selectedSinglePlayer.merchantGroup,
                     alipayGroup: vm.selectedSinglePlayer.alipayGroup,
+                    wechatPayGroup: vm.selectedSinglePlayer.wechatPayGroup,
                     trustLevel: vm.selectedSinglePlayer.trustLevel,
                     photoUrl: vm.selectedSinglePlayer.photoUrl,
                     playerLevel: vm.selectedSinglePlayer.playerLevel._id,
@@ -3176,12 +3178,12 @@ define(['js/app'], function (myApp) {
         };
 
         vm.openEditPlayerDialog = function () {
-            var selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
-            var editPlayer = vm.editPlayer;                  // ~ 6 fields
-            var allPartner = vm.partnerIdObj;
-            var allPlayerLevel = vm.allPlayerLvl;
+            let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
+            let editPlayer = vm.editPlayer;                  // ~ 6 fields
+            let allPartner = vm.partnerIdObj;
+            let allPlayerLevel = vm.allPlayerLvl;
             // console.log("vm.editPlayer", vm.editPlayer);
-            var option = {
+            let option = {
                 $scope: $scope,
                 $compile: $compile,
                 childScope: {
@@ -3194,6 +3196,7 @@ define(['js/app'], function (myApp) {
                     platformBankCardGroupList: vm.platformBankCardGroupList,
                     platformMerchantGroupList: vm.platformMerchantGroupList,
                     platformAlipayGroupList: vm.platformAlipayGroupList,
+                    platformWechatPayGroupList: vm.platformWechatPayGroupList,
                     allPlayerTrustLvl: vm.allPlayerTrustLvl,
                     // showPlayerBankCardId: vm.showPlayerBankCardId,
                     // showPlayerMerchantId: vm.showPlayerMerchantId,
@@ -3214,6 +3217,7 @@ define(['js/app'], function (myApp) {
                     // },
                 }
             };
+
             option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
             option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
             // console.log("option.childScope.playerBeingEdited.smsSetting:", option.childScope.playerBeingEdited.smsSetting);
@@ -7191,6 +7195,27 @@ define(['js/app'], function (myApp) {
 
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
+        /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
+        vm.loadWechatPayGroupData = function () {
+            //init gametab start===============================
+            vm.showWechatPayCate = "include";
+            vm.curGame = null;
+            //init gameTab end==================================
+            if (!vm.selectedPlatform) {
+                return
+            }
+            socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                //provider list init
+                vm.platformWechatPayGroupList = data.data;
+                vm.platformWechatPayGroupListCheck = {};
+                $.each(vm.platformWechatPayGroupList, function (i, v) {
+                    vm.platformWechatPayGroupListCheck[v._id] = true;
+                });
+                $scope.safeApply();
+            })
+        };
+
+        /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
         // platform-reward start =============================================================================
 
