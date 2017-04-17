@@ -84,13 +84,41 @@ var dbPlayerInfo = {
                     if (platformData) {
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
-                        return dbPlayerInfo.isPlayerNameValidToRegister({
+                        var playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             name: inputData.name,
                             platform: platformData._id
                         });
+                        var realNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
+                            realName: inputData.realName,
+                            platform: platformData._id
+                        });
+                        if (!("allowSameRealNameToRegister" in platformData)) {
+                            platformData.allowSameRealNameToRegister = true;
+                        }
+                        if (platformData.allowSameRealNameToRegister) {
+                            return playerNameChecker;
+                        }
+                        return Q.all([playerNameChecker, realNameChecker]).then(data => {
+                            if (data && data.length == 2 && data[0] && data[1]) {
+                                if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
+                                    // console.log();
+                                    return {"isPlayerNameValid": true};
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.USERNAME_ALREADY_EXIST,
+                                        name: "DBError",
+                                        message: "Realname already exists"
+                                    });
+                                }
+                            }
+                            else {
+                                return {"isPlayerNameValid": false};
+                            }
+                        });
                     }
                     else {
-                        return Q.reject({name: "DataError", message: "Cannot find platform"});
+                        return Q.reject({name: "DBError", message: "Cannot find platform"});
                     }
                 }
             ).then(
@@ -2235,8 +2263,9 @@ var dbPlayerInfo = {
                     platformPrefix = platformData.prefix;
                     playerData.prefixName = platformData.prefix + playerData.name;
 
-                        return dbconfig.collection_players.findOne(
-                            {$or:[
+                    return dbconfig.collection_players.findOne(
+                        {
+                            $or: [
                                 {
                                     name: playerData.prefixName.toLowerCase(),
                                     platform: platformData._id
@@ -2245,7 +2274,8 @@ var dbPlayerInfo = {
                                     phoneNumber: playerData.name,
                                     platform: platformData._id
                                 }
-                            ]}).lean();
+                            ]
+                        }).lean();
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Cannot find platform"});
@@ -2723,12 +2753,12 @@ var dbPlayerInfo = {
     transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
         var deferred = Q.defer();
         var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        });
+                path: "platform",
+                model: dbconfig.collection_platform
+            }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
+                path: "platform",
+                model: dbconfig.collection_platform
+            });
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         var playerData = null;
         var providerData = null;
@@ -3081,12 +3111,12 @@ var dbPlayerInfo = {
         var deferred = Q.defer();
         var playerObj = {};
         var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        });
+                path: "platform",
+                model: dbconfig.collection_platform
+            }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
+                path: "platform",
+                model: dbconfig.collection_platform
+            });
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
@@ -6726,7 +6756,7 @@ var dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
                 if (playerData) {
-                    if( playerData.permission && playerData.permission.banReward ){
+                    if (playerData.permission && playerData.permission.banReward) {
                         return Q.reject({
                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                             name: "DataError",
@@ -7304,7 +7334,7 @@ var dbPlayerInfo = {
                         platformId: player.platform
                     }).lean().then(
                         type => {
-                            if( type ){
+                            if (type) {
                                 let todayTime = dbUtility.getTodaySGTime();
                                 return dbconfig.collection_proposal.find(
                                     {
@@ -7318,7 +7348,7 @@ var dbPlayerInfo = {
                                     }
                                 ).count();
                             }
-                            else{
+                            else {
                                 return Q.reject({
                                     name: "DataError",
                                     message: "Can not find player double top up reward proposal type"
@@ -7381,8 +7411,8 @@ var dbPlayerInfo = {
                         message: "Player is not valid for this reward"
                     });
                 }
-                
-                if( eventData.param && eventData.param.maxRewardTimes != null && data[2] >= eventData.param.maxRewardTimes ){
+
+                if (eventData.param && eventData.param.maxRewardTimes != null && data[2] >= eventData.param.maxRewardTimes) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
@@ -7396,7 +7426,7 @@ var dbPlayerInfo = {
                 var consumptionTimes = 0;
                 eventData.param.reward.forEach(
                     rewardRow => {
-                        if( player.playerLevel.value >= rewardRow.minPlayerLevel && record.amount >= rewardRow.topUpAmount && rewardRow.rewardAmount > rewardAmount ){
+                        if (player.playerLevel.value >= rewardRow.minPlayerLevel && record.amount >= rewardRow.topUpAmount && rewardRow.rewardAmount > rewardAmount) {
                             rewardAmount = rewardRow.rewardAmount;
                             maxRewardAmount = rewardRow.maxRewardAmount;
                             consumptionTimes = rewardRow.consumptionTimes;

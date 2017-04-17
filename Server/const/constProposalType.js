@@ -23,6 +23,7 @@ const constProposalType = {
     PLATFORM_TRANSACTION_REWARD: "PlatformTransactionReward",
     PLAYER_MANUAL_TOP_UP: "ManualPlayerTopUp",
     PLAYER_ALIPAY_TOP_UP: "PlayerAlipayTopUp",
+    PLAYER_WECHAT_TOP_UP: "PlayerWechatTopUp",
     PLAYER_TOP_UP: "PlayerTopUp",
     PLAYER_BONUS: "PlayerBonus",
     PLAYER_TOP_UP_RETURN: "PlayerTopUpReturn",
