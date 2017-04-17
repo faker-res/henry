@@ -59,7 +59,9 @@ var platformSchema = new Schema({
     partnerInvitationUrl: {type: String},
 
     //min top up amount
-    minTopUpAmount: {type: Number, default: 0}
+    minTopUpAmount: {type: Number, default: 0},
+    //allow same real name to register? for frontEnd only, they still can register via office
+    allowSameRealNameToRegister: {type: Boolean, default: true},
 });
 
 //add platform id before save

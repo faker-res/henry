@@ -125,7 +125,7 @@ var WebSocketUtility = {
                 function (err) {
                     if (!customErrorHandler) {
                         if (err && err.status) {
-                            if( err.errorMessage || err.message ){
+                            if (err.errorMessage || err.message) {
                                 var msg = err.errorMessage || err.message;
                                 err.errorMessage = localization.translate(msg, conn.lang);
                             }
@@ -192,34 +192,34 @@ var WebSocketUtility = {
         const validatorsByType = {
             // This is the default if the parameter is specified but no type is provided (no ':')
             // We could say that this parameter is "present" or "provided" or "defined" or "not forgotten"
-            '*':         val => val !== undefined,
+            '*': val => val !== undefined,
 
             // Currently I am using '?' to indicate that I don't know what type this parameter is, so I would like
             // someone else to fill it out!  It acts just like '*'.
-            '?':         val => val !== undefined,
+            '?': val => val !== undefined,
 
             // These are currently unused, but could be introduced if needed:
             // 'exists':    val => val !== undefined && val !== null,
             // '+':         val => Boolean(val),
 
-            'String?':   val => typeof val === 'string',
-            'String':    val => typeof val === 'string' && val.length > 0,
+            'String?': val => typeof val === 'string',
+            'String': val => typeof val === 'string' && val.length > 0,
 
-            'Number':    val => typeof val === 'number',
-            'Number+':   val => typeof val === 'number' && val > 0,
+            'Number': val => typeof val === 'number',
+            'Number+': val => typeof val === 'number' && val > 0,
 
-            'Boolean':   val => typeof val === 'boolean',
+            'Boolean': val => typeof val === 'boolean',
 
-            'Array':     val => val && Array.isArray(val),
-            '[]':        val => val && Array.isArray(val),
-            '[]+':       val => val && Array.isArray(val) && val.length > 0,
+            'Array': val => val && Array.isArray(val),
+            '[]': val => val && Array.isArray(val),
+            '[]+': val => val && Array.isArray(val) && val.length > 0,
 
-            'Object':    val => (typeof val === 'object') && val !== null,
-            '{}':        val => (typeof val === 'object') && val !== null,
+            'Object': val => (typeof val === 'object') && val !== null,
+            '{}': val => (typeof val === 'object') && val !== null,
 
-            'ObjectId':  val => mongoose.Types.ObjectId.isValid(val),
+            'ObjectId': val => mongoose.Types.ObjectId.isValid(val),
 
-            'Date':      val => (val instanceof Date) || (typeof val === 'number' && val >= 0) || (typeof val === 'string' && !isNaN(new Date(val).getTime())),
+            'Date': val => (val instanceof Date) || (typeof val === 'number' && val >= 0) || (typeof val === 'string' && !isNaN(new Date(val).getTime())),
         };
 
         const requirementByType = {
@@ -246,7 +246,7 @@ var WebSocketUtility = {
                 return;   // There were no conditions for this param (or there were no params specified at all)
             }
 
-            if (paramName.slice(0,1) === '[' && paramName.slice(-1) === ']') {
+            if (paramName.slice(0, 1) === '[' && paramName.slice(-1) === ']') {
                 // This param is optional
                 paramName = paramName.slice(1, -1);
                 if (reqData[paramName] === undefined) {
@@ -318,7 +318,7 @@ var WebSocketUtility = {
                     }, reqData);
                 }
             },
-            err=> {
+            err => {
                 return wsFunc.response(conn, {
                     status: constServerCode.COMMON_ERROR,
                     errorMessage: localization.translate(err.message, conn.lang),
