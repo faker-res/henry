@@ -1191,7 +1191,7 @@ var proposal = {
             var summaryObj = {};
             if (returnData[2] && returnData[2][0]) {
                 summaryObj = {
-                    amount: returnData[2][0].totalAmount + returnData[2][0].totalRewardAmount + returnData[2][0].totalTopUpAmount
+                    amount: returnData[2][0].totalAmount + returnData[2][0].totalRewardAmount + returnData[2][0].totalTopUpAmount + returnData[2][0].totalUpdateAmount + returnData[2][0].totalNegativeProfitAmount + returnData[2][0].totalCommissionAmount
                 }
             }
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
