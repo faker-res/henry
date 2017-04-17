@@ -57,7 +57,7 @@ var proposal = {
         let ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName);
         // query related player info
         let plyProm = dbconfig.collection_players.findOne({_id: playerId})
-                        .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+            .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
 
         proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
@@ -85,7 +85,7 @@ var proposal = {
 
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
-                if( proposalData && proposalData.data && proposalData.data.updateAmount < 0 ){
+                if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
                     dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data).then();
                 }
                 if (data && data.process) {
@@ -179,7 +179,7 @@ var proposal = {
                     );
 
                     // attach player info if available
-                    if(data[2]) {
+                    if (data[2]) {
                         proposalData.data.playerName = data[2].name;
                         proposalData.data.playerStatus = data[2].status;
                         proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
@@ -1140,7 +1140,7 @@ var proposal = {
                                 {
                                     $project: {
                                         docId: "$_id",
-                                        relatedAmount: {$sum: ["$data.amount", "$data.rewardAmount", "$data.topUpAmount"]}
+                                        relatedAmount: {$sum: ["$data.amount", "$data.rewardAmount", "$data.topUpAmount", "$data.updateAmount", "$data.negativeProfitAmount", "$data.commissionAmount"]}
                                     }
                                 }, {$sort: sortCol}, {$skip: index}, {$limit: size}).then(
                                 aggr => {
@@ -1170,7 +1170,10 @@ var proposal = {
                                     _id: null,
                                     totalAmount: {$sum: "$data.amount"},
                                     totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                    totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                                    totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                                    totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                    totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                    totalCommissionAmount: {$sum: "$data.commissionAmount"}
                                 }
                             }
                         );
@@ -1188,7 +1191,7 @@ var proposal = {
             var summaryObj = {};
             if (returnData[2] && returnData[2][0]) {
                 summaryObj = {
-                    amount: returnData[2][0].totalAmount + returnData[2][0].totalRewardAmount + returnData[2][0].totalTopUpAmount
+                    amount: returnData[2][0].totalAmount + returnData[2][0].totalRewardAmount + returnData[2][0].totalTopUpAmount + returnData[2][0].totalUpdateAmount + returnData[2][0].totalNegativeProfitAmount + returnData[2][0].totalCommissionAmount
                 }
             }
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
