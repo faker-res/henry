@@ -220,6 +220,19 @@ const pmsAPI = {
         return callPMSAPI("payment", "requestCancellationPayOrder", data);
     },
 
+    //weChat service
+    weChat_getWechatList: function (data) {
+        return callPMSAPI("weChat", "getWechatList", data);
+    },
+
+    weChat_getWechat: function (data) {
+        return callPMSAPI("weChat", "getWechat", data);
+    },
+
+    payment_requestWeChatAccount: function (data) {
+        return callPMSAPI("payment", "requestWeChatAccount", data);
+    },
+
 };
 
 module.exports = pmsAPI;

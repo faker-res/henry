@@ -102,7 +102,8 @@
                 "requestRepairingOnlinePay",
                 "checkExpiredManualTopup",
                 "requestAlipayAccount",
-                "requestCancellationPayOrder"
+                "requestCancellationPayOrder",
+                "requestWeChatAccount"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames1, ["proposalId"]);
 
@@ -200,6 +201,24 @@
         rootObj.AlipayService = AlipayService;
     };
 
+    var defineWechatService = function (sinonet) {
+        var WechatService = function (connection) {
+            sinonet.WebSocketService.call(this, "weChat", connection);
+
+            //define functions
+            var functionNames = [
+                "getWechatList",
+                "getWechat",
+            ];
+            addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
+        };
+
+        WechatService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        WechatService.prototype.constructor = WechatService;
+
+        rootObj.WechatService = WechatService;
+    };
+
     if (isNode) {
         var sinonet = require("./../../server_common/WebSocketService");
         defineConnectionService(sinonet);
@@ -210,6 +229,7 @@
         defineBankcardService(sinonet);
         defineMerchantService(sinonet);
         defineAlipayService(sinonet);
+        defineWechatService(sinonet);
         module.exports = rootObj;
     } else {
         define(["common/WebSocketService"], function (sinonet) {
@@ -221,6 +241,7 @@
             defineBankcardService(sinonet);
             defineMerchantService(sinonet);
             defineAlipayService(sinonet);
+            defineWechatService(sinonet);
             return rootObj;
         });
     }
