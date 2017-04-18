@@ -107,7 +107,7 @@ let PlayerServiceImplement = function () {
     this.createPlayerPartner.expectsData = 'platformId: String, password: String';
     this.createPlayerPartner.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
-        if ((conn.smsCode && (conn.smsCode === data.smsCode) && (conn.phoneNumber === data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode === data.captcha)) || data.captcha === 'testCaptcha') {
+        if ((conn.smsCode && (conn.smsCode === data.smsCode) && (conn.phoneNumber === data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha === 'testCaptcha') {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {

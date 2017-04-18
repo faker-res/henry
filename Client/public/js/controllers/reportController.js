@@ -1550,7 +1550,7 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.drawPlayerDomainReport = function (tableData, size, newSearch) {
-            var tableOptions = {
+            let tableOptions = {
                 data: tableData,
                 "order": vm.playerDomain.aaSorting || [[2, 'desc']],
                 aoColumnDefs: [
@@ -1563,7 +1563,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "name"},
                     {title: $translate('realName'), data: "realName", sClass: "realNameCell wordWrap"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
-                    {title: $translate('Partner'), data: "partner.name"},
+                    {title: $translate('Partner'), data: "partner.partnerName"},
                     {title: $translate('LAST_ACCESS_TIME'), data: "registrationTime$"},
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
                     {title: $translate('Domain Name'), data: "domain"}

@@ -653,9 +653,29 @@ function socketActionPlayer(socketIO, socket) {
 
         cancelAlipayTopup: function cancelAlipayTopup(data) {
             let actionName = arguments.callee.name;
-            var isValidData = Boolean(data.playerId && data.proposalId);
+            let isValidData = Boolean(data.playerId && data.proposalId);
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelAlipayTopup, [data.playerId, data.proposalId], actionName, isValidData);
         },
+
+        // WechatPay TopUp
+        getWechatPayTopUpRequestList: function getWechatPayTopUpRequestList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId !== null);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getWechatTopupRequestList, [data.playerId], actionName, isValidData);
+        },
+
+        applyWechatPayTopUpRequest: function applyWechatPayTopUpRequest(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.amount && data.wechatPayName && data.wechatPayAccount);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
+        },
+
+        cancelWechatPayTopup: function cancelWechatPayTopup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data.playerId && data.proposalId);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelWechatTopup, [data.playerId, data.proposalId], actionName, isValidData);
+        },
+
 
         verifyPlayerBankAccount: function verifyPlayerBankAccount(data) {
             var actionName = arguments.callee.name;

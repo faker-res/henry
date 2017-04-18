@@ -1,7 +1,9 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
 
-var partnerCommissionConfigSchema = new Schema({
+let constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
+
+let partnerCommissionConfigSchema = new Schema({
     //platform
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true, unique: true},
     //commission param
@@ -34,7 +36,9 @@ var partnerCommissionConfigSchema = new Schema({
     //minimum commission amount
     minCommissionAmount: {type: Number, default: 0},
     //reset period，number of days to clear negative value
-    resetPeriod: {type: Number, default: 0}
+    resetPeriod: {type: Number, default: 0},
+    // settlement mode
+    settlementMode: {type: String, default: constPartnerCommissionSettlementMode.OPSR}
 });
 
 module.exports = partnerCommissionConfigSchema;

@@ -725,9 +725,17 @@ define(['js/app'], function (myApp) {
                         "title": $translate('STATUS'),
                         "data": 'process',
                         render: function (data, type, row) {
-                            var text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
-                            var text = text == "approved" ? "Approved" : text;
-                            var $link = $('<a>').text(text);
+                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            text = text === "approved" ? "Approved" : text;
+
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (row.status === 'Pending') {
+                                textClass = "text-danger";
+                                fontStyle = {'font-weight': 'bold'};
+                            }
+
+                            let $link = $('<a>').text(text).addClass(textClass).css(fontStyle);
                             return $link.prop('outerHTML');
                         },
                     },

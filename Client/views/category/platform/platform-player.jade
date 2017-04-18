@@ -75,6 +75,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyAlipayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerAlipayTopUp', ng-click='vm.initPlayerAlipayTopUp();')
             text {{"APPLY_ALIPAY_TOPUP" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyWechatPayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerWechatPayTopUp', ng-click='vm.initPlayerAlipayTopUp();')
+            text {{"APPLY_WECHATPAY_TOPUP" | translate}}
+            img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'applyBonus')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerBonus();', data-target='#modalPlayerBonus')
             text {{"APPLY_BONUS" | translate}}
             img.img-edit
@@ -1242,6 +1245,55 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_alipay_topup.$invalid || form_alipay_topup.$pristine || (vm.existingAlipayTopup && !vm.existingAlipayTopup.isCanceled)', ng-show='!vm.playerAlipayTopUp.submitted', ng-click='vm.applyPlayerAlipayTopUp()') {{'APPLY' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                 label.inlineBlk.wordWrap(ng-if='vm.playerAlipayTopUp.submitted && vm.playerAlipayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerAlipayTopUp.responseMsg}}
+
+// Modal - Player apply WechatPay Topup
+#modalPlayerWechatPayTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"APPLY_WECHATPAY_TOPUP" | translate}}
+            .modal-body
+                .row
+                    .col-md-12
+                        .well.margin-bottom-5(ng-if='vm.existingWechatPayTopup===null')
+                            label.blink {{"Searching existing WechatPay topup request..." | translate}}
+                        .well.margin-bottom-5(ng-if='vm.existingWechatPayTopup')
+                            .lineThrough(ng-if='vm.existingWechatPayTopup.isCanceled')
+                                button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.createTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
+                            div(ng-if='!vm.existingWechatPayTopup.isCanceled')
+                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+                                label.margin-right-5 {{"Player has pending Alipay topup request already." | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.createTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
+                                button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerWechatPayTopUp()') {{'CANCEL' | translate}}
+                .row(ng-show='vm.existingWechatPayTopup===false || vm.existingWechatPayTopup.isCanceled')
+                    .col-md-12
+                        form(name='form_wechatPay_topup').well
+                            .form-group-col-md-6
+                                .control-label
+                                    label {{'CREDIT' | translate}}
+                                    text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
+                                input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerWechatPayTopUp.amount', required)
+                                .control-label
+                                    label {{'wechatPayName' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
+                                .control-label
+                                    label {{'wechatPayAccount' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayAccount', required)
+                                .control-label
+                                    label {{'REMARK' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.remark')
+                                .inlineBlk
+                                    label {{'DEPOSITE_TIME' | translate}}
+                                    .createTime
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerWechatPayTopUp.submitted') {{'Submitted' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_wechatPay_topup.$invalid || form_wechatPay_topup.$pristine || (vm.existingWechatPayTopup && !vm.existingWechatPayTopup.isCanceled)', ng-show='!vm.playerWechatPayTopUp.submitted', ng-click='vm.applyPlayerWechatPayTopUp()') {{'APPLY' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.playerWechatPayTopUp.submitted && vm.playerWechatPayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerWechatPayTopUp.responseMsg}}
 
 #modalPlayerBonus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')

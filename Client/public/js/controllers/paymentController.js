@@ -93,10 +93,16 @@ define(['js/app'], function (myApp) {
                 case "alipayGroup":
                     vm.loadAlipayGroupData();
                     break;
+                case "wechatPayGroup":
+                    vm.loadWechatPayGroupData();
+                    break;
             }
+
+            // Initial Loading
             vm.loadBankCardGroupData();
             vm.loadMerchantGroupData();
             vm.loadAlipayGroupData();
+            vm.loadWechatPayGroupData();
             vm.getAllPlayerLevels();
             $scope.safeApply();
         };
@@ -405,7 +411,8 @@ define(['js/app'], function (myApp) {
                 });
                 vm.playerToGroupFilter(true, which, id);
             })
-        }
+        };
+
         vm.playerToGroupFilter = function (newSearch, which, id) {
             if (!which) {
                 which = vm.playerToGroupFilterObj.which;
@@ -447,9 +454,10 @@ define(['js/app'], function (myApp) {
                 vm.loadingPlayerTable = false;
                 vm.drawPlayerAttachTable(newSearch, vm.allPlayer, vm.playerToGroupFilterObj.totalCount);
             });
-        }
+        };
+
         vm.drawPlayerAttachTable = function (newSearch, data, size) {
-            var tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
+            let tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
                 data: data,
                 columnDefs: [
                     {
@@ -542,6 +550,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: "<div>" + $translate('Alipay Group') + "</div>",
                         "data": $translate('alipayGroup.name') || '',
+                        "sClass": "alignCenter"
+                    },
+                    {
+                        title: "<div>" + $translate('WechatPay Group') + "</div>",
+                        "data": $translate('wechatPayGroup.name') || '',
                         "sClass": "alignCenter"
                     }
                 ],
@@ -1031,6 +1044,182 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
+
+        /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
+        vm.loadWechatPayGroupData = function () {
+            //init gametab start===============================
+            vm.showWechatPayCate = "include";
+            vm.curGame = null;
+            //init gameTab end==================================
+            if (!vm.selectedPlatform) {
+                return
+            }
+            socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                //provider list init
+                vm.platformWechatPayGroupList = data.data;
+                vm.platformWechatPayGroupListCheck = {};
+                $.each(vm.platformWechatPayGroupList, function (i, v) {
+                    vm.platformWechatPayGroupListCheck[v._id] = true;
+                });
+                $scope.safeApply();
+            })
+        };
+
+        vm.addWechatPayGroup = function (data) {
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                name: vm.newWechatPayGroup.name,
+                code: vm.newWechatPayGroup.code,
+                displayName: vm.newWechatPayGroup.displayName
+            };
+
+            console.log('Add WechatPay Group sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'addPlatformWechatPayGroup', sendData, function (data) {
+                console.log('Add WechatPay Group', data);
+                vm.loadWechatPayGroupData();
+                $scope.safeApply();
+            },
+            error => {
+                console.log('Add WechatPay Group error', error);
+            })
+        };
+
+        vm.wechatPayGroupClicked = function (i, wechatPayGroup) {
+            vm.SelectedWechatPayGroupNode = wechatPayGroup;
+            vm.includedWechatPays = null;
+            vm.excludedWechatPays = null;
+
+            let query = {
+                platform: vm.selectedPlatform.data.platformId,
+                alipayGroup: wechatPayGroup._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getIncludedWechatsByWechatPayGroup', query, function (data2) {
+                if (data2 && data2.data) {
+                    vm.includedWechatPays = [];
+                    $.each(data2.data, function (i, v) {
+                        if (vm.filterWechatPayTitle && v.name.indexOf(vm.filterWechatPayTitle) === -1) {
+
+                        } else if (vm.filterWechatPayAcc && v.accountNumber.indexOf(vm.filterWechatPayAcc) === -1) {
+
+                        } else {
+                            vm.includedWechatPays.push(v);
+                        }
+                    });
+
+                } else {
+                    vm.includedWechatPays = [];
+                }
+                $scope.safeApply();
+            });
+
+            socketService.$socket($scope.AppSocket, 'getExcludedWechatsByWechatPayGroup', query, function (data2) {
+                if (data2 && data2.data) {
+                    vm.excludedWechatPays = data2.data;
+                } else {
+                    vm.excludedWechatPays = [];
+                }
+                $scope.safeApply();
+            })
+        };
+
+        vm.removeWechatPayGroup = function (node) {
+            socketService.$socket($scope.AppSocket, 'deleteWechatPayGroup', {_id: node._id}, function (data) {
+                vm.loadWechatPayGroupData();
+                $scope.safeApply();
+            })
+        };
+
+        vm.initRenameWechatPayGroup = function () {
+            vm.newWechatPayGroup = {};
+            vm.newWechatPayGroup.name = vm.SelectedWechatPayGroupNode.name;
+            vm.newWechatPayGroup.displayName = vm.SelectedWechatPayGroupNode.displayName;
+            vm.newWechatPayGroup.code = vm.SelectedWechatPayGroupNode.code;
+        };
+
+        vm.renameWechatPayGroup = function () {
+            let sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    name: vm.SelectedWechatPayGroupNode.groupId
+                },
+                update: {
+                    name: vm.newWechatPayGroup.name,
+                    displayName: vm.newWechatPayGroup.displayName,
+                    code: vm.newWechatPayGroup.code
+                }
+            };
+
+            socketService.$socket($scope.AppSocket, 'renamePlatformWechatPayGroup', sendData, function (data) {
+                vm.loadWechatPayGroupData();
+                $scope.safeApply();
+            })
+        };
+
+        vm.submitDefaultWechatPayGroup = function () {
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                default: vm.defaultWechatPayGroup
+            };
+
+            socketService.$socket($scope.AppSocket, 'setPlatformDefaultWechatPayGroup', sendData, () => {
+                vm.loadWechatPayGroupData();
+            });
+        };
+
+        vm.wechatPayClicked = function (i, v, which) {
+            vm.highlightWechatPay = {};
+            vm.highlightWechatPay[v.WechatPayNo] = 'bg-pale';
+            vm.curWechatPay = v;
+        };
+
+        vm.wechatPaytoWechatPayGroup = function (type) {
+            let sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    _id: vm.SelectedWechatPayGroupNode._id
+                }
+            };
+
+            if (type === 'attach') {
+                sendData.update = {
+                    "$push": {
+                        wechats: vm.curWechatPay.accountNumber
+                    }
+                }
+            } else if (type === 'detach') {
+                sendData.update = {
+                    "$pull": {
+                        wechats: vm.curWechatPay.accountNumber
+                    }
+                }
+            }
+
+            socketService.$socket($scope.AppSocket, 'updatePlatformWechatPayGroup', sendData, success);
+            function success(data) {
+                vm.curWechatPay = null;
+                vm.wechatPayGroupClicked(0, vm.SelectedWechatPayGroupNode);
+                $scope.safeApply();
+            }
+        };
+
+        vm.submitAddPlayersToWechatPayGroup = function () {
+            let playerArr = [], data = vm.attachPlayerTable.rows('.selected').data();
+
+            data.each(a => {
+                playerArr.push(a._id);
+            });
+
+            let sendData = {
+                bankAlipayGroupObjId: vm.SelectedWechatPayGroupNode._id,
+                playerObjIds: playerArr
+            };
+
+            socketService.$socket($scope.AppSocket, 'addPlayersToWechatPayGroup', sendData, function (data) {
+                $scope.safeApply();
+            });
+        };
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
         ///////////////////////////////// common functions
