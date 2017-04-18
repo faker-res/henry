@@ -16,6 +16,8 @@ var jwt = require('jsonwebtoken');
 var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 
+let env = require('../config/env').config();
+
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
@@ -79,6 +81,20 @@ let dbPartner = {
                 message: "You did not provide the 'platform' (ObjectId) field for the new partner"
             });
         }
+
+        // Player name should be alphanumeric and max 15 characters
+        let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
+        if (partnerName.length > 15 || !partnerName.match(alphaNumRegex)) {
+            // ignore for unit test
+            if (env.mode !== "local" && env.mode !== "qa") {
+                return Q.reject({
+                    status: constServerCode.PARTNER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Username should be alphanumeric and within 15 characters"
+                });
+            }
+        }
+
         dbconfig.collection_partner.findOne({partnerName: partnerdata.partnerName.toLowerCase()}).then(
             data => {
                 if (!data) {
