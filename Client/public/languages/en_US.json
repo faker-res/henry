@@ -12,8 +12,8 @@
   "LEVELMONTH":"monthly",
   "LEVELNONE":"sum",
   "bonusAmount1":"bonusAmount",
-  "BALCKLIST":"blacklist",
-  "ATTENTION":"attention",
+  "BALCKLIST":"Blacklist",
+  "ATTENTION":"Attention",
   "CONSUMPTION_INTERVAL":"Consumption History",
   "REWARD_CLIENT_APPLY":"Can apply from client",
 
@@ -252,6 +252,7 @@
   "RESET_PASSWORD":"Reset Password",
   "PAYMENT":"Payment Information",
   "TOP_UP_TIMES": "Top Up Times",
+  "TOP_UP_AMOUNT": "Top Up Amount",
   "FEEDBACK_TIMES": "Feedback Times",
   "PLAYER_TOPUP": "Player Top Up",
   "PLAYER_EXPENSES": "Player Expenses",
@@ -360,7 +361,9 @@
 
   "MAIN_TYPE":"Proposal Type",
   "PRIORITY":"Priority",
+  "playerStatus": "Player Status",
   "ENTRY_TYPE":"Entry Type",
+  "ENTRY_TYPE_ADMIN":"Admin",
   "USER_TYPE":"User Type",
   "GENERAL":"General",
   "ADMIN":"Admin",
@@ -791,5 +794,7 @@
   "APPROVAL_PROPOSAL":"Approval Proposal",
   "proposalStepShow":"Proposal Status：Pending， Department：",
   "Qty_Min":"Min",
-  "Qty_Max":"Max"
+  "Qty_Max":"Max",
+
+  "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode"
 }

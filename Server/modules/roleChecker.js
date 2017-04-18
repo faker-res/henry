@@ -38,7 +38,7 @@ var roleChecker = {
         'deleteMerchantGroup', 'addPlatformAlipayGroup',
         'renamePlatformAlipayGroup', 'setPlatformDefaultAlipayGroup', 'getPlayerForAttachGroup', 'addPlayersToAlipayGroup',
         'deleteAlipayGroup', 'updateGameProvider', 'startProviderDailySettlement', 'delayManualTopupRequest', 'createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig',
-        'applyPartnerBonusRequest'
+        'applyPartnerBonusRequest', 'addPlatformWechatPayGroup'
     ],
 
     publicActions: {
@@ -56,6 +56,8 @@ var roleChecker = {
         'getAllSettlementPeriod': true,
         'getIncludedAlipayByAlipayGroup': true,
         'getExcludedAlipayByAlipayGroup': true,
+        'getIncludedWechatsByWechatPayGroup': true,
+        'getExcludedWechatsByWechatPayGroup': true,
         'getPlatformByAdminId': true,
         'getPlayerStatusList': true,
         'getZoneList': true,
@@ -237,6 +239,7 @@ var roleChecker = {
                 ResetPassword: ['resetPlayerPassword'],
                 ApplyManualTopup: ['applyManualTopUpRequest', 'cancelManualTopupRequest'],
                 ApplyAlipayTopup: ['getAlipayTopUpRequestList', 'applyAlipayTopUpRequest', 'cancelAlipayTopup'],
+                ApplyWechatPayTopup: ['getWechatPayTopUpRequestList', 'applyWechatPayTopUpRequest', 'cancelWechatPayTopup'],
                 TopupRecord: ['getPlayerTopUpRecords'],
                 applyBonus: ['applyBonusRequest'],
                 BonusHistory: [],
@@ -366,10 +369,16 @@ var roleChecker = {
                 Delete: ['deleteMerchantGroup']
             },
             "AlipayGroup": {
-                Read: ['getPlatformAlipayGroup'],
+                Read: ['getPlatformWechatPayGroup'],
                 Create: ['addPlatformAlipayGroup'],
                 Update: ['renamePlatformAlipayGroup', 'setPlatformDefaultAlipayGroup', 'getPlayerForAttachGroup', 'addPlayersToAlipayGroup'],
                 Delete: ["deleteAlipayGroup"]
+            },
+            "WechatPayGroup": {
+                Read: ['getPlatformWechatPayGroup'],
+                Create: ['addPlatformWechatPayGroup'],
+                Update: ['renamePlatformWechatPayGroup', 'setPlatformDefaultWechatPayGroup', 'addPlayersToWechatPayGroup'],
+                Delete: ["deleteWechatPayGroup"]
             }
         },
         Provider: {

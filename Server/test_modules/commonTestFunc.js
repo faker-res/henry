@@ -237,63 +237,66 @@ var commonTestFunc = {
 
 
     removeTestData: function (platformObjId, playerObjIds) {
-        var platformNameQuery = ".*" + commonTestFunc.testPlatformName + "*.";
-        var playerNameQuery = ".*" + commonTestFunc.testPlayerName + "*.";
-        var paymentChannelQuery = ".*" + commonTestFunc.testPaymentChannelName + "*.";
-        var providerQuery = ".*" + commonTestFunc.testProviderName + "*.";
-        var gameQuery = ".*" + commonTestFunc.testGameName + "*.";
-        var adminQuery = ".*" + commonTestFunc.testAdminName + "*.";
-        var departmentQuery = ".*" + commonTestFunc.testDepartName + "*.";
-        var roleQuery = ".*" + commonTestFunc.testRoleName + "*.";
+        let platformNameQuery = ".*" + commonTestFunc.testPlatformName + "*.";
+        let playerNameQuery = ".*" + commonTestFunc.testPlayerName + "*.";
+        let paymentChannelQuery = ".*" + commonTestFunc.testPaymentChannelName + "*.";
+        let providerQuery = ".*" + commonTestFunc.testProviderName + "*.";
+        let gameQuery = ".*" + commonTestFunc.testGameName + "*.";
+        let adminQuery = ".*" + commonTestFunc.testAdminName + "*.";
+        let departmentQuery = ".*" + commonTestFunc.testDepartName + "*.";
+        let roleQuery = ".*" + commonTestFunc.testRoleName + "*.";
 
-        var pm1 = dbconfig.collection_platform.find({name: {$regex: platformNameQuery}}, {_id: 1}).then(
+        let pm1 = dbconfig.collection_platform.find({name: {$regex: platformNameQuery}}, {_id: 1}).then(
             platforms => {
                 return dbPlatform.deletePlatform(platforms.map(platform => platform._id));
             }
         );
-        var pm2 = dbconfig.collection_players.remove({name: {$regex: playerNameQuery}});
-        var pm3 = dbconfig.collection_paymentChannel.remove({name: {$regex: paymentChannelQuery}});
-        var pm4 = dbconfig.collection_gameProvider.remove({name: {$regex: providerQuery}});
-        var pm5 = dbconfig.collection_game.remove({name: {$regex: gameQuery}});
-        var pm6 = dbconfig.collection_rewardEvent.remove({platform: platformObjId});
-        var pm7 = dbconfig.collection_role.remove({roleName: {$regex: roleQuery} });
-        var pm8 = dbconfig.collection_admin.remove({adminName: {$regex: adminQuery}});
-        var pm9 = dbconfig.collection_department.remove({departmentName: {$regex: departmentQuery}});
-        var pmA = dbconfig.collection_platformMerchantGroup.remove({name: 'TestMerchantGroup.*'});
-        var pmB = dbconfig.collection_platformBankCardGroup.remove({name: 'TestBankCardGroup.*'});
+        let pm2 = dbconfig.collection_players.remove({name: {$regex: playerNameQuery}});
+        let pm3 = dbconfig.collection_paymentChannel.remove({name: {$regex: paymentChannelQuery}});
+        let pm4 = dbconfig.collection_gameProvider.remove({name: {$regex: providerQuery}});
+        let pm5 = dbconfig.collection_game.remove({name: {$regex: gameQuery}});
+        let pm6 = dbconfig.collection_rewardEvent.remove({platform: platformObjId});
+        let pm7 = dbconfig.collection_role.remove({roleName: {$regex: roleQuery} });
+        let pm8 = dbconfig.collection_admin.remove({adminName: {$regex: adminQuery}});
+        let pm9 = dbconfig.collection_department.remove({departmentName: {$regex: departmentQuery}});
+        let pmA = dbconfig.collection_platformMerchantGroup.remove({name: 'TestMerchantGroup.*'});
+        let pmB = dbconfig.collection_platformBankCardGroup.remove({name: 'TestBankCardGroup.*'});
 
-        var pmC = dbconfig.collection_playerConsumptionRecord.remove({platformId: platformObjId});
-        var pmC1 = dbconfig.collection_playerConsumptionRecord.remove({playerId: {$in:playerObjIds}});
+        let pmC = dbconfig.collection_playerConsumptionRecord.remove({platformId: platformObjId});
+        let pmC1 = dbconfig.collection_playerConsumptionRecord.remove({playerId: {$in:playerObjIds}});
 
-        var pmD = dbconfig.collection_playerTopUpRecord.remove({platformId: platformObjId});
-        var pmD1 = dbconfig.collection_playerTopUpRecord.remove({playerId: {$in:playerObjIds}});
+        let pmD = dbconfig.collection_playerTopUpRecord.remove({platformId: platformObjId});
+        let pmD1 = dbconfig.collection_playerTopUpRecord.remove({playerId: {$in:playerObjIds}});
 
-        var pmE = dbconfig.collection_playerConsumptionWeekSummary.remove({platformId: platformObjId});
-        var pmE1 = dbconfig.collection_playerConsumptionWeekSummary.remove({playerId: {$in:playerObjIds}});
+        let pmE = dbconfig.collection_playerConsumptionWeekSummary.remove({platformId: platformObjId});
+        let pmE1 = dbconfig.collection_playerConsumptionWeekSummary.remove({playerId: {$in:playerObjIds}});
 
-        var pmF = dbconfig.collection_playerConsumptionDaySummary.remove({platformId: platformObjId});
-        var pmF1 = dbconfig.collection_playerConsumptionDaySummary.remove({playerId: {$in: playerObjIds}});
+        let pmF = dbconfig.collection_playerConsumptionDaySummary.remove({platformId: platformObjId});
+        let pmF1 = dbconfig.collection_playerConsumptionDaySummary.remove({playerId: {$in: playerObjIds}});
 
-        var pmG = dbconfig.collection_playerConsumptionSummary.remove({platformId: platformObjId});
-        var pmG1 = dbconfig.collection_playerConsumptionSummary.remove({playerId: {$in: playerObjIds}});
+        let pmG = dbconfig.collection_playerConsumptionSummary.remove({platformId: platformObjId});
+        let pmG1 = dbconfig.collection_playerConsumptionSummary.remove({playerId: {$in: playerObjIds}});
 
-        var pmH = dbconfig.collection_playerTopUpDaySummary.remove({platformId:platformObjId});
-        var pmH1 = dbconfig.collection_playerTopUpDaySummary.remove({playerId: {$in: playerObjIds}});
+        let pmH = dbconfig.collection_playerTopUpDaySummary.remove({platformId:platformObjId});
+        let pmH1 = dbconfig.collection_playerTopUpDaySummary.remove({playerId: {$in: playerObjIds}});
 
-        var pmI =  dbconfig.collection_playerTopUpWeekSummary.remove({platformId:platformObjId});
+        let pmI =  dbconfig.collection_playerTopUpWeekSummary.remove({platformId:platformObjId});
 
-        var pmJ = dbconfig.collection_providerDaySummary.remove({platformId:platformObjId});
-        var pmK = dbconfig.collection_providerPlayerDaySummary.remove({platformId:platformObjId});
+        let pmJ = dbconfig.collection_providerDaySummary.remove({platformId:platformObjId});
+        let pmK = dbconfig.collection_providerPlayerDaySummary.remove({platformId:platformObjId});
 
-        var pmL = dbconfig.collection_platformDaySummary.remove({platformId:platformObjId});
-        var pmM = dbconfig.collection_playerRegistrationIntentRecord.remove({platformId:platformObjId});
-        var pmN = dbconfig.collection_playerTopUpIntentRecord.remove({playerId: {$in:playerObjIds}});
+        let pmL = dbconfig.collection_platformDaySummary.remove({platformId:platformObjId});
+        let pmM = dbconfig.collection_playerRegistrationIntentRecord.remove({platformId:platformObjId});
+        let pmN = dbconfig.collection_playerTopUpIntentRecord.remove({playerId: {$in:playerObjIds}});
 
-        var pmO = dbconfig.collection_rewardTask.remove({platformId:platformObjId});
-        var pmO1 = dbconfig.collection_rewardTask.remove({playerId: {$in: playerObjIds}});
+        let pmO = dbconfig.collection_rewardTask.remove({platformId:platformObjId});
+        let pmO1 = dbconfig.collection_rewardTask.remove({playerId: {$in: playerObjIds}});
+
+        let pmP = dbconfig.collection_partnerCommissionRecord.remove({platform:platformObjId});
+        let pmQ = dbconfig.collection_partnerCommissionConfig.remove({platform:platformObjId});
 
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
-            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ,pmK, pmL ,pmM, pmN, pmO, pmO1]);
+            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ,pmK, pmL ,pmM, pmN, pmO, pmO1, pmP, pmQ]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {

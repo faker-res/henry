@@ -29,6 +29,10 @@
                             a.common-tab(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Read')",data-toggle="tab", href="#alipayGroup", ng-click="vm.paymentPageName='alipayGroup';vm.updatePageTile();")
                                 img.margin-right-5(src='images/icon/aliPayBlue.png')
                                 text.span {{"Alipay" | translate}}
+                        li
+                            a.common-tab(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Read')", data-toggle="tab", href="#wechatPayGroup", ng-click="vm.paymentPageName='wechatPayGroup';vm.updatePageTile();")
+                                img.margin-right-5(src='images/icon/wechatPayBlue.png')
+                                text.span {{"WechatPay" | translate}}
 
                 .panel-body.common-right-panel-body
                     div.tab-content
@@ -38,4 +42,6 @@
                             include ./payment-merchantGroup
                         #alipayGroup.tab-pane.fade
                             include ./payment-alipayGroup
+                        #wechatPayGroup.tab-pane.fade
+                            include ./payment-wechatPayGroup
 #dialogFrame.dialog-frame

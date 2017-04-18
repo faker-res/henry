@@ -8,6 +8,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionBankCardGroup'),
     require('./../socketActionModule/socketActionMerchantGroup'),
     require('./../socketActionModule/socketActionAlipayGroup'),
+    require('./../socketActionModule/socketActionWechatPayGroup'),
     require('./../socketActionModule/socketActionLogger'),
     require('./../socketActionModule/socketActionGameProvider'),
     require('./../socketActionModule/socketActionPlatform'),
