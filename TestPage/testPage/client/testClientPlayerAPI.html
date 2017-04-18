@@ -182,6 +182,36 @@
     </div>
 </div>
 
+<h3>TEST PLAYER PARTNER LOGIN (玩家+推广渠道登录)</h3>
+
+<div class="test-container">
+
+    <label id="playerPartnerPlatformIdLogin">Platform Id
+        <input id="playerPartnerPlatformIdLoginInput" type=text name="platformId">
+    </label>
+    <div></div>
+    <label id="playerPartnerNameLogin">Username
+        <input id="playerPartnerNameLoginInput" type=text name="name">
+    </label>
+    <div>
+        <label id="playerPartnerLoginPassword">Password
+            <input id="playerPartnerLoginPasswordInput" type=text name="password">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerLoginClientDomain">Client Domain
+            <input id="playerPartnerLoginClientDomainInput" type=text name="clientDomain">
+        </label>
+    </div>
+
+    <div>
+        <button id="playerPartnerLogin" data-api-name="loginPlayerPartner">Login</button>
+    </div>
+    <div>
+        <textarea id="playerPartnerLoginConsole"></textarea>
+    </div>
+</div>
+
 
 <h3>TEST PLAYER LOGOUT (注销)</h3>
 <div class="test-container">
@@ -429,6 +459,32 @@
     </div>
     <div>
         <button data-api-name="authenticate">Authenticate Token</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Verify the player and partner authentication by token when Connection Lost after login (玩家+推广渠道链接验证) </h3>
+<div class='test-container'>
+    <!--For testing Get player information API (7)-->
+    <div>
+        <label>Player Id
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input name="partnerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Token
+            <input name="token" type=text>
+        </label>
+    </div>
+    <div>
+        <button data-api-name="authenticatePlayerPartner">Authenticate Token</button>
     </div>
     <div>
         <textarea></textarea>
