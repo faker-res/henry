@@ -13,6 +13,8 @@ var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
 
+let env = require('../config/env').config();
+
 var counterManager = require('./../modules/counterManager');
 var dbUtility = require('./../modules/dbutility');
 var dbconfig = require('./../modules/dbproperties');
@@ -64,17 +66,17 @@ let dbProposalType = require('./../db_modules/dbProposalType');
 let dbRewardEvent = require('./../db_modules/dbRewardEvent');
 let dbRewardTask = require('./../db_modules/dbRewardTask');
 
-var PLATFORM_PREFIX_SEPARATOR = '';
+let PLATFORM_PREFIX_SEPARATOR = '';
 
-var dbPlayerInfo = {
+let dbPlayerInfo = {
 
     /**
      * Create a new player user
-     * @param {json} data - The data of the player user. Refer to playerInfo schema.
+     * @param {json} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData) {
-        var platformObjId = null;
-        var platformPrefix = "";
+        let platformObjId = null;
+        let platformPrefix = "";
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -84,11 +86,11 @@ var dbPlayerInfo = {
                     if (platformData) {
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
-                        var playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
+                        let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             name: inputData.name,
                             platform: platformData._id
                         });
-                        var realNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
+                        let realNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             realName: inputData.realName,
                             platform: platformData._id
                         });
@@ -98,6 +100,7 @@ var dbPlayerInfo = {
                         if (platformData.allowSameRealNameToRegister) {
                             return playerNameChecker;
                         }
+
                         return Q.all([playerNameChecker, realNameChecker]).then(data => {
                             if (data && data.length == 2 && data[0] && data[1]) {
                                 if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
@@ -439,6 +442,19 @@ var dbPlayerInfo = {
         var playerData = null;
 
         playerdata.name = playerdata.name.toLowerCase();
+
+        // Partner name should be alphanumeric and max 15 characters
+        let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
+        if (playerdata.name.length > 15 || !playerdata.name.match(alphaNumRegex)) {
+            // ignore for unit test
+            if (env.mode !== "local" && env.mode !== "qa") {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Username should be alphanumeric and within 15 characters"
+                });
+            }
+        }
 
         dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(
             function (platform) {
@@ -2778,23 +2794,23 @@ var dbPlayerInfo = {
                         });
                         return;
                     }
-                    return dbPlayerInfo.getPlayerPendingProposalByType(playerData._id, playerData.platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
-                        hasPendingProposal => {
-                            if (hasPendingProposal) {
-                                deferred.reject({
-                                    status: constServerCode.PLAYER_PENDING_PROPOSAL,
-                                    name: "DataError",
-                                    message: "Player has pending proposal to update credit"
-                                });
-                            }
-                            else {
-                                var platformId = playerData.platform ? playerData.platform.platformId : null;
-                                dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
-                                    "unknown", providerId, playerData.validCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-                                return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                            }
-                        }
-                    );
+                    //return dbPlayerInfo.getPlayerPendingProposalByType(playerData._id, playerData.platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
+                        //hasPendingProposal => {
+                            // if (hasPendingProposal) {
+                            //     deferred.reject({
+                            //         status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                            //         name: "DataError",
+                            //         message: "Player has pending proposal to update credit"
+                            //     });
+                            // }
+                            // else {
+                    var platformId = playerData.platform ? playerData.platform.platformId : null;
+                    dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
+                        "unknown", providerId, playerData.validCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
+                    return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                            //}
+                            // }
+                    //);
                 } else {
                     deferred.reject({name: "DataError", message: "Cannot find player or provider"});
                 }

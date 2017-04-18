@@ -78,8 +78,8 @@
                 client.connect();
 
                 client.addEventListener("open", function () {
-                    var alipayService = client.getService("aliPay");
-                    var paymentAPITest = new AlipayAPITest(alipayService);
+                    var wechatService = client.getService("weChat");
+                    var paymentAPITest = new WechatPayAPITest(wechatService);
 
                     var connectionService = client.getService("connection");
                     console.log("connectionService....", connectionService);
