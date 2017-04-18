@@ -1068,30 +1068,30 @@ var proposal = {
         var prom1 = dbconfig.collection_proposalType.find({platformId: platformId}).lean();
 
         //check proposal with process
-        var prom2 = dbconfig.collection_proposalTypeProcess.find({platformId: platformId}).lean().then(
-            types => {
-                if (types && types.length > 0) {
-                    var proposalProcessTypesId = [];
-                    for (var i = 0; i < types.length; i++) {
-                        if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-                            proposalProcessTypesId.push(types[i]._id);
-                        }
-                    }
-                    return dbconfig.collection_proposalProcess.find({
-                        type: {$in: proposalProcessTypesId},
-                        status: {$in: statusArr}
-                    }).lean();
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Can not find platform proposal process types"});
-                }
-            }
-        );
-        return Q.all([prom1, prom2]).then(
+        // var prom2 = dbconfig.collection_proposalTypeProcess.find({platformId: platformId}).lean().then(
+        //     types => {
+        //         if (types && types.length > 0) {
+        //             var proposalProcessTypesId = [];
+        //             for (var i = 0; i < types.length; i++) {
+        //                 if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
+        //                     proposalProcessTypesId.push(types[i]._id);
+        //                 }
+        //             }
+        //             return dbconfig.collection_proposalProcess.find({
+        //                 type: {$in: proposalProcessTypesId},
+        //                 status: {$in: statusArr}
+        //             }).lean();
+        //         }
+        //         else {
+        //             return Q.reject({name: "DataError", message: "Can not find platform proposal process types"});
+        //         }
+        //     }
+        // );
+        return Q.all([prom1]).then(//removed , prom2
             data => {
-                if (data && data[0] && data[1]) {
+                if (data && data[0]) { // removed  && data[1]
                     var types = data[0];
-                    var processes = data[1];
+                    // var processes = data[1];
                     if (types && types.length > 0) {
                         var proposalTypesId = [];
                         for (var i = 0; i < types.length; i++) {
@@ -1099,10 +1099,10 @@ var proposal = {
                                 proposalTypesId.push(types[i]._id);
                             }
                         }
-                        var processIds = [];
-                        for (var j = 0; j < processes.length; j++) {
-                            processIds.push(processes[j]._id);
-                        }
+                        // var processIds = [];
+                        // for (var j = 0; j < processes.length; j++) {
+                        //     processIds.push(processes[j]._id);
+                        // }
                         var queryObj = {
                             type: {$in: proposalTypesId},
                             createTime: {
@@ -1112,9 +1112,17 @@ var proposal = {
                             status: {$in: statusArr}
                         };
                         if (relateUser) {
-                            queryObj["data.playerName"] = relateUser
+                            // queryObj["data.playerName"] = relateUser;
+                            queryObj["$and"] = [];
+                            queryObj["$and"].push({
+                                $or: [
+                                    {"data.playerName": relateUser},
+                                    {"data.partnerName": relateUser}
+                                ]
+                            })
                         }
                         if (credit) {
+                            queryObj["$and"] = queryObj["$and"] || [];
                             queryObj["$and"].push({
                                 $or: [
                                     {"data.amount": credit},
@@ -1597,31 +1605,31 @@ var proposal = {
         }
         var matchObj = {};
         var proposalQuery = proposalTypeName ? {
-                $and: [{
-                    platformId: platformId,
-                    name: proposalTypeName
-                }]
-            } : {
-                $and: [{
-                    platformId: platformId,
-                }]
-            };
+            $and: [{
+                platformId: platformId,
+                name: proposalTypeName
+            }]
+        } : {
+            $and: [{
+                platformId: platformId,
+            }]
+        };
         dbconfig.collection_proposalType.findOne(proposalQuery).then(
             function (proposalType) {
                 matchObj = proposalTypeName ? {
-                        createTime: {
-                            $gte: new Date(startTime),
-                            $lt: new Date(endTime)
-                        },
-                        type: ObjectId.isValid(proposalType._id) ? proposalType._id : ObjectId(proposalType._id),
-                        "data.eventCode": code
-                    } : {
-                        createTime: {
-                            $gte: new Date(startTime),
-                            $lt: new Date(endTime)
-                        },
-                        mainType: constProposalMainType['PlayerConsumptionReturn'],
-                    };
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    type: ObjectId.isValid(proposalType._id) ? proposalType._id : ObjectId(proposalType._id),
+                    "data.eventCode": code
+                } : {
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    mainType: constProposalMainType['PlayerConsumptionReturn'],
+                };
                 var a = dbconfig.collection_proposal.find({$and: [matchObj]})
                     .sort(sortKey).skip(index).limit(limit)
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players})
