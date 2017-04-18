@@ -235,6 +235,12 @@
                     .col-md-6(style='padding-top:10px')
                         table#newPlayerPartnerTable.common-table.display(style='width:100%')
             .clearfix
+            .penal.panel-info(ng-show="vm.detailPartnerPlayer.partnerObjectId")
+                .panel-heading {{'PLAYER_DOMAIN' | translate}} : {{vm.detailDomainPlayer.domainName}}
+                .penal_body
+                    table#detailPartnerPlayerTable.common-table.display(style='min-width:100%')
+                    #detailPartnerPlayerTablePage
+            .clearfix
             .penal.panel-info
                 .panel-heading {{'PLAYER_DOMAIN' | translate}}
                 .penal_body
