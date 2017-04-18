@@ -5175,10 +5175,12 @@ var dbPlayerInfo = {
                         .then(todayBonusApply => {
 
                           var changeCredit = -amount;
-
+                          var finalAmount = amount;
+                          var creditCharge = 0;
 
                           if(todayBonusApply.length >= playerData.platform.bonusCharges && playerData.platform.bonusPercentageCharges > 0){
-                            changeCredit = changeCredit + ((changeCredit*playerData.platform.bonusPercentageCharges)*0.01);
+                            creditCharge = (finalAmount*playerData.platform.bonusPercentageCharges)*0.01 ;
+                            finalAmount = finalAmount - creditCharge;
                           }
 
                     // if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
@@ -5224,12 +5226,13 @@ var dbPlayerInfo = {
                                     platformId: player.platform._id,
                                     platform: player.platform.platformId,
                                     bankTypeId: player.bankName,
-                                    amount: amount,
+                                    amount: finalAmount,
                                     bonusCredit: bonusDetail.credit,
                                     curAmount: player.validCredit,
                                     remark: player.remark,
                                     lastSettleTime: new Date(),
-                                    honoreeDetail: honoreeDetail
+                                    honoreeDetail: honoreeDetail,
+                                    creditCharge : creditCharge
                                     //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                 };
                                 var newProposal = {
