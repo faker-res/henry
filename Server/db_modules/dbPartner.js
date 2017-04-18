@@ -79,6 +79,17 @@ let dbPartner = {
                 message: "You did not provide the 'platform' (ObjectId) field for the new partner"
             });
         }
+
+        // Player name should be alphanumeric and max 15 characters
+        let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
+        if (partnerName.length > 15 || !partnerName.match(alphaNumRegex)){
+            return Q.reject({
+                status: constServerCode.PARTNER_NAME_INVALID,
+                name: "DBError",
+                message: "Username should be alphanumeric and within 15 characters"
+            });
+        }
+
         dbconfig.collection_partner.findOne({partnerName: partnerdata.partnerName.toLowerCase()}).then(
             data => {
                 if (!data) {

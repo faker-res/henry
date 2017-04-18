@@ -38,6 +38,7 @@ const constServerCode = {
     PLAYER_IS_FORBIDDEN: 430,
     DATA_INVALID: 431,
     PLAYER_NAME_INVALID: 432,
+    PARTNER_NAME_INVALID: 433,
 
     // Payment API Server code
     INVALID_PAYMENT_SERVICE_GATEWAY: 401,

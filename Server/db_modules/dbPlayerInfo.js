@@ -441,7 +441,7 @@ let dbPlayerInfo = {
 
         playerdata.name = playerdata.name.toLowerCase();
 
-        // Player name should be alphanumeric and max 15 characters
+        // Partner name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
         if (playerdata.name.length > 15 || !playerdata.name.match(alphaNumRegex)){
             return Q.reject({
