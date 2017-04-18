@@ -245,6 +245,7 @@ define(['js/app'], function (myApp) {
                     // case "merchantGroup":
                     vm.loadMerchantGroupData();
                     vm.loadAlipayGroupData();
+                    vm.loadWechatPayGroupData();
                     vm.getPlatformAnnouncements();
                     //     break;
                     // }
@@ -1670,6 +1671,7 @@ define(['js/app'], function (myApp) {
         vm.getPagedPlatformCreditTransferLog = function (newSearch) {
             vm.platformCreditTransferLog.loading = true;
             let sendQuery = {
+                PlatformObjId: vm.selectedPlatform.id,
                 startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : vm.platformCreditTransferLog.index,
@@ -2892,10 +2894,14 @@ define(['js/app'], function (myApp) {
                         vm.updateDataTableinModal('#modalPlayerInfo', '#similarPlayersTable');
                     });
                     if (vm.selectedSinglePlayer.partner) {
-                        socketService.$socket($scope.AppSocket, 'getPartner', {_id: vm.selectedSinglePlayer.partner}, function (data) {
-                            vm.selectedSinglePlayer.partnerName = data.data.partnerName;
-                            $scope.safeApply();
-                        })
+                        if (vm.selectedSinglePlayer.partner.partnerName) {
+                            vm.selectedSinglePlayer.partnerName = vm.selectedSinglePlayer.partner.partnerName;
+                        } else {
+                            socketService.$socket($scope.AppSocket, 'getPartner', {_id: vm.selectedSinglePlayer.partner}, function (data) {
+                                vm.selectedSinglePlayer.partnerName = data.data.partnerName;
+                                $scope.safeApply();
+                            })
+                        }
                     }
                     vm.processDataTableinModal('#modalPlayerInfo', '#similarPlayersTable');
                     vm.showProvinceStr = '';
@@ -3086,6 +3092,7 @@ define(['js/app'], function (myApp) {
                     bankCardGroup: vm.selectedSinglePlayer.bankCardGroup,
                     merchantGroup: vm.selectedSinglePlayer.merchantGroup,
                     alipayGroup: vm.selectedSinglePlayer.alipayGroup,
+                    wechatPayGroup: vm.selectedSinglePlayer.wechatPayGroup,
                     trustLevel: vm.selectedSinglePlayer.trustLevel,
                     photoUrl: vm.selectedSinglePlayer.photoUrl,
                     playerLevel: vm.selectedSinglePlayer.playerLevel._id,
@@ -3175,12 +3182,12 @@ define(['js/app'], function (myApp) {
         };
 
         vm.openEditPlayerDialog = function () {
-            var selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
-            var editPlayer = vm.editPlayer;                  // ~ 6 fields
-            var allPartner = vm.partnerIdObj;
-            var allPlayerLevel = vm.allPlayerLvl;
+            let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
+            let editPlayer = vm.editPlayer;                  // ~ 6 fields
+            let allPartner = vm.partnerIdObj;
+            let allPlayerLevel = vm.allPlayerLvl;
             // console.log("vm.editPlayer", vm.editPlayer);
-            var option = {
+            let option = {
                 $scope: $scope,
                 $compile: $compile,
                 childScope: {
@@ -3193,6 +3200,7 @@ define(['js/app'], function (myApp) {
                     platformBankCardGroupList: vm.platformBankCardGroupList,
                     platformMerchantGroupList: vm.platformMerchantGroupList,
                     platformAlipayGroupList: vm.platformAlipayGroupList,
+                    platformWechatPayGroupList: vm.platformWechatPayGroupList,
                     allPlayerTrustLvl: vm.allPlayerTrustLvl,
                     // showPlayerBankCardId: vm.showPlayerBankCardId,
                     // showPlayerMerchantId: vm.showPlayerMerchantId,
@@ -3213,6 +3221,7 @@ define(['js/app'], function (myApp) {
                     // },
                 }
             };
+
             option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
             option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
             // console.log("option.childScope.playerBeingEdited.smsSetting:", option.childScope.playerBeingEdited.smsSetting);
@@ -3614,9 +3623,10 @@ define(['js/app'], function (myApp) {
                 vm.playerCreditChangeLog.loading = false;
                 vm.drawPagedCreditChangeQueryTable(vm.playerCreditChangeLogs, vm.playerCreditChangeLog.totalCount, newSearch);
             })
-        }
+        };
+
         vm.drawPagedCreditChangeQueryTable = function (data, size, newSearch) {
-            var tableData = data.map(item => {
+            let tableData = data.map(item => {
                 item.createTime$ = vm.dateReformat(item.operationTime);
                 item.operationType$ = $translate(item.operationType);
                 item.beforeAmount = item.curAmount - item.amount;
@@ -3626,11 +3636,13 @@ define(['js/app'], function (myApp) {
                 item.beforeAmount = item.beforeAmount.toFixed(2);
                 item.beforeUnlockedAmount = item.lockedAmount - item.changedLockedAmount;
                 item.beforeUnlockedAmount = item.beforeUnlockedAmount.toFixed(2);
-                var remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
-                item.details$ = remark + item.detail.join(', ')
+                let remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
+                item.details$ = remark + item.detail.join(', ');
+                item.proposalId$ = item.data ? item.data.proposalId : item.data[0] ? item.data[0].proposalId : '';
                 return item;
-            })
-            var option = $.extend({}, vm.generalDataTableOptions, {
+            });
+
+            let option = $.extend({}, vm.generalDataTableOptions, {
                 data: tableData,
                 order: vm.playerCreditChangeLog.aaSorting || [[0, 'desc']],
                 columnDefs: [
@@ -3642,6 +3654,7 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {'title': $translate('CREATE_TIME'), data: 'createTime$'},
                     {'title': $translate('Type'), data: 'operationType$', sClass: "tbodyNoWrap"},
+                    {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
                     {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "wordWrap"},
                     {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "tbodyNoWrap"},
                     {'title': $translate('CUR_AMOUNT'), data: 'curAmount', sClass: "tbodyNoWrap"},
@@ -4536,18 +4549,19 @@ define(['js/app'], function (myApp) {
 
         vm.submitAddPlayerRewardTask = function () {
             vm.playerAddRewadTask.showSubmit = false;
-            var providerArr = [];
-            for (var key in vm.playerAddRewadTask.provider) {
+            let providerArr = [];
+            for (let key in vm.playerAddRewadTask.provider) {
                 if (vm.playerAddRewadTask.provider[key]) {
                     providerArr.push(key);
                 }
             }
-            var sendObj = {
+            let sendObj = {
                 targetProviders: providerArr,
                 type: vm.playerAddRewadTask.type,
                 rewardType: vm.playerAddRewadTask.type,
                 platformId: vm.selectedSinglePlayer.platform,
                 playerId: vm.selectedSinglePlayer._id,
+                playerObjId: vm.selectedSinglePlayer._id,
                 playerName: vm.selectedSinglePlayer.name,
                 requiredUnlockAmount: vm.playerAddRewadTask.requiredUnlockAmount,
                 currentAmount: vm.playerAddRewadTask.currentAmount,
@@ -4567,7 +4581,7 @@ define(['js/app'], function (myApp) {
                 vm.playerAddRewadTask.resMsg = err.error.message || $translate('FAIL');
                 $scope.safeApply();
             })
-        }
+        };
 
         vm.initManualUnlockRewardTask = function () {
             vm.manualUnlockRewardTask = {
@@ -7185,6 +7199,27 @@ define(['js/app'], function (myApp) {
 
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
+        /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
+        vm.loadWechatPayGroupData = function () {
+            //init gametab start===============================
+            vm.showWechatPayCate = "include";
+            vm.curGame = null;
+            //init gameTab end==================================
+            if (!vm.selectedPlatform) {
+                return
+            }
+            socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                //provider list init
+                vm.platformWechatPayGroupList = data.data;
+                vm.platformWechatPayGroupListCheck = {};
+                $.each(vm.platformWechatPayGroupList, function (i, v) {
+                    vm.platformWechatPayGroupListCheck[v._id] = true;
+                });
+                $scope.safeApply();
+            })
+        };
+
+        /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
         // platform-reward start =============================================================================
 
@@ -7739,6 +7774,7 @@ define(['js/app'], function (myApp) {
                 case 'partnerCommission':
                     vm.partnerCommission = vm.partnerCommission || {};
                     vm.getPartnerCommissionPeriodConst();
+                    vm.getPartnerCommissionSettlementModeConst();
                     vm.getPartnerCommisionConfig();
                     break;
                 case 'announcement':
@@ -9292,7 +9328,17 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommissionPeriodConst = data.data;
                 $scope.safeApply();
             });
-        }
+        };
+
+        vm.getPartnerCommissionSettlementModeConst = () => {
+            if (vm.partnerCommissionSettlementModeConst) {
+                return
+            }
+            socketService.$socket($scope.AppSocket, 'getPartnerCommissionSettlementModeConst', '', function (data) {
+                vm.partnerCommissionSettlementModeConst = data.data;
+                $scope.safeApply();
+            });
+        };
 
         vm.setValue = function (obj, key, val) {
             if (obj && key) {

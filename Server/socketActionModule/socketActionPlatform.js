@@ -6,7 +6,9 @@ let weeklyPlatformSettlement = require('./../scheduleTask/weeklyPlatformSettleme
 let dbPaymentChannel = require('./../db_modules/dbPaymentChannel');
 let mongoose = require('mongoose');
 let ObjectId = mongoose.Types.ObjectId;
+
 let constPlayerCreditTransferStatus = require('./../const/constPlayerCreditTransferStatus');
+let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommissionSettlementMode');
 
 function socketActionPlatform(socketIO, socket) {
 
@@ -205,6 +207,10 @@ function socketActionPlatform(socketIO, socket) {
             self.socket.emit("_" + actionName, {success: true, data: constPlayerCreditTransferStatus});
         },
 
+        getPartnerCommissionSettlementModeConst: function getPartnerCommissionSettlementModeConst(data) {
+            let actionName = arguments.callee.name;
+            self.socket.emit("_" + actionName, {success: true, data: constPartnerCommissionSettlementMode});
+        },
     };
     socketActionPlatform.actions = this.actions;
 };

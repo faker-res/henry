@@ -15,14 +15,17 @@ var constProposalType = require('../const/constProposalType');
 var jwt = require('jsonwebtoken');
 var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
+
+let SettlementBalancer = require('../settlementModule/settlementBalancer');
+
+const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
+const constPartnerCommissionPeriod = require('../const/constPartnerCommissionPeriod');
 const constProposalStatus = require('../const/constProposalStatus');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
-var SettlementBalancer = require('../settlementModule/settlementBalancer');
-const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
-const constPartnerCommissionPeriod = require('../const/constPartnerCommissionPeriod');
+const constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
 
-var dbPartner = {
+let dbPartner = {
 
     createPartnerAPI: function (partnerData) {
         return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
@@ -668,22 +671,28 @@ var dbPartner = {
     /**
      * Get partners player info
      * @param {objectId}  platformObjId
-     * @param {[objectId]}  partnersObjId
+     * @param {[objectId]}  partnerObjId
+     * @param bActive
+     * @param queryTime
      */
     getPartnerActiveValidPlayers: function (platformObjId, partnerObjId, bActive, queryTime) {
-        var times = {};
-        var partnerLevelConfig = {};
-        var configProm = dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId});
+        let times = {};
+        let partnerLevelConfig = {};
+        let partnerCommissionConfig = {};
+        let configProm = dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId});
         //var timeProm = dbUtil.getWeeklySettlementTimeForPlatformId(platformObjId);
-        var timeProm = dbUtil.getLastWeekSGTimeProm();
-        return Q.all([timeProm, configProm]).then(
-            function (data) {
-                if (data && data[0] && data[1]) {
+        let timeProm = dbUtil.getLastWeekSGTimeProm();
+        let commConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({platform: platformObjId});
+
+        return Q.all([timeProm, configProm, commConfigProm]).then(
+            data => {
+                if (data && data[0] && data[1] && data[2]) {
                     times = data[0];
                     if (queryTime) {
                         times = queryTime;
                     }
                     partnerLevelConfig = data[1];
+                    partnerCommissionConfig = data[2];
                     return dbconfig.collection_players.find(
                         {
                             platform: platformObjId,
@@ -693,11 +702,11 @@ var dbPartner = {
                 }
             }
         ).then(
-            function (partnerData) {
+            partnerData => {
                 if (partnerData.length > 0) {
-                    var playerIds = partnerData.map(player => player._id);
-                    var partnerDataMap = {};
-                    for (var i = 0; i < partnerData.length; i++) {
+                    let playerIds = partnerData.map(player => player._id);
+                    let partnerDataMap = {};
+                    for (let i = 0; i < partnerData.length; i++) {
                         partnerDataMap[partnerData[i]._id] = partnerData[i];
                     }
 
@@ -709,12 +718,13 @@ var dbPartner = {
                             $lt: times.endTime
                         }
                     };
+
                     const consumptionSummariesProm = dbconfig.collection_playerConsumptionDaySummary.find(matchPlayerSummaries);
                     const topUpSummariesProm = dbconfig.collection_playerTopUpDaySummary.find(matchPlayerSummaries);
 
                     return Q.all([consumptionSummariesProm, topUpSummariesProm]).then(
-                        function (data) {
-                            var playersObj = [];
+                        data => {
+                            let playersObj = [];
 
                             const consumptionSummaries = data[0];
                             const topUpSummaries = data[1];
@@ -722,15 +732,20 @@ var dbPartner = {
                             const topUpSummariesByPlayerId = dataUtils.byKey(topUpSummaries, 'playerId');
 
                             playerIds.forEach(
-                                function (playerId) {
+                                playerId => {
                                     const consumptionSummary = consumptionSummariesByPlayerId[playerId];
                                     const topUpSummary = topUpSummariesByPlayerId[playerId];
-                                    if (consumptionSummary && topUpSummary) {
-                                        var playerIsValid = consumptionSummary.times >= partnerLevelConfig.validPlayerConsumptionTimes
-                                            && topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes;
+                                    if (topUpSummary && (consumptionSummary || partnerCommissionConfig.settlementMode === 'TB')) {
+                                        let playerIsValid, playerIsActive;
 
-                                        var playerIsActive = consumptionSummary.times >= partnerLevelConfig.activePlayerConsumptionTimes
-                                            && topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes;
+                                        if (consumptionSummary) {
+                                            playerIsValid = consumptionSummary.times >= partnerLevelConfig.validPlayerConsumptionTimes && topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes;
+                                            playerIsActive = consumptionSummary.times >= partnerLevelConfig.activePlayerConsumptionTimes && topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes;
+                                        }
+                                        else {
+                                            playerIsValid = topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes && topUpSummary.amount >= partnerLevelConfig.validPlayerTopUpAmount;
+                                            playerIsActive = topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes && topUpSummary.amount >= partnerLevelConfig.activePlayerTopUpAmount;
+                                        }
 
                                         if (bActive && playerIsActive) {
                                             playersObj.push(partnerDataMap[playerId]);
@@ -2254,14 +2269,17 @@ var dbPartner = {
     startPlatformPartnerCommissionSettlement: function (platformObjId, bUpdateSettlementTime, isToday) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: platformObjId}).lean().then(
             configData => {
+                // check if config exist
                 if (!configData) {
                     console.warn("Cannot do partner commission settlement: There is no configData for this platform! platformObjId=%s", platformObjId);
                 }
 
                 if (configData) {
                     //check config data period
-                    var settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
-                    var bMatchPeriod = true;
+                    let settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
+                    let bMatchPeriod = true;
+
+                    // set settle time
                     switch (configData.commissionPeriod) {
                         case constPartnerCommissionPeriod.WEEK:
                             if (dbUtil.isFirstDayOfWeekSG()) {
@@ -2303,13 +2321,14 @@ var dbPartner = {
                             }
                             break;
                     }
+
                     //if period does not match, no need to settle
                     if (!bMatchPeriod) {
                         return; //Q.reject({name: "DataError", message: "It's not settlement day"});
                     }
 
                     //if there is commission config, start settlement
-                    var stream = dbconfig.collection_partner.find(
+                    let stream = dbconfig.collection_partner.find(
                         {
                             platform: platformObjId,
                             totalReferrals: {$gt: 0},
@@ -2317,7 +2336,7 @@ var dbPartner = {
                         }
                     ).cursor({batchSize: 100});
 
-                    var balancer = new SettlementBalancer();
+                    let balancer = new SettlementBalancer();
                     return balancer.initConns().then(function () {
                         return Q(
                             balancer.processStream(
@@ -2344,7 +2363,7 @@ var dbPartner = {
     },
 
     calculatePartnersCommission: function (platformObjId, configData, partnerObjIds, startTime, endTime, settlementTimeToSave) {
-        var proms = [];
+        let proms = [];
         partnerObjIds.forEach(
             objId => {
                 proms.push(dbPartner.calculatePartnerCommission(platformObjId, configData, objId, startTime, endTime, settlementTimeToSave));
@@ -2354,25 +2373,28 @@ var dbPartner = {
     },
 
     calculatePartnerCommission: function (platformObjId, configData, partnerObjId, startTime, endTime, settlementTimeToSave) {
-        var totalRewardAmount = 0;
-        var serviceFee = 0;
-        var platformFee = 0;
-        var profitAmount = 0;
-        var commissionLevel = 0;
-        var commissionRate = 0;
-        var bonusCommissionRate = 0;
-        var totalValidAmount = 0;
-        var totalBonusAmount = 0;
-        var maxCommissionLevel = 0;
-        var totalTopUpAmount = 0;
-        var operationAmount = 0;
-        var totalPlayerBonusAmount = 0;
+        let totalRewardAmount = 0;
+        let serviceFee = 0;
+        let platformFee = 0;
+        let profitAmount = 0;
+        let commissionLevel = 0;
+        let commissionRate = 0;
+        let bonusCommissionRate = 0;
+        let totalValidAmount = 0;
+        let totalBonusAmount = 0;
+        let maxCommissionLevel = 0;
+        let totalTopUpAmount = 0;
+        let operationAmount = 0;
+        let totalPlayerBonusAmount = 0;
+
         //get all partner players consumption data
         return dbconfig.collection_players.find({platform: platformObjId, partner: partnerObjId}).lean().then(
             players => {
                 if (players && players.length > 0) {
-                    var playerObjIds = players.map(player => player._id);
-                    var consumptionProm = dbconfig.collection_providerPlayerDaySummary.aggregate(
+                    let playerObjIds = players.map(player => player._id);
+
+                    // promise all referrals consumption
+                    let consumptionProm = dbconfig.collection_providerPlayerDaySummary.aggregate(
                         {
                             $match: {
                                 platformId: platformObjId,
@@ -2392,7 +2414,8 @@ var dbPartner = {
                         }
                     );
 
-                    var rewardProm = dbconfig.collection_rewardLog.aggregate(
+                    // promise all referrals reward
+                    let rewardProm = dbconfig.collection_rewardLog.aggregate(
                         {
                             $match: {
                                 platform: platformObjId,
@@ -2411,7 +2434,8 @@ var dbPartner = {
                         }
                     );
 
-                    var topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                    // promise all referrals topup
+                    let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
                         {
                             $match: {
                                 platformId: platformObjId,
@@ -2430,7 +2454,8 @@ var dbPartner = {
                         }
                     );
 
-                    var bonusProm = dbconfig.collection_proposalType.findOne({
+                    // promise all referrals bonus
+                    let bonusProm = dbconfig.collection_proposalType.findOne({
                         platformId: platformObjId,
                         name: constProposalType.PLAYER_BONUS
                     }).then(
@@ -2466,37 +2491,45 @@ var dbPartner = {
         ).then(
             data => {
                 if (data) {
-                    //calculate profit amount
-                    var consumptionInfo = data[0];
-                    var rewardInfo = data[1];
-                    var topUpInfo = data[2];
-                    var bonusInfo = data[3];
+                    // calculate profit amount
+                    let consumptionInfo = data[0];
+                    let rewardInfo = data[1];
+                    let topUpInfo = data[2];
+                    let bonusInfo = data[3];
                     // var operationAmount = 0;
                     totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
                     totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
-                    var platformFeeAmount = 0;
-                    if (consumptionInfo && consumptionInfo.length > 0) {
-                        consumptionInfo.forEach(
-                            conInfo => {
-                                totalValidAmount += conInfo.totalValidAmount;
-                                totalBonusAmount += conInfo.totalBonusAmount;
-                                platformFeeAmount += Math.abs(conInfo.totalBonusAmount);
+
+                    switch (configData.settlementMode) {
+                        case 'TB':
+                            profitAmount = totalTopUpAmount - totalPlayerBonusAmount;
+                            break;
+                        case 'OPSR':
+                        default:
+                            let platformFeeAmount = 0;
+                            if (consumptionInfo && consumptionInfo.length > 0) {
+                                consumptionInfo.forEach(
+                                    conInfo => {
+                                        totalValidAmount += conInfo.totalValidAmount;
+                                        totalBonusAmount += conInfo.totalBonusAmount;
+                                        platformFeeAmount += Math.abs(conInfo.totalBonusAmount);
+                                    }
+                                );
+                                totalBonusAmount = -totalBonusAmount;
+                                operationAmount = totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
+                                if (configData && configData.platformFeeRate > 0) {
+                                    platformFee = Math.max(0, platformFeeAmount * configData.platformFeeRate);
+                                }
                             }
-                        );
-                        totalBonusAmount = -totalBonusAmount;
-                        operationAmount = totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
-                        if (configData && configData.platformFeeRate > 0) {
-                            platformFee = Math.max(0, platformFeeAmount * configData.platformFeeRate);
-                        }
+                            if (rewardInfo && rewardInfo[0]) {
+                                totalRewardAmount = rewardInfo[0].totalRewardAmount;
+                            }
+                            if (configData && configData.serviceFeeRate > 0) {
+                                serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
+                            }
+                            profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
+                            break;
                     }
-                    if (rewardInfo && rewardInfo[0]) {
-                        totalRewardAmount = rewardInfo[0].totalRewardAmount;
-                    }
-                    if (configData && configData.serviceFeeRate > 0) {
-                        serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
-                    }
-                    // console.log( totalTopUpAmount, totalPlayerBonusAmount, configData.serviceFeeRate );
-                    profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
                     //get partner active player number
                     return dbPartner.getPartnerActiveValidPlayers(platformObjId, partnerObjId, true, {
@@ -2507,7 +2540,7 @@ var dbPartner = {
             }
         ).then(
             validPlayers => {
-                var validPlayerCount = validPlayers ? validPlayers.length : 0;
+                let validPlayerCount = validPlayers ? validPlayers.length : 0;
                 //check partner commission level
                 if (configData && configData.commissionLevelConfig && configData.commissionLevelConfig.length > 0) {
                     configData.commissionLevelConfig.forEach(
@@ -2534,9 +2567,9 @@ var dbPartner = {
                     //check past commission history
                     if (configData && configData.bonusCommissionHistoryTimes && configData.bonusCommissionHistoryTimes > 0
                         && configData.bonusRate && configData.bonusRate > 0 && commissionLevel == maxCommissionLevel) {
-                        var bValid = true;
+                        let bValid = true;
                         let times = Math.max(0, (partnerData.commissionHistory.length - configData.bonusCommissionHistoryTimes));
-                        for (var i = partnerData.commissionHistory.length - 1; i >= times; i--) {
+                        for (let i = partnerData.commissionHistory.length - 1; i >= times; i--) {
                             if (partnerData.commissionHistory[i] != maxCommissionLevel) {
                                 bValid = false;
                             }
@@ -2547,8 +2580,8 @@ var dbPartner = {
                     }
                     let negativeProfitAmount = partnerData.negativeProfitAmount;
                     profitAmount += partnerData.negativeProfitAmount;
-                    var commissionAmount = profitAmount * (commissionRate + bonusCommissionRate);
-                    var partnerProm = partnerData;
+                    let commissionAmount = profitAmount * (commissionRate + bonusCommissionRate);
+                    let partnerProm = partnerData;
                     if (settlementTimeToSave) {
                         if (partnerData.negativeProfitAmount >= 0 && profitAmount < 0) {
                             partnerData.negativeProfitStartTime = endTime;
@@ -2593,7 +2626,7 @@ var dbPartner = {
                         commissionAmount = 0;
                     }
                     //log this commission record
-                    var recordProm = dbUtil.upsertForShard(
+                    let recordProm = dbUtil.upsertForShard(
                         dbconfig.collection_partnerCommissionRecord,
                         {
                             partner: partnerObjId,
@@ -2726,7 +2759,7 @@ var dbPartner = {
     },
 
     calculatePartnersChildrenCommission: function (platformObjId, childrenCommissionRate, partnerObjIds, startTime, endTime, settlementTimeToSave) {
-        var proms = [];
+        let proms = [];
         partnerObjIds.forEach(
             objId => {
                 proms.push(dbPartner.calculatePartnerChildrenCommission(platformObjId, childrenCommissionRate, objId, startTime, endTime, settlementTimeToSave));
@@ -2737,7 +2770,7 @@ var dbPartner = {
 
     calculatePartnerChildrenCommission: function (platformObjId, childrenCommissionRate, partnerObjId, startTime, endTime, settlementTimeToSave) {
         //find all children
-        var commissionAmountFromChildren = 0;
+        let commissionAmountFromChildren = 0;
         return dbconfig.collection_partner.find({parent: partnerObjId, platform: platformObjId}).lean().then(
             childrenPartners => {
                 if (childrenPartners && childrenPartners.length > 0) {

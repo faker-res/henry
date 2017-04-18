@@ -2124,6 +2124,9 @@ var dbPlayerInfo = {
                         }).populate({
                             path: "alipayGroup",
                             model: dbconfig.collection_platformAlipayGroup
+                        }).populate({
+                            path: "wechatPayGroup",
+                            model: dbconfig.collection_platformWechatPayGroup
                         }).lean())
                 })
                 return Q.all(proms).then(newPlayer => {
@@ -4336,21 +4339,22 @@ var dbPlayerInfo = {
             );
     },
 
+    // report
     getPlayerDomainReport: function (platform, para, index, limit, sortCol) {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
-        var query = {platform: platform};
+        let query = {platform: platform};
         para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
         (para.endTime && !query.registrationTime) ? (query.registrationTime = {$lt: new Date(para.endTime)}) : null;
         (para.endTime && query.registrationTime) ? (query.registrationTime['$lt'] = new Date(para.endTime)) : null;
         para.name ? query.name = para.name : null;
         para.realName ? query.realName = para.realName : null;
-        para.topUpTimes != null ? query.topUpTimes = para.topUpTimes : null;
+        para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
         para.domain ? query.domain = {$regex: (".*" + para.domain + "*.")} : null;
-        var count = dbconfig.collection_players.find(query).count();
-        var detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'partnerId', model: dbconfig.collection_partner});
+        let count = dbconfig.collection_players.find(query).count();
+        let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
+            .populate({path: 'partner', model: dbconfig.collection_partner});
         return Q.all([count, detail]).then(
             data => {
                 return {data: data[1], size: data[0]}

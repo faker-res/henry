@@ -302,6 +302,7 @@
                                     tr
                                         th {{'MIN_REQUIREMENT' | translate}}
                                         th {{'TOP_UP_TIMES' | translate}}
+                                        th {{'TOP_UP_AMOUNT' | translate}}
                                         th {{'CONSUMPTION' | translate}}
                                 tbody
                                     tr
@@ -310,6 +311,9 @@
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerTopUpTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerTopUpTimes')
                                         td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerTopUpAmount')
+                                        td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerConsumptionTimes')
                                     tr
@@ -317,6 +321,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerTopUpTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerTopUpAmount')
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerConsumptionTimes')
@@ -442,6 +449,10 @@
                                         td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
                                             a.fa.fa-times-circle.text-danger(ng-click='vm.removePartnerCommissionLevel("childrenCommissionRate","level",v)')
                             button.btn.btn-info.margin-top-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.addCommissionLevel("childrenCommissionRate")') {{'ADD_LEVEL' | translate}}
+                        .col-md-12(ng-if='vm.partnerCommission.showConfig')
+                            h4 {{'PARTNER_COMMISSION_SETTLEMENT_MODE' | translate}}
+                            label.form-control(ng-if='!vm.partnerCommission.isEditing', disabled) {{vm.partnerCommissionSettlementModeConst[vm.partnerCommission.showConfig.settlementMode] | translate}}
+                            select.form-control(ng-if='vm.partnerCommission.isEditing', ng-model='vm.partnerCommission.showConfig.settlementMode', ng-options='i as v | translate for (i,v) in vm.partnerCommissionSettlementModeConst', required)
                         .col-md-12.margin-top-10(ng-if='vm.partnerCommission.showConfig')
                             .pull-right
                                 button.btn.btn-primary.margin-right-5(ng-if='!vm.partnerCommission.isEditing', ng-click='vm.partnerCommission.isEditing=true') {{'Edit' | translate}}
