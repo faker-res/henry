@@ -2385,14 +2385,101 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate("partnerName"), data: "partner.partnerName", sClass: "sumText"},
-                    {title: $translate('amount'), data: "num", sClass: "alignRight sumInt"}
+                    {title: $translate('amount'), data: "num", sClass: "alignRight sumInt"},
+                    {
+                        title: $translate(''), bSortable: false,
+                        render: function (data, type, row) {
+                            var $a = $('<a>', {
+                                class: "partnerRow"
+                            }).attr('partnerObjectId', row.partner._id).text($translate("View Details"));
+                            return $a.prop('outerHTML');
+                        }
+                    }
                 ],
                 sScrollY: 300,
                 scrollCollapse: false,
                 "paging": false
             });
             var aTable = utilService.createDatatableWithFooter("#newPlayerPartnerTable", options, {}, true);
+            $("#newPlayerPartnerTable tr .partnerRow").off('click');
+            $("#newPlayerPartnerTable tr .partnerRow").on('click', function () {
+                if ($(this)[0]) {
+                    var partnerObjectId = $(this).attr('partnerObjectId');
+                    vm.detailPartnerPlayer = vm.detailPartnerPlayer || {};
+                    vm.detailPartnerPlayer.partnerObjectId = partnerObjectId;
+                    vm.detailPartnerPlayer.pageObj = utilService.createPageForPagingTable("#detailPartnerPlayerTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "detailPartnerPlayer", vm.getDetailPartnerPlayerData)
+                    });
+                    vm.getDetailPartnerPlayerData(true);
+                }
+            });
         };
+        vm.getDetailPartnerPlayerData = function (newSearch) {
+            let sendData = {
+                platformId: vm.curPlatformId,
+                query: {
+                    startTime: vm.newPlayerQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.newPlayerQuery.endTime.data('datetimepicker').getLocalDate(),
+                    partner: vm.detailPartnerPlayer.partnerObjectId,
+                    registrationTime: {
+                        $gte: vm.newPlayerQuery.startTime.data('datetimepicker').getLocalDate(),
+                        $lt: vm.newPlayerQuery.endTime.data('datetimepicker').getLocalDate()
+                    }
+                },
+                index: newSearch ? 0 : vm.detailPartnerPlayer.index,
+                limit: vm.detailPartnerPlayer.limit || 10,
+                sortCol: vm.detailPartnerPlayer.sortCol || {}
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQueryWithTopupTimes', sendData, function (data) {
+                vm.drawDetailPartnerPlayerTable(data.data.data.map(item => {
+                    item.registrationTime$ = $scope.timeReformat(item.registrationTime);
+                    item.lastAccessTime$ = $scope.timeReformat(item.lastAccessTime);
+                    if (!item.partner) {
+                        item.partner = {partnerName: $translate("NONE")};
+                    }
+                    return item;
+                }), data.data.size, newSearch);
+                $scope.safeApply();
+            });
+        };
+        vm.drawDetailPartnerPlayerTable = function (tableData, size, newSearch) {
+            console.log('detailPartnerPlayer', tableData);
+            var options = $.extend({}, $scope.getGeneralDataTableOption, {
+                data: tableData,
+                "order": vm.detailPartnerPlayer.aaSorting || [],
+                aoColumnDefs: [
+                    {'sortCol': 'registrationTime', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'lastAccessTime', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [7], bSortable: true},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate("Domain Name"), data: "domain"},
+                    {title: $translate('playerId'), data: "playerId"},
+                    {title: $translate("playerName"), data: "name"},
+                    {title: $translate('registrationTime'), data: "registrationTime$"},
+                    {title: $translate("PARTNER"), data: "partner.partnerName"},
+                    {title: $translate('lastAccessTime'), data: "lastAccessTime$"},
+                    {title: $translate("loginTimes"), data: "loginTimes"},
+                    {title: $translate('topUpTimes'), data: "topUpTimes"},
+                ],
+                "paging": false
+            });
+            $scope.safeApply();
+            utilService.actionAfterLoaded("#detailDomainPlayerTable", function () {
+                vm.detailPartnerPlayer.pageObj.init({maxCount: size}, newSearch);
+                var aTable = $("#detailPartnerPlayerTable").DataTable(options);
+                $('#detailPartnerPlayerTable').off('order.dt');
+                $('#detailPartnerPlayerTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'detailPartnerPlayer', vm.getDetailPartnerPlayerData);
+                });
+                setTimeout(function () {
+                    $("#detailPartnerPlayerTable").resize();
+                }, 100)
+            })
+        }
+
         vm.drawDomainPlayerGraph = function (data) {
             var pieData = data.map(function (obj) {
                 return {label: obj.domain, data: obj.num};
