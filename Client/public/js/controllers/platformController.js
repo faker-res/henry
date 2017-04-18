@@ -5768,6 +5768,70 @@ define(['js/app'], function (myApp) {
             );
         };
 
+        // Player WechatPay TopUp
+        vm.initPlayerAlipayTopUp = function () {
+            vm.playerWechatPayTopUp = {submitted: false};
+            vm.existingWechatPayTopup = null;
+            socketService.$socket($scope.AppSocket, 'getWechatPayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
+                data => {
+                    vm.existingWechatPayTopup = data.data ? data.data : false;
+                    $scope.safeApply();
+                });
+            utilService.actionAfterLoaded('#modalPlayerWechatPayTopUp', function () {
+                vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerWechatPayTopUp .createTime');
+                vm.playerWechatPayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
+            });
+            $scope.safeApply();
+        };
+
+        vm.applyPlayerWechatPayTopUp = () => {
+            let sendData = {
+                playerId: vm.isOneSelectedPlayer().playerId,
+                amount: vm.playerWechatPayTopUp.amount,
+                wechatPayName: vm.playerWechatPayTopUp.wechatPayName,
+                wechatPayAccount: vm.playerWechatPayTopUp.wechatPayAccount,
+                remark: vm.playerWechatPayTopUp.remark,
+                createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
+            };
+            vm.playerWechatPayTopUp.submitted = true;
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'applyWechatPayTopUpRequest', sendData,
+                data => {
+                    vm.playerWechatPayTopUp.responseMsg = $translate('SUCCESS');
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                },
+                error => {
+                    vm.playerWechatPayTopUp.responseMsg = error.error.errorMessage;
+                    socketService.showErrorMessage(error.error.errorMessage);
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                }
+            );
+        };
+
+        vm.cancelPlayerWechatPayTopUp = () => {
+            if (!vm.existingWechatPayTopup) {
+                return;
+            }
+            let sendQuery = {
+                playerId: vm.selectedSinglePlayer.playerId,
+                proposalId: vm.existingWechatPayTopup.proposalId
+            };
+            socketService.$socket($scope.AppSocket, 'cancelWechatPayTopup', sendQuery,
+                data => {
+                    if (vm.existingWechatPayTopup.proposalId == data.data.proposalId) {
+                        vm.existingWechatPayTopup.isCanceled = true;
+                    }
+                    $scope.safeApply();
+                },
+                error => {
+                    vm.playerWechatPayTopUp.responseMsg = error.error.errorMessage;
+                    $scope.safeApply();
+                }
+            );
+        };
+
         vm.cancelPlayerManualTop = function () {
             if (!vm.existingManualTopup) {
                 return;

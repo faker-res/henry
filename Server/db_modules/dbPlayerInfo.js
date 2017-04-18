@@ -6091,6 +6091,41 @@ var dbPlayerInfo = {
         );
     },
 
+    getWechatTopupRequestList: function (playerId) {
+        var platformObjectId = null;
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).lean().then(
+            playerData => {
+                if (playerData && playerData.platform) {
+                    platformObjectId = playerData.platform._id;
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: platformObjectId,
+                        name: constProposalType.PLAYER_ALIPAY_TOP_UP
+                    });
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                }
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    var queryObject = {
+                        "data.playerId": playerId,
+                        type: proposalTypeData._id,
+                        status: constProposalStatus.PENDING
+                    };
+                    return dbconfig.collection_proposal.findOne(queryObject).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+            }
+        );
+    },
+
     /*
      * player apply for top up return reward
      * @param {String} playerId
