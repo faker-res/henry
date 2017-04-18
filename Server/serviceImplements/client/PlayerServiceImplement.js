@@ -414,7 +414,7 @@ let PlayerServiceImplement = function () {
 
     this.getSMSCode.expectsData = 'phoneNumber: String';
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.phoneNumber); // TODO SMS function in future
+        var isValidData = Boolean(data && data.phoneNumber);
         var randomCode = parseInt(Math.random() * 9000 + 1000);
         conn.phoneNumber = data.phoneNumber;
         conn.smsCode = randomCode;

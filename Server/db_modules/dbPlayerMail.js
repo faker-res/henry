@@ -109,6 +109,7 @@ const dbPlayerMail = {
             }
         );
     },
+
     sendVerificationCodeToNumber: function (telNum, code) {
         var a = smsAPI.channel_getChannelList({}).then(data => {
             return data

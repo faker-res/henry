@@ -921,7 +921,11 @@ var proposal = {
                     }
                     //find all related proposal type process step based on user's department and role
                     return dbconfig.collection_proposalProcessStep.find(
-                        {$and: [{department: {$in: data[1].departments}}, {role: {$in: data[1].roles}}]}
+                        {
+                            department: {$in: data[1].departments},
+                            role: {$in: data[1].roles},
+                            status: constProposalStatus.PENDING
+                        }
                     ).exec();
                 }
                 else {
