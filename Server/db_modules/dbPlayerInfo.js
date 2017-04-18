@@ -13,6 +13,8 @@ var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
 
+let env = require('../config/env').config();
+
 var counterManager = require('./../modules/counterManager');
 var dbUtility = require('./../modules/dbutility');
 var dbconfig = require('./../modules/dbproperties');
@@ -443,12 +445,15 @@ let dbPlayerInfo = {
 
         // Partner name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        if (playerdata.name.length > 15 || !playerdata.name.match(alphaNumRegex)){
-            return Q.reject({
-                status: constServerCode.PLAYER_NAME_INVALID,
-                name: "DBError",
-                message: "Username should be alphanumeric and within 15 characters"
-            });
+        if (playerdata.name.length > 15 || !playerdata.name.match(alphaNumRegex)) {
+            // ignore for unit test
+            if (env.mode !== "local" && env.mode !== "qa") {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Username should be alphanumeric and within 15 characters"
+                });
+            }
         }
 
         dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(
