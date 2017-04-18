@@ -33,6 +33,40 @@ let dbPlayerPartner = {
                     });
                 }
             )
+        },
+
+    loginPlayerPartnerAPI:
+        (loginData, ua) => {
+            let plyProm = dbPlayerInfo.playerLogin(loginData, ua);
+            let partnerProm = dbPartner.partnerLoginAPI(loginData, ua);
+
+            return Promise.all([plyProm, partnerProm])
+            .catch(
+                error => {
+                    return Q.reject({
+                        status: constServerCode.DB_ERROR,
+                        name: "DBError",
+                        message: error.message
+                    });
+                }
+            )
+        },
+
+    authenticatePlayerPartner:
+        (playerId, partnerId, token, playerIp, conn) => {
+            let plyProm = dbPlayerInfo.authenticate(playerId, token, playerIp, conn);
+            let partnerProm = dbPartner.authenticate(partnerId, token, playerIp, conn);
+
+            return Promise.all([plyProm, partnerProm])
+            .catch(
+                error => {
+                    return Q.reject({
+                        status: constServerCode.DB_ERROR,
+                        name: "DBError",
+                        message: error.message
+                    });
+                }
+            )
         }
 };
 
