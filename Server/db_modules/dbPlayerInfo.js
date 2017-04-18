@@ -64,17 +64,17 @@ let dbProposalType = require('./../db_modules/dbProposalType');
 let dbRewardEvent = require('./../db_modules/dbRewardEvent');
 let dbRewardTask = require('./../db_modules/dbRewardTask');
 
-var PLATFORM_PREFIX_SEPARATOR = '';
+let PLATFORM_PREFIX_SEPARATOR = '';
 
-var dbPlayerInfo = {
+let dbPlayerInfo = {
 
     /**
      * Create a new player user
-     * @param {json} data - The data of the player user. Refer to playerInfo schema.
+     * @param {json} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData) {
-        var platformObjId = null;
-        var platformPrefix = "";
+        let platformObjId = null;
+        let platformPrefix = "";
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -84,11 +84,11 @@ var dbPlayerInfo = {
                     if (platformData) {
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
-                        var playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
+                        let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             name: inputData.name,
                             platform: platformData._id
                         });
-                        var realNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
+                        let realNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             realName: inputData.realName,
                             platform: platformData._id
                         });
@@ -98,6 +98,7 @@ var dbPlayerInfo = {
                         if (platformData.allowSameRealNameToRegister) {
                             return playerNameChecker;
                         }
+
                         return Q.all([playerNameChecker, realNameChecker]).then(data => {
                             if (data && data.length == 2 && data[0] && data[1]) {
                                 if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
@@ -439,6 +440,16 @@ var dbPlayerInfo = {
         var playerData = null;
 
         playerdata.name = playerdata.name.toLowerCase();
+
+        // Player name should be alphanumeric and max 15 characters
+        let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
+        if (playerdata.name.length > 15 || !playerdata.name.match(alphaNumRegex)){
+            return Q.reject({
+                status: constServerCode.PLAYER_NAME_INVALID,
+                name: "DBError",
+                message: "Username should be alphanumeric and within 15 characters"
+            });
+        }
 
         dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(
             function (platform) {
