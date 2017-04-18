@@ -3141,22 +3141,22 @@ let dbPlayerInfo = {
             function (data) {
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
-                    return dbPlayerInfo.getPlayerPendingProposalByType(data[0]._id, data[0].platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
-                        hasPendingProposal => {
-                            if (hasPendingProposal) {
-                                deferred.reject({
-                                    status: constServerCode.PLAYER_PENDING_PROPOSAL,
-                                    name: "DataError",
-                                    message: "Player has pending proposal to update credit"
-                                });
-                            }
-                            else {
+                    // return dbPlayerInfo.getPlayerPendingProposalByType(data[0]._id, data[0].platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
+                    //     hasPendingProposal => {
+                    //         if (hasPendingProposal) {
+                    //             deferred.reject({
+                    //                 status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                    //                 name: "DataError",
+                    //                 message: "Player has pending proposal to update credit"
+                    //             });
+                    //         }
+                    //         else {
                                 dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                                     providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
                                 return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                            }
-                        }
-                    );
+                            // }
+                    //     }
+                    // );
                 } else {
                     deferred.reject({name: "DataError", message: "Cant find player or provider"});
                 }
