@@ -9,7 +9,7 @@ var proposalProcessSchema = new Schema({
     //proposal process type
     type: {type:Schema.Types.ObjectId, ref:'proposalTypeProcess', index: true},
     //the current process step
-    currentStep : {type:Schema.Types.ObjectId, ref:'proposalProcessStep'},
+    currentStep : {type:Schema.Types.ObjectId, ref:'proposalProcessStep', index: true},
     //steps
     steps : [{type:Schema.Types.ObjectId, ref:'proposalProcessStep'}],
     // Status of this step pending, reject, approve

@@ -22,7 +22,7 @@ var proposalSchema = new Schema({
     // create Time
     createTime: {type: Date, default: Date.now, index: true},
     //proposal process info
-    process: {type: Schema.Types.ObjectId, ref: 'proposalProcess'},
+    process: {type: Schema.Types.ObjectId, ref: 'proposalProcess', index: true},
     //proposal data
     data: {type: JSON, default: {}},
     //priority  - {0 - general , 1 - high, 2 - higher, 3 - the highest }
@@ -32,7 +32,7 @@ var proposalSchema = new Schema({
     //User type - for whom create the proposal - real player/partners/system users/demoPlayers
     userType: {type: String, default: constProposalUserType.SYSTEM_USERS, index: true},
     //if this proposal has any step
-    noSteps: {type: Boolean, default: false},
+    noSteps: {type: Boolean, default: false, index: true},
     //status
     status: {type: String, index: true},
     // remark: [{
