@@ -2789,23 +2789,23 @@ let dbPlayerInfo = {
                         });
                         return;
                     }
-                    return dbPlayerInfo.getPlayerPendingProposalByType(playerData._id, playerData.platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
-                        hasPendingProposal => {
-                            if (hasPendingProposal) {
-                                deferred.reject({
-                                    status: constServerCode.PLAYER_PENDING_PROPOSAL,
-                                    name: "DataError",
-                                    message: "Player has pending proposal to update credit"
-                                });
-                            }
-                            else {
-                                var platformId = playerData.platform ? playerData.platform.platformId : null;
-                                dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
-                                    "unknown", providerId, playerData.validCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-                                return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                            }
-                        }
-                    );
+                    //return dbPlayerInfo.getPlayerPendingProposalByType(playerData._id, playerData.platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
+                        //hasPendingProposal => {
+                            // if (hasPendingProposal) {
+                            //     deferred.reject({
+                            //         status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                            //         name: "DataError",
+                            //         message: "Player has pending proposal to update credit"
+                            //     });
+                            // }
+                            // else {
+                    var platformId = playerData.platform ? playerData.platform.platformId : null;
+                    dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
+                        "unknown", providerId, playerData.validCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
+                    return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                            //}
+                            // }
+                    //);
                 } else {
                     deferred.reject({name: "DataError", message: "Cannot find player or provider"});
                 }

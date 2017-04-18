@@ -15,11 +15,13 @@ let dbPlayerPartner = {
 
             return Promise.all([plyProm, partnerProm]).then(
                 promsData => {
-                    return dbPartner.bindPartnerPlayer(promsData[1].partnerId, promsData[0].name).then(
-                        () => {
-                            return promsData;
-                        }
-                    )
+                    //todo:: add the binding later
+                    // return dbPartner.bindPartnerPlayer(promsData[1].partnerId, promsData[0].name).then(
+                    //     () => {
+                    //         return promsData;
+                    //     }
+                    // )
+                    return promsData;
                 }
             )
             .catch(
