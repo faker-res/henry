@@ -446,13 +446,21 @@ let dbPlayerInfo = {
         // Partner name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
         let chineseRegex = /^[\u4E00-\u9FA5]{0,}$/;
-        if (playerdata.name.length > 12 || !playerdata.name.match(alphaNumRegex) || (playerdata.realName && !playerdata.realName.match(chineseRegex))) {
-            // ignore for unit test
-            if (env.mode !== "local" && env.mode !== "qa") {
+        if (env.mode !== "local" && env.mode !== "qa") {
+            if (playerdata.name.length > 12 || !playerdata.name.match(alphaNumRegex)) {
+                // ignore for unit test
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
                     message: "Username should be alphanumeric and within 12 characters"
+                });
+
+            }
+            if((playerdata.realName && !playerdata.realName.match(chineseRegex))){
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Realname should be chinese character"
                 });
             }
         }
