@@ -445,13 +445,14 @@ let dbPlayerInfo = {
 
         // Partner name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        if (playerdata.name.length > 15 || !playerdata.name.match(alphaNumRegex)) {
+        let chineseRegex = /^[\u4E00-\u9FA5]{0,}$/;
+        if (playerdata.name.length > 12 || !playerdata.name.match(alphaNumRegex) || (playerdata.realName && !playerdata.realName.match(chineseRegex))) {
             // ignore for unit test
             if (env.mode !== "local" && env.mode !== "qa") {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
-                    message: "Username should be alphanumeric and within 15 characters"
+                    message: "Username should be alphanumeric and within 12 characters"
                 });
             }
         }

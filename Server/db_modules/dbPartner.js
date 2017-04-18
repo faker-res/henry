@@ -3120,14 +3120,45 @@ let dbPartner = {
                 }
                 total.commissionAmount = profitAmount * commissionRate;
                 total.preNegativeProfitAmount = partnerObj.negativeProfitAmount;
-                return {
-                    stats: {
-                        startIndex: startIndex,
-                        totalCount: playerCommissions.length
-                    },
-                    total: total,
-                    playerCommissions: playerCommissions.slice(startIndex, startIndex + requestCount)
-                };
+                return dbconfig.collection_proposalType.findOne({platform: partnerObj.platform, name: constProposalType.PARTNER_COMMISSION}).then(
+                    typeData => {
+                        if(typeData){
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match:{
+                                        type: typeData._id,
+                                        createTime: {
+                                            $gte: startTime,
+                                            $lt: endTime
+                                        },
+                                        "data.partnerName": partner.partnerName
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$type",
+                                        totalNegative: {$sum: "$preNegativeProfitAmount"}
+                                    }
+                                }
+                            );
+                        }
+                    }
+                ).then(
+                    proposal => {
+                        if(proposal && proposal[0] && proposal[0].totalNegative){
+                            total.preNegativeProfitAmount = proposal[0].totalNegative;
+                        }
+                        return {
+                            stats: {
+                                startIndex: startIndex,
+                                totalCount: playerCommissions.length
+                            },
+                            total: total,
+                            playerCommissions: playerCommissions.slice(startIndex, startIndex + requestCount)
+                        };
+                    }
+                );
+
             }
         );
     },

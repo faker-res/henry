@@ -45,6 +45,9 @@ var proposalSchema = new Schema({
     expirationTime : {type: Date, default: Date.now }
 });
 
+proposalSchema.index({ "data.playerName": 1});
+proposalSchema.index({ "data.partnerName": 1});
+
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId
 proposalSchema.pre('validate', function (next) {

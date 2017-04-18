@@ -62,9 +62,15 @@
     };
 
     proto.authenticate = function (callback, requestData) {
-        var data = requestData || {};
+        let data = requestData || {};
         this.partnerService.authenticate.request(data);
         this.partnerService.authenticate.once(callback);
+    };
+
+    proto.authenticatePlayerPartner = function (callback, requestData) {
+        let data = requestData || {};
+        this.partnerService.authenticatePlayerPartner.request(data);
+        this.partnerService.authenticatePlayerPartner.once(callback);
     };
 
     proto.updatePassword = function (callback, requestData) {

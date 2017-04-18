@@ -61,6 +61,8 @@ var encrypt = {
         var topUpTimes = data.hasOwnProperty('topUpTimes') ? data.topUpTimes : "";
         var status = data.hasOwnProperty('status') ? data.status : "";
         var domain = data.hasOwnProperty('domain') ? data.domain : "";
+        var partner = data.hasOwnProperty('partner') ? data.partner : "";
+
 
         var query = {};
         if (playerId !== '') {
@@ -111,6 +113,10 @@ var encrypt = {
         if (registrationTime !== '') {
             query["registrationTime"] = registrationTime;
         }
+        if (partner !== '') {
+            query["partner"] = partner;
+        }
+
         if (validCredit !== '') {
             // We can accept the following forms for validCredit parameter:
             //   0-100
