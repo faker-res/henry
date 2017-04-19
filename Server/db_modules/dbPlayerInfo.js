@@ -2025,10 +2025,29 @@ let dbPlayerInfo = {
     applyForPlatformTransactionReward: function (platformId, playerId, topupAmount, playerLevel, bankCardType) {
         var deferred = Q.defer();
         var rewardTypeName = constProposalType.PLATFORM_TRANSACTION_REWARD;
-        var proposalProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: rewardTypeName});
-        var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, rewardTypeName);
-        var playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: playerLevel});
-        var playerProm = dbconfig.collection_players.findOne({playerId: playerId});
+        var proposalProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: rewardTypeName}).lean().then(
+            proposalType => {
+                return dbconfig.collection_proposal.aggregate(
+                    {
+                        $match: {
+                            type: proposalType._id,
+                            "data.playerId": playerId,
+                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            //createTime: {}
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$type",
+                            totalAmount: {$sum: "$rewardAmount"}
+                        }
+                    }
+                );
+            }
+        );
+        var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, rewardTypeName).lean();
+        var playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: playerLevel}).lean();
+        var playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
         var playerLevelData = {};
         var rewardParams = [];
         var playerData = {};
@@ -2063,8 +2082,8 @@ let dbPlayerInfo = {
                 if (levels) { // && levels[0].value >= levels[1].value) {
                     var levelProm = [];
                     for (var i = 0; i < levels.length; i++) {
-                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0) {
-
+                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && (!rewardParams[i].param.bankCardType ||
+                            (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
                             var proposalData = {
                                 type: rewardParams[i].executeProposal,
                                 data: {
@@ -2072,7 +2091,7 @@ let dbPlayerInfo = {
                                     playerObjId: playerData._id,
                                     platformId: platformId,
                                     playerName: playerData.name,
-                                    rewardAmount: Math.floor(rewardParams[i].param.rewardPercentage * topupAmount),
+                                    rewardAmount: rewardParams[i].param.rewardPercentage * topupAmount,
                                     eventDescription: rewardParams[i].description
                                 }
                             };
