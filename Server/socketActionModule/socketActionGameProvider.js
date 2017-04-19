@@ -142,8 +142,13 @@ function socketActionGame(socketIO, socket) {
             var cpAPIClient = serverInstance.getCPAPIClient();
             var status = cpAPIClient ? cpAPIClient.isOpen() : false;
             self.socket.emit("_" + actionName, {success: true, data: status});
-        }
+        },
 
+        getConsumptionIntervalByProvider: function getConsumptionIntervalByProvider(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.providerIds);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionIntervalByProvider, [data.providerIds], actionName, isValidData);
+        }
     };
     socketActionGame.actions = this.actions;
 };

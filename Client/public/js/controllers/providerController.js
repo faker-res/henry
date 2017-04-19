@@ -673,6 +673,58 @@ define(['js/app'], function (myApp) {
             obj.endTime = new Date();
             return obj;
         }
+        /////////////////////provier monit////////////////////////
+        vm.showProviderMonit = function () {
+            $('#modalProviderConsumptionMonit').modal().show();
+            utilService.actionAfterLoaded('#providerMonitGraph', function () {
+                const width = $('#providerMonitGraph').width();
+                $('#providerMonitGraph').height(width / 2);
+            })
+            vm.getProviderMonit();
+        }
+        vm.getProviderMonit = function () {
+            socketService.$socket($scope.AppSocket, 'getConsumptionIntervalByProvider', {
+                providerIds: vm.allGameProvider.filter(item => {
+                    return item.status == 1
+                }).map(item => {
+                    return item._id;
+                }),
+            }, function (data) {
+                console.log('providers data', data);
+                var graphData = data.data.map(item => {
+                    let provObj = vm.allGameProvider.filter(prov => {
+                        return prov._id == item.providerId
+                    })
+                    var dataObj = {
+                        label: provObj && provObj[0] ? provObj[0].name : item.providerId,
+                        data: item.data.map(dot => {
+                            return [new Date(dot.time0), dot.count, new Date(dot.time1)]
+                        })
+                    }
+                    return dataObj;
+                })
+                vm.drawProviderMonitor('#providerMonitGraph', graphData);
+            });
+        }
+        vm.drawProviderMonitor = function (dom, data) {
+            var newOptions = {};
+            newOptions.yaxes = [{
+                position: 'left',
+                axisLabel: $translate('CREDIT'),
+            }];
+            newOptions.xaxes = [{
+                position: 'bottom',
+                axisLabel: $translate('TIME')
+            }];
+            newOptions.xaxis = {
+                tickLength: 0,
+                mode: "time",
+                minTickSize: [1, "minute"],
+                timezone: "browser"
+            }
+            socketService.$plotLine(dom, data, newOptions);
+        }
+        /////////////////////provier monit////////////////////////
 
         ///////////////////////common function//////////////////////////////
         vm.dateReformat = function (data) {
