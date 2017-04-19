@@ -1,7 +1,6 @@
 'use strict';
 
 let Q = require("q");
-const moment = require('moment-timezone');
 
 let constServerCode = require('../const/constServerCode');
 
@@ -13,8 +12,6 @@ let dbPartner = require('./../db_modules/dbPartner');
 let dbPlayerPartner = {
     createPlayerPartnerAPI:
         registerData => {
-            let lastMin = moment().subtract(1, 'minutes');
-
             let smsProm = dbConfig.collection_smsVerificationLog.findOne({
                 platformId: registerData.platformId,
                 tel: registerData.phoneNumber
@@ -23,22 +20,12 @@ let dbPlayerPartner = {
             return smsProm.then(
                 verificationSMS => {
                     // Check verification SMS code
-                    if (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode && !verificationSMS.isDirty) {
-                        // Check verification SMS expired
-                        if (verificationSMS.createTime < lastMin) {
-                            return Q.reject({
-                                status: constServerCode.VALIDATION_CODE_EXPIRED,
-                                name: "ValidationError",
-                                message: "Validation Code Expired"
-                            });
-                        }
-
+                    if (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode) {
                         let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
                         let partnerProm = dbPartner.createPartnerAPI(registerData);
 
-                        return dbConfig.collection_smsVerificationLog.findOneAndUpdate(
-                            {_id: verificationSMS._id},
-                            {isDirty: true}
+                        return dbConfig.collection_smsVerificationLog.remove(
+                            {_id: verificationSMS._id}
                         ).then(
                             data => {
                                 return Promise.all([plyProm, partnerProm]);

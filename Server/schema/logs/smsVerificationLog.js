@@ -8,8 +8,7 @@ let smsVerificationLogSchema = new Schema ({
     platformId: {type: String, required: false, index: true},
     code: {type: String, required: true},
     delay: {type: Number, default: 0},
-    createTime: {type: Date, default: Date.now, index: true},
-    isDirty: {type: Boolean, default: false}
+    createTime: {type: Date, default: Date.now, index: true}
 });
 
 module.exports = smsVerificationLogSchema;
