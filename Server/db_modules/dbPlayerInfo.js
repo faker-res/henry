@@ -6858,11 +6858,11 @@ let dbPlayerInfo = {
                     }
 
                     // Check any consumption after topup upon apply reward
-                    let lastTopUpProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerInfo._id}).sort({settlementTime: -1}).limit(1);
+                    let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     return Promise.all([lastTopUpProm, lastConsumptionProm]).then(
                         timeCheckData => {
-                            if (timeCheckData[0][0].settlementTime < timeCheckData[1][0].createTime) {
+                            if (timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
