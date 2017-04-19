@@ -4298,17 +4298,21 @@ define(['js/app'], function (myApp) {
                     });
                 });
         };
-        vm.showPlayerTopupModal = function (row) {
-            return vm.prepareShowPlayerTopup(row._id);
-        }
+        // vm.showPlayerTopupModal = function (row) {
+        //     return vm.prepareShowPlayerTopup(row._id);
+        // }
 
-        vm.prepareShowPagePlayerTopup = function () {
+        vm.prepareShowPagePlayerTopup = function (startTime) {
             $('#modalPlayerTopUp').modal().show();
             vm.playerTopUpLog = {};
             utilService.actionAfterLoaded("#modalPlayerTopUp.in #playerTopUp .endTime", function () {
                 vm.playerTopUpLog.startTime = utilService.createDatePicker('#playerTopUp .startTime');
                 vm.playerTopUpLog.endTime = utilService.createDatePicker('#playerTopUp .endTime');
-                vm.playerTopUpLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                if (startTime) {
+                    vm.playerTopUpLog.startTime.data('datetimepicker').setDate(new Date(startTime));
+                } else {
+                    vm.playerTopUpLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                }
                 vm.playerTopUpLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.getPagePlayerTopup(true);
             });
@@ -4387,55 +4391,59 @@ define(['js/app'], function (myApp) {
             $("#playerTopupRecordTable").resize();
             $scope.safeApply();
         }
-        vm.prepareShowPlayerTopup = function (playerId, startTime) {
+        // vm.prepareShowPlayerTopup = function (playerId, startTime) {
+        //
+        //     var queryObj = {playerId: playerId || vm.isOneSelectedPlayer()._id}
+        //     vm.initQueryTimeFilter('playerTopUp', function () {
+        //         vm.queryPara.playerTopUp.limit = '50';
+        //         if (startTime) {
+        //             vm.queryPara.playerTopUp.startTime.data('datetimepicker').setLocalDate(new Date(startTime));
+        //             queryObj.startTime = new Date(startTime);
+        //             queryObj.endTime = new Date();
+        //         }
+        //         vm.prepareShowPlayerTopupRecords(queryObj);
+        //         $scope.safeApply();
+        //     });
+        // }
 
-            var queryObj = {playerId: playerId || vm.isOneSelectedPlayer()._id}
-            vm.initQueryTimeFilter('playerTopUp', function () {
-                vm.queryPara.playerTopUp.limit = '50';
-                if (startTime) {
-                    vm.queryPara.playerTopUp.startTime.data('datetimepicker').setLocalDate(new Date(startTime));
-                    queryObj.startTime = new Date(startTime);
-                    queryObj.endTime = new Date();
-                }
-                vm.prepareShowPlayerTopupRecords(queryObj);
-                $scope.safeApply();
-            });
-        }
-
-        vm.prepareShowPlayerTopupRecords = function (query, isQuery) {
-
-            vm.playerAllTopupRecords = null;
-            console.log("playerTopUp:query", query);
-            socketService.$socket($scope.AppSocket, 'getPlayerTopUpRecords', query, function (data) {
-
-                vm.playerAllTopupRecords = data.data;
-                console.log('topups:length:', vm.playerAllTopupRecords.length);
-                vm.playerTopUpLog = {totalCount: vm.playerAllTopupRecords.length};
-                vm.playerTopupRecordForModal = {
-                    validAmount: 0,
-                    amount: 0,
-                    bonusAmount: 0,
-                };
-
-                vm.playerAllTopupRecords.forEach(
-                    record => {
-                        vm.playerTopupRecordForModal.validAmount += Number(record.validAmount);
-                        vm.playerTopupRecordForModal.amount += Number(record.amount);
-                        vm.playerTopupRecordForModal.bonusAmount += Number(record.bonusAmount);
-                    }
-                );
-                $scope.safeApply();
-                // if (vm.playerAllTopupRecords.length > 0) {
-                //     vm.processDataTableinModal('#modalPlayerTopUp', '#playerTopupRecordTable');
-                // }
-                if (isQuery) {
-                    vm.updateDataTableinModal('#modalPlayerTopUp', '#playerTopupRecordTable');
-                }
-                else {
-                    vm.processDataTableinModal('#modalPlayerTopUp', '#playerTopupRecordTable');
-                }
-            });
-        };
+        // vm.prepareShowPlayerTopupRecords = function (query, isQuery) {
+        //
+        //     vm.playerAllTopupRecords = null;
+        //     console.log("playerTopUp:query", query);
+        //     socketService.$socket($scope.AppSocket, 'getPlayerTopUpRecords', query, function (data) {
+        //
+        //         vm.playerAllTopupRecords = data.data;
+        //         console.log('topups:length:', vm.playerAllTopupRecords.length);
+        //         vm.playerTopUpLog = {totalCount: vm.playerAllTopupRecords.length};
+        //         vm.playerTopupRecordForModal = {
+        //             validAmount: 0,
+        //             amount: 0,
+        //             bonusAmount: 0,
+        //         };
+        //
+        //         vm.playerAllTopupRecords.forEach(
+        //             record => {
+        //                 vm.playerTopupRecordForModal.validAmount += Number(record.validAmount);
+        //                 vm.playerTopupRecordForModal.amount += Number(record.amount);
+        //                 vm.playerTopupRecordForModal.bonusAmount += Number(record.bonusAmount);
+        //             }
+        //         );
+        //         $scope.safeApply();
+        //         // if (vm.playerAllTopupRecords.length > 0) {
+        //         //     vm.processDataTableinModal('#modalPlayerTopUp', '#playerTopupRecordTable');
+        //         // }
+        //         ////
+        //         vm.drawPlayerTopupRecordsTable(vm.playerAllTopupRecords, count, true, summary);
+        //         vm.drawPlayerTopupRecordsTable(vm.playerAllTopupRecords, vm.playerTopUpLog.totalCount, newSearch, summary);
+        //         //////
+        //         if (isQuery) {
+        //             vm.updateDataTableinModal('#modalPlayerTopUp', '#playerTopupRecordTable');
+        //         }
+        //         else {
+        //             vm.processDataTableinModal('#modalPlayerTopUp', '#playerTopupRecordTable');
+        //         }
+        //     });
+        // };
         vm.initPlayerApplyReward = function () {
             vm.playerApplyRewardPara = {};
             vm.playerApplyRewardShow = {};
@@ -6131,7 +6139,7 @@ define(['js/app'], function (myApp) {
                         className: "feedbackAdminTopupTime alignRight sumInt",
                         render: function (data, type, row) {
                             var $a = $('<a>', {
-                                'ng-click': 'vm.prepareShowPlayerTopup(' + JSON.stringify(row.playerId._id) + ',' + JSON.stringify(row.createTime) + ')'
+                                'ng-click': "vm.selectedSinglePlayer={_id:" + JSON.stringify(row.playerId._id) + '};' + 'vm.prepareShowPagePlayerTopup(' + JSON.stringify(row.createTime) + ')'
                             }).text(data);
                             // $compile($a.prop('outerHTML'))($scope);
                             return $a.prop('outerHTML');
