@@ -4,16 +4,43 @@ let Q = require("q");
 
 let constServerCode = require('../const/constServerCode');
 
+let dbConfig = require('../modules/dbproperties');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
+
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI:
         registerData => {
-            let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
-            let partnerProm = dbPartner.createPartnerAPI(registerData);
+            let smsProm = dbConfig.collection_smsVerificationLog.findOne({
+                platformId: registerData.platformId,
+                tel: registerData.phoneNumber
+            }).sort({createTime: -1});
 
-            return Promise.all([plyProm, partnerProm]).then(
+            return smsProm.then(
+                verificationSMS => {
+                    // Check verification SMS code
+                    if (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode) {
+                        let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
+                        let partnerProm = dbPartner.createPartnerAPI(registerData);
+
+                        return dbConfig.collection_smsVerificationLog.remove(
+                            {_id: verificationSMS._id}
+                        ).then(
+                            data => {
+                                return Promise.all([plyProm, partnerProm]);
+                            }
+                        )
+                    }
+                    else {
+                        return Q.reject({
+                            status: constServerCode.VALIDATION_CODE_INVALID,
+                            name: "ValidationError",
+                            message: "Invalid SMS Validation Code"
+                        });
+                    }
+                }
+            ).then(
                 promsData => {
                     //todo:: add the binding later
                     // return dbPartner.bindPartnerPlayer(promsData[1].partnerId, promsData[0].name).then(
@@ -23,8 +50,7 @@ let dbPlayerPartner = {
                     // )
                     return promsData;
                 }
-            )
-            .catch(
+            ).catch(
                 error => {
                     return Q.reject({
                         status: constServerCode.DB_ERROR,
