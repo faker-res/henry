@@ -1,19 +1,59 @@
 'use strict';
 
 let Q = require("q");
+const moment = require('moment-timezone');
 
 let constServerCode = require('../const/constServerCode');
 
+let dbConfig = require('../modules/dbproperties');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
+
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI:
         registerData => {
-            let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
-            let partnerProm = dbPartner.createPartnerAPI(registerData);
+            let lastMin = moment().subtract(1, 'minutes');
 
-            return Promise.all([plyProm, partnerProm]).then(
+            let smsProm = dbConfig.collection_smsVerificationLog.findOne({
+                platformId: registerData.platformId,
+                tel: registerData.phoneNumber
+            }).sort({createTime: -1});
+
+            return smsProm.then(
+                verificationSMS => {
+                    // Check verification SMS code
+                    if (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode && !verificationSMS.isDirty) {
+                        // Check verification SMS expired
+                        if (verificationSMS.createTime < lastMin) {
+                            return Q.reject({
+                                status: constServerCode.VALIDATION_CODE_EXPIRED,
+                                name: "ValidationError",
+                                message: "Validation Code Expired"
+                            });
+                        }
+
+                        let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
+                        let partnerProm = dbPartner.createPartnerAPI(registerData);
+
+                        return dbConfig.collection_smsVerificationLog.findOneAndUpdate(
+                            {_id: verificationSMS._id},
+                            {isDirty: true}
+                        ).then(
+                            data => {
+                                return Promise.all([plyProm, partnerProm]);
+                            }
+                        )
+                    }
+                    else {
+                        return Q.reject({
+                            status: constServerCode.VALIDATION_CODE_INVALID,
+                            name: "ValidationError",
+                            message: "Invalid SMS Validation Code"
+                        });
+                    }
+                }
+            ).then(
                 promsData => {
                     //todo:: add the binding later
                     // return dbPartner.bindPartnerPlayer(promsData[1].partnerId, promsData[0].name).then(
@@ -23,8 +63,7 @@ let dbPlayerPartner = {
                     // )
                     return promsData;
                 }
-            )
-            .catch(
+            ).catch(
                 error => {
                     return Q.reject({
                         status: constServerCode.DB_ERROR,
