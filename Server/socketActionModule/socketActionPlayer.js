@@ -699,7 +699,7 @@ function socketActionPlayer(socketIO, socket) {
         getGameCreditLog: function getGameCreditLog(data) {
             var actionName = arguments.callee.name;
             console.log("getGameCreditLog: " + data);
-            var isValidData = Boolean(data.playerName && data.platformId && data.providerId && data.startDate && data.endDate && data.page && data.type);
+            var isValidData = Boolean(data.playerName && data.platformId && data.providerId && data.startDate && data.endDate && data.page);
             socketUtil.emitter(self.socket, cpmsAPI.player_getCreditLog, [data], actionName, isValidData);
         },
 

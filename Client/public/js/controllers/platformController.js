@@ -5178,9 +5178,9 @@ define(['js/app'], function (myApp) {
                 "startDate": vm.gameCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
                 "endDate": vm.gameCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
                 "page": newSearch ? "1" : "1",
-                "type": vm.gameCreditLog.query.type,
                 "platformId": vm.selectedPlatform.data.platformId,
             };
+            vm.gameCreditLog.query.type ? requestData.type = vm.gameCreditLog.query.type : '';
             $scope.$socketPromise('getGameCreditLog', requestData).then(result => {
                 console.log(JSON.stringify(result))
                 // {
