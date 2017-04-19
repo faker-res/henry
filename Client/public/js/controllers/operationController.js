@@ -380,16 +380,18 @@ define(['js/app'], function (myApp) {
                 result = $time.prop('outerHTML') + $btn.prop('outerHTML');
             } else if (fieldName.indexOf('providerId') > -1 || fieldName.indexOf('targetProviders') > -1) {
                 result = val ? val.map(item => {
-                        return vm.getProviderText(item);
-                    }) : '';
+                    return vm.getProviderText(item);
+                }) : '';
                 result = result.join(',');
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
             } else if (fieldName == 'bankAccountType') {
-                if (val == 1) {
+                if (val == 1 || val == '1') {
                     return $translate('Credit Card');
-                } else if (val == 2) {
+                } else if (val == 2 || val == '2') {
                     return $translate('Debit Card');
+                } else {
+                    return val;
                 }
             } else if (fieldName == 'clientType') {
                 result = $translate($scope.merchantTargetDeviceJson[val]);
