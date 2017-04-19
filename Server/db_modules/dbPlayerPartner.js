@@ -52,6 +52,40 @@ let dbPlayerPartner = {
             )
         },
 
+    logoutPlayerPartnerAPI:
+        (logoutData) => {
+            let plyProm = dbPlayerInfo.playerLogout(logoutData);
+            let partnerProm = dbPartner.partnerLogout(logoutData);
+
+            return Promise.all([plyProm, partnerProm])
+            .catch(
+                error => {
+                    return Q.reject({
+                        status: constServerCode.DB_ERROR,
+                        name: "DBError",
+                        message: error.message
+                    });
+                }
+            )
+        },
+
+    getPlayerPartnerAPI:
+        data => {
+            let plyProm = dbPlayerInfo.getPlayerInfoAPI({playerId: data.playerId});
+            let partnerProm = dbPartner.getPartner({partnerId: data.partnerId});
+
+            return Promise.all([plyProm, partnerProm])
+            .catch(
+                error => {
+                    return Q.reject({
+                        status: constServerCode.DB_ERROR,
+                        name: "DBError",
+                        message: error.message
+                    });
+                }
+            )
+        },
+
     authenticatePlayerPartner:
         (playerId, partnerId, token, playerIp, conn) => {
             let plyProm = dbPlayerInfo.authenticate(playerId, token, playerIp, conn);
