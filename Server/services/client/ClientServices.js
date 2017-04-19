@@ -148,8 +148,7 @@
                 "getValidTopUpRewardRecordList",
                 "getWechatTopupRequestList",
                 "requestWechatTopup",
-                "cancelWechatTopup",
-                "getWechatTopupRequestList"
+                "cancelWechatTopup"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
