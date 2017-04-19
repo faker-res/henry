@@ -224,8 +224,10 @@ var playerClientSourceLogModel = dbLogs.model('playerClientSourceLog', playerCli
 var partnerLoginRecordSchema = require('./../schema/partnerLoginRecord');
 var partnerLoginRecordModel = dbLogs.model('partnerLoginRecord', partnerLoginRecordSchema, 'partnerLoginRecord');
 
-var smsLogSchema = require('./../schema/logs/smsLog');
-var smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
+let smsLogSchema = require('./../schema/logs/smsLog');
+let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
+let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
+let smsVerificationLogModel = dbLogs.model('smsVerificationLog', smsVerificationLogSchema, 'smsVerificationLog');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -350,6 +352,7 @@ var dbProperties = {
     collection_playerClientSourceLog: playerClientSourceLogModel,
     collection_partnerLoginRecord: partnerLoginRecordModel,
     collection_smsLog: smsLogModel,
+    collection_smsVerificationLog: smsVerificationLogModel,
     collection_partnerCommissionRecord: partnerCommissionRecordModel,
     collection_paymentAPILog: paymentAPILogModel,
     collection_syncDataLog: syncDataLogModel,
