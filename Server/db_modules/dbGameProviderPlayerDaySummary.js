@@ -141,7 +141,7 @@ var dbGameProviderPlayerDaySummary = {
                 if (data && data.length > 0) {
                     var prom = [];
                     for (var i = 0; i < data.length; i++) {
-                        var summary = {
+                        let summary = {
                             playerId: data[i]._id.playerId,
                             platformId: data[i]._id.platformId,
                             providerId: data[i]._id.providerId,

@@ -18,7 +18,8 @@ var promiseUtils = require("../modules/promiseUtils.js");
 var constGameStatus = require("./../const/constGameStatus");
 var constServerCode = require('../const/constServerCode');
 var dataUtils = require("../modules/dataUtils.js");
-
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -1509,7 +1510,58 @@ var dbPlayerConsumptionRecord = {
             proms.push(getData(timeFrame[0], timeFrame[1], platform));
         })
         return Q.all(proms)
-    }
+    },
+    getConsumptionIntervalByProvider: function (providers) {
+        providers = providers || [];
+        var proms = [];
+        providers.forEach(provider => {
+            proms.push(Q.resolve(dbPlayerConsumptionRecord.getConsumptionIntervalForProvider(provider)));
+        });
+        return Q.all(proms);
+    },
+    getConsumptionIntervalForProvider: function (providerId) {
+        const duration = 2 * 3600 * 1000;
+        var startDate = new Date(Date.now() - duration);
+        startDate.setMinutes(Math.floor(startDate.getMinutes() / 5) * 5, 0, 0, 0);
+        var nowDate = new Date(startDate.getTime() + duration);
+        var timeArr = dataUtils.getTimeIntervalArr(startDate, nowDate, 5 * 60 * 1000);
+        var proms = [];
+
+        function getData(time0, time1, providerId) {
+            return dbPlayerConsumptionRecord.getConsumptionTotalAmountForProvider(time0, time1, ObjectId(providerId)).then(data => {
+                return {
+                    time0: time0,
+                    time1: time1,
+                    count: (data && data[0]) ? data[0].totalAmount : 0
+                };
+            })
+        }
+
+        timeArr.forEach(timeFrame => {
+            proms.push(getData(timeFrame[0], timeFrame[1], providerId));
+        })
+        return Q.all(proms).then(result => {
+            return {
+                providerId: providerId,
+                data: result
+            }
+        })
+    },
+    getConsumptionTotalAmountForProvider: function (startTime, endTime, providerId) {
+        const matchObj = {
+            createTime: {$gte: startTime, $lt: endTime},
+            providerId: providerId
+        };
+        return dbconfig.collection_playerConsumptionRecord.aggregate(
+            {$match: matchObj},
+            {
+                $group: {
+                    _id: null,
+                    totalAmount: {$sum: "$amount"}
+                }
+            }
+        );
+    },
 
 };
 
