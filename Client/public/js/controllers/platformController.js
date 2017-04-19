@@ -3101,7 +3101,7 @@ define(['js/app'], function (myApp) {
                 };
                 vm.selectedSinglePlayer.encodedBankAccount =
                     vm.selectedSinglePlayer.bankAccount ?
-                        vm.selectedSinglePlayer.bankAccount.slice(0, 3) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-3)
+                        vm.selectedSinglePlayer.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-4)
                         : null;
 
                 $scope.safeApply();
@@ -6528,6 +6528,26 @@ define(['js/app'], function (myApp) {
 
                             });
                             $("button.playerTelephone").on('click', function () {
+                                var phoneCall = {
+                                    playerId: vm.telphonePartner.playerId,
+                                    name: vm.telphonePartner.partnerName,
+                                    toText: vm.telphonePartner.partnerName,
+                                    platform: "jinshihao",
+                                    loadingNumber: true,
+                                }
+                                $scope.initPhoneCall(phoneCall);
+                                socketService.$socket($scope.AppSocket, 'getPartnerPhoneNumber', {partnerObjId: vm.telphonePartner._id}, function (data) {
+                                    $scope.phoneCall.phone = data.data;
+                                    $scope.phoneCall.loadingNumber = false;
+                                    $scope.safeApply();
+                                    $('#phoneCallModal').modal('show');
+                                }, function (err) {
+                                    $scope.phoneCall.loadingNumber = false;
+                                    $scope.phoneCall.err = err.error.message;
+                                    $scope.safeApply();
+                                    $('#phoneCallModal').modal('show');
+                                }, true);
+
                             });
                         }
                     });
@@ -6615,7 +6635,7 @@ define(['js/app'], function (myApp) {
                 // Mask partners bank account
                 vm.selectedSinglePartner.bankAccount =
                     vm.selectedSinglePartner.bankAccount ?
-                        vm.selectedSinglePartner.bankAccount.slice(0, 3) + "**********" + vm.selectedSinglePartner.bankAccount.slice(-3)
+                        vm.selectedSinglePartner.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePartner.bankAccount.slice(-4)
                         : null;
 
                 vm.selectedPartnerCount = 1;
