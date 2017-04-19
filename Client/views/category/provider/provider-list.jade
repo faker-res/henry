@@ -57,8 +57,11 @@
             button.btn.btn-primary.common-button(ng-if='checkViewPermission("Provider","Provider", "SettlementHistory")',ng-disabled="!vm.SelectedProvider", ng-click='vm.prepareSettlementHistory()')
                 text {{"Settlement History" | translate}}
                 img.img-edit
-            button.btn.btn-primary.common-button(ng-if='checkViewPermission("Provider","Provider", "Settle")',ng-disabled="!vm.SelectedProvider", ng-click='vm.showSettlementActionModal()')
+            button.btn.btn-primary.common-button(ng-if='checkViewPermission("Provider","Provider", "Settle")', ng-disabled="!vm.SelectedProvider", ng-click='vm.showSettlementActionModal()')
                 text {{"Target Settlement" | translate}}
+                img.img-edit
+            button.btn.btn-primary.common-button(ng-if='checkViewPermission("Provider","Provider", "monit")', ng-click='vm.showProviderMonit()')
+                text {{"Provider Monitor" | translate}}
                 img.img-edit
 
 //#modalCreateProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:80%;margin-left:10%')
@@ -208,3 +211,14 @@
                             div(ng-show='vm.settlementAction.result')
                                 label &nbsp;
                                 label(class='{{vm.settlementAction.result=="SUCCESS" ? "text-success" : "text-danger"}}') {{vm.settlementAction.result}}
+#modalProviderConsumptionMonit.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:100%')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Consumption monitor" | translate}} : {{vm.SelectedProvider.name}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-12
+                            #providerMonitGraph
