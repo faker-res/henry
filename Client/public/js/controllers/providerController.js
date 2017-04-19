@@ -723,6 +723,21 @@ define(['js/app'], function (myApp) {
                 timezone: "browser"
             }
             socketService.$plotLine(dom, data, newOptions);
+            vm.bindHover(dom, function (obj) {
+                var x = obj.datapoint[0],
+                    y = obj.datapoint[1].toFixed(0);
+                var t0 = obj.series.data[obj.dataIndex][0];
+                var t1 = obj.series.data[obj.dataIndex][2];
+                var showText = $translate('provider') + ' : ' + obj.series.label + '<br>'
+                    + $translate('from') + ' : ' + utilService.getFormatTime(t0) + '<br>'
+                    + $translate('to') + ' : ' + utilService.getFormatTime(t1) + '<br>'
+                    + $translate('CREDIT') + ' : ' + y;
+                console.log(showText, $("#tooltip"), obj);
+                $("#tooltip").show();
+                $("#tooltip").html(showText)
+                    .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                    .fadeIn(200);
+            })
         }
         /////////////////////provier monit////////////////////////
 
@@ -785,7 +800,23 @@ define(['js/app'], function (myApp) {
                 }
             }
         }
-
+        vm.bindHover = function (placeholder, callback) {
+            $(placeholder).bind("plothover", function (event, pos, obj) {
+                var previousPoint;
+                if (!obj) {
+                    $("#tooltip").hide();
+                    previousPoint = null;
+                    return;
+                } else {
+                    if (previousPoint != obj.dataIndex) {
+                        previousPoint = obj.dataIndex;
+                        if (callback) {
+                            callback(obj);
+                        }
+                    }
+                }
+            });
+        }
         vm.generalDataTableOptions = {
             "paging": true,
             dom: 'tpl',

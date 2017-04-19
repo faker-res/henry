@@ -22,6 +22,19 @@ db.rewardParam.update({"name": type5}, {
     }
 });
 
+var type6 = "PlatformTransactionReward";
+
+db.rewardParam.update({"name": type6}, {
+    $set: {
+        params: {
+            rewardPercentage: {type: "Percentage", des: "Reward percentage"},
+            playerLevel: {type: "DBString", action: "getPlayerLevelByPlatformId", field: "name", des: "Base Player Level"},
+            bankCardType: {type: "Array", des: "Bank Card Type"},
+            maxRewardAmountPerDay: {type: "Number", des: "Max reward amount per day"}
+        }
+    }
+});
+
 //Player top up return reward
 var type10 = "PlayerTopUpReturn";
 db.rewardParam.update({"name": type10}, {$set: { params:{
