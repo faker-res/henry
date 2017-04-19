@@ -153,7 +153,22 @@ var dbGameProviderPlayerDaySummary = {
                             bonusAmount: data[i].bonusAmount,
                             consumptionTimes: data[i].times
                         };
-                        prom.push(dbGameProviderPlayerDaySummary.upsert(summary));
+                        prom.push(
+                            dbconfig.collection_providerPlayerDaySummary.remove(
+                                {
+                                    playerId: summary.playerId,
+                                    platformId: summary.platformId,
+                                    providerId: summary.providerId,
+                                    gameId: summary.gameId,
+                                    gameType: summary.gameType,
+                                    date: {
+                                        $gte: startTime, $lt: endTime
+                                    }
+                                }
+                            ).then(
+                                data => dbGameProviderPlayerDaySummary.upsert(summary)
+                            )
+                        );
                     }
                     return Q.all(prom);
                 } else {
