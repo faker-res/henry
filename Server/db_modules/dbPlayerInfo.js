@@ -6862,7 +6862,7 @@ let dbPlayerInfo = {
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     return Promise.all([lastTopUpProm, lastConsumptionProm]).then(
                         timeCheckData => {
-                            if (timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
+                            if (timeCheckData[0] && timeCheckData[1] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
