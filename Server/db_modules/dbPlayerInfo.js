@@ -2594,9 +2594,8 @@ let dbPlayerInfo = {
      *  TODO - may add more fields to update the playerInfo
      */
     playerLogout: function (playerData) {
-
-        var time_now = new Date().getTime();
-        var updateData = {isLogin: false, lastAccessTime: time_now};
+        let time_now = new Date().getTime();
+        let updateData = {isLogin: false, lastAccessTime: time_now};
 
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerData.playerId}, updateData, constShardKeys.collection_players);
     },
