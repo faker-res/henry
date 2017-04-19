@@ -538,11 +538,7 @@ let PlayerServiceImplement = function () {
         conn.phoneNumber = data.phoneNumber;
         conn.smsCode = randomCode;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode], true, true, false, true).then(
-            res => {
-                wsFunc.response(conn, {status: constServerCode.SUCCESS, data: res}, data);
-            }
-        );
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode], true, false, false, true);
     };
 
     this.authenticate.expectsData = 'playerId: String, token: String';
