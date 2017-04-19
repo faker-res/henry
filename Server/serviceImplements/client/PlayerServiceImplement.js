@@ -280,6 +280,92 @@ let PlayerServiceImplement = function () {
             .done();
     };
 
+    // player and partner login api handler
+    this.loginPlayerPartner.expectsData = 'name: String, password: String, platformId: String';
+    this.loginPlayerPartner.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.name && data.password && data.platformId);
+
+        console.log("loginPlayerPartner");
+        console.log("start checking conn.upgradeReq.headers=============================");
+        for (let i in conn.upgradeReq.headers) {
+            if (conn.upgradeReq.headers.hasOwnProperty(i)) {
+                console.log("name: " + i);
+                console.log("value: " + conn.upgradeReq.headers[i]);
+            }
+        }
+        console.log("end checking conn.upgradeReq.headers=============================");
+
+        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            data.lastLoginIp = forwardedIp[0].trim();
+        }
+
+        let uaString = conn.upgradeReq.headers['user-agent'];
+        let ua = uaParser(uaString);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.loginPlayerPartnerAPI, [data, ua], isValidData, true, true, true).then(
+            playerPartnerData => {
+                if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
+                    if (conn.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                        conn.isAuth = true;
+                    } else {
+                        conn.noOfAttempt++;
+                        conn.isAuth = false;
+                        conn.playerId = null;
+                        conn.playerObjId = null;
+                        conn.captchaCode = null;
+                        wsFunc.response(conn, {
+                            status: constServerCode.INVALID_CAPTCHA,
+                            errorMessage: localization.translate("Captcha code invalid", conn.lang),
+                            data: {noOfAttempt: conn.noOfAttempt},
+
+                        }, data);
+                        return;
+                    }
+                } else {
+                    conn.isAuth = true;
+                }
+                conn.playerId = playerPartnerData.playerId;
+                conn.playerObjId = playerPartnerData._id;
+                conn.noOfAttempt = 0;
+                conn.onclose = function (event) {
+                    dbPlayerInfo.playerLogout({playerId: playerPartnerData.playerId}).catch(
+                        error => {
+                            if (error.message === "Can't find db data") {
+                                // This is quite normal during testing, because we remove the test player account before the connection closes.
+                                // Do nothing
+                            } else {
+                                console.error("dbPlayerInfo.playerLogout failed:", error);
+                            }
+                        }
+                    );
+                };
+                let profile = {name: playerPartnerData.name, password: playerPartnerData.password};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS,
+                    data: playerPartnerData,
+                    token: token,
+                }, data);
+            },
+            error => {
+                if (error != "INVALID_DATA") {
+                    conn.noOfAttempt++;
+                    conn.isAuth = false;
+                    conn.playerId = null;
+                    conn.playerObjId = null;
+                    conn.captchaCode = null;
+                    wsFunc.response(conn, {
+                        status: constServerCode.INVALID_USER_PASSWORD,
+                        data: {noOfAttempt: conn.noOfAttempt},
+                        errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
+                    }, data);
+                }
+            }
+        ).catch(WebSocketUtil.errorHandler)
+            .done();
+    };
+
     this.isLogin.expectsData = 'playerId: String';
     this.isLogin.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.playerId);
@@ -414,7 +500,7 @@ let PlayerServiceImplement = function () {
 
     this.getSMSCode.expectsData = 'phoneNumber: String';
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.phoneNumber); // TODO SMS function in future
+        var isValidData = Boolean(data && data.phoneNumber);
         var randomCode = parseInt(Math.random() * 9000 + 1000);
         conn.phoneNumber = data.phoneNumber;
         conn.smsCode = randomCode;
@@ -431,6 +517,16 @@ let PlayerServiceImplement = function () {
             playerIp = forwardedIp[0].trim();
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.authenticate, [data.playerId, data.token, playerIp, conn], true, false, false, true);
+    };
+
+    this.authenticatePlayerPartner.expectsData = 'playerId: String, partnerId: String, token: String';
+    this.authenticatePlayerPartner.onRequest = function (wsFunc, conn, data) {
+        let playerIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            playerIp = forwardedIp[0].trim();
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.authenticatePlayerPartner, [data.playerId, data.partnerId, data.token, playerIp, conn], true, false, false, true);
     };
 
     this.updateSmsSetting.expectsData = '';

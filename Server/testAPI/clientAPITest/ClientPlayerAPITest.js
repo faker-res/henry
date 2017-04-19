@@ -196,6 +196,26 @@
         });
     };
 
+    proto.loginPlayerPartner = function (callback, requestData) {
+        let data = requestData || testPlayerLoginData;
+
+        if (!isNode) {
+            console.log("Not node");
+            document.cookie = "username=" + data.name;
+            document.cookie = "password=" + data.password;
+            document.cookie = "platform=" + data.platformId;
+            document.cookie = "expires=" + date + (5 * 60 * 60 * 1000);
+        }
+        this.playerService.loginPlayerPartner.request(data);
+        this.playerService.loginPlayerPartner.once(function (data) {
+            testPlayerObjId = data && data.data ? data.data._id : null;
+            testPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.isLogin = function (callback, requestData) {
         var data = requestData || {
                 playerId: testPlayerId
@@ -271,6 +291,15 @@
             };
         this.playerService.authenticate.request(data);
         this.playerService.authenticate.once(callback);
+    };
+
+    proto.authenticatePlayerPartner = function (callback, requestData) {
+        let data = requestData || {
+                playerId: testPlayerId,
+                token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoidGVzdGNsaWVudHBsYXllciIsInBhc3N3b3JkIjoiJDJhJDEwJG0xd2hheVFhbzFxaW1DT2FYSXFjYmVrOGJWLzJvenN4ZUo1Vko5SnY0RGVLYlh3SDE0SE1xIiwiaWF0IjoxNDYyNDMyNDI5LCJleHAiOjE0NjI0NTA0Mjl9.Ma0lsHrHTST135mBV4A65-YkXYPVwsa-g9sA-NW7dGU"
+            };
+        this.playerService.authenticatePlayerPartner.request(data);
+        this.playerService.authenticatePlayerPartner.once(callback);
     };
 
     proto.getPlayerDayStatus = function(callback, requestData) {

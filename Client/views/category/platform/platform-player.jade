@@ -406,7 +406,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.playerNewPassword', data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog(style='width:95%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -733,11 +733,13 @@ include modalGameCreditLog
                                     th(style='min-width:90px;') {{'TIME' | translate}}
                                     th {{'RESULT' | translate}}
                                     th {{'CONTENT' | translate}}
+                                    th {{'adminName' | translate}}
                             tbody(ng-if='vm.playerFeedbackData.data.length>0')
                                 tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
                                     td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
                                     td {{v.result | translate}}
                                     td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
+                                    td {{v.adminId.adminName}}
 
 #playerFeedbackPopover.hide(style="width: 600px")
     label {{"Feedback History"| translate}}

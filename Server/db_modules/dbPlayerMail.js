@@ -109,6 +109,7 @@ const dbPlayerMail = {
             }
         );
     },
+
     sendVerificationCodeToNumber: function (telNum, code) {
         var a = smsAPI.channel_getChannelList({}).then(data => {
             return data
@@ -129,7 +130,7 @@ const dbPlayerMail = {
                 message: "verification code： " + code,
                 delay: data.delay || 0
             }
-            return smsAPI.sending_sendMessage(sendObj).then(
+            smsAPI.sending_sendMessage(sendObj).then(
                 retData => {
                     return true;
                 },

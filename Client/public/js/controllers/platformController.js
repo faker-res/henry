@@ -3794,17 +3794,18 @@ define(['js/app'], function (myApp) {
         }
         vm.prepareShowFeedbackRecord = function () {
             vm.playerFeedbackData = [];
-            vm.processDataTableinModal('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable');
+            vm.processDataTableinModal('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable', {'dom': 't'});
             vm.playerFeedbackRecord = vm.playerFeedbackRecord || {};
             utilService.actionAfterLoaded('#modalPlayerFeedbackRecord .searchDiv .startTime', function () {
                 vm.playerFeedbackRecord.startTime = utilService.createDatePicker('#modalPlayerFeedbackRecord .searchDiv .startTime');
                 vm.playerFeedbackRecord.endTime = utilService.createDatePicker('#modalPlayerFeedbackRecord .searchDiv .endTime');
                 vm.playerFeedbackRecord.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerFeedbackRecord.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                vm.updatePlayerFeedbackData('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable');
+                vm.updatePlayerFeedbackData('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable', {'dom': 't'});
             });
         }
-        vm.updatePlayerFeedbackData = function (modalId, tableId) {
+        vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
+            opt = opt || {'dom': 't'};
             vm.playerFeedbackRecord.searching = true;
             socketService.$socket($scope.AppSocket, 'getPlayerFeedbackReport', {
                 query: {
@@ -3817,7 +3818,7 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackRecord.searching = false;
                 vm.playerFeedbackData = data.data;
                 $scope.safeApply();
-                vm.updateDataTableinModal(modalId, tableId)
+                vm.updateDataTableinModal(modalId, tableId, opt)
             });
         }
         vm.getPlayer5Feedback = function (playerId, callback) {

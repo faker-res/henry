@@ -6,7 +6,7 @@ var Schema = mongoose.Schema;
 
 var proposalTypeSchema = new Schema({
     //platform id
-    platformId: {type: Schema.Types.ObjectId, required: true},
+    platformId: {type: Schema.Types.ObjectId, required: true, index: true},
     //proposal type name
     name : {type: String, required: true},
     //proposal process type
