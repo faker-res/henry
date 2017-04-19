@@ -1057,13 +1057,17 @@ var dbPlayerTopUpRecord = {
                             case constPlayerTopUpType.MANUAL:
                                 queryObj.name = constProposalType.PLAYER_MANUAL_TOP_UP;
                                 break;
+                            case constPlayerTopUpType.WECHAT:
+                                queryObj.name = constProposalType.PLAYER_WECHAT_TOP_UP;
+                                break;
                             default:
                                 queryObj.name = constProposalType.PLAYER_TOP_UP;
                                 break;
                         }
                     }
                     else {
-                        queryObj.name = {$in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_TOP_UP, constProposalType.PLAYER_ALIPAY_TOP_UP]}
+                        queryObj.name = {$in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_TOP_UP,
+                            constProposalType.PLAYER_ALIPAY_TOP_UP, constProposalType.PLAYER_WECHAT_TOP_UP]}
                     }
                     return dbconfig.collection_proposalType.find(queryObj).lean();
                 }
@@ -1116,7 +1120,21 @@ var dbPlayerTopUpRecord = {
                 if (data && data[0] && data[0].length > 0) {
                     for (var i = 0; i < data[0].length; i++) {
                         var record = data[0][i];
-                        record.type = record.type.name == constProposalType.PLAYER_MANUAL_TOP_UP ? 1 : 2;
+                        switch(record.type.name){
+                            case constProposalType.PLAYER_MANUAL_TOP_UP:
+                                record.type = 1;
+                                break;
+                            case constProposalType.PLAYER_TOP_UP:
+                                record.type = 2;
+                                break;
+                            case constProposalType.PLAYER_ALIPAY_TOP_UP:
+                                record.type = 3;
+                                break;
+                            case constProposalType.PLAYER_WECHAT_TOP_UP:
+                                record.type = 4;
+                                break;
+                        }
+                        //record.type = record.type.name == constProposalType.PLAYER_MANUAL_TOP_UP ? 1 : 2;
                         totalAmount += data[0][i].data ? Number(data[0][i].data.amount) : 0;
                     }
                 }
