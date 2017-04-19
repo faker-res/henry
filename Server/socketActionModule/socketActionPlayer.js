@@ -699,14 +699,14 @@ function socketActionPlayer(socketIO, socket) {
         getGameCreditLog: function getGameCreditLog(data) {
             var actionName = arguments.callee.name;
             console.log("getGameCreditLog: " + data);
-            var isValidData = Boolean(data.playerName && data.platformId && data.providerId && data.startDate && data.endDate && data.page && data.type);
+            var isValidData = Boolean(data.playerName && data.platformId && data.providerId && data.startDate && data.endDate && data.page);
             socketUtil.emitter(self.socket, cpmsAPI.player_getCreditLog, [data], actionName, isValidData);
         },
 
         getPagedPlatformCreditTransferLog: function getPagedPlatformCreditTransferLog(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPlatform.getPagedPlatformCreditTransferLog, [data.startTime, data.endTime, data.index, data.limit, data.sortCol, data.status], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getPagedPlatformCreditTransferLog, [data.startTime, data.endTime, data.provider, data.type, data.index, data.limit, data.sortCol, data.status], actionName, isValidData);
 
         }
     };
