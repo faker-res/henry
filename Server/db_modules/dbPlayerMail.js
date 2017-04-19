@@ -151,9 +151,9 @@ const dbPlayerMail = {
             // Log the verification SMS before send
             new dbconfig.collection_smsVerificationLog(saveObj).save();
 
-            return smsAPI.sending_sendMessage(sendObj).then(
+            smsAPI.sending_sendMessage(sendObj).then(
                 retData => {
-                    return sendObj;
+                    return true;
                 },
                 retErr => {
                     return Q.reject({message: retErr, data: data});
