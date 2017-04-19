@@ -141,7 +141,7 @@ var dbGameProviderPlayerDaySummary = {
                 if (data && data.length > 0) {
                     var prom = [];
                     for (var i = 0; i < data.length; i++) {
-                        var summary = {
+                        let summary = {
                             playerId: data[i]._id.playerId,
                             platformId: data[i]._id.platformId,
                             providerId: data[i]._id.providerId,
@@ -153,7 +153,22 @@ var dbGameProviderPlayerDaySummary = {
                             bonusAmount: data[i].bonusAmount,
                             consumptionTimes: data[i].times
                         };
-                        prom.push(dbGameProviderPlayerDaySummary.upsert(summary));
+                        prom.push(
+                            dbconfig.collection_providerPlayerDaySummary.remove(
+                                {
+                                    playerId: summary.playerId,
+                                    platformId: summary.platformId,
+                                    providerId: summary.providerId,
+                                    gameId: summary.gameId,
+                                    gameType: summary.gameType,
+                                    date: {
+                                        $gte: startTime, $lt: endTime
+                                    }
+                                }
+                            ).then(
+                                data => dbGameProviderPlayerDaySummary.upsert(summary)
+                            )
+                        );
                     }
                     return Q.all(prom);
                 } else {

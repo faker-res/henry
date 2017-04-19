@@ -6,6 +6,8 @@ const Q = require("q");
 var smsAPI = require('../externalAPI/smsAPI');
 var dbLogger = require('./../modules/dbLogger');
 
+const moment = require('moment-timezone');
+
 const dbPlayerMail = {
 
     /**
@@ -111,25 +113,44 @@ const dbPlayerMail = {
     },
 
     sendVerificationCodeToNumber: function (telNum, code) {
-        var a = smsAPI.channel_getChannelList({}).then(data => {
-            return data
-        });
-        var b = dbconfig.collection_platform.find().limit(1).then(data => {
-            return data ? data[0] : null;
-        });
-        return Q.all([a, b]).then(data => {
-            var channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : null;
-            var platformId = data[1] && data[1].platformId ? data[1].platformId : null;
+        let lastMin = moment().subtract(1, 'minutes');
+        let a = smsAPI.channel_getChannelList({}).then(data => { return data });
+        let b = dbconfig.collection_platform.find().limit(1).then(data => { return data ? data[0] : null; });
+        let c = dbconfig.collection_smsVerificationLog.findOne({tel: telNum, createTime: { $gt: lastMin}});
+
+        return Q.all([a, b, c]).then(data => {
+            let channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : null;
+            let platformId = data[1] && data[1].platformId ? data[1].platformId : null;
+
             if (channel == null || platformId == null) {
                 return Q.reject({message: "cannot find platform or sms channel."});
             }
-            var sendObj = {
+
+            // Check whether verification sms sent in last minute
+            let lastMinuteHistory = data[2];
+            if (lastMinuteHistory && lastMinuteHistory.tel) {
+                return Q.reject({message: "Verification SMS already sent within last minute"});
+            }
+
+            let saveObj = {
+                tel: telNum,
+                channel: channel,
+                platformId: platformId,
+                code: code,
+                delay: data.delay || 0
+            };
+
+            let sendObj = {
                 tel: telNum,
                 channel: channel,
                 platformId: platformId,
                 message: "verification code： " + code,
                 delay: data.delay || 0
-            }
+            };
+
+            // Log the verification SMS before send
+            new dbconfig.collection_smsVerificationLog(saveObj).save();
+
             smsAPI.sending_sendMessage(sendObj).then(
                 retData => {
                     return true;

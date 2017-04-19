@@ -2594,9 +2594,8 @@ let dbPlayerInfo = {
      *  TODO - may add more fields to update the playerInfo
      */
     playerLogout: function (playerData) {
-
-        var time_now = new Date().getTime();
-        var updateData = {isLogin: false, lastAccessTime: time_now};
+        let time_now = new Date().getTime();
+        let updateData = {isLogin: false, lastAccessTime: time_now};
 
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerData.playerId}, updateData, constShardKeys.collection_players);
     },
@@ -6127,7 +6126,7 @@ let dbPlayerInfo = {
                     platformObjectId = playerData.platform._id;
                     return dbconfig.collection_proposalType.findOne({
                         platformId: platformObjectId,
-                        name: constProposalType.PLAYER_ALIPAY_TOP_UP
+                        name: constProposalType.PLAYER_WECHAT_TOP_UP
                     });
                 }
                 else {

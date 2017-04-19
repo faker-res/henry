@@ -56,7 +56,7 @@
     };
 
     proto.logout = function (callback, requestData) {
-        var data = requestData || {};
+        let data = requestData || {};
         this.partnerService.logout.request(data);
         this.partnerService.logout.once(callback);
     };
