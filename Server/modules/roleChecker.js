@@ -440,7 +440,8 @@ var roleChecker = {
                 NewPlayer: ['countNewPlayerbyPlatform', 'countNewPlayers'],
                 ActivePlayer: ['countActivePlayerbyPlatform', 'countActivePlayerALLPlatform'],
                 PlayerRetention: ['getPlayerRetention'],
-                ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery']
+                ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery'],
+                ConsumptionInterval: ['getConsumptionIntervalData']
             }
         },
         Report: {
