@@ -4170,7 +4170,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate("CREDIT"), data: 'amount'},
                         {title: $translate("provider"), data: 'providerText'},
                         {title: $translate("amount"), data: 'amount'},
-                        {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount', data: 'amount'},
+                        {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount'},
                         {title: $translate("TYPE"), data: 'typeText'},
                         {
                             title: $translate("STATUS"),

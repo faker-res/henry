@@ -1679,6 +1679,8 @@
   "Qty_Min": "最小",
   "Qty_Max": "最大",
   "DID": "呼出号码",
+  "Provider Monitor":"消费记录监控",
+  "Consumption monitor":"消费记录监控",
   "Caller ID": "座席号",
   "Disabled Providers": "禁用游戏供应商",
   "PlayerTopUpReward": "玩家充值大冒险奖励",
