@@ -52,6 +52,7 @@ var dbPlayerFeedback = {
         var returnedData = [];
         var playerIdArr = [];
         var total = 0;
+        const endTime = query.endTime ? new Date(query.endTime) : new Date();
         index = index || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {}
@@ -105,7 +106,7 @@ var dbPlayerFeedback = {
                                     $match: {
                                         playerId: feedback.playerId._id,
                                         platformId: feedback.platform,
-                                        createTime: {$gte: feedback.createTime, $lt: feedback.endTime}
+                                        createTime: {$gte: feedback.createTime, $lt: endTime}
                                     }
                                 },
                                 {

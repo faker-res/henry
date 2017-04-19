@@ -4338,7 +4338,7 @@ define(['js/app'], function (myApp) {
                     amount: 0,
                     bonusAmount: 0,
                 };
-                var summary = data.data.summary;
+                var summary = data.data.summary || {};
                 vm.drawPlayerTopupRecordsTable(vm.playerAllTopupRecords, vm.playerTopUpLog.totalCount, newSearch, summary);
             });
         }
