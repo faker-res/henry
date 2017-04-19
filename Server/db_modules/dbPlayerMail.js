@@ -132,6 +132,14 @@ const dbPlayerMail = {
                 return Q.reject({message: "Verification SMS already sent within last minute"});
             }
 
+            let saveObj = {
+                tel: telNum,
+                channel: channel,
+                platformId: platformId,
+                code: code,
+                delay: data.delay || 0
+            };
+
             let sendObj = {
                 tel: telNum,
                 channel: channel,
@@ -141,7 +149,7 @@ const dbPlayerMail = {
             };
 
             // Log the verification SMS before send
-            new dbconfig.collection_smsVerificationLog(sendObj).save();
+            new dbconfig.collection_smsVerificationLog(saveObj).save();
 
             smsAPI.sending_sendMessage(sendObj).then(
                 retData => {
