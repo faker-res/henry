@@ -149,6 +149,7 @@
                 "getWechatTopupRequestList",
                 "requestWechatTopup",
                 "cancelWechatTopup",
+                "getWechatTopupRequestList"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
