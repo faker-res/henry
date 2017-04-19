@@ -1679,9 +1679,9 @@ define(['js/app'], function (myApp) {
                 sortCol: vm.platformCreditTransferLog.sortCol
             };
 
-            if (vm.queryPlatformCreditTransferStatus) {
-                sendQuery.status = vm.queryPlatformCreditTransferStatus
-            }
+            vm.queryPlatformCreditTransferStatus ? sendQuery.status = vm.queryPlatformCreditTransferStatus : '';
+            vm.queryPlatformCreditTransferType ? sendQuery.type = vm.queryPlatformCreditTransferType : '';
+            vm.queryPlatformCreditTransferProvider ? sendQuery.provider = vm.queryPlatformCreditTransferProvider : '';
 
             socketService.$socket($scope.AppSocket, "getPagedPlatformCreditTransferLog", sendQuery, function (data) {
                 vm.platformCreditTransferLogData = data.data.data;

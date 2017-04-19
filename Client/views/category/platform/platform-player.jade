@@ -1602,6 +1602,17 @@ include modalGameCreditLog
                                 label {{ 'END_DATE' | translate }}
                                 .endTime
                             .inlineBlk
+                                label {{ 'Type' | translate }}
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferType')
+                                    option(value='') {{'any' | translate}}
+                                    option(value='transferin') {{'TransferIn' | translate}}
+                                    option(value='transferout') {{'TransferOut' | translate}}
+                            .inlineBlk
+                                label {{ 'provider' | translate }}
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferProvider', ng-options='a.providerId as a.name for a in vm.platformProviderList')
+                                    option(value='') {{'any' | translate}}
+
+                            .inlineBlk
                                 label {{ 'STATUS' | translate }}
                                 select.form-control(ng-model='vm.queryPlatformCreditTransferStatus', style='min-width:100px;height:34px;')
                                     option(value='') {{'all' | translate}}
