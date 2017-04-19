@@ -168,6 +168,12 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getAlipayTopupRequestList, [conn.playerId], isValidData);
     };
 
+    this.getWechatTopupRequestList.expectsData = '';
+    this.getWechatTopupRequestList.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWechatTopupRequestList, [conn.playerId], isValidData);
+    };
+
     this.manualTopupStatusNotify.addListener(
         function (data) {
             WebSocketUtil.notifyMessageClient(self, "manualTopupStatusNotify", data);

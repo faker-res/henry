@@ -13,6 +13,7 @@
                     div
                         label {{"TYPE" | translate}}
                         select.form-control(ng-model='vm.gameCreditLog.query.type')
+                            option(value='') {{"any" | translate}}
                             option(value='0001') {{"TRANSFER_IN" | translate}}
                             option(value='0002') {{"TRANSFER_OUT" | translate}}
                             option(value='0004') {{"BET" | translate}}

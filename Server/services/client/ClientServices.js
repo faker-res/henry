@@ -39,11 +39,13 @@
                 "playerQuickReg",
                 "createPlayerPartner",
                 "get",
+                "getPlayerPartner",
                 "update",
                 "captcha",
                 "login",
                 "loginPlayerPartner",
                 "logout",
+                "logoutPlayerPartner",
                 "isLogin",
                 "getSMSCode",
                 "updatePaymentInfo",
@@ -147,6 +149,7 @@
                 "getWechatTopupRequestList",
                 "requestWechatTopup",
                 "cancelWechatTopup",
+                "getWechatTopupRequestList"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

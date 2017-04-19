@@ -1436,7 +1436,7 @@ var dbPlatform = {
         )
     },
 
-    getPagedPlatformCreditTransferLog: function(startTime, endTime, index, limit, sortCol, status) {
+    getPagedPlatformCreditTransferLog: function (startTime, endTime, provider, type, index, limit, sortCol, status) {
         let queryObject = {};
         sortCol = sortCol || {createTime: -1};
         index = index || 0;
@@ -1448,6 +1448,8 @@ var dbPlatform = {
         if (status) {
             queryObject.status = status;
         }
+        type ? queryObject.type = new RegExp(["^", type, "$"].join(""), "i") : '';
+        provider ? queryObject.providerId = provider : '';
 
         let countProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).count();
         let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).sort(sortCol).skip(index).limit(limit);

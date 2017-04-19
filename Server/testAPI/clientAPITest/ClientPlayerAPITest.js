@@ -158,9 +158,21 @@
     };
 
     proto.get = function (callback, requestData) {
-        var data = requestData || {name: 'testclientplayer'};
+        let data = requestData || {name: 'testclientplayer'};
         this.playerService.get.request(data);
         this.playerService.get.once(function (data) {
+            testPlayerObjId = data && data.data ? data.data._id : null;
+            testPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.getPlayerPartner = function (callback, requestData) {
+        let data = requestData || {name: 'testclientplayer'};
+        this.playerService.getPlayerPartner.request(data);
+        this.playerService.getPlayerPartner.once(function (data) {
             testPlayerObjId = data && data.data ? data.data._id : null;
             testPlayerId = data && data.data ? data.data.playerId : null;
             if (typeof callback === "function") {
@@ -225,9 +237,10 @@
     };
 
     proto.logout = function (callback, requestData) {
-        var data = requestData || {
+        let data = requestData || {
                 playerId: testPlayerId
             };
+
         this.playerService.logout.request(data);
         if (!isNode) {
             document.cookie = "username=;";
@@ -235,6 +248,19 @@
             document.cookie = "expires=" + date.toString();
         }
         this.playerService.logout.once(callback);
+    };
+
+    proto.logoutPlayerPartner = function (callback, requestData) {
+        let data = requestData || {
+                playerId: testPlayerId
+            };
+        this.playerService.logoutPlayerPartner.request(data);
+        if (!isNode) {
+            document.cookie = "username=;";
+            document.cookie = "password=";
+            document.cookie = "expires=" + date.toString();
+        }
+        this.playerService.logoutPlayerPartner.once(callback);
     };
 
     proto.isValidUsername = function (callback, requestData) {

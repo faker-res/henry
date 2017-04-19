@@ -1393,6 +1393,7 @@ include modalGameCreditLog
                             th {{'proposalId' | translate}}
                             th {{'requestId' | translate}}
                             th {{'CREDIT' | translate}}
+                            th {{'Merchant' | translate}}
                             th {{'merchantUseType' | translate}}
                             th {{'topupType' | translate}}
                             th {{'STATUS' | translate}}
@@ -1402,6 +1403,7 @@ include modalGameCreditLog
                             td {{v.proposalId}}
                             td {{v.data.requestId}}
                             td {{v.data.amount}}
+                            td {{v.data.merchantNo}}
                             td {{v.merchantUseType$ | translate}}
                             td {{v.topupType$ | translate}}
                             td {{v.status | translate}}
@@ -1599,6 +1601,17 @@ include modalGameCreditLog
                             .inlineBlk
                                 label {{ 'END_DATE' | translate }}
                                 .endTime
+                            .inlineBlk
+                                label {{ 'Type' | translate }}
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferType')
+                                    option(value='') {{'any' | translate}}
+                                    option(value='transferin') {{'TransferIn' | translate}}
+                                    option(value='transferout') {{'TransferOut' | translate}}
+                            .inlineBlk
+                                label {{ 'provider' | translate }}
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferProvider', ng-options='a.providerId as a.name for a in vm.platformProviderList')
+                                    option(value='') {{'any' | translate}}
+
                             .inlineBlk
                                 label {{ 'STATUS' | translate }}
                                 select.form-control(ng-model='vm.queryPlatformCreditTransferStatus', style='min-width:100px;height:34px;')

@@ -1679,9 +1679,9 @@ define(['js/app'], function (myApp) {
                 sortCol: vm.platformCreditTransferLog.sortCol
             };
 
-            if (vm.queryPlatformCreditTransferStatus) {
-                sendQuery.status = vm.queryPlatformCreditTransferStatus
-            }
+            vm.queryPlatformCreditTransferStatus ? sendQuery.status = vm.queryPlatformCreditTransferStatus : '';
+            vm.queryPlatformCreditTransferType ? sendQuery.type = vm.queryPlatformCreditTransferType : '';
+            vm.queryPlatformCreditTransferProvider ? sendQuery.provider = vm.queryPlatformCreditTransferProvider : '';
 
             socketService.$socket($scope.AppSocket, "getPagedPlatformCreditTransferLog", sendQuery, function (data) {
                 vm.platformCreditTransferLogData = data.data.data;
@@ -5178,9 +5178,9 @@ define(['js/app'], function (myApp) {
                 "startDate": vm.gameCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
                 "endDate": vm.gameCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
                 "page": newSearch ? "1" : "1",
-                "type": vm.gameCreditLog.query.type,
                 "platformId": vm.selectedPlatform.data.platformId,
             };
+            vm.gameCreditLog.query.type ? requestData.type = vm.gameCreditLog.query.type : '';
             $scope.$socketPromise('getGameCreditLog', requestData).then(result => {
                 console.log(JSON.stringify(result))
                 // {

@@ -180,8 +180,15 @@ let PlayerServiceImplement = function () {
     //player get api handler
     this.get.expectsData = 'playerId: String';
     this.get.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && (data.name || data.playerId) && (data.playerId == conn.playerId));
+        let isValidData = Boolean(data && (data.name || data.playerId) && (data.playerId == conn.playerId));
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerInfoAPI, [{playerId: data.playerId}], isValidData);
+    };
+
+    //player partner get api handler
+    this.getPlayerPartner.expectsData = 'playerId: String, partnerId: String';
+    this.getPlayerPartner.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && (data.name || data.playerId) && (data.playerId == conn.playerId) && (data.partnerId == conn.partnerId));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.getPlayerPartnerAPI, [{playerId: data.playerId, partnerId: data.partnerId}], isValidData);
     };
 
     //player update api handler
@@ -285,7 +292,6 @@ let PlayerServiceImplement = function () {
     this.loginPlayerPartner.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.name && data.password && data.platformId);
 
-        console.log("loginPlayerPartner");
         console.log("start checking conn.upgradeReq.headers=============================");
         for (let i in conn.upgradeReq.headers) {
             if (conn.upgradeReq.headers.hasOwnProperty(i)) {
@@ -305,6 +311,9 @@ let PlayerServiceImplement = function () {
         let ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.loginPlayerPartnerAPI, [data, ua], isValidData, true, true, true).then(
             playerPartnerData => {
+                let playerData = playerPartnerData[0];
+                let partnerData = playerPartnerData[1];
+
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
                     if (conn.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
                         conn.isAuth = true;
@@ -313,6 +322,8 @@ let PlayerServiceImplement = function () {
                         conn.isAuth = false;
                         conn.playerId = null;
                         conn.playerObjId = null;
+                        conn.partnerId = null;
+                        conn.partnerObjId = null;
                         conn.captchaCode = null;
                         wsFunc.response(conn, {
                             status: constServerCode.INVALID_CAPTCHA,
@@ -325,17 +336,20 @@ let PlayerServiceImplement = function () {
                 } else {
                     conn.isAuth = true;
                 }
-                conn.playerId = playerPartnerData.playerId;
-                conn.playerObjId = playerPartnerData._id;
+
+                conn.playerId = playerData.playerId;
+                conn.playerObjId = playerData._id;
+                conn.partnerId = partnerData.partnerId;
+                conn.partnerObjId = partnerData._id;
                 conn.noOfAttempt = 0;
                 conn.onclose = function (event) {
-                    dbPlayerInfo.playerLogout({playerId: playerPartnerData.playerId}).catch(
+                    dbPlayerPartner.logoutPlayerPartnerAPI({playerId: playerData.playerId, partnerId: partnerData.partnerId}).catch(
                         error => {
                             if (error.message === "Can't find db data") {
                                 // This is quite normal during testing, because we remove the test player account before the connection closes.
                                 // Do nothing
                             } else {
-                                console.error("dbPlayerInfo.playerLogout failed:", error);
+                                console.error("dbPlayerPartner.logoutPlayerPartnerAPI failed:", error);
                             }
                         }
                     );
@@ -354,6 +368,8 @@ let PlayerServiceImplement = function () {
                     conn.isAuth = false;
                     conn.playerId = null;
                     conn.playerObjId = null;
+                    conn.partnerId = null;
+                    conn.partnerObjId = null;
                     conn.captchaCode = null;
                     wsFunc.response(conn, {
                         status: constServerCode.INVALID_USER_PASSWORD,
@@ -375,8 +391,8 @@ let PlayerServiceImplement = function () {
     //player logout api handler
     this.logout.expectsData = 'playerId: String';
     this.logout.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogout, [data], isValidData, true).then(
+        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogout, [data], isValidData, true, false, true).then(
             function (res) {
                 conn.isAuth = false;
                 conn.playerId = null;
@@ -385,6 +401,23 @@ let PlayerServiceImplement = function () {
                     status: constServerCode.SUCCESS, // operation successful
                 }, data);
 
+            }).catch(WebSocketUtil.errorHandler).done();
+    };
+
+    //player logout api handler
+    this.logoutPlayerPartner.expectsData = 'playerId: String, partnerId: String';
+    this.logoutPlayerPartner.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.partnerId && (data.partnerId == conn.partnerId));
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.logoutPlayerPartnerAPI, [data], isValidData, true, false, true).then(
+            res => {
+                conn.isAuth = false;
+                conn.playerId = null;
+                conn.playerObjId = null;
+                conn.partnerId = null;
+                conn.partnerObjId = null;
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS, // operation successful
+                }, data);
             }).catch(WebSocketUtil.errorHandler).done();
     };
 
@@ -500,8 +533,8 @@ let PlayerServiceImplement = function () {
 
     this.getSMSCode.expectsData = 'phoneNumber: String';
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.phoneNumber);
-        var randomCode = parseInt(Math.random() * 9000 + 1000);
+        let isValidData = Boolean(data && data.phoneNumber);
+        let randomCode = parseInt(Math.random() * 9000 + 1000);
         conn.phoneNumber = data.phoneNumber;
         conn.smsCode = randomCode;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
