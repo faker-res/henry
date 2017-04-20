@@ -20,7 +20,7 @@ let dbPlayerPartner = {
             return smsProm.then(
                 verificationSMS => {
                     // Check verification SMS code
-                    if (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode) {
+                    if ( (registerData.captcha && !registerData.smsCode) || (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode)) {
                         let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
                         let partnerProm = dbPartner.createPartnerAPI(registerData);
 
