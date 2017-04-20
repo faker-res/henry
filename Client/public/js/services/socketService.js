@@ -325,9 +325,11 @@ define([], function () {
             };
             var finalOption = $.extend({}, options, newOption);
             var item = $(id);
+            var graph = null;
             if (item[0]) {
-                $.plot(item, data, finalOption);
+                graph = $.plot(item, data, finalOption);
             }
+            return graph;
         };
         this.$getSpinnerString = function () {
             return '<i class="fa fa-spin fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>';

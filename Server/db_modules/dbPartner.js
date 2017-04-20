@@ -3486,14 +3486,15 @@ let dbPartner = {
             partnerData => {
                 if (partnerData) {
                     if (partnerData.phoneNumber) {
-                        if (partnerData.phoneNumber.length > 20) {
-                            try {
-                                partnerData.phoneNumber = rsaCrypto.decrypt(partnerData.phoneNumber);
-                            }
-                            catch (err) {
-                                console.log(err);
-                            }
-                        }
+                        // temp remove the encryption
+                        // if (partnerData.phoneNumber.length > 20) {
+                        //     try {
+                        //         partnerData.phoneNumber = rsaCrypto.decrypt(partnerData.phoneNumber);
+                        //     }
+                        //     catch (err) {
+                        //         console.log(err);
+                        //     }
+                        // }
                         return partnerData.phoneNumber;
                     } else {
                         return Q.reject({name: "DataError", message: "Can not find phoneNumber"});
@@ -3504,7 +3505,6 @@ let dbPartner = {
             }
         );
     },
-
 };
 
 module.exports = dbPartner;
