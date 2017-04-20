@@ -2033,7 +2033,7 @@ let dbPlayerInfo = {
                         $match: {
                             type: proposalType._id,
                             "data.playerId": playerId,
-                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                             createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                         }
                     },
