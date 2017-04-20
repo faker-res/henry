@@ -14,6 +14,8 @@
   "BALCKLIST": "黑名单",
   "ATTENTION": "关注",
   "CONSUMPTION_INTERVAL": "消费历史分析",
+  "ConsumptionInterval":"消费历史分析",
+  "ClientSource":"访问来源",
   "EMAIL": "邮箱",
   "FIRST_NAME": "名",
   "LAST_NAME": "姓",

@@ -470,7 +470,6 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         $scope.phoneCall.platform = data.platform;
         $scope.phoneCall.phone = data.phone;
         $scope.getNewPhoneCaptha();
-
     }
     $scope.makePhoneCall = function () {
         socketService.$socket($scope.AppSocket, 'getAdminInfo', {

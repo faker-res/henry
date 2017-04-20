@@ -2023,17 +2023,19 @@ let dbPlayerInfo = {
      * @param-data {Json} can include  one or more of the following fields
      */
     applyForPlatformTransactionReward: function (platformId, playerId, topupAmount, playerLevel, bankCardType) {
-        var deferred = Q.defer();
-        var rewardTypeName = constProposalType.PLATFORM_TRANSACTION_REWARD;
-        var proposalProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: rewardTypeName}).lean().then(
+        let deferred = Q.defer();
+        let todayTime = dbUtility.getTodaySGTime();
+        let curRewardAmount = 0;
+        let rewardTypeName = constProposalType.PLATFORM_TRANSACTION_REWARD;
+        let proposalProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: rewardTypeName}).lean().then(
             proposalType => {
                 return dbconfig.collection_proposal.aggregate(
                     {
                         $match: {
                             type: proposalType._id,
                             "data.playerId": playerId,
-                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                            //createTime: {}
+                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                         }
                     },
                     {
@@ -2045,17 +2047,20 @@ let dbPlayerInfo = {
                 );
             }
         );
-        var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, rewardTypeName);
-        var playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: playerLevel}).lean();
-        var playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
-        var playerLevelData = {};
-        var rewardParams = [];
-        var playerData = {};
+        let eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, rewardTypeName);
+        let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: playerLevel}).lean();
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
+        let playerLevelData = {};
+        let rewardParams = [];
+        let playerData = {};
         Q.all([eventProm, proposalProm, playerLevelProm, playerProm]).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] && data[3]) {
                     if (!data[3].permission || !data[3].permission.transactionReward) {
                         deferred.resolve("No permission!");
+                    }
+                    if( data[1] && data[1][0] ){
+                        curRewardAmount = data[1][0].totalAmount;
                     }
                     var eventLevelProm = [];
                     rewardParams = data[0];
@@ -2080,22 +2085,25 @@ let dbPlayerInfo = {
         ).then(
             function (levels) {
                 if (levels) { // && levels[0].value >= levels[1].value) {
-                    var levelProm = [];
+                    let levelProm = [];
                     for (var i = 0; i < levels.length; i++) {
-                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && (!rewardParams[i].param.bankCardType ||
+                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay && (!rewardParams[i].param.bankCardType ||
                             (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
-                            var proposalData = {
+                            let rewardAmount = Math.min( (rewardParams[i].param.maxRewardAmountPerDay - curRewardAmount), rewardParams[i].param.rewardPercentage * topupAmount );
+                            let proposalData = {
                                 type: rewardParams[i].executeProposal,
                                 data: {
                                     playerId: playerId,
                                     playerObjId: playerData._id,
                                     platformId: platformId,
                                     playerName: playerData.name,
-                                    rewardAmount: rewardParams[i].param.rewardPercentage * topupAmount,
-                                    eventDescription: rewardParams[i].description
+                                    rewardAmount: rewardAmount,
+                                    eventDescription: rewardParams[i].description,
+                                    curRewardAmount: curRewardAmount,
+                                    maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay
                                 }
                             };
-                            var temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
+                            let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
                             levelProm.push(temp);
                         }
                     }

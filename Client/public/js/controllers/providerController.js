@@ -675,14 +675,24 @@ define(['js/app'], function (myApp) {
         }
         /////////////////////provier monit////////////////////////
         vm.showProviderMonit = function () {
+            const interval = 60000
             $('#modalProviderConsumptionMonit').modal().show();
+            vm.providerConsumptionMonit = {};
             utilService.actionAfterLoaded('#providerMonitGraph', function () {
                 const width = $('#providerMonitGraph').width();
                 $('#providerMonitGraph').height(width / 2);
             })
-            vm.getProviderMonit();
+            vm.getProviderMonit(true);
+            function drawGraph() {
+                if ($('#modalProviderConsumptionMonit.in').length > 0) {
+                    vm.getProviderMonit();
+                    return setTimeout(drawGraph, interval);
+                }
+            };
+            setTimeout(drawGraph, interval);
         }
-        vm.getProviderMonit = function () {
+
+        vm.getProviderMonit = function (newSearch) {
             socketService.$socket($scope.AppSocket, 'getConsumptionIntervalByProvider', {
                 providerIds: vm.allGameProvider.filter(item => {
                     return item.status == 1
@@ -703,41 +713,46 @@ define(['js/app'], function (myApp) {
                     }
                     return dataObj;
                 })
-                vm.drawProviderMonitor('#providerMonitGraph', graphData);
+                vm.drawProviderMonitor('#providerMonitGraph', graphData, newSearch);
             });
         }
-        vm.drawProviderMonitor = function (dom, data) {
-            var newOptions = {};
-            newOptions.yaxes = [{
-                position: 'left',
-                axisLabel: $translate('CREDIT'),
-            }];
-            newOptions.xaxes = [{
-                position: 'bottom',
-                axisLabel: $translate('TIME')
-            }];
-            newOptions.xaxis = {
-                tickLength: 0,
-                mode: "time",
-                minTickSize: [1, "minute"],
-                timezone: "browser"
+        vm.drawProviderMonitor = function (dom, data, newSearch) {
+            if (newSearch) {
+                var newOptions = {};
+                newOptions.yaxes = [{
+                    position: 'left',
+                    axisLabel: $translate('CREDIT'),
+                }];
+                newOptions.xaxes = [{
+                    position: 'bottom',
+                    axisLabel: $translate('TIME')
+                }];
+                newOptions.xaxis = {
+                    tickLength: 0,
+                    mode: "time",
+                    minTickSize: [1, "minute"],
+                    timezone: "browser"
+                }
+                vm.providerConsumptionMonit.graphObj = socketService.$plotLine(dom, data, newOptions);
+                vm.bindHover(dom, function (obj) {
+                    var x = obj.datapoint[0],
+                        y = obj.datapoint[1].toFixed(0);
+                    var t0 = obj.series.data[obj.dataIndex][0];
+                    var t1 = obj.series.data[obj.dataIndex][2];
+                    var showText = $translate('provider') + ' : ' + obj.series.label + '<br>'
+                        + $translate('from') + ' : ' + utilService.getFormatTime(t0) + '<br>'
+                        + $translate('to') + ' : ' + utilService.getFormatTime(t1) + '<br>'
+                        + $translate('CREDIT') + ' : ' + y;
+                    $("#tooltip").show();
+                    $("#tooltip").html(showText)
+                        .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                        .fadeIn(200);
+                })
+            } else {
+                vm.providerConsumptionMonit.graphObj.setData(data);
+                vm.providerConsumptionMonit.graphObj.setupGrid();
+                vm.providerConsumptionMonit.graphObj.draw();
             }
-            socketService.$plotLine(dom, data, newOptions);
-            vm.bindHover(dom, function (obj) {
-                var x = obj.datapoint[0],
-                    y = obj.datapoint[1].toFixed(0);
-                var t0 = obj.series.data[obj.dataIndex][0];
-                var t1 = obj.series.data[obj.dataIndex][2];
-                var showText = $translate('provider') + ' : ' + obj.series.label + '<br>'
-                    + $translate('from') + ' : ' + utilService.getFormatTime(t0) + '<br>'
-                    + $translate('to') + ' : ' + utilService.getFormatTime(t1) + '<br>'
-                    + $translate('CREDIT') + ' : ' + y;
-                console.log(showText, $("#tooltip"), obj);
-                $("#tooltip").show();
-                $("#tooltip").html(showText)
-                    .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                    .fadeIn(200);
-            })
         }
         /////////////////////provier monit////////////////////////
 

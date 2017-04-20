@@ -151,7 +151,7 @@
 .col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
             text {{"Platform Credit Transfer Log" | translate}}
             img.img-edit
 
@@ -217,7 +217,7 @@ include modalGameCreditLog
                 form(name='form_playerPaymentInfo').well
                     .form-group-col-md-6
                         label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
-                        input.form-control(ng-model='vm.playerPayment.bankAccountName', disabled)
+                        input.form-control(ng-model='vm.playerPayment.bankAccountName', ng-disabled='!vm.isEditingPlayerPayment')
                     .form-group-col-md-6
                         label.control-label(style='width:100%') *{{'BANK_NAME' | translate}}
                         select.form-control(ng-model='vm.playerPayment.bankName', ng-show='!vm.isEditingPlayerPayment', disabled)
@@ -1624,3 +1624,30 @@ include modalGameCreditLog
                         label {{"Total" | translate}} {{vm.platformCreditTransferLog.totalCount}} {{"records" | translate}}
                         table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
                         #platformCreditTransferLogTablePage
+
+                        .clearfix
+                        button.common-button.margin-right-5.btn.btn-success(ng-click="vm.prepareRepairTransfer()") {{'RepairTransaction' | translate}}
+                        div(ng-show='vm.showPlatformRepair')
+                            table.col-md-10.col-md-offset-1.paddingTbl.text-center.datatable-sm(ng-show='vm.linkedPlayerTransferId')
+                                tbody
+                                    tr
+                                        td(style='width:25%') {{'playerName' | translate}} : {{vm.selectedThisPlayer.name}}
+                                        td {{'LOCKED_CREDIT' | translate}}
+                                        td {{vm.selectedThisPlayer.lockedCredit | number:2}} ({{'curData' | translate}})
+                                        td --->
+                                        td
+                                            label.text-danger {{vm.creditChange.finalLockedAmount}} ({{'updateData' | translate}})
+                                    tr
+                                        td(style='width:25%') {{'transferID' | translate}} : {{vm.linkedPlayerTransferId}}
+                                        td {{'VALID_CREDIT' | translate}}
+                                        td {{vm.selectedThisPlayer.validCredit | number:2}} ({{'curData' | translate}})
+                                        td --->
+                                        td
+                                            label.text-danger {{vm.creditChange.finalValidAmount}} ({{'updateData' | translate}})
+                            .row
+                                .col-md-6
+                                    label.control-label {{'REMARKS' | translate}}
+                                .col-md-12.textareaDetail
+                                    textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
+                            button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
+

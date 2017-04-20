@@ -100,9 +100,9 @@ let dbPartner = {
                 if (!data) {
                     // If level was provided then use that, otherwise select the first level on the platform
                     return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
-                            platform: partnerdata.platform,
-                            value: partnerdata.level || 0
-                        });
+                        platform: partnerdata.platform,
+                        value: partnerdata.level || 0
+                    });
                 } else {
                     deferred.reject({
                         name: "DataError",
@@ -3120,12 +3120,15 @@ let dbPartner = {
                 }
                 total.commissionAmount = profitAmount * commissionRate;
                 total.preNegativeProfitAmount = partnerObj.negativeProfitAmount;
-                return dbconfig.collection_proposalType.findOne({platform: partnerObj.platform, name: constProposalType.PARTNER_COMMISSION}).then(
+                return dbconfig.collection_proposalType.findOne({
+                    platform: partnerObj.platform,
+                    name: constProposalType.PARTNER_COMMISSION
+                }).then(
                     typeData => {
-                        if(typeData){
+                        if (typeData) {
                             return dbconfig.collection_proposal.aggregate(
                                 {
-                                    $match:{
+                                    $match: {
                                         type: typeData._id,
                                         createTime: {
                                             $gte: startTime,
@@ -3145,7 +3148,7 @@ let dbPartner = {
                     }
                 ).then(
                     proposal => {
-                        if(proposal && proposal[0] && proposal[0].totalNegative){
+                        if (proposal && proposal[0] && proposal[0].totalNegative) {
                             total.preNegativeProfitAmount = proposal[0].totalNegative;
                         }
                         return {
@@ -3476,8 +3479,32 @@ let dbPartner = {
                 }
             }
         );
-    }
+    },
 
+    getPartnerPhoneNumber: function (partnerObjId) {
+        return dbconfig.collection_partner.findOne({_id: partnerObjId}).then(
+            partnerData => {
+                if (partnerData) {
+                    if (partnerData.phoneNumber) {
+                        // temp remove the encryption
+                        // if (partnerData.phoneNumber.length > 20) {
+                        //     try {
+                        //         partnerData.phoneNumber = rsaCrypto.decrypt(partnerData.phoneNumber);
+                        //     }
+                        //     catch (err) {
+                        //         console.log(err);
+                        //     }
+                        // }
+                        return partnerData.phoneNumber;
+                    } else {
+                        return Q.reject({name: "DataError", message: "Can not find phoneNumber"});
+                    }
+                } else {
+                    return Q.reject({name: "DataError", message: "Can not find partner"});
+                }
+            }
+        );
+    },
 };
 
 module.exports = dbPartner;

@@ -46,6 +46,8 @@ var proposalSchema = new Schema({
 });
 
 proposalSchema.index({ "data.playerName": 1});
+proposalSchema.index({ "data.playerId": 1});
+proposalSchema.index({ "data.playerObjId": 1});
 proposalSchema.index({ "data.partnerName": 1});
 
 /*
@@ -87,7 +89,8 @@ proposalSchema.post('find', function (result) {
             //hide middle 4 digits for email
             if (result[i].status != constProposalStatus.PENDING && result[i].data && result[i].data.bankCardNo) {
                 var startIndex = Math.max(Math.floor((result[i].data.bankCardNo.length - 4) / 2), 0);
-                result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, startIndex) + "****" + result[i].data.bankCardNo.substr(startIndex + 4);
+                // result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, startIndex) + "****" + result[i].data.bankCardNo.substr(startIndex + 4);
+                result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, 6) + "****" + result[i].data.bankCardNo.slice(-4);
             }
         }
         return result;
