@@ -36,6 +36,7 @@ const constProposalType = {
     PLAYER_CONSUMPTION_RETURN_FIX: "PlayerConsumptionReturnFix",
     PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward",
     PARTNER_COMMISSION: "PartnerCommission",
+    PARTNER_CHILDREN_COMMISSION: "PartnerChildrenCommission",
     MANUAL_UNLOCK_PLAYER_REWARD: "ManualUnlockPlayerReward",
     PLAYER_DOUBLE_TOP_UP_REWARD: "PlayerDoubleTopUpReward"
 };

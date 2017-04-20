@@ -2832,13 +2832,17 @@ let dbPartner = {
                             return Q.resolve().then(
                                 () => {
                                     if (settlementTimeToSave) {
-                                        return dbconfig.collection_partner.findOneAndUpdate(
-                                            {_id: partnerObjId, platform: platformObjId},
-                                            {
-                                                lastChildrenCommissionSettleTime: settlementTimeToSave,
-                                                $inc: {credits: commissionAmountFromChildren}
+                                        let proposalData = {
+                                            entryType: constProposalEntryType.SYSTEM,
+                                            userType: constProposalUserType.PARTNERS,
+                                            data: {
+                                                partnerObjId: partnerObjId,
+                                                platformObjId: platformObjId,
+                                                lastCommissionSettleTime: settlementTimeToSave,
+                                                commissionAmountFromChildren: commissionAmountFromChildren
                                             }
-                                        );
+                                        };
+                                        return dbProposal.createProposalWithTypeName(updatedCommissionRecord.platform, constProposalType.PARTNER_CHILDREN_COMMISSION, proposalData);
                                     }
                                 }
                             ).then(

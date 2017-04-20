@@ -130,6 +130,7 @@ var proposalExecutor = {
         this.executions.executePlayerRegistrationReward.des = "Player Registration Reward";
         this.executions.executeManualUnlockPlayerReward.des = "Manual Unlock Player Reward";
         this.executions.executePartnerCommission.des = "Partner commission";
+        this.executions.executePartnerChildrenCommission.des = "Partner Children Commission";
         this.executions.executePlayerDoubleTopUpReward.des = "Player double top up reward";
 
         this.rejections.rejectProposal.des = "Reject proposal";
@@ -166,6 +167,7 @@ var proposalExecutor = {
         this.rejections.rejectPlayerRegistrationReward.des = "Reject Player Registration Reward";
         this.rejections.rejectManualUnlockPlayerReward.des = "Reject Manual Unlock Player Reward";
         this.rejections.rejectPartnerCommission.des = "Reject Partner commission";
+        this.rejections.rejectPartnerChildrenCommission.des = "Reject Partner Children Commission";
         this.rejections.rejectPlayerDoubleTopUpReward.des = "Reject Player double top up return";
     },
 
@@ -1623,6 +1625,23 @@ var proposalExecutor = {
             }
         },
 
+        executePartnerChildrenCommission: function (proposalData, deferred) {
+            if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
+                dbconfig.collection_partner.findOneAndUpdate(
+                    {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformObjId},
+                    {
+                        lastCommissionSettleTime: proposalData.data.lastCommissionSettleTime,
+                        $inc: {credits: proposalData.data.commissionAmountFromChildren}
+                    }
+                ).then(
+                    deferred.resolve, deferred.reject
+                );
+            }
+            else {
+                deferred.reject({name: "DataError", message: "Incorrect partner children commission proposal data"});
+            }
+        },
+
         /**
          * execution function for player top up return proposal type
          */
@@ -2101,6 +2120,10 @@ var proposalExecutor = {
         },
 
         rejectPartnerCommission: function (proposalData, deferred) {
+            deferred.resolve("Proposal is rejected");
+        },
+
+        rejectPartnerChildrenCommission: function (proposalData, deferred) {
             deferred.resolve("Proposal is rejected");
         },
 
