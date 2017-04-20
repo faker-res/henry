@@ -752,9 +752,6 @@ let dbPartner = {
                                     const consumptionSummary = consumptionSummariesByPlayerId[playerId];
                                     const topUpSummary = topUpSummariesByPlayerId[playerId];
 
-                                    console.log('playerId', playerId);
-                                    console.log('topUpSummary', topUpSummary);
-
                                     if (topUpSummary && (consumptionSummary || partnerCommissionConfig.settlementMode === 'TB')) {
                                         let playerIsValid, playerIsActive;
 
@@ -2407,8 +2404,6 @@ let dbPartner = {
         let operationAmount = 0;
         let totalPlayerBonusAmount = 0;
 
-        console.log('partnerObjId', partnerObjId);
-
         //get all partner players consumption data
         return dbconfig.collection_players.find({platform: platformObjId, partner: partnerObjId}).lean().then(
             players => {
@@ -2562,7 +2557,6 @@ let dbPartner = {
             }
         ).then(
             validPlayers => {
-                console.log('validPlayers', validPlayers);
                 let validPlayerCount = validPlayers ? validPlayers.length : 0;
                 //check partner commission level
                 if (configData && configData.commissionLevelConfig && configData.commissionLevelConfig.length > 0) {
@@ -2842,7 +2836,7 @@ let dbPartner = {
                                             {_id: partnerObjId, platform: platformObjId},
                                             {
                                                 lastChildrenCommissionSettleTime: settlementTimeToSave,
-                                                credits: {$inc: commissionAmountFromChildren}
+                                                $inc: {credits: commissionAmountFromChildren}
                                             }
                                         );
                                     }
