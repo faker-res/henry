@@ -751,6 +751,10 @@ let dbPartner = {
                                 playerId => {
                                     const consumptionSummary = consumptionSummariesByPlayerId[playerId];
                                     const topUpSummary = topUpSummariesByPlayerId[playerId];
+
+                                    console.log('playerId', playerId);
+                                    console.log('topUpSummary', topUpSummary);
+
                                     if (topUpSummary && (consumptionSummary || partnerCommissionConfig.settlementMode === 'TB')) {
                                         let playerIsValid, playerIsActive;
 
@@ -2403,6 +2407,8 @@ let dbPartner = {
         let operationAmount = 0;
         let totalPlayerBonusAmount = 0;
 
+        console.log('partnerObjId', partnerObjId);
+
         //get all partner players consumption data
         return dbconfig.collection_players.find({platform: platformObjId, partner: partnerObjId}).lean().then(
             players => {
@@ -2556,6 +2562,7 @@ let dbPartner = {
             }
         ).then(
             validPlayers => {
+                console.log('validPlayers', validPlayers);
                 let validPlayerCount = validPlayers ? validPlayers.length : 0;
                 //check partner commission level
                 if (configData && configData.commissionLevelConfig && configData.commissionLevelConfig.length > 0) {
@@ -2678,7 +2685,7 @@ let dbPartner = {
             configData => {
                 if (configData && configData.childrenCommissionRate && configData.childrenCommissionRate.length > 0) {
                     //check children commision rate
-                    var childrenCommissionRate = 0;
+                    let childrenCommissionRate = 0;
                     configData.childrenCommissionRate.forEach(
                         rateInfo => {
                             if (rateInfo.level == 1) {
@@ -2690,8 +2697,8 @@ let dbPartner = {
                         return;
                     }
                     //check config data period
-                    var settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
-                    var bMatchPeriod = true;
+                    let settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
+                    let bMatchPeriod = true;
 
                     switch (configData.commissionPeriod) {
                         case constPartnerCommissionPeriod.WEEK:
@@ -2741,14 +2748,14 @@ let dbPartner = {
                     }
 
                     //if there is commission config, start settlement
-                    var stream = dbconfig.collection_partner.find(
+                    let stream = dbconfig.collection_partner.find(
                         {
                             platform: platformObjId,
                             lastChildrenCommissionSettleTime: {$lt: settleTime.startTime}
                         }
                     ).cursor({batchSize: 10});
 
-                    var balancer = new SettlementBalancer();
+                    let balancer = new SettlementBalancer();
                     return balancer.initConns().then(function () {
                         return Q(
                             balancer.processStream(
@@ -2791,7 +2798,7 @@ let dbPartner = {
             childrenPartners => {
                 if (childrenPartners && childrenPartners.length > 0) {
                     //find all children partner commission report
-                    var partnerObjIds = childrenPartners.map(child => child._id);
+                    let partnerObjIds = childrenPartners.map(child => child._id);
                     return dbconfig.collection_partnerCommissionRecord.aggregate(
                         {
                             $match: {
