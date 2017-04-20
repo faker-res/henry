@@ -10,7 +10,7 @@ var utility = require('./../modules/encrypt');
 var Chance = require('chance');
 var chance = new Chance();
 var constSystemParam = require('../const/constSystemParam');
-var constPartnerCommissionPeriod= require('./../const/constPartnerCommissionPeriod');
+var constPartnerCommissionPeriod = require('./../const/constPartnerCommissionPeriod');
 
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -240,11 +240,11 @@ function socketActionPartner(socketIO, socket) {
          * Create player phone number by object id
          * @param {json} data - It has to contain _id
          */
-        // getPartnerPhoneNumber: function getPartnerPhoneNumber(data) {
-        //     var actionName = arguments.callee.name;
-        //     var isValidData = Boolean(data && data.partnerObjId);
-        //     socketUtil.emitter(self.socket, dbPartner.getPartnerPhoneNumber, [data.partnerObjId], actionName, isValidData);
-        // },
+        getPartnerPhoneNumber: function getPartnerPhoneNumber(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerPhoneNumber, [data.partnerObjId], actionName, isValidData);
+        },
 
         updatePartnerLevelConfig: function updatePartnerLevelConfig(data) {
             var actionName = arguments.callee.name;
