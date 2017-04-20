@@ -248,11 +248,9 @@ define([], function () {
             if ($(id) && $(id)[0] && func) {
                 return func();
             } else {
-                setTimeout(
-                    function () {
+                setTimeout(function () {
                         return util.actionAfterLoaded(id, func);
-                    },
-                    50
+                    }, 50
                 );
             }
         }
@@ -510,7 +508,7 @@ define([], function () {
             $(id).find(".bdots").hide();
             $(id).find(".adots").hide();
             // $(id).off('click');
- 
+
             if (removePageSize) {
                 $(id).find('.pageSizeText').parent().remove();
             }
