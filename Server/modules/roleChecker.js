@@ -392,7 +392,8 @@ var roleChecker = {
                 // GameTypeCreate: ['addGameType'],
                 // GameTypeDelete: ['deleteGameTypeByName'],
                 Settle: ['startProviderDailySettlement', 'manualDailyProviderSettlement'],
-                Expense: ['getPagedGameProviderConsumptionRecord']
+                Expense: ['getPagedGameProviderConsumptionRecord'],
+                monitor: []
             },
             "Game": {
                 Read: ['getGamesByProviderId', 'getGame', 'getGames', 'getGamesByProviders'],
@@ -441,7 +442,8 @@ var roleChecker = {
                 ActivePlayer: ['countActivePlayerbyPlatform', 'countActivePlayerALLPlatform'],
                 PlayerRetention: ['getPlayerRetention'],
                 ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery'],
-                ConsumptionInterval: ['getConsumptionIntervalData']
+                ConsumptionInterval: ['getConsumptionIntervalData'],
+                ClientSource: [],
             }
         },
         Report: {
