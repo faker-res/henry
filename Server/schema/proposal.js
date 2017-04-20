@@ -46,6 +46,8 @@ var proposalSchema = new Schema({
 });
 
 proposalSchema.index({ "data.playerName": 1});
+proposalSchema.index({ "data.playerId": 1});
+proposalSchema.index({ "data.playerObjId": 1});
 proposalSchema.index({ "data.partnerName": 1});
 
 /*
