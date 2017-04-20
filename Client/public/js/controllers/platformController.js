@@ -5019,7 +5019,6 @@ define(['js/app'], function (myApp) {
         vm.updatePlayerPayment = function () {
             var sendData = $.extend({}, vm.playerPayment);
             sendData._id = vm.isOneSelectedPlayer()._id;
-            sendData.bankAccountName = vm.isOneSelectedPlayer().bankAccountName;
             sendData.playerName = vm.isOneSelectedPlayer().name;
             sendData.playerId = vm.isOneSelectedPlayer().playerId;
             sendData.bankAccountProvince = vm.currentProvince;
