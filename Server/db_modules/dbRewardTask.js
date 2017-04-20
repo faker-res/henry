@@ -546,7 +546,7 @@ var dbRewardTask = {
                 data => {
                     if (data) {
                         //if (rewardAmount > 0) {
-                        dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type, data.validCredit, originalReward, -rewardAmount, null, taskData);
+                        dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, taskData);
                         //}
 
                         if (bUpdateProposal) {
