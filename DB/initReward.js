@@ -140,7 +140,8 @@ db.rewardParam.insert({
     "name": type6, params: {
         rewardPercentage: {type: "Percentage", des: "Reward percentage"},
         playerLevel: {type: "DBString", action: "getPlayerLevelByPlatformId", field: "name", des: "Base Player Level"},
-        bankCardType: {type: "Array", des: "Bank Card Type"}
+        bankCardType: {type: "Array", des: "Bank Card Type"},
+        maxRewardAmountPerDay: {type: "Number", des: "Max reward amount per day"}
     }
 });
 var param6Cursor = db.rewardParam.find({"name": type6});

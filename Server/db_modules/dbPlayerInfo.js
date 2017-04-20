@@ -2025,10 +2025,29 @@ let dbPlayerInfo = {
     applyForPlatformTransactionReward: function (platformId, playerId, topupAmount, playerLevel, bankCardType) {
         var deferred = Q.defer();
         var rewardTypeName = constProposalType.PLATFORM_TRANSACTION_REWARD;
-        var proposalProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: rewardTypeName});
+        var proposalProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: rewardTypeName}).lean().then(
+            proposalType => {
+                return dbconfig.collection_proposal.aggregate(
+                    {
+                        $match: {
+                            type: proposalType._id,
+                            "data.playerId": playerId,
+                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            //createTime: {}
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$type",
+                            totalAmount: {$sum: "$rewardAmount"}
+                        }
+                    }
+                );
+            }
+        );
         var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, rewardTypeName);
-        var playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: playerLevel});
-        var playerProm = dbconfig.collection_players.findOne({playerId: playerId});
+        var playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: playerLevel}).lean();
+        var playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
         var playerLevelData = {};
         var rewardParams = [];
         var playerData = {};
@@ -2063,8 +2082,8 @@ let dbPlayerInfo = {
                 if (levels) { // && levels[0].value >= levels[1].value) {
                     var levelProm = [];
                     for (var i = 0; i < levels.length; i++) {
-                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0) {
-
+                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && (!rewardParams[i].param.bankCardType ||
+                            (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
                             var proposalData = {
                                 type: rewardParams[i].executeProposal,
                                 data: {
@@ -2072,7 +2091,7 @@ let dbPlayerInfo = {
                                     playerObjId: playerData._id,
                                     platformId: platformId,
                                     playerName: playerData.name,
-                                    rewardAmount: Math.floor(rewardParams[i].param.rewardPercentage * topupAmount),
+                                    rewardAmount: rewardParams[i].param.rewardPercentage * topupAmount,
                                     eventDescription: rewardParams[i].description
                                 }
                             };
@@ -6807,7 +6826,8 @@ let dbPlayerInfo = {
     },
 
     applyRewardEvent: function (playerId, code, data, adminId, adminName) {
-        var adminInfo = '';
+        let playerInfo = null;
+        let adminInfo = '';
         if (adminId && adminName) {
             adminInfo = {
                 name: adminName,
@@ -6819,6 +6839,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
                 if (playerData) {
+                    playerInfo = playerData;
                     if (playerData.permission && playerData.permission.banReward) {
                         return Q.reject({
                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -6845,7 +6866,7 @@ let dbPlayerInfo = {
             rewardEvent => {
                 if (rewardEvent && rewardEvent.type) {
                     //check valid time for reward event
-                    var curTime = new Date();
+                    let curTime = new Date();
                     if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
                         (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime())) {
                         return Q.reject({
@@ -6854,82 +6875,107 @@ let dbPlayerInfo = {
                             message: "This reward event is not valid anymore"
                         });
                     }
-                    switch (rewardEvent.type.name) {
-                        //first top up
-                        case constRewardType.FIRST_TOP_UP:
-                            if (data.topUpRecordId && !data.topUpRecordIds) {
-                                data.topUpRecordIds = [data.topUpRecordId];
-                            }
-                            if (data.topUpRecordIds == null) {
+
+                    // Check any consumption after topup upon apply reward
+                    let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
+                    let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
+                    return Promise.all([lastTopUpProm, lastConsumptionProm]).then(
+                        timeCheckData => {
+                            if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
                                 return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
-                                    name: "Missing top up record ids",
-                                    message: "Invalid Data"
-                                });
-                            }
-                            return dbPlayerInfo.applyForFirstTopUpRewardProposal(null, playerId, data.topUpRecordIds, code, adminInfo);
-                            break;
-                        //provider reward
-                        case constRewardType.GAME_PROVIDER_REWARD:
-                            if (data.amount == null) {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "Invalid Data"
+                                    message: "There is consumption after top up"
                                 });
                             }
-                            return dbPlayerInfo.applyForGameProviderRewardAPI(playerId, code, data.amount, adminInfo);
-                            break;
-                        //request consumption rebate
-                        case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                            return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true);
-                            break;
-                        case constRewardType.PLAYER_TOP_UP_RETURN:
-                            if (data.topUpRecordId == null) {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
-                                    name: "DataError",
-                                    message: "Invalid Data"
-                                });
+
+                            switch (rewardEvent.type.name) {
+                                //first top up
+                                case constRewardType.FIRST_TOP_UP:
+                                    if (data.topUpRecordId && !data.topUpRecordIds) {
+                                        data.topUpRecordIds = [data.topUpRecordId];
+                                    }
+                                    if (data.topUpRecordIds == null) {
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_DATA,
+                                            name: "Missing top up record ids",
+                                            message: "Invalid Data"
+                                        });
+                                    }
+                                    return dbPlayerInfo.applyForFirstTopUpRewardProposal(null, playerId, data.topUpRecordIds, code, adminInfo);
+                                    break;
+                                //provider reward
+                                case constRewardType.GAME_PROVIDER_REWARD:
+                                    if (data.amount == null) {
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_DATA,
+                                            name: "DataError",
+                                            message: "Invalid Data"
+                                        });
+                                    }
+                                    return dbPlayerInfo.applyForGameProviderRewardAPI(playerId, code, data.amount, adminInfo);
+                                    break;
+                                //request consumption rebate
+                                case constRewardType.PLAYER_CONSUMPTION_RETURN:
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true);
+                                    break;
+                                case constRewardType.PLAYER_TOP_UP_RETURN:
+                                    if (data.topUpRecordId == null) {
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_DATA,
+                                            name: "DataError",
+                                            message: "Invalid Data"
+                                        });
+                                    }
+                                    return dbPlayerInfo.applyTopUpReturn(playerId, data.topUpRecordId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
+                                    //todo::temp fix for msgreen, remove after this reward is updated
+                                    return Q.reject({
+                                        status: constServerCode.INVALID_DATA,
+                                        name: "DataError",
+                                        message: "Please contact customer service"
+                                    });
+                                    // return dbPlayerInfo.applyConsumptionIncentive(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_TOP_UP_REWARD:
+                                    return dbPlayerInfo.applyPlayerTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_REFERRAL_REWARD:
+                                    return dbPlayerInfo.applyPlayerReferralReward(playerId, code, data.referralId, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_REGISTRATION_REWARD:
+                                    return dbPlayerInfo.applyPlayerRegistrationReward(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD:
+                                    if (data.topUpRecordId == null) {
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_DATA,
+                                            name: "DataError",
+                                            message: "Invalid Data"
+                                        });
+                                    }
+                                    return dbPlayerInfo.applyPlayerDoubleTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
+                                    break;
+                                default:
+                                    return Q.reject({
+                                        status: constServerCode.INVALID_DATA,
+                                        name: "DataError",
+                                        message: "Can not find reward event type"
+                                    });
+                                    break;
                             }
-                            return dbPlayerInfo.applyTopUpReturn(playerId, data.topUpRecordId, code, adminInfo);
-                            break;
-                        case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
-                            //todo::temp fix for msgreen, remove after this reward is updated
+                        }
+                    )
+                    .catch(
+                        error => {
                             return Q.reject({
                                 status: constServerCode.INVALID_DATA,
                                 name: "DataError",
-                                message: "Please contact customer service"
+                                message: error.message
                             });
-                            // return dbPlayerInfo.applyConsumptionIncentive(playerId, code, adminInfo);
-                            break;
-                        case constRewardType.PLAYER_TOP_UP_REWARD:
-                            return dbPlayerInfo.applyPlayerTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
-                            break;
-                        case constRewardType.PLAYER_REFERRAL_REWARD:
-                            return dbPlayerInfo.applyPlayerReferralReward(playerId, code, data.referralId, adminInfo);
-                            break;
-                        case constRewardType.PLAYER_REGISTRATION_REWARD:
-                            return dbPlayerInfo.applyPlayerRegistrationReward(playerId, code, adminInfo);
-                            break;
-                        case constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD:
-                            if (data.topUpRecordId == null) {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
-                                    name: "DataError",
-                                    message: "Invalid Data"
-                                });
-                            }
-                            return dbPlayerInfo.applyPlayerDoubleTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
-                            break;
-                        default:
-                            return Q.reject({
-                                status: constServerCode.INVALID_DATA,
-                                name: "DataError",
-                                message: "Can not find reward event type"
-                            });
-                            break;
-                    }
+                        }
+                    )
                 }
                 else {
                     return Q.reject({
