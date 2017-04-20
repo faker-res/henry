@@ -151,7 +151,7 @@
 .col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
             text {{"Platform Credit Transfer Log" | translate}}
             img.img-edit
 
@@ -217,7 +217,7 @@ include modalGameCreditLog
                 form(name='form_playerPaymentInfo').well
                     .form-group-col-md-6
                         label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
-                        input.form-control(ng-model='vm.playerPayment.bankAccountName', disabled)
+                        input.form-control(ng-model='vm.playerPayment.bankAccountName', ng-disabled='!vm.isEditingPlayerPayment')
                     .form-group-col-md-6
                         label.control-label(style='width:100%') *{{'BANK_NAME' | translate}}
                         select.form-control(ng-model='vm.playerPayment.bankName', ng-show='!vm.isEditingPlayerPayment', disabled)

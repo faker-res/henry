@@ -1707,7 +1707,7 @@ define(['js/app'], function (myApp) {
                 item.createTime$ = vm.dateReformat(item.createTime);
                 item.typeText = $translate(item.type);
                 item.providerText = vm.getProviderText(item.providerId);
-
+                item.lockedAmount$ = item.lockedAmount.toFixed(2);
                 return item;
             });
             let option = $.extend({}, vm.generalDataTableOptions, {
@@ -1731,7 +1731,7 @@ define(['js/app'], function (myApp) {
                             return parseFloat(data).toFixed(2);
                         }
                     },
-                    {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount'},
+                    {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount$'},
                     {title: $translate("TYPE"), data: 'typeText'},
                     {
                         title: $translate("STATUS"),
@@ -5019,6 +5019,7 @@ define(['js/app'], function (myApp) {
         vm.updatePlayerPayment = function () {
             var sendData = $.extend({}, vm.playerPayment);
             sendData._id = vm.isOneSelectedPlayer()._id;
+            sendData.bankAccountName = vm.isOneSelectedPlayer().bankAccountName;
             sendData.playerName = vm.isOneSelectedPlayer().name;
             sendData.playerId = vm.isOneSelectedPlayer().playerId;
             sendData.bankAccountProvince = vm.currentProvince;
@@ -5167,14 +5168,14 @@ define(['js/app'], function (myApp) {
             vm.gameCreditLog.searchResults = [{}];
             vm.gameCreditLog.query.status = "41";
             vm.gameCreditLog.query.type = "0001";
-            utilService.actionAfterLoaded('.modal.in #gameCreditLogQuery .endTime', function () {
+            utilService.actionAfterLoaded('#modalGameCreditLog.modal.in #gameCreditLogTablePage', function () {
                 vm.gameCreditLog.query.startTime = utilService.createDatePicker('#gameCreditLogQuery .startTime');
                 vm.gameCreditLog.query.endTime = utilService.createDatePicker('#gameCreditLogQuery .endTime');
                 vm.gameCreditLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.gameCreditLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.gameCreditLog.pageObj = utilService.createPageForPagingTable("#gameCreditLogTablePage", vm.gameCreditLog, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "gameCreditLog", vm.getGameCreditLog)
-                }, true);
+                });
                 // Be user friendly: Fetch some results immediately!
                 vm.getGameCreditLog(true);
             });
