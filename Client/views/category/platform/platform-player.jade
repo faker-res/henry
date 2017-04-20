@@ -75,7 +75,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyAlipayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerAlipayTopUp', ng-click='vm.initPlayerAlipayTopUp();')
             text {{"APPLY_ALIPAY_TOPUP" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyWechatPayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerWechatPayTopUp', ng-click='vm.initPlayerAlipayTopUp();')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyWechatPayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerWechatPayTopUp', ng-click='vm.initPlayerWechatPayTopUp();')
             text {{"APPLY_WECHATPAY_TOPUP" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'applyBonus')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerBonus();', data-target='#modalPlayerBonus')
