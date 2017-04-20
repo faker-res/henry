@@ -5778,7 +5778,7 @@ define(['js/app'], function (myApp) {
         };
 
         // Player WechatPay TopUp
-        vm.initPlayerAlipayTopUp = function () {
+        vm.initPlayerWechatPayTopUp = function () {
             vm.playerWechatPayTopUp = {submitted: false};
             vm.existingWechatPayTopup = null;
             socketService.$socket($scope.AppSocket, 'getWechatPayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
