@@ -1929,7 +1929,6 @@ define(['js/app'], function (myApp) {
                         vm.selectedSinglePlayer = null;
                         vm.selectedPlayersCount = 0;
                     }
-
                     $scope.safeApply();
                 });
             } else {
@@ -4404,8 +4403,14 @@ define(['js/app'], function (myApp) {
         // }
 
         vm.prepareShowPagePlayerTopup = function (startTime) {
-            $('#modalPlayerTopUp').modal().show();
             vm.playerTopUpLog = {};
+            vm.playerTopupRecordForModal = {
+                validAmount: 0,
+                amount: 0,
+                bonusAmount: 0,
+            };
+            vm.drawPlayerTopupRecordsTable([], 0, true, {});
+            $('#modalPlayerTopUp').modal().show();
             utilService.actionAfterLoaded("#modalPlayerTopUp.in #playerTopUp .endTime", function () {
                 vm.playerTopUpLog.startTime = utilService.createDatePicker('#playerTopUp .startTime');
                 vm.playerTopUpLog.endTime = utilService.createDatePicker('#playerTopUp .endTime');
@@ -4438,11 +4443,6 @@ define(['js/app'], function (myApp) {
                 vm.playerAllTopupRecords = data.data ? data.data.data : [];
                 vm.playerTopUpLog.totalCount = data.data ? data.data.total : 0;
                 console.log('topups:length:', vm.playerAllTopupRecords.length);
-                vm.playerTopupRecordForModal = {
-                    validAmount: 0,
-                    amount: 0,
-                    bonusAmount: 0,
-                };
                 var summary = data.data.summary || {};
                 vm.drawPlayerTopupRecordsTable(vm.playerAllTopupRecords, vm.playerTopUpLog.totalCount, newSearch, summary);
             });
@@ -4483,7 +4483,7 @@ define(['js/app'], function (myApp) {
             var aTable = utilService.createDatatableWithFooter("#playerTopupRecordTable", tableOption, {
                 4: summary.amountSum
             });
-            vm.playerTopUpLog.pageObj.init({maxCount: count}, newSearch);
+            vm.playerTopUpLog.pageObj ? vm.playerTopUpLog.pageObj.init({maxCount: count}, newSearch) : '';
             $("#playerTopupRecordTable").off('order.dt');
             $("#playerTopupRecordTable").on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'playerTopUpLog', vm.getPagePlayerTopup);
