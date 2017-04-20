@@ -2045,7 +2045,7 @@ let dbPlayerInfo = {
                 );
             }
         );
-        var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, rewardTypeName).lean();
+        var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, rewardTypeName);
         var playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: playerLevel}).lean();
         var playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
         var playerLevelData = {};
