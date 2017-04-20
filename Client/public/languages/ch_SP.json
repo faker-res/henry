@@ -1768,5 +1768,22 @@
   "DEPOSITE_TIME": "存款时间",
 
   "TopUp - Bonus": "下线会员总存款-下线会员总提款",
-  "operationAmount - platformFee - serviceFee - totalRewardAmount": "运营值-平台费用-服务费用-奖励额度"
+  "operationAmount - platformFee - serviceFee - totalRewardAmount": "运营值-平台费用-服务费用-奖励额度",
+  "FullAttendance:unlock" : "全勤奖励:解锁",
+  "ConsecutiveTopUp:unlock" : "连续充值:解锁",
+  "PlayerConsumptionReturn:unlock" : "玩家消费返点奖励:解锁",
+  "PartnerConsumptionReturn:unlock" : "推广渠道消费返点奖励:解锁",
+  "FirstTopUp:unlock" : "首次充值:解锁",
+  "PartnerIncentiveReward:unlock" : "推广渠道奖励:解锁",
+  "PartnerReferralReward:unlock" : "推广渠道推荐人奖励:解锁",
+   "GameProviderReward:unlock" : "提供商奖励:解锁",
+   "PlatformTransactionReward:unlock" : "银行转账奖励:解锁",
+   "PlayerTopUpReturn:unlock" : "玩家充值返点奖励:解锁",
+   "PlayerConsumptionIncentive:unlock" : "玩家救援奖励:解锁",
+   "PlayerLevelUp:unlock" : "升级奖励:解锁",
+   "PartnerTopUpReturn:unlock" : "推广渠道充值奖励:解锁",
+   "PlayerTopUpReward:unlock" : "玩家充值大冒险奖励:解锁",
+   "PlayerReferralReward:unlock" : "玩家推荐奖励:解锁",
+   "PlayerRegistrationReward:unlock" : "注册彩金奖励:解锁",
+   "PlayerDoubleTopUpReward:unlock" : "玩家多次充值:解锁"
 }
