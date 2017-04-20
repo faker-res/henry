@@ -2024,6 +2024,7 @@ let dbPlayerInfo = {
      */
     applyForPlatformTransactionReward: function (platformId, playerId, topupAmount, playerLevel, bankCardType) {
         var deferred = Q.defer();
+        let todayTime = dbUtility.getTodaySGTime();
         var rewardTypeName = constProposalType.PLATFORM_TRANSACTION_REWARD;
         var proposalProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: rewardTypeName}).lean().then(
             proposalType => {
@@ -2033,7 +2034,7 @@ let dbPlayerInfo = {
                             type: proposalType._id,
                             "data.playerId": playerId,
                             status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                            //createTime: {}
+                            createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                         }
                     },
                     {
