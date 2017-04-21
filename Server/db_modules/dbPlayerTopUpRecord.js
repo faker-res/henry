@@ -1323,7 +1323,8 @@ var dbPlayerTopUpRecord = {
                         updateData.data.requestId = requestData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.alipayAccount = requestData.result.alipayAccount;
-                        updateData.data.alipayQRCode = requestData.result.alipayQRCode || "";
+                        requestData.result.alipayQRCode = requestData.result.alipayQRCode || "";
+                        updateData.data.alipayQRCode = requestData.result.alipayQRCode
                         if (requestData.result.validTime) {
                             updateData.data.validTime = new Date(requestData.result.validTime);
                         }
@@ -1444,7 +1445,7 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: wechatName,//player.realName || "",
+                            // realName: wechatName,//player.realName || "",
                             aliPayAccount: 1,
                             amount: amount,
                             groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
