@@ -70,7 +70,6 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             timeout: 50000,
             reconnectionDelay: 2000,
             reconnection: true,
-            reconnectionAttempts: 20,
             "transports": ["websocket"]
         });
 
