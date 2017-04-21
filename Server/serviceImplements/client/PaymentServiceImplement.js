@@ -122,7 +122,7 @@ var PaymentServiceImplement = function () {
         if(data){
             data.amount = Number(data.amount);
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.wechatName);
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [conn.playerId, data.amount, data.wechatName, data.wechatAccount], isValidData);
     };
 
