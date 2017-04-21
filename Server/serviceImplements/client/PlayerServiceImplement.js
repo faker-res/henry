@@ -149,8 +149,10 @@ let PlayerServiceImplement = function () {
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.createPlayerPartnerAPI, [data], isValidData, true, false, true).then(
                 playerPartnerData => {
                     conn.isAuth = true;
-                    conn.playerId = playerPartnerData.playerId;
-                    conn.playerObjId = playerPartnerData._id;
+                    conn.playerId = playerPartnerData[0].playerId;
+                    conn.playerObjId = playerPartnerData[0]._id;
+                    conn.partnerId = playerPartnerData[1].partnerId;
+                    conn.partnerObjId = playerPartnerData[1]._id;
                     conn.noOfAttempt = 0;
                     conn.onclose =
                         event => {
