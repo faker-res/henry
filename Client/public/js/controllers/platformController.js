@@ -2964,7 +2964,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getEncPhoneNumber = function (playerData) {
-            return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-3)) : ''
+            return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
         }
         vm.showPlayerInfoModal = function (playerName) {
             vm.similarPlayersForPlayer = null;
@@ -5437,7 +5437,7 @@ define(['js/app'], function (myApp) {
                     title: $translate('MODIFY_PLAYER') + ' ' + vm.selectedSinglePlayer.name,
                     changeType: 'email',
                     curEmail: vm.selectedSinglePlayer.email,
-                    phoneNumber: vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-3)) : '',
+                    phoneNumber: vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-4)) : '',
                 }
             } else if (which == 'partner') {
                 $scope.emailConfirmation = null;

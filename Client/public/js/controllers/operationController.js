@@ -356,7 +356,7 @@ define(['js/app'], function (myApp) {
             var result = val ? val.toString() : (val === 0) ? "0" : "";
             if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
                 var str = val.phoneNumber
-                result = val.phoneNumber; //str.substring(0, 3) + "******" + str.slice(-3);
+                result = val.phoneNumber; //str.substring(0, 3) + "******" + str.slice(-4);
             } else if (obj.status === "Expired" && fieldName === "validTime") {
                 var $time = $('<div>', {
                     class: 'inlineBlk margin-right-5'
