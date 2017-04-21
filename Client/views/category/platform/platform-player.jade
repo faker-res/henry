@@ -1621,7 +1621,7 @@ include modalGameCreditLog
                                 button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true)') {{'SEARCH' | translate}}
                             .inlineBlk(ng-if='vm.platformCreditTransferLog.loading')
                                 i.fa.fa-spin.fa-spinner
-                        label {{"Total" | translate}} {{vm.platformCreditTransferLog.totalCount}} {{"records" | translate}}
+                        //label {{"Total" | translate}} {{vm.platformCreditTransferLog.totalCount}} {{"records" | translate}}
                         table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
                         #platformCreditTransferLogTablePage
 
