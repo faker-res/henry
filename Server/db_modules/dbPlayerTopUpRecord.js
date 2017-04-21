@@ -1323,7 +1323,7 @@ var dbPlayerTopUpRecord = {
                         updateData.data.requestId = requestData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.alipayAccount = requestData.result.alipayAccount;
-                        updateData.data.alipayQRCode = requestData.result.alipayQRCode;
+                        updateData.data.alipayQRCode = requestData.result.alipayQRCode || "";
                         if (requestData.result.validTime) {
                             updateData.data.validTime = new Date(requestData.result.validTime);
                         }
