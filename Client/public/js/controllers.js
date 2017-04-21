@@ -49,7 +49,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         let token = authService.token;
         let serverCookie = $cookies.get('curFPMSServer');
 
-        if(!WSCONFIG[serverCookie]) {
+        if (!WSCONFIG[serverCookie]) {
             serverCookie = 'Default';
             $cookies.put('curFPMSServer', 'Default');
         }
@@ -70,6 +70,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             timeout: 50000,
             reconnectionDelay: 2000,
             reconnection: true,
+            reconnectionAttempts: 20,
             "transports": ["websocket"]
         });
 
@@ -134,7 +135,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                 urlToPing = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL.substr(7);
             }
 
-            return new Promise ((resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 let serverPing = io.connect(urlToPing, {
                     query: 'token=' + authService.token,
                     timeout: 50000,
