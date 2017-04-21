@@ -645,6 +645,7 @@ define([], function () {
                 case "ManualPlayerTopUp":
                 case "PlayerAlipayTopUp":
                 case "PlayerTopUp":
+                case "PlayerWechatTopUp":
                     return $trans("Topup Proposal");
                 case "PlayerBonus":
                 case "PartnerBonus":

@@ -1445,7 +1445,7 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: wechatName,//player.realName || "",
+                            // realName: wechatName,//player.realName || "",
                             aliPayAccount: 1,
                             amount: amount,
                             groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
