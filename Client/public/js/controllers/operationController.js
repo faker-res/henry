@@ -408,37 +408,37 @@ define(['js/app'], function (myApp) {
                 result = vm.allBankTypeList[val] || (val + " ! " + $translate("not in bank type list"));
             } else if (fieldName == 'depositMethod') {
                 result = $translate(vm.getDepositMethodbyId[val])
-            } else if (fieldName == 'provinceId' || fieldName == 'bankAccountProvince') {
-                var $id = $('<text>').text(val);
-                var $name = $('<text>', {
-                    class: 'margin-left-5 proposalProvinceId',
-                });
-                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: val}, function (data) {
-                    var text = data.data.province ? data.data.province.name : val;
-                    $("#ProposalDetail .proposalProvinceId").text(text);
-                });
-                result = $id.prop('outerHTML') + $name.prop('outerHTML');
-            } else if (fieldName == 'cityId' || fieldName == 'bankAccountCity') {
-                var $id = $('<text>').text(val);
-                var $name = $('<text>', {
-                    class: 'margin-left-5 proposalCityId',
-                });
-                socketService.$socket($scope.AppSocket, "getCity", {cityId: val}, function (data) {
-                    var text = data.data.city ? data.data.city.name : val;
-                    $("#ProposalDetail .proposalCityId").text(text);
-                });
-                result = $id.prop('outerHTML') + $name.prop('outerHTML');
-            } else if (fieldName == 'districtId' || fieldName == 'bankAccountDistrict') {
-                var $id = $('<text>').text(val);
-                var $name = $('<text>', {
-                    class: 'margin-left-5 proposalDistrictId',
-                });
-                socketService.$socket($scope.AppSocket, "getDistrict", {districtId: val}, function (data) {
-                    console.log('data', data);
-                    var text = data.data.district ? data.data.district.name : val;
-                    $("#ProposalDetail .proposalDistrictId").text(text);
-                });
-                result = $id.prop('outerHTML') + $name.prop('outerHTML');
+            // } else if (fieldName == 'provinceId' || fieldName == 'bankAccountProvince') {
+            //     var $id = $('<text>').text(val);
+            //     var $name = $('<text>', {
+            //         class: 'margin-left-5 proposalProvinceId',
+            //     });
+            //     socketService.$socket($scope.AppSocket, "getProvince", {provinceId: val}, function (data) {
+            //         var text = data.data.province ? data.data.province.name : val;
+            //         $("#ProposalDetail .proposalProvinceId").text(text);
+            //     });
+            //     result = $id.prop('outerHTML') + $name.prop('outerHTML');
+            // } else if (fieldName == 'cityId' || fieldName == 'bankAccountCity') {
+            //     var $id = $('<text>').text(val);
+            //     var $name = $('<text>', {
+            //         class: 'margin-left-5 proposalCityId',
+            //     });
+            //     socketService.$socket($scope.AppSocket, "getCity", {cityId: val}, function (data) {
+            //         var text = data.data.city ? data.data.city.name : val;
+            //         $("#ProposalDetail .proposalCityId").text(text);
+            //     });
+            //     result = $id.prop('outerHTML') + $name.prop('outerHTML');
+            // } else if (fieldName == 'districtId' || fieldName == 'bankAccountDistrict') {
+            //     var $id = $('<text>').text(val);
+            //     var $name = $('<text>', {
+            //         class: 'margin-left-5 proposalDistrictId',
+            //     });
+            //     socketService.$socket($scope.AppSocket, "getDistrict", {districtId: val}, function (data) {
+            //         console.log('data', data);
+            //         var text = data.data.district ? data.data.district.name : val;
+            //         $("#ProposalDetail .proposalDistrictId").text(text);
+            //     });
+            //     result = $id.prop('outerHTML') + $name.prop('outerHTML');
             } else if (fieldName === 'playerStatus') {
                 result = $translate($scope.constPlayerStatus[val]);
             } else if (fieldName === 'proposalPlayerLevel') {
@@ -969,6 +969,51 @@ define(['js/app'], function (myApp) {
                 }
             }
             vm.selectedProposalDetailForDisplay = $.extend({}, proposalDetail);
+            if (vm.selectedProposalDetailForDisplay['provinceId']) {
+                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['provinceId']}, function (data) {
+                    var text = data.data.province ? data.data.province.name : val;
+                    vm.selectedProposalDetailForDisplay['provinceId'] = text;
+                    $scope.safeApply();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountProvince']) {
+                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince']}, function (data) {
+                    var text = data.data.province ? data.data.province.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountProvince'] = text;
+                    $scope.safeApply();
+                });
+            }
+
+            if (vm.selectedProposalDetailForDisplay['cityId']) {
+                socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['cityId']}, function (data) {
+                    var text = data.data.city ? data.data.city.name : val;
+                    vm.selectedProposalDetailForDisplay['cityId'] = text;
+                    $scope.safeApply();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountCity']) {
+                socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountCity']}, function (data) {
+                    var text = data.data.city ? data.data.city.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountCity'] = text;
+                    $scope.safeApply();
+                });
+            }
+
+            if (vm.selectedProposalDetailForDisplay['districtId']) {
+                socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['districtId']}, function (data) {
+                    var text = data.data.district ? data.data.district.name : val;
+                    vm.selectedProposalDetailForDisplay['districtId'] = text;
+                    $scope.safeApply();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountDistrict']) {
+                socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountDistrict']}, function (data) {
+                    var text = data.data.district ? data.data.district.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountDistrict'] = text;
+                    $scope.safeApply();
+                });
+            }
+
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;
             delete vm.selectedProposalDetailForDisplay.partner;
