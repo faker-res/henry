@@ -287,8 +287,9 @@ var playerPostFindUpdate = function (result, bOne) {
             }
         }
         if (!bOne) {
-            var startIndex = Math.max(Math.floor((result.phoneNumber.length - 4) / 2), 0);
-            result.phoneNumber = result.phoneNumber.substr(0, startIndex) + "****" + result.phoneNumber.substr(startIndex + 4);
+            // var startIndex = Math.max(Math.floor((result.phoneNumber.length - 4) / 2), 0);
+            // result.phoneNumber = result.phoneNumber.substr(0, startIndex) + "****" + result.phoneNumber.substr(startIndex + 4);
+            result.phoneNumber = result.phoneNumber.substr(0, 3) + "****" + result.phoneNumber.substr(-4);
         }
     }
     //hide middle 4 digits for email
