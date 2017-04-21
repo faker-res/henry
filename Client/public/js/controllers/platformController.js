@@ -3430,7 +3430,7 @@ define(['js/app'], function (myApp) {
                 // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                 Object.keys(newPlayerData).forEach(function (key) {
                     if (newPlayerData[key] != oldPlayerData[key]) {
-                        if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup") {
+                        if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup") {
                             //do nothing
                         } else {
                             isUpdate = true;
@@ -3467,6 +3467,9 @@ define(['js/app'], function (myApp) {
                 }
                 if (updateData.alipayGroup) {
                     updateBankData.alipayGroup = updateData.alipayGroup;
+                }
+                if (updateData.wechatPayGroup) {
+                    updateBankData.wechatPayGroup = updateData.wechatPayGroup;
                 }
                 delete updateData.bankCardGroup;
                 delete updateData.merchantGroup;
