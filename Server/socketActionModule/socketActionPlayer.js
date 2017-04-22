@@ -666,7 +666,7 @@ function socketActionPlayer(socketIO, socket) {
 
         applyWechatPayTopUpRequest: function applyWechatPayTopUpRequest(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.playerId && data.amount && data.wechatPayName && data.wechatPayAccount);
+            let isValidData = Boolean(data && data.playerId && data.amount && data.wechatPayAccount);
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
         },
 

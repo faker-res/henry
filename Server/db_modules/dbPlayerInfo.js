@@ -342,8 +342,8 @@ let dbPlayerInfo = {
                         }
                     }
                     if (data[0] && data[0].length > 0 && phoneNumber) {
-                        var startIndex = Math.max(Math.floor((phoneNumber.length - 4) / 2), 0);
-                        var pNumber = phoneNumber.substr(0, startIndex) + "****" + phoneNumber.substr(startIndex + 4);
+                        // var startIndex = Math.max(Math.floor((phoneNumber.length - 4) / 2), 0);
+                        var pNumber = phoneNumber.substr(0, 3) + "****" + phoneNumber.substr(-4);
                         for (var j = 0; j < data[0].length; j++) {
                             var similarPlayerData = {
                                 playerObjId: data[0][j]._id,

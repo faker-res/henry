@@ -56,6 +56,9 @@ let PlayerServiceImplement = function () {
                     data.phoneType = queryRes.type;
                 }
             }
+            if (data.domain) {
+                data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
+            }
             conn.captchaCode = null;
             data.isOnline = true;
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, true, false, true).then(
@@ -149,8 +152,10 @@ let PlayerServiceImplement = function () {
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.createPlayerPartnerAPI, [data], isValidData, true, false, true).then(
                 playerPartnerData => {
                     conn.isAuth = true;
-                    conn.playerId = playerPartnerData.playerId;
-                    conn.playerObjId = playerPartnerData._id;
+                    conn.playerId = playerPartnerData[0].playerId;
+                    conn.playerObjId = playerPartnerData[0]._id;
+                    conn.partnerId = playerPartnerData[1].partnerId;
+                    conn.partnerObjId = playerPartnerData[1]._id;
                     conn.noOfAttempt = 0;
                     conn.onclose =
                         event => {
@@ -188,7 +193,10 @@ let PlayerServiceImplement = function () {
     this.getPlayerPartner.expectsData = 'playerId: String, partnerId: String';
     this.getPlayerPartner.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && (data.name || data.playerId) && (data.playerId == conn.playerId) && (data.partnerId == conn.partnerId));
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.getPlayerPartnerAPI, [{playerId: data.playerId, partnerId: data.partnerId}], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.getPlayerPartnerAPI, [{
+            playerId: data.playerId,
+            partnerId: data.partnerId
+        }], isValidData);
     };
 
     //player update api handler
@@ -343,7 +351,10 @@ let PlayerServiceImplement = function () {
                 conn.partnerObjId = partnerData._id;
                 conn.noOfAttempt = 0;
                 conn.onclose = function (event) {
-                    dbPlayerPartner.logoutPlayerPartnerAPI({playerId: playerData.playerId, partnerId: partnerData.partnerId}).catch(
+                    dbPlayerPartner.logoutPlayerPartnerAPI({
+                        playerId: playerData.playerId,
+                        partnerId: partnerData.partnerId
+                    }).catch(
                         error => {
                             if (error.message === "Can't find db data") {
                                 // This is quite normal during testing, because we remove the test player account before the connection closes.

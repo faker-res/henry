@@ -75,7 +75,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyAlipayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerAlipayTopUp', ng-click='vm.initPlayerAlipayTopUp();')
             text {{"APPLY_ALIPAY_TOPUP" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyWechatPayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerWechatPayTopUp', ng-click='vm.initPlayerAlipayTopUp();')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyWechatPayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerWechatPayTopUp', ng-click='vm.initPlayerWechatPayTopUp();')
             text {{"APPLY_WECHATPAY_TOPUP" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'applyBonus')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerBonus();', data-target='#modalPlayerBonus')
@@ -1279,9 +1279,9 @@ include modalGameCreditLog
                                     label {{'CREDIT' | translate}}
                                     text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
                                 input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerWechatPayTopUp.amount', required)
-                                .control-label
-                                    label {{'wechatPayName' | translate}}
-                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
+                                //.control-label
+                                //    label {{'wechatPayName' | translate}}
+                                //input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
                                 .control-label
                                     label {{'wechatPayAccount' | translate}}
                                 input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayAccount', required)
@@ -1621,7 +1621,7 @@ include modalGameCreditLog
                                 button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true)') {{'SEARCH' | translate}}
                             .inlineBlk(ng-if='vm.platformCreditTransferLog.loading')
                                 i.fa.fa-spin.fa-spinner
-                        label {{"Total" | translate}} {{vm.platformCreditTransferLog.totalCount}} {{"records" | translate}}
+                        //label {{"Total" | translate}} {{vm.platformCreditTransferLog.totalCount}} {{"records" | translate}}
                         table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
                         #platformCreditTransferLogTablePage
 

@@ -887,7 +887,7 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
-                    if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
+                    if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
 
                         return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
@@ -1323,10 +1323,12 @@ var dbPlayerTopUpRecord = {
                         updateData.data.requestId = requestData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.alipayAccount = requestData.result.alipayAccount;
-                        updateData.data.alipayQRCode = requestData.result.alipayQRCode;
+                        requestData.result.alipayQRCode = requestData.result.alipayQRCode || "";
+                        updateData.data.alipayQRCode = requestData.result.alipayQRCode
                         if (requestData.result.validTime) {
                             updateData.data.validTime = new Date(requestData.result.validTime);
                         }
+                        requestData.result.alipayName = alipayName;
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,
@@ -1444,7 +1446,7 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: wechatName,//player.realName || "",
+                            // realName: wechatName,//player.realName || "",
                             aliPayAccount: 1,
                             amount: amount,
                             groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],

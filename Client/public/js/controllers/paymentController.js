@@ -1212,7 +1212,7 @@ define(['js/app'], function (myApp) {
             });
 
             let sendData = {
-                bankAlipayGroupObjId: vm.SelectedWechatPayGroupNode._id,
+                weChatGroupObjId: vm.SelectedWechatPayGroupNode._id,
                 playerObjIds: playerArr
             };
 
