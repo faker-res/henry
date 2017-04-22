@@ -5901,11 +5901,12 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 playerId: vm.isOneSelectedPlayer().playerId,
                 amount: vm.playerWechatPayTopUp.amount,
-                wechatPayName: vm.playerWechatPayTopUp.wechatPayName,
+                wechatPayName: vm.playerWechatPayTopUp.wechatPayName || "",
                 wechatPayAccount: vm.playerWechatPayTopUp.wechatPayAccount,
                 remark: vm.playerWechatPayTopUp.remark,
                 createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
             };
+            console.log("applyPlayerWechatPayTopUp", sendData)
             vm.playerWechatPayTopUp.submitted = true;
             $scope.safeApply();
             socketService.$socket($scope.AppSocket, 'applyWechatPayTopUpRequest', sendData,
