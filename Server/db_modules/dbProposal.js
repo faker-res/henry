@@ -150,7 +150,7 @@ var proposal = {
                         proposalData.status = proposalData.status || constProposalStatus.APPROVED;
                     }
                     if (data[0].name == constProposalType.PLAYER_TOP_UP || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP ||
-                        data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP
+                        data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP
                     ) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PREPENDING;
@@ -309,6 +309,9 @@ var proposal = {
                 }
                 if (proposalData && proposalData.data && (proposalData.data.alipayAccount != null || proposalData.data.alipayQRCode != null)) {
                     type = constPlayerTopUpType.ALIPAY;
+                }
+                if (proposalData && proposalData.data && (proposalData.data.weChatAccount != null || proposalData.data.weChatQRCode != null)) {
+                    type = constPlayerTopUpType.WECHAT;
                 }
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING) && proposalData.data && proposalData.data.requestId == requestId) {
                     return proposalData;
