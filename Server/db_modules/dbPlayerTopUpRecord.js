@@ -887,7 +887,7 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
-                    if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
+                    if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
 
                         return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
