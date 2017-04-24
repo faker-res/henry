@@ -5249,7 +5249,10 @@ let dbPlayerInfo = {
                                         data: '(detected after withdrawl)'
                                     });
                                 }
-
+                                if( newPlayerData.validCredit < 0 ){
+                                    newPlayerData.validCredit = 0;
+                                    newPlayerData.save().then();
+                                }
                                 player.validCredit = newPlayerData.validCredit;
                                 //create proposal
                                 var proposalData = {
