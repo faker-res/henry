@@ -5840,6 +5840,9 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                if( ip == "undefined" ){
+                    ip = "127.0.0.1";
+                }
                 var sendData = {
                     username: playerData.name,
                     platformId: playerData.platform.platformId,
@@ -5847,7 +5850,7 @@ let dbPlayerInfo = {
                     gameId: gameId,
                     clientDomainName: clientDomainName || "Can not find domain",
                     lang: lang || localization.lang.ch_SP,
-                    ip: ip || "127.0.0.1",
+                    ip: ip,
                     clientType: clientType
                 };
                 return cpmsAPI.player_getLoginURL(sendData);
