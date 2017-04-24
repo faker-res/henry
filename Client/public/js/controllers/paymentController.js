@@ -1076,13 +1076,13 @@ define(['js/app'], function (myApp) {
 
             console.log('Add WechatPay Group sendData', sendData);
             socketService.$socket($scope.AppSocket, 'addPlatformWechatPayGroup', sendData, function (data) {
-                console.log('Add WechatPay Group', data);
-                vm.loadWechatPayGroupData();
-                $scope.safeApply();
-            },
-            error => {
-                console.log('Add WechatPay Group error', error);
-            })
+                    console.log('Add WechatPay Group', data);
+                    vm.loadWechatPayGroupData();
+                    $scope.safeApply();
+                },
+                error => {
+                    console.log('Add WechatPay Group error', error);
+                })
         };
 
         vm.wechatPayGroupClicked = function (i, wechatPayGroup) {
@@ -1220,6 +1220,22 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         };
+        vm.submitAddAllPlayersToWechatPayGroup = function () {
+            let sendData = {
+                weChatGroupObjId: vm.SelectedWechatPayGroupNode._id,
+                platformObjId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'addAllPlayersToWechatPayGroup', sendData, function (data) {
+                if (data.data) {
+                    if (data.data.wechatPayGroup == vm.SelectedWechatPayGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
+                        vm.addAllPlayerToWechatResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
+                    } else {
+                        vm.addAllPlayerToWechatResult = JSON.stringify(data.data.error);
+                    }
+                    $scope.safeApply();
+                }
+            });
+        }
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
         ///////////////////////////////// common functions
