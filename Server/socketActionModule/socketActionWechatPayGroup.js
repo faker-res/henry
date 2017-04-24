@@ -99,7 +99,13 @@ function socketActionWechatPayGroup(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.weChatGroupObjId && data.playerObjIds && data.playerObjIds.length > 0);
             socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.addPlayersToWechatPayGroup, [data.weChatGroupObjId, data.playerObjIds], actionName, isValidData);
-        }
+        },
+
+        addAllPlayersToWechatPayGroup: function addAllPlayersToWechatPayGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.weChatGroupObjId && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.addAllPlayersToWechatPayGroup, [data.weChatGroupObjId, data.platformObjId], actionName, isValidData);
+        },
 
     };
     socketActionWechatPayGroup.actions = this.actions;

@@ -29,7 +29,10 @@ let dbPlatformWechatPayGroup = {
      * @param updateData -  updateData
      */
     updatePlatformWechatPayGroup: function (query, updateData) {
-        return dbconfig.collection_platformWechatPayGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+        return dbconfig.collection_platformWechatPayGroup.findOneAndUpdate(query, updateData, {
+            upsert: true,
+            new: true
+        });
     },
 
     /**
@@ -63,10 +66,16 @@ let dbPlatformWechatPayGroup = {
                         for (let i in data) {
                             if (data.hasOwnProperty(i)) {
                                 if (data[i].bDefault && data[i]._id != defaultID) {
-                                    let prom = dbconfig.collection_platformWechatPayGroup.findOneAndUpdate({_id: data[i]._id}, {bDefault: false}, {upsert: true, new: true});
+                                    let prom = dbconfig.collection_platformWechatPayGroup.findOneAndUpdate({_id: data[i]._id}, {bDefault: false}, {
+                                        upsert: true,
+                                        new: true
+                                    });
                                     allProm.push(prom);
                                 } else if (!data[i].bDefault && data[i]._id == defaultID) {
-                                    let prom = dbconfig.collection_platformWechatPayGroup.findOneAndUpdate({_id: data[i]._id}, {bDefault: true}, {upsert: true, new: true});
+                                    let prom = dbconfig.collection_platformWechatPayGroup.findOneAndUpdate({_id: data[i]._id}, {bDefault: true}, {
+                                        upsert: true,
+                                        new: true
+                                    });
                                     allProm.push(prom);
                                 }
                             }
@@ -86,7 +95,10 @@ let dbPlatformWechatPayGroup = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).then(
             platformData => {
                 if (platformData) {
-                    return dbconfig.collection_platformWechatPayGroup.findOne({platform: platformData._id, groupId: groupId}).exec();
+                    return dbconfig.collection_platformWechatPayGroup.findOne({
+                        platform: platformData._id,
+                        groupId: groupId
+                    }).exec();
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
@@ -109,14 +121,14 @@ let dbPlatformWechatPayGroup = {
                 queryId: serverInstance.getQueryId()
             }
         ).then(
-            data=> {
+            data => {
                 allWechats = data.data || [];
                 return dbconfig.collection_platformWechatPayGroup.findOne({_id: wechatPayGroupId})
             }
         ).then(
-            data=> {
+            data => {
                 let wechatsArr = data.wechats || [];
-                return allWechats.filter(a=> {
+                return allWechats.filter(a => {
                     return wechatsArr.indexOf(a.accountNumber) !== -1
                 })
             }
@@ -131,14 +143,14 @@ let dbPlatformWechatPayGroup = {
                 queryId: serverInstance.getQueryId()
             }
         ).then(
-            data=> {
+            data => {
                 allWechats = data.data || [];
                 return dbconfig.collection_platformWechatPayGroup.findOne({_id: wechatPayGroupId})
             }
         ).then(
-            data=> {
+            data => {
                 let wechatsArr = data.wechats || [];
-                return allWechats.filter(a=> {
+                return allWechats.filter(a => {
                     return wechatsArr.indexOf(a.accountNumber) === -1
                 })
             }
@@ -151,6 +163,15 @@ let dbPlatformWechatPayGroup = {
             {wechatPayGroup: bankWechatPayGroupObjId},
             {multi: true}
         );
+    },
+    addAllPlayersToWechatPayGroup: function (weChatGroupObjId, platformObjId) {
+        return dbconfig.collection_players.update({platform: platformObjId}, {wechatPayGroup: weChatGroupObjId}, {multi: true}).then(data => {
+            if (data && data.ok) {
+                return {platform: platformObjId, wechatPayGroup: weChatGroupObjId, nModified: data.nModified, n: data.n}
+            } else {
+                return {platform: platformObjId, wechatPayGroup: weChatGroupObjId, error: data};
+            }
+        });
     },
 
     deleteWechatPay: function (accountNumber) {
