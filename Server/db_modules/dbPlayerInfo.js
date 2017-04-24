@@ -5837,7 +5837,7 @@ let dbPlayerInfo = {
                     gameId: gameId,
                     clientDomainName: clientDomainName || "Can not find domain",
                     lang: lang || localization.lang.ch_SP,
-                    ip: ip,
+                    ip: ip || "127.0.0.1",
                     clientType: clientType
                 };
                 return cpmsAPI.player_getLoginURL(sendData);
