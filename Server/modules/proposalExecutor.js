@@ -131,6 +131,7 @@ var proposalExecutor = {
         this.executions.executeManualUnlockPlayerReward.des = "Manual Unlock Player Reward";
         this.executions.executePartnerCommission.des = "Partner commission";
         this.executions.executePlayerDoubleTopUpReward.des = "Player double top up reward";
+        this.executions.executePlayerWechatTopUp.des = "Player wechat top up";
 
         this.rejections.rejectProposal.des = "Reject proposal";
         this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -167,6 +168,7 @@ var proposalExecutor = {
         this.rejections.rejectManualUnlockPlayerReward.des = "Reject Manual Unlock Player Reward";
         this.rejections.rejectPartnerCommission.des = "Reject Partner commission";
         this.rejections.rejectPlayerDoubleTopUpReward.des = "Reject Player double top up return";
+        this.rejections.rejectPlayerWechatTopUp.des = "Reject Player Top up";
     },
 
     refundPlayer: function (proposalData, refundAmount, reason) {
@@ -749,6 +751,33 @@ var proposalExecutor = {
          */
         executePlayerAlipayTopUp: function (proposalData, deferred) {
             dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ALIPAY, proposalData).then(
+                function (data) {
+                    //todo::add top up notify here ???
+                    // var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                    // if (wsMessageClient) {
+                    //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
+                    //         {
+                    //             proposalId: proposalData.proposalId,
+                    //             amount: proposalData.data.amount,
+                    //             handleTime: new Date(),
+                    //             status: proposalData.status,
+                    //             playerId: proposalData.data.playerId
+                    //         }
+                    //     );
+                    // }
+                    deferred.resolve(proposalData);
+                },
+                function (error) {
+                    deferred.reject(error);
+                }
+            );
+        },
+
+        /**
+         * execution function for player top up proposal type
+         */
+        executePlayerWechatTopUp: function (proposalData, deferred) {
+            dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.WECHAT, proposalData).then(
                 function (data) {
                     //todo::add top up notify here ???
                     // var wsMessageClient = serverInstance.getWebSocketMessageClient();
@@ -1932,6 +1961,25 @@ var proposalExecutor = {
          * reject function for player alipay top up
          */
         rejectPlayerAlipayTopUp: function (proposalData, deferred) {
+            // var wsMessageClient = serverInstance.getWebSocketMessageClient();
+            // if (wsMessageClient) {
+            //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
+            //         {
+            //             proposalId: proposalData.proposalId,
+            //             amount: proposalData.data.amount,
+            //             handleTime: new Date(),
+            //             status: proposalData.status,
+            //             playerId: proposalData.data.playerId
+            //         }
+            //     );
+            // }
+            deferred.resolve("Proposal is rejected");
+        },
+
+        /**
+         * reject function for player wechat top up
+         */
+        rejectPlayerWechatTopUp: function (proposalData, deferred) {
             // var wsMessageClient = serverInstance.getWebSocketMessageClient();
             // if (wsMessageClient) {
             //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
