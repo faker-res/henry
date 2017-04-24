@@ -5851,7 +5851,7 @@ let dbPlayerInfo = {
                     clientDomainName: clientDomainName || "Can not find domain",
                     lang: lang || localization.lang.ch_SP,
                     ip: ip,
-                    clientType: clientType
+                    clientType: clientType || 1
                 };
                 return cpmsAPI.player_getLoginURL(sendData);
             }
