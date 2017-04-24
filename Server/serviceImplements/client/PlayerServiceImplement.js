@@ -279,16 +279,30 @@ let PlayerServiceImplement = function () {
                 }, data);
             }, function (error) {
                 if (error != "INVALID_DATA") {
-                    conn.noOfAttempt++;
-                    conn.isAuth = false;
-                    conn.playerId = null;
-                    conn.playerObjId = null;
-                    conn.captchaCode = null;
-                    wsFunc.response(conn, {
-                        status: constServerCode.INVALID_USER_PASSWORD,
-                        data: {noOfAttempt: conn.noOfAttempt},
-                        errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
-                    }, data);
+                    if (error.code && error.code == constServerCode.PLAYER_IS_FORBIDDEN) {
+                        conn.noOfAttempt++;
+                        conn.isAuth = false;
+                        conn.playerId = null;
+                        conn.playerObjId = null;
+                        conn.captchaCode = null;
+                        wsFunc.response(conn, {
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            data: {noOfAttempt: 0},
+                            errorMessage: localization.translate(error.message, conn.lang),
+                        }, data);
+                    }
+                    else {
+                        conn.noOfAttempt++;
+                        conn.isAuth = false;
+                        conn.playerId = null;
+                        conn.playerObjId = null;
+                        conn.captchaCode = null;
+                        wsFunc.response(conn, {
+                            status: constServerCode.INVALID_USER_PASSWORD,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
+                        }, data);
+                    }
                 }
             }
         ).catch(WebSocketUtil.errorHandler)
