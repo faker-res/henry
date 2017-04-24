@@ -5203,7 +5203,7 @@ let dbPlayerInfo = {
 
                     //check if player has enough credit
                     player = playerData;
-                    if ((parseFloat(playerData.validCredit) < parseFloat(amount))) {
+                    if ((parseInt(parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount))) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -5240,7 +5240,7 @@ let dbPlayerInfo = {
                                 //     bUpdateCredit = false;
                                 // }
                                 //to fix float problem...
-                                if (newPlayerData.validCredit < -0.001) {
+                                if (newPlayerData.validCredit < -0.01) {
                                     //credit will be reset below
                                     return Q.reject({
                                         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
