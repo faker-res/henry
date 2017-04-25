@@ -456,7 +456,7 @@ let dbPlayerInfo = {
                 });
 
             }
-            if((playerdata.realName && !playerdata.realName.match(chineseRegex))){
+            if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -2027,7 +2027,10 @@ let dbPlayerInfo = {
         let todayTime = dbUtility.getTodaySGTime();
         let curRewardAmount = 0;
         let rewardTypeName = constProposalType.PLATFORM_TRANSACTION_REWARD;
-        let proposalProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: rewardTypeName}).lean().then(
+        let proposalProm = dbconfig.collection_proposalType.findOne({
+            platformId: platformId,
+            name: rewardTypeName
+        }).lean().then(
             proposalType => {
                 return dbconfig.collection_proposal.aggregate(
                     {
@@ -2059,7 +2062,7 @@ let dbPlayerInfo = {
                     if (!data[3].permission || !data[3].permission.transactionReward) {
                         deferred.resolve("No permission!");
                     }
-                    if( data[1] && data[1][0] ){
+                    if (data[1] && data[1][0]) {
                         curRewardAmount = data[1][0].totalAmount;
                     }
                     var eventLevelProm = [];
@@ -2089,7 +2092,7 @@ let dbPlayerInfo = {
                     for (var i = 0; i < levels.length; i++) {
                         if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay && (!rewardParams[i].param.bankCardType ||
                             (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
-                            let rewardAmount = Math.min( (rewardParams[i].param.maxRewardAmountPerDay - curRewardAmount), rewardParams[i].param.rewardPercentage * topupAmount );
+                            let rewardAmount = Math.min((rewardParams[i].param.maxRewardAmountPerDay - curRewardAmount), rewardParams[i].param.rewardPercentage * topupAmount);
                             let proposalData = {
                                 type: rewardParams[i].executeProposal,
                                 data: {
@@ -2378,6 +2381,13 @@ let dbPlayerInfo = {
         ).then(
             isMatch => {
                 if (isMatch) {
+                    if (playerObj.status == constPlayerStatus.FORBID) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                    }
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
@@ -2830,21 +2840,21 @@ let dbPlayerInfo = {
                         return;
                     }
                     //return dbPlayerInfo.getPlayerPendingProposalByType(playerData._id, playerData.platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
-                        //hasPendingProposal => {
-                            // if (hasPendingProposal) {
-                            //     deferred.reject({
-                            //         status: constServerCode.PLAYER_PENDING_PROPOSAL,
-                            //         name: "DataError",
-                            //         message: "Player has pending proposal to update credit"
-                            //     });
-                            // }
-                            // else {
+                    //hasPendingProposal => {
+                    // if (hasPendingProposal) {
+                    //     deferred.reject({
+                    //         status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                    //         name: "DataError",
+                    //         message: "Player has pending proposal to update credit"
+                    //     });
+                    // }
+                    // else {
                     var platformId = playerData.platform ? playerData.platform.platformId : null;
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
                     return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                            //}
-                            // }
+                    //}
+                    // }
                     //);
                 } else {
                     deferred.reject({name: "DataError", message: "Cannot find player or provider"});
@@ -3186,10 +3196,10 @@ let dbPlayerInfo = {
                     //             });
                     //         }
                     //         else {
-                                dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
-                                    providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-                                return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                            // }
+                    dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
+                        providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
+                    return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    // }
                     //     }
                     // );
                 } else {
@@ -5193,7 +5203,7 @@ let dbPlayerInfo = {
 
                     //check if player has enough credit
                     player = playerData;
-                    if ((parseFloat(playerData.validCredit) < parseFloat(amount))) {
+                    if ((parseInt(parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount))) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -5252,7 +5262,7 @@ let dbPlayerInfo = {
                                 //     bUpdateCredit = false;
                                 // }
                                 //to fix float problem...
-                                if (newPlayerData.validCredit < -0.001) {
+                                if (newPlayerData.validCredit < -0.01) {
                                     //credit will be reset below
                                     return Q.reject({
                                         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -5261,7 +5271,10 @@ let dbPlayerInfo = {
                                         data: '(detected after withdrawl)'
                                     });
                                 }
-
+                                if( newPlayerData.validCredit < 0 ){
+                                    newPlayerData.validCredit = 0;
+                                    newPlayerData.save().then();
+                                }
                                 player.validCredit = newPlayerData.validCredit;
                                 //create proposal
                                 var proposalData = {
@@ -5853,6 +5866,9 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                if( ip == "undefined" ){
+                    ip = "127.0.0.1";
+                }
                 var sendData = {
                     username: playerData.name,
                     platformId: playerData.platform.platformId,
@@ -5861,7 +5877,7 @@ let dbPlayerInfo = {
                     clientDomainName: clientDomainName || "Can not find domain",
                     lang: lang || localization.lang.ch_SP,
                     ip: ip,
-                    clientType: clientType
+                    clientType: clientType || 1
                 };
                 return cpmsAPI.player_getLoginURL(sendData);
             }
@@ -5900,6 +5916,9 @@ let dbPlayerInfo = {
             ).then(gameData => {
                 if (gameData) {
                     providerData = gameData.provider.toObject();
+                    if( ip == "undefined" ){
+                        ip = "127.0.0.1";
+                    }
                     var sendData = {
                         username: playerData.name,
                         platformId: platformData.platformId,
@@ -5908,7 +5927,7 @@ let dbPlayerInfo = {
                         clientDomainName: clientDomainName || "Can not find domain",
                         lang: lang || localization.lang.ch_SP,
                         ip: ip,
-                        clientType: clientType
+                        clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     return cpmsAPI.player_getTestLoginURL(sendData);
@@ -6998,15 +7017,15 @@ let dbPlayerInfo = {
                             }
                         }
                     )
-                    .catch(
-                        error => {
-                            return Q.reject({
-                                status: constServerCode.INVALID_DATA,
-                                name: "DataError",
-                                message: error.message
-                            });
-                        }
-                    )
+                        .catch(
+                            error => {
+                                return Q.reject({
+                                    status: constServerCode.INVALID_DATA,
+                                    name: "DataError",
+                                    message: error.message
+                                });
+                            }
+                        )
                 }
                 else {
                     return Q.reject({

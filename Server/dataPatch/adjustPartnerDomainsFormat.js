@@ -7,7 +7,7 @@ const env = require("../config/env").config();
 const dbconfig = require("../modules/dbproperties");
 
 
-const cursor = dbconfig.collection_partner.find({partnerName: "pjason88"}).cursor();
+const cursor = dbconfig.collection_partner.find().cursor();
 var i = 0;
 cursor.eachAsync(
     partnerData => {

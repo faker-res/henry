@@ -92,7 +92,7 @@ var simplifiedChinese = {
     "Error creating proposal": "无法创建提案",
     "The player already has this reward. Not Valid for the reward.": "玩家以申请该奖励",
     "This top up record has been used": "该充值记录已被使用",
-    "Player is not enable": "玩家被禁用",
+    "Player is not enable": "用户没有发现或无效密码",
     "Player does not have enough credit.": "玩家额度不够",
     "Player does not have valid payment information": "玩家支付信息无效",
     "Player does not have enough Expenses.": "玩家消费额度不够",

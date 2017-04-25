@@ -378,7 +378,9 @@ var roleChecker = {
                 Read: ['getPlatformWechatPayGroup'],
                 Create: ['addPlatformWechatPayGroup'],
                 Update: ['renamePlatformWechatPayGroup', 'setPlatformDefaultWechatPayGroup', 'addPlayersToWechatPayGroup'],
-                Delete: ["deleteWechatPayGroup"]
+                Delete: ["deleteWechatPayGroup"],
+                AddPlayer: [],
+                AddAllPlayer: []
             }
         },
         Provider: {
