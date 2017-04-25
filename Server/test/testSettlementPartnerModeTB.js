@@ -14,7 +14,7 @@ describe("Test Partner Commission Settlement TB Mode", () => {
     let partnerTreeConfig = {
         topLevelPartners: 1,
         depth: 1,
-        childrenPerPartner: 0,
+        childrenPerPartner: 1,
         playersPerPartner: 3
     };
 
@@ -67,7 +67,13 @@ describe("Test Partner Commission Settlement TB Mode", () => {
                 commissionRate: 0.4,
                 minProfitAmount: 100,
                 minActivePlayer: 3
-            }]
+            }],
+            //commission rate for children
+            childrenCommissionRate: [{
+                level: 1,
+                rate: 0.2
+            }],
+            commissionPeriod: "WEEK"
         });
     });
 
@@ -80,11 +86,16 @@ describe("Test Partner Commission Settlement TB Mode", () => {
         return dbPartner.startPlatformPartnerCommissionSettlement(generatedData.testPlatformId, true, true);
     });
 
+    it ('perform platform partner children commission settlement', () => {
+        return dbPartner.startPlatformPartnerChildrenCommissionSettlement(generatedData.testPlatformId, true, true);
+    });
+
     it ('check partner commission amount', () => {
         dbPartner.getPartnersByPlatform(generatedData.testPlatformId)
         .then(
             data => {
-                data[1].credits.should.equal(600);
+                data[1].credits.should.equal(720);
+                data[2].credits.should.equal(600);
             }
         )
     });

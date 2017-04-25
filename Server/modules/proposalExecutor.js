@@ -1637,11 +1637,11 @@ var proposalExecutor = {
                     {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformObjId},
                     {
                         lastCommissionSettleTime: proposalData.data.lastCommissionSettleTime,
-                        //
+                        lastChildrenCommissionSettleTime: proposalData.data.lastCommissionSettleTime,
                         negativeProfitAmount: proposalData.data.negativeProfitAmount,
                         $push: {commissionHistory: proposalData.data.commissionLevel},
                         negativeProfitStartTime: proposalData.data.negativeProfitStartTime,
-                        $inc: {credits: proposalData.data.commissionAmount}
+                        $inc: {credits: proposalData.data.commissionAmount + proposalData.data.commissionAmountFromChildren}
                     }
                 ).then(
                     deferred.resolve, deferred.reject

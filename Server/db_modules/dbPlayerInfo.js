@@ -1595,6 +1595,7 @@ let dbPlayerInfo = {
                         name: "DataError",
                         message: "Top up record is not the first top up of this week"
                     });
+                    return;
                 }
 
                 //check all top up records
