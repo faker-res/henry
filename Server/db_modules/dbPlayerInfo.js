@@ -5221,7 +5221,32 @@ let dbPlayerInfo = {
                     //     });
                     // }
 
-                    var changeCredit = -amount;
+                    let todayTime = dbUtility.getTodaySGTime();
+                    return  dbconfig.collection_proposal
+                        .find({
+                          mainType : "PlayerBonus",
+                          createTime: {
+                              $gte: todayTime.startTime,
+                              $lt: todayTime.endTime
+                          },
+                          "data.playerId":playerId,
+                          status:{
+                            $in:[constProposalStatus.PENDING,constProposalStatus.APPROVED,constProposalStatus.SUCCESS]
+                          }
+                        })
+                        // .populate({path: "process", model: dbconfig.collection_proposalProcess})
+                        .lean()
+                        .then(todayBonusApply => {
+
+                          var changeCredit = -amount;
+                          var finalAmount = amount;
+                          var creditCharge = 0;
+
+                          if(todayBonusApply.length >= playerData.platform.bonusCharges && playerData.platform.bonusPercentageCharges > 0){
+                            creditCharge = (finalAmount*playerData.platform.bonusPercentageCharges)*0.01 ;
+                            finalAmount = finalAmount - creditCharge;
+                          }
+
                     // if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
                     //     changeCredit = -playerData.validCredit;
                     // }
@@ -5268,12 +5293,13 @@ let dbPlayerInfo = {
                                     platformId: player.platform._id,
                                     platform: player.platform.platformId,
                                     bankTypeId: player.bankName,
-                                    amount: amount,
+                                    amount: finalAmount,
                                     bonusCredit: bonusDetail.credit,
                                     curAmount: player.validCredit,
                                     remark: player.remark,
                                     lastSettleTime: new Date(),
-                                    honoreeDetail: honoreeDetail
+                                    honoreeDetail: honoreeDetail,
+                                    creditCharge : creditCharge
                                     //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                 };
                                 var newProposal = {
@@ -5284,8 +5310,8 @@ let dbPlayerInfo = {
                                 };
                                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
                             }
-                        }
-                    );
+                        });
+                      });
                 } else {
                     return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
                 }

@@ -57,11 +57,14 @@ var platformSchema = new Schema({
     playerInvitationUrl: {type: String},
     //invitatio url for partner from partner
     partnerInvitationUrl: {type: String},
-
     //min top up amount
     minTopUpAmount: {type: Number, default: 0},
+    //percentage charges of apply bonus
+    bonusPercentageCharges:{type: Number, default: 0},
+    //numbers of times apply bonus without charges
+    bonusCharges:{type:Number},
     //allow same real name to register? for frontEnd only, they still can register via office
-    allowSameRealNameToRegister: {type: Boolean, default: true},
+    allowSameRealNameToRegister: {type: Boolean, default: true}
 });
 
 //add platform id before save
