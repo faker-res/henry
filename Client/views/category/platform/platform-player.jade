@@ -1349,8 +1349,8 @@ include modalGameCreditLog
                         label.control-label {{'CREDIT' | translate}}
                         input.form-control(type='number', ng-model='vm.playerApplyRewardPara.amount', required)
                     .form-group(ng-if='vm.playerApplyRewardShow.showReferral')
-                        label.control-label {{'referralId' | translate}}
-                        input.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='vm.playerApplyRewardPara.referralId', ng-change='vm.checkPlayerExist("playerId",vm.playerApplyRewardPara.referralId)', required)
+                        label.control-label {{'referralName' | translate}}
+                        input.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='vm.playerApplyRewardPara.referralName', ng-change='vm.checkPlayerExist("name",vm.playerApplyRewardPara.referralName)', required)
                         i#playerValidFalse.margin-left-5.fa.fa-times.text-danger.hidden(style='width:10px;')
                         i#playerValidTrue.margin-left-5.fa.fa-check.text-success.hidden(style='width:10px;')
                     .form-group(ng-if='vm.playerApplyRewardShow.showConsumptionReturn')

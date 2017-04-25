@@ -6969,7 +6969,7 @@ let dbPlayerInfo = {
                                     return dbPlayerInfo.applyPlayerTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_REFERRAL_REWARD:
-                                    return dbPlayerInfo.applyPlayerReferralReward(playerId, code, data.referralId, adminInfo);
+                                    return dbPlayerInfo.applyPlayerReferralReward(playerId, code, data.referralName, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_REGISTRATION_REWARD:
                                     return dbPlayerInfo.applyPlayerRegistrationReward(playerId, code, adminInfo);
@@ -7180,7 +7180,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyPlayerReferralReward: function (playerId, code, referralId, ifAdmin) {
+    applyPlayerReferralReward: function (playerId, code, referralName, ifAdmin) {
         var playerObj = null;
         var referralObj = null;
         var rewardEvent = null;
@@ -7210,7 +7210,7 @@ let dbPlayerInfo = {
                         });
                     }
                     return dbconfig.collection_players.findOne({
-                        playerId: referralId,
+                        name: referralName,
                         platform: playerObj.platform
                     }).lean();
                 }
@@ -7317,8 +7317,8 @@ let dbPlayerInfo = {
                             eventId: rewardEvent._id,
                             eventName: rewardEvent.name,
                             eventCode: rewardEvent.code,
-                            referralId: referralId,
-                            referralName: referralObj.name,
+                            referralName: referralName,
+                            referralId: referralObj.playerId,
                             referralTopUpAmount: topUpAmount,
                             eventDescription: rewardEvent.description
                         },

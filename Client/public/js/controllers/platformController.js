@@ -4638,7 +4638,7 @@ define(['js/app'], function (myApp) {
                     topUpRecordId: vm.playerApplyRewardPara.topUpRecordId,
                     topUpRecordIds: idArr,
                     amount: vm.playerApplyRewardPara.amount,
-                    referralId: vm.playerApplyRewardPara.referralId
+                    referralName: vm.playerApplyRewardPara.referralName
                 }
             };
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {

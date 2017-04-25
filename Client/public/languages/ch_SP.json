@@ -1737,6 +1737,7 @@
   "applyBonus": "申请兑奖",
   "ApplyBonus": "申请兑奖",
   "referralId": "推荐人ID",
+  "referralName": "推荐人账号",
   "WEIXIN_PHOTO": "微信图片",
   "CUSTOMER_SERVICE_URL": "在线客服Url",
   "AddPlayerRewardTask": "添加玩家奖励任务",
