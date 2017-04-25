@@ -5229,9 +5229,12 @@ let dbPlayerInfo = {
                               $gte: todayTime.startTime,
                               $lt: todayTime.endTime
                           },
-                          "data.playerId":playerId
+                          "data.playerId":playerId,
+                          status:{
+                            $in:["Pending","Success","Approved"]
+                          }
                         })
-                        .populate({path: "process", model: dbconfig.collection_proposalProcess})
+                        // .populate({path: "process", model: dbconfig.collection_proposalProcess})
                         .lean()
                         .then(todayBonusApply => {
 
