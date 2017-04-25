@@ -119,7 +119,7 @@ const dbPlayerMail = {
         let c = dbconfig.collection_smsVerificationLog.findOne({tel: telNum, createTime: { $gt: lastMin}});
 
         return Q.all([a, b, c]).then(data => {
-            let channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : null;
+            let channel = data[0] && data[0].channels && data[0].channels[1] ? data[0].channels[1] : 2;
             let platformId = data[1] && data[1].platformId ? data[1].platformId : null;
 
             if (channel == null || platformId == null) {
