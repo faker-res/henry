@@ -558,7 +558,9 @@ define(['js/app'], function (myApp) {
                         : (v.data.rewardAmount != null ?
                             parseFloat(v.data.rewardAmount).toFixed(2) :
                             v.data.commissionAmount != null ?
-                                parseFloat(v.data.commissionAmount).toFixed(2) :
+                                v.data.commissionAmount === 0 ?
+                                    parseFloat(v.data.commissionAmountFromChildren).toFixed(2) :
+                                    parseFloat(v.data.commissionAmount).toFixed(2) :
                                 v.data.negativeProfitAmount != null ?
                                     parseFloat(v.data.negativeProfitAmount).toFixed(2) : $translate("N/A"));
                     if (v.data.updateAmount != null) {

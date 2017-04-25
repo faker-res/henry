@@ -121,7 +121,9 @@ var partnerSchema = new Schema({
     //last commission settlement time
     lastCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO},
     //last children commission settlement time
-    lastChildrenCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO}
+    lastChildrenCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO},
+    // Commission Amount From Children
+    commissionAmountFromChildren: {type: Number, default: 0}
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));

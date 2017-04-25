@@ -2633,7 +2633,7 @@ let dbPartner = {
                                     commissionLevel: commissionLevel,
                                     negativeProfitStartTime: partnerData.negativeProfitStartTime,
                                     preNegativeProfitAmount: partnerData.negativeProfitAmount,
-
+                                    commissionAmountFromChildren: 0
                                 }
                             };
                             partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
@@ -2788,6 +2788,9 @@ let dbPartner = {
     calculatePartnerChildrenCommission: function (platformObjId, childrenCommissionRate, partnerObjId, startTime, endTime, settlementTimeToSave) {
         //find all children
         let commissionAmountFromChildren = 0;
+        let updatedCommissionRecordToReturn = null;
+        let _partnerData = null;
+
         return dbconfig.collection_partner.find({parent: partnerObjId, platform: platformObjId}).lean().then(
             childrenPartners => {
                 if (childrenPartners && childrenPartners.length > 0) {
@@ -2829,27 +2832,70 @@ let dbPartner = {
                         }
                     ).then(
                         updatedCommissionRecord => {
+                            updatedCommissionRecordToReturn = updatedCommissionRecord;
+
                             return Q.resolve().then(
                                 () => {
+                                    // Check if data update is required
                                     if (settlementTimeToSave) {
-                                        let proposalData = {
-                                            entryType: constProposalEntryType.SYSTEM,
-                                            userType: constProposalUserType.PARTNERS,
-                                            data: {
-                                                partnerObjId: partnerObjId,
-                                                platformObjId: platformObjId,
-                                                lastCommissionSettleTime: settlementTimeToSave,
-                                                commissionAmountFromChildren: commissionAmountFromChildren
-                                            }
-                                        };
-                                        return dbProposal.createProposalWithTypeName(updatedCommissionRecord.platform, constProposalType.PARTNER_CHILDREN_COMMISSION, proposalData);
+                                        // find the data for parent partner
+                                        return dbconfig.collection_partner.findOne({
+                                            _id: partnerObjId
+                                        });
+                                    } else {
+                                        return updatedCommissionRecord;
                                     }
                                 }
-                            ).then(
-                                () => updatedCommissionRecord
-                            );
+                            )
                         }
-                    )
+                    ).then(
+                        partnerData => {
+                            if (partnerData) {
+                                _partnerData = partnerData;
+
+                                // find any previous created proposal for this partner
+                                return dbconfig.collection_proposal.findOne({
+                                    platformObjId: platformObjId,
+                                    partnerName: partnerData.partnerName,
+                                    lastCommissionSettleTime: settlementTimeToSave
+                                });
+                            }
+                        }
+                    ).then(
+                        proposalData => {
+                            if (proposalData) {
+                                // Update parent commission to include children commission
+                                return dbconfig.collection_proposal.findOneAndUpdate({
+                                    platformObjId: platformObjId,
+                                    partnerObjId: partnerObjId,
+                                    lastCommissionSettleTime: settlementTimeToSave
+                                }, {
+                                    $inc: {commissionAmountFromChildren: commissionAmountFromChildren}
+                                });
+                            } else if (!proposalData && settlementTimeToSave && commissionAmountFromChildren > 0) {
+                                // Create a new proposal for child commission if parent commission not found
+                                let proposalData = {
+                                    entryType: constProposalEntryType.SYSTEM,
+                                    userType: constProposalUserType.PARTNERS,
+                                    data: {
+                                        partnerObjId: partnerObjId,
+                                        platformObjId: platformObjId,
+                                        partnerName: _partnerData.partnerName,
+                                        lastCommissionSettleTime: settlementTimeToSave,
+                                        commissionAmountFromChildren: commissionAmountFromChildren,
+                                        commissionAmount: 0,
+                                        negativeProfitAmount: 0,
+                                        negativeProfitStartTime: Date.now(),
+                                        preNegativeProfitAmount: _partnerData.negativeProfitAmount,
+                                        commissionLevel: []
+                                    }
+                                };
+                                return dbProposal.createProposalWithTypeName(platformObjId, constProposalType.PARTNER_COMMISSION, proposalData);
+                            }
+                        }
+                    ).then(
+                        () => updatedCommissionRecordToReturn
+                    );
                 }
             }
         );
