@@ -142,6 +142,23 @@ let dbPlayerPartner = {
                     });
                 }
             )
+        },
+
+    updatePasswordPlayerPartner:
+        (playerId, partnerId, oldPassword, newPassword, modifyPasswordSMSCode) => {
+            let plyProm = dbPlayerInfo.updatePassword(playerId, oldPassword, newPassword, modifyPasswordSMSCode);
+            let partnerProm = dbPartner.updatePassword(partnerId, oldPassword, newPassword, modifyPasswordSMSCode);
+
+            return Promise.all([plyProm, partnerProm])
+                .catch(
+                    error => {
+                        return Q.reject({
+                            status: constServerCode.DB_ERROR,
+                            name: "DBError",
+                            message: error.message
+                        });
+                    }
+                )
         }
 };
 

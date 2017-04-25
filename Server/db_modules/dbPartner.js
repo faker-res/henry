@@ -940,18 +940,74 @@ let dbPartner = {
 
     /**
      *  Update password
-     * @param {String} partnerId:xxxx, oldPassword:xxxx, newPassword:xxxx
-     *
      */
-    updatePassword: function (partnerId, currPassword, newPassword) {
-        var db_password = null;
-        var partnerObj = null;
+    updatePassword: function (partnerId, currPassword, newPassword, modifyPasswordSMSCode) {
+        let db_password = null;
+        let partnerObj = null;
         // compare the user entered old password and password from db
         return dbconfig.collection_partner.findOne({partnerId: partnerId}).then(
             data => {
                 if (data) {
                     partnerObj = data;
                     db_password = String(data.password);
+
+                    return dbconfig.collection_platform.findOne({
+                        _id: partnerObj.platform
+                    }).lean();
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Can not find partner"
+                    });
+                }
+            }
+        ).then(
+            platformData => {
+                if (platformData) {
+                    // Check if platform sms verification is required
+                    if (!platformData.requireSMSVerification) {
+                        // SMS verification not required
+                        return Q.resolve(true);
+                    } else {
+                        // Check verification SMS match
+                        return dbconfig.collection_smsVerificationLog.findOne({
+                            platformObjId: partnerObj.platform,
+                            tel: partnerObj.phoneNumber
+                        }).sort({createTime: -1}).then(
+                            verificationSMS => {
+                                // Check verification SMS code
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == modifyPasswordSMSCode) {
+                                    verificationSMS = verificationSMS || {};
+                                    return dbconfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(
+                                        () => {
+                                            return Q.resolve(true);
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_INVALID,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
                     if (dbUtil.isMd5(db_password)) {
                         if (md5(currPassword) == db_password) {
                             return Q.resolve(true);
@@ -961,7 +1017,7 @@ let dbPartner = {
                         }
                     }
                     else {
-                        var passDefer = Q.defer();
+                        let passDefer = Q.defer();
                         bcrypt.compare(String(currPassword), db_password, function (err, isMatch) {
                             if (err) {
                                 passDefer.reject({
@@ -974,12 +1030,6 @@ let dbPartner = {
                         });
                         return passDefer.promise;
                     }
-                }
-                else {
-                    return Q.reject({
-                        name: "DataError",
-                        message: "Can not find partner"
-                    });
                 }
             }
         ).then(
