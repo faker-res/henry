@@ -898,12 +898,10 @@ let dbPlayerInfo = {
     },
     /**
      *  Update password
-     * @param {String} playerId:xxxx, oldPassword:xxxx, newPassword:xxxx
-     *
      */
-    updatePassword: function (playerId, currPassword, newPassword) {
-        var db_password = null;
-        var playerObj = null;
+    updatePassword: function (playerId, currPassword, newPassword, modifyPasswordSMSCode) {
+        let db_password = null;
+        let playerObj = null;
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
             return Q.reject({name: "DataError", message: "Password is too short"});
         }
@@ -913,6 +911,43 @@ let dbPlayerInfo = {
                 if (data) {
                     playerObj = data;
                     db_password = String(data.password);
+
+                    // Check verification SMS match
+                    return dbconfig.collection_smsVerificationLog.findOne({
+                        platformObjId: playerObj.platform,
+                        tel: playerObj.phoneNumber
+                    }).sort({createTime: -1}).then(
+                        verificationSMS => {
+                            // Check verification SMS code
+                            if (verificationSMS && verificationSMS.code && verificationSMS.code === modifyPasswordSMSCode) {
+                                verificationSMS = verificationSMS || {};
+                                return dbconfig.collection_smsVerificationLog.remove(
+                                    {_id: verificationSMS._id}
+                                ).then(
+                                    () => {
+                                        return Q.resolve(true);
+                                    }
+                                )
+                            }
+                            else {
+                                return Q.reject({
+                                    status: constServerCode.VALIDATION_CODE_INVALID,
+                                    name: "ValidationError",
+                                    message: "Invalid SMS Validation Code"
+                                });
+                            }
+                        }
+                    )
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Can not find player"
+                    });
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
                     if (dbUtility.isMd5(db_password)) {
                         if (md5(currPassword) == db_password) {
                             return Q.resolve(true);
@@ -922,7 +957,7 @@ let dbPlayerInfo = {
                         }
                     }
                     else {
-                        var passDefer = Q.defer();
+                        let passDefer = Q.defer();
                         bcrypt.compare(String(currPassword), db_password, function (err, isMatch) {
                             if (err) {
                                 passDefer.reject({
@@ -935,12 +970,6 @@ let dbPlayerInfo = {
                         });
                         return passDefer.promise;
                     }
-                }
-                else {
-                    return Q.reject({
-                        name: "DataError",
-                        message: "Can not find player"
-                    });
                 }
             }
         ).then(

@@ -135,6 +135,7 @@ const dbPlayerMail = {
             let saveObj = {
                 tel: telNum,
                 channel: channel,
+                platformObjId: data[1]._id,
                 platformId: platformId,
                 code: code,
                 delay: data.delay || 0
