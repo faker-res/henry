@@ -3359,7 +3359,6 @@ let dbPlayerInfo = {
                             let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
                                 providerShortId, amount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
-                            error.hasLog = true;
                             return cpmsAPI.player_transferOut(
                                 {
                                     username: userName,
