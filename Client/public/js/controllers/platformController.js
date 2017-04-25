@@ -3220,6 +3220,7 @@ define(['js/app'], function (myApp) {
             vm.duplicateNameFound = false;
             $('.referralValidTrue').hide();
             $('.referralValidFalse').hide();
+            vm.newPlayer.domain = window.location.hostname;
             vm.getReferralPlayer(vm.newPlayer, "new");
         }
         vm.editPlayerStatus = function (id) {

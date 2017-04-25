@@ -2114,7 +2114,7 @@ var proposalExecutor = {
             if (proposalData && proposalData.data && proposalData.data.referralName) {
                 dbUtil.findOneAndUpdateForShard(
                     dbconfig.collection_players,
-                    {playerId: proposalData.data.referralName},
+                    {name: proposalData.data.referralName},
                     {isReferralReward: false},
                     constShardKeys.collection_players
                 ).then(

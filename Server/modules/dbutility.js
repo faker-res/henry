@@ -577,6 +577,16 @@ var dbUtility = {
         return res;
     },
 
+    getDomainName: function (src) {
+        src = src || '';
+        return src
+            .replace("https://www.", "")
+            .replace("http://www.", "")
+            .replace("https://", "")
+            .replace("http://", "")
+            .replace("www.", "");
+    }
+
 };
 
 var proto = dbUtilityFunc.prototype;

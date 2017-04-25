@@ -171,7 +171,7 @@ let dbPlayerInfo = {
                         //check if player's domain matches any partner
                         else if (inputData.domain) {
                             delete inputData.referral;
-                            var filteredDomain = inputData.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
+                            var filteredDomain = dbUtility.getDomainName(inputData.domain);
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
@@ -5249,7 +5249,7 @@ let dbPlayerInfo = {
                                         data: '(detected after withdrawl)'
                                     });
                                 }
-                                if( newPlayerData.validCredit < 0 ){
+                                if (newPlayerData.validCredit < 0) {
                                     newPlayerData.validCredit = 0;
                                     newPlayerData.save().then();
                                 }
@@ -5843,7 +5843,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if( ip == "undefined" ){
+                if (ip == "undefined") {
                     ip = "127.0.0.1";
                 }
                 var sendData = {
@@ -5893,7 +5893,7 @@ let dbPlayerInfo = {
             ).then(gameData => {
                 if (gameData) {
                     providerData = gameData.provider.toObject();
-                    if( ip == "undefined" ){
+                    if (ip == "undefined") {
                         ip = "127.0.0.1";
                     }
                     var sendData = {
