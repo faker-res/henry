@@ -2855,9 +2855,9 @@ let dbPartner = {
 
                                 // find any previous created proposal for this partner
                                 return dbconfig.collection_proposal.findOne({
-                                    platformObjId: platformObjId,
-                                    partnerName: partnerData.partnerName,
-                                    lastCommissionSettleTime: settlementTimeToSave
+                                    "data.platformObjId": platformObjId,
+                                    "data.partnerName": partnerData.partnerName,
+                                    "data.lastCommissionSettleTime": settlementTimeToSave
                                 });
                             }
                         }
@@ -2866,11 +2866,9 @@ let dbPartner = {
                             if (proposalData) {
                                 // Update parent commission to include children commission
                                 return dbconfig.collection_proposal.findOneAndUpdate({
-                                    platformObjId: platformObjId,
-                                    partnerObjId: partnerObjId,
-                                    lastCommissionSettleTime: settlementTimeToSave
+                                    _id: proposalData._id
                                 }, {
-                                    $inc: {commissionAmountFromChildren: commissionAmountFromChildren}
+                                    "data.commissionAmountFromChildren": commissionAmountFromChildren
                                 });
                             } else if (!proposalData && settlementTimeToSave && commissionAmountFromChildren > 0) {
                                 // Create a new proposal for child commission if parent commission not found
