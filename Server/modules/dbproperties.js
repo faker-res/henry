@@ -215,6 +215,9 @@ var gameProviderPlayerDaySummaryModel = dbLogs.model('gameProviderPlayerDaySumma
 var playerPermissionLogSchema = require('./../schema/logs/playerPermissionLog');
 var playerPermissionLogModel = dbLogs.model('playerPermissionLog', playerPermissionLogSchema, 'playerPermissionLog');
 
+let partnerPermissionLogSchema = require('./../schema/logs/partnerPermissionLog');
+let partnerPermissionLogModel = dbLogs.model('partnerPermissionLog', partnerPermissionLogSchema, 'partnerPermissionLog');
+
 var playerCreditTransferLogSchema = require('./../schema/logs/playerCreditTransferLog');
 var playerCreditTransferLogModel = dbLogs.model('playerCreditTransferLog', playerCreditTransferLogSchema, 'playerCreditTransferLog');
 
@@ -356,6 +359,7 @@ var dbProperties = {
     collection_partnerCommissionRecord: partnerCommissionRecordModel,
     collection_paymentAPILog: paymentAPILogModel,
     collection_syncDataLog: syncDataLogModel,
+    collection_partnerPermissionLog: partnerPermissionLogModel,
 
     //unique
     collection_playerName: playerNameModal,

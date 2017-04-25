@@ -278,7 +278,8 @@ var roleChecker = {
                 EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal'],
                 BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPlayerBankAccount'],
                 ResetPassword: ['resetPartnerPassword'],
-                ApplyBonus: ['applyPartnerBonusRequest']
+                ApplyBonus: ['applyPartnerBonusRequest'],
+                PartnerPermission: ['updatePartnerPermission']
             },
             "Game": {
                 Read: ['getAllGameProviders', 'getGamesByPlatformAndProvider', 'getGamesNotAttachedToPlatform'],

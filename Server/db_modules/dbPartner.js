@@ -3558,6 +3558,57 @@ let dbPartner = {
             }
         );
     },
+
+    updatePartnerPermission: function (query, admin, permission, remark) {
+        let updateObj = {};
+        for (let key in permission) {
+            if (permission.hasOwnProperty(key)) {
+                updateObj["permission." + key] = permission[key];
+            }
+        }
+        return dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, query, updateObj, constShardKeys.collection_partner, false).then(
+            suc => {
+                let oldData = {};
+                for (let i in permission) {
+                    if (permission.hasOwnProperty(i)) {
+                        if (suc.permission[i] != permission[i]) {
+                            oldData[i] = suc.permission[i];
+                        } else {
+                            delete permission[i];
+                        }
+                    }
+                }
+                if (Object.keys(oldData).length !== 0) {
+                    let newLog = new dbconfig.collection_partnerPermissionLog({
+                        admin: admin,
+                        platform: query.platform,
+                        partner: query._id,
+                        remark: remark,
+                        oldData: oldData,
+                        newData: permission,
+                    });
+                    return newLog.save();
+                } else return true;
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error updating partner permission.",
+                    error: error});
+            }
+        ).then(
+            suc => {
+                return true;
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Partner permission updated. Error occurred when creating log.",
+                    error: error
+                });
+            }
+        );
+    },
 };
 
 module.exports = dbPartner;

@@ -3447,13 +3447,14 @@ define(['js/app'], function (myApp) {
                 item.validPlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].validPlayers : 0;
                 item.activePlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].activePlayers : 0;
                 return item;
-            })
+            });
 
             vm.drawSelectPartnerTable(vm.showPartners, editingObj);
             $scope.safeApply();
-        }
+        };
+
         vm.drawSelectPartnerTable = function (data, obj) {
-            var tableOptions = {
+            let tableOptions = {
                 data: data,
                 columnDefs: [{targets: '_all', defaultContent: ' '}],
                 aaSorting: [],
@@ -3536,13 +3537,14 @@ define(['js/app'], function (myApp) {
                         // $('#partnerInEditPlayer').text(aData.partnerName);
                         $scope.safeApply();
                     });
-                },
+                }
             };
             vm.partnerSelectTable = $('#partnerSelectTable').DataTable(tableOptions);
             utilService.setDataTablePageInput('partnerSelectTable', vm.partnerSelectTable, $translate);
             $('#partnerSelectTable').resize();
             $('#partnerSelectTable').resize();
-        }
+        };
+
         vm.clearPartnerSelection = function () {
             $('#partnerSelectTable tbody tr').removeClass('selected');
             vm.parterSelectedforPlayer = null;
@@ -6342,6 +6344,29 @@ define(['js/app'], function (myApp) {
                         "sClass": ""
                     },
                     {
+                        title: $translate('PERMISSION'),
+                        orderable: false,
+                        render: function (data, type, row) {
+                            data = data || {permission: {}};
+
+                            let link = $('<a>', {
+                                'class': 'partnerPermissionPopover',
+                                'ng-click': "vm.permissionPartner = " + JSON.stringify(row), // @todo: escaping issue
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'popover',
+                                'data-trigger': 'focus',
+                                'data-placement': 'bottom',
+                                'data-container': 'body',
+                            });
+                            let perm = (row && row.permission) ? row.permission : {};
+                            link.append($('<i>', {
+                                'class': 'fa fa-gift margin-right-5 ' + (perm.commissionSettlement === true ? "text-primary" : "text-danger"),
+                            }));
+                            return link.prop('outerHTML');
+                        },
+                        "sClass": "alignLeft"
+                    },
+                    {
                         title: $translate('LAST_ACCESS_TIME'), data: 'lastAccessTime',
                         render: function (data, type, row) {
                             return utilService.getFormatTime(data);
@@ -6578,6 +6603,66 @@ define(['js/app'], function (myApp) {
                             });
                         }
                     });
+
+                    utilService.setupPopover({
+                        context: container,
+                        elem: '.partnerPermissionPopover',
+                        onClickAsync: function (showPopover) {
+                            let that = this;
+                            let row = JSON.parse(this.dataset.row);
+                            vm.partnerPermissionTypes = {
+                                commissionSettlement: {imgType: 'i', iconClass: "fa fa-gift"}
+                            };
+                            $("#partnerPermissionTable td").removeClass('hide');
+                            $.each(vm.partnerPermissionTypes, function (key, v) {
+                                if (row.permission && row.permission[key]) {
+                                    $("#partnerPermissionTable .permitOff." + key).addClass('hide');
+                                } else {
+                                    $("#partnerPermissionTable .permitOn." + key).addClass('hide');
+                                }
+                            });
+                            $scope.safeApply();
+                            showPopover(that, '#partnerPermissionTable', row);
+                        },
+                        callback: function () {
+                            let changeObj = {};
+                            let thisPopover = utilService.$getPopoverID(this);
+                            let $remark = $(thisPopover + ' .permissionRemark');
+                            let $submit = $(thisPopover + ' .submit');
+                            $submit.prop('disabled', true);
+                            $(thisPopover + " .togglePartner").on('click', function () {
+                                let key = $(this).data("which");
+                                let select = $(this).data("on");
+                                changeObj[key] = !select;
+                                $(thisPopover + ' .' + key).toggleClass('hide');
+                                $submit.prop('disabled', $remark.val() == '');
+                            });
+
+                            $remark.on('input selectionchange propertychange', function () {
+                                $submit.prop('disabled', this.value.length === 0 || changeObj == {})
+                            });
+
+                            $submit.on('click', function () {
+                                $submit.off('click');
+                                $(thisPopover + " .togglePlayer").off('click');
+                                $remark.off('input selectionchange propertychange');
+                                socketService.$socket($scope.AppSocket, 'updatePartnerPermission', {
+                                    query: {
+                                        platform: vm.permissionPartner.platform,
+                                        _id: vm.permissionPartner._id
+                                    },
+                                    admin: authService.adminId,
+                                    permission: changeObj,
+                                    remark: $remark.val()
+                                }, function (data) {
+                                    vm.getPlatformPartnersData();
+                                }, null, true);
+                                $(thisPopover).popover('hide');
+                            })
+
+                        }
+                    });
+
                     $('#partnerDataTable').resize();
                     $('#partnerDataTable').resize();
                 }
