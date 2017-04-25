@@ -2885,11 +2885,15 @@ let dbPartner = {
                                         commissionAmountFromChildren: commissionAmountFromChildren,
                                         commissionAmount: 0,
                                         negativeProfitAmount: 0,
-                                        negativeProfitStartTime: Date.now(),
                                         preNegativeProfitAmount: _partnerData.negativeProfitAmount,
                                         commissionLevel: []
                                     }
                                 };
+
+                                if (_partnerData.negativeProfitStartTime) {
+                                    proposalData.data.negativeProfitStartTime = _partnerData.negativeProfitStartTime;
+                                }
+
                                 return dbProposal.createProposalWithTypeName(platformObjId, constProposalType.PARTNER_COMMISSION, proposalData);
                             }
                         }
