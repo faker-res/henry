@@ -3072,7 +3072,7 @@ let dbPlayerInfo = {
                             transferId = id;
                             let lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
-                                id, providerShortId, transferAmount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.SEND);
+                                id, providerShortId, transferAmount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return cpmsAPI.player_transferIn(
                                 {
                                     username: userName,
@@ -3358,7 +3358,7 @@ let dbPlayerInfo = {
                             // console.log("player_transferOut:", userName, providerShortId, amount);
                             let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                providerShortId, amount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.SEND);
+                                providerShortId, amount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             error.hasLog = true;
                             return cpmsAPI.player_transferOut(
                                 {
