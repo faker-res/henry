@@ -1674,6 +1674,7 @@
   "Client Type": "客户类型",
   "APPROVAL_PROPOSAL": "待审提案",
   "AUTO_SETTLEMENT": "自动结算",
+  "SMS_VERIFICATION": "短信验证",
   "Auto Refresh": "自动刷新",
   "Repair Transaction": "转账修复",
   "RepairTransaction": "转账修复",

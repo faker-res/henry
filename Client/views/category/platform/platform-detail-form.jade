@@ -52,6 +52,8 @@ form(name="form_new_platform" ,novalidate)
     div.form-group.col-md-6
         label {{"AUTO_SETTLEMENT" | translate}}
             input.margin-left-5(type='checkbox', ng-model="vm.showPlatform.canAutoSettlement")
+        label {{"SMS_VERIFICATION" | translate}}
+            input.margin-left-5(type='checkbox', ng-model="vm.showPlatform.requireSMSVerification")
     .col-md-12
         .text-center
             label {{"SETTLEMENT" | translate}}
