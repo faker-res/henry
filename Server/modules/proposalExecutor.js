@@ -2037,7 +2037,10 @@ var proposalExecutor = {
         rejectPlayerBonus: function (proposalData, deferred) {
             if (proposalData && proposalData.data && proposalData.data.amount && proposalData.data.bonusCredit) {
                 //todo::add more reasons here, ex:cancel request
-                return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
+
+                // return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
+
+                return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, "rejectPlayerBonus")
                     .then(
                         res => deferred.resolve("Proposal is rejected"),
                         error => deferred.reject(error)
