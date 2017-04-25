@@ -317,6 +317,14 @@ function socketActionPartner(socketIO, socket) {
                 id: getAdminId()
             }], actionName, isValidData);
         },
+        /**
+         *  Update partner permission
+         */
+        updatePartnerPermission: function updatePartnerPermission(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.query.platform && data.query._id && data.admin && data.permission && data.remark);
+            socketUtil.emitter(self.socket, dbPartner.updatePartnerPermission, [data.query, data.admin, data.permission, data.remark], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;

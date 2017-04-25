@@ -2349,7 +2349,10 @@ let dbPartner = {
                         {
                             platform: platformObjId,
                             totalReferrals: {$gt: 0},
-                            $or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]
+                            $and: [
+                                {$or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]},
+                                {$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}
+                            ]
                         }
                     ).cursor({batchSize: 100});
 
@@ -2745,7 +2748,8 @@ let dbPartner = {
                     let stream = dbconfig.collection_partner.find(
                         {
                             platform: platformObjId,
-                            lastChildrenCommissionSettleTime: {$lt: settleTime.startTime}
+                            lastChildrenCommissionSettleTime: {$lt: settleTime.startTime},
+                            $and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]
                         }
                     ).cursor({batchSize: 10});
 
@@ -2913,7 +2917,7 @@ let dbPartner = {
                 $lt: endTime
             }
         };
-        var partId = matchObj;
+        let partId = matchObj;
         if (partnerName) {
             partId = dbconfig.collection_partner.findOne({partnerName: partnerName}).then(
                 partner => {
@@ -2924,7 +2928,20 @@ let dbPartner = {
                     }
                     return matchObj;
                 })
+        } else {
+            // Instead of searching all partners, look for only partners with permission on
+            partId = dbconfig.collection_partner.find({$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}).then(
+                partners => {
+                    if (partners && partners.length > 0) {
+                        let partnerIds = partners.map(partner => partner._id);
+                        matchObj.partner = {$in: partnerIds};
+                    } else {
+                        matchObj = "noPartner";
+                    }
+                    return matchObj;
+                })
         }
+
         return Q.resolve(partId).then(
             matchObj => {
                 if (matchObj == "noPartner") {
@@ -3555,6 +3572,57 @@ let dbPartner = {
                 } else {
                     return Q.reject({name: "DataError", message: "Can not find partner"});
                 }
+            }
+        );
+    },
+
+    updatePartnerPermission: function (query, admin, permission, remark) {
+        let updateObj = {};
+        for (let key in permission) {
+            if (permission.hasOwnProperty(key)) {
+                updateObj["permission." + key] = permission[key];
+            }
+        }
+        return dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, query, updateObj, constShardKeys.collection_partner, false).then(
+            suc => {
+                let oldData = {};
+                for (let i in permission) {
+                    if (permission.hasOwnProperty(i)) {
+                        if (suc.permission[i] != permission[i]) {
+                            oldData[i] = suc.permission[i];
+                        } else {
+                            delete permission[i];
+                        }
+                    }
+                }
+                if (Object.keys(oldData).length !== 0) {
+                    let newLog = new dbconfig.collection_partnerPermissionLog({
+                        admin: admin,
+                        platform: query.platform,
+                        partner: query._id,
+                        remark: remark,
+                        oldData: oldData,
+                        newData: permission,
+                    });
+                    return newLog.save();
+                } else return true;
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error updating partner permission.",
+                    error: error});
+            }
+        ).then(
+            suc => {
+                return true;
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Partner permission updated. Error occurred when creating log.",
+                    error: error
+                });
             }
         );
     },
