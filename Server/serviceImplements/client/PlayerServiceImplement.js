@@ -474,9 +474,10 @@ let PlayerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
-    this.updatePassword.expectsData = 'playerId: String, oldPassword: String, newPassword: String, modifyPasswordSMSCode: Number';
+    this.updatePassword.expectsData = 'playerId: String, oldPassword: String, newPassword: String';
     this.updatePassword.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId));
+        data.modifyPasswordSMSCode = data.modifyPasswordSMSCode ? data.modifyPasswordSMSCode : "";
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePassword, [data.playerId, data.oldPassword, data.newPassword, data.modifyPasswordSMSCode], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {

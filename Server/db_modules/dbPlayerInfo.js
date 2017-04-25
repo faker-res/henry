@@ -938,7 +938,7 @@ let dbPlayerInfo = {
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code === modifyPasswordSMSCode) {
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == modifyPasswordSMSCode) {
                                     verificationSMS = verificationSMS || {};
                                     return dbconfig.collection_smsVerificationLog.remove(
                                         {_id: verificationSMS._id}
@@ -1050,7 +1050,7 @@ let dbPlayerInfo = {
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code === updateData.modifyPaymentInfoSMSCode) {
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == updateData.modifyPaymentInfoSMSCode) {
                                     verificationSMS = verificationSMS || {};
                                     return dbconfig.collection_smsVerificationLog.remove(
                                         {_id: verificationSMS._id}
