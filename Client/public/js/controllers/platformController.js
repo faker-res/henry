@@ -3220,6 +3220,7 @@ define(['js/app'], function (myApp) {
             vm.duplicateNameFound = false;
             $('.referralValidTrue').hide();
             $('.referralValidFalse').hide();
+            vm.newPlayer.domain = window.location.hostname;
             vm.getReferralPlayer(vm.newPlayer, "new");
         }
         vm.editPlayerStatus = function (id) {
@@ -4638,7 +4639,7 @@ define(['js/app'], function (myApp) {
                     topUpRecordId: vm.playerApplyRewardPara.topUpRecordId,
                     topUpRecordIds: idArr,
                     amount: vm.playerApplyRewardPara.amount,
-                    referralId: vm.playerApplyRewardPara.referralId
+                    referralName: vm.playerApplyRewardPara.referralName
                 }
             };
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
@@ -6761,6 +6762,7 @@ define(['js/app'], function (myApp) {
             $(".partnerParentFalse").hide();
             $(".partnerParentTrue").hide();
             vm.partnerParentChange("id");
+            vm.newPartner.domain = window.location.hostname;
         }
         vm.partnerParentChange = function (type) {
             var result = false, empty = false;

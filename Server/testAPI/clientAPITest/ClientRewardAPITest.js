@@ -147,7 +147,7 @@
                 topUpRecordIds: [requestData.topUpRecordId],
                 code: requestData.code,
                 amount: requestData.amount,
-                referralId: requestData.referralId
+                referralName: requestData.referralName
             }
         }
         var data = sendReq ||

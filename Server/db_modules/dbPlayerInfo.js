@@ -171,7 +171,7 @@ let dbPlayerInfo = {
                         //check if player's domain matches any partner
                         else if (inputData.domain) {
                             delete inputData.referral;
-                            var filteredDomain = inputData.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
+                            var filteredDomain = dbUtility.getDomainName(inputData.domain);
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
@@ -5275,7 +5275,7 @@ let dbPlayerInfo = {
                                         data: '(detected after withdrawl)'
                                     });
                                 }
-                                if( newPlayerData.validCredit < 0 ){
+                                if (newPlayerData.validCredit < 0) {
                                     newPlayerData.validCredit = 0;
                                     newPlayerData.save().then();
                                 }
@@ -5870,7 +5870,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if( ip == "undefined" ){
+                if (ip == "undefined") {
                     ip = "127.0.0.1";
                 }
                 var sendData = {
@@ -5920,7 +5920,7 @@ let dbPlayerInfo = {
             ).then(gameData => {
                 if (gameData) {
                     providerData = gameData.provider.toObject();
-                    if( ip == "undefined" ){
+                    if (ip == "undefined") {
                         ip = "127.0.0.1";
                     }
                     var sendData = {
@@ -6996,7 +6996,7 @@ let dbPlayerInfo = {
                                     return dbPlayerInfo.applyPlayerTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_REFERRAL_REWARD:
-                                    return dbPlayerInfo.applyPlayerReferralReward(playerId, code, data.referralId, adminInfo);
+                                    return dbPlayerInfo.applyPlayerReferralReward(playerId, code, data.referralName, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_REGISTRATION_REWARD:
                                     return dbPlayerInfo.applyPlayerRegistrationReward(playerId, code, adminInfo);
@@ -7207,7 +7207,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyPlayerReferralReward: function (playerId, code, referralId, ifAdmin) {
+    applyPlayerReferralReward: function (playerId, code, referralName, ifAdmin) {
         var playerObj = null;
         var referralObj = null;
         var rewardEvent = null;
@@ -7237,7 +7237,7 @@ let dbPlayerInfo = {
                         });
                     }
                     return dbconfig.collection_players.findOne({
-                        playerId: referralId,
+                        name: referralName,
                         platform: playerObj.platform
                     }).lean();
                 }
@@ -7344,8 +7344,8 @@ let dbPlayerInfo = {
                             eventId: rewardEvent._id,
                             eventName: rewardEvent.name,
                             eventCode: rewardEvent.code,
-                            referralId: referralId,
-                            referralName: referralObj.name,
+                            referralName: referralName,
+                            referralId: referralObj.playerId,
                             referralTopUpAmount: topUpAmount,
                             eventDescription: rewardEvent.description
                         },
