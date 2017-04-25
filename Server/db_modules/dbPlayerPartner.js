@@ -12,32 +12,47 @@ let dbPartner = require('./../db_modules/dbPartner');
 let dbPlayerPartner = {
     createPlayerPartnerAPI:
         registerData => {
-            let smsProm = dbConfig.collection_smsVerificationLog.findOne({
-                platformId: registerData.platformId,
-                tel: registerData.phoneNumber
-            }).sort({createTime: -1});
-
-            return smsProm.then(
-                verificationSMS => {
-                    // Check verification SMS code
-                    if ( (registerData.captcha && !registerData.smsCode) || (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode)) {
+            return dbConfig.collection_platform.findOne({
+                platformId: registerData.platformId
+            }).lean().then(
+                platformData => {
+                    // Check if platform sms verification is required
+                    if (!platformData.requireSMSVerification) {
+                        // SMS verification not required
                         let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
                         let partnerProm = dbPartner.createPartnerAPI(registerData);
-                        verificationSMS = verificationSMS || {};
-                        return dbConfig.collection_smsVerificationLog.remove(
-                            {_id: verificationSMS._id}
-                        ).then(
-                            data => {
-                                return Promise.all([plyProm, partnerProm]);
+
+                        return Promise.all([plyProm, partnerProm]);
+                    } else {
+                        let smsProm = dbConfig.collection_smsVerificationLog.findOne({
+                            platformId: registerData.platformId,
+                            tel: registerData.phoneNumber
+                        }).sort({createTime: -1});
+
+                        return smsProm.then(
+                            verificationSMS => {
+                                // Check verification SMS code
+                                if ( (registerData.captcha && !registerData.smsCode) || (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode)) {
+                                    let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
+                                    let partnerProm = dbPartner.createPartnerAPI(registerData);
+                                    verificationSMS = verificationSMS || {};
+                                    return dbConfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(
+                                        data => {
+                                            return Promise.all([plyProm, partnerProm]);
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_INVALID,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
                             }
                         )
-                    }
-                    else {
-                        return Q.reject({
-                            status: constServerCode.VALIDATION_CODE_INVALID,
-                            name: "ValidationError",
-                            message: "Invalid SMS Validation Code"
-                        });
                     }
                 }
             ).then(
