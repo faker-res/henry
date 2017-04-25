@@ -108,6 +108,8 @@ var partnerSchema = new Schema({
     phoneCity: String,
     //type
     phoneType: String,
+    //domain
+    domain: String,
     //partner domain name
     ownDomain: [{type: String}],
     //if this partner has player account

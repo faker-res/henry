@@ -6762,6 +6762,7 @@ define(['js/app'], function (myApp) {
             $(".partnerParentFalse").hide();
             $(".partnerParentTrue").hide();
             vm.partnerParentChange("id");
+            vm.newPartner.domain = window.location.hostname;
         }
         vm.partnerParentChange = function (type) {
             var result = false, empty = false;

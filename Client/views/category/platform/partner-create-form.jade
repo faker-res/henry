@@ -32,6 +32,9 @@ form(name="form_new_partner", novalidate)
         //select.form-control(type="text", placeholder="{{'PARENT' | translate}}", ng-model="vm.newPartner.parent")
             option(ng-repeat='(i,v) in vm.partners', value='{{v._id}}') {{v.partnerName}}
             option(value='{{null}}') {{'NULL' | translate}}
+    div.form-group.col-md-6
+        label.control-label {{"Registration Domain" | translate}}
+        label.form-control {{vm.newPartner.domain}}
     p
     div.form-group.col-md-12
         label.control-label {{"REMARKS" | translate}}

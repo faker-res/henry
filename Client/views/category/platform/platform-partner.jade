@@ -346,6 +346,9 @@ p
                                             label {{'CITY' | translate}}
                                             text {{vm.selectedSinglePartner.city || 'Unknown' | translate}}
                                         .inlineBlk
+                                            label {{'Registration Domain' | translate}}
+                                            text {{vm.selectedSinglePartner.domain || 'Unknown' | translate}}
+                                        .inlineBlk
                                             button.btn.btn-primary.common-button-sm(ng-click='vm.showPartnerIPHistory()') {{"View Details" | translate}}
                                 tr
                                     td
