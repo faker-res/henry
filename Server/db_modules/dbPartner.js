@@ -2349,7 +2349,10 @@ let dbPartner = {
                         {
                             platform: platformObjId,
                             totalReferrals: {$gt: 0},
-                            $or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]
+                            $and: [
+                                {$or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]},
+                                {$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}
+                            ]
                         }
                     ).cursor({batchSize: 100});
 
@@ -2745,7 +2748,8 @@ let dbPartner = {
                     let stream = dbconfig.collection_partner.find(
                         {
                             platform: platformObjId,
-                            lastChildrenCommissionSettleTime: {$lt: settleTime.startTime}
+                            lastChildrenCommissionSettleTime: {$lt: settleTime.startTime},
+                            $and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]
                         }
                     ).cursor({batchSize: 10});
 
@@ -2913,7 +2917,7 @@ let dbPartner = {
                 $lt: endTime
             }
         };
-        var partId = matchObj;
+        let partId = matchObj;
         if (partnerName) {
             partId = dbconfig.collection_partner.findOne({partnerName: partnerName}).then(
                 partner => {
@@ -2924,7 +2928,20 @@ let dbPartner = {
                     }
                     return matchObj;
                 })
+        } else {
+            // Instead of searching all partners, look for only partners with permission on
+            partId = dbconfig.collection_partner.find({$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}).then(
+                partners => {
+                    if (partners && partners.length > 0) {
+                        let partnerIds = partners.map(partner => partner._id);
+                        matchObj.partner = {$in: partnerIds};
+                    } else {
+                        matchObj = "noPartner";
+                    }
+                    return matchObj;
+                })
         }
+
         return Q.resolve(partId).then(
             matchObj => {
                 if (matchObj == "noPartner") {
