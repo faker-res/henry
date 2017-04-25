@@ -5231,7 +5231,7 @@ let dbPlayerInfo = {
                           },
                           "data.playerId":playerId,
                           status:{
-                            $in:["Pending","Success","Approved"]
+                            $in:[constProposalStatus.PENDING,constProposalStatus.APPROVED,constProposalStatus.SUCCESS]
                           }
                         })
                         // .populate({path: "process", model: dbconfig.collection_proposalProcess})
