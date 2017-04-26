@@ -547,7 +547,11 @@ let dbPlayerInfo = {
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm]);
+                    var wechatGroupProm = dbconfig.collection_platformWechatPayGroup.findOne({
+                        platform: playerdata.platform,
+                        bDefault: true
+                    });
+                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm]);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't create new player."});
@@ -580,6 +584,9 @@ let dbPlayerInfo = {
                     }
                     if (data[4]) {
                         playerUpdateData.alipayGroup = data[4]._id;
+                    }
+                    if (data[5]) {
+                        playerUpdateData.wechatPayGroup = data[5]._id;
                     }
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
