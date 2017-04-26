@@ -476,8 +476,23 @@ let PlayerServiceImplement = function () {
 
     this.updatePassword.expectsData = 'playerId: String, oldPassword: String, newPassword: String';
     this.updatePassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId));
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePassword, [data.playerId, data.oldPassword, data.newPassword], isValidData, true, false, false).then(
+        let isValidData = Boolean(data && data.playerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId));
+        data.smsCode = data.smsCode ? data.smsCode : "";
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePassword, [data.playerId, data.oldPassword, data.newPassword, data.smsCode], isValidData, true, false, false).then(
+            function (res) {
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS, // operation successful
+                }, data);
+                SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+            }
+        ).catch(WebSocketUtil.errorHandler).done();
+    };
+
+    this.updatePasswordPlayerPartner.expectsData = 'playerId: String, partnerId: String, oldPassword: String, newPassword: String';
+    this.updatePasswordPlayerPartner.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.playerId && data.partnerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId) && data.partnerId == conn.partnerId);
+        data.smsCode = data.smsCode ? data.smsCode : "";
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.updatePasswordPlayerPartner, [data.playerId, data.partnerId, data.oldPassword, data.newPassword, data.smsCode], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS, // operation successful
