@@ -112,6 +112,12 @@ var dbRewardTask = {
             }
         )
     },
+
+    getPendingRewardTaskCount: function(query){
+        console.log(query);
+        return dbconfig.collection_proposal.find(query).count();
+    },
+
     /**
      * Get player's current reward task
      * @param {String} is player Object Id

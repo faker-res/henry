@@ -6940,7 +6940,12 @@ let dbPlayerInfo = {
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
-                    return Promise.all([lastTopUpProm, lastConsumptionProm]).then(
+                    let pendingCount = dbRewardTask.getPendingRewardTaskCount(
+                        {
+                            data:{playerObjId:playerInfo._id}, 
+                            status:'Pending'
+                        });
+                    return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
                                 return Q.reject({
@@ -6950,6 +6955,24 @@ let dbPlayerInfo = {
                                 });
                             }
 
+                            var needApprove = true;
+                            console.log(timeCheckData[2]);
+                            if(timeCheckData[2] && timeCheckData[2]>0){
+                                if(rewardEvent.type.name==constRewardType.PLAYER_TOP_UP_REWARD) {
+                                    needApprove = false;
+                                }
+                            }else{
+                                console.log(timeCheckData[2]);
+                                needApprove = false;
+                            }
+                            console.log('approve?'+needApprove);
+                            if(needApprove){
+                                return Q.reject({
+                                    // status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                                    name: "DataError",
+                                    message: "Player or partner already has a pending proposal for this type123"
+                                });
+                            }
                             switch (rewardEvent.type.name) {
                                 //first top up
                                 case constRewardType.FIRST_TOP_UP:
