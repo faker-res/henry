@@ -44,7 +44,7 @@ var proposal = {
      * Create a new proposal with type name
      * @param {string} platformId -
      * @param {string} typeName - Type name
-     * @param {json} proposalData - The data of the proposal
+     * @param {Object} proposalData - The data of the proposal
      */
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();

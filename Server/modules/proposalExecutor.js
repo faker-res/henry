@@ -1637,11 +1637,11 @@ var proposalExecutor = {
                     {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformObjId},
                     {
                         lastCommissionSettleTime: proposalData.data.lastCommissionSettleTime,
-                        //
+                        lastChildrenCommissionSettleTime: proposalData.data.lastCommissionSettleTime,
                         negativeProfitAmount: proposalData.data.negativeProfitAmount,
                         $push: {commissionHistory: proposalData.data.commissionLevel},
                         negativeProfitStartTime: proposalData.data.negativeProfitStartTime,
-                        $inc: {credits: proposalData.data.commissionAmount}
+                        $inc: {credits: proposalData.data.commissionAmount + proposalData.data.commissionAmountFromChildren}
                     }
                 ).then(
                     deferred.resolve, deferred.reject
@@ -2037,7 +2037,10 @@ var proposalExecutor = {
         rejectPlayerBonus: function (proposalData, deferred) {
             if (proposalData && proposalData.data && proposalData.data.amount && proposalData.data.bonusCredit) {
                 //todo::add more reasons here, ex:cancel request
-                return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
+
+                // return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
+
+                return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, "rejectPlayerBonus")
                     .then(
                         res => deferred.resolve("Proposal is rejected"),
                         error => deferred.reject(error)
@@ -2111,10 +2114,10 @@ var proposalExecutor = {
          * reject function for player referral reward
          */
         rejectPlayerReferralReward: function (proposalData, deferred) {
-            if (proposalData && proposalData.data && proposalData.data.referralId) {
+            if (proposalData && proposalData.data && proposalData.data.referralName) {
                 dbUtil.findOneAndUpdateForShard(
                     dbconfig.collection_players,
-                    {playerId: proposalData.data.referralId},
+                    {name: proposalData.data.referralName},
                     {isReferralReward: false},
                     constShardKeys.collection_players
                 ).then(

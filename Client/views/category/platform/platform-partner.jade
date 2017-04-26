@@ -269,6 +269,28 @@ p
                 td {{vm.partnerIdObj[v].partnerId}}
                 td {{vm.partnerIdObj[v].partnerName}}
                 td {{vm.partnerIdObj[v].children.length || 0}}
+
+// Popover - Partner Permission
+#partnerPermissionPopover.hide(style="width: 600px")
+    #partnerPermissionTable
+        table.paddingTbl
+            tbody
+                tr(ng-repeat='(key,v) in vm.partnerPermissionTypes')
+                    td
+                        i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
+                        img(ng-show='v.imgType=="img"', src='{{v.src}}')
+                    td {{key | translate}}
+                    td.permitOn(ng-class='vm.permissionPartner.permission[key] ? "":"hide"', class='{{key}}')
+                        i.fa.fa-toggle-on.text-primary.margin-right-5.togglePartner(data-which='{{key}}', data-on=true)
+                        a.text-primary.togglePartner(data-which='{{key}}', data-on=true) {{"ON" | translate}}
+                    td.permitOff(ng-class='vm.permissionPartner.permission[key] ? "hide":""', class='{{key}}')
+                        i.fa.fa-toggle-off.text-danger.margin-right-5.togglePartner(data-which='{{key}}', data-on=false)
+                        a.text-danger.togglePartner(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
+        .textareaDetail.margin-top-bottom-small
+            textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
+        .text-center
+            button.btn.btn-primary.submit {{'CONFIRM' | translate}}
+
 #modalPartnerInfo.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         .modal-content
@@ -345,6 +367,9 @@ p
                                         .inlineBlk
                                             label {{'CITY' | translate}}
                                             text {{vm.selectedSinglePartner.city || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{'Registration Domain' | translate}}
+                                            text {{vm.selectedSinglePartner.domain || 'Unknown' | translate}}
                                         .inlineBlk
                                             button.btn.btn-primary.common-button-sm(ng-click='vm.showPartnerIPHistory()') {{"View Details" | translate}}
                                 tr

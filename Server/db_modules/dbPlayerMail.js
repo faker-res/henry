@@ -112,14 +112,14 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToNumber: function (telNum, code) {
+    sendVerificationCodeToNumber: function (telNum, code, platformId) {
         let lastMin = moment().subtract(1, 'minutes');
         let a = smsAPI.channel_getChannelList({}).then(data => { return data });
-        let b = dbconfig.collection_platform.find().limit(1).then(data => { return data ? data[0] : null; });
+        let b = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
         let c = dbconfig.collection_smsVerificationLog.findOne({tel: telNum, createTime: { $gt: lastMin}});
 
         return Q.all([a, b, c]).then(data => {
-            let channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : null;
+            let channel = data[0] && data[0].channels && data[0].channels[1] ? data[0].channels[1] : 2;
             let platformId = data[1] && data[1].platformId ? data[1].platformId : null;
 
             if (channel == null || platformId == null) {
