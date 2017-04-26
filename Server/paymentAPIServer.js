@@ -31,7 +31,7 @@ TopUpAPIServer.prototype = Object.create(WebSocketServer.prototype);
 TopUpAPIServer.prototype.constructor = TopUpAPIServer;
 
 var server = new TopUpAPIServer(process.env.PORT || 9480);
-server._needAuth = true;
+// server._needAuth = true;
 server.run();
 console.log("Payment API Server is running...");
 
