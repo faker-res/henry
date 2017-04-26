@@ -513,6 +513,13 @@ var dbPlayerConsumptionRecord = {
                     });
                 }
             }
+        ).then(
+            newRecord => {
+                if(newRecord){
+                    newRecord.providerId = recordData.providerId;
+                }
+                return newRecord;
+            }
         ).catch(
             function (error) {
                 console.error("createExternalPlayerConsumptionRecord", error);
