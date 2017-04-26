@@ -108,6 +108,8 @@ var partnerSchema = new Schema({
     phoneCity: String,
     //type
     phoneType: String,
+    //domain
+    domain: String,
     //partner domain name
     ownDomain: [{type: String}],
     //if this partner has player account
@@ -121,7 +123,15 @@ var partnerSchema = new Schema({
     //last commission settlement time
     lastCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO},
     //last children commission settlement time
-    lastChildrenCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO}
+    lastChildrenCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO},
+    // Commission Amount From Children
+    commissionAmountFromChildren: {type: Number, default: 0},
+    // Partner permission
+    permission: {
+        _id: false,
+        commissionSettlement: {type: Boolean, default: false}
+    },
+
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));

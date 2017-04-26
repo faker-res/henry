@@ -110,7 +110,7 @@ let PlayerServiceImplement = function () {
     this.createPlayerPartner.expectsData = 'platformId: String, password: String';
     this.createPlayerPartner.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
-        if ((conn.smsCode && (conn.smsCode === data.smsCode) && (conn.phoneNumber === data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha === 'testCaptcha') {
+        if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha === 'testCaptcha') {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -558,12 +558,12 @@ let PlayerServiceImplement = function () {
 
     this.getSMSCode.expectsData = 'phoneNumber: String';
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.phoneNumber);
+        let isValidData = Boolean(data && data.phoneNumber && data.platformId);
         let randomCode = parseInt(Math.random() * 9000 + 1000);
         conn.phoneNumber = data.phoneNumber;
         conn.smsCode = randomCode;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode], true, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId], isValidData, false, false, true);
     };
 
     this.authenticate.expectsData = 'playerId: String, token: String';

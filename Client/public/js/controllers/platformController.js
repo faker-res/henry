@@ -3220,6 +3220,7 @@ define(['js/app'], function (myApp) {
             vm.duplicateNameFound = false;
             $('.referralValidTrue').hide();
             $('.referralValidFalse').hide();
+            vm.newPlayer.domain = window.location.hostname;
             vm.getReferralPlayer(vm.newPlayer, "new");
         }
         vm.editPlayerStatus = function (id) {
@@ -3550,13 +3551,14 @@ define(['js/app'], function (myApp) {
                 item.validPlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].validPlayers : 0;
                 item.activePlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].activePlayers : 0;
                 return item;
-            })
+            });
 
             vm.drawSelectPartnerTable(vm.showPartners, editingObj);
             $scope.safeApply();
-        }
+        };
+
         vm.drawSelectPartnerTable = function (data, obj) {
-            var tableOptions = {
+            let tableOptions = {
                 data: data,
                 columnDefs: [{targets: '_all', defaultContent: ' '}],
                 aaSorting: [],
@@ -3639,13 +3641,14 @@ define(['js/app'], function (myApp) {
                         // $('#partnerInEditPlayer').text(aData.partnerName);
                         $scope.safeApply();
                     });
-                },
+                }
             };
             vm.partnerSelectTable = $('#partnerSelectTable').DataTable(tableOptions);
             utilService.setDataTablePageInput('partnerSelectTable', vm.partnerSelectTable, $translate);
             $('#partnerSelectTable').resize();
             $('#partnerSelectTable').resize();
-        }
+        };
+
         vm.clearPartnerSelection = function () {
             $('#partnerSelectTable tbody tr').removeClass('selected');
             vm.parterSelectedforPlayer = null;
@@ -4638,7 +4641,7 @@ define(['js/app'], function (myApp) {
                     topUpRecordId: vm.playerApplyRewardPara.topUpRecordId,
                     topUpRecordIds: idArr,
                     amount: vm.playerApplyRewardPara.amount,
-                    referralId: vm.playerApplyRewardPara.referralId
+                    referralName: vm.playerApplyRewardPara.referralName
                 }
             };
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
@@ -5012,13 +5015,13 @@ define(['js/app'], function (myApp) {
             vm.playerBonus.resMsg = '';
             vm.playerBonus.showSubmit = true;
             socketService.$socket($scope.AppSocket, 'applyBonusRequest', sendData, function (data) {
-                console.log('applyBonusRequest', data);
+                console.log('applyBonusRequest success', data);
                 vm.playerBonus.resMsg = $translate('Approved');
                 vm.playerBonus.showSubmit = false;
                 vm.getPlatformPlayersData();
                 $scope.safeApply();
             }, function (data) {
-                console.log('applyBonusRequest', data);
+                console.log('applyBonusRequest Fail', data);
                 vm.playerBonus.showSubmit = false;
                 if (data.error.errorMessage) {
                     vm.playerBonus.resMsg = data.error.errorMessage;
@@ -6446,6 +6449,29 @@ define(['js/app'], function (myApp) {
                         "sClass": ""
                     },
                     {
+                        title: $translate('PERMISSION'),
+                        orderable: false,
+                        render: function (data, type, row) {
+                            data = data || {permission: {}};
+
+                            let link = $('<a>', {
+                                'class': 'partnerPermissionPopover',
+                                'ng-click': "vm.permissionPartner = " + JSON.stringify(row), // @todo: escaping issue
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'popover',
+                                'data-trigger': 'focus',
+                                'data-placement': 'bottom',
+                                'data-container': 'body',
+                            });
+                            let perm = (row && row.permission) ? row.permission : {};
+                            link.append($('<i>', {
+                                'class': 'fa fa-gift margin-right-5 ' + (perm.commissionSettlement === true ? "text-primary" : "text-danger"),
+                            }));
+                            return link.prop('outerHTML');
+                        },
+                        "sClass": "alignLeft"
+                    },
+                    {
                         title: $translate('LAST_ACCESS_TIME'), data: 'lastAccessTime',
                         render: function (data, type, row) {
                             return utilService.getFormatTime(data);
@@ -6682,6 +6708,66 @@ define(['js/app'], function (myApp) {
                             });
                         }
                     });
+
+                    utilService.setupPopover({
+                        context: container,
+                        elem: '.partnerPermissionPopover',
+                        onClickAsync: function (showPopover) {
+                            let that = this;
+                            let row = JSON.parse(this.dataset.row);
+                            vm.partnerPermissionTypes = {
+                                commissionSettlement: {imgType: 'i', iconClass: "fa fa-gift"}
+                            };
+                            $("#partnerPermissionTable td").removeClass('hide');
+                            $.each(vm.partnerPermissionTypes, function (key, v) {
+                                if (row.permission && row.permission[key]) {
+                                    $("#partnerPermissionTable .permitOff." + key).addClass('hide');
+                                } else {
+                                    $("#partnerPermissionTable .permitOn." + key).addClass('hide');
+                                }
+                            });
+                            $scope.safeApply();
+                            showPopover(that, '#partnerPermissionTable', row);
+                        },
+                        callback: function () {
+                            let changeObj = {};
+                            let thisPopover = utilService.$getPopoverID(this);
+                            let $remark = $(thisPopover + ' .permissionRemark');
+                            let $submit = $(thisPopover + ' .submit');
+                            $submit.prop('disabled', true);
+                            $(thisPopover + " .togglePartner").on('click', function () {
+                                let key = $(this).data("which");
+                                let select = $(this).data("on");
+                                changeObj[key] = !select;
+                                $(thisPopover + ' .' + key).toggleClass('hide');
+                                $submit.prop('disabled', $remark.val() == '');
+                            });
+
+                            $remark.on('input selectionchange propertychange', function () {
+                                $submit.prop('disabled', this.value.length === 0 || changeObj == {})
+                            });
+
+                            $submit.on('click', function () {
+                                $submit.off('click');
+                                $(thisPopover + " .togglePlayer").off('click');
+                                $remark.off('input selectionchange propertychange');
+                                socketService.$socket($scope.AppSocket, 'updatePartnerPermission', {
+                                    query: {
+                                        platform: vm.permissionPartner.platform,
+                                        _id: vm.permissionPartner._id
+                                    },
+                                    admin: authService.adminId,
+                                    permission: changeObj,
+                                    remark: $remark.val()
+                                }, function (data) {
+                                    vm.getPlatformPartnersData();
+                                }, null, true);
+                                $(thisPopover).popover('hide');
+                            })
+
+                        }
+                    });
+
                     $('#partnerDataTable').resize();
                     $('#partnerDataTable').resize();
                 }
@@ -6761,6 +6847,7 @@ define(['js/app'], function (myApp) {
             $(".partnerParentFalse").hide();
             $(".partnerParentTrue").hide();
             vm.partnerParentChange("id");
+            vm.newPartner.domain = window.location.hostname;
         }
         vm.partnerParentChange = function (type) {
             var result = false, empty = false;
@@ -7981,6 +8068,10 @@ define(['js/app'], function (myApp) {
                 case 'platformBasic':
                     vm.getPlatformBasic();
                     break;
+                case 'bonusBasic':
+                    vm.getBonusBasic();
+                    break;
+
             }
         }
 
@@ -8241,6 +8332,14 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             $scope.safeApply();
         }
+        vm.getBonusBasic = () => {
+          console.log('getBonusBasic',JSON.stringify(vm.selectedPlatform.data));
+          vm.bonusBasic = vm.bonusBasic || {};
+          vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
+          vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
+          $scope.safeApply();
+        }
+
         vm.submitAddPlayerLvl = function () {
             var sendData = vm.newPlayerLvl;
             vm.newPlayerLvl.platform = vm.selectedPlatform.id;
@@ -8340,6 +8439,9 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'platformBasic':
                     updatePlatformBasic(vm.platformBasic);
+                    break;
+                case 'bonusBasic':
+                    updateBonusBasic(vm.bonusBasic);
                     break;
             }
         };
@@ -8454,6 +8556,23 @@ define(['js/app'], function (myApp) {
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                vm.loadPlatformData({loadAll: false});
+            });
+        }
+
+        function updateBonusBasic(srcData) {
+          console.log('\n\n\nupdateBonusBasic',JSON.stringify(srcData));
+            var sendData = {
+                query: {_id: vm.selectedPlatform.id},
+                updateData: {
+                    bonusPercentageCharges: srcData.bonusPercentageCharges,
+                    bonusCharges : srcData.bonusCharges
+                }
+            };
+            console.log('\n\n\nupdateBonusBasic sendData',JSON.stringify(sendData));
+
+            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+              console.log('update bonus socket',JSON.stringify(data));
                 vm.loadPlatformData({loadAll: false});
             });
         }
