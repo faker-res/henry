@@ -5,6 +5,7 @@ let Schema = mongoose.Schema;
 let smsVerificationLogSchema = new Schema ({
     tel: {type: String, required: true, index: true},
     channel: {type: Number, required: true},
+    platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     platformId: {type: String, required: false, index: true},
     code: {type: String, required: true},
     delay: {type: Number, default: 0},

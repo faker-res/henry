@@ -49,8 +49,14 @@
                         td(colspan=2) {{'PLATFORM_CODE' | translate}}&nbsp;:&nbsp;{{vm.selectedPlatform.data.code | translate}}
                         td(colspan=2)
                             span {{'AUTO_SETTLEMENT' | translate}}&nbsp;:&nbsp;
-                            span(ng-if='vm.selectedPlatform.data.canAutoSettlement') {{'Yes' | translate}}
-                            span(ng-if='!vm.selectedPlatform.data.canAutoSettlement') {{'No' | translate}}
+                                span(ng-if='vm.selectedPlatform.data.canAutoSettlement') {{'Yes' | translate}}
+                                span(ng-if='!vm.selectedPlatform.data.canAutoSettlement') {{'No' | translate}}
+                    tr
+                        td(colspan=2)
+                        td(colspan=2)
+                            span {{'SMS_VERIFICATION' | translate}}&nbsp;:&nbsp;
+                                span(ng-if='vm.selectedPlatform.data.requireSMSVerification') {{'Yes' | translate}}
+                                span(ng-if='!vm.selectedPlatform.data.requireSMSVerification') {{'No' | translate}}
                     tr
                         td(colspan=2)
                             text {{'SETTLEMENT_STATUS' | translate}}&nbsp;:&nbsp;
