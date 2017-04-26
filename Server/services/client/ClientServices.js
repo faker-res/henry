@@ -51,6 +51,7 @@
                 "updatePaymentInfo",
                 "updateSmsSetting",
                 "updatePassword",
+                "updatePasswordPlayerPartner",
                 "updateSMSSetting",
                 "isValidUsername",
                 "authenticate",

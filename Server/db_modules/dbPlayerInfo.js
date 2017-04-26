@@ -905,12 +905,10 @@ let dbPlayerInfo = {
     },
     /**
      *  Update password
-     * @param {String} playerId:xxxx, oldPassword:xxxx, newPassword:xxxx
-     *
      */
-    updatePassword: function (playerId, currPassword, newPassword) {
-        var db_password = null;
-        var playerObj = null;
+    updatePassword: function (playerId, currPassword, newPassword, smsCode) {
+        let db_password = null;
+        let playerObj = null;
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
             return Q.reject({name: "DataError", message: "Password is too short"});
         }
@@ -920,6 +918,64 @@ let dbPlayerInfo = {
                 if (data) {
                     playerObj = data;
                     db_password = String(data.password);
+
+                    return dbconfig.collection_platform.findOne({
+                        _id: playerObj.platform
+                    }).lean();
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    });
+                }
+            }
+        ).then(
+            platformData => {
+                if (platformData) {
+                    // Check if platform sms verification is required
+                    if (!platformData.requireSMSVerification) {
+                        // SMS verification not required
+                        return Q.resolve(true);
+                    } else {
+                        // Check verification SMS match
+                        return dbconfig.collection_smsVerificationLog.findOne({
+                            platformObjId: playerObj.platform,
+                            tel: playerObj.phoneNumber
+                        }).sort({createTime: -1}).then(
+                            verificationSMS => {
+                                // Check verification SMS code
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                                    verificationSMS = verificationSMS || {};
+                                    return dbconfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(
+                                        () => {
+                                            return Q.resolve(true);
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_INVALID,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
                     if (dbUtility.isMd5(db_password)) {
                         if (md5(currPassword) == db_password) {
                             return Q.resolve(true);
@@ -929,7 +985,7 @@ let dbPlayerInfo = {
                         }
                     }
                     else {
-                        var passDefer = Q.defer();
+                        let passDefer = Q.defer();
                         bcrypt.compare(String(currPassword), db_password, function (err, isMatch) {
                             if (err) {
                                 passDefer.reject({
@@ -942,12 +998,6 @@ let dbPlayerInfo = {
                         });
                         return passDefer.promise;
                     }
-                }
-                else {
-                    return Q.reject({
-                        name: "DataError",
-                        message: "Can not find player"
-                    });
                 }
             }
         ).then(
@@ -970,14 +1020,82 @@ let dbPlayerInfo = {
     /**
      * Update player payment info
      * @param {String}  query - The query string
-     * @param {string} updateData - The update data string
+     * @param {Object} updateData - The update data string
      */
     updatePlayerPayment: function (query, updateData) {
-        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
+        let playerObj = null;
+        // Get platform
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+
+                    return dbconfig.collection_platform.findOne({
+                        _id: playerData.platform
+                    })
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    })
+                }
+            }
+        ).then(
+            platformData => {
+                if (platformData) {
+                    // Check if platform sms verification is required
+                    if (!platformData.requireSMSVerification) {
+                        // SMS verification not required
+                        return Q.resolve(true);
+                    } else {
+                        // Check verification SMS match
+                        return dbconfig.collection_smsVerificationLog.findOne({
+                            platformObjId: playerObj.platform,
+                            tel: playerObj.phoneNumber
+                        }).sort({createTime: -1}).then(
+                            verificationSMS => {
+                                // Check verification SMS code
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == updateData.smsCode) {
+                                    verificationSMS = verificationSMS || {};
+                                    return dbconfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(
+                                        () => {
+                                            return Q.resolve(true);
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_INVALID,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
+                            }
+                        )
+                    }
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    })
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
+                }
+            }
+        )
     },
 
     updatePlayerPaymentInfoCreateProposal: function (updateData) {
-
         var proposalData = updateData;
         if (updateData) {
             delete updateData.password;
