@@ -941,7 +941,7 @@ let dbPartner = {
     /**
      *  Update password
      */
-    updatePassword: function (partnerId, currPassword, newPassword, modifyPasswordSMSCode) {
+    updatePassword: function (partnerId, currPassword, newPassword, smsCode) {
         let db_password = null;
         let partnerObj = null;
         // compare the user entered old password and password from db
@@ -977,7 +977,7 @@ let dbPartner = {
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code == modifyPasswordSMSCode) {
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
                                     verificationSMS = verificationSMS || {};
                                     return dbconfig.collection_smsVerificationLog.remove(
                                         {_id: verificationSMS._id}

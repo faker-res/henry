@@ -899,7 +899,7 @@ let dbPlayerInfo = {
     /**
      *  Update password
      */
-    updatePassword: function (playerId, currPassword, newPassword, modifyPasswordSMSCode) {
+    updatePassword: function (playerId, currPassword, newPassword, smsCode) {
         let db_password = null;
         let playerObj = null;
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
@@ -938,7 +938,7 @@ let dbPlayerInfo = {
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code == modifyPasswordSMSCode) {
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
                                     verificationSMS = verificationSMS || {};
                                     return dbconfig.collection_smsVerificationLog.remove(
                                         {_id: verificationSMS._id}
@@ -1050,7 +1050,7 @@ let dbPlayerInfo = {
                         }).sort({createTime: -1}).then(
                             verificationSMS => {
                                 // Check verification SMS code
-                                if (verificationSMS && verificationSMS.code && verificationSMS.code == updateData.modifyPaymentInfoSMSCode) {
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == updateData.smsCode) {
                                     verificationSMS = verificationSMS || {};
                                     return dbconfig.collection_smsVerificationLog.remove(
                                         {_id: verificationSMS._id}

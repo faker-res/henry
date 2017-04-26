@@ -145,9 +145,9 @@ let dbPlayerPartner = {
         },
 
     updatePasswordPlayerPartner:
-        (playerId, partnerId, oldPassword, newPassword, modifyPasswordSMSCode) => {
-            let plyProm = dbPlayerInfo.updatePassword(playerId, oldPassword, newPassword, modifyPasswordSMSCode);
-            let partnerProm = dbPartner.updatePassword(partnerId, oldPassword, newPassword, modifyPasswordSMSCode);
+        (playerId, partnerId, oldPassword, newPassword, smsCode) => {
+            let plyProm = dbPlayerInfo.updatePassword(playerId, oldPassword, newPassword, smsCode);
+            let partnerProm = dbPartner.updatePassword(partnerId, oldPassword, newPassword, smsCode);
 
             return Promise.all([plyProm, partnerProm])
                 .catch(
