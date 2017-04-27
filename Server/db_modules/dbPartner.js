@@ -26,6 +26,8 @@ const constProposalStatus = require('../const/constProposalStatus');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
+const constPartnerStatus = require('../const/constPartnerStatus');
+
 
 let dbPartner = {
 
@@ -751,7 +753,6 @@ let dbPartner = {
                                 playerId => {
                                     const consumptionSummary = consumptionSummariesByPlayerId[playerId];
                                     const topUpSummary = topUpSummariesByPlayerId[playerId];
-
                                     if (topUpSummary && (consumptionSummary || partnerCommissionConfig.settlementMode === 'TB')) {
                                         let playerIsValid, playerIsActive;
 
@@ -2399,10 +2400,7 @@ let dbPartner = {
                         {
                             platform: platformObjId,
                             totalReferrals: {$gt: 0},
-                            $and: [
-                                {$or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]},
-                                {$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}
-                            ]
+                            $or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]
                         }
                     ).cursor({batchSize: 100});
 
@@ -2686,7 +2684,7 @@ let dbPartner = {
                                     commissionLevel: commissionLevel,
                                     negativeProfitStartTime: partnerData.negativeProfitStartTime,
                                     preNegativeProfitAmount: partnerData.negativeProfitAmount,
-                                    commissionAmountFromChildren: 0
+
                                 }
                             };
                             partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
@@ -2732,7 +2730,7 @@ let dbPartner = {
             configData => {
                 if (configData && configData.childrenCommissionRate && configData.childrenCommissionRate.length > 0) {
                     //check children commision rate
-                    let childrenCommissionRate = 0;
+                    var childrenCommissionRate = 0;
                     configData.childrenCommissionRate.forEach(
                         rateInfo => {
                             if (rateInfo.level == 1) {
@@ -2744,8 +2742,8 @@ let dbPartner = {
                         return;
                     }
                     //check config data period
-                    let settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
-                    let bMatchPeriod = true;
+                    var settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
+                    var bMatchPeriod = true;
 
                     switch (configData.commissionPeriod) {
                         case constPartnerCommissionPeriod.WEEK:
@@ -2795,15 +2793,14 @@ let dbPartner = {
                     }
 
                     //if there is commission config, start settlement
-                    let stream = dbconfig.collection_partner.find(
+                    var stream = dbconfig.collection_partner.find(
                         {
                             platform: platformObjId,
-                            lastChildrenCommissionSettleTime: {$lt: settleTime.startTime},
-                            $and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]
+                            lastChildrenCommissionSettleTime: {$lt: settleTime.startTime}
                         }
                     ).cursor({batchSize: 10});
 
-                    let balancer = new SettlementBalancer();
+                    var balancer = new SettlementBalancer();
                     return balancer.initConns().then(function () {
                         return Q(
                             balancer.processStream(
@@ -2842,14 +2839,11 @@ let dbPartner = {
     calculatePartnerChildrenCommission: function (platformObjId, childrenCommissionRate, partnerObjId, startTime, endTime, settlementTimeToSave) {
         //find all children
         let commissionAmountFromChildren = 0;
-        let updatedCommissionRecordToReturn = null;
-        let _partnerData = null;
-
         return dbconfig.collection_partner.find({parent: partnerObjId, platform: platformObjId}).lean().then(
             childrenPartners => {
                 if (childrenPartners && childrenPartners.length > 0) {
                     //find all children partner commission report
-                    let partnerObjIds = childrenPartners.map(child => child._id);
+                    var partnerObjIds = childrenPartners.map(child => child._id);
                     return dbconfig.collection_partnerCommissionRecord.aggregate(
                         {
                             $match: {
@@ -2886,72 +2880,23 @@ let dbPartner = {
                         }
                     ).then(
                         updatedCommissionRecord => {
-                            updatedCommissionRecordToReturn = updatedCommissionRecord;
-
                             return Q.resolve().then(
                                 () => {
-                                    // Check if data update is required
                                     if (settlementTimeToSave) {
-                                        // find the data for parent partner
-                                        return dbconfig.collection_partner.findOne({
-                                            _id: partnerObjId
-                                        });
-                                    } else {
-                                        return updatedCommissionRecord;
+                                        return dbconfig.collection_partner.findOneAndUpdate(
+                                            {_id: partnerObjId, platform: platformObjId},
+                                            {
+                                                lastChildrenCommissionSettleTime: settlementTimeToSave,
+                                                credits: {$inc: commissionAmountFromChildren}
+                                            }
+                                        );
                                     }
                                 }
-                            )
+                            ).then(
+                                () => updatedCommissionRecord
+                            );
                         }
-                    ).then(
-                        partnerData => {
-                            if (partnerData) {
-                                _partnerData = partnerData;
-
-                                // find any previous created proposal for this partner
-                                return dbconfig.collection_proposal.findOne({
-                                    "data.platformObjId": platformObjId,
-                                    "data.partnerName": partnerData.partnerName,
-                                    "data.lastCommissionSettleTime": settlementTimeToSave
-                                });
-                            }
-                        }
-                    ).then(
-                        proposalData => {
-                            if (proposalData) {
-                                // Update parent commission to include children commission
-                                return dbconfig.collection_proposal.findOneAndUpdate({
-                                    _id: proposalData._id
-                                }, {
-                                    "data.commissionAmountFromChildren": commissionAmountFromChildren
-                                });
-                            } else if (!proposalData && settlementTimeToSave && commissionAmountFromChildren > 0) {
-                                // Create a new proposal for child commission if parent commission not found
-                                let proposalData = {
-                                    entryType: constProposalEntryType.SYSTEM,
-                                    userType: constProposalUserType.PARTNERS,
-                                    data: {
-                                        partnerObjId: partnerObjId,
-                                        platformObjId: platformObjId,
-                                        partnerName: _partnerData.partnerName,
-                                        lastCommissionSettleTime: settlementTimeToSave,
-                                        commissionAmountFromChildren: commissionAmountFromChildren,
-                                        commissionAmount: 0,
-                                        negativeProfitAmount: 0,
-                                        preNegativeProfitAmount: _partnerData.negativeProfitAmount,
-                                        commissionLevel: []
-                                    }
-                                };
-
-                                if (_partnerData.negativeProfitStartTime) {
-                                    proposalData.data.negativeProfitStartTime = _partnerData.negativeProfitStartTime;
-                                }
-
-                                return dbProposal.createProposalWithTypeName(platformObjId, constProposalType.PARTNER_COMMISSION, proposalData);
-                            }
-                        }
-                    ).then(
-                        () => updatedCommissionRecordToReturn
-                    );
+                    )
                 }
             }
         );
@@ -2967,7 +2912,7 @@ let dbPartner = {
                 $lt: endTime
             }
         };
-        let partId = matchObj;
+        var partId = matchObj;
         if (partnerName) {
             partId = dbconfig.collection_partner.findOne({partnerName: partnerName}).then(
                 partner => {
@@ -2978,20 +2923,7 @@ let dbPartner = {
                     }
                     return matchObj;
                 })
-        } else {
-            // Instead of searching all partners, look for only partners with permission on
-            partId = dbconfig.collection_partner.find({$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}).then(
-                partners => {
-                    if (partners && partners.length > 0) {
-                        let partnerIds = partners.map(partner => partner._id);
-                        matchObj.partner = {$in: partnerIds};
-                    } else {
-                        matchObj = "noPartner";
-                    }
-                    return matchObj;
-                })
         }
-
         return Q.resolve(partId).then(
             matchObj => {
                 if (matchObj == "noPartner") {
@@ -3626,56 +3558,41 @@ let dbPartner = {
         );
     },
 
-    updatePartnerPermission: function (query, admin, permission, remark) {
-        let updateObj = {};
-        for (let key in permission) {
-            if (permission.hasOwnProperty(key)) {
-                updateObj["permission." + key] = permission[key];
-            }
-        }
-        return dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, query, updateObj, constShardKeys.collection_partner, false).then(
-            suc => {
-                let oldData = {};
-                for (let i in permission) {
-                    if (permission.hasOwnProperty(i)) {
-                        if (suc.permission[i] != permission[i]) {
-                            oldData[i] = suc.permission[i];
-                        } else {
-                            delete permission[i];
-                        }
-                    }
-                }
-                if (Object.keys(oldData).length !== 0) {
-                    let newLog = new dbconfig.collection_partnerPermissionLog({
-                        admin: admin,
-                        platform: query.platform,
-                        partner: query._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
-                } else return true;
-            },
-            error => {
-                return Q.reject({
-                    name: "DBError",
-                    message: "Error updating partner permission.",
-                    error: error});
-            }
-        ).then(
-            suc => {
-                return true;
-            },
-            error => {
-                return Q.reject({
-                    name: "DBError",
-                    message: "Partner permission updated. Error occurred when creating log.",
-                    error: error
-                });
-            }
-        );
+    /**
+        * Update partner status info and record change reasono
+        * @param {objectId} partnerObjId
+        * @param {String} status
+        * @param {String} reason
+    */
+    updatePartnerStatus : function(partnerObjId, status, reason, adminName) {
+      var updateData = {
+        status: status
+      };
+
+      var partnerProm = dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, {
+        _id: partnerObjId
+      }, updateData, constShardKeys.collection_partner);
+      var newLog = {
+        _partnerId: partnerObjId,
+        status: status,
+        reason: reason,
+        adminName: adminName
+      };
+      var log = new dbconfig.collection_partnerStatusChangeLog(newLog);
+      var logProm = log.save();
+      return Q.all([partnerProm, logProm]);
     },
+
+    /*
+     * get partner status change log
+     * @param {objectId} partnerObjId
+     */
+    getPartnerStatusChangeLog: function (partnerObjId) {
+        return dbconfig.collection_partnerStatusChangeLog.find({_partnerId: partnerObjId}).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
+    }
+
+
+
 };
 
 module.exports = dbPartner;
