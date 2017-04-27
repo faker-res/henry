@@ -1,3 +1,4 @@
+
 var db = db.getSiblingDB("admindb");
 
 var type5 = "FirstTopUp";
@@ -68,22 +69,25 @@ db.rewardParam.update({"name": type11}, {$set: {params:{
     reward: {
         type: "Table",
         data:{
+            minPlayerLevel: {type: "Number", des: "PlayerLevel"},
+            minDeficitAmount: {type: "Number", des: "Minimum deficit amount"},
+            rewardAmount: {type: "Number", des: "REWARDAMOUNT"},
             rewardPercentage: {type: "Percentage", des: "Reward percentage"},
             spendingTimes: {type: "Number", des: "Consumption amount times"},
             minRewardAmount: {type: "Number", des: "Minimal reward amount"},
             maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
             //minConsumptionAmount: {type: "Number", des: "Minimal total consumption amount"},
-            minTopUpRecordAmount: {type: "Number", des: "Minimal top up amount each time"},
-            maxPlayerCredit: {type: "Number", des: "Maximum player credit"}
+            minTopUpRecordAmount: {type: "Number", des: "Minimum top up amount"},
+            //maxPlayerCredit: {type: "Number", des: "Maximum player credit"}
         },
         des: "Reward parameter for each level"
     }
 }}});
 
-// var param11Cursor = db.rewardParam.find({"name": type11});
-// var param11 = param11Cursor.next();
-//
-// db.rewardType.insert({"name": type11, params: param11._id, des: "Player Consumption Incentive"});
+var param11Cursor = db.rewardParam.find({"name": type11});
+var param11 = param11Cursor.next();
+
+db.rewardType.insert({"name": type11, params: param11._id, des: "Player Consumption Incentive"});
 
 //Partner top up return reward
 var type12 = "PartnerTopUpReturn";
