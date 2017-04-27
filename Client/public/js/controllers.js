@@ -363,11 +363,6 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         4: "BALCKLIST",
         5: "ATTENTION"
     };
-
-    $scope.constPartnerStatus = {
-        1: "NORMAL",
-        2: "FORBID"
-    };
     //////// DOM initialisation operations ////////
 
     $('[data-toggle="tooltip"]').tooltip();

@@ -11,8 +11,6 @@ var Chance = require('chance');
 var chance = new Chance();
 var constSystemParam = require('../const/constSystemParam');
 var constPartnerCommissionPeriod = require('./../const/constPartnerCommissionPeriod');
-var constPartnerStatus = require('./../const/constPartnerStatus');
-
 
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -81,39 +79,6 @@ function socketActionPartner(socketIO, socket) {
         getAllPartner: function getAllPartner() {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, dbPartner.getAllPartner, [{}], actionName, true);
-        },
-
-        /**
-         * Get all partner status options
-         */
-        getPartnerStatusList: function getPartnerStatusList() {
-            var actionName = arguments.callee.name;
-            self.socket.emit("_" + actionName, {success: true, data: constPartnerStatus});
-        },
-
-        /**
-         * Get player status change log
-         * @param {json} data - data contains _id
-         */
-        getPartnerStatusChangeLog: function getPartnerStatusChangeLog(data) {
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data._id);
-            socketUtil.emitter(self.socket, dbPartner.getPartnerStatusChangeLog, [data._id], actionName, isValidData);
-        },
-
-        /**
-         * Update partner status
-         * @param {json} data - It has to contain _id, status and reason
-         */
-        updatePartnerStatus: function updatePartnerStatus(data) {
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data._id && data.status && data.reason);
-
-            // if (data.status == constPartnerStatus.NORMAL) {
-            //     data.forbidProviders = [];
-            // }
-
-            socketUtil.emitter(self.socket, dbPartner.updatePartnerStatus, [data._id, data.status, data.reason, data.adminName], actionName, isValidData);
         },
 
         /**
