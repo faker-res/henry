@@ -1985,6 +1985,25 @@ var proposal = {
                 }
             }
         );
+    },
+
+    setBonusProposalStatus: (proposalId, orderStatus, remark) => {
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+            proposalData => {
+                if (proposalData && proposalData.data) {
+                    return pmsAPI.bonus_setBonusStatus(
+                        {
+                            proposalId: proposalId,
+                            orderStatus: orderStatus,
+                            remark: remark
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({name: 'DataError', message: 'Can not find proposal'});
+                }
+            }
+        );
     }
 
 };

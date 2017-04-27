@@ -132,7 +132,8 @@
             addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
 
             var functionNames1 = [
-                "applyBonus"
+                "applyBonus",
+                "setBonusStatus"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames1, ["proposalId"]);
         };

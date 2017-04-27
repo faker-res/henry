@@ -113,6 +113,10 @@ const pmsAPI = {
         return callPMSAPI("bonus", "getBonusList", data);
     },
 
+    bonus_setBonusStatus: function (data) {
+        return callPMSAPI("bonus", "setBonusStatus", data);
+    },
+
     //payment service
     payment_requestManualBankCard: function (data) {
         return callPMSAPI("payment", "requestManualBankCard", data);
