@@ -124,7 +124,7 @@ var dbRewardTask = {
             path: "type", 
             model: dbconfig.collection_proposalType,
             match: {name:{$in: rewardTaskWithProposalList}}
-        }).count().lean();
+        }).lean();
     },
 
     /**
