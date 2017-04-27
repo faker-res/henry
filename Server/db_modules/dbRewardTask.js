@@ -113,9 +113,18 @@ var dbRewardTask = {
         )
     },
 
-    getPendingRewardTaskCount: function(query){
-        console.log(query);
-        return dbconfig.collection_proposal.find(query).count();
+    /**
+     * Get total count of specific user's pending proposal
+     */
+
+    getPendingRewardTaskCount: function(query, rewardTaskWithProposalList){
+        return dbconfig.collection_proposal
+        .find(query)
+        .populate({
+            path: "type", 
+            model: dbconfig.collection_proposalType,
+            match: {name:{$in: rewardTaskWithProposalList}}
+        }).count().lean();
     },
 
     /**

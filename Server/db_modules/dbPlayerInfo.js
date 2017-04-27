@@ -6937,14 +6937,26 @@ let dbPlayerInfo = {
                         });
                     }
 
+                    //  the following behavior can generate reward task
+                    var rewardTaskWithProposalList = [
+                        constRewardType.FIRST_TOP_UP,
+                        constRewardType.PLAYER_TOP_UP_RETURN,
+                        constRewardType.PLAYER_CONSUMPTION_RETURN,
+                        constRewardType.PLAYER_LEVEL_UP,
+                        constRewardType.PLAYER_TOP_UP_REWARD,
+                        constRewardType.PLAYER_REGISTRATION_REWARD,
+                        constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
+                        constRewardType.FULL_ATTENDANCE,
+                        constRewardType.GAME_PROVIDER_REWARD
+                    ]
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
-                    let pendingCount = dbRewardTask.getPendingRewardTaskCount(
-                        {
-                            data:{playerObjId:playerInfo._id}, 
+                    let pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                            mainType:'Reward',
+                            "data.playerObjId":playerInfo._id,
                             status:'Pending'
-                        });
+                    },rewardTaskWithProposalList);
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
@@ -6955,24 +6967,15 @@ let dbPlayerInfo = {
                                 });
                             }
 
-                            var needApprove = true;
-                            console.log(timeCheckData[2]);
+                            // if that's reward pending , then you cannot apply another
                             if(timeCheckData[2] && timeCheckData[2]>0){
-                                if(rewardEvent.type.name==constRewardType.PLAYER_TOP_UP_REWARD) {
-                                    needApprove = false;
-                                }
-                            }else{
-                                console.log(timeCheckData[2]);
-                                needApprove = false;
-                            }
-                            console.log('approve?'+needApprove);
-                            if(needApprove){
                                 return Q.reject({
-                                    // status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                                    status: constServerCode.PLAYER_PENDING_REWARD_PROPOSAL,
                                     name: "DataError",
-                                    message: "Player or partner already has a pending proposal for this type123"
+                                    message: "Player or partner already has a pending reward proposal for this type"
                                 });
                             }
+
                             switch (rewardEvent.type.name) {
                                 //first top up
                                 case constRewardType.FIRST_TOP_UP:
@@ -7051,15 +7054,6 @@ let dbPlayerInfo = {
                             }
                         }
                     )
-                        .catch(
-                            error => {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
-                                    name: "DataError",
-                                    message: error.message
-                                });
-                            }
-                        )
                 }
                 else {
                     return Q.reject({
