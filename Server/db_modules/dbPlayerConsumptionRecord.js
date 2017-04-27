@@ -415,7 +415,8 @@ var dbPlayerConsumptionRecord = {
      * @param {Boolean} resolveError
      */
     createExternalPlayerConsumptionRecord: function (recordData, resolveError) {
-        var verifiedData = null;
+        let verifiedData = null;
+        let providerId = recordData.providerId;
         return dbconfig.collection_platform.findOne({platformId: recordData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -516,7 +517,7 @@ var dbPlayerConsumptionRecord = {
         ).then(
             newRecord => {
                 if(newRecord){
-                    newRecord.providerId = recordData.providerId;
+                    newRecord.providerId = providerId;
                 }
                 return newRecord;
             }
