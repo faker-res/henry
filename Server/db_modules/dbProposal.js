@@ -960,7 +960,7 @@ var proposal = {
                     //get all proposal process with current step in found steps
                     var processIds = [];
                     for (var i = 0; i < data.length; i++) {
-                        if (typeArr.indexOf(data[i].type.name) != -1) {
+                        if (!data[i].type || typeArr.indexOf(data[i].type.name) != -1) {
                             processIds.push(data[i]._id);
                         }
                     }
@@ -1979,6 +1979,25 @@ var proposal = {
                             }
                         );
                     }
+                }
+                else {
+                    return Q.reject({name: 'DataError', message: 'Can not find proposal'});
+                }
+            }
+        );
+    },
+
+    setBonusProposalStatus: (proposalId, orderStatus, remark) => {
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+            proposalData => {
+                if (proposalData && proposalData.data) {
+                    return pmsAPI.bonus_setBonusStatus(
+                        {
+                            proposalId: proposalId,
+                            orderStatus: orderStatus,
+                            remark: remark
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: 'DataError', message: 'Can not find proposal'});

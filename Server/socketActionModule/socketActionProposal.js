@@ -342,6 +342,12 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.unlockProposalById, [data.proposalId, getAdminId()], actionName, isValidData);
         },
 
+        setBonusProposalStatus: function setBonusProposalStatus(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.proposalId && data.orderStatus);
+            socketUtil.emitter(self.socket, dbProposal.setBonusProposalStatus, [data.proposalId, data.orderStatus, data.remark], actionName, isValidData);
+        },
+
     };
     socketActionProposal.actions = this.actions;
 };

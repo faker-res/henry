@@ -3,22 +3,64 @@
         label {{vm.showRewardTypeData.params.params.needApply.des | translate}}
         input(type='checkbox', ng-model='vm.rewardParams.needApply', ng-disabled='vm.platformRewardShowEdit()')
 
-    //.full-width-input-block
+    .full-width-input-block
         label {{vm.showRewardTypeData.params.params.useConsumption.des | translate}}
         input(type='checkbox', ng-model='vm.rewardParams.useConsumption', ng-disabled='vm.platformRewardShowEdit()')
 
 
     label {{vm.showRewardTypeData.params.params.reward.des | translate}}
-    table.paddingTbl
-         thead
+    table.table.common-table
+        thead
              tr
-                    th
-                        label &nbsp;
-                    th(ng-repeat='(i,v) in vm.showRewardTypeData.params.params.reward.data') {{v.des | translate}}
-             tbody
-                tr(ng-repeat='(r,row) in vm.allPlayerLvl')
-                    td {{row.name}}
-                    td(ng-repeat='(m,n) in vm.showRewardTypeData.params.params.reward.data')
-                        .percentage(ng-if='n.type=="Percentage"')
-                            input.form-control.inlineBlk(type='number', min='0',percentage, ng-model='vm.rewardParams.reward[row.value][m]', ng-disabled='vm.platformRewardShowEdit()')
-                        input.form-control(ng-if='n.type=="Number"', type='number', min='0', ng-model='vm.rewardParams.reward[row.value][m]', ng-disabled='vm.platformRewardShowEdit()')
+                th {{vm.showRewardTypeData.params.params.reward.data.minPlayerLevel.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.minTopUpRecordAmount.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.minDeficitAmount.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.rewardAmount.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.rewardPercentage.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.minRewardAmount.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.maxRewardAmount.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.spendingTimes.des | translate}}
+                th(ng-if='!vm.platformRewardShowEdit()')
+        tbody
+            tr(ng-repeat='(rowIndex,rowdata) in vm.rewardParams.reward')
+                td
+                    select.form-control(ng-model='vm.rewardParams.reward[rowIndex].minPlayerLevel',ng-options='a.value as a.name | translate for a in vm.allPlayerLvl', ng-disabled='vm.platformRewardShowEdit()', required)
+                td
+                    input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].minTopUpRecordAmount', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].minDeficitAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+                td
+                    input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].rewardAmount', ng-disabled='vm.platformRewardShowEdit()')
+                td.percentage
+                    input.form-control.inline-block(type='number', percentage, ng-model='vm.rewardParams.reward[rowIndex].rewardPercentage', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].minRewardAmount', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].maxRewardAmount', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    input.form-control(type='number', ng-model='vm.rewardParams.reward[rowIndex].spendingTimes', ng-disabled='vm.platformRewardShowEdit()')
+                td(ng-if='!vm.platformRewardShowEdit()')
+                    i.fa.fa-minus(ng-click='vm.updateRewardInEdit("remove",rowIndex)')
+
+                // Placeholder for new entry
+                tr(ng-if='!vm.platformRewardShowEdit()')
+                    td(colspan=9) {{'ADD' | translate}}
+                tr(ng-if='!vm.platformRewardShowEdit()')
+                    td
+                        select(ng-model='vm.tempNewRewardEntry.minPlayerLevel',ng-options='a.value as a.name | translate for a in vm.allPlayerLvl', ng-disabled='vm.platformRewardShowEdit()')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.minTopUpRecordAmount')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.minDeficitAmount')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.rewardAmount')
+                    td.percentage
+                        input.form-control.inline-block(type='number', percentage, ng-model='vm.tempNewRewardEntry.rewardPercentage')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.minRewardAmount')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.maxRewardAmount')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.spendingTimes')
+                    td
+                        i.fa.fa-plus(ng-click='vm.updateRewardInEdit("add",vm.tempNewRewardEntry);vm.tempNewRewardEntry={}')

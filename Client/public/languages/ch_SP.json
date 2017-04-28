@@ -72,7 +72,7 @@
   "CITY_ID": "城市ID",
   "DISTRICT_ID": "区ID",
   "APPLY": "申请",
-  "APPLY_BONUS": "申请兑奖",
+  "APPLY_BONUS": "申请提款",
   "advanceConsumptionReward": "提前消费返点",
   "transactionReward": "转账优惠",
   "alipayTransaction": "支付宝转账",
@@ -1654,6 +1654,7 @@
   "Processing": "处理中",
   "Fetching report": "获取报表中。。。",
   "Cancel": "已取消",
+  "updatePlayerBonusStatus":"更新玩家申请提款状态",
   "oldLevelName": "原等级",
   "newLevelName": "更新等级",
   "VERIFY_TELEPHONE": "验证手机号",
@@ -1740,8 +1741,8 @@
   "MANUAL_TOP_UP": "手工充值",
   "CANCEL_BONUS": "取消兑奖",
   "UPDATE_PAYMENT_INFO": "更新支付信息",
-  "applyBonus": "申请兑奖",
-  "ApplyBonus": "申请兑奖",
+  "applyBonus": "申请提款",
+  "ApplyBonus": "申请提款",
   "referralId": "推荐人ID",
   "referralName": "推荐人账号",
   "WEIXIN_PHOTO": "微信图片",
@@ -1797,5 +1798,7 @@
    "PlayerReferralReward:unlock" : "玩家推荐奖励:解锁",
    "PlayerRegistrationReward:unlock" : "注册彩金奖励:解锁",
    "PlayerDoubleTopUpReward:unlock" : "玩家多次充值:解锁",
-   "PlayerWechatTopUp": "微信支付"
+   "PlayerWechatTopUp": "微信支付",
+  "Minimum deficit amount": "最小输值",
+  "deficitAmount": "输值"
 }

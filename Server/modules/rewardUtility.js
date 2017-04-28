@@ -70,7 +70,7 @@ function isValidRewardEvent(type, eventData) {
     return false;
 }
 
-var rewardUtility = {
+let rewardUtility = {
     isValidRewardEvent: isValidRewardEvent
 };
 
