@@ -425,7 +425,7 @@ var roleChecker = {
                 queryByProposalCredit: [],
                 queryByProposalPlayer: [],
                 queryByProposalDate: [],
-                updatePlayerBonusStatus: []
+                updatePlayerBonusStatus: ['setBonusProposalStatus']
             },
             Player: {
                 Read: ['getCurrentActivePlayersCount', 'getActivePlayers'],
