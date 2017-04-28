@@ -7873,6 +7873,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardParams.games = vm.rewardParams.games || [];
                 console.log('vm.rewardParams', vm.rewardParams);
                 vm.rewardParams.providers = vm.rewardParams.providers || [];
+                vm.rewardParams.reward = vm.rewardParams.reward || [];
 
                 vm.playerTopUpReturn = {providerTick: {}};
                 socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
@@ -7889,13 +7890,15 @@ define(['js/app'], function (myApp) {
 
                 // JSON sorts the reward param properties into alphabetical order
                 // But for the UI display, we would prefer to specify our own order
-                var rewardType = vm.showRewardTypeData;
+                let rewardType = vm.showRewardTypeData;
                 if (rewardType.params && rewardType.params.params && rewardType.params.params.reward && rewardType.params.params.reward.data) {
                     //console.log("Reordering:", rewardType.params.params.reward.data);
-                    var preferredOrder = {
+                    let preferredOrder = {
+                        minPlayerLevel: 1,
                         maxPlayerCredit: 1,
                         minConsumptionAmount: 1,
                         minTopUpRecordAmount: 1,
+                        rewardAmount: 1,
                         rewardPercentage: 1,
                         maxRewardAmount: 1,
                         spendingTimes: 1
@@ -8014,14 +8017,22 @@ define(['js/app'], function (myApp) {
             vm.showRewardFormValid = !vm.rewardWeeklyConsecutiveTopUpDuplicateProvider;
             $scope.safeApply();
         }
+
         vm.updateDoubleTopupReward = function (type, data) {
             if (type == 'add') {
                 vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
             } else if (type == 'remove') {
                 vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
             }
-        }
+        };
 
+        vm.updateRewardInEdit = function (type, data) {
+            if (type == 'add') {
+                vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+            } else if (type == 'remove') {
+                vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
+            }
+        };
 
         vm.topupProviderChange = function (provider, checked) {
             if (!provider) {

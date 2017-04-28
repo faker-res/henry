@@ -234,6 +234,8 @@ let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
 let smsVerificationLogModel = dbLogs.model('smsVerificationLog', smsVerificationLogSchema, 'smsVerificationLog');
+let playerCreditsDailyLogSchema = require('./../schema/logs/playerCreditsDailyLog');
+let playerCreditsDailyLogModel = dbLogs.model('playerCreditsDailyLog', playerCreditsDailyLogSchema, 'playerCreditsDailyLog');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -354,6 +356,7 @@ var dbProperties = {
     collection_rewardLog: rewardLogModel,
     collection_playerStatusChangeLog: playerStatusChangeLogModal,
     collection_playerPermissionLog: playerPermissionLogModel,
+    collection_playerCreditsDailyLog: playerCreditsDailyLogModel,
     collection_playerCreditTransferLog: playerCreditTransferLogModel,
     collection_playerClientSourceLog: playerClientSourceLogModel,
     collection_partnerLoginRecord: partnerLoginRecordModel,

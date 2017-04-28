@@ -1102,6 +1102,24 @@ define(['js/app'], function (myApp) {
             })
         }
 
+        vm.submitPlayerBonusStatus = function (proposal, status, remark) {
+            vm.submitPlayerBonusProcess = 1;
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'setBonusProposalStatus', {
+                proposalId: proposal.proposalId,
+                orderStatus: status,
+                remark: remark
+            }, function (data) {
+                console.log('playerbonus data', data);
+                vm.submitPlayerBonusProcess = 2;
+                $scope.safeApply();
+            }, function (error) {
+                vm.submitPlayerBonusProcess = 3;
+                console.log('playerbonus error', error);
+                $scope.safeApply();
+            })
+        }
+
         ///////////////////////////////// approval proposal table
         // vm.loadApprovalProposalData = function (callback) {
         //     $('.proposalMessage > a > .fa').addClass('fa-spin fa-2x');
