@@ -1172,46 +1172,71 @@ var proposalExecutor = {
             //create reward task for related player
             //verify data
             if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                if (!proposalData.data.spendingAmount) {
+                    //todo: update topuprecord
+                    let updatePlayer = {
+                        $inc: {validCredit: proposalData.data.rewardAmount}
+                    };
 
-                //todo::update existing reward task here
-                dbRewardTask.getRewardTask(
-                    {
-                        playerId: proposalData.data.playerObjId,
-                        status: constRewardTaskStatus.STARTED
-                    }
-                ).then(
-                    function (curData) {
-                        if (!curData) {
-                            var taskData = {
-                                playerId: proposalData.data.playerObjId,
-                                type: constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
-                                rewardType: constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
-                                platformId: proposalData.data.platformId,
-
-                                requiredUnlockAmount: proposalData.data.spendingAmount,
-                                //todo::check current amount init value???
-                                currentAmount: proposalData.data.rewardAmount,
-                                initAmount: proposalData.data.rewardAmount,
-                                //useConsumption: proposalData.data.useConsumption
-                                eventId: proposalData.data.eventId
-                            };
-                            createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_CONSUMPTION_INCENTIVE, proposalData);
+                    dbconfig.collection_players.findOneAndUpdate({
+                        _id: proposalData.data.playerObjId,
+                        platform: proposalData.data.platformId
+                    }, updatePlayer, {new: true}).lean().then(
+                        function (data) {
+                            dbLogger.createCreditChangeLog(
+                                data._id, data.platform,
+                                proposalData.data.rewardAmount,
+                                proposalData.type.name,
+                                data.validCredit,
+                                null, proposalData);
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update player info", error: err});
                         }
-                        else {
+                    );
+                }
+                else {
+                    //todo::update existing reward task here
+                    dbRewardTask.getRewardTask(
+                        {
+                            playerId: proposalData.data.playerObjId,
+                            status: constRewardTaskStatus.STARTED
+                        }
+                    ).then(
+                        function (curData) {
+                            if (!curData) {
+                                let taskData = {
+                                    playerId: proposalData.data.playerObjId,
+                                    type: constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
+                                    rewardType: constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
+                                    platformId: proposalData.data.platformId,
+
+                                    requiredUnlockAmount: proposalData.data.spendingAmount,
+                                    //todo::check current amount init value???
+                                    currentAmount: proposalData.data.rewardAmount,
+                                    initAmount: proposalData.data.rewardAmount,
+                                    useConsumption: proposalData.data.useConsumption,
+                                    eventId: proposalData.data.eventId
+                                };
+                                createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_CONSUMPTION_INCENTIVE, proposalData);
+                            }
+                            else {
+                                deferred.reject({
+                                    name: "DBError",
+                                    message: "Player already has reward task ongoing",
+                                });
+                            }
+                        },
+                        function (error) {
                             deferred.reject({
                                 name: "DBError",
-                                message: "Player already has reward task ongoing",
+                                message: "Error finding reward task for player top up return",
+                                error: error
                             });
                         }
-                    },
-                    function (error) {
-                        deferred.reject({
-                            name: "DBError",
-                            message: "Error finding reward task for player top up return",
-                            error: error
-                        });
-                    }
-                );
+                    );
+                }
             }
             else {
                 deferred.reject({name: "DataError", message: "Incorrect player top up return proposal data"});
@@ -2039,7 +2064,7 @@ var proposalExecutor = {
                 //todo::add more reasons here, ex:cancel request
 
                 // return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
-
+                proposalData.data.creditCharge = proposalData.data.creditCharge || 0;
                 return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, "rejectPlayerBonus")
                     .then(
                         res => deferred.resolve("Proposal is rejected"),

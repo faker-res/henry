@@ -368,6 +368,11 @@
             <input id="bankAddressInput" type=text name="bankAddress">
         </label>
     </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
     <p></p>
 
     <div>
@@ -397,12 +402,55 @@
             <input id="playerNewPasswordInput" name="newPassword" type=text>
         </label>
     </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
     <p>
     <div>
         <!--For testing Modify the player login password API (9)-->
         <button id="modifyPassword" data-api-name="updatePassword">Update Player Password</button>
         <div>
             <textarea id="modifyPasswordOutput">Show Output</textarea>
+        </div>
+    </div>
+</div>
+
+<h3>MODIFY PLAYER + PARTNER PASSWORD INFORMATION (修改玩家+推广渠道登录密码)</h3>
+<div class="test-container">
+    <div>
+        <label>Player ID
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Partner ID
+            <input name="partnerId" type="text">
+        </label>
+    </div>
+    <div>
+        <label>Old Password
+            <input name="oldPassword" type=text>
+        </label>
+    </div>
+
+    <div>
+        <label>New Password
+            <input name="newPassword" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <p>
+    <div>
+        <!--For testing Modify the player login password API (9)-->
+        <button data-api-name="updatePasswordPlayerPartner">Update Player Password</button>
+        <div>
+            <textarea>Show Output</textarea>
         </div>
     </div>
 </div>

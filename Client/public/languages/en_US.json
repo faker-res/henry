@@ -233,6 +233,7 @@
   "INTERNET_BANKING": "Internet Banking",
   "APPLY_MANUAL_TOPUP" : "Apply Manual TopUp",
   "APPLY_ALIPAY_TOPUP" : "Apply Alipay TopUp",
+  "APPLY_WECHAT_TOPUP" : "Apply Wechat TopUp",
   "LAST_BANK_CARD_NUMBER" : "Last Bank Card No",
   "BANK_TYPE_ID": "BankType Id",
   "DEPOSIT_METHOD": "Deposit Method",
@@ -796,5 +797,10 @@
   "Qty_Min":"Min",
   "Qty_Max":"Max",
 
-  "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode"
+  "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
+  "AUTO_SETTLEMENT": "Auto Settlement",
+  "SMS_VERIFICATION": "SMS Verification",
+  "LAST_DAILY_SETTLEMENT_TIME": "Last Daily Settlement Time",
+  "LAST_WEEKLY_SETTLEMENT_TIME": "Last Weekly Settlement Time",
+  "deficitAmount": "Deficit Amount"
 }

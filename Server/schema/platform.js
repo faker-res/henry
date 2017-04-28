@@ -64,7 +64,9 @@ var platformSchema = new Schema({
     //numbers of times apply bonus without charges
     bonusCharges:{type:Number},
     //allow same real name to register? for frontEnd only, they still can register via office
-    allowSameRealNameToRegister: {type: Boolean, default: true}
+    allowSameRealNameToRegister: {type: Boolean, default: true},
+    // Platform-wide SMS Verification Setting
+    requireSMSVerification: {type: Boolean, default: false}
 });
 
 //add platform id before save

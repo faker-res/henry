@@ -275,6 +275,12 @@
         this.playerService.updatePassword.once(callback);
     };
 
+    proto.updatePasswordPlayerPartner = function (callback, requestData) {
+        let data = requestData || {playerId: testPlayerId, oldPassword: "123456", newPassword: "654321"};
+        this.playerService.updatePasswordPlayerPartner.request(data);
+        this.playerService.updatePasswordPlayerPartner.once(callback);
+    };
+
     proto.update = function (callback, requestData) {
         var data = requestData ||
             {
