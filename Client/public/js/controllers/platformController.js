@@ -4824,9 +4824,9 @@ define(['js/app'], function (myApp) {
                 });
                 // $('#playerExpenseTable').DataTable(option);
                 var a = utilService.createDatatableWithFooter('#playerExpenseTable', option, {
-                    5: summary.validAmountSum,
-                    6: summary.amountSum,
-                    7: summary.bonusAmountSum,
+                    4: summary.validAmountSum,
+                    5: summary.amountSum,
+                    6: summary.bonusAmountSum,
                     // 8: summary.commissionAmountSum
                 });
                 vm.playerExpenseLog.pageObj.init({maxCount: vm.playerExpenseLog.totalCount}, newSearch);
@@ -6465,7 +6465,7 @@ define(['js/app'], function (myApp) {
                             });
                             let perm = (row && row.permission) ? row.permission : {};
                             link.append($('<i>', {
-                                'class': 'fa fa-gift margin-right-5 ' + (perm.commissionSettlement === true ? "text-primary" : "text-danger"),
+                                'class': 'fa fa-user-times margin-right-5 ' + (perm.disableCommSettlement === true ? "text-primary" : "text-danger"),
                             }));
                             return link.prop('outerHTML');
                         },
@@ -6716,7 +6716,7 @@ define(['js/app'], function (myApp) {
                             let that = this;
                             let row = JSON.parse(this.dataset.row);
                             vm.partnerPermissionTypes = {
-                                commissionSettlement: {imgType: 'i', iconClass: "fa fa-gift"}
+                                disableCommSettlement: {imgType: 'i', iconClass: "fa fa-user-times"}
                             };
                             $("#partnerPermissionTable td").removeClass('hide');
                             $.each(vm.partnerPermissionTypes, function (key, v) {

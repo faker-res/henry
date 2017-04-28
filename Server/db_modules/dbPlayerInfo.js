@@ -131,9 +131,10 @@ let dbPlayerInfo = {
                         inputData.name = inputData.name.toLowerCase();
                         delete inputData.platformId;
                         //find player referrer if there is any
+                        let proms = [];
                         if (inputData.referral) {
-                            var referralName = platformPrefix + inputData.referral;
-                            return dbconfig.collection_players.findOne({
+                            let referralName = platformPrefix + inputData.referral;
+                            let referrralProm = dbconfig.collection_players.findOne({
                                 name: referralName,
                                 platform: platformObjId
                             }).then(
@@ -148,9 +149,10 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
+                            proms.push(referrralProm);
                         }
-                        else if (inputData.partnerName) {
-                            return dbconfig.collection_partner.findOne({
+                        if (inputData.partnerName) {
+                            let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerName: inputData.partnerName,
                                 platform: platformObjId
                             }).then(
@@ -167,16 +169,17 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
+                            proms.push(partnerProm);
                         }
                         //check if player's domain matches any partner
-                        else if (inputData.domain) {
+                        if (inputData.domain) {
                             delete inputData.referral;
-                            var filteredDomain = dbUtility.getDomainName(inputData.domain);
+                            let filteredDomain = dbUtility.getDomainName(inputData.domain);
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
                             inputData.domain = filteredDomain;
-                            return dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
+                            let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                 data => {
                                     if (data) {
                                         inputData.partner = data._id;
@@ -189,11 +192,9 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
+                            proms.push(domainProm);
                         }
-                        else {
-                            delete inputData.referral;
-                            return inputData;
-                        }
+                        return Q.all(proms);
                     } else {
                         return Q.reject({
                             status: constServerCode.USERNAME_ALREADY_EXIST,

@@ -129,7 +129,7 @@ var partnerSchema = new Schema({
     // Partner permission
     permission: {
         _id: false,
-        commissionSettlement: {type: Boolean, default: true}
+        disableCommSettlement: {type: Boolean, default: false}
     },
 
 });
