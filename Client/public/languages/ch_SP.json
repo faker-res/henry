@@ -1798,5 +1798,7 @@
    "PlayerReferralReward:unlock" : "玩家推荐奖励:解锁",
    "PlayerRegistrationReward:unlock" : "注册彩金奖励:解锁",
    "PlayerDoubleTopUpReward:unlock" : "玩家多次充值:解锁",
-   "PlayerWechatTopUp": "微信支付"
+   "PlayerWechatTopUp": "微信支付",
+  "Minimum deficit amount": "最小输值",
+  "deficitAmount": "输值"
 }

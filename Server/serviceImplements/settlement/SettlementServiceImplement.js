@@ -11,6 +11,7 @@ var dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionR
 var dbPlatform = require('./../../db_modules/dbPlatform');
 var dbPartner = require('./../../db_modules/dbPartner');
 var dbRewardTask = require('./../../db_modules/dbRewardTask');
+let dbRewardEvent = require('./../../db_modules/dbRewardEvent');
 
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -193,6 +194,11 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayersCommissionInfo, args, isValidData);
     };
 
+    this.savePlayerCredit.onRequest = function(wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.playerObjId);
+        let args = [data.playerObjId];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardEvent.savePlayerCredit, args, isValidData);
+    };
 };
 
 var proto = SettlementServiceImplement.prototype = Object.create(PlayerService.prototype);
