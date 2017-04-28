@@ -587,11 +587,11 @@ var dbUtility = {
             .replace("www.", "");
     },
 
-    encryptBankAcc: function (str) {
+    encodeBankAcc: function (str) {
         str = str || '';
         return str.substring(0, 6) + "******" + str.slice(-4);
     },
-    encryptPhoneNum: function (str) {
+    encodePhoneNum: function (str) {
         str = str || '';
         return str.substring(0, 3) + "******" + str.slice(-4);
     }

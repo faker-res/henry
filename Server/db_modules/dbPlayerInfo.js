@@ -344,7 +344,7 @@ let dbPlayerInfo = {
                     }
                     if (data[0] && data[0].length > 0 && phoneNumber) {
                         // var startIndex = Math.max(Math.floor((phoneNumber.length - 4) / 2), 0);
-                        var pNumber = phoneNumber.substr(0, 3) + "****" + phoneNumber.substr(-4);
+                        var pNumber = dbUtility.encodePhoneNum(phoneNumber);
                         for (var j = 0; j < data[0].length; j++) {
                             var similarPlayerData = {
                                 playerObjId: data[0][j]._id,
@@ -397,7 +397,7 @@ let dbPlayerInfo = {
                             var similarPlayerData = {
                                 playerObjId: data[3][q]._id,
                                 field: "bankAccount",
-                                content: data[3][q].bankAccount.substring(0, 3) + "******" + data[3][q].bankAccount.slice(-4)
+                                content: dbUtility.encodeBankAcc(data[3][q].bankAccount)
                             };
                             similarPlayersArray.push(similarPlayerData);
                             prom.push(
@@ -408,12 +408,12 @@ let dbPlayerInfo = {
                                             similarPlayers: {
                                                 playerObjId: newPlayerObjId,
                                                 field: "bankAccount",
-                                                content: playerData.bankAccount.substring(0, 3) + "******" + playerData.bankAccount.slice(-4)
+                                                content: dbUtility.encodeBankAcc(playerData.bankAccount)
                                             }
                                         }
                                     }
                                 )
-                            );
+                            )
                         }
                     }
                     prom.push(
@@ -450,9 +450,9 @@ let dbPlayerInfo = {
         query[fieldName] = searchVal;
         prom1 = dbconfig.collection_players.find(query);
         let func = (fieldName == 'phoneNumber')
-            ? dbUtility.encryptPhoneNum
+            ? dbUtility.encodePhoneNum
             : ((fieldName == 'bankAccount')
-                ? dbUtility.encryptBankAcc
+                ? dbUtility.encodeBankAcc
                 : null);
         return Q.resolve(prom1).then(results => {
             let prom = [];
