@@ -235,7 +235,7 @@ var dbRewardEvent = {
     },
 
     startSavePlayersCredit:
-        () => {
+        (platformId) => {
             return dbconfig.collection_rewardType.findOne({
                 name: constRewardType.PLAYER_CONSUMPTION_INCENTIVE
             }).lean().then(
@@ -246,45 +246,54 @@ var dbRewardEvent = {
                 }
             ).then(
                 rewardEvents => {
-                    let platformIds = new Set(rewardEvents.map(rewardEvent => String(rewardEvent.platform)));
+                    let settlePlayerCredit = platformId => {
+                        let stream = dbconfig.collection_players.find(
+                            {
+                                platform: platformId
+                            }
+                        ).lean().cursor({batchSize: 100});
 
-                    platformIds.forEach(
-                        platformId => {
-                            //if there is commission config, start settlement
-                            let stream = dbconfig.collection_players.find(
-                                {
-                                    platform: platformId
-                                }
-                            ).lean().cursor({batchSize: 100});
-
-                            let balancer = new SettlementBalancer();
-                            return balancer.initConns().then(function () {
-                                return Q(
-                                    balancer.processStream(
-                                        {
-                                            stream: stream,
-                                            batchSize: 10,
-                                            makeRequest: function (playerObjs, request) {
-                                                request("player", "savePlayerCredit", {
-                                                    playerObjId: playerObjs.map(player => {
-                                                        return {
-                                                            _id: player._id,
-                                                            name: player.name,
-                                                            platform: player.platform,
-                                                            validCredit: player.validCredit,
-                                                            lockedCredit: player.lockedCredit
-                                                        }
-                                                    })
-                                                });
-                                            }
+                        let balancer = new SettlementBalancer();
+                        return balancer.initConns().then(function () {
+                            return Q(
+                                balancer.processStream(
+                                    {
+                                        stream: stream,
+                                        batchSize: 10,
+                                        makeRequest: function (playerObjs, request) {
+                                            request("player", "savePlayerCredit", {
+                                                playerObjId: playerObjs.map(player => {
+                                                    return {
+                                                        _id: player._id,
+                                                        name: player.name,
+                                                        platform: player.platform,
+                                                        validCredit: player.validCredit,
+                                                        lockedCredit: player.lockedCredit
+                                                    }
+                                                })
+                                            });
                                         }
-                                    )
-                                );
-                            });
-                        }
-                    )
+                                    }
+                                )
+                            );
+                        });
+                    };
 
+                    if (platformId) {
+                        // Work on single platform only
+                        return settlePlayerCredit(platformId);
+                    }
+                    else {
+                        // Work on all platforms
+                        let platformIds = new Set(rewardEvents.map(rewardEvent => String(rewardEvent.platform)));
 
+                        platformIds.forEach(
+                            platformId => {
+                                //if there is commission config, start settlement
+                                settlePlayerCredit(platformId);
+                            }
+                        );
+                    }
                 }
             )
         },

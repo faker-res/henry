@@ -26,6 +26,7 @@ const constProposalStatus = require('../const/constProposalStatus');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
+const constPartnerStatus = require('../const/constPartnerStatus');
 
 let dbPartner = {
 
@@ -2986,7 +2987,12 @@ let dbPartner = {
                 })
         } else {
             // Instead of searching all partners, look for only partners with permission on
-            partId = dbconfig.collection_partner.find({$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}).then(
+            partId = dbconfig.collection_partner.find({
+                $or: [
+                    {permission: {$exists: false}},
+                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                ]
+            }).then(
                 partners => {
                     if (partners && partners.length > 0) {
                         let partnerIds = partners.map(partner => partner._id);
@@ -2995,7 +3001,8 @@ let dbPartner = {
                         matchObj = "noPartner";
                     }
                     return matchObj;
-                })
+                }
+            )
         }
 
         return Q.resolve(partId).then(
@@ -3682,6 +3689,41 @@ let dbPartner = {
             }
         );
     },
+
+    /**
+        * Update partner status info and record change reasono
+        * @param {objectId} partnerObjId
+        * @param {String} status
+        * @param {String} reason
+    */
+    updatePartnerStatus : function(partnerObjId, status, reason, adminName) {
+      var updateData = {
+        status: status
+      };
+
+      var partnerProm = dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, {
+        _id: partnerObjId
+      }, updateData, constShardKeys.collection_partner);
+      var newLog = {
+        _partnerId: partnerObjId,
+        status: status,
+        reason: reason,
+        adminName: adminName
+      };
+      var log = new dbconfig.collection_partnerStatusChangeLog(newLog);
+      var logProm = log.save();
+      return Q.all([partnerProm, logProm]);
+    },
+
+    /*
+     * get partner status change log
+     * @param {objectId} partnerObjId
+     */
+    getPartnerStatusChangeLog: function (partnerObjId) {
+        return dbconfig.collection_partnerStatusChangeLog.find({_partnerId: partnerObjId}).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
+    }
+
+
 };
 
 module.exports = dbPartner;

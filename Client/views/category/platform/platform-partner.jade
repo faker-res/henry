@@ -469,3 +469,43 @@ p
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                 label.inlineBlk.margin-right-5(ng-if='vm.partnerBonus.resMsg') {{vm.partnerBonus.resMsg}}
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.partnerBonus.showSubmit && !vm.partnerBonus.resMsg')
+                
+                                
+#partnerStatusPopover.hide(style="width: 600px", ng-non-bindable)
+    //- label The status for {{vm.statusPopover.name}}
+    //- .well
+    table.simple-table
+        tr
+            td(style='text-align:left')
+                div(ng-repeat='(i,v) in vm.allPartnersStatusString')
+                    label
+                        input.partnerStatusChange.pull-left(data-row='{{vm.partnerStatusPopover}}' data-status='{{v}}' type='radio' name='partnerstatus' ng-checked='v==vm.partnerStatusPopover.status')
+                        span.padding-left-5 {{vm.allPartnersStatusKeys[v-1]|translate}}
+                //- .well.showGames.collapse
+                //-     label {{"BANNED_FROM_THESE_PROVIDERS" | translate}}
+                //-     div(ng-repeat='(i,v) in vm.showPlatform.gameProviders')
+                //-         label {{vm.getProviderText(v)}}
+                //-             input.playerStatusProviderForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v}}', ng-checked='vm.statusPopover.forbidProviders.indexOf(v)>-1')
+                div.partnerStatusConfirmation
+                    label {{'REASON' | translate}}
+                    .textareaDetail
+                        .well(style='padding:5px;')
+                            textarea.partnerStatusChangeReason(rows="3" style="border:none")
+                    button.common-button.margin-right-5.btn.btn-success.partnerStatusConfirm.disabled {{'CONFIRM' | translate}}
+                    button.common-button.margin-right-5.btn.btn-warning.partnerStatusCancel {{'CANCEL' | translate}}
+            td
+                button.btn.common-button.btn-primary.partnerStatusHistory {{'SHOW_CHANGE_HISTORY' | translate}}
+                table(ng-if='vm.partnerStatusHistory && vm.partnerStatusHistory.length>0')
+                    thead
+                        tr
+                            th {{'TIME' | translate}}
+                            th {{'REASON' | translate}}
+                            th {{'STATUS' | translate}}
+                            th {{'ADMIN' | translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.partnerStatusHistory')
+                            td {{vm.dateReformat(v.createTime)}}
+                            td(style='max-width:200px') {{v.reason}}
+                            td {{vm.allPartnersStatusKeys[v.status-1] | translate}}
+                            td {{v.adminName}}
+                div(ng-if='vm.partnerStatusHistory.length==0') {{'NO_RECORD' | translate}}
