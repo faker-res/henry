@@ -553,14 +553,15 @@ define(['js/app'], function (myApp) {
                     v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
                     v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
                     v.lockUser$ = $translate(v.isLocked);
-                    v.creditAmount$ = (v.data.amount != null) ?
-                        parseFloat(v.data.amount).toFixed(2)
-                        : (v.data.rewardAmount != null ?
-                            parseFloat(v.data.rewardAmount).toFixed(2) :
-                            v.data.commissionAmount != null ?
-                                    parseFloat(v.data.commissionAmount).toFixed(2) :
-                                    v.data.negativeProfitAmount != null ?
-                                        parseFloat(v.data.negativeProfitAmount).toFixed(2) : $translate("N/A"));
+                    v.creditAmount$ = (v.data.amount != null)
+                        ? parseFloat(v.data.amount).toFixed(2)
+                        : (v.data.rewardAmount != null
+                            ? parseFloat(v.data.rewardAmount).toFixed(2)
+                            : v.data.commissionAmount != null
+                                ? parseFloat(v.data.commissionAmount).toFixed(2)
+                                : v.data.negativeProfitAmount != null
+                                    ? parseFloat(v.data.negativeProfitAmount).toFixed(2)
+                                    : $translate("N/A"));
                     if (v.data.updateAmount != null) {
                         v.creditAmount$ = parseFloat(v.data.updateAmount).toFixed(2);
                     }
