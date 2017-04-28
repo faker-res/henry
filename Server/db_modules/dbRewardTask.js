@@ -137,13 +137,13 @@ var dbRewardTask = {
                             chosenTask.push(task);
                         }
                     }
-                })
+                });
                 deferred.resolve(chosenTask.length);
 
                 },function(error){
                     deferred.reject({name: "DBError", message: "Error finding player reward task", error: error})
                 }
-        )
+        );
         return deferred.promise;
     },
     /**
