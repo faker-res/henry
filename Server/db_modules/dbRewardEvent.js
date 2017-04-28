@@ -317,7 +317,7 @@ var dbRewardEvent = {
                                     let credit = 0;
                                     for (let i = 0; i < providerCredit.length; i++) {
                                         if (providerCredit[i].credit === undefined) {
-                                            throw Error(`No credit in response [${i}]: ${JSON.stringify(providerCredit[i])}`);
+                                            providerCredit[i].credit = 0;
                                         }
                                         credit += parseFloat(providerCredit[i].credit);
                                     }
