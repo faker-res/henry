@@ -206,6 +206,9 @@ var partnerRewardRecordModel = dbLogs.model('partnerRewardRecord', partnerReward
 var playerStatusChangeLogSchema = require('./../schema/logs/playerStatusChangeLog');
 var playerStatusChangeLogModal = dbLogs.model('playerStatusChangeLog', playerStatusChangeLogSchema, 'playerStatusChangeLog');
 
+var partnerStatusChangeLogSchema = require('./../schema/logs/partnerStatusChangeLog');
+var partnerStatusChangeLogModal = dbLogs.model('partnerStatusChangeLog', partnerStatusChangeLogSchema, 'partnerStatusChangeLog');
+
 var gameProviderDaySummarySchema = require('./../schema/gameProviderDaySummary');
 var gameProviderDaySummaryModel = dbLogs.model('gameProviderDaySummary', gameProviderDaySummarySchema, 'gameProviderDaySummary');
 
@@ -363,6 +366,7 @@ var dbProperties = {
     collection_paymentAPILog: paymentAPILogModel,
     collection_syncDataLog: syncDataLogModel,
     collection_partnerPermissionLog: partnerPermissionLogModel,
+    collection_partnerStatusChangeLog: partnerStatusChangeLogModal,
 
     //unique
     collection_playerName: playerNameModal,

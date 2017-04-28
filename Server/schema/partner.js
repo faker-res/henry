@@ -1,6 +1,7 @@
 var bcrypt = require('bcrypt');
 var mongoose = require('mongoose');
 var constSystemParam = require('../const/constSystemParam');
+var constPartnerStatus = require('../const/constPartnerStatus');
 var counterManager = require("../modules/counterManager.js");
 var ensureFieldsAreUnique = require("../db_modules/middleware/ensureFieldsAreUnique.js");
 var dbUtil = require("../modules/dbutility");
@@ -131,6 +132,8 @@ var partnerSchema = new Schema({
         _id: false,
         disableCommSettlement: {type: Boolean, default: false}
     },
+    // partner status normal or forbid
+    status: {type: Number, default: constPartnerStatus.NORMAL}
 
 });
 
@@ -189,4 +192,3 @@ partnerSchema.post('find', function(result) {
 });
 
 module.exports = partnerSchema;
-
