@@ -42,7 +42,8 @@
                 "calculatePartnersCommission",
                 "calculatePartnersChildrenCommission",
                 "checkPlatformPlayersRewardTask",
-                "getPartnerPlayersCommissionInfo"
+                "getPartnerPlayersCommissionInfo",
+                "savePlayerCredit"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

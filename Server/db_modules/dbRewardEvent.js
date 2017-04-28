@@ -4,6 +4,9 @@ var constRewardPriority = require('./../const/constRewardPriority');
 var constRewardType = require('./../const/constRewardType');
 var constProposalType = require('./../const/constProposalType');
 
+let cpmsAPI = require("../externalAPI/cpmsAPI");
+let SettlementBalancer = require('../settlementModule/settlementBalancer');
+
 var dbRewardEvent = {
 
     /**
@@ -229,7 +232,122 @@ var dbRewardEvent = {
         );
 
         return deferred.promise;
-    }
+    },
+
+    startSavePlayersCredit:
+        () => {
+            return dbconfig.collection_rewardType.findOne({
+                name: constRewardType.PLAYER_CONSUMPTION_INCENTIVE
+            }).lean().then(
+                rewardType => {
+                    return dbconfig.collection_rewardEvent.find({
+                        type: rewardType._id
+                    })
+                }
+            ).then(
+                rewardEvents => {
+                    let platformIds = new Set(rewardEvents.map(rewardEvent => String(rewardEvent.platform)));
+
+                    platformIds.forEach(
+                        platformId => {
+                            //if there is commission config, start settlement
+                            let stream = dbconfig.collection_players.find(
+                                {
+                                    platform: platformId
+                                }
+                            ).lean().cursor({batchSize: 100});
+
+                            let balancer = new SettlementBalancer();
+                            return balancer.initConns().then(function () {
+                                return Q(
+                                    balancer.processStream(
+                                        {
+                                            stream: stream,
+                                            batchSize: 10,
+                                            makeRequest: function (playerObjs, request) {
+                                                request("player", "savePlayerCredit", {
+                                                    playerObjId: playerObjs.map(player => {
+                                                        return {
+                                                            _id: player._id,
+                                                            name: player.name,
+                                                            platform: player.platform,
+                                                            validCredit: player.validCredit,
+                                                            lockedCredit: player.lockedCredit
+                                                        }
+                                                    })
+                                                });
+                                            }
+                                        }
+                                    )
+                                );
+                            });
+                        }
+                    )
+
+
+                }
+            )
+        },
+
+    savePlayerCredit:
+        (playerDatas) => {
+            playerDatas.map(
+                playerData => {
+                    return dbconfig.collection_platform.findById(playerData.platform)
+                        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean()
+                        .then(
+                            platformData => {
+                                if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
+                                    let proms = [];
+                                    for (let i = 0; i < platformData.gameProviders.length; i++) {
+                                        proms.push(cpmsAPI.player_queryCredit(
+                                            {
+                                                username: playerData.name,
+                                                platformId: platformData.platformId,
+                                                providerId: platformData.gameProviders[i].providerId,
+                                            }
+                                        ));
+                                    }
+                                    return Q.all(proms);
+                                }
+                            }
+                        ).then(
+                            providerCredit => {
+                                if (providerCredit && providerCredit.length > 0) {
+                                    let credit = 0;
+                                    for (let i = 0; i < providerCredit.length; i++) {
+                                        if (providerCredit[i].credit === undefined) {
+                                            throw Error(`No credit in response [${i}]: ${JSON.stringify(providerCredit[i])}`);
+                                        }
+                                        credit += parseFloat(providerCredit[i].credit);
+                                    }
+                                    return credit;
+                                }
+                                else {
+                                    return 0;
+                                }
+                            }
+                        ).then(
+                            gameCredit => {
+                                let log = new dbconfig.collection_playerCreditsDailyLog({
+                                    playerObjId: playerData._id,
+                                    platformObjId: playerData.platform,
+                                    validCredit: playerData.validCredit,
+                                    lockedCredit: playerData.lockedCredit,
+                                    gameCredit: gameCredit,
+                                    createTime: Date.now()
+                                });
+                                return log.save();
+                            }
+                        );
+                }
+            );
+
+
+
+
+            return Q.resolve(true);
+        }
 
 };
 

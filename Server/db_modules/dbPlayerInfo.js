@@ -6555,16 +6555,17 @@ let dbPlayerInfo = {
      * @param {String} code
      */
     applyConsumptionIncentive: function (playerId, code, ifAdmin) {
-        var platformId = null;
-        var player = {};
-        var eventParam = {};
+        let platformId = null;
+        let player = {};
+        let eventParam = {};
+        let eventParams = [];
         //get yesterday time frame
-        var yerTime = dbUtility.getYesterdaySGTime();
-        var playerTopUpAmount = 0;
-        var event = {};
-        var adminInfo = ifAdmin;
+        let yerTime = dbUtility.getYesterdaySGTime();
+        let playerTopUpAmount = 0;
+        let event = {};
+        let adminInfo = ifAdmin;
 
-        var playerProm = dbconfig.collection_players.findOne({playerId: playerId})
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
         return playerProm.then(
             data => {
@@ -6572,14 +6573,14 @@ let dbPlayerInfo = {
                 if (data && data.playerLevel) {
                     player = data;
                     platformId = player.platform;
-                    var taskProm = dbRewardTask.getRewardTask(
+                    let taskProm = dbRewardTask.getRewardTask(
                         {
                             playerId: player._id,
                             status: constRewardTaskStatus.STARTED
                         }
                     );
                     //get reward event data
-                    var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSUMPTION_INCENTIVE, code);
+                    let eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSUMPTION_INCENTIVE, code);
                     return Q.all([eventProm, taskProm]);
                 }
                 else {
@@ -6589,8 +6590,8 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
-                    var eventData = data[0];
-                    var taskData = data[1];
+                    let eventData = data[0];
+                    let taskData = data[1];
                     if (taskData) {
                         return Q.reject({
                             status: constServerCode.PLAYER_HAS_REWARD_TASK,
@@ -6598,17 +6599,37 @@ let dbPlayerInfo = {
                             message: "The player has not unlocked the previous reward task. Not valid for new reward"
                         });
                     }
-                    if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSUMPTION_INCENTIVE, eventData) && eventData.param.needApply) {
+                    if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSUMPTION_INCENTIVE, eventData) && eventData.needApply) {
                         event = eventData;
-                        eventParam = eventData.param.reward[player.playerLevel.value];
-                        if (eventParam && (player.validCredit + player.lockedCredit) <= eventParam.maxPlayerCredit) {
+                        let minTopUpRecordAmount = 0;
+
+                        // Filter event param based on player level
+                        eventParams = eventData.param.reward.filter(reward => {
+                            if (reward.minPlayerLevel == player.playerLevel.value) {
+                                return reward;
+                            }
+                        });
+
+                        // Loose filter if no matched param for player level
+                        if (eventParams.length == 0) {
+                            eventParams = eventData.param.reward.filter(reward => {
+                                if(reward.minPlayerLevel <= player.playerLevel.value) {
+                                    if (reward.minTopUpRecordAmount > minTopUpRecordAmount) {
+                                        minTopUpRecordAmount = reward.minTopUpRecordAmount;
+                                    }
+                                    return reward;
+                                }
+                            });
+                        }
+
+                        if (eventParams && eventParams.length > 0) {
                             //get yesterday top up amount
                             return dbconfig.collection_playerTopUpRecord.aggregate(
                                 {
                                     $match: {
                                         playerId: player._id,
                                         platformId: player.platform,
-                                        amount: {$gte: eventParam.minTopUpRecordAmount},
+                                        amount: {$gte: minTopUpRecordAmount},
                                         createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
                                         $or: [{bDirty: false}, {
                                             bDirty: true,
@@ -6652,8 +6673,9 @@ let dbPlayerInfo = {
             topUpData => {
                 if (topUpData && topUpData[0] && topUpData[0].amount > 0) {
                     playerTopUpAmount = topUpData[0].amount;
+
                     //get yesterday bonus credit
-                    var bonusProm = dbconfig.collection_proposalType.findOne({
+                    let bonusProm = dbconfig.collection_proposalType.findOne({
                         platformId: player.platform,
                         name: constProposalType.PLAYER_BONUS
                     }).then(
@@ -6679,7 +6701,7 @@ let dbPlayerInfo = {
                     ).then(
                         bonusData => {
                             if (bonusData && bonusData > 0) {
-                                var bonusCredit = 0;
+                                let bonusCredit = 0;
                                 bonusData.forEach(
                                     data => {
                                         bonusCredit += data.data.amount * data.data.bonusCredit
@@ -6692,41 +6714,24 @@ let dbPlayerInfo = {
                             }
                         }
                     );
-                    //get all game credit
-                    var providerCreditProm = dbconfig.collection_platform.findById(player.platform)
-                        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
-                            platformData => {
-                                if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
-                                    var proms = [];
-                                    for (var i = 0; i < platformData.gameProviders.length; i++) {
-                                        proms.push(cpmsAPI.player_queryCredit(
-                                            {
-                                                username: player.name,
-                                                platformId: platformData.platformId,
-                                                providerId: platformData.gameProviders[i].providerId,
-                                            }
-                                        ));
-                                    }
-                                    return Q.all(proms);
-                                }
+                    //get game credit from log
+                    let providerCreditProm = dbconfig.collection_playerCreditsDailyLog.findOne({
+                        platformObjId: player.platform,
+                        playerObjId: player._id,
+                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime}
+                    }).lean().then(
+                        creditLogData => {
+                            if (creditLogData) {
+                                return creditLogData.gameCredit;
+                            } else {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                    name: "DataError",
+                                    message: "Error in getting player game credit"
+                                });
                             }
-                        ).then(
-                            providerCredit => {
-                                if (providerCredit && providerCredit.length > 0) {
-                                    var credit = 0;
-                                    for (var i = 0; i < providerCredit.length; i++) {
-                                        if (providerCredit[i].credit === undefined) {
-                                            throw Error(`No credit in response [${i}]: ${JSON.stringify(providerCredit[i])}`);
-                                        }
-                                        credit += parseFloat(providerCredit[i].credit);
-                                    }
-                                    return credit;
-                                }
-                                else {
-                                    return 0;
-                                }
-                            }
-                        );
+                        }
+                    );
                     return Q.all([bonusProm, providerCreditProm]);
                 }
                 else {
@@ -6740,32 +6745,60 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
-                    var validCredit = playerTopUpAmount - data[0] - data[1];
-                    if ((validCredit * eventParam.rewardPercentage) >= eventParam.minRewardAmount && (player.validCredit + player.lockedCredit + data[1]) <= eventParam.maxPlayerCredit) {
-                        var rewardAmount = Math.min(Math.floor(validCredit * eventParam.rewardPercentage), eventParam.maxRewardAmount);
-                        var proposalData = {
-                            type: event.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: player.name,
-                                    id: playerId
-                                },
-                            data: {
-                                playerObjId: player._id,
-                                playerId: player.playerId,
-                                playerName: player.name,
-                                platformId: platformId,
-                                rewardAmount: rewardAmount,
-                                spendingAmount: validCredit * eventParam.spendingTimes,
-                                eventId: event._id,
-                                eventName: event.name,
-                                eventCode: event.code,
-                                eventDescription: event.description
+                    let curParam = null;
+                    let deficitAmount = playerTopUpAmount - data[0] - data[1];
+
+                    // Filter event param by deficit amount
+                    eventParams.map(param => {
+                        if (deficitAmount >= param.minDeficitAmount) {
+                            if(!curParam) {
+                                curParam = param;
+                            } else {
+                                if(param.minDeficitAmount > curParam.minDeficitAmount) {
+                                    curParam = param;
+                                }
+                            }
+                        }
+                    });
+
+                    eventParam = curParam;
+
+                    let proposalData = {
+                        type: event.executeProposal,
+                        creator: adminInfo ? adminInfo :
+                            {
+                                type: 'player',
+                                name: player.name,
+                                id: playerId
                             },
-                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                            userType: constProposalUserType.PLAYERS,
-                        };
+                        data: {
+                            playerObjId: player._id,
+                            playerId: player.playerId,
+                            playerName: player.name,
+                            platformId: platformId,
+                            deficitAmount: deficitAmount,
+                            curAmount: player.validCredit,
+                            eventId: event._id,
+                            eventName: event.name,
+                            eventCode: event.code,
+                            eventDescription: event.description
+                        },
+                        entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                        userType: constProposalUserType.PLAYERS,
+                    };
+
+                    // Set percentage to 100% if not available
+                    if (eventParam.rewardAmount && !eventParam.rewardPercentage) {
+                        // Incentive by fixed amount
+                        proposalData.data.rewardAmount = eventParam.rewardAmount;
+
+                        return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                    }
+                    else if ((deficitAmount * eventParam.rewardPercentage) >= eventParam.minRewardAmount) {
+                        // Incentive by percentage
+                        proposalData.data.rewardAmount = Math.min(Math.floor(deficitAmount * eventParam.rewardPercentage), eventParam.maxRewardAmount);
+                        proposalData.data.spendingAmount = deficitAmount * eventParam.spendingTimes;
+
                         return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
                     }
                     else {
@@ -7116,13 +7149,7 @@ let dbPlayerInfo = {
                                     return dbPlayerInfo.applyTopUpReturn(playerId, data.topUpRecordId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
-                                    //todo::temp fix for msgreen, remove after this reward is updated
-                                    return Q.reject({
-                                        status: constServerCode.INVALID_DATA,
-                                        name: "DataError",
-                                        message: "Please contact customer service"
-                                    });
-                                    // return dbPlayerInfo.applyConsumptionIncentive(playerId, code, adminInfo);
+                                    return dbPlayerInfo.applyConsumptionIncentive(playerId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_REWARD:
                                     return dbPlayerInfo.applyPlayerTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
