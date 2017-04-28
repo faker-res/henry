@@ -2064,7 +2064,7 @@ var proposalExecutor = {
                 //todo::add more reasons here, ex:cancel request
 
                 // return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
-
+                proposalData.data.creditCharge = proposalData.data.creditCharge || 0;
                 return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, "rejectPlayerBonus")
                     .then(
                         res => deferred.resolve("Proposal is rejected"),
