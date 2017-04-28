@@ -6966,20 +6966,17 @@ let dbPlayerInfo = {
                                     message: "There is consumption after top up"
                                 });
                             }
-                            console.log('pending proposal =',timeCheckData[2]);
-                            // if that's reward pending , then you cannot apply another
-                            // if(timeCheckData[2] && timeCheckData[2]>0){
-                                console.log(rewardTaskWithProposalList.indexOf(rewardEvent.type.name))
-                                // if(rewardTaskWithProposalList.indexOf(rewardEvent.type.name)!=-1){
 
+                            // if that's one reward pending , then you cannot apply other reward
+                            if(timeCheckData[2] && timeCheckData[2]>0){
+                                if(rewardTaskWithProposalList.indexOf(rewardEvent.type.name)!=-1){
                                     return Q.reject({
                                         status: constServerCode.PLAYER_PENDING_REWARD_PROPOSAL,
                                         name: "DataError",
                                         message: "Player or partner already has a pending reward proposal for this type"
                                     });
-                                // }
-
-                            // }
+                                }
+                            }
 
                             switch (rewardEvent.type.name) {
                                 //first top up

@@ -118,15 +118,34 @@ var dbRewardTask = {
      */
 
     getPendingRewardTaskCount: function(query, rewardTaskWithProposalList){
-        return dbconfig.collection_proposal
+        var deferred = Q.defer();
+
+        dbconfig.collection_proposal
         .find(query)
         .populate({
             path: "type", 
-            model: dbconfig.collection_proposalType,
-            match: {name:{$in: rewardTaskWithProposalList}}
-        }).lean();
-    },
+            model: dbconfig.collection_proposalType
+        })
+        .lean().then(
+            function(tasks){
+                // if the proposal result is include in the rewardtasklist
+                var chosenTask = [];
+                tasks.forEach(function(task){
+                    if(task.type){
+                        var tname = task.type.name;
+                        if(rewardTaskWithProposalList.indexOf(tname)!=-1){
+                            chosenTask.push(task);
+                        }
+                    }
+                })
+                deferred.resolve(chosenTask.length);
 
+                },function(error){
+                    deferred.reject({name: "DBError", message: "Error finding player reward task", error: error})
+                }
+        )
+        return deferred.promise;
+    },
     /**
      * Get player's current reward task
      * @param {String} is player Object Id
