@@ -2986,7 +2986,12 @@ let dbPartner = {
                 })
         } else {
             // Instead of searching all partners, look for only partners with permission on
-            partId = dbconfig.collection_partner.find({$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}).then(
+            partId = dbconfig.collection_partner.find({
+                $or: [
+                    {permission: {$exists: false}},
+                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                ]
+            }).then(
                 partners => {
                     if (partners && partners.length > 0) {
                         let partnerIds = partners.map(partner => partner._id);
@@ -2995,7 +3000,8 @@ let dbPartner = {
                         matchObj = "noPartner";
                     }
                     return matchObj;
-                })
+                }
+            )
         }
 
         return Q.resolve(partId).then(
