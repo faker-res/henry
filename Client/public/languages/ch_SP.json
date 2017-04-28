@@ -1654,6 +1654,7 @@
   "Processing": "处理中",
   "Fetching report": "获取报表中。。。",
   "Cancel": "已取消",
+  "updatePlayerBonusStatus":"更新玩家申请提款状态",
   "oldLevelName": "原等级",
   "newLevelName": "更新等级",
   "VERIFY_TELEPHONE": "验证手机号",
