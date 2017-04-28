@@ -7,7 +7,7 @@ var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
 var constProposalStatus = require('../const/constProposalStatus');
 var counterManager = require("../modules/counterManager.js");
-
+const dbutility = require('../modules/dbutility');
 var Schema = mongoose.Schema;
 
 var proposalSchema = new Schema({
@@ -42,25 +42,25 @@ var proposalSchema = new Schema({
     // }],
     isLocked: {type: Schema.Types.ObjectId, ref: 'adminInfo'},
     //expiry date for each proposal
-    expirationTime : {type: Date, default: Date.now }
+    expirationTime: {type: Date, default: Date.now}
 });
 
-proposalSchema.index({ "data.playerName": 1});
-proposalSchema.index({ "data.playerId": 1});
-proposalSchema.index({ "data.playerObjId": 1});
-proposalSchema.index({ "data.partnerName": 1});
+proposalSchema.index({"data.playerName": 1});
+proposalSchema.index({"data.playerId": 1});
+proposalSchema.index({"data.playerObjId": 1});
+proposalSchema.index({"data.partnerName": 1});
 
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId
-proposalSchema.pre('validate', function (next) {
-    var doc = this;
-    if (doc.data && doc.data.playerId && doc.data.playerId instanceof mongoose.Types.ObjectId) {
-        next(Error("The proposal's data.playerId should be the player.playerId, NOT the player._id"))
-    } else {
-        next();
-    }
-});
-*/
+ proposalSchema.pre('validate', function (next) {
+ var doc = this;
+ if (doc.data && doc.data.playerId && doc.data.playerId instanceof mongoose.Types.ObjectId) {
+ next(Error("The proposal's data.playerId should be the player.playerId, NOT the player._id"))
+ } else {
+ next();
+ }
+ });
+ */
 
 proposalSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('proposalId'));
 
@@ -88,9 +88,10 @@ proposalSchema.post('find', function (result) {
         for (var i = 0; i < result.length; i++) {
             //hide middle 4 digits for email
             if (result[i].status != constProposalStatus.PENDING && result[i].data && result[i].data.bankCardNo) {
-                var startIndex = Math.max(Math.floor((result[i].data.bankCardNo.length - 4) / 2), 0);
+                // var startIndex = Math.max(Math.floor((result[i].data.bankCardNo.length - 4) / 2), 0);
                 // result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, startIndex) + "****" + result[i].data.bankCardNo.substr(startIndex + 4);
-                result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, 6) + "****" + result[i].data.bankCardNo.slice(-4);
+                result[i].data.bankCardNo = dbutility.encodeBankAcc(result[i].data.bankCardNo);
+                // result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, 6) + "****" + result[i].data.bankCardNo.slice(-4);
             }
         }
         return result;

@@ -585,6 +585,15 @@ var dbUtility = {
             .replace("https://", "")
             .replace("http://", "")
             .replace("www.", "");
+    },
+
+    encodeBankAcc: function (str) {
+        str = str || '';
+        return str.substring(0, 6) + "******" + str.slice(-4);
+    },
+    encodePhoneNum: function (str) {
+        str = str || '';
+        return str.substring(0, 3) + "******" + str.slice(-4);
     }
 
 };
