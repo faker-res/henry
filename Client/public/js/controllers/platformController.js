@@ -1859,12 +1859,12 @@ define(['js/app'], function (myApp) {
 
         //get all platform players data from server
         vm.getPlatformPlayersData = function (newSearch) {
+
             // $('#loadingPlayerTableSpin').show();
             socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: vm.selectedPlatform.id}, function (playerCount) {
                 vm.platformPlayerCount = playerCount.data;
                 console.log('playerCount', playerCount);
             });
-
             vm.advancedQueryObj = vm.advancedQueryObj || {};
             vm.drawPlayerTable([]);
             vm.advancedPlayerQuery(newSearch);
@@ -1874,7 +1874,6 @@ define(['js/app'], function (myApp) {
             // NOTE: If the response is ignoring your field filter and returning all players, please check that the
             // field is whitelisted in buildPlayerQueryString() in encrypt.js
             utilService.hideAllPopoversExcept();
-            console.log("getPlayersByAdvanceQueryDebounced", playerQuery);
             vm.advancedQueryObj = $.extend({}, vm.advancedQueryObj, playerQuery);
             for (var k in playerQuery) {
                 if (!playerQuery[k] || $.isEmptyObject(playerQuery)) {
@@ -6283,16 +6282,6 @@ define(['js/app'], function (myApp) {
 
         ////////////////////////////////////////////////////////////////////////////////////Mark::partner functions//////////////////
 
-        var getPartnersByAdvancedQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
-            var apiQuery = {
-                platformId: vm.selectedPlatform.id,
-                query: partnerQuery,
-            };
-            socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
-                setPartnerTableData(reply.data);
-            });
-        });
-
         var setPartnerTableData = function (data) {
             return setTableData(vm.partnerTable, data);
         };
@@ -6305,7 +6294,6 @@ define(['js/app'], function (myApp) {
             $('#partnerRefreshIcon').addClass('fa-spin');
             socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', {platform: vm.selectedPlatform.id}, success);
             function success(data) {
-                console.log('getPartnersByPlatform', data.data);
                 vm.partnerIdObj = {};
                 var partnersObjId = [];
                 $.each(data.data, function (i, v) {
@@ -6313,7 +6301,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerIdObj[v.partnerName] = v;
                     partnersObjId.push(v._id);
                 });
-                console.log('vm.partnerIdObj', vm.partnerIdObj);
 
                 socketService.$socket($scope.AppSocket, 'getPartnersPlayerInfo', {
                     platformObjId: vm.selectedPlatform.id,
@@ -6323,13 +6310,32 @@ define(['js/app'], function (myApp) {
                     $.each(playersIno.data, function (i, v) {
                         vm.partnerPlayerObj[v.partnerId] = v;
                     });
-                    console.log("vm.partnerPlayerObj", vm.partnerPlayerObj);
+                    vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
                     vm.drawPartnerTable(data.data);
                 });
                 $('#partnerRefreshIcon').removeClass('fa-spin');
 
             }
         };
+
+        var getPartnersByAdvancedQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
+
+          utilService.hideAllPopoversExcept();
+          vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
+          for (var k in partnerQuery) {
+              if (!partnerQuery[k] || $.isEmptyObject(partnerQuery)) {
+                  delete vm.advancedPartnerQueryObj[k];
+              }
+          }
+
+            var apiQuery = {
+                platformId: vm.selectedPlatform.id,
+                query: vm.advancedPartnerQueryObj
+            };
+            socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
+                setPartnerTableData(reply.data);
+            });
+        });
 
         vm.activatePlayerTab = function () {
             setTimeout(() => {
