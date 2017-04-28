@@ -65,7 +65,7 @@ db.rewardParam.update({"name": type10}, {$set: { params:{
 var type11= "PlayerConsumptionIncentive";
 db.rewardParam.update({"name": type11}, {$set: {params:{
     needApply: {type: "Boolean", des: "If this reward requires player application"},
-    //useConsumption: {type: "Boolean", des: "If use consumption record"},
+    useConsumption: {type: "Boolean", des: "If use consumption record"},
     reward: {
         type: "Table",
         data:{

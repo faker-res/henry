@@ -1206,7 +1206,7 @@ var proposalExecutor = {
                     ).then(
                         function (curData) {
                             if (!curData) {
-                                var taskData = {
+                                let taskData = {
                                     playerId: proposalData.data.playerObjId,
                                     type: constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
                                     rewardType: constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
@@ -1216,7 +1216,7 @@ var proposalExecutor = {
                                     //todo::check current amount init value???
                                     currentAmount: proposalData.data.rewardAmount,
                                     initAmount: proposalData.data.rewardAmount,
-                                    //useConsumption: proposalData.data.useConsumption
+                                    useConsumption: proposalData.data.useConsumption,
                                     eventId: proposalData.data.eventId
                                 };
                                 createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_CONSUMPTION_INCENTIVE, proposalData);
