@@ -2401,7 +2401,10 @@ let dbPartner = {
                             totalReferrals: {$gt: 0},
                             $and: [
                                 {$or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]},
-                                {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                                {$or: [
+                                    {permission: {$exists: false}},
+                                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                                ]}
                             ]
                         }
                     ).cursor({batchSize: 100});
@@ -2799,7 +2802,10 @@ let dbPartner = {
                         {
                             platform: platformObjId,
                             lastChildrenCommissionSettleTime: {$lt: settleTime.startTime},
-                            $and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]
+                            $or: [
+                                {permission: {$exists: false}},
+                                {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                            ]
                         }
                     ).cursor({batchSize: 10});
 
