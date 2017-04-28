@@ -148,8 +148,8 @@ var dailyProviderSettlement = {
     },
 
     manualDailyProviderSettlement: function (providerId, settlementDay) {
-        var startTime = dbutility.getDayStartTime(settlementDay);
-        var endTime = dbutility.getDayEndTime(settlementDay);
+        let startTime = dbutility.getDayStartTime(settlementDay);
+        let endTime = dbutility.getDayEndTime(settlementDay);
 
         return dbconfig.collection_gameProvider.findOne({_id: providerId}).then(
             providerData => {
@@ -158,6 +158,57 @@ var dailyProviderSettlement = {
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can't find provider or provider is not ready"});
+                }
+            }
+        ).then(
+            data => {
+                // Find duplicate consumption records
+                return dbconfig.collection_playerConsumptionRecord.aggregate(
+                    {
+                        $match: {
+                            createTime: {
+                                $gte: startTime,
+                                $lt: endTime
+                            }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: {orderNo: '$orderNo'},
+                            uniqueIds: {$addToSet: "$_id"},
+                            count: {$sum: 1}
+                        }
+                    },
+                    {
+                        $match: {
+                            count: { $gte: 2 }
+                        }
+                    }
+                )
+            }
+        ).then(
+            dupsSummariesData => {
+                if (dupsSummariesData.length > 0) {
+                    dupsSummariesData.map(
+                        dupsSummary => {
+                            // mark duplicates consumption records
+                            let dupsToMark = Number(dupsSummary.count) - 1;
+                            let markDups = {isDuplicate: true};
+                            let markDupsProm = [];
+
+                            for (let i = 0; i < dupsToMark ; i++) {
+                                markDupsProm.push(dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
+                                    _id: dupsSummary.uniqueIds[i]
+                                }, markDups));
+                            }
+
+                            return Q.all(markDupsProm);
+                        }
+                    )
+                }
+                else {
+                    // No duplicate found
+                    return true;
                 }
             }
         ).then(
