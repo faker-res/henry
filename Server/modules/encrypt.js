@@ -152,6 +152,7 @@ var encrypt = {
         var realName = data.hasOwnProperty('realName') ? data.realName : "";
         var partnerId = data.hasOwnProperty('partnerId') ? data.partnerId : "";
         var level = data.hasOwnProperty('level') ? data.level : "";
+        var status = data.hasOwnProperty('status') ? data.status : "";
 
         var query = {};
         if (partnerId !== '') {
@@ -159,6 +160,9 @@ var encrypt = {
         }
         if (level !== '') {
             query["level"] = level;
+        }
+        if (status !== '') {
+            query["status"] = status;
         }
         if (partnerName !== '') {
             query["partnerName"] = new RegExp('.*' + partnerName + '.*');
