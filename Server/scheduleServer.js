@@ -5,7 +5,8 @@
 let env = require("./config/env").config();
 let scheduleSettlement = require('./schedule/scheduleSettlement');
 let scheduleProposal = require('./schedule/scheduleProposal');
-let scheduleSavePlayersCredit = require('./schedule/scheduleSavePlayersCredit');
+//todo:: eanble this later
+//let scheduleSavePlayersCredit = require('./schedule/scheduleSavePlayersCredit');
 //var scheduleProposalExpiration = require('./schedule/scheduleProposalExpiration');
 
 //var scheduleStatistics = require('./schedule/scheduleStatistics');
