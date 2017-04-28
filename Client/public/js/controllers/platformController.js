@@ -6903,6 +6903,16 @@ define(['js/app'], function (myApp) {
                 }
             });
 
+            var colorObj = {
+                NORMAL: '#337ab7',
+                FORBID: 'red',
+                FORBID_GAME: 'orange'
+            }
+
+            $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
+                $(v).find('a').eq(0).css('color', colorObj[statusKey]);
+            })
+
             $(nRow).off('click');
             $(nRow).on('click', function () {
                 // $('#partnerDataTable tbody tr').removeClass('partnerSelected');
