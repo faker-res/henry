@@ -6465,7 +6465,7 @@ define(['js/app'], function (myApp) {
                             });
                             let perm = (row && row.permission) ? row.permission : {};
                             link.append($('<i>', {
-                                'class': 'fa fa-gift margin-right-5 ' + (perm.commissionSettlement === true ? "text-primary" : "text-danger"),
+                                'class': 'fa fa-user-times margin-right-5 ' + (perm.disableCommSettlement === true ? "text-primary" : "text-danger"),
                             }));
                             return link.prop('outerHTML');
                         },
@@ -6716,7 +6716,7 @@ define(['js/app'], function (myApp) {
                             let that = this;
                             let row = JSON.parse(this.dataset.row);
                             vm.partnerPermissionTypes = {
-                                commissionSettlement: {imgType: 'i', iconClass: "fa fa-gift"}
+                                disableCommSettlement: {imgType: 'i', iconClass: "fa fa-user-times"}
                             };
                             $("#partnerPermissionTable td").removeClass('hide');
                             $.each(vm.partnerPermissionTypes, function (key, v) {
