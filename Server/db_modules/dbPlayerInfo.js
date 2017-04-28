@@ -275,6 +275,7 @@ let dbPlayerInfo = {
     },
 
     findAndUpdateSimilarPlayerInfo: function (data, phoneNumber) {
+        //todo: in future, this function could be replaced bt the func 'findAndUpdateSimilarPlayerInfoByField' below
         var playerData = data;
         var newPlayerObjId = data._id;
         var platformObjId = data.platform;
@@ -435,6 +436,62 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    findAndUpdateSimilarPlayerInfoByField: function (playerData, fieldName, val) {
+        var newPlayerObjId = playerData._id;
+        var platformObjId = playerData.platform;
+        var searchVal = val || playerData[fieldName]
+        let prom1 = Q.resolve(true);
+        let query = {
+            platform: platformObjId,
+            _id: {$ne: newPlayerObjId}
+        }
+        query[fieldName] = searchVal;
+        prom1 = dbconfig.collection_players.find(query);
+        let func = (fieldName == 'phoneNumber')
+            ? dbUtility.encryptPhoneNum
+            : ((fieldName == 'bankAccount')
+                ? dbUtility.encryptBankAcc
+                : null);
+        return Q.resolve(prom1).then(results => {
+            let prom = [];
+            var similarPlayersArray = [];
+            if (results && results.length > 0) {
+                for (var i = 0; i < results.length; i++) {
+                    var similarPlayerData = {
+                        playerObjId: results[i]._id,
+                        field: fieldName,
+                        content: func ? func(results[i][fieldName]) : results[i][fieldName]
+                    };
+                    similarPlayersArray.push(similarPlayerData);
+                    prom.push(
+                        dbconfig.collection_players.findOneAndUpdate(
+                            {_id: results[i]._id, platform: platformObjId},
+                            {
+                                $push: {
+                                    similarPlayers: {
+                                        playerObjId: newPlayerObjId,
+                                        field: fieldName,
+                                        content: func ? func(searchVal) : searchVal
+                                    }
+                                }
+                            }
+                        )
+                    );
+                }
+                prom.push(
+                    dbconfig.collection_players.findOneAndUpdate(
+                        {_id: newPlayerObjId, platform: platformObjId},
+                        {similarPlayers: similarPlayersArray},
+                        {new: true}
+                    )
+                );
+                return Q.all(prom);
+            } else {
+                return true;
+            }
+        })
     },
 
     createPlayerInfo: function (playerdata, skipReferrals, skipPrefix) {
@@ -2942,13 +2999,11 @@ let dbPlayerInfo = {
      */
     transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
         var deferred = Q.defer();
-        var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            });
+        var prom0 = forSync
+            ? dbconfig.collection_players.findOne({name: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform})
+            : dbconfig.collection_players.findOne({playerId: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform});
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         var playerData = null;
         var providerData = null;
@@ -3304,13 +3359,11 @@ let dbPlayerInfo = {
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
         var deferred = Q.defer();
         var playerObj = {};
-        var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-                path: "platform",
-                model: dbconfig.collection_platform
-            });
+        var prom0 = forSync
+            ? dbconfig.collection_players.findOne({name: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform})
+            : dbconfig.collection_players.findOne({playerId: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform});
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {

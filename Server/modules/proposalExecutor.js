@@ -525,7 +525,7 @@ var proposalExecutor = {
                             creatorType: constProposalUserType.SYSTEM_USERS,
                             creatorObjId: proposalData.creator ? proposalData.creator.id : null
                         }
-                        dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data).then();
+                        dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
                         dbLogger.createBankInfoLog(loggerInfo);
                         SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                         deferred.resolve(data);
