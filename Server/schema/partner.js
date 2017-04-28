@@ -130,7 +130,7 @@ var partnerSchema = new Schema({
     // Partner permission
     permission: {
         _id: false,
-        commissionSettlement: {type: Boolean, default: true}
+        disableCommSettlement: {type: Boolean, default: false}
     },
     // partner status normal or forbid
     status: {type: Number, default: constPartnerStatus.NORMAL}

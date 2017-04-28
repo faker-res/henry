@@ -2402,7 +2402,10 @@ let dbPartner = {
                             totalReferrals: {$gt: 0},
                             $and: [
                                 {$or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]},
-                                {$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}
+                                {$or: [
+                                    {permission: {$exists: false}},
+                                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                                ]}
                             ]
                         }
                     ).cursor({batchSize: 100});
@@ -2800,7 +2803,10 @@ let dbPartner = {
                         {
                             platform: platformObjId,
                             lastChildrenCommissionSettleTime: {$lt: settleTime.startTime},
-                            $and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]
+                            $or: [
+                                {permission: {$exists: false}},
+                                {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                            ]
                         }
                     ).cursor({batchSize: 10});
 
@@ -2981,7 +2987,7 @@ let dbPartner = {
                 })
         } else {
             // Instead of searching all partners, look for only partners with permission on
-            partId = dbconfig.collection_partner.find({$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}).then(
+            partId = dbconfig.collection_partner.find({$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}).then(
                 partners => {
                     if (partners && partners.length > 0) {
                         let partnerIds = partners.map(partner => partner._id);
