@@ -496,7 +496,8 @@ var proposalExecutor = {
 
                             return dbconfig.collection_players.findOneAndUpdate(
                                 {_id: data._id, platform: data.platform},
-                                playerUpdate
+                                playerUpdate,
+                                {returnNewDocument: true}
                             );
                         }
                         else {
@@ -524,6 +525,7 @@ var proposalExecutor = {
                             creatorType: constProposalUserType.SYSTEM_USERS,
                             creatorObjId: proposalData.creator ? proposalData.creator.id : null
                         }
+                        dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data).then();
                         dbLogger.createBankInfoLog(loggerInfo);
                         SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                         deferred.resolve(data);
