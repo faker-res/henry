@@ -63,6 +63,20 @@ var proposal = {
         return deferred.promise;
     },
 
+    checkUpdateCreditProposal: function (platformId, typeName, proposalData) {
+        return Q.resolve().then(
+            () => {
+                if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
+                    return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
+                }
+                return ture;
+            }
+        ).then(
+            () => {
+                return proposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
+            })
+    },
+
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData) {
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
@@ -85,9 +99,6 @@ var proposal = {
 
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
-                if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
-                    dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data).then();
-                }
                 if (data && data.process) {
                     return getStepInfo(Object.assign({}, data));
                 } else {
