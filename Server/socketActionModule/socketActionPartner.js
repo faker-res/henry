@@ -154,7 +154,7 @@ function socketActionPartner(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.query);
             var query = utility.buildPartnerQueryString(data.query);
-            socketUtil.emitter(self.socket, dbPartner.getPartnersByAdvancedQuery, [data.platformId, query], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.getPartnersByAdvancedQuery, [data.platformId, data.query], actionName, isValidData);
         },
 
         /**
