@@ -214,7 +214,7 @@ describe("Test first top up event", function () {
             platform: testPlatformId,
             type: testRewardTypeId,
             param: {
-                periodType: '1', //0: First time, 1: week, 2: month
+                periodType: '0', //0: First time, 1: week, 2: month
                 targetEnable: true,
                 reward: {
                     '0': {
