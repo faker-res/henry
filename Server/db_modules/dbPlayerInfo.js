@@ -1753,6 +1753,7 @@ let dbPlayerInfo = {
         let adminInfo = ifAdmin;
         let startTime = dbUtility.getCurrentWeekSGTime().startTime;
         let endTime = dbUtility.getCurrentWeekSGTime().endTime;
+        let weekFirstRecordId = null;
 
         let query = playerObjId ? {_id: playerObjId} : {playerId: playerId};
         let recordProm = dbconfig.collection_playerTopUpRecord.find({_id: {$in: topUpRecordIds}});
@@ -1772,13 +1773,8 @@ let dbPlayerInfo = {
             }
         ).then(
             firstRecordData => {
-                if (String(topUpRecordIds) !== String(firstRecordData[0]._id)) {
-                    deferred.reject({
-                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        name: "DataError",
-                        message: "Top up record is not the first top up of this week"
-                    });
-                    return;
+                if(firstRecordData && firstRecordData[0]){
+                    weekFirstRecordId = String(firstRecordData[0]._id);
                 }
 
                 //check all top up records
@@ -1819,6 +1815,15 @@ let dbPlayerInfo = {
         ).then(
             function (eData) {
                 eventData = eData;
+                if (eventData.param.periodType == 1 && weekFirstRecordId &&
+                    topUpRecordIds.indexOf(weekFirstRecordId) < 0 ) {
+                    deferred.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Top up record is not the first top up of this week"
+                    });
+                    return;
+                }
                 //get player data
                 if (eventData) {
                     if (eventData.param.periodType == 0) {
