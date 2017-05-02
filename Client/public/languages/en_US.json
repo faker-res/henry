@@ -802,5 +802,6 @@
   "SMS_VERIFICATION": "SMS Verification",
   "LAST_DAILY_SETTLEMENT_TIME": "Last Daily Settlement Time",
   "LAST_WEEKLY_SETTLEMENT_TIME": "Last Weekly Settlement Time",
-  "deficitAmount": "Deficit Amount"
+  "deficitAmount": "Deficit Amount",
+  "disableWechatPay": "Disable WechatPay"
 }

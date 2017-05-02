@@ -1801,5 +1801,6 @@
    "PlayerWechatTopUp": "微信支付",
   "Minimum deficit amount": "最小输值",
   "deficitAmount": "输值",
-  "disableCommSettlement": "禁用代理佣金结算"
+  "disableCommSettlement": "禁用代理佣金结算",
+  "disableWechatPay": "禁止微信支付"
 }

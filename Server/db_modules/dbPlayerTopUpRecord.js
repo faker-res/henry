@@ -1392,14 +1392,16 @@ var dbPlayerTopUpRecord = {
                                 errorMessage: "Top up amount is not enough"
                             });
                         }
-                        //todo::add wechat pay permission later
-                        // if (!playerData.permission || !playerData.permission.wech) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_NO_PERMISSION,
-                        //         name: "DataError",
-                        //         errorMessage: "Player does not have this permission"
-                        //     });
-                        // }
+
+                        // Check player permission
+                        if (!playerData.permission || playerData.permission.disableWechatPay) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NO_PERMISSION,
+                                name: "DataError",
+                                errorMessage: "Player does not have this permission"
+                            });
+                        }
+
                         let proposalData = {};
                         proposalData.playerId = playerId;
                         proposalData.playerObjId = playerData._id;
