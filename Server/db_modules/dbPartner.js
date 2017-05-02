@@ -28,6 +28,7 @@ const constProposalUserType = require('../const/constProposalUserType');
 const constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
 const constPartnerStatus = require('../const/constPartnerStatus');
 
+
 let dbPartner = {
 
     createPartnerAPI: function (partnerData) {
@@ -822,6 +823,13 @@ let dbPartner = {
         ).then(
             isMatch => {
                 if (isMatch) {
+                    if (partnerObj.status == constPartnerStatus.FORBID) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Partner is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                    }
                     var newAgentArray = partnerObj.userAgent || [];
                     var uaObj = {
                         browser: userAgent.browser.name || '',
