@@ -2508,11 +2508,12 @@ let dbPlayerInfo = {
             isMatch => {
                 if (isMatch) {
                     if (playerObj.status == constPlayerStatus.FORBID) {
-                        deferred.reject({
+                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
                             code: constServerCode.PLAYER_IS_FORBIDDEN
                         });
+                        return;
                     }
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
