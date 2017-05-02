@@ -52,7 +52,14 @@ var dbGameProviderPlayerDaySummary = {
                         createTime: {
                             $gte: startTime,
                             $lt: endTime
-                        }
+                        },
+                        $or: [
+                            {isDuplicate: {$exists: false}},
+                            {$and: [
+                                {isDuplicate: {$exists: true}},
+                                {isDuplicate: false}
+                            ]}
+                        ]
                     }
                 },
                 {
@@ -71,12 +78,10 @@ var dbGameProviderPlayerDaySummary = {
      * @param {ObjectId} providerId - The provider id
      */
     calculateProviderPlayerDaySummaryForTimeFrame: function (startTime, endTime, providerId) {
-
-        var balancer = new SettlementBalancer();
+        let balancer = new SettlementBalancer();
 
         return balancer.initConns().then(function () {
-
-            var stream = dbGameProviderPlayerDaySummary.streamPlayersWithConsumptionInTimeFrame(startTime, endTime, providerId);
+            let stream = dbGameProviderPlayerDaySummary.streamPlayersWithConsumptionInTimeFrame(startTime, endTime, providerId);
 
             return Q(
                 balancer.processStream({
@@ -117,7 +122,14 @@ var dbGameProviderPlayerDaySummary = {
                         createTime: {
                             $gte: startTime,
                             $lt: endTime
-                        }
+                        },
+                        $or: [
+                            {isDuplicate: {$exists: false}},
+                            {$and: [
+                                {isDuplicate: {$exists: true}},
+                                {isDuplicate: false}
+                            ]}
+                        ]
                     }
                 },
                 {
