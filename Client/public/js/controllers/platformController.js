@@ -6351,6 +6351,12 @@ define(['js/app'], function (myApp) {
 
         //draw partner table based on data
         vm.drawPartnerTable = function (data) {
+            //convert decimal to 2 digits
+            data.forEach((partner)=>{
+                if(partner.credits){
+                    partner.credits = partner.credits.toFixed(2);
+                }
+            });
             vm.partners = data;
             vm.selectedPartnerCount = 0;
             //vm.partnerTable = $('#partnerDataTable').DataTable({data:[]});
