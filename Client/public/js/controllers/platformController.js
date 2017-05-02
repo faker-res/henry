@@ -6907,6 +6907,7 @@ define(['js/app'], function (myApp) {
 
 
             var status = aData.status;
+            aData.credits = parseFloat (aData.credits);
             var statusKey = '';
             $.each(vm.allPartnersStatusString, function (key, val) {
                 if (status == val) {
@@ -6951,6 +6952,10 @@ define(['js/app'], function (myApp) {
                 //}
                 vm.selectedSinglePartner = aData;
 
+                vm.isOneSelectedPartner = function () {
+                    return vm.selectedSinglePartner;
+                };
+                
                 // Mask partners bank account
                 vm.selectedSinglePartner.bankAccount =
                     vm.selectedSinglePartner.bankAccount ?
@@ -7451,6 +7456,47 @@ define(['js/app'], function (myApp) {
                 showSubmit: true,
                 notSent: true,
             };
+        };
+
+        vm.prepareShowPartnerCreditAdjustment = function (type) {
+            vm.partnerCreditChange = {
+                finalValidAmount: vm.isOneSelectedPartner().credits,
+                finalLockedAmount: null,
+                remark: '',
+                updateAmount: 0
+            };
+
+            if (type == "adjust") {
+                vm.partnerCreditChange.socketStr = "createUpdatePartnerCreditProposal";
+                vm.partnerCreditChange.modaltitle = "CREDIT_ADJUSTMENT";
+            }
+        }
+
+        vm.updatePartnerCredit = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.id,
+                creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                data: {
+                    partnerObjId: vm.isOneSelectedPartner()._id,
+                    playerName: vm.isOneSelectedPartner().name,
+                    updateAmount: vm.partnerCreditChange.updateAmount,
+                    curAmount: vm.isOneSelectedPartner().credits,
+                    realName: vm.isOneSelectedPartner().realName,
+                    remark: vm.partnerCreditChange.remark,
+                    adminName: authService.adminName
+                }
+            }
+
+            console.log('\n\n\nsend partner credit\n', sendData);
+            socketService.$socket($scope.AppSocket, vm.partnerCreditChange.socketStr, sendData, function (data) {
+                var newData = data.data;
+                console.log('\n\npartner credit proposal\n', newData);
+                if (data.data && data.data.stepInfo) {
+                    socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                }
+                vm.getPlatformPartnersData();
+                $scope.safeApply();
+            });
         };
 
         vm.applyPartnerBonus = function () {
