@@ -1363,6 +1363,21 @@ var dbPlayerTopUpRecord = {
         }
     },
 
+    getPlayerWechatPayStatus:
+        playerId => {
+            return dbconfig.collection_players.findOne({playerId: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
+                    playerData => {
+                        if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
+                            return true;
+                        }
+
+                        return false;
+                    }
+                )
+        },
+
     /**
      * add wechat topup records of the player
      * @param playerId
