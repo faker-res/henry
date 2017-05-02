@@ -3489,7 +3489,7 @@ let dbPartner = {
                         {
                             $group: {
                                 _id: "$type",
-                                totalAmount: {$sum: {$multiply: ["$data.amount", "$data.bonusCredit"]}},
+                                totalAmount: {$sum: "$data.amount"},
                             }
                         }
                     );
