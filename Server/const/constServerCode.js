@@ -54,8 +54,9 @@ const constServerCode = {
 
 
     DOCUMENT_NOT_FOUND: 420,
-    EXTERNAL_API_TIMEOUT: 430
+    EXTERNAL_API_TIMEOUT: 430,
+    PARTNER_IS_FORBIDDEN:430
 
-};
+}
 
 module.exports = constServerCode;
