@@ -824,11 +824,11 @@ let dbPartner = {
             isMatch => {
                 if (isMatch) {
                     if (partnerObj.status == constPartnerStatus.FORBID) {
-                        deferred.reject({
-                            name: "DataError",
-                            message: "Partner is not enable",
-                            code: constServerCode.PLAYER_IS_FORBIDDEN
-                        });
+                        return Q.reject({
+                              name: "DataError",
+                              message: "Partner is not enable",
+                              code: constServerCode.PARTNER_IS_FORBIDDEN
+                          });
                     }
                     var newAgentArray = partnerObj.userAgent || [];
                     var uaObj = {
