@@ -3581,6 +3581,10 @@ define(['js/app'], function (myApp) {
                         data: 'children$',
                     },
                     {
+                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
+                        "sClass": "alignRight"
+                    },
+                    {
                         title: $translate('CREDIT'),
                         data: 'credits'
                     },
@@ -3598,10 +3602,6 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('LAST_LOGIN_IP'), orderable: false,
                         data: 'lastLoginIp'
-                    },
-                    {
-                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
-                        "sClass": "alignRight"
                     },
                     {
                         title: $translate('ACTIVE_PLAYER'), data: 'activePlayers$',
@@ -6351,6 +6351,12 @@ define(['js/app'], function (myApp) {
 
         //draw partner table based on data
         vm.drawPartnerTable = function (data) {
+            //convert decimal to 2 digits
+            data.forEach((partner)=>{
+                if(partner.credits){
+                    partner.credits = partner.credits.toFixed(2);
+                }
+            });
             vm.partners = data;
             vm.selectedPartnerCount = 0;
             //vm.partnerTable = $('#partnerDataTable').DataTable({data:[]});
@@ -6447,6 +6453,26 @@ define(['js/app'], function (myApp) {
                             return showStr.prop('outerHTML');
                         }
                     },
+                                        {
+                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
+                        render: function (data, type, row) {
+                            var $a = $('<a>', {
+                                // class: "totalReferralPopover",
+                                // style: "z-index: auto",
+                                // "data-toggle": "popover",
+                                // "data-container": "body",
+                                // "data-placement": "bottom",
+                                // "data-trigger": "focus",
+                                // "data-row": JSON.stringify(row),
+                                "ng-click": "vm.preShowReferralPlayer(" + data + ")"
+                                // type: "button",
+                                // "data-html": "true",
+                                // href: "#"
+                            }).text(data);
+                            return $a.prop('outerHTML');
+                        },
+                        "sClass": "alignRight sumInt",
+                    },
                     {
                         title: $translate('CREDIT'),
                         "sClass": "alignRight sumFloat",
@@ -6512,26 +6538,6 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('LAST_LOGIN_IP'), orderable: false,
                         data: 'lastLoginIp'
-                    },
-                    {
-                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
-                        render: function (data, type, row) {
-                            var $a = $('<a>', {
-                                // class: "totalReferralPopover",
-                                // style: "z-index: auto",
-                                // "data-toggle": "popover",
-                                // "data-container": "body",
-                                // "data-placement": "bottom",
-                                // "data-trigger": "focus",
-                                // "data-row": JSON.stringify(row),
-                                "ng-click": "vm.preShowReferralPlayer(" + data + ")"
-                                // type: "button",
-                                // "data-html": "true",
-                                // href: "#"
-                            }).text(data);
-                            return $a.prop('outerHTML');
-                        },
-                        "sClass": "alignRight sumInt",
                     },
                     {
                         title: $translate('ACTIVE_PLAYER'), data: '_id',
