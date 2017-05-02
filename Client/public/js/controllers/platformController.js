@@ -7478,7 +7478,7 @@ define(['js/app'], function (myApp) {
                 creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                 data: {
                     partnerObjId: vm.isOneSelectedPartner()._id,
-                    playerName: vm.isOneSelectedPartner().name,
+                    partnerName: vm.isOneSelectedPartner().partnerName,
                     updateAmount: vm.partnerCreditChange.updateAmount,
                     curAmount: vm.isOneSelectedPartner().credits,
                     realName: vm.isOneSelectedPartner().realName,

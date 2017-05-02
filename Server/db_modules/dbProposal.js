@@ -64,12 +64,13 @@ var proposal = {
     },
 
     checkUpdateCreditProposal: function (platformId, typeName, proposalData) {
+        console.log('\n\n\n\n\n dbproposal');
         return Q.resolve().then(
             () => {
                 if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
                     return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
                 }
-                return ture;
+                return true;
             }
         ).then(
             () => {
