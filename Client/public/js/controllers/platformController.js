@@ -3533,6 +3533,10 @@ define(['js/app'], function (myApp) {
             vm.newPlayer.platform = vm.selectedPlatform.id;
             //console.log('newPlayer',vm.newPlayer);
             socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
+                $('#modalCreatePlayer').modal('toggle');
+                $('#modalCreatePlayer').on('hidden.bs.modal', function () {
+                    $(this).find('input,textarea,select').val('');
+                });
                 vm.getPlatformPlayersData();
             });
         };

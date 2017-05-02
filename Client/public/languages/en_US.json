@@ -803,5 +803,6 @@
   "LAST_DAILY_SETTLEMENT_TIME": "Last Daily Settlement Time",
   "LAST_WEEKLY_SETTLEMENT_TIME": "Last Weekly Settlement Time",
   "deficitAmount": "Deficit Amount",
-  "disableWechatPay": "Disable WechatPay"
+  "disableWechatPay": "Disable WechatPay",
+  "DEFAULT_PASSWORD": "Default"
 }
