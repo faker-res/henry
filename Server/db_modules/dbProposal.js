@@ -17,6 +17,7 @@ var dbProposalType = require('./../db_modules/dbProposalType');
 var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+var dbPartner = require('./../db_modules/dbPartner');
 var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -48,18 +49,27 @@ var proposal = {
      */
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();
-
-        let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
+        // create proposal for partner
+        if(proposalData.userType == "partner"){
+            let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
+            // query related partner info
+           var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
+                .populate({path: 'partnerLevel', model: dbconfig.collection_partnerLevel});
+        }
+        else{
+            let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
+            // query related player info
+            var plyProm = dbconfig.collection_players.findOne({_id: playerId})
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+        }
 
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
         //create process for proposal
         let ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName);
-        // query related player info
-        let plyProm = dbconfig.collection_players.findOne({_id: playerId})
-            .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
 
         proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
+
         return deferred.promise;
     },
 
@@ -90,7 +100,10 @@ var proposal = {
             }
         ).then(
             () => {
-                if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
+                if(proposalData && proposalData.data && proposalData.data.updateAmount < 0 && proposalData.userType == "partner"){
+                    return dbPartner.tryToDeductCreditFromPartner(proposalData.data.partnerObjId, platformId, -proposalData.data.updateAmount, "editPartnerCredit:Deduction", proposalData.data);
+                }
+                else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
                     return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
                 }
                 return true;
