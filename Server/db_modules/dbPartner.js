@@ -15,6 +15,7 @@ var constProposalType = require('../const/constProposalType');
 var jwt = require('jsonwebtoken');
 var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
+var dbLogger = require("./../modules/dbLogger");
 
 let env = require('../config/env').config();
 
@@ -3729,6 +3730,104 @@ let dbPartner = {
      */
     getPartnerStatusChangeLog: function (partnerObjId) {
         return dbconfig.collection_partnerStatusChangeLog.find({_partnerId: partnerObjId}).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
+    },
+
+        /**
+     * Adds the given amount into the partner's account, and creates a creditChangeLog record.
+     * Can also be used to deduct credits from the account, by providing a negative value.
+     *
+     * @param {ObjectId} partnerObjId
+     * @param {ObjectId} platformObjId
+     * @param {Number} updateAmount
+     * @param {String} reasonType
+     * @param {Object} [data]
+     * @returns {Promise<Partner>}
+     */
+    changePartnerCredit: function changePartnerCredit(partnerObjId, platformObjId, updateAmount, reasonType, data) {
+                console.log('\n\n\n\n partner change credit\n');
+        return dbconfig.collection_partner.findOneAndUpdate(
+            {_id: partnerObjId, platform: platformObjId},
+            {$inc: {credits: updateAmount}},
+            {new: true}
+        ).then(
+            partner => {
+                if (!partner) {
+                    return Q.reject({name: "DataError", message: "Can't update partner credit: partner not found."});
+                }
+                dbLogger.createCreditChangeLog(partnerObjId, platformObjId, updateAmount, reasonType, partner.credits, null, data);
+                return partner;
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error updating partner.", error: error});
+            }
+        );
+    },
+
+    /**
+     * Attempts to take the given amount out of the partner's account.
+     * It resolves if the deduction was successful.
+     * If rejects if the deduction failed for any reason.
+     *
+     * @param {ObjectId} partnerObjId
+     * @param {ObjectId} platformObjId
+     * @param {Number} updateAmount - Must be positive
+     * @param {String} reasonType
+     * @param {Object} [data]
+     * @returns {Promise}
+     */
+    tryToDeductCreditFromPartner: function tryToDeductCreditFromPartner(partnerObjId, platformObjId, updateAmount, reasonType, data) {
+        console.log('\n\n\n\n partner deduct\n');
+        return Q.resolve().then(
+            () => {
+                if (updateAmount < 0) {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "tryToDeductCreditFromPartner expects a positive value to deduct",
+                        updateAmount: updateAmount
+                    });
+                }
+            }
+        ).then(
+            () => dbconfig.collection_partner.findOne({_id: partnerObjId, platform: platformObjId}).select('validCredit')
+        ).then(
+            partner => {
+                if (partner.credits < updateAmount) {
+                    return Q.reject({
+                        status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
+                        name: "DataError",
+                        message: "partner does not have enough credit."
+                    });
+                }
+            }
+        ).then(
+            () => dbPartner.changePartnerCredit(partnerObjId, platformObjId, -updateAmount, reasonType, data)
+        ).then(
+            partner => {
+                if (partner.credits < 0) {
+                    // First reset the deduction, then report the problem
+                    return Q.resolve().then(
+                        () => dbPartner.refundPartnerCredit(partnerObjId, platformObjId, +updateAmount, "deductedBelowZeroRefund", data)
+                    ).then(
+                        () => Q.reject({
+                            status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
+                            name: "DataError",
+                            message: "Partner does not have enough credit.",
+                            data: '(detected after withdrawl)'
+                        })
+                    );
+                }
+            }
+        ).then(
+            () => true
+        );
+    },
+
+    /**
+     * Just a conceptual shortcut for changePartnerCredit, could be tweaked in future.
+     */
+    refundPartnerCredit: function (partnerObjId, platformObjId, refundAmount, reasonType, data) {
+        console.log('\n\n\n\n partner refund\n');
+        return dbPartner.changePartnerCredit(partnerObjId, platformObjId, refundAmount, reasonType, data);
     }
 
 

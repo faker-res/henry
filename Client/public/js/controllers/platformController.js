@@ -7476,6 +7476,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 platformId: vm.selectedPlatform.id,
                 creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                userType:"partner",
                 data: {
                     partnerObjId: vm.isOneSelectedPartner()._id,
                     partnerName: vm.isOneSelectedPartner().partnerName,
@@ -7487,11 +7488,12 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            console.log('\n\n\nsend partner credit\n', sendData);
+            console.log('\n\n\nsend partner credit\n',JSON.stringify(sendData));
             socketService.$socket($scope.AppSocket, vm.partnerCreditChange.socketStr, sendData, function (data) {
                 var newData = data.data;
-                console.log('\n\npartner credit proposal\n', newData);
+                console.log('\n\npartner credit proposal\n', JSON.stringify(newData));
                 if (data.data && data.data.stepInfo) {
+                    console.log('\n\n\n\nstep info\n',data.data.stepInfo);
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                 }
                 vm.getPlatformPartnersData();
