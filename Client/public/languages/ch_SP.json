@@ -1806,5 +1806,6 @@
   "deficitAmount": "输值",
   "disableCommSettlement": "禁用代理佣金结算",
   "disableWechatPay": "禁止微信支付",
-  "DEFAULT_PASSWORD": "默认密码"
+  "DEFAULT_PASSWORD": "默认密码",
+  "editPlayerCredit:Deduction": "编辑玩家额度"
 }

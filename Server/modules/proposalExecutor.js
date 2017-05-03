@@ -308,7 +308,10 @@ var proposalExecutor = {
                                 constShardKeys.collection_playerCreditTransferLog
                             ).then().catch(console.error);
                         }
-                        var changeType = bTransfer ? constProposalType.FIX_PLAYER_CREDIT_TRANSFER : constProposalType.UPDATE_PLAYER_CREDIT;
+                        let changeType = bTransfer ? constProposalType.FIX_PLAYER_CREDIT_TRANSFER : constProposalType.UPDATE_PLAYER_CREDIT;
+
+                        proposalData.data.proposalId = proposalData.proposalId;
+
                         dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
                             changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
                         deferred.resolve(player);
