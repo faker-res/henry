@@ -169,7 +169,7 @@
                             .row
                                 include player-create-form
             .modal-footer
-                button.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_new_player.$invalid || vm.passwordLengthCheck(vm.newPlayer.password)', ng-click="vm.createNewPlayer();") {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(ng-disabled='form_new_player.$invalid || vm.passwordLengthCheck(vm.newPlayer.password)', ng-click="vm.createNewPlayer();") {{"CREATE" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 include modalGameCreditLog
 #modalDeletePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
