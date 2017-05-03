@@ -279,6 +279,12 @@
         this._service.getValidTopUpRewardRecordList.once(callback);
     };
 
+    proto.getPlayerWechatPayStatus = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.getPlayerWechatPayStatus.request(data);
+        this._service.getPlayerWechatPayStatus.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPaymentAPITest;
     } else {

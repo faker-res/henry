@@ -43,7 +43,8 @@
                 "calculatePartnersChildrenCommission",
                 "checkPlatformPlayersRewardTask",
                 "getPartnerPlayersCommissionInfo",
-                "savePlayerCredit"
+                "savePlayerCredit",
+                "markDuplicatedConsumptionRecords"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -262,6 +262,12 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerTopUpList, [conn.playerId, data.topUpType, data.startTime, data.endTime, data.startIndex, data.requestCount, !data.sort, false, true], isValidData);
     };
 
+    this.getPlayerWechatPayStatus.expectsData ='playerId: String';
+    this.getPlayerWechatPayStatus.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerWechatPayStatus, [conn.playerId], isValidData);
+    }
+
 };
 var proto = PaymentServiceImplement.prototype = Object.create(PaymentService.prototype);
 proto.constructor = PaymentServiceImplement;

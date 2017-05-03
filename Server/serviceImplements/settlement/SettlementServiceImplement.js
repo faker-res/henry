@@ -7,7 +7,7 @@ var dbPlayerTopUpDaySummary = require('./../../db_modules/dbPlayerTopUpDaySummar
 var dbPlayerTopUpWeekSummary = require('./../../db_modules/dbPlayerTopUpWeekSummary');
 var dbGameProviderPlayerDaySummary = require('./../../db_modules/dbGameProviderPlayerDaySummary');
 var dbPartnerWeekSummary = require("../../db_modules/dbPartnerWeekSummary.js");
-var dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
+let dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
 var dbPlatform = require('./../../db_modules/dbPlatform');
 var dbPartner = require('./../../db_modules/dbPartner');
 var dbRewardTask = require('./../../db_modules/dbRewardTask');
@@ -199,9 +199,15 @@ var SettlementServiceImplement = function () {
         let args = [data.playerObjId];
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardEvent.savePlayerCredit, args, isValidData);
     };
+
+    this.markDuplicatedConsumptionRecords.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.dupsSummariesData);
+        let args = [data.dupsSummariesData];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionRecord.markDuplicatedConsumptionRecords, args, isValidData);
+    }
 };
 
-var proto = SettlementServiceImplement.prototype = Object.create(PlayerService.prototype);
+let proto = SettlementServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = SettlementServiceImplement;
 
 module.exports = SettlementServiceImplement;
