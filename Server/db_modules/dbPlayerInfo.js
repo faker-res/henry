@@ -496,17 +496,18 @@ let dbPlayerInfo = {
     },
 
     createPlayerInfo: function (playerdata, skipReferrals, skipPrefix) {
-        var deferred = Q.defer();
-        var playerData = null;
+        let deferred = Q.defer();
+        let playerData = null;
 
         playerdata.name = playerdata.name.toLowerCase();
 
-        // Partner name should be alphanumeric and max 20 characters
+        // Player name and password should be alphanumeric and between 6 to 20 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
         let chineseRegex = /^[\u4E00-\u9FA5]{0,}$/;
+
         if (env.mode !== "local" && env.mode !== "qa") {
-            if (playerdata.name.length > 20 || !playerdata.name.match(alphaNumRegex)) {
-                // ignore for unit test
+            // ignore for unit test
+            if (playerdata.name.length < 6 || playerdata.name.length > 20 || !playerdata.name.match(alphaNumRegex)) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -514,6 +515,16 @@ let dbPlayerInfo = {
                 });
 
             }
+
+            if (playerdata.password.length < 6 || playerdata.password.length > 20 || !playerdata.password.match(alphaNumRegex)) {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Password should be alphanumeric and within 20 characters"
+                });
+            }
+
+
             // if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
             //     return Q.reject({
             //         status: constServerCode.PLAYER_NAME_INVALID,
