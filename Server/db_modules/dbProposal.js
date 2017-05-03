@@ -64,12 +64,36 @@ var proposal = {
     },
 
     checkUpdateCreditProposal: function (platformId, typeName, proposalData) {
-        return Q.resolve().then(
+        //get proposal type id
+        let ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
+
+        return ptProm.then(
+            (proposalType) => {
+                //check if player or partner has pending proposal for this type
+                let queryObj = {
+                    type: proposalType._id,
+                    "data.playerObjId": proposalData.data.playerObjId,
+                    status: constProposalStatus.PENDING
+                };
+
+                return dbconfig.collection_proposal.findOne(queryObj).lean().then(
+                    pendingProposal => {
+                        //for online top up and player consumption return, there can be multiple pending proposals
+                        if (pendingProposal) {
+                            return Q.reject({
+                                name: "DBError",
+                                message: "Player or partner already has a pending proposal for this type"
+                            });
+                        }
+                    }
+                )
+            }
+        ).then(
             () => {
                 if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
                     return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
                 }
-                return ture;
+                return true;
             }
         ).then(
             () => {
