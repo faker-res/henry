@@ -22,7 +22,7 @@ var platformRewardSettlement = {
      * @param {objectId} platformId - platform id
      */
     startPlatformRewardEventSettlement: function (platformId, period) {
-        var deferred = Q.defer();
+        let deferred = Q.defer();
 
         //find all reward events for this platform
         dbconfig.collection_rewardEvent.find({platform: platformId})
@@ -38,7 +38,7 @@ var platformRewardSettlement = {
                         (a, b) => b.priority - a.priority
                     );
                     // Settle each event in turn
-                    var processEvent = function (event) {
+                    let processEvent = function (event) {
                         //check if reward event is valid and if settlement period is correct
                         if (rewardUtil.isValidRewardEvent(event.type.name, event) && event.settlementPeriod == period) {
                             //check reward event valid time
