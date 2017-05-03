@@ -501,26 +501,26 @@ let dbPlayerInfo = {
 
         playerdata.name = playerdata.name.toLowerCase();
 
-        // Partner name should be alphanumeric and max 15 characters
+        // Partner name should be alphanumeric and max 20 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
         let chineseRegex = /^[\u4E00-\u9FA5]{0,}$/;
         if (env.mode !== "local" && env.mode !== "qa") {
-            if (playerdata.name.length > 12 || !playerdata.name.match(alphaNumRegex)) {
+            if (playerdata.name.length > 20 || !playerdata.name.match(alphaNumRegex)) {
                 // ignore for unit test
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
-                    message: "Username should be alphanumeric and within 12 characters"
+                    message: "Username should be alphanumeric and within 20 characters"
                 });
 
             }
-            if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
-                return Q.reject({
-                    status: constServerCode.PLAYER_NAME_INVALID,
-                    name: "DBError",
-                    message: "Realname should be chinese character"
-                });
-            }
+            // if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
+            //     return Q.reject({
+            //         status: constServerCode.PLAYER_NAME_INVALID,
+            //         name: "DBError",
+            //         message: "Realname should be chinese character"
+            //     });
+            // }
         }
 
         dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(
