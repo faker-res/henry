@@ -66,14 +66,12 @@ var proposal = {
     checkUpdateCreditProposal: function (platformId, typeName, proposalData) {
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
-        let isDeductible = true;
 
         return ptProm.then(
             (proposalType) => {
                 //check if player or partner has pending proposal for this type
                 let queryObj = {
                     type: proposalType._id,
-                    "data.playerName": proposalData.data.playerName,
                     "data.playerObjId": proposalData.data.playerObjId,
                     status: constProposalStatus.PENDING
                 };
@@ -82,7 +80,6 @@ var proposal = {
                     pendingProposal => {
                         //for online top up and player consumption return, there can be multiple pending proposals
                         if (pendingProposal) {
-                            isDeductible = false;
                             return Q.reject({
                                 name: "DBError",
                                 message: "Player or partner already has a pending proposal for this type"
@@ -93,7 +90,7 @@ var proposal = {
             }
         ).then(
             () => {
-                if (proposalData && proposalData.data && proposalData.data.updateAmount < 0 && isDeductible) {
+                if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
                     return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
                 }
                 return true;
