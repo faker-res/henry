@@ -22,14 +22,19 @@ var crypto = require('crypto');
 var externalUtil = require("../externalAPI/externalUtil.js");
 var dbUtility = require('./../modules/dbutility');
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
-var constSystemParam = require('../const/constSystemParam');
-var constProposalStatus = require('../const/constProposalStatus');
 var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var rsaCrypto = require("../modules/rsaCrypto");
 var dbRewardEvent = require("../db_modules/dbRewardEvent");
-const constSettlementPeriod = require("../const/constSettlementPeriod");
 var dbLogger = require('./../modules/dbLogger');
+
+const constProposalEntryType = require('../const/constProposalEntryType');
+const constProposalStatus = require('../const/constProposalStatus');
+const constProposalUserType = require('../const/constProposalUserType');
+const constRewardTaskStatus = require('../const/constRewardTaskStatus');
+const constServerCode = require('../const/constServerCode');
+const constSettlementPeriod = require("../const/constSettlementPeriod");
+const constSystemParam = require('../const/constSystemParam');
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -963,15 +968,19 @@ var dbPlatform = {
      */
     calculatePlatformPlayerConsumptionIncentive: function (platformId, event, proposalTypeId) {
         //get yesterday time frame
-        var yerTime = dbUtility.getYesterdaySGTime();
-        var minTopUpAmount = null;
-        for (var level in event.param.reward) {
-            if (minTopUpAmount == null || event.param.reward[level].minTopUpRecordAmount < minTopUpAmount) {
-                minTopUpAmount = event.param.reward[level].minTopUpRecordAmount;
+        let yerTime = dbUtility.getYesterdaySGTime();
+        let minTopUpAmount = null;
+
+        // get the minimum amount to filter out top up records for platform
+        for (let level in event.param.reward) {
+            if (event.param.reward.hasOwnProperty(level)) {
+                if (minTopUpAmount == null || event.param.reward[level].minTopUpRecordAmount < minTopUpAmount) {
+                    minTopUpAmount = event.param.reward[level].minTopUpRecordAmount;
+                }
             }
         }
 
-        var stream = dbconfig.collection_playerTopUpRecord.aggregate(
+        let stream = dbconfig.collection_playerTopUpRecord.aggregate(
             {
                 $match: {
                     platformId: platformId,
@@ -985,7 +994,7 @@ var dbPlatform = {
             }
         ).cursor({batchSize: 10000}).allowDiskUse(true).exec();
 
-        var balancer = new SettlementBalancer();
+        let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
             return balancer.processStream(
                 {
@@ -1017,8 +1026,8 @@ var dbPlatform = {
      * @param endTime
      */
     calculatePlayersConsumptionIncentive: function (playerObjIds, eventData, proposalTypeId, startTime, endTime) {
-        var proms = [];
-        for (var i = 0; i < playerObjIds.length; i++) {
+        let proms = [];
+        for (let i = 0; i < playerObjIds.length; i++) {
             proms.push(dbPlatform.calculatePlayerConsumptionIncentive(playerObjIds[i], eventData, proposalTypeId, startTime, endTime));
         }
         return Q.all(proms)
@@ -1033,15 +1042,17 @@ var dbPlatform = {
      * @param endTime
      */
     calculatePlayerConsumptionIncentive: function (playerObjId, eventData, proposalTypeId, startTime, endTime) {
-        var platformId = null;
-        var player = {};
-        var eventParam = {};
+        let platformId = null;
+        let player = {};
+        let eventParam = {};
+        let eventParams = [];
         //get yesterday time frame
-        var yerTime = {startTime: new Date(startTime), endTime: new Date(endTime)};
-        var playerTopUpAmount = 0;
-        var event = {};
-        var playerProm = dbconfig.collection_players.findOne({_id: playerObjId})
+        let yerTime = {startTime: new Date(startTime), endTime: new Date(endTime)};
+        let playerTopUpAmount = 0;
+        let event = {};
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
+
         return playerProm.then(
             data => {
                 //get player's platform reward event data
@@ -1049,17 +1060,40 @@ var dbPlatform = {
                     player = data;
                     platformId = player.platform;
                     event = eventData;
-                    eventParam = eventData.param.reward[player.playerLevel.value];
-                    if (eventParam && (player.validCredit + player.lockedCredit) <= eventParam.maxPlayerCredit) {
+                    let minTopUpRecordAmount = 0;
+
+                    // Filter event param based on player level
+                    eventParams = eventData.param.reward.filter(reward => {
+                        if (reward.minPlayerLevel == player.playerLevel.value) {
+                            return reward;
+                        }
+                    });
+
+                    // Loose filter if no matched param for player level
+                    if (eventParams.length == 0) {
+                        eventParams = eventData.param.reward.filter(reward => {
+                            if (reward.minPlayerLevel <= player.playerLevel.value) {
+                                if (reward.minTopUpRecordAmount > minTopUpRecordAmount) {
+                                    minTopUpRecordAmount = reward.minTopUpRecordAmount;
+                                }
+                                return reward;
+                            }
+                        });
+                    }
+
+                    if (eventParams && eventParams.length > 0) {
                         //get yesterday top up amount
                         return dbconfig.collection_playerTopUpRecord.aggregate(
                             {
                                 $match: {
                                     playerId: player._id,
                                     platformId: player.platform,
-                                    amount: {$gte: eventParam.minTopUpRecordAmount},
+                                    amount: {$gte: minTopUpRecordAmount},
                                     createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                                    bDirty: false
+                                    $or: [{bDirty: false}, {
+                                        bDirty: true,
+                                        usedType: constRewardType.PLAYER_TOP_UP_RETURN
+                                    }]
                                 }
                             },
                             {
@@ -1071,11 +1105,16 @@ var dbPlatform = {
                         );
                     }
                     else {
-                        return Q.reject({name: "DataError", message: "Player is not valid for this reward"});
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                            name: "DataError",
+                            message: "Player is not valid for this reward"
+                        });
                     }
                 }
                 else {
                     return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
                         name: "DataError",
                         message: "Cannot find player consumption incentive event data for platform"
                     });
@@ -1085,8 +1124,9 @@ var dbPlatform = {
             topUpData => {
                 if (topUpData && topUpData[0] && topUpData[0].amount > 0) {
                     playerTopUpAmount = topUpData[0].amount;
+
                     //get yesterday bonus credit
-                    var bonusProm = dbconfig.collection_proposalType.findOne({
+                    let bonusProm = dbconfig.collection_proposalType.findOne({
                         platformId: player.platform,
                         name: constProposalType.PLAYER_BONUS
                     }).then(
@@ -1112,7 +1152,7 @@ var dbPlatform = {
                     ).then(
                         bonusData => {
                             if (bonusData && bonusData > 0) {
-                                var bonusCredit = 0;
+                                let bonusCredit = 0;
                                 bonusData.forEach(
                                     data => {
                                         bonusCredit += data.data.amount * data.data.bonusCredit
@@ -1125,73 +1165,120 @@ var dbPlatform = {
                             }
                         }
                     );
-                    //get all game credit
-                    var providerCreditProm = dbconfig.collection_platform.findById(player.platform)
-                        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
-                            platformData => {
-                                if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
-                                    var proms = [];
-                                    for (var i = 0; i < platformData.gameProviders.length; i++) {
-                                        proms.push(cpmsAPI.player_queryCredit(
-                                            {
-                                                username: player.name,
-                                                platformId: platformData.platformId,
-                                                providerId: platformData.gameProviders[i].providerId,
-                                            }
-                                        ));
-                                    }
-                                    return Q.all(proms);
-                                }
+
+                    //get game credit from log
+                    let providerCreditProm = dbconfig.collection_playerCreditsDailyLog.findOne({
+                        platformObjId: player.platform,
+                        playerObjId: player._id,
+                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime}
+                    }).lean().then(
+                        creditLogData => {
+                            if (creditLogData) {
+                                return creditLogData.gameCredit;
+                            } else {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                    name: "DataError",
+                                    message: "Error in getting player game credit"
+                                });
                             }
-                        ).then(
-                            providerCredit => {
-                                if (providerCredit && providerCredit.length > 0) {
-                                    var credit = 0;
-                                    for (var i = 0; i < providerCredit.length; i++) {
-                                        credit += parseFloat(providerCredit[i].credit);
-                                    }
-                                    return credit;
-                                }
-                                else {
-                                    return 0;
-                                }
-                            }
-                        );
+                        }
+                    );
                     return Q.all([bonusProm, providerCreditProm]);
                 }
                 else {
                     return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
-                        message: "Player does not have enought top up amount"
+                        message: "Player does not have enough top up amount"
                     });
                 }
             }
         ).then(
             data => {
                 if (data) {
-                    var validCredit = playerTopUpAmount - data[0] - data[1];
-                    if ((validCredit * eventParam.rewardPercentage) >= eventParam.minRewardAmount && data[1] <= eventParam.maxPlayerCredit) {
-                        var rewardAmount = Math.min(Math.floor(validCredit * eventParam.rewardPercentage), eventParam.maxRewardAmount);
-                        var proposalData = {
-                            type: event.executeProposal,
-                            creator: {
-                                type: 'player',
-                                name: player.name,
-                                id: player.playerId
-                            },
-                            data: {
-                                playerId: player._id,
-                                player: player.playerId,
-                                playerName: player.name,
-                                platformId: platformId,
-                                rewardAmount: rewardAmount,
-                                spendingAmount: validCredit * eventParam.spendingTimes,
-                                eventName: eventData.name,
-                                eventCode: eventData.code,
-                                eventDescription: eventData.description
+                    let curParam = null;
+                    let deficitAmount = playerTopUpAmount - data[0] - data[1];
+
+                    // Filter event param by deficit amount
+                    eventParams.map(param => {
+                        if (deficitAmount >= param.minDeficitAmount) {
+                            if (!curParam) {
+                                curParam = param;
+                            } else {
+                                if (param.minDeficitAmount > curParam.minDeficitAmount) {
+                                    curParam = param;
+                                }
                             }
-                        };
+                        }
+                    });
+
+                    eventParam = curParam;
+
+                    let proposalData = {
+                        type: event.executeProposal,
+                        creator: {
+                            type: 'player',
+                            name: player.name,
+                            id: player.playerId
+                        },
+                        data: {
+                            playerObjId: player._id,
+                            playerId: player.playerId,
+                            playerName: player.name,
+                            platformId: platformId,
+                            deficitAmount: deficitAmount,
+                            curAmount: player.validCredit,
+                            eventId: event._id,
+                            eventName: event.name,
+                            eventCode: event.code,
+                            eventDescription: event.description
+                        },
+                        entryType: constProposalEntryType.SYSTEM,
+                        userType: constProposalUserType.PLAYERS,
+                    };
+
+                    // Set percentage to 100% if not available
+                    if (eventParam.rewardAmount && !eventParam.rewardPercentage) {
+                        // Incentive by fixed amount
+                        proposalData.data.rewardAmount = eventParam.rewardAmount;
+
                         return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                    }
+                    else if ((deficitAmount * eventParam.rewardPercentage) >= eventParam.minRewardAmount) {
+                        // Incentive by percentage
+                        proposalData.data.rewardAmount = Math.min(Math.floor(deficitAmount * eventParam.rewardPercentage), eventParam.maxRewardAmount);
+                        proposalData.data.spendingAmount = deficitAmount * eventParam.spendingTimes;
+
+                        // Check whether player has existing reward task
+                        return dbconfig.collection_rewardTask.findOne({
+                            platformId: platformId,
+                            playerId: player._id,
+                            eventId: event._id,
+                            status: constRewardTaskStatus.STARTED
+                        }).lean().then(
+                            data => {
+                                if (!data) {
+                                    return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                                }
+                            }
+                        )
+                    }
+                    else {
+                        if ((player.validCredit + player.lockedCredit + data[1]) > eventParam.maxPlayerCredit) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                name: "DataError",
+                                message: "Player has too much credit"
+                            });
+                        }
+                        else {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                name: "DataError",
+                                message: "Not enough reward amount"
+                            });
+                        }
                     }
                 }
                 else {
