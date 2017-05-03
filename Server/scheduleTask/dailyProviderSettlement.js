@@ -8,13 +8,19 @@ var dbPlayerTopUpDaySummary = require('../db_modules/dbPlayerTopUpDaySummary');
 var dbGameProvider = require('../db_modules/dbGameProvider');
 var dbGameProviderPlayerDaySummary = require("../db_modules/dbGameProviderPlayerDaySummary");
 var dbGameProviderDaySummary = require("../db_modules/dbGameProviderDaySummary");
-var constSettlementStatus = require('../const/constPlatformStatus');
 var providerSummary = require('./providerSummary');
 var dbconfig = require('./../modules/dbproperties');
 var dbLogger = require('../modules/dbLogger');
 var dbutility = require('../modules/dbutility');
 
-var dailyProviderSettlement = {
+const constSettlementStatus = require('../const/constPlatformStatus');
+const constSystemParam = require('../const/constSystemParam');
+
+let dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
+
+let SettlementBalancer = require('../settlementModule/settlementBalancer');
+
+let dailyProviderSettlement = {
 
     /*
      * Start daily settlement for provider, check status and start calculation
@@ -31,22 +37,24 @@ var dailyProviderSettlement = {
         dailySettlementTime.setSeconds(0);
         dailySettlementTime.setMilliseconds(0);
 
+        let settleTime = dbutility.getYesterdaySGTime();
+
         //if provider is not doing any settlement and settlement time has been reached and last settlement time is older
         if (providerData && providerData._id && providerData.settlementStatus == constSettlementStatus.READY
             && dailySettlementTime.getTime() <= curTime.getTime() &&
             ( !providerData.lastDailySettlementTime || dailySettlementTime.getTime() > providerData.lastDailySettlementTime.getTime() )) {
 
             dbGameProvider.updateGameProvider({_id: providerData._id}, {settlementStatus: constSettlementStatus.DAILY_SETTLEMENT}).then(
-                function (data) {
+                data => {
                     //start daily settlement for all the params
                     if (data) {
-                        return dailyProviderSettlement.calculateDailyProviderSettlement(providerData._id);
+                        return dailyProviderSettlement.calculateDailyProviderSettlement(providerData._id, settleTime);
                     }
                     else {
                         deferred.reject({name: "DataError", message: "Can't update provider status!"});
                     }
                 },
-                function (error) {
+                error => {
                     deferred.reject({name: "DBError", message: "Error updating provider status!", error: error});
                 }
             ).then(
@@ -104,7 +112,7 @@ var dailyProviderSettlement = {
     },
 
     fixYesterdayProviderDailySettlement: function(providerId){
-        var settleTime = dbutility.getYesterdaySGTime();
+        let settleTime = dbutility.getYesterdaySGTime();
         return dbconfig.collection_gameProvider.findOne({_id: providerId}).then(
             providerData => {
                 if (providerData && providerData.settlementStatus == constSettlementStatus.DAILY_ERROR) {
@@ -116,7 +124,7 @@ var dailyProviderSettlement = {
             }
         ).then(
             data => {
-                return dailyProviderSettlement.calculateDailyProviderSettlement(providerId);
+                return dailyProviderSettlement.calculateDailyProviderSettlement(providerId, settleTime);
             }
         ).then(
             data => {
@@ -148,8 +156,8 @@ var dailyProviderSettlement = {
     },
 
     manualDailyProviderSettlement: function (providerId, settlementDay) {
-        var startTime = dbutility.getDayStartTime(settlementDay);
-        var endTime = dbutility.getDayEndTime(settlementDay);
+        let startTime = dbutility.getDayStartTime(settlementDay);
+        let endTime = dbutility.getDayEndTime(settlementDay);
 
         return dbconfig.collection_gameProvider.findOne({_id: providerId}).then(
             providerData => {
@@ -159,6 +167,10 @@ var dailyProviderSettlement = {
                 else {
                     return Q.reject({name: "DataError", message: "Can't find provider or provider is not ready"});
                 }
+            }
+        ).then(
+            data => {
+                return removeDuplicatedConsumptionRecords(startTime, endTime);
             }
         ).then(
             data => {
@@ -201,15 +213,19 @@ var dailyProviderSettlement = {
      * Calculate daily settlement for provider
      * @param {objectId} providerId - provider id
      */
-    calculateDailyProviderSettlement: function (providerId) {
-        var deferred = Q.defer();
+    calculateDailyProviderSettlement: function (providerId, settleTime) {
+        let deferred = Q.defer();
 
         //todo::add more daily settlement calculation here
-        providerSummary.calculateYesterdayProviderPlayerSummary(providerId).then(
-            function (data) {
+        removeDuplicatedConsumptionRecords(settleTime.startTime, settleTime.endTime).then(
+            () => {
+                return providerSummary.calculateYesterdayProviderPlayerSummary(providerId)
+            }
+        ).then(
+            data => {
                 return providerSummary.calculateYesterdayProviderSummary(providerId);
             },
-            function (error) {
+            error => {
                 deferred.reject({
                     name: "DBError",
                     message: "Error calculating provider player daily summary!",
@@ -258,7 +274,54 @@ var dailyProviderSettlement = {
 
         return deferred.promise;
     }
+};
 
+let removeDuplicatedConsumptionRecords = function (startTime, endTime) {
+    // TODO: Pending Testing
+    return Q.resolve();
+
+
+    // Find duplicate consumption records
+    let balancer = new SettlementBalancer();
+    let stream = dbconfig.collection_playerConsumptionRecord.aggregate(
+        {
+            $match: {
+                createTime: {
+                    $gte: startTime,
+                    $lt: endTime
+                }
+            }
+        },
+        {
+            $group: {
+                _id: {orderNo: '$orderNo'},
+                uniqueIds: {$addToSet: "$_id"},
+                count: {$sum: 1}
+            }
+        },
+        {
+            $match: {
+                count: { $gte: 2 }
+            }
+        }
+    ).cursor({batchSize: 10}).exec();
+
+    return balancer.initConns().then(() => {
+        return Q(
+            balancer.processStream(
+                {
+                    stream: stream,
+                    batchSize: constSystemParam.BATCH_SIZE,
+                    makeRequest: function (dupsSummariesData, request) {
+                        request("player", "markDuplicatedConsumptionRecords", {
+                            dupsSummariesData: dupsSummariesData
+                        });
+                    }
+                }
+            )
+        )
+    }
+    )
 };
 
 module.exports = dailyProviderSettlement;

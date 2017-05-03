@@ -688,6 +688,14 @@
     </div>
 </div>
 
+<h3>Check Player Wechat Topup Available Status (微信充值状态)</h3>
+<div class="test-container">
+    <button data-api-name="getPlayerWechatPayStatus">Check</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPaymentAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPaymentAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

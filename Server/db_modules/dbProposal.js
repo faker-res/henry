@@ -1025,7 +1025,10 @@ var proposal = {
                                 _id: null,
                                 totalAmount: {$sum: "$data.amount"},
                                 totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                                totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                                totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                totalCommissionAmount: {$sum: "$data.commissionAmount"}
                             }
                         }
                     );
@@ -1074,7 +1077,7 @@ var proposal = {
             var summaryObj = {};
             if (finalSummary) {
                 summaryObj = {
-                    amount: finalSummary.totalAmount + finalSummary.totalRewardAmount + finalSummary.totalTopUpAmount
+                    amount: finalSummary.totalAmount + finalSummary.totalRewardAmount + finalSummary.totalTopUpAmount + finalSummary.totalUpdateAmount + finalSummary.totalNegativeProfitAmount + finalSummary.totalCommissionAmount
                 }
             }
             return {data: data, size: totalCount, summary: summaryObj};
