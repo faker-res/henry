@@ -179,7 +179,7 @@ var dbPlatformGameGroup = {
                     };
                     gameGroup.games.sort(
                         function (a, b) {
-                            return b.index - a.index;
+                            return a.index - b.index;
                         }
                     );
                     gameGroup.games = gameGroup.games.slice(startIndex, startIndex + count);
