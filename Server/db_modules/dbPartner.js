@@ -721,7 +721,7 @@ let dbPartner = {
             }
         ).then(
             partnerData => {
-                if (partnerData.length > 0) {
+                if (partnerData && partnerData.length > 0) {
                     let playerIds = partnerData.map(player => player._id);
                     let partnerDataMap = {};
                     for (let i = 0; i < partnerData.length; i++) {
