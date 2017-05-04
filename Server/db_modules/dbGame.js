@@ -155,7 +155,7 @@ var dbGame = {
         var deferred = Q.defer();
         if (query && query.providerId) {
             var providerObj = {providerId: query.providerId};
-            dbconfig.collection_gameProvider.findOne(providerObj).then(
+            dbconfig.collection_gameProvider.findOne(providerObj).lean().then(
                 function (data) {
                     if (data && data._id) {
                         query.provider = data._id;
@@ -166,7 +166,17 @@ var dbGame = {
                     }
                 });
         } else {
-            deferred.resolve(dbGame.getGameList(query, startIndex, count, playerId));
+            dbconfig.collection_players.findOne({playerId: playerId}).populate({
+                path: "platform",
+                model: dbconfig.collection_platform
+            }).lean().then(
+                playerData => {
+                    if (playerData && playerData.platform) {
+                        query.provider = {$in: playerData.platform.gameProviders};
+                    }
+                    deferred.resolve(dbGame.getGameList(query, startIndex, count, playerId));
+                }
+            )
         }
         return deferred.promise;
     },

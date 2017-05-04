@@ -21,6 +21,8 @@ var dataUtils = require("../modules/dataUtils.js");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
+let dbUtility = require('./../modules/dbutility');
+
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
     if (maxAttempts === undefined) {
@@ -516,7 +518,7 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             newRecord => {
-                if(newRecord){
+                if (newRecord) {
                     newRecord.providerId = providerId;
                 }
                 return newRecord;
@@ -1571,32 +1573,36 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    markDuplicatedConsumptionRecords:
-        dupsSummaries => {
-            if (dupsSummaries.length > 0) {
-                let markDupsProm = [];
+    markDuplicatedConsumptionRecords: dupsSummaries => {
+        if (dupsSummaries.length > 0) {
+            let markDupsProm = [];
 
-                dupsSummaries.map(
-                    dupsSummary => {
-                        // mark duplicates consumption records
-                        let dupsToMark = Number(dupsSummary.count) - 1;
-                        let markDups = {isDuplicate: true};
+            dupsSummaries.map(
+                dupsSummary => {
+                    // mark duplicates consumption records
+                    let dupsToMark = Number(dupsSummary.count) - 1;
+                    let markDups = {isDuplicate: true};
 
-                        for (let i = 0; i < dupsToMark ; i++) {
-                            markDupsProm.push(dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
+                    for (let i = 0; i < dupsToMark; i++) {
+                        markDupsProm.push(dbUtility.findOneAndUpdateForShard(
+                            dbconfig.collection_playerConsumptionRecord,
+                            {
                                 _id: dupsSummary.uniqueIds[i]
-                            }, markDups));
-                        }
+                            },
+                            markDups,
+                            constShardKeys.collection_playerConsumptionRecord
+                        ));
                     }
-                );
+                }
+            );
 
-                return Q.all(markDupsProm);
-            }
-            else {
-                // No duplicate found
-                return Q.resolve();
-            }
+            return Q.all(markDupsProm);
         }
+        else {
+            // No duplicate found
+            return Q.resolve();
+        }
+    }
 
 };
 

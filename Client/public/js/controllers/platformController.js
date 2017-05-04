@@ -3704,9 +3704,25 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformPlayersData();
             });
         };
+
+        vm.initResetPlayerPasswordModal = () => {
+            vm.playerNewPassword = "";
+            vm.resetPartnerNewPassword = false;
+        };
+
         vm.submitResetPlayerPassword = function () {
             console.log('here', {_id: vm.isOneSelectedPlayer()._id});
-            socketService.$socket($scope.AppSocket, 'resetPlayerPassword', {playerId: vm.isOneSelectedPlayer()._id}, function (data) {
+
+            let queryObj = {
+                playerId: vm.isOneSelectedPlayer()._id,
+                platform: vm.isOneSelectedPlayer().platform
+            };
+
+            if (vm.resetPartnerNewPassword) {
+                queryObj.resetPartnerPassword = true;
+            }
+
+            socketService.$socket($scope.AppSocket, 'resetPlayerPassword', queryObj, function (data) {
                 console.log('password', data);
                 vm.playerNewPassword = data.data;
                 $scope.safeApply();
