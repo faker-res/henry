@@ -3745,7 +3745,6 @@ let dbPartner = {
      * @returns {Promise<Partner>}
      */
     changePartnerCredit: function changePartnerCredit(partnerObjId, platformObjId, updateAmount, reasonType, data) {
-        console.log("\n\n\n\n\ndb partner\n",JSON.stringify(data));
         return dbconfig.collection_partner.findOneAndUpdate(
             {_id: partnerObjId, platform: platformObjId},
             {$inc: {credits: updateAmount}},
@@ -3755,7 +3754,7 @@ let dbPartner = {
                 if (!partner) {
                     return Q.reject({name: "DataError", message: "Can't update partner credit: partner not found."});
                 }
-                dbLogger.createCreditChangeLog(partnerObjId, platformObjId, updateAmount, reasonType, partner.credits, null, data);
+                dbLogger.createPartnerCreditChangeLog(partnerObjId, platformObjId, updateAmount, reasonType, partner.credits, null, data);
                 return partner;
             },
             error => {
@@ -3777,7 +3776,6 @@ let dbPartner = {
      * @returns {Promise}
      */
     tryToDeductCreditFromPartner: function tryToDeductCreditFromPartner(partnerObjId, platformObjId, updateAmount, reasonType, data) {
-        console.log('\n\n\n\n partner deduct\n');
         return Q.resolve().then(
             () => {
                 if (updateAmount < 0) {

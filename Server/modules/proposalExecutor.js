@@ -1814,7 +1814,7 @@ var proposalExecutor = {
                         }
 
                         var changeType = constProposalType.UPDATE_PARTNER_CREDIT;
-                        dbLogger.createCreditChangeLog(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
+                        dbLogger.createPartnerCreditChangeLog(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
                             changeType, partner.credits, null, proposalData.data);
                         deferred.resolve(partner);
                     },
