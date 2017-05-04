@@ -57,13 +57,16 @@ let dbPlayerPartner = {
                 }
             ).then(
                 promsData => {
-                    //todo:: add the binding later
-                    // return dbPartner.bindPartnerPlayer(promsData[1].partnerId, promsData[0].name).then(
-                    //     () => {
-                    //         return promsData;
-                    //     }
-                    // )
-                    return promsData;
+                    let playerData = promsData[0];
+                    let partnerData = promsData[1];
+
+                    return dbConfig.collection_partner.findOneAndUpdate(
+                        {_id: partnerData._id},
+                        {player: playerData._id},
+                        {new: true}
+                    ).lean().then(
+                        partnerData => [promsData[0], partnerData]
+                    )
                 }
             ).catch(
                 error => {
