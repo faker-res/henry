@@ -31,6 +31,7 @@ const constShardKeys = {
     collection_playerLoginRecord: ["_id", "loginTime"],
     collection_playerRegistrationIntentRecord: ["createTime", "_id"],
     collection_playerTopUpIntentRecord: ["createTime", "_id"],
+    collection_playerConsumptionRecord: ["createTime", "_id"],
 
     collection_playerTopUpRecord: ["createTime", "_id"],
     collection_proposal: ["createTime", "_id"],
