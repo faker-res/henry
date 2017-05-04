@@ -26,6 +26,8 @@ const constProposalStatus = require('../const/constProposalStatus');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
+const constPartnerStatus = require('../const/constPartnerStatus');
+
 
 let dbPartner = {
 
@@ -719,7 +721,7 @@ let dbPartner = {
             }
         ).then(
             partnerData => {
-                if (partnerData.length > 0) {
+                if (partnerData && partnerData.length > 0) {
                     let playerIds = partnerData.map(player => player._id);
                     let partnerDataMap = {};
                     for (let i = 0; i < partnerData.length; i++) {
@@ -821,6 +823,13 @@ let dbPartner = {
         ).then(
             isMatch => {
                 if (isMatch) {
+                    if (partnerObj.status == constPartnerStatus.FORBID) {
+                        return Q.reject({
+                              name: "DataError",
+                              message: "Partner is not enable",
+                              code: constServerCode.PARTNER_IS_FORBIDDEN
+                          });
+                    }
                     var newAgentArray = partnerObj.userAgent || [];
                     var uaObj = {
                         browser: userAgent.browser.name || '',
@@ -2401,7 +2410,10 @@ let dbPartner = {
                             totalReferrals: {$gt: 0},
                             $and: [
                                 {$or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]},
-                                {$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}
+                                {$or: [
+                                    {permission: {$exists: false}},
+                                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                                ]}
                             ]
                         }
                     ).cursor({batchSize: 100});
@@ -2799,7 +2811,10 @@ let dbPartner = {
                         {
                             platform: platformObjId,
                             lastChildrenCommissionSettleTime: {$lt: settleTime.startTime},
-                            $and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]
+                            $or: [
+                                {permission: {$exists: false}},
+                                {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                            ]
                         }
                     ).cursor({batchSize: 10});
 
@@ -2980,7 +2995,12 @@ let dbPartner = {
                 })
         } else {
             // Instead of searching all partners, look for only partners with permission on
-            partId = dbconfig.collection_partner.find({$and: [{permission: {$exists: true}}, {permission: {commissionSettlement: true}}]}).then(
+            partId = dbconfig.collection_partner.find({
+                $or: [
+                    {permission: {$exists: false}},
+                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                ]
+            }).then(
                 partners => {
                     if (partners && partners.length > 0) {
                         let partnerIds = partners.map(partner => partner._id);
@@ -2989,7 +3009,8 @@ let dbPartner = {
                         matchObj = "noPartner";
                     }
                     return matchObj;
-                })
+                }
+            )
         }
 
         return Q.resolve(partId).then(
@@ -3476,7 +3497,7 @@ let dbPartner = {
                         {
                             $group: {
                                 _id: "$type",
-                                totalAmount: {$sum: {$multiply: ["$data.amount", "$data.bonusCredit"]}},
+                                totalAmount: {$sum: "$data.amount"},
                             }
                         }
                     );
@@ -3676,6 +3697,41 @@ let dbPartner = {
             }
         );
     },
+
+    /**
+        * Update partner status info and record change reasono
+        * @param {objectId} partnerObjId
+        * @param {String} status
+        * @param {String} reason
+    */
+    updatePartnerStatus : function(partnerObjId, status, reason, adminName) {
+      var updateData = {
+        status: status
+      };
+
+      var partnerProm = dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, {
+        _id: partnerObjId
+      }, updateData, constShardKeys.collection_partner);
+      var newLog = {
+        _partnerId: partnerObjId,
+        status: status,
+        reason: reason,
+        adminName: adminName
+      };
+      var log = new dbconfig.collection_partnerStatusChangeLog(newLog);
+      var logProm = log.save();
+      return Q.all([partnerProm, logProm]);
+    },
+
+    /*
+     * get partner status change log
+     * @param {objectId} partnerObjId
+     */
+    getPartnerStatusChangeLog: function (partnerObjId) {
+        return dbconfig.collection_partnerStatusChangeLog.find({_partnerId: partnerObjId}).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
+    }
+
+
 };
 
 module.exports = dbPartner;

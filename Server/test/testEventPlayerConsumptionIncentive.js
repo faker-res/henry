@@ -31,6 +31,9 @@ var commonTestFunc = require('../test_modules/commonTestFunc');
 
 describe("Test player consumption incentive event", function () {
 
+    // TODO: Disabled again due to no playerDailyCreditLog in production yet
+    return true;
+
     var typeName = constProposalType.PLAYER_CONSUMPTION_INCENTIVE;
     var proposalTypeId = null;
     var proposalTypeProcessId = null;
@@ -53,11 +56,9 @@ describe("Test player consumption incentive event", function () {
     var stepType1Id = null;
     var testRewardTypeId = null;
     var testPlayerRecordId = null;
+    let testDailyLogId = null;
 
     var date = new Date().getTime();
-
-    //todo::temp disable this unit test
-    return;
 
     it('Should create test API platform', function (done) {
 
@@ -215,37 +216,41 @@ describe("Test player consumption incentive event", function () {
             code: new Date().getTime(),
             platform: testPlatformId,
             type: testRewardTypeId,
+            needApply: true,
             param: {
-                needApply: true,
-                reward: {
-                    0: {
-                        rewardPercentage: 0.1,
-                        spendingTimes: 2,
-                        maxRewardAmount: 100,
-                        minConsumptionAmount: 10,
-                        minTopUpRecordAmount: 10,
-                        maxPlayerCredit: 2000,
-                        minRewardAmount: 1,
-                    },
-                    1: {
-                        rewardPercentage: 0.1,
-                        spendingTimes: 2,
-                        maxRewardAmount: 200,
-                        minConsumptionAmount: 10,
-                        minTopUpRecordAmount: 10,
-                        maxPlayerCredit: 2000,
-                        minRewardAmount: 2,
-                    },
-                    2: {
-                        rewardPercentage: 0.1,
-                        spendingTimes: 2,
-                        maxRewardAmount: 300,
-                        minConsumptionAmount: 10,
-                        minTopUpRecordAmount: 10,
-                        maxPlayerCredit: 2000,
-                        minRewardAmount: 3,
-                    }
-                }
+                reward: [{
+                    minPlayerLevel: 0,
+                    rewardPercentage: 0.1,
+                    spendingTimes: 2,
+                    maxRewardAmount: 100,
+                    minConsumptionAmount: 10,
+                    minTopUpRecordAmount: 10,
+                    maxPlayerCredit: 2000,
+                    minRewardAmount: 1,
+                    minDeficitAmount: 100
+                },
+                {
+                    minPlayerLevel: 1,
+                    rewardPercentage: 0.1,
+                    spendingTimes: 2,
+                    maxRewardAmount: 200,
+                    minConsumptionAmount: 10,
+                    minTopUpRecordAmount: 10,
+                    maxPlayerCredit: 2000,
+                    minRewardAmount: 2,
+                    minDeficitAmount: 100
+                },
+                {
+                    minPlayerLevel: 2,
+                    rewardPercentage: 0.1,
+                    spendingTimes: 2,
+                    maxRewardAmount: 300,
+                    minConsumptionAmount: 10,
+                    minTopUpRecordAmount: 10,
+                    maxPlayerCredit: 2000,
+                    minRewardAmount: 3,
+                    minDeficitAmount: 100
+                }]
             },
             executeProposal: proposalTypeId
         };
@@ -310,6 +315,31 @@ describe("Test player consumption incentive event", function () {
                 record.createTime = new Date(new Date(record.createTime).getTime() - 24*60*60*1000);
                 delete record._id;
                 var newRecord = new dbConfig.collection_playerTopUpRecord(record);
+                return newRecord.save();
+            }
+        ).then(
+            data => done()
+        );
+    });
+
+    it('Generate player credits daily log', function (done) {
+        dbRewardEvent.startSavePlayersCredit(testPlatformId).then(
+            data => {
+                done();
+            }
+        ).catch(
+            error => {
+                console.log(error);
+            }
+        )
+    });
+
+    it('update player credits daily log to yesterday', function (done) {
+        dbConfig.collection_playerCreditsDailyLog.findOne({playerObjId: testPlayerId}).lean().then(
+            record => {
+                record.createTime = new Date(new Date(record.createTime).getTime() - 24*60*60*1000);
+                delete record._id;
+                let newRecord = new dbConfig.collection_playerCreditsDailyLog(record);
                 return newRecord.save();
             }
         ).then(

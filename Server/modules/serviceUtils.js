@@ -26,7 +26,7 @@ function buildWSClient (services) {
     return Client;
 }
 
-function buildWSServer (services) {
+function buildWSServer (services, useSSL) {
     var Server = function(port){
         WebSocketServer.call(this, port);
 

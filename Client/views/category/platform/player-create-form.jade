@@ -6,13 +6,16 @@ form(name="form_new_player", novalidate)
 			span.help-block(style='color: #b94a48', ng-show='vm.duplicateNameFound') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
 		.form-group.col-md-6
 			label.control-label *{{"EMAIL" | translate}}
-			input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.newPlayer.email", required)
+			input.form-control(type="email", name="email", placeholder='{{"winner@qq.com"}}', ng-model="vm.newPlayer.email", required)
 			span.help-block(ng-show="form_new_player.email.$dirty && form_new_player.email.$error.email") {{"EMAIL_INVALID" | translate}}
 	.row.margin-left-5.margin-right-5
-		.form-group.col-md-6
+		.form-group.col-md-5
 			label.control-label *{{"PASSWORD" | translate}}
 			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password1", ng-model="vm.newPlayer.password", required,match="vm.playerPswverify")
 			span.help-block(style='color: #b94a48', ng-show="form_new_player.password1.$dirty && vm.passwordLengthCheck(vm.newPlayer.password)") {{'Minimum Password length is' | translate}}&nbsp; 6.
+		.form-group.col-md-1
+			label.control-label {{'DEFAULT_PASSWORD' | translate}}
+			button.common-button.btn.btn-warning(ng-click="vm.newPlayer.password='88888888';vm.playerPswverify='88888888'") 88888888
 		.form-group.col-md-6
 			label.control-label *{{"PASSWORD_RETYPE" | translate}}
 			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password2", ng-model="vm.playerPswverify", required,match="vm.newPlayer.password")

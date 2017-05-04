@@ -12,7 +12,7 @@ var ws = require("ws");
  * @param {Number} port 监听端口
  * @constructor
  */
-var WebSocketServer = function (port) {
+var WebSocketServer = function (port, useSSL) {
     //server services
     this._services = [];
     //client services to call client api
@@ -20,6 +20,7 @@ var WebSocketServer = function (port) {
     //todo::remove clients
     this._clients = [];
     this.port = port;
+    this.useSSL = useSSL;
     //todo::remove connection
     this._connection = null;
     //websocket server
@@ -108,6 +109,7 @@ proto.run = function () {
     }
 
     this._wss = new ws.Server({port: this.port});
+
     var self = this;
     //ws server broadcast function
     this._wss.broadcast = function broadcast(data) {

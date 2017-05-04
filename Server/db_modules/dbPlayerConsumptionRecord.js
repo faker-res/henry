@@ -1571,6 +1571,33 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
+    markDuplicatedConsumptionRecords:
+        dupsSummaries => {
+            if (dupsSummaries.length > 0) {
+                let markDupsProm = [];
+
+                dupsSummaries.map(
+                    dupsSummary => {
+                        // mark duplicates consumption records
+                        let dupsToMark = Number(dupsSummary.count) - 1;
+                        let markDups = {isDuplicate: true};
+
+                        for (let i = 0; i < dupsToMark ; i++) {
+                            markDupsProm.push(dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
+                                _id: dupsSummary.uniqueIds[i]
+                            }, markDups));
+                        }
+                    }
+                );
+
+                return Q.all(markDupsProm);
+            }
+            else {
+                // No duplicate found
+                return Q.resolve();
+            }
+        }
+
 };
 
 // module.exports = dbPlayerConsumptionRecord;

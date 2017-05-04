@@ -1859,12 +1859,12 @@ define(['js/app'], function (myApp) {
 
         //get all platform players data from server
         vm.getPlatformPlayersData = function (newSearch) {
+
             // $('#loadingPlayerTableSpin').show();
             socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: vm.selectedPlatform.id}, function (playerCount) {
                 vm.platformPlayerCount = playerCount.data;
                 console.log('playerCount', playerCount);
             });
-
             vm.advancedQueryObj = vm.advancedQueryObj || {};
             vm.drawPlayerTable([]);
             vm.advancedPlayerQuery(newSearch);
@@ -1874,7 +1874,6 @@ define(['js/app'], function (myApp) {
             // NOTE: If the response is ignoring your field filter and returning all players, please check that the
             // field is whitelisted in buildPlayerQueryString() in encrypt.js
             utilService.hideAllPopoversExcept();
-            console.log("getPlayersByAdvanceQueryDebounced", playerQuery);
             vm.advancedQueryObj = $.extend({}, vm.advancedQueryObj, playerQuery);
             for (var k in playerQuery) {
                 if (!playerQuery[k] || $.isEmptyObject(playerQuery)) {
@@ -2336,9 +2335,13 @@ define(['js/app'], function (myApp) {
                                 'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === true ? "text-primary" : "text-danger"),
                             }));
                             link.append($('<img>', {
+                                'class': 'margin-right-5',
                                 'src': "images/icon/" + (perm.alipayTransaction === true ? "aliPayBlue.png" : "aliPayRed.png"),
                                 height: "15px",
                                 width: "15px",
+                            }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
                             }));
                             return link.prop('outerHTML');
                         },
@@ -2635,7 +2638,8 @@ define(['js/app'], function (myApp) {
                                 topupOnline: {imgType: 'i', iconClass: "fa fa-pencil-square"},
                                 topupManual: {imgType: 'i', iconClass: "fa fa-folder-open"},
                                 banReward: {imgType: 'i', iconClass: "fa fa-ban"},
-                                alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"}
+                                alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
+                                disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"}
                             };
                             $("#playerPermissionTable td").removeClass('hide');
                             $.each(vm.playerPermissionTypes, function (key, v) {
@@ -2685,6 +2689,7 @@ define(['js/app'], function (myApp) {
 
                         }
                     });
+
                     //
                     // $('#playerDataTable').resize();
                     // $('#playerDataTable').resize();
@@ -3527,6 +3532,10 @@ define(['js/app'], function (myApp) {
             vm.newPlayer.platform = vm.selectedPlatform.id;
             //console.log('newPlayer',vm.newPlayer);
             socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
+                $('#modalCreatePlayer').modal('toggle');
+                $('#modalCreatePlayer').on('hidden.bs.modal', function () {
+                    $(this).find('input,textarea,select').val('');
+                });
                 vm.getPlatformPlayersData();
             });
         };
@@ -6282,16 +6291,6 @@ define(['js/app'], function (myApp) {
 
         ////////////////////////////////////////////////////////////////////////////////////Mark::partner functions//////////////////
 
-        var getPartnersByAdvancedQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
-            var apiQuery = {
-                platformId: vm.selectedPlatform.id,
-                query: partnerQuery,
-            };
-            socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
-                setPartnerTableData(reply.data);
-            });
-        });
-
         var setPartnerTableData = function (data) {
             return setTableData(vm.partnerTable, data);
         };
@@ -6304,7 +6303,6 @@ define(['js/app'], function (myApp) {
             $('#partnerRefreshIcon').addClass('fa-spin');
             socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', {platform: vm.selectedPlatform.id}, success);
             function success(data) {
-                console.log('getPartnersByPlatform', data.data);
                 vm.partnerIdObj = {};
                 var partnersObjId = [];
                 $.each(data.data, function (i, v) {
@@ -6312,7 +6310,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerIdObj[v.partnerName] = v;
                     partnersObjId.push(v._id);
                 });
-                console.log('vm.partnerIdObj', vm.partnerIdObj);
 
                 socketService.$socket($scope.AppSocket, 'getPartnersPlayerInfo', {
                     platformObjId: vm.selectedPlatform.id,
@@ -6322,13 +6319,32 @@ define(['js/app'], function (myApp) {
                     $.each(playersIno.data, function (i, v) {
                         vm.partnerPlayerObj[v.partnerId] = v;
                     });
-                    console.log("vm.partnerPlayerObj", vm.partnerPlayerObj);
+                    vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
                     vm.drawPartnerTable(data.data);
                 });
                 $('#partnerRefreshIcon').removeClass('fa-spin');
 
             }
         };
+
+        var getPartnersByAdvancedQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
+
+          utilService.hideAllPopoversExcept();
+          vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
+          for (var k in partnerQuery) {
+              if (!partnerQuery[k] || $.isEmptyObject(partnerQuery)) {
+                  delete vm.advancedPartnerQueryObj[k];
+              }
+          }
+
+            var apiQuery = {
+                platformId: vm.selectedPlatform.id,
+                query: vm.advancedPartnerQueryObj
+            };
+            socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
+                setPartnerTableData(reply.data);
+            });
+        });
 
         vm.activatePlayerTab = function () {
             setTimeout(() => {
@@ -6384,6 +6400,31 @@ define(['js/app'], function (myApp) {
                                 .prop('outerHTML');
                         },
                         "sClass": "alignLeft"
+                    },
+                    {
+                        title: $translate('STATUS'), data: 'status',
+                        render: function (data, type, row) {
+                          var showText = $translate(vm.allPartnersStatusKeys[data - 1]) || 'No Value';
+                          var textClass = '';
+
+                          return $('<a class="partnerStatusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                              'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                              .attr('data-row', JSON.stringify(row))
+                              .text(showText)
+                              .addClass(textClass)
+                              .prop('outerHTML');
+                        },
+                        advSearch: true,
+                        filterConfig: {
+                            type: "dropdown",
+                            options: vm.allPartnersStatusKeys.map(function (status) {
+                                return {
+                                    value: vm.allPartnersStatusString[status],
+                                    text: $translate(status)
+                                };
+                            })
+                        },
+                        "sClass": ""
                     },
                     {
                         title: $translate('PARENT'),
@@ -6465,7 +6506,7 @@ define(['js/app'], function (myApp) {
                             });
                             let perm = (row && row.permission) ? row.permission : {};
                             link.append($('<i>', {
-                                'class': 'fa fa-gift margin-right-5 ' + (perm.commissionSettlement === true ? "text-primary" : "text-danger"),
+                                'class': 'fa fa-user-times margin-right-5 ' + (perm.disableCommSettlement === true ? "text-primary" : "text-danger"),
                             }));
                             return link.prop('outerHTML');
                         },
@@ -6576,6 +6617,75 @@ define(['js/app'], function (myApp) {
                             });
                         }
                     }
+
+                    utilService.setupPopover({
+                        context: container,
+                        elem: '.partnerStatusPopover',
+                        content: function () {
+                            //console.log('this', this);
+                            vm.partnerStatusHistory = null;
+                            var data = JSON.parse(this.dataset.row);
+                            vm.partnerStatusPopover = data;
+                            $scope.safeApply();
+                            $('.partnerStatusConfirmation').hide();
+                            return $compile($('#partnerStatusPopover').html())($scope);
+                        },
+                        callback: function () {
+                            var data = JSON.parse(this.dataset.row);
+                            var thisPopover = utilService.$getPopoverID(this);
+                            var rowData = JSON.parse(this.dataset.row);
+                            var status = rowData.status;
+
+                            $scope.safeApply();
+                            $("button.partnerStatusHistory").on('click', function () {
+                                Q.all(vm.getPartnerStatusChangeLog(vm.partnerStatusPopover))
+                                    .then(function (data) {
+                                        console.log('vm.partnerStatusHistory', vm.partnerStatusHistory);
+                                    }, function (error) {
+                                    })
+                                    .done()
+                            });
+                            $("button.partnerStatusConfirm").on('click', function () {
+                                if ($(this).hasClass('disabled')) {
+                                    return;
+                                }
+                                var reason = $(thisPopover).find('.partnerStatusChangeReason').val();
+                                var sendData = {
+                                    _id: rowData._id,
+                                    status: status,
+                                    reason: reason,
+                                    adminName: authService.adminName
+                                }
+                                vm.updatePartnerStatus(rowData, sendData);
+                                $('.partnerStatusConfirmation').hide();
+                                $(".partnerStatusPopover").popover('hide');
+                            });
+                            $("textarea.partnerStatusChangeReason").keyup(function () {
+                                var reason = $(thisPopover).find('.partnerStatusChangeReason').val();
+                                if (reason) {
+                                    $(thisPopover).find('.partnerStatusConfirm').removeClass('disabled');
+                                } else {
+                                    $(thisPopover).find('.partnerStatusConfirm').addClass('disabled');
+                                }
+                            });
+
+                            $("button.partnerStatusCancel").on('click', function () {
+                                $('.partnerStatusConfirmation').hide();
+                                $(".partnerStatusPopover").popover('hide');
+                            });
+
+
+                            $("input.partnerStatusChange").on('click', function () {
+                                rowData = JSON.parse(this.dataset.row);
+                                status = this.dataset.status;
+                                console.log('this:partnerStatusChange:onClick', rowData, status);
+                                $scope.safeApply();
+
+                                console.log($('.partnerStatusConfirmation'));
+                                $('.partnerStatusConfirmation').show();
+                            });
+                        }
+                    });
 
                     utilService.setupPopover({
                         context: container,
@@ -6716,7 +6826,7 @@ define(['js/app'], function (myApp) {
                             let that = this;
                             let row = JSON.parse(this.dataset.row);
                             vm.partnerPermissionTypes = {
-                                commissionSettlement: {imgType: 'i', iconClass: "fa fa-gift"}
+                                disableCommSettlement: {imgType: 'i', iconClass: "fa fa-user-times"}
                             };
                             $("#partnerPermissionTable td").removeClass('hide');
                             $.each(vm.partnerPermissionTypes, function (key, v) {
@@ -6797,6 +6907,27 @@ define(['js/app'], function (myApp) {
         vm.partnerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
             // Row click
             $compile(nRow)($scope);
+
+
+            var status = aData.status;
+            var statusKey = '';
+            $.each(vm.allPartnersStatusString, function (key, val) {
+                if (status == val) {
+                    statusKey = key;
+                    return true;
+                }
+            });
+
+            var colorObj = {
+                NORMAL: '#337ab7',
+                FORBID: 'red',
+                FORBID_GAME: 'orange'
+            }
+
+            $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
+                $(v).find('a').eq(0).css('color', colorObj[statusKey]);
+            })
+
             $(nRow).off('click');
             $(nRow).on('click', function () {
                 // $('#partnerDataTable tbody tr').removeClass('partnerSelected');
@@ -6968,6 +7099,29 @@ define(['js/app'], function (myApp) {
                 }
                 vm.getPlatformPartnersData();
             }, null, true);
+        }
+
+        //Enable or disable selected partner
+        vm.updatePartnerStatus = function (rowData, sendData) {
+            console.log('update partner status\n',rowData, sendData);
+            socketService.$socket($scope.AppSocket, 'updatePartnerStatus', sendData, function (data) {
+                vm.getPlatformPartnersData();
+            });
+        };
+
+        vm.getPartnerStatusChangeLog = function (rowData) {
+            var deferred = Q.defer();
+            console.log('partnerStatusLog rowData\n',rowData);
+            socketService.$socket($scope.AppSocket, 'getPartnerStatusChangeLog', {
+                _id: rowData._id
+            }, function (data) {
+                console.log('partnerStatus logData \n', data.data);
+                vm.partnerStatusHistory = data.data || [];
+                $scope.safeApply();
+                deferred.resolve(true);
+            });
+            // return Q.when(true);
+            return deferred.promise;
         }
 
         vm.checkOwnDomain = function (value, form) {
@@ -9639,6 +9793,23 @@ define(['js/app'], function (myApp) {
                 });
         };
 
+        vm.getPartnerStatusList = function () {
+            return $scope.$socketPromise('getPartnerStatusList')
+                .then(function (data) {
+
+                    vm.allPartnersStatusString = data.data;
+                    var allStatus = data.data;
+                    var keys = [];
+                    for (var key in allStatus) {
+                        if (allStatus.hasOwnProperty(key)) {
+                            keys.push(key);
+                        }
+                    }
+                    console.log('\n\n\n\nallPartnersStatusString',keys);
+                    vm.allPartnersStatusKeys = keys;
+                });
+        };
+
         vm.getPlayerLvlPeriod = function () {
             socketService.$socket($scope.AppSocket, 'getPlayerLvlPeriodConst', '', function (data) {
                 console.log('getPlayerLvlPeriodConst', data);
@@ -9746,6 +9917,7 @@ define(['js/app'], function (myApp) {
                             vm.preparePlayerFeedback();
                             vm.getAllGameStatus();
                             vm.getPlayerStatusList();
+                            vm.getPartnerStatusList();
                             // vm.getAllProposalExecutionType();
                             // vm.getAllProposalRejectionType();
                             vm.getAllMessageTypes();

@@ -100,7 +100,8 @@ var playerSchema = new Schema({
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},
         alipayTransaction: {type: Boolean, default: true},
-        banReward: {type: Boolean, default: false}
+        banReward: {type: Boolean, default: false},
+        disableWechatPay: {type: Boolean, default: false}
     },
 
     //country
@@ -289,7 +290,8 @@ var playerPostFindUpdate = function (result, bOne) {
         if (!bOne) {
             // var startIndex = Math.max(Math.floor((result.phoneNumber.length - 4) / 2), 0);
             // result.phoneNumber = result.phoneNumber.substr(0, startIndex) + "****" + result.phoneNumber.substr(startIndex + 4);
-            result.phoneNumber = result.phoneNumber.substr(0, 3) + "****" + result.phoneNumber.substr(-4);
+            // result.phoneNumber = result.phoneNumber.substr(0, 3) + "****" + result.phoneNumber.substr(-4);
+            result.phoneNumber = dbUtil.encodePhoneNum(result.phoneNumber);
         }
     }
     //hide middle 4 digits for email
@@ -299,8 +301,9 @@ var playerPostFindUpdate = function (result, bOne) {
     }
     //hide banking information
     if (!bOne && result && result.bankAccount) {
-        var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
-        result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
+        // var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
+        // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
+        result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
     }
 };
 

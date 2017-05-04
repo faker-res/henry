@@ -308,7 +308,10 @@ var proposalExecutor = {
                                 constShardKeys.collection_playerCreditTransferLog
                             ).then().catch(console.error);
                         }
-                        var changeType = bTransfer ? constProposalType.FIX_PLAYER_CREDIT_TRANSFER : constProposalType.UPDATE_PLAYER_CREDIT;
+                        let changeType = bTransfer ? constProposalType.FIX_PLAYER_CREDIT_TRANSFER : constProposalType.UPDATE_PLAYER_CREDIT;
+
+                        proposalData.data.proposalId = proposalData.proposalId;
+
                         dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
                             changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
                         deferred.resolve(player);
@@ -496,7 +499,8 @@ var proposalExecutor = {
 
                             return dbconfig.collection_players.findOneAndUpdate(
                                 {_id: data._id, platform: data.platform},
-                                playerUpdate
+                                playerUpdate,
+                                {returnNewDocument: true}
                             );
                         }
                         else {
@@ -524,6 +528,7 @@ var proposalExecutor = {
                             creatorType: constProposalUserType.SYSTEM_USERS,
                             creatorObjId: proposalData.creator ? proposalData.creator.id : null
                         }
+                        dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
                         dbLogger.createBankInfoLog(loggerInfo);
                         SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                         deferred.resolve(data);
