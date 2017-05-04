@@ -265,13 +265,13 @@ function socketActionPlayer(socketIO, socket) {
 
         /**
          * generate random player password
-         * @param {json} data - It has to contain  object id of player
+         * @param {Object} data - It has to contain  object id of player
          */
         resetPlayerPassword: function resetPlayerPassword(data) {
-            var actionName = arguments.callee.name;
-            var randomPSW = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-            var isValidData = Boolean(data && data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.resetPlayerPassword, [data.playerId, randomPSW], actionName, isValidData);
+            let actionName = arguments.callee.name;
+            let randomPSW = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
+            let isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.resetPlayerPassword, [data.playerId, randomPSW, data.platform, data.resetPartnerPassword], actionName, isValidData);
         },
 
         // /**

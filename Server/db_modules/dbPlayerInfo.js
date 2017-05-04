@@ -938,11 +938,13 @@ let dbPlayerInfo = {
 
     /**
      * Reset player password
-     * @param {String}  query - The query string
-     * @param {string} updateData - The update data string
+     * @param {String}  playerId - The query string
+     * @param {string} newPassword - The update data string
+     * @param {objectId} platform - player's platform
+     * @param {boolean} resetPartnerPassword - reset partner password also if true
      */
-    resetPlayerPassword: function (playerId, newPassword) {
-        var deferred = Q.defer();
+    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword) {
+        let deferred = Q.defer();
 
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
@@ -960,12 +962,28 @@ let dbPlayerInfo = {
                     {password: hash},
                     constShardKeys.collection_players
                 ).then(
-                    function (data) {
+                    data => {
+                        // update partner password if selected
+                        if (resetPartnerPassword) {
+                            return dbUtility.findOneAndUpdateForShard(
+                                dbconfig.collection_partner,
+                                {
+                                    platform: platform,
+                                    player: playerId
+                                },
+                                {password: hash},
+                                constShardKeys.collection_partner
+                            );
+                        }
+
                         deferred.resolve(newPassword);
                     },
-                    function (error) {
+                    error => {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
                     }
+                ).then(
+                    data => deferred.resolve(newPassword),
+                    error => deferred.reject({name: "DBError", message: "Error updating player password.", error: error})
                 );
             });
         });
