@@ -54,7 +54,7 @@ var proposal = {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
             // query related partner info
            var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
-                .populate({path: 'partnerLevel', model: dbconfig.collection_partnerLevel});
+                .populate({path: 'level', model: dbconfig.collection_partnerLevel});
         }
         else{
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
@@ -74,11 +74,41 @@ var proposal = {
     },
 
     checkUpdateCreditProposal: function (platformId, typeName, proposalData) {
-        console.log('\n\n\n\n\n dbproposal\n',typeName,"\n",JSON.stringify(proposalData));
-        return Q.resolve().then(
+
+        //get proposal type id
+        let ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
+        return ptProm.then(
+            (proposalType) => {
+                //check if player or partner has pending proposal for this type
+                let queryObj = {
+                    type: proposalType._id,
+                    status: constProposalStatus.PENDING,
+                    data: {}
+                };
+
+                if(proposalData.userType == "partner"){
+                    queryObj.data.partnerObjId = proposalData.data.partnerObjId;
+                }
+                else{
+                    queryObj.data.playerObjId = proposalData.data.playerObjId;
+                }
+
+                return dbconfig.collection_proposal.findOne(queryObj).lean().then(
+                    pendingProposal => {
+                        //for online top up and player consumption return, there can be multiple pending proposals
+                        if (pendingProposal) {
+                            return Q.reject({
+                                name: "DBError",
+                                message: "Player or partner already has a pending proposal for this type"
+                            });
+                        }
+                    }
+                )
+            }
+        ).then(
             () => {
                 if(proposalData && proposalData.data && proposalData.data.updateAmount < 0 && proposalData.userType == "partner"){
-                    return dbPartner.tryToDeductCreditFromPartner(proposalData.data.partnerObjId, platformId, -proposalData.data.updateAmount, "editPartnerCredit:Deduction", proposalData.data);                    
+                    return dbPartner.tryToDeductCreditFromPartner(proposalData.data.partnerObjId, platformId, -proposalData.data.updateAmount, "editPartnerCredit:Deduction", proposalData.data);
                 }
                 else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
                     return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
@@ -90,7 +120,7 @@ var proposal = {
                 return proposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
             })
     },
- 
+
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData) {
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
@@ -137,8 +167,14 @@ var proposal = {
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
         let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
-        let plyProm = dbconfig.collection_players.findOne({_id: playerId})
+        if(proposalData.userType == "partner"){
+            var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
+            .populate({path: 'level', model: dbconfig.collection_partnerLevel});
+        }
+        else{
+            var plyProm = dbconfig.collection_players.findOne({_id: playerId})
             .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+        }
 
         proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
@@ -155,7 +191,7 @@ var proposal = {
     createProposalDataHandler: function (ptProm, ptpProm, plyProm, proposalData, deferred) {
         let bExecute = false;
         let proposalTypeData = null;
-        
+
         Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
             function (data) {
@@ -205,9 +241,16 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
-                        proposalData.data.playerName = data[2].name;
-                        proposalData.data.playerStatus = data[2].status;
-                        proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
+                        if(proposalData.userType == "partner"){
+                            proposalData.data.partnerName = data[2].partnerName;
+                            proposalData.data.playerStatus = data[2].status;
+                            proposalData.data.proposalPartnerLevel = data[2].level.name;
+                        }
+                        else{
+                            proposalData.data.playerName = data[2].name;
+                            proposalData.data.playerStatus = data[2].status;
+                            proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
+                        }
                     }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
@@ -1039,7 +1082,10 @@ var proposal = {
                                 _id: null,
                                 totalAmount: {$sum: "$data.amount"},
                                 totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                totalTopUpAmount: {$sum: "$data.topUpAmount"}
+                                totalTopUpAmount: {$sum: "$data.topUpAmount"},
+                                totalUpdateAmount: {$sum: "$data.updateAmount"},
+                                totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
+                                totalCommissionAmount: {$sum: "$data.commissionAmount"}
                             }
                         }
                     );
@@ -1088,7 +1134,7 @@ var proposal = {
             var summaryObj = {};
             if (finalSummary) {
                 summaryObj = {
-                    amount: finalSummary.totalAmount + finalSummary.totalRewardAmount + finalSummary.totalTopUpAmount
+                    amount: finalSummary.totalAmount + finalSummary.totalRewardAmount + finalSummary.totalTopUpAmount + finalSummary.totalUpdateAmount + finalSummary.totalNegativeProfitAmount + finalSummary.totalCommissionAmount
                 }
             }
             return {data: data, size: totalCount, summary: summaryObj};

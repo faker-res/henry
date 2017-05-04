@@ -171,7 +171,6 @@ function socketActionProposal(socketIO, socket) {
                 data.data.partnerObjId && data.data.hasOwnProperty("updateAmount") &&
                 data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
             );
-            console.log('\n\n\nsocket action\n',isValidData,'\n',JSON.stringify(data))
             socketUtil.emitter(self.socket, dbProposal.checkUpdateCreditProposal, [data.platformId, constProposalType.UPDATE_PARTNER_CREDIT, data], actionName, isValidData);
         },
 
