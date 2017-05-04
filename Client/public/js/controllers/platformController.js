@@ -1870,12 +1870,12 @@ define(['js/app'], function (myApp) {
             vm.advancedPlayerQuery(newSearch);
         };
 
-        var getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
+        let getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
             // NOTE: If the response is ignoring your field filter and returning all players, please check that the
             // field is whitelisted in buildPlayerQueryString() in encrypt.js
             utilService.hideAllPopoversExcept();
             vm.advancedQueryObj = $.extend({}, vm.advancedQueryObj, playerQuery);
-            for (var k in playerQuery) {
+            for (let k in playerQuery) {
                 if (!playerQuery[k] || $.isEmptyObject(playerQuery)) {
                     delete vm.advancedQueryObj[k];
                 }
@@ -1892,11 +1892,19 @@ define(['js/app'], function (myApp) {
                 var te = $("#playerTable-search-filters > div").not(":nth-child(11)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee")
+            } else if (playerQuery.bankAccount) {
+                let te = $("#playerTable-search-filters > div").not(":nth-child(12)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee")
+            } else if (playerQuery.email) {
+                let te = $("#playerTable-search-filters > div").not(":nth-child(13)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee")
             } else {
                 $("#playerTable-search-filters .form-control").prop("disabled", false).css("background-color", "#fff");
                 $("#playerTable-search-filters .form-control input").prop("disabled", false).css("background-color", "#fff");
             }
-            if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber) {
+            if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber || playerQuery.bankAccount || playerQuery.email) {
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
                     query: playerQuery,
@@ -2375,7 +2383,9 @@ define(['js/app'], function (myApp) {
                         },
                         "sClass": "alignRight"
                     },
-                    // {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
+                    {title: $translate('PHONENUMBER'), data: "phoneNumber", advSearch: true, visible: false,},
+                    {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
+                    {title: $translate("EMAIL"), visible: false, data: "email", advSearch: true},
                     // {
                     //     visible: false,
                     //     title: $translate('PLAYER_TYPE'),
@@ -2401,7 +2411,6 @@ define(['js/app'], function (myApp) {
                     //         }
                     //     }
                     // },
-                    {title: $translate('PHONENUMBER'), data: "phoneNumber", advSearch: true, visible: false,},
                 ],
                 //"autoWidth": false,
                 "scrollX": true,
