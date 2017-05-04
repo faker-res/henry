@@ -54,7 +54,7 @@ var proposal = {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
             // query related partner info
            var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
-                .populate({path: 'partnerLevel', model: dbconfig.collection_partnerLevel});
+                .populate({path: 'level', model: dbconfig.collection_partnerLevel});
         }
         else{
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
@@ -82,9 +82,16 @@ var proposal = {
                 //check if player or partner has pending proposal for this type
                 let queryObj = {
                     type: proposalType._id,
-                    "data.playerObjId": proposalData.data.playerObjId,
-                    status: constProposalStatus.PENDING
+                    status: constProposalStatus.PENDING,
+                    data: {}
                 };
+
+                if(proposalData.userType == "partner"){
+                    queryObj.data.partnerObjId = proposalData.data.partnerObjId;
+                }
+                else{
+                    queryObj.data.playerObjId = proposalData.data.playerObjId;
+                }
 
                 return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                     pendingProposal => {
@@ -160,8 +167,14 @@ var proposal = {
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
         let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
-        let plyProm = dbconfig.collection_players.findOne({_id: playerId})
+        if(proposalData.userType == "partner"){
+            var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
+            .populate({path: 'level', model: dbconfig.collection_partnerLevel});
+        }
+        else{
+            var plyProm = dbconfig.collection_players.findOne({_id: playerId})
             .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+        }
 
         proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
         return deferred.promise;
@@ -228,9 +241,16 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
-                        proposalData.data.playerName = data[2].name;
-                        proposalData.data.playerStatus = data[2].status;
-                        proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
+                        if(proposalData.userType == "partner"){
+                            proposalData.data.partnerName = data[2].partnerName;
+                            proposalData.data.playerStatus = data[2].status;
+                            proposalData.data.proposalPartnerLevel = data[2].level.name;
+                        }
+                        else{
+                            proposalData.data.playerName = data[2].name;
+                            proposalData.data.playerStatus = data[2].status;
+                            proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
+                        }
                     }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
