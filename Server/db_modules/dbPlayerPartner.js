@@ -2,12 +2,11 @@
 
 let Q = require("q");
 
-let constServerCode = require('../const/constServerCode');
+const constServerCode = require('../const/constServerCode');
 
 let dbConfig = require('../modules/dbproperties');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
-
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI:
@@ -57,13 +56,16 @@ let dbPlayerPartner = {
                 }
             ).then(
                 promsData => {
-                    //todo:: add the binding later
-                    // return dbPartner.bindPartnerPlayer(promsData[1].partnerId, promsData[0].name).then(
-                    //     () => {
-                    //         return promsData;
-                    //     }
-                    // )
-                    return promsData;
+                    let playerData = promsData[0];
+                    let partnerData = promsData[1];
+
+                    return dbConfig.collection_partner.findOneAndUpdate(
+                        {_id: partnerData._id, platform: partnerData.platform},
+                        {player: playerData._id},
+                        {new: true}
+                    ).lean().then(
+                        partnerData => [promsData[0], partnerData]
+                    )
                 }
             ).catch(
                 error => {

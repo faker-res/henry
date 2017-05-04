@@ -31,6 +31,9 @@ var commonTestFunc = require('../test_modules/commonTestFunc');
 
 describe("Test player consumption incentive event", function () {
 
+    // TODO: Disabled again due to no playerDailyCreditLog in production yet
+    return true;
+
     var typeName = constProposalType.PLAYER_CONSUMPTION_INCENTIVE;
     var proposalTypeId = null;
     var proposalTypeProcessId = null;
@@ -56,9 +59,6 @@ describe("Test player consumption incentive event", function () {
     let testDailyLogId = null;
 
     var date = new Date().getTime();
-
-    //todo::temp disable this unit test
-    return;
 
     it('Should create test API platform', function (done) {
 

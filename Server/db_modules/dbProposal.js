@@ -151,7 +151,7 @@ var proposal = {
     /**
      * Create a new proposal with type ids
      * @param {ObjectId} typeId - Type id
-     * @param {json} proposalData - The data of the proposal
+     * @param {Object} proposalData - The data of the proposal
      */
     createProposalWithTypeId: function (typeId, proposalData) {
         let deferred = Q.defer();
