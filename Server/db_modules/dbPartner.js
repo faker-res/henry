@@ -16,6 +16,7 @@ var jwt = require('jsonwebtoken');
 var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var dbLogger = require("./../modules/dbLogger");
+var constProposalMainType = require('../const/constProposalMainType');
 
 let env = require('../config/env').config();
 
@@ -3744,7 +3745,6 @@ let dbPartner = {
      * @returns {Promise<Partner>}
      */
     changePartnerCredit: function changePartnerCredit(partnerObjId, platformObjId, updateAmount, reasonType, data) {
-                console.log('\n\n\n\n partner change credit\n');
         return dbconfig.collection_partner.findOneAndUpdate(
             {_id: partnerObjId, platform: platformObjId},
             {$inc: {credits: updateAmount}},
@@ -3754,7 +3754,7 @@ let dbPartner = {
                 if (!partner) {
                     return Q.reject({name: "DataError", message: "Can't update partner credit: partner not found."});
                 }
-                dbLogger.createCreditChangeLog(partnerObjId, platformObjId, updateAmount, reasonType, partner.credits, null, data);
+                dbLogger.createPartnerCreditChangeLog(partnerObjId, platformObjId, updateAmount, reasonType, partner.credits, null, data);
                 return partner;
             },
             error => {
@@ -3776,7 +3776,6 @@ let dbPartner = {
      * @returns {Promise}
      */
     tryToDeductCreditFromPartner: function tryToDeductCreditFromPartner(partnerObjId, platformObjId, updateAmount, reasonType, data) {
-        console.log('\n\n\n\n partner deduct\n');
         return Q.resolve().then(
             () => {
                 if (updateAmount < 0) {
@@ -3826,7 +3825,6 @@ let dbPartner = {
      * Just a conceptual shortcut for changePartnerCredit, could be tweaked in future.
      */
     refundPartnerCredit: function (partnerObjId, platformObjId, refundAmount, reasonType, data) {
-        console.log('\n\n\n\n partner refund\n');
         return dbPartner.changePartnerCredit(partnerObjId, platformObjId, refundAmount, reasonType, data);
     }
 

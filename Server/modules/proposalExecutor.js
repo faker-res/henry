@@ -1777,10 +1777,10 @@ var proposalExecutor = {
         /**
          * execution function for update partner credit proposal type
          */
-        executeUpdatePartnerCredit: function (proposalData, deferred, bTransfer) {
+        executeUpdatePartnerCredit: function (proposalData, deferred) {
             //valid data
             if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.updateAmount != null) {
-                //changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount, constProposalType.UPDATE_PLAYER_CREDIT, proposalData.data).then(deferred.resolve, deferred.reject);
+                // changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount, constProposalType.UPDATE_PARTNER_CREDIT, proposalData.data).then(deferred.resolve, deferred.reject);
                 //check partner reward task
                 return dbconfig.collection_rewardTask.findOne({
                     playerId: proposalData.data.partnerObjId,
@@ -1816,8 +1816,8 @@ var proposalExecutor = {
                             return;
                         }
 
-                        var changeType = bTransfer ? constProposalType.FIX_PLAYER_CREDIT_TRANSFER : constProposalType.UPDATE_PLAYER_CREDIT;
-                        dbLogger.createCreditChangeLog(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
+                        var changeType = constProposalType.UPDATE_PARTNER_CREDIT;
+                        dbLogger.createPartnerCreditChangeLog(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
                             changeType, partner.credits, null, proposalData.data);
                         deferred.resolve(partner);
                     },

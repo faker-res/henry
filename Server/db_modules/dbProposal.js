@@ -50,7 +50,7 @@ var proposal = {
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();
         // create proposal for partner
-        if(proposalData.userType == "partner"){
+        if(proposalData.isPartner){
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
             // query related partner info
            var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
@@ -86,7 +86,7 @@ var proposal = {
                     data: {}
                 };
 
-                if(proposalData.userType == "partner"){
+                if(proposalData.isPartner){
                     queryObj.data.partnerObjId = proposalData.data.partnerObjId;
                 }
                 else{
@@ -107,7 +107,7 @@ var proposal = {
             }
         ).then(
             () => {
-                if(proposalData && proposalData.data && proposalData.data.updateAmount < 0 && proposalData.userType == "partner"){
+                if(proposalData && proposalData.data && proposalData.data.updateAmount < 0 && proposalData.isPartner){
                     return dbPartner.tryToDeductCreditFromPartner(proposalData.data.partnerObjId, platformId, -proposalData.data.updateAmount, "editPartnerCredit:Deduction", proposalData.data);
                 }
                 else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
@@ -167,7 +167,7 @@ var proposal = {
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
         let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
-        if(proposalData.userType == "partner"){
+        if(proposalData.isPartner){
             var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
             .populate({path: 'level', model: dbconfig.collection_partnerLevel});
         }
@@ -241,7 +241,7 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
-                        if(proposalData.userType == "partner"){
+                        if(proposalData.isPartner){
                             proposalData.data.partnerName = data[2].partnerName;
                             proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPartnerLevel = data[2].level.name;
