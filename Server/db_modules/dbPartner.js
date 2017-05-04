@@ -16,6 +16,7 @@ var jwt = require('jsonwebtoken');
 var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var dbLogger = require("./../modules/dbLogger");
+var constProposalMainType = require('../const/constProposalMainType');
 
 let env = require('../config/env').config();
 
@@ -3744,7 +3745,7 @@ let dbPartner = {
      * @returns {Promise<Partner>}
      */
     changePartnerCredit: function changePartnerCredit(partnerObjId, platformObjId, updateAmount, reasonType, data) {
-                console.log('\n\n\n\n partner change credit\n');
+        console.log("\n\n\n\n\ndb partner\n",JSON.stringify(data));
         return dbconfig.collection_partner.findOneAndUpdate(
             {_id: partnerObjId, platform: platformObjId},
             {$inc: {credits: updateAmount}},
@@ -3826,7 +3827,6 @@ let dbPartner = {
      * Just a conceptual shortcut for changePartnerCredit, could be tweaked in future.
      */
     refundPartnerCredit: function (partnerObjId, platformObjId, refundAmount, reasonType, data) {
-        console.log('\n\n\n\n partner refund\n');
         return dbPartner.changePartnerCredit(partnerObjId, platformObjId, refundAmount, reasonType, data);
     }
 
