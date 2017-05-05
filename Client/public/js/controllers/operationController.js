@@ -552,6 +552,7 @@ define(['js/app'], function (myApp) {
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
                     v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
                     v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
+                    v.expirationTime$ = v.createTime == v.expirationTime ? 0 : new Date(v.expirationTime) - Date.now();
                     v.lockUser$ = $translate(v.isLocked);
                     v.creditAmount$ = (v.data.amount != null)
                         ? parseFloat(v.data.amount).toFixed(2)
@@ -580,8 +581,26 @@ define(['js/app'], function (myApp) {
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     tableData.push(v);
                 }
-            })
-            var tableOptions = {
+            });
+
+            // Plug-in to sort signed numbers
+            jQuery.extend( jQuery.fn.dataTableExt.oSort, {
+                "signed-num-asc": function ( a, b ) {
+                    a = a == 0 ? Infinity : a;
+                    b = b == 0 ? Infinity : b;
+
+                    return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+                },
+
+                "signed-num-desc": function ( a, b ) {
+                    a = a == 0 ? -Infinity : a;
+                    b = b == 0 ? -Infinity : b;
+
+                    return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+                }
+            } );
+
+            let tableOptions = {
                 data: tableData,
                 deferRender: true,
                 "bProcessing": true,
@@ -755,7 +774,34 @@ define(['js/app'], function (myApp) {
                         data: "remark$",
                         sClass: "maxWidth100 wordWrap",
                         visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
-                    }
+                    },
+                    {
+                        "title": $translate('EXPIRY_DATE'),
+                        "data": 'expirationTime$',
+                        type: 'signed-num',
+                        render: function (data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return data;
+                            }
+                            else {
+                                if (data > 0) {
+                                    // Not expired
+                                    let expireTime = Math.floor((data / 1000) / 60);
+                                    return "<div>" + $translate("Left") + " " + expireTime + " " + $translate("mins") + "</div>";
+                                }
+                                else if (data < 0) {
+                                    // Expired
+                                    let expireTime = Math.ceil((data / 1000) / 60);
+                                    return "<div>" + $translate("Expired") + " " + -expireTime + " " + $translate("mins") + "</div>";
+                                }
+                                else {
+                                    return "<div>" + $translate("N/A") + "</div>";
+                                }
+                            }
+                        },
+                        bSortable: true,
+                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
                 ],
                 "bSortClasses": false,
                 "scrollX": true,
@@ -1165,6 +1211,10 @@ define(['js/app'], function (myApp) {
         // }
         vm.OperationProposalTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
             switch (true) {
+                case (aData.expirationTime$ < 0 && aData.status == "Pending" && vm.rightPanelTitle == 'APPROVAL_PROPOSAL'): {
+                    $(nRow).css('background-color', 'rgba(135, 206, 250, 100)');
+                    break;
+                }
                 case (aData.creditAmount$ >= 5000 && aData.creditAmount$ < 50000): {
                     $(nRow).css('background-color', 'rgba(255, 209, 202, 100)');
                     break;

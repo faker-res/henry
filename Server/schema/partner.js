@@ -15,7 +15,7 @@ var partnerSchema = new Schema({
     //partner name
     partnerName: {type: String, required: true, index: true},
     //display name
-    realName: String,
+    realName: {type: String, index: true},
     //partner password
     password: String,
     //email
@@ -133,7 +133,7 @@ var partnerSchema = new Schema({
         disableCommSettlement: {type: Boolean, default: false}
     },
     // partner status normal or forbid
-    status: {type: Number, default: constPartnerStatus.NORMAL}
+    status: {type: Number, default: constPartnerStatus.NORMAL, index: true}
 
 });
 

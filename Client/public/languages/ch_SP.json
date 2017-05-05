@@ -465,6 +465,7 @@
   "WeeklyConsecutiveTopUp": "每周连续充值",
   "PlayerConsumptionReturn": "玩家消费返点奖励",
   "PartnerConsumptionReturn": "推广渠道消费返点奖励",
+  "UpdatePartnerCredit": "编辑推广渠道额度",
   "FirstTopUp": "首次充值",
   "PlayerTopUpReturn": "玩家充值返点奖励",
   "PartnerIncentiveReward": "推广渠道奖励",
@@ -1089,7 +1090,7 @@
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
   "Maintenance Minute": "维护分",
-  "updatePartner": "更新推广渠道",
+  "updatePartner": "编辑推广渠道资料",
   "createUpdatePartnerBankInfoProposal": "创建更新推广渠道银行资料提案",
   "updatePartnerLevelConfig": "更新推广渠道等级配置",
   "updateGame": "更新游戏",
@@ -1772,6 +1773,7 @@
   "PlatformCreditTransferLog": "平台转账记录",
   "playerStatus": "玩家状态",
   "proposalPlayerLevel": "玩家级别",
+  "proposalPartnerLevel":"推广渠道等级",
   "GAME_CREDIT_LOG": "MG实时额度记录",
   "TRANSFER_IN": "转入",
   "TRANSFER_OUT": "转出",
@@ -1807,5 +1809,7 @@
   "disableCommSettlement": "禁用代理佣金结算",
   "disableWechatPay": "禁止微信支付",
   "DEFAULT_PASSWORD": "默认密码",
-  "editPlayerCredit:Deduction": "编辑玩家额度:减少"
+  "editPlayerCredit:Deduction": "编辑玩家额度:减少",
+  "Left": "还剩",
+  "mins": "分钟"
 }

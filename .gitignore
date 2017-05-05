@@ -4,3 +4,4 @@ ReactClient
 ReactClient/*
 *.log
 node_modules/
+/.vscode/
