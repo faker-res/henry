@@ -2386,6 +2386,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PHONENUMBER'), data: "phoneNumber", advSearch: true, visible: false,},
                     {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
                     {title: $translate("EMAIL"), visible: false, data: "email", advSearch: true},
+                    {title: $translate("LOGIN_IP"), visible: false, data: "loginIps", advSearch: true},
                     // {
                     //     visible: false,
                     //     title: $translate('PLAYER_TYPE'),
