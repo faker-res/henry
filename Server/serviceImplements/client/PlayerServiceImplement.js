@@ -236,7 +236,7 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(
             function (playerData) {
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (conn.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                    if (conn.captchaCode && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;
@@ -337,7 +337,7 @@ let PlayerServiceImplement = function () {
                 let partnerData = playerPartnerData[1];
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (conn.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                    if (conn.captchaCode && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;
@@ -434,7 +434,7 @@ let PlayerServiceImplement = function () {
                 let partnerData = playerPartnerData[1];
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (conn.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                    if (conn.captchaCode && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;
