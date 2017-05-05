@@ -62,6 +62,7 @@ var encrypt = {
         var status = data.hasOwnProperty('status') ? data.status : "";
         var domain = data.hasOwnProperty('domain') ? data.domain : "";
         var partner = data.hasOwnProperty('partner') ? data.partner : "";
+        var loginIps = data.hasOwnProperty('loginIps') ? data.loginIps : "";
 
 
         var query = {};
@@ -115,6 +116,9 @@ var encrypt = {
         }
         if (partner !== '') {
             query["partner"] = partner;
+        }
+        if (loginIps !== '') {
+            query["loginIps"] = loginIps;
         }
 
         if (validCredit !== '') {
