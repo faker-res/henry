@@ -44,6 +44,7 @@
                 "captcha",
                 "login",
                 "loginPlayerPartner",
+                "loginPlayerPartnerWithSMS",
                 "logout",
                 "logoutPlayerPartner",
                 "isLogin",

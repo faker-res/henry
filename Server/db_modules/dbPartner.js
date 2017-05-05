@@ -17,6 +17,7 @@ var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var dbLogger = require("./../modules/dbLogger");
 var constProposalMainType = require('../const/constProposalMainType');
+let rsaCrypto = require("../modules/rsaCrypto");
 
 let env = require('../config/env').config();
 
@@ -905,6 +906,115 @@ let dbPartner = {
                         message: "User name and password don't match",
                         code: constServerCode.INVALID_USER_PASSWORD
                     });
+                }
+            }
+        );
+    },
+
+    partnerLoginWithSMSAPI: function (partnerData, userAgent, isSMSVerified) {
+        let platformObjId = null;
+        let partnerObj = null;
+
+        return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_partner.findOne({
+                        $or: [
+                            {phoneNumber: partnerData.phoneNumber},
+                            {phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber)}
+                        ],
+                        platform: platformData._id
+                    }).lean()
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
+            partner => {
+                if (partner && isSMSVerified) {
+                    platformObjId = partner.platform;
+                    partnerObj = partner;
+
+                    if (partnerObj.status == constPartnerStatus.FORBID) {
+                        return Q.reject({
+                            name: "DataError",
+                            message: "Partner is not enable",
+                            code: constServerCode.PARTNER_IS_FORBIDDEN
+                        });
+                    }
+                    let newAgentArray = partnerObj.userAgent || [];
+                    let uaObj = {
+                        browser: userAgent.browser.name || '',
+                        device: userAgent.device.name || '',
+                        os: userAgent.os.name || '',
+                    };
+                    let bExit = false;
+                    newAgentArray.forEach(
+                        agent => {
+                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                bExit = true;
+                            }
+                        }
+                    );
+                    if (!bExit) {
+                        newAgentArray.push(uaObj);
+                    }
+                    let geo = geoip.lookup(partnerData.lastLoginIp);
+                    let updateData = {
+                        isLogin: true,
+                        lastLoginIp: partnerData.lastLoginIp,
+                        userAgent: newAgentArray,
+                        lastAccessTime: new Date().getTime(),
+                    };
+                    let geoInfo = {};
+                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                        geoInfo = {
+                            country: geo ? geo.country : null,
+                            city: geo ? geo.city : null,
+                            longitude: geo && geo.ll ? geo.ll[1] : null,
+                            latitude: geo && geo.ll ? geo.ll[0] : null
+                        }
+                    }
+                    Object.assign(updateData, geoInfo);
+                    return dbconfig.collection_partner.findOneAndUpdate({
+                        _id: partnerObj._id,
+                        platform: platformObjId
+                    }, updateData).populate({
+                        path: "level",
+                        model: dbconfig.collection_partnerLevel
+                    }).populate({
+                        path: "player",
+                        model: dbconfig.collection_players
+                    }).lean().then(
+                        data => {
+                            //add player login record
+                            let recordData = {
+                                partner: data._id,
+                                platform: platformObjId,
+                                loginIP: partnerData.lastLoginIp,
+                                clientDomain: partnerData.clientDomain ? partnerData.clientDomain : "",
+                                userAgent: uaObj
+                            };
+                            Object.assign(recordData, geoInfo);
+                            let record = new dbconfig.collection_partnerLoginRecord(recordData);
+                            return record.save().then(
+                                () => data
+                            );
+                        },
+                        error => {
+                            return Q.reject({
+                                name: "DBError",
+                                message: "Error in updating player",
+                                error: error
+                            });
+                        }
+                    );
+                } else {
+                    return Q.reject({name: "DataError", message: "Cannot find partner"});
                 }
             }
         );

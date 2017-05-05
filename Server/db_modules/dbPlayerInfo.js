@@ -12,6 +12,7 @@ var captchapng = require('captchapng');
 var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
+let rsaCrypto = require("../modules/rsaCrypto");
 
 let env = require('../config/env').config();
 
@@ -46,7 +47,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
-var rsaCrypto = require("../modules/rsaCrypto");
+
 var queryPhoneLocation = require('query-mobile-phone-area');
 var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
@@ -983,7 +984,11 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     data => deferred.resolve(newPassword),
-                    error => deferred.reject({name: "DBError", message: "Error updating player password.", error: error})
+                    error => deferred.reject({
+                        name: "DBError",
+                        message: "Error updating player password.",
+                        error: error
+                    })
                 );
             });
         });
@@ -1802,7 +1807,7 @@ let dbPlayerInfo = {
             }
         ).then(
             firstRecordData => {
-                if(firstRecordData && firstRecordData[0]){
+                if (firstRecordData && firstRecordData[0]) {
                     weekFirstRecordId = String(firstRecordData[0]._id);
                 }
 
@@ -1845,7 +1850,7 @@ let dbPlayerInfo = {
             function (eData) {
                 eventData = eData;
                 if (eventData.param.periodType == 1 && weekFirstRecordId &&
-                    topUpRecordIds.indexOf(weekFirstRecordId) < 0 ) {
+                    topUpRecordIds.indexOf(weekFirstRecordId) < 0) {
                     deferred.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
@@ -2600,7 +2605,7 @@ let dbPlayerInfo = {
             isMatch => {
                 if (isMatch) {
                     if (playerObj.status == constPlayerStatus.FORBID) {
-                         deferred.reject({
+                        deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
                             code: constServerCode.PLAYER_IS_FORBIDDEN
@@ -2820,6 +2825,172 @@ let dbPlayerInfo = {
                     deferred.reject({
                         name: "DataError",
                         message: "User name and password don't match",
+                        code: constServerCode.INVALID_USER_PASSWORD
+                    });
+                }
+            },
+            error => {
+                deferred.reject({name: "DBError", message: "Error in getting player data", error: error});
+            }
+        );
+        return deferred.promise;
+    },
+
+    playerLoginWithSMS: function (loginData, userAgent, isSMSVerified) {
+        let deferred = Q.defer();
+        let newAgentArray = [];
+        let platformId = null;
+        let uaObj = null;
+        let playerObj = null;
+        let retObj = {};
+        let platformPrefix = "";
+
+        dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    platformId = platformData._id;
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
+
+                    return dbconfig.collection_players.findOne(
+                        {
+                            $or: [
+                                {phoneNumber: encryptedPhoneNumber},
+                                {phoneNumber: loginData.phoneNumber}
+                            ],
+                            platform: platformData._id
+                        }
+                    ).lean();
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                deferred.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
+            data => {
+                if (data) {
+                    playerObj = data;
+
+                    if (playerObj.status == constPlayerStatus.FORBID) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                        return;
+                    }
+                    newAgentArray = playerObj.userAgent || [];
+                    uaObj = {
+                        browser: userAgent.browser.name || '',
+                        device: userAgent.device.name || '',
+                        os: userAgent.os.name || '',
+                    };
+                    let bExit = false;
+                    newAgentArray.forEach(
+                        agent => {
+                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                bExit = true;
+                            }
+                        }
+                    );
+                    if (!bExit) {
+                        newAgentArray.push(uaObj);
+                    }
+
+                    let bUpdateIp = false;
+                    if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
+                        bUpdateIp = true;
+                    }
+
+                    let geo = geoip.lookup(loginData.lastLoginIp);
+                    let updateData = {
+                        isLogin: true,
+                        lastLoginIp: loginData.lastLoginIp,
+                        userAgent: newAgentArray,
+                        lastAccessTime: new Date().getTime(),
+                    };
+                    let geoInfo = {};
+                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                        geoInfo = {
+                            country: geo ? geo.country : null,
+                            city: geo ? geo.city : null,
+                            longitude: geo && geo.ll ? geo.ll[1] : null,
+                            latitude: geo && geo.ll ? geo.ll[0] : null
+                        }
+                    }
+                    Object.assign(updateData, geoInfo);
+                    if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
+                        updateData.$push = {loginIps: loginData.lastLoginIp};
+                    }
+                    dbconfig.collection_players.findOneAndUpdate({
+                        _id: playerObj._id,
+                        platform: playerObj.platform
+                    }, updateData).populate({
+                        path: "playerLevel",
+                        model: dbconfig.collection_playerLevel
+                    }).then(
+                        data => {
+                            //add player login record
+                            let recordData = {
+                                player: data._id,
+                                platform: platformId,
+                                loginIP: loginData.lastLoginIp,
+                                clientDomain: loginData.clientDomain ? loginData.clientDomain : "",
+                                userAgent: uaObj
+                            };
+                            Object.assign(recordData, geoInfo);
+                            let record = new dbconfig.collection_playerLoginRecord(recordData);
+                            return record.save().then(
+                                function () {
+                                    if (bUpdateIp) {
+                                        dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                    }
+                                }
+                            ).then(
+                                () => {
+                                    dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                        path: "playerLevel",
+                                        model: dbconfig.collection_playerLevel
+                                    }).lean().then(
+                                        res => {
+                                            res.name = res.name.replace(platformPrefix, "");
+                                            retObj = res;
+                                            let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                            let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                            let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                                            let creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+
+                                            return Q.all([a, b, c, creditProm]);
+                                        }
+                                    ).then(
+                                        zoneData => {
+                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                                            retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                                            deferred.resolve(retObj);
+                                        },
+                                        errorZone => {
+                                            deferred.resolve(retObj);
+                                        }
+                                    );
+                                }
+                            );
+                        },
+                        error => {
+                            deferred.reject({
+                                name: "DBError",
+                                message: "Error in updating player",
+                                error: error
+                            });
+                        }
+                    );
+                } else {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Cannot find player",
                         code: constServerCode.INVALID_USER_PASSWORD
                     });
                 }
@@ -7200,10 +7371,10 @@ let dbPlayerInfo = {
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = dbRewardTask.getPendingRewardTaskCount({
-                            mainType:'Reward',
-                            "data.playerObjId":playerInfo._id,
-                            status:'Pending'
-                    },rewardTaskWithProposalList);
+                        mainType: 'Reward',
+                        "data.playerObjId": playerInfo._id,
+                        status: 'Pending'
+                    }, rewardTaskWithProposalList);
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
@@ -7215,8 +7386,8 @@ let dbPlayerInfo = {
                             }
 
                             // if that's one reward pending , then you cannot apply other reward
-                            if(timeCheckData[2] && timeCheckData[2]>0){
-                                if(rewardTaskWithProposalList.indexOf(rewardEvent.type.name)!=-1){
+                            if (timeCheckData[2] && timeCheckData[2] > 0) {
+                                if (rewardTaskWithProposalList.indexOf(rewardEvent.type.name) != -1) {
                                     return Q.reject({
                                         status: constServerCode.PLAYER_PENDING_REWARD_PROPOSAL,
                                         name: "DataError",
