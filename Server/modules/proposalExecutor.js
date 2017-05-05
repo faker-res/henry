@@ -1781,30 +1781,23 @@ var proposalExecutor = {
             //valid data
             if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.updateAmount != null) {
                 // changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount, constProposalType.UPDATE_PARTNER_CREDIT, proposalData.data).then(deferred.resolve, deferred.reject);
-                //check partner reward task
-                return dbconfig.collection_rewardTask.findOne({
-                    playerId: proposalData.data.partnerObjId,
-                    status: constRewardTaskStatus.STARTED
-                }).then(
-                    data => {
-                        var updateObj = {
-                            $inc: {
-                                credits: proposalData.data.updateAmount > 0 ? proposalData.data.updateAmount : 0
-                            }
-                        };
-                        return dbconfig.collection_partner.findOneAndUpdate(
-                            {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},
-                            updateObj,
-                            {new: true}
-                        ).then(
-                            newPartner => {
-                                //make sure credit can not be negative number
-                                if (newPartner.credits < 0) {
-                                    newPartner.credits = 0;
-                                }
-                                return newPartner.save();
-                            }
-                        );
+
+                var updateObj = {
+                    $inc: {
+                        credits: proposalData.data.updateAmount > 0 ? proposalData.data.updateAmount : 0
+                    }
+                };
+                return dbconfig.collection_partner.findOneAndUpdate(
+                    {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},
+                    updateObj,
+                    {new: true}
+                ).then(
+                    newPartner => {
+                        //make sure credit can not be negative number
+                        if (newPartner.credits < 0) {
+                            newPartner.credits = 0;
+                        }
+                        return newPartner.save();
                     }
                 ).then(
                     partner => {
@@ -1817,8 +1810,7 @@ var proposalExecutor = {
                         }
 
                         var changeType = constProposalType.UPDATE_PARTNER_CREDIT;
-                        dbLogger.createPartnerCreditChangeLog(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
-                            changeType, partner.credits, null, proposalData.data);
+                        dbLogger.createPartnerCreditChangeLog(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount,changeType, partner.credits, null, proposalData.data);
                         deferred.resolve(partner);
                     },
                     error => {
