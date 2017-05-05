@@ -3407,7 +3407,8 @@ let dbPartner = {
                         return {
                             stats: {
                                 startIndex: startIndex,
-                                totalCount: playerCommissions.length
+                                totalCount: playerCommissions.length,
+                                requestCount: requestCount
                             },
                             total: total,
                             playerCommissions: playerCommissions.slice(startIndex, startIndex + requestCount)
