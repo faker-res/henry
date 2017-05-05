@@ -161,6 +161,20 @@ function socketActionProposal(socketIO, socket) {
         },
 
         /**
+         * Create new Proposal to update partner credit
+         * @param {json} data - proposal data
+         */
+        createUpdatePartnerCreditProposal: function createUpdatePartnerCreditProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.partnerObjId && data.data.hasOwnProperty("updateAmount") &&
+                data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
+            );
+            socketUtil.emitter(self.socket, dbProposal.checkUpdateCreditProposal, [data.platformId, constProposalType.UPDATE_PARTNER_CREDIT, data], actionName, isValidData);
+        },
+
+        /**
          * Create new Proposal
          * @param {json} data - contains proposal type
          *

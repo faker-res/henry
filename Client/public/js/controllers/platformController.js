@@ -3600,6 +3600,10 @@ define(['js/app'], function (myApp) {
                         data: 'children$',
                     },
                     {
+                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
+                        "sClass": "alignRight"
+                    },
+                    {
                         title: $translate('CREDIT'),
                         data: 'credits'
                     },
@@ -3617,10 +3621,6 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('LAST_LOGIN_IP'), orderable: false,
                         data: 'lastLoginIp'
-                    },
-                    {
-                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
-                        "sClass": "alignRight"
                     },
                     {
                         title: $translate('ACTIVE_PLAYER'), data: 'activePlayers$',
@@ -4385,7 +4385,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            console.log('send credit', sendData);
+            console.log('\n\n\n\n\n\nsend credit\n\n', sendData);
             socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
                 var newData = data.data;
                 console.log('credit proposal', newData);
@@ -6386,6 +6386,12 @@ define(['js/app'], function (myApp) {
 
         //draw partner table based on data
         vm.drawPartnerTable = function (data) {
+            //convert decimal to 2 digits
+            data.forEach((partner)=>{
+                if(partner.credits){
+                    partner.credits = partner.credits.toFixed(2);
+                }
+            });
             vm.partners = data;
             vm.selectedPartnerCount = 0;
             //vm.partnerTable = $('#partnerDataTable').DataTable({data:[]});
@@ -6482,6 +6488,26 @@ define(['js/app'], function (myApp) {
                             return showStr.prop('outerHTML');
                         }
                     },
+                                        {
+                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
+                        render: function (data, type, row) {
+                            var $a = $('<a>', {
+                                // class: "totalReferralPopover",
+                                // style: "z-index: auto",
+                                // "data-toggle": "popover",
+                                // "data-container": "body",
+                                // "data-placement": "bottom",
+                                // "data-trigger": "focus",
+                                // "data-row": JSON.stringify(row),
+                                "ng-click": "vm.preShowReferralPlayer(" + data + ")"
+                                // type: "button",
+                                // "data-html": "true",
+                                // href: "#"
+                            }).text(data);
+                            return $a.prop('outerHTML');
+                        },
+                        "sClass": "alignRight sumInt",
+                    },
                     {
                         title: $translate('CREDIT'),
                         "sClass": "alignRight sumFloat",
@@ -6547,26 +6573,6 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('LAST_LOGIN_IP'), orderable: false,
                         data: 'lastLoginIp'
-                    },
-                    {
-                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
-                        render: function (data, type, row) {
-                            var $a = $('<a>', {
-                                // class: "totalReferralPopover",
-                                // style: "z-index: auto",
-                                // "data-toggle": "popover",
-                                // "data-container": "body",
-                                // "data-placement": "bottom",
-                                // "data-trigger": "focus",
-                                // "data-row": JSON.stringify(row),
-                                "ng-click": "vm.preShowReferralPlayer(" + data + ")"
-                                // type: "button",
-                                // "data-html": "true",
-                                // href: "#"
-                            }).text(data);
-                            return $a.prop('outerHTML');
-                        },
-                        "sClass": "alignRight sumInt",
                     },
                     {
                         title: $translate('ACTIVE_PLAYER'), data: '_id',
@@ -6936,6 +6942,7 @@ define(['js/app'], function (myApp) {
 
 
             var status = aData.status;
+            aData.credits = parseFloat (aData.credits);
             var statusKey = '';
             $.each(vm.allPartnersStatusString, function (key, val) {
                 if (status == val) {
@@ -6980,6 +6987,10 @@ define(['js/app'], function (myApp) {
                 //}
                 vm.selectedSinglePartner = aData;
 
+                vm.isOneSelectedPartner = function () {
+                    return vm.selectedSinglePartner;
+                };
+                
                 // Mask partners bank account
                 vm.selectedSinglePartner.bankAccount =
                     vm.selectedSinglePartner.bankAccount ?
@@ -7480,6 +7491,46 @@ define(['js/app'], function (myApp) {
                 showSubmit: true,
                 notSent: true,
             };
+        };
+
+        vm.prepareShowPartnerCreditAdjustment = function (type) {
+            vm.partnerCreditChange = {
+                finalValidAmount: vm.isOneSelectedPartner().credits,
+                finalLockedAmount: null,
+                remark: '',
+                updateAmount: 0
+            };
+
+            if (type == "adjust") {
+                vm.partnerCreditChange.socketStr = "createUpdatePartnerCreditProposal";
+                vm.partnerCreditChange.modaltitle = "CREDIT_ADJUSTMENT";
+            }
+        }
+
+        vm.updatePartnerCredit = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.id,
+                creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                isPartner:true,
+                data: {
+                    partnerObjId: vm.isOneSelectedPartner()._id,
+                    partnerName: vm.isOneSelectedPartner().partnerName,
+                    updateAmount: vm.partnerCreditChange.updateAmount,
+                    curAmount: vm.isOneSelectedPartner().credits,
+                    realName: vm.isOneSelectedPartner().realName,
+                    remark: vm.partnerCreditChange.remark,
+                    adminName: authService.adminName
+                }
+            }
+
+            socketService.$socket($scope.AppSocket, vm.partnerCreditChange.socketStr, sendData, function (data) {
+                var newData = data.data;
+                if (data.data && data.data.stepInfo) {
+                    socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                }
+                vm.getPlatformPartnersData();
+                $scope.safeApply();
+            });
         };
 
         vm.applyPartnerBonus = function () {
