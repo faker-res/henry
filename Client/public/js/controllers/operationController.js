@@ -778,15 +778,20 @@ define(['js/app'], function (myApp) {
                         "data": 'expirationTime$',
                         type: 'signed-num-asc',
                         render: function (data, type, row) {
-                            if (data > 0) {
-                                // Not expired
-                                let expireTime = Math.floor((data / 1000) / 60);
-                                return "<div>" + "Left " + expireTime + " mins" + "</div>";
+                            if (type === 'sort' || type === 'type') {
+                                return data;
                             }
                             else {
-                                // Expired
-                                let expireTime = Math.ceil((data / 1000) / 60);
-                                return "<div>" + "Expired " + -expireTime + " mins" + "</div>";
+                                if (data > 0) {
+                                    // Not expired
+                                    let expireTime = Math.floor((data / 1000) / 60);
+                                    return "<div>" + $translate("Left") + " " + expireTime + " " + $translate("mins") + "</div>";
+                                }
+                                else {
+                                    // Expired
+                                    let expireTime = Math.ceil((data / 1000) / 60);
+                                    return "<div>" + $translate("Expired") + " " + -expireTime + " " + $translate("mins") + "</div>";
+                                }
                             }
                         },
                         bSortable: true,
