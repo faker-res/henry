@@ -50,6 +50,9 @@ p
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'ApplyBonus')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click='vm.initPartnerBonus();', data-target='#modalPartnerBonus')
             text {{"APPLY_BONUS" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'CreditAdjustment')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click='vm.prepareShowPartnerCreditAdjustment("adjust");', data-target='#modalPartnerCreditAdjustment')
+            text {{"CREDIT_ADJUSTMENT" | translate}}
+            img.img-edit
 
 #modalCreatePartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
@@ -509,3 +512,36 @@ p
                             td {{vm.allPartnersStatusKeys[v.status-1] | translate}}
                             td {{v.adminName}}
                 div(ng-if='vm.partnerStatusHistory.length==0') {{'NO_RECORD' | translate}}
+
+// credit adjustment - Modal
+#modalPartnerCreditAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.partnerCreditChange.modaltitle | translate}} : {{vm.selectedSinglePartner.name}} ({{vm.selectedSinglePartner.realName}})
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        label {{'VALID_CREDIT' | translate}}
+                        table.col-md-12.paddingTbl.text-center.datatable-sm
+                            tbody
+                                tr
+                                    td.col-md-4.oblique {{'curData' | translate}}
+                                    td.col-md-4.oblique {{'CHANGE_AMOUNT' | translate}}
+                                    td.col-md-4.oblique {{'updateData' | translate}}
+                                tr
+                                    td {{vm.selectedSinglePartner.credits | number:2}}
+                                    td
+                                        input.text-success(type='number', ng-model='vm.partnerCreditChange.updateAmount',ng-change="vm.partnerCreditChange.finalValidAmount=vm.selectedSinglePartner.credits+vm.partnerCreditChange.updateAmount")
+                                    td
+                                        label.text-danger {{vm.partnerCreditChange.finalValidAmount || 0 | number:2}}
+                                        .text-danger(ng-show='vm.partnerCreditChange.finalValidAmount<0') {{'Partner credit cannot be less than 0' | translate}}
+                        .row
+                            .col-md-6
+                                label.control-label {{'REMARKS' | translate}}
+                            .col-md-12.textareaDetail
+                                textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.partnerCreditChange.remark")
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.partnerCreditChange.updateAmount || vm.partnerCreditChange.finalValidAmount<0', ng-click="vm.updatePartnerCredit();") {{"UPDATE" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
