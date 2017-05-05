@@ -80,17 +80,20 @@ var proposal = {
         return ptProm.then(
             (proposalType) => {
                 //check if player or partner has pending proposal for this type
-                let queryObj = {
-                    type: proposalType._id,
-                    status: constProposalStatus.PENDING,
-                    data: {}
-                };
 
                 if(proposalData.isPartner){
-                    queryObj.data.partnerObjId = proposalData.data.partnerObjId;
+                    var queryObj = {
+                        type: proposalType._id,
+                        status: constProposalStatus.PENDING,
+                        "data.partnerObjId" : proposalData.data.partnerObjId
+                    }
                 }
                 else{
-                    queryObj.data.playerObjId = proposalData.data.playerObjId;
+                    var queryObj = {
+                        type: proposalType._id,
+                        status: constProposalStatus.PENDING,
+                        "data.playerObjId" : proposalData.data.playerObjId
+                    }
                 }
 
                 return dbconfig.collection_proposal.findOne(queryObj).lean().then(
