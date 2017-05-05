@@ -146,7 +146,7 @@ function socketActionProposalType(socketIO, socket) {
          */
         updateProposalTypeExpiryDuration: function updateProposalTypeExpiryDuration(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.query && data.expiryDuration);
+            var isValidData = Boolean(data && data.query && (data.expiryDuration || data.expiryDuration == 0));
             socketUtil.emitter(self.socket, dbProposalType.updateProposalTypeExpiryDuration, [data.query, data.expiryDuration], actionName, isValidData);
         },
 
