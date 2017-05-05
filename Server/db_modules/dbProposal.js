@@ -282,10 +282,19 @@ var proposal = {
                 if (data && data[0] && data[1] && data[2] != null) {
                     //notify the corresponding clients with new proposal
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                    let expiredDate = null;
+
                     if (wsMessageClient) {
                         wsMessageClient.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyNewProposal", data);
                     }
-                    var expiredDate = moment(data[0].createTime).add('minutes', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');
+
+                    if (data[2] == 0) {
+                        expiredDate = data[0].createTime;
+                    }
+                    else {
+                        expiredDate = moment(data[0].createTime).add('minutes', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');
+                    }
+
 
                     // We need the type to be populated, because messageDispatcher wants to read proposalData.type.name
                     return dbconfig.collection_proposal.findOneAndUpdate(

@@ -95,6 +95,11 @@ let dbPlayerPartner = {
 
     loginPlayerPartnerWithSMSAPI: (loginData, ua) => {
         let isSMSVerified = false;
+        let rejectMsg = {
+            status: constServerCode.VALIDATION_CODE_INVALID,
+            name: "ValidationError",
+            message: "Invalid SMS Validation Code"
+        };
 
         // Check matched verification code
         let smsProm = dbConfig.collection_smsVerificationLog.findOne({
@@ -105,34 +110,52 @@ let dbPlayerPartner = {
         return smsProm.then(
             verificationSMS => {
                 // Check verification SMS code
-                if (verificationSMS && verificationSMS.code && verificationSMS.code === loginData.smsCode) {
-                    return dbConfig.collection_smsVerificationLog.remove(
-                        {_id: verificationSMS._id}
-                    ).then(
-                        data => {
-                            isSMSVerified = true;
-                            let plyProm = dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
-                            let partnerProm = dbPartner.partnerLoginWithSMSAPI(loginData, ua, isSMSVerified);
+                if (verificationSMS && verificationSMS.code) {
+                    if (verificationSMS.code == loginData.smsCode) {
+                        // Verified
+                        return dbConfig.collection_smsVerificationLog.remove(
+                            {_id: verificationSMS._id}
+                        ).then(
+                            data => {
+                                isSMSVerified = true;
+                                let plyProm = dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+                                let partnerProm = dbPartner.partnerLoginWithSMSAPI(loginData, ua, isSMSVerified);
 
-                            return Promise.all([plyProm, partnerProm])
-                                .catch(
-                                    error => {
-                                        return Q.reject({
-                                            status: constServerCode.DB_ERROR,
-                                            name: "DBError",
-                                            message: error.message
-                                        });
-                                    }
-                                )
+                                return Promise.all([plyProm, partnerProm])
+                                    .catch(
+                                        error => {
+                                            return Q.reject({
+                                                status: constServerCode.DB_ERROR,
+                                                name: "DBError",
+                                                message: error.message
+                                            });
+                                        }
+                                    )
+                            }
+                        )
+                    }
+                    else {
+                        // Not verified
+                        if (verificationSMS.loginAttempts >= 10) {
+                            // Safety - remove sms verification code after 10 attempts to prevent brute force attack
+                            return dbConfig.collection_smsVerificationLog.remove(
+                                {_id: verificationSMS._id}
+                            ).then(() => {
+                                return Q.reject(rejectMsg);
+                            });
                         }
-                    )
+                        else {
+                            return dbConfig.collection_smsVerificationLog.findOneAndUpdate(
+                                {_id: verificationSMS._id},
+                                {$inc: {loginAttempts: 1}}
+                            ).then(() => {
+                                return Q.reject(rejectMsg);
+                            });
+                        }
+                    }
                 }
                 else {
-                    return Q.reject({
-                        status: constServerCode.VALIDATION_CODE_INVALID,
-                        name: "ValidationError",
-                        message: "Invalid SMS Validation Code"
-                    });
+                    return Q.reject(rejectMsg);
                 }
             }
         )
