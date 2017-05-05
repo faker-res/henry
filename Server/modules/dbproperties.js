@@ -151,6 +151,9 @@ var systemLogModel = dbLogs.model('systemLog', systemLogSchema, 'systemLog');
 var creditChangeLogSchema = require('./../schema/logs/creditChangeLog');
 var creditChangeLogModel = dbLogs.model('creditChangeLog', creditChangeLogSchema, 'creditChangeLog');
 
+var partnerCreditChangeLogSchema = require('./../schema/logs/partnerCreditChangeLog');
+var partnerCreditChangeLogModel = dbLogs.model('partnerCreditChangeLog', partnerCreditChangeLogSchema, 'partnerCreditChangeLog');
+
 var rewardLogSchema = require('./../schema/logs/rewardLog');
 var rewardLogModel = dbLogs.model('rewardLog', rewardLogSchema, 'rewardLog');
 
@@ -353,6 +356,7 @@ var dbProperties = {
 
     collection_systemLog: systemLogModel,
     collection_creditChangeLog: creditChangeLogModel,
+    collection_partnerCreditChangeLog: partnerCreditChangeLogModel,
     collection_rewardLog: rewardLogModel,
     collection_playerStatusChangeLog: playerStatusChangeLogModal,
     collection_playerPermissionLog: playerPermissionLogModel,
