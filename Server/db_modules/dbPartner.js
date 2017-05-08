@@ -15,6 +15,9 @@ var constProposalType = require('../const/constProposalType');
 var jwt = require('jsonwebtoken');
 var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
+var dbLogger = require("./../modules/dbLogger");
+var constProposalMainType = require('../const/constProposalMainType');
+let rsaCrypto = require("../modules/rsaCrypto");
 
 let env = require('../config/env').config();
 
@@ -787,7 +790,22 @@ let dbPartner = {
     partnerLoginAPI: function (partnerData, userAgent) {
         var platformObjId = null;
         var partnerObj = null;
-        return dbconfig.collection_partner.findOne({partnerName: partnerData.name.toLowerCase()}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    platformObjId = platformData._id;
+                    partnerData.prefixName = platformData.partnerPrefix + partnerData.name;
+
+                    return dbconfig.collection_partner.findOne({partnerName: partnerData.prefixName.toLowerCase()}).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
             partner => {
                 if (partner) {
                     platformObjId = partner.platform;
@@ -903,6 +921,115 @@ let dbPartner = {
                         message: "User name and password don't match",
                         code: constServerCode.INVALID_USER_PASSWORD
                     });
+                }
+            }
+        );
+    },
+
+    partnerLoginWithSMSAPI: function (partnerData, userAgent, isSMSVerified) {
+        let platformObjId = null;
+        let partnerObj = null;
+
+        return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_partner.findOne({
+                        $or: [
+                            {phoneNumber: partnerData.phoneNumber},
+                            {phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber)}
+                        ],
+                        platform: platformData._id
+                    }).lean()
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
+            partner => {
+                if (partner && isSMSVerified) {
+                    platformObjId = partner.platform;
+                    partnerObj = partner;
+
+                    if (partnerObj.status == constPartnerStatus.FORBID) {
+                        return Q.reject({
+                            name: "DataError",
+                            message: "Partner is not enable",
+                            code: constServerCode.PARTNER_IS_FORBIDDEN
+                        });
+                    }
+                    let newAgentArray = partnerObj.userAgent || [];
+                    let uaObj = {
+                        browser: userAgent.browser.name || '',
+                        device: userAgent.device.name || '',
+                        os: userAgent.os.name || '',
+                    };
+                    let bExit = false;
+                    newAgentArray.forEach(
+                        agent => {
+                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                bExit = true;
+                            }
+                        }
+                    );
+                    if (!bExit) {
+                        newAgentArray.push(uaObj);
+                    }
+                    let geo = geoip.lookup(partnerData.lastLoginIp);
+                    let updateData = {
+                        isLogin: true,
+                        lastLoginIp: partnerData.lastLoginIp,
+                        userAgent: newAgentArray,
+                        lastAccessTime: new Date().getTime(),
+                    };
+                    let geoInfo = {};
+                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                        geoInfo = {
+                            country: geo ? geo.country : null,
+                            city: geo ? geo.city : null,
+                            longitude: geo && geo.ll ? geo.ll[1] : null,
+                            latitude: geo && geo.ll ? geo.ll[0] : null
+                        }
+                    }
+                    Object.assign(updateData, geoInfo);
+                    return dbconfig.collection_partner.findOneAndUpdate({
+                        _id: partnerObj._id,
+                        platform: platformObjId
+                    }, updateData).populate({
+                        path: "level",
+                        model: dbconfig.collection_partnerLevel
+                    }).populate({
+                        path: "player",
+                        model: dbconfig.collection_players
+                    }).lean().then(
+                        data => {
+                            //add player login record
+                            let recordData = {
+                                partner: data._id,
+                                platform: platformObjId,
+                                loginIP: partnerData.lastLoginIp,
+                                clientDomain: partnerData.clientDomain ? partnerData.clientDomain : "",
+                                userAgent: uaObj
+                            };
+                            Object.assign(recordData, geoInfo);
+                            let record = new dbconfig.collection_partnerLoginRecord(recordData);
+                            return record.save().then(
+                                () => data
+                            );
+                        },
+                        error => {
+                            return Q.reject({
+                                name: "DBError",
+                                message: "Error in updating player",
+                                error: error
+                            });
+                        }
+                    );
+                } else {
+                    return Q.reject({name: "DataError", message: "Cannot find partner"});
                 }
             }
         );
@@ -3295,7 +3422,8 @@ let dbPartner = {
                         return {
                             stats: {
                                 startIndex: startIndex,
-                                totalCount: playerCommissions.length
+                                totalCount: playerCommissions.length,
+                                requestCount: requestCount
                             },
                             total: total,
                             playerCommissions: playerCommissions.slice(startIndex, startIndex + requestCount)
@@ -3729,6 +3857,101 @@ let dbPartner = {
      */
     getPartnerStatusChangeLog: function (partnerObjId) {
         return dbconfig.collection_partnerStatusChangeLog.find({_partnerId: partnerObjId}).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
+    },
+
+        /**
+     * Adds the given amount into the partner's account, and creates a creditChangeLog record.
+     * Can also be used to deduct credits from the account, by providing a negative value.
+     *
+     * @param {ObjectId} partnerObjId
+     * @param {ObjectId} platformObjId
+     * @param {Number} updateAmount
+     * @param {String} reasonType
+     * @param {Object} [data]
+     * @returns {Promise<Partner>}
+     */
+    changePartnerCredit: function changePartnerCredit(partnerObjId, platformObjId, updateAmount, reasonType, data) {
+        return dbconfig.collection_partner.findOneAndUpdate(
+            {_id: partnerObjId, platform: platformObjId},
+            {$inc: {credits: updateAmount}},
+            {new: true}
+        ).then(
+            partner => {
+                if (!partner) {
+                    return Q.reject({name: "DataError", message: "Can't update partner credit: partner not found."});
+                }
+                dbLogger.createPartnerCreditChangeLog(partnerObjId, platformObjId, updateAmount, reasonType, partner.credits, null, data);
+                return partner;
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error updating partner.", error: error});
+            }
+        );
+    },
+
+    /**
+     * Attempts to take the given amount out of the partner's account.
+     * It resolves if the deduction was successful.
+     * If rejects if the deduction failed for any reason.
+     *
+     * @param {ObjectId} partnerObjId
+     * @param {ObjectId} platformObjId
+     * @param {Number} updateAmount - Must be positive
+     * @param {String} reasonType
+     * @param {Object} [data]
+     * @returns {Promise}
+     */
+    tryToDeductCreditFromPartner: function tryToDeductCreditFromPartner(partnerObjId, platformObjId, updateAmount, reasonType, data) {
+        return Q.resolve().then(
+            () => {
+                if (updateAmount < 0) {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "tryToDeductCreditFromPartner expects a positive value to deduct",
+                        updateAmount: updateAmount
+                    });
+                }
+            }
+        ).then(
+            () => dbconfig.collection_partner.findOne({_id: partnerObjId, platform: platformObjId}).select('validCredit')
+        ).then(
+            partner => {
+                if (partner.credits < updateAmount) {
+                    return Q.reject({
+                        status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
+                        name: "DataError",
+                        message: "partner does not have enough credit."
+                    });
+                }
+            }
+        ).then(
+            () => dbPartner.changePartnerCredit(partnerObjId, platformObjId, -updateAmount, reasonType, data)
+        ).then(
+            partner => {
+                if (partner.credits < 0) {
+                    // First reset the deduction, then report the problem
+                    return Q.resolve().then(
+                        () => dbPartner.refundPartnerCredit(partnerObjId, platformObjId, +updateAmount, "deductedBelowZeroRefund", data)
+                    ).then(
+                        () => Q.reject({
+                            status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
+                            name: "DataError",
+                            message: "Partner does not have enough credit.",
+                            data: '(detected after withdrawl)'
+                        })
+                    );
+                }
+            }
+        ).then(
+            () => true
+        );
+    },
+
+    /**
+     * Just a conceptual shortcut for changePartnerCredit, could be tweaked in future.
+     */
+    refundPartnerCredit: function (partnerObjId, platformObjId, refundAmount, reasonType, data) {
+        return dbPartner.changePartnerCredit(partnerObjId, platformObjId, refundAmount, reasonType, data);
     }
 
 

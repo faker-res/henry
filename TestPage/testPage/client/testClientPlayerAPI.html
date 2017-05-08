@@ -203,7 +203,15 @@
             <input id="playerPartnerLoginClientDomainInput" type=text name="clientDomain">
         </label>
     </div>
-
+    <div class="playerCaptcha">
+        <button id="getLoginCaptcha1">Get Captcha Code</button>
+        <img id="playerLoginCaptchaImg"/>
+    </div>
+    <div class="playerCaptcha">
+        <label id="captchaCode1">Captcha Code
+            <input id="captchaCodeInput1" type=text name="captcha">
+        </label>
+    </div>
     <div>
         <button id="playerPartnerLogin" data-api-name="loginPlayerPartner">Login</button>
     </div>
@@ -212,6 +220,31 @@
     </div>
 </div>
 
+<h3>TEST PLAYER PARTNER LOGIN WITH SMS (玩家+推广渠道电话号码登录)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get Verification Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+
+    <div>
+        <button data-api-name="loginPlayerPartnerWithSMS">Login With SMS</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
 
 <h3>TEST PLAYER LOGOUT (注销)</h3>
 <div class="test-container">

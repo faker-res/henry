@@ -25,6 +25,7 @@ const constProposalMainType = {
     "UpdatePartnerEmail": constMainType.UPDATE_PARTNER,
     "UpdatePartnerInfo": constMainType.UPDATE_PARTNER,
     "PartnerCommission": constMainType.UPDATE_PARTNER,
+    "UpdatePartnerCredit":constMainType.UPDATE_PARTNER,
 
     //TOP_UP
     "ManualPlayerTopUp": constMainType.TOP_UP,
