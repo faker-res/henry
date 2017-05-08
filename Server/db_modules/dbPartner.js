@@ -790,7 +790,22 @@ let dbPartner = {
     partnerLoginAPI: function (partnerData, userAgent) {
         var platformObjId = null;
         var partnerObj = null;
-        return dbconfig.collection_partner.findOne({partnerName: partnerData.name.toLowerCase()}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    platformObjId = platformData._id;
+                    partnerData.prefixName = platformData.partnerPrefix + partnerData.name;
+
+                    return dbconfig.collection_partner.findOne({partnerName: partnerData.prefixName.toLowerCase()}).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
             partner => {
                 if (partner) {
                     platformObjId = partner.platform;
