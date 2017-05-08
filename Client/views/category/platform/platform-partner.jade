@@ -140,8 +140,12 @@ p
                     .form-group-col-md-6
                         label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
                         select.form-control(ng-model='vm.partnerBank.bankAccountType', ng-disabled='!vm.isEditingPartnerPayment')
-                            option(value='2') {{'Debit Card'|translate}}
-                            option(value='1') {{'Credit Card'|translate}}
+                            option(value='2') {{'Debit Card '|translate}} | 42385
+                            option(value='1') {{'Credit Card '|translate}} | 859
+                            option(value='3') {{'储存卡'|translate}} | 1
+                            option(value='4') {{'储蓄卡'|translate}} | 14
+                            option(value='5') {{'商务理财卡'|translate}} | 1
+                            option(value='6') {{'工商银行一卡通'|translate}} | 1
                     .form-group-col-md-6
                         label.control-label {{'BANK_ACCOUNT_CITY' | translate}}
                         input.form-control(ng-model='vm.partnerBank.bankAccountCity', ng-disabled='!vm.isEditingPartnerPayment')
@@ -390,8 +394,13 @@ p
                                             text {{vm.selectedSinglePartner.bankAccountName || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_TYPE' | translate}}
-                                            text(ng-if='vm.playerPayment.bankAccountType==2') {{'Debit Card' | translate}}
-                                            text(ng-if='vm.playerPayment.bankAccountType==1') {{'Credit Card' | translate}}
+                                            text(ng-if='vm.playerPayment.bankAccountType==2') {{'Debit Card '|translate}} | 42385
+                                            text(ng-if='vm.playerPayment.bankAccountType==1') {{'Credit Card '|translate}} | 859
+                                            text(ng-if='vm.playerPayment.bankAccountType==3') {{'储存卡'|translate}} | 1
+                                            text(ng-if='vm.playerPayment.bankAccountType==4') {{'储蓄卡'|translate}} | 14
+                                            text(ng-if='vm.playerPayment.bankAccountType==5') {{'商务理财卡'|translate}} | 1
+                                            text(ng-if='vm.playerPayment.bankAccountType==6') {{'工商银行一卡通'|translate}} | 1
+
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_CITY' | translate}}
                                             text {{vm.selectedSinglePartner.bankAccountCity || 'Unknown' | translate}}
