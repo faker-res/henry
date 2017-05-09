@@ -3002,7 +3002,21 @@ define(['js/app'], function (myApp) {
                         playerId: vm.selectedSinglePlayer._id
                     }, function (data) {
                         if (data && data.data.playerId == vm.selectedSinglePlayer.playerId) {
-                            vm.similarPlayersForPlayer = data.data.similarData;
+                            let preDistinctCheckData = data.data.similarData;
+                            let distinctData = [];
+                            for(let i = 0; i < preDistinctCheckData.length; i++) {
+                                let duplicate = false;
+                                for (let j = 0; j < distinctData.length; j++) {
+                                    if(JSON.stringify(distinctData[j]) == JSON.stringify(preDistinctCheckData[i])) {
+                                        duplicate = true;
+                                        break;
+                                    }
+                                }
+                                if(duplicate === false) {
+                                    distinctData.push(preDistinctCheckData[i]);
+                                }
+                            }
+                            vm.similarPlayersForPlayer = distinctData;
                             console.log("similarPlayers", vm.similarPlayersForPlayer);
                         }
                         $scope.safeApply();
