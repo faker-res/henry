@@ -1647,8 +1647,8 @@ let dbPlayerInfo = {
                 // TODO  - proposal status check below
                 return dbconfig.collection_proposal.find({
                     "data.platformId": data.platform,
-                    "data.playerId": data._id,
-                    "data.periodType": 0,
+                    "data.playerId": data.playerId,
+                    "data.periodType": '0',
                     type: proposalType
                 });
 
@@ -3942,7 +3942,7 @@ let dbPlayerInfo = {
                             ],
                             status: constProposalStatus.PENDING,
                             mainType: "Reward"
-                        }).lean().then(
+                        }).populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
                             proposals => {
                                 var sumAmount = 0;
                                 for (var key in proposals) {
@@ -3950,7 +3950,12 @@ let dbPlayerInfo = {
                                         var applyAmount = proposals[key].data.applyAmount || 0;
                                         var rewardAmount = proposals[key].data.rewardAmount || 0;
                                         var currentAmount = proposals[key].data.currentAmount || 0;
-                                        sumAmount = sumAmount + Number(applyAmount) + Number(rewardAmount) + Number(currentAmount);
+                                        if (proposals[key].type && proposals[key].type == constProposalType.PLAYER_CONSUMPTION_RETURN) {
+                                            sumAmount = sumAmount + Number(rewardAmount) + Number(currentAmount);
+                                        }
+                                        else {
+                                            sumAmount = sumAmount + Number(applyAmount) + Number(rewardAmount) + Number(currentAmount);
+                                        }
                                     }
                                 }
                                 returnObj.pendingRewardAmount = sumAmount;

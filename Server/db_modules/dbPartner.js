@@ -1969,7 +1969,8 @@ let dbPartner = {
                 return {
                     stats: {
                         startIndex: startIndex,
-                        totalCount: count
+                        totalCount: count,
+                        requestCount: requestCount
                     },
                     players: players
                 };
