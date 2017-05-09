@@ -1647,8 +1647,8 @@ let dbPlayerInfo = {
                 // TODO  - proposal status check below
                 return dbconfig.collection_proposal.find({
                     "data.platformId": data.platform,
-                    "data.playerId": data._id,
-                    "data.periodType": 0,
+                    "data.playerId": data.playerId,
+                    "data.periodType": '0',
                     type: proposalType
                 });
 
