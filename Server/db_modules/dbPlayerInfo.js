@@ -3205,15 +3205,16 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
-        var deferred = Q.defer();
-        var prom0 = forSync
+        let deferred = Q.defer();
+        let prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform});
-        var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
-        var playerData = null;
-        var providerData = null;
+        let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
+        let playerData = null;
+        let providerData = null;
+
         Q.all([prom0, prom1]).then(
             function (data) {
                 if (data && data[0] && data[1]) {
@@ -3237,7 +3238,10 @@ let dbPlayerInfo = {
                     //     });
                     // }
                     // else {
-                    var platformId = playerData.platform ? playerData.platform.platformId : null;
+
+                    // Enough credit to proceed
+                    let platformId = playerData.platform ? playerData.platform.platformId : null;
+                    // First log before processing
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
                     return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
@@ -3261,10 +3265,11 @@ let dbPlayerInfo = {
             },
             function (err) {
                 if (!err || !err.hasLog) {
-                    var platformId = playerData.platform ? playerData.platform.platformId : null;
-                    var platformObjId = playerData.platform ? playerData.platform._id : null;
+                    let platformId = playerData.platform ? playerData.platform.platformId : null;
+                    let platformObjId = playerData.platform ? playerData.platform._id : null;
+                    // Second log - failed processing before calling cpmsAPI
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
-                        "unknown", providerId, playerData.validCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
+                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
                 deferred.reject(err);
             }
@@ -3280,24 +3285,26 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditToProviderbyPlayerObjId: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
-        var deferred = Q.defer();
-        var gameAmount = 0;
-        var rewardAmount = 0;
-        var providerAmount = 0;
-        var playerCredit = 0;
-        var rewardTaskAmount = 0;
-        var rewardDataObj = null;
-        var playerData = null;
-        var notEnoughtCredit = false;
-        var rewardData = null;
-        var bUpdateReward = false;
-        var transferAmount = 0;
-        var bTransfered = false;
-        var transferId = new Date().getTime();
+        let deferred = Q.defer();
+        let gameAmount = 0;
+        let rewardAmount = 0;
+        let providerAmount = 0;
+        let playerCredit = 0;
+        let rewardTaskAmount = 0;
+        let rewardDataObj = null;
+        let playerData = null;
+        let notEnoughtCredit = false;
+        let rewardData = null;
+        let bUpdateReward = false;
+        let transferAmount = 0;
+        let bTransfered = false;
+        let transferId = new Date().getTime();
+
         return dbconfig.collection_players.findOne({_id: playerObjId}).then(
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
+                    // Check player have enough credit
                     if ((playerData1.validCredit + playerData1.lockedCredit) < 1 || amount == 0 || playerData1.validCredit < amount) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -3307,6 +3314,7 @@ let dbPlayerInfo = {
                         notEnoughtCredit = true;
                         return;
                     }
+                    // Check player current reward task
                     return dbRewardTask.getPlayerCurRewardTask(playerObjId)
                 } else {
                     return Q.reject({name: "DataError", message: "Can't find player information."});
@@ -3319,15 +3327,18 @@ let dbPlayerInfo = {
             function (taskData) {
                 rewardData = taskData;
                 if (!notEnoughtCredit) {
+                    // Player has enough credit
                     //if amount is less than 0, means transfer all
                     amount = amount > 0 ? amount : playerData.validCredit;
                     if (!rewardData) {
+                        // Player has no reward ongoing
                         amount = Math.floor(amount);
                         gameAmount = amount;
                         rewardData = true;
                         //return true;
                     }
                     else {
+                        // Player has ongoing reward
                         rewardDataObj = rewardData;
                         if ((!rewardData.targetProviders || rewardData.targetProviders.length <= 0 ) // target all providers
                             || (rewardData.targetEnable && rewardData.targetProviders.indexOf(providerId) >= 0)//target this provider
@@ -3393,7 +3404,7 @@ let dbPlayerInfo = {
                             errorMessage: "Player does not have enough credit."
                         });
                     }
-                    var updateObj = {
+                    let updateObj = {
                         lastPlayedProvider: providerId,
                         $inc: {validCredit: -amount}
                     };
@@ -3458,6 +3469,7 @@ let dbPlayerInfo = {
                         function (id) {
                             transferId = id;
                             let lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
+                            // Second log before call cpmsAPI
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                 id, providerShortId, transferAmount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return cpmsAPI.player_transferIn(
@@ -3473,6 +3485,7 @@ let dbPlayerInfo = {
                                 error => {
                                     // var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                                     let status = (error.error && error.error.errorMessage && error.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
+                                    // Third log - transfer in failed
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                         id, providerShortId, transferAmount, lockedAmount, adminName, error, status);
                                     error.hasLog = true;
@@ -3526,6 +3539,7 @@ let dbPlayerInfo = {
             function (res) {
                 if (res) {
                     //playerCredit = res.validCredit;
+                    // Log credit change when transfer success
                     dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -amount, constPlayerCreditChangeType.TRANSFER_IN, playerCredit, 0, -rewardAmount, null, {
                         providerId: providerShortId,
                         providerName: cpName,
