@@ -3007,7 +3007,7 @@ define(['js/app'], function (myApp) {
                             for(let i = 0; i < preDistinctCheckData.length; i++) {
                                 let duplicate = false;
                                 for (let j = 0; j < distinctData.length; j++) {
-                                    if(JSON.stringify(distinctData[j]) == JSON.stringify(preDistinctCheckData[i])) {
+                                    if(distinctData[j].field === preDistinctCheckData[i].field &&  JSON.stringify(distinctData[j].playerObjId) === JSON.stringify(preDistinctCheckData[i].playerObjId)) {
                                         duplicate = true;
                                         break;
                                     }
