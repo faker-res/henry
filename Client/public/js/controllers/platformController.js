@@ -8334,6 +8334,9 @@ define(['js/app'], function (myApp) {
                 case 'bonusBasic':
                     vm.getBonusBasic();
                     break;
+                case 'uniquePhoneNumber':
+                    vm.getUniquePhoneNumber();
+                    break;
 
             }
         }
@@ -8595,12 +8598,19 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             $scope.safeApply();
         }
+
         vm.getBonusBasic = () => {
-            console.log('getBonusBasic', JSON.stringify(vm.selectedPlatform.data));
-            vm.bonusBasic = vm.bonusBasic || {};
-            vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
-            vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
-            $scope.safeApply();
+          vm.bonusBasic = vm.bonusBasic || {};
+          vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
+          vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
+          $scope.safeApply();
+        }
+
+        vm.getUniquePhoneNumber = () => {
+          console.log('\n\ngetUniquePhoneNumber\n',vm.selectedPlatform.data.uniquePhoneNumber);
+          vm.uniquePhoneNumber = vm.uniquePhoneNumber || {};
+          vm.uniquePhoneNumber = vm.selectedPlatform.data.uniquePhoneNumber;
+          $scope.safeApply();
         }
 
         vm.submitAddPlayerLvl = function () {
@@ -8705,6 +8715,9 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'bonusBasic':
                     updateBonusBasic(vm.bonusBasic);
+                    break;
+                case 'uniquePhoneNumber':
+                    updateUniquePhoneNumber(vm.uniquePhoneNumber);
                     break;
             }
         };
@@ -8836,6 +8849,19 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                 console.log('update bonus socket', JSON.stringify(data));
+                vm.loadPlatformData({loadAll: false});
+            });
+        }
+
+        function updateUniquePhoneNumber(srcData) {
+            var sendData = {
+                query: {_id: vm.selectedPlatform.id},
+                updateData: {
+                    uniquePhoneNumber: srcData
+                }
+            };
+
+            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                 vm.loadPlatformData({loadAll: false});
             });
         }
