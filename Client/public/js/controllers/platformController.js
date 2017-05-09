@@ -7397,7 +7397,11 @@ define(['js/app'], function (myApp) {
         }
         vm.drawTotalReferralPlayerTable = function (newSearch, tableData, size) {
             var option = $.extend({}, vm.generalDataTableOptions, {
-                data: tableData,
+                data: tableData.map(item => {
+                    item.consumptionSum$ = item.consumptionSum.toFixed(2);
+                    item.validCredit$ = item.validCredit.toFixed(2);
+                    return item;
+                }),
                 order: vm.totalReferralPlayer.aaSorting || [[0, 'desc']],
                 columnDefs: [
                     {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [2]},
@@ -7413,10 +7417,10 @@ define(['js/app'], function (myApp) {
                     {'title': $translate('REAL_NAME'), data: 'realName', sClass: "realName"},
                     {'title': $translate('registrationTime'), data: '$registrationTime', sClass: "tbodyNoWrap"},
                     {'title': $translate('lastAccessTime'), data: '$lastAccessTime'},
-                    {'title': $translate('CONSUMPTION'), data: 'consumptionSum'},
+                    {'title': $translate('CONSUMPTION'), data: 'consumptionSum$'},
                     {'title': $translate('TOP_UP_SUM'), data: 'topUpSum', sClass: "topUpSum"},
                     {'title': $translate('TOP_UP_TIMES'), data: 'topUpTimes', sClass: "topUpTimes"},
-                    {'title': $translate('VALID_CREDIT'), data: 'validCredit', sClass: "tbodyNoWrap"},
+                    {'title': $translate('VALID_CREDIT'), data: 'validCredit$', sClass: "tbodyNoWrap"},
                     {'title': $translate('Domain Name'), data: 'domain', sClass: "tbodyNoWrap"},
                     // {'title': $translate('STATUS'), data: 'status', sClass: "tbodyNoWrap"},
                     // {'title': $translate('TRUST_LEVEL'), data: 'trustLevel'}
