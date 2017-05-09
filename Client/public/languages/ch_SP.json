@@ -1633,6 +1633,8 @@
   "Apply without charge" :"免手续费次数",
   "Percentage Charge":"兑奖手续费",
   "Bonus Basic":"兑奖设置",
+  "Unique Phone Number":"唯一手机号码设置",
+  "allow same phone number to register":"允许相同手机号码开户",
   "PlayerConsumptionIncentive": "玩家救援奖励",
   "REWARD_NEED_SETTLEMENT": "结算时自动给",
   "Server": "服务器",
