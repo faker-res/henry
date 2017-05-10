@@ -188,7 +188,7 @@ var proposal = {
      * @param {json} ptProm - Propm
      * @param {json} ptpProm - Promise create proposal process
      * @param {json} plyProm - Promise player info
-     * @param {json} proposalData - Proposal Data
+     * @param {Object} proposalData - Proposal Data
      * @param {json} deferred - Promise from parent
      */
     createProposalDataHandler: function (ptProm, ptpProm, plyProm, proposalData, deferred) {
