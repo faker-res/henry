@@ -4876,7 +4876,8 @@ define(['js/app'], function (myApp) {
                         // },
                     ],
                     destroy: true,
-                    paging: false
+                    paging: false,
+                    autoWidth: true
                 });
                 // $('#playerExpenseTable').DataTable(option);
                 var a = utilService.createDatatableWithFooter('#playerExpenseTable', option, {
