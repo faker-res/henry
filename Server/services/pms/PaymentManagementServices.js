@@ -103,7 +103,8 @@
                 "checkExpiredManualTopup",
                 "requestAlipayAccount",
                 "requestCancellationPayOrder",
-                "requestWeChatAccount"
+                "requestWeChatAccount",
+                "requestWeChatQRAccount"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames1, ["proposalId"]);
 

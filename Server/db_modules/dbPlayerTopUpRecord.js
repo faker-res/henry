@@ -1305,6 +1305,7 @@ var dbPlayerTopUpRecord = {
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
                             remark: remark,
                             createTime: cTimeString,
+                            operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];
@@ -1479,7 +1480,7 @@ var dbPlayerTopUpRecord = {
                             requestData.groupWechatList = [wechatAccount];
                         }
                         //console.log("requestData", requestData);
-                        return pmsAPI.payment_requestWeChatAccount(requestData);
+                        return pmsAPI.payment_requestWeChatQRAccount(requestData);
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
