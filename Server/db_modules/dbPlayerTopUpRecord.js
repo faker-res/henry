@@ -1305,6 +1305,7 @@ var dbPlayerTopUpRecord = {
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
                             remark: remark,
                             createTime: cTimeString,
+                            operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];
