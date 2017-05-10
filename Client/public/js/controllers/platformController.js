@@ -8770,7 +8770,6 @@ define(['js/app'], function (myApp) {
         }
 
         function updateBonusBasic(srcData) {
-          console.log('\n\n\nupdateBonusBasic',JSON.stringify(srcData));
             var sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
@@ -8778,7 +8777,6 @@ define(['js/app'], function (myApp) {
                     bonusCharges : srcData.bonusCharges
                 }
             };
-            console.log('\n\n\nupdateBonusBasic sendData',JSON.stringify(sendData));
 
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
               console.log('update bonus socket',JSON.stringify(data));
