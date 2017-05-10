@@ -117,32 +117,32 @@ var dbRewardTask = {
      * Get total count of specific user's pending proposal
      */
 
-    getPendingRewardTaskCount: function(query, rewardTaskWithProposalList){
+    getPendingRewardTaskCount: function (query, rewardTaskWithProposalList) {
         var deferred = Q.defer();
 
         dbconfig.collection_proposal
-        .find(query)
-        .populate({
-            path: "type", 
-            model: dbconfig.collection_proposalType
-        })
-        .lean().then(
-            function(tasks){
+            .find(query)
+            .populate({
+                path: "type",
+                model: dbconfig.collection_proposalType
+            })
+            .lean().then(
+            function (tasks) {
                 // if the proposal result is include in the rewardtasklist
                 var chosenTask = [];
-                tasks.forEach(function(task){
-                    if(task.type){
+                tasks.forEach(function (task) {
+                    if (task.type) {
                         var tname = task.type.name;
-                        if(rewardTaskWithProposalList.indexOf(tname)!=-1){
+                        if (rewardTaskWithProposalList.indexOf(tname) != -1) {
                             chosenTask.push(task);
                         }
                     }
                 });
                 deferred.resolve(chosenTask.length);
 
-                },function(error){
-                    deferred.reject({name: "DBError", message: "Error finding player reward task", error: error})
-                }
+            }, function (error) {
+                deferred.reject({name: "DBError", message: "Error finding player reward task", error: error})
+            }
         );
         return deferred.promise;
     },
@@ -224,10 +224,11 @@ var dbRewardTask = {
      * @param {Object} consumptionRecord - consumptionRecord object
      */
     checkPlayerRewardTaskForConsumption: function (consumptionRecord) {
-        var deferred = Q.defer();
-        var bDirty = false;
-        var bTaskAchieved = false;
-        var createTime = new Date(consumptionRecord.createTime);
+        let deferred = Q.defer();
+        let bDirty = false;
+        let bTaskAchieved = false;
+        let createTime = new Date(consumptionRecord.createTime);
+
         //get the most recent task and check it
         dbconfig.collection_rewardTask.findOne(
             {
@@ -240,9 +241,9 @@ var dbRewardTask = {
             }
         ).lean().then(
             taskData => {
-                var isTaskValid = true;
+                let isTaskValid = true;
                 if (taskData) {
-                    var isTargetProvider = false;
+                    let isTargetProvider = false;
                     if (taskData.targetProviders && taskData.targetProviders.length > 0) {
                         taskData.targetProviders.forEach(
                             provider => {
@@ -308,6 +309,7 @@ var dbRewardTask = {
                         taskData.unlockTime = createTime;
                         bAchieved = true;
                     }
+
                     return dbconfig.collection_rewardTask.findOneAndUpdate(
                         {_id: taskData._id, platformId: taskData.platformId},
                         {
@@ -491,21 +493,6 @@ var dbRewardTask = {
 
             proposalData.playerObjId = taskData.playerId;
             proposalData.amount = Number(taskData.currentAmount);
-            //
-            // proposalData.playerId = taskData.playerId;
-            // proposalData.playerName = playerData.name;
-            // proposalData.amount = Number(taskData.currentAmount);
-            // proposalData.rewardType = taskData.rewardType;
-            // //proposalData.description = taskData.eventId.description;
-            // proposalData.status = taskData.status;
-            // proposalData.targetProviders = taskData.targetProviders;
-            // proposalData.targetGames = taskData.targetGames;
-            // proposalData.createTime = taskData.createTime;
-            // proposalData.requiredUnlockAmount = Number(taskData.requiredUnlockAmount);
-            // proposalData.applyAmount = Number(taskData.applyAmount);
-            // proposalData.bonusAmount = Number(taskData.bonusAmount);
-            // proposalData.useConsumption = taskData.useConsumption;
-            // proposalData.currentAmount = Number(taskData.currentAmount);
 
             //check reward task status here
             return dbconfig.collection_rewardTask.findOne({_id: taskData._id}).lean().then(
@@ -530,20 +517,20 @@ var dbRewardTask = {
      */
     completeRewardTask: function (taskData) {
         return new Promise((resolve, reject) => {
-            var bUpdateProposal = false;
+            let bUpdateProposal = false;
+            let originalReward = taskData.currentAmount;
+            let rewardAmount = taskData.currentAmount;
 
-            var originalReward = taskData.currentAmount;
-            var rewardAmount = taskData.currentAmount;
             if (taskData.requiredBonusAmount > 0 && rewardAmount > taskData.requiredBonusAmount) {
                 rewardAmount = taskData.requiredBonusAmount;
             }
             taskData.status = constRewardTaskStatus.COMPLETED;
-            var taskProm = dbconfig.collection_rewardTask.findOneAndUpdate(
+            let taskProm = dbconfig.collection_rewardTask.findOneAndUpdate(
                 {_id: taskData._id, platformId: taskData.platformId},
                 taskData
             );
 
-            var updateData = {
+            let updateData = {
                 $inc: {validCredit: rewardAmount},
                 lockedCredit: 0
             };
@@ -561,7 +548,7 @@ var dbRewardTask = {
             //     rewardAmount = taskData.maxRewardAmount;
             //     updateData.$inc = {validCredit: taskData.maxRewardAmount};
             // }
-            var playerProm = dbconfig.collection_players.findOneAndUpdate(
+            let playerProm = dbconfig.collection_players.findOneAndUpdate(
                 {_id: taskData.playerId, platform: taskData.platformId},
                 updateData,
                 {new: true}
@@ -605,11 +592,20 @@ var dbRewardTask = {
                 }
             ).catch(
                 error => {
-                    reject({
-                        name: "DBError",
-                        message: "Error updating reward task and player credit",
-                        error: error
-                    });
+                    // Revert reward task status
+                    dbconfig.collection_rewardTask.findOneAndUpdate(
+                        {_id: taskData._id, platformId: taskData.platformId},
+                        {status: constRewardTaskStatus.STARTED},
+                        {new: true}
+                    ).then(
+                        data => {
+                            reject({
+                                name: "DBError",
+                                message: "Error updating reward task and player credit",
+                                error: error
+                            });
+                        }
+                    );
                 });
         })
     },
