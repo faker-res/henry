@@ -237,6 +237,10 @@ const pmsAPI = {
         return callPMSAPI("payment", "requestWeChatAccount", data);
     },
 
+    payment_requestWeChatQRAccount: function (data) {
+        return callPMSAPI("payment", "requestWeChatQRAccount", data);
+    },
+
 };
 
 module.exports = pmsAPI;

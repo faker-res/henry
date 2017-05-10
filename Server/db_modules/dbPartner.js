@@ -1674,7 +1674,7 @@ let dbPartner = {
                                 let proposalData = {
                                     creator: adminInfo || {
                                         type: 'partner',
-                                        name: partner.name,
+                                        name: partner.partnerName,
                                         id: partnerId
                                     },
                                     partnerId: partnerId,

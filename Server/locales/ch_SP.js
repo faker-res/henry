@@ -147,7 +147,8 @@ var simplifiedChinese = {
     "Player do not have permission for reward": "您好， 您目前暂无申请优惠的权限，请联系客服。",
     "Username should be alphanumeric and within 12 characters": "用户名只能为6-12位的数字和字母",
     "Realname should be chinese character": "真实姓名必须为汉字",
-    "There is consumption after top up": "玩家充值后已有消费"
+    "There is consumption after top up": "玩家充值后已有消费",
+    "Player does not have valid merchant data": "玩家没有有效的商户信息"
     //todo::add missing messages here
 
     /*
