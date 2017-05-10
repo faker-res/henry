@@ -26,10 +26,12 @@ var constMessageClientTypes = require("./const/constMessageClientTypes");
 
 env.messageClient = constMessageClientTypes.CLIENT;
 
+
 var ClientAPIServer = serviceUtils.buildWSServer(
     [PlayerServiceImplement, PlatformServiceImplement, RegistrationIntentionServiceImplement,
         TopUpIntentionServiceImplement, PlayerLevelServiceImplement, ConnectionServiceImplement,
-        RewardServiceImplement, GameServiceImplement, ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement]
+        RewardServiceImplement, GameServiceImplement, ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement],
+    process.env.USE_SSL
 );
 
 var server = new ClientAPIServer(process.env.PORT || 9280);
