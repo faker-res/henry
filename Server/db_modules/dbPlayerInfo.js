@@ -3989,6 +3989,19 @@ let dbPlayerInfo = {
         );
     },
 
+    isValidPhoneNumber: function (inputData) {
+        return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    return dbPlayerInfo.isPhoneNumberValidToRegister({name: inputData.phoneNumber, platform: platformData._id});
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        );
+    },
+
     getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince) {
         //todo: active player indicator
         var matchObj = {
@@ -4032,6 +4045,18 @@ let dbPlayerInfo = {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
+                }
+            }
+        );
+    },
+
+    isPhoneNumberValidToRegister: function (query) {
+        return dbconfig.collection_players.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
                 }
             }
         );
