@@ -6226,8 +6226,8 @@ let dbPlayerInfo = {
 
                     let providerEnabled = true;
 
-                    if (playerData.platform.gameProviderInfo[gameData.provider._id]
-                        && !(playerData.platform.gameProviderInfo[gameData.provider._id].isEnabled == true)) {
+                    if (playerData.platform.gameProviderInfo[String(gameData.provider._id)]
+                        && !(playerData.platform.gameProviderInfo[String(gameData.provider._id)].isEnabled)) {
                         providerEnabled = false;
                     }
 
