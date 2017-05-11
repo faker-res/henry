@@ -3313,7 +3313,7 @@ let dbPlayerInfo = {
                 if (playerData1) {
                     playerData = playerData1;
                     // Check player have enough credit
-                    if (((parseFloat(playerData1.validCredit).toFixed(2)) + playerData1.lockedCredit) < 1
+                    if ((parseFloat(playerData1.validCredit.toFixed(2)) + playerData1.lockedCredit) < 1
                         || amount == 0
                         || (parseFloat(playerData1.validCredit).toFixed(2)) < amount) {
                         deferred.reject({
@@ -3339,7 +3339,7 @@ let dbPlayerInfo = {
                 if (!notEnoughtCredit) {
                     // Player has enough credit
                     //if amount is less than 0, means transfer all
-                    amount = amount > 0 ? amount : playerData.validCredit;
+                    amount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
                     if (!rewardData) {
                         // Player has no reward ongoing
                         amount = Math.floor(amount);
@@ -3417,9 +3417,10 @@ let dbPlayerInfo = {
 
                     // Deduct amount from player validCredit before transfer
                     // Amount is already floored
+                    let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
                     let updateObj = {
                         lastPlayedProvider: providerId,
-                        $inc: {validCredit: -amount}
+                        $inc: {validCredit: -decreaseAmount}
                     };
                     if (bUpdateReward) {
                         updateObj.lockedCredit = rewardData.currentAmount;
@@ -3446,12 +3447,6 @@ let dbPlayerInfo = {
             // to prevent concurrent deduction
             function (updateData) {
                 if (updateData) {
-                    // amount after round = amount check
-                    // If same after round, use the after round amount, else use back the original amount
-                    updateData.validCredit = updateData.validCredit == (parseFloat(updateData.validCredit).toFixed(2))
-                        ? (parseFloat(updateData.validCredit).toFixed(2))
-                        : updateData.validCredit;
-
                     //console.log("Before transfer credit:", playerData.validCredit);
                     if (updateData.validCredit < 0) {
                         //console.log("Transfer invalid credit", playerData.validCredit);
