@@ -186,6 +186,23 @@ partnerSchema.post('find', function(result) {
                 var startIndex = Math.max(Math.floor((result[i].phoneNumber.length - 4)/2), 0);
                 result[i].phoneNumber = result[i].phoneNumber.substr(0, startIndex) + "****" + result[i].phoneNumber.substr(startIndex+4);
             }
+
+            // hide part of the e-mail
+            if(result[i].email && result[i].email.length > 0){
+                let partnerEmail = result[i].email;
+                let emailParts = partnerEmail.split("@");
+                let emailLocal = emailParts[0];
+                let emailLocalChar = emailLocal.split('');
+                for(let i in emailLocalChar) {
+                    if(i < 3) {
+                        continue;
+                    }
+                    emailLocalChar[i] = '*';
+                }
+                let hiddenEmailLocal = emailLocalChar.join('');
+                emailParts[0] = hiddenEmailLocal;
+                result[i].email = emailParts.join('@');
+            }
         }
         return result;
     }

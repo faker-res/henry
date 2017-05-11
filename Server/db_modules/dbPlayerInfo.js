@@ -1649,8 +1649,12 @@ let dbPlayerInfo = {
                     "data.platformId": data.platform,
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
-                    type: proposalType
-                });
+                    type: proposalType,
+                    $or: [
+                        {status: constProposalStatus.SUCCESS},
+                        {status: constProposalStatus.APPROVED}
+                    ]
+                })
 
             }, function (error) {
                 deferred.reject({name: "DataError", message: "Can't find player data", error: error});
