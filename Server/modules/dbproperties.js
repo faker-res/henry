@@ -256,8 +256,6 @@ var partnerOwnDomainSchema = require('./../schema/unique/partnerOwnDomain');
 var partnerOwnDomainModal = db_player.model('partnerOwnDomain', partnerOwnDomainSchema, 'partnerOwnDomain');
 var consumptionOrderNumSchema = require('./../schema/unique/consumptionOrderNum');
 var consumptionOrderNumModal = dbLogs.model('consumptionOrderNum', consumptionOrderNumSchema, 'consumptionOrderNum');
-var phoneNumberSchema = require('./../schema/unique/phoneNumber');
-var phoneNumberModal = db_player.model('phoneNumber', phoneNumberSchema, 'phoneNumber');
 
 var syncDataRequestIdSchema = require('./../schema/unique/syncDataRequestId');
 var syncDataRequestIdModal = dbLogs.model('syncDataRequestId', syncDataRequestIdSchema, 'syncDataRequestId');
@@ -379,8 +377,6 @@ var dbProperties = {
     collection_consumptionOrderNumModal: consumptionOrderNumModal,
     collection_partnerOwnDomain: partnerOwnDomainModal,
     collection_syncDataRequestId: syncDataRequestIdModal,
-    collection_phoneNumber: phoneNumberModal,
-
 
     //test
     collection_providerPlayerCredit: providerPlayerCreditModal,

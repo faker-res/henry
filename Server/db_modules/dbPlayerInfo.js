@@ -4103,14 +4103,11 @@ let dbPlayerInfo = {
     },
 
     isPhoneNumberValidToRegister: function (query) {
-        console.log("\n\n\n\nisPhoneNumberValidToRegister",query);
         return dbconfig.collection_players.findOne(query).then(
             playerData => {
                 if (playerData) {
-        console.log("\n\n\nis valid",playerData);
                     return {isPhoneNumberValid: false};
                 } else {
-        console.log("\n\n\nis not valid",playerData);
                     return {isPhoneNumberValid: true};
                 }
             }

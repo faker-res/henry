@@ -44,22 +44,35 @@ let dbPartner = {
                         partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
                     }
 
-                    if (partnerData.parent) {
-                        return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
-                            parentData => {
-                                if (parentData) {
-                                    partnerData.parent = parentData._id;
-                                    return dbPartner.createPartnerWithParent(partnerData);
-                                }
-                                else {
-                                    return Q.reject({name: "DataError", message: "Cannot find parent partner"});
-                                }
+                    return dbPartner.isPhoneNumberValidToRegister({
+                        phoneNumber: partnerData.phoneNumber,
+                        platform: platformData._id
+                    }).then((data)=>{
+                        if (("allowSamePhoneNumberToRegister" in platformData) && !platformData.allowSamePhoneNumberToRegister && !data) {
+                                    return Q.reject({
+                                        name: "DataError", 
+                                        message: "Phone number already registered!"
+                                    });
+                        }
+                        else{
+                            if (partnerData.parent) {
+                                return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
+                                    parentData => {
+                                        if (parentData) {
+                                            partnerData.parent = parentData._id;
+                                            return dbPartner.createPartnerWithParent(partnerData);
+                                        }
+                                        else {
+                                            return Q.reject({name: "DataError", message: "Cannot find parent partner"});
+                                        }
+                                    }
+                                );
                             }
-                        );
-                    }
-                    else {
-                        return dbPartner.createPartner(partnerData);
-                    }
+                            else {
+                                return dbPartner.createPartner(partnerData);
+                            }
+                        }
+                    });
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
@@ -73,6 +86,7 @@ let dbPartner = {
      * @param {json} partnerdata - The data of the partner user. Refer to Partner schema.
      */
     createPartner: function (partnerdata) {
+        console.log(partnerdata);
         let deferred = Q.defer();
         let partnerName = partnerdata.partnerName;
 
@@ -102,10 +116,23 @@ let dbPartner = {
         dbconfig.collection_partner.findOne({partnerName: partnerdata.partnerName.toLowerCase()}).then(
             data => {
                 if (!data) {
-                    // If level was provided then use that, otherwise select the first level on the platform
-                    return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
-                        platform: partnerdata.platform,
-                        value: partnerdata.level || 0
+                    return dbPartner.isPhoneNumberValidToRegister({
+                        phoneNumber: partnerdata.phoneNumber,
+                        platform: platformData._id
+                    }).then((data)=>{
+                        if (("allowSamePhoneNumberToRegister" in platformData) && !platformData.allowSamePhoneNumberToRegister && !data) {
+                            return Q.reject({
+                                name: "DataError", 
+                                message: "Phone number already registered!"
+                            });
+                        }
+                        else{
+                            // If level was provided then use that, otherwise select the first level on the platform
+                            return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
+                                platform: partnerdata.platform,
+                                value: partnerdata.level || 0
+                            });
+                        }
                     });
                 } else {
                     deferred.reject({
@@ -3826,8 +3853,19 @@ let dbPartner = {
      */
     refundPartnerCredit: function (partnerObjId, platformObjId, refundAmount, reasonType, data) {
         return dbPartner.changePartnerCredit(partnerObjId, platformObjId, refundAmount, reasonType, data);
-    }
+    },
 
+    isPhoneNumberValidToRegister: function (query) {
+        return dbconfig.collection_partner.findOne(query).then(
+            partnerData => {
+                if (partnerData) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        );
+    }
 
 };
 
