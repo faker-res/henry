@@ -60,6 +60,7 @@ const constProviderStatus = require("./../const/constProviderStatus");
 
 // db_modules
 let dbGeoIp = require('./../db_modules/dbGeoIp');
+let dbPlatform = require('../db_modules/dbPlatform');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
@@ -6221,10 +6222,9 @@ let dbPlayerInfo = {
 
                     // Precaution steps to prevent empty gameProviderInfo
                     if (!playerData.platform.gameProviderInfo.hasOwnProperty(gameData.provider._id)) {
+                        dbPlatform.updateProviderFromPlatformById(playerData.platform._id, gameData.provider._id, true);
                         playerData.platform.gameProviderInfo[gameData.provider._id].isEnabled = true;
                     }
-
-                    console.log('playerData.platform.gameProviderInfo[gameData.provider._id]', playerData.platform.gameProviderInfo[gameData.provider._id]);
 
                     // Added checking for platform level disable game provider
                     if (gameData.provider.status != constProviderStatus.NORMAL
@@ -6232,7 +6232,8 @@ let dbPlayerInfo = {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
-                            message: "Provider is not available",
+                            message: playerData.platform.gameProviderInfo[gameData.provider._id].isEnabled,
+                            //message: "Provider is not available",
                             providerStatus: gameData.provider.status
                         });
                     }
