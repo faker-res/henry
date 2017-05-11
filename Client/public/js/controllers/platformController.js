@@ -1634,7 +1634,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.confirmUpdateProviderStatus = function (providerData) {
-            var type = vm.getPlatformsProviderEnable(providerData);
+            let type = vm.getPlatformsProviderEnable(providerData);
             GeneralModal.confirm({
                 title: $translate('Please confirm your action.'),
                 text: $translate("Are you sure to update") + " " + providerData.name + "(" + providerData.code + ") -> " + $translate(type) + " ?"

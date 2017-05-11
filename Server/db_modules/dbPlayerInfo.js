@@ -35,7 +35,6 @@ var constShardKeys = require('../const/constShardKeys');
 var constPlayerTopUpType = require('../const/constPlayerTopUpType');
 var constProposalMainType = require('../const/constProposalMainType');
 var constGameStatus = require("./../const/constGameStatus");
-var constProviderStatus = require("./../const/constProviderStatus");
 var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
@@ -55,6 +54,9 @@ var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
 var SMSSender = require('../modules/SMSSender');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
+
+// constants
+const constProviderStatus = require("./../const/constProviderStatus");
 
 // db_modules
 let dbGeoIp = require('./../db_modules/dbGeoIp');
