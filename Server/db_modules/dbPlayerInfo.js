@@ -6226,14 +6226,13 @@ let dbPlayerInfo = {
 
                     let providerEnabled = true;
 
-                    if (playerData.platform.gameProviderInfo[String(gameData.provider._id)]
-                        && !(playerData.platform.gameProviderInfo[String(gameData.provider._id)].isEnabled)) {
+                    if (playerData.platform.gameProviderInfo[gameData.provider._id]
+                        && playerData.platform.gameProviderInfo[gameData.provider._id].isEnabled == false) {
                         providerEnabled = false;
                     }
 
                     // Added checking for platform level disable game provider
-                    if (gameData.provider.status != constProviderStatus.NORMAL
-                        || !providerEnabled) {
+                    if (gameData.provider.status != constProviderStatus.NORMAL || !providerEnabled) {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
@@ -6241,6 +6240,7 @@ let dbPlayerInfo = {
                             providerStatus: gameData.provider.status
                         });
                     }
+
                     return dbconfig.collection_platformGameStatus.findOne({
                         platform: playerData.platform._id,
                         game: gameData._id
