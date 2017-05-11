@@ -6218,6 +6218,13 @@ let dbPlayerInfo = {
                             gameStatus: gameData.status
                         });
                     }
+
+                    // Precaution steps to prevent empty gameProviderInfo
+                    if (!playerData.platform.gameProviderInfo[gameData.provider._id]) {
+                        playerData.platform.gameProviderInfo[gameData.provider._id].isEnabled = true;
+                    }
+
+                    // Added checking for platform level disable game provider
                     if (gameData.provider.status != constProviderStatus.NORMAL
                         || !playerData.platform.gameProviderInfo[gameData.provider._id].isEnabled) {
                         return Q.reject({
