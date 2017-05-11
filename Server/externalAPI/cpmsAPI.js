@@ -147,6 +147,10 @@ const cpmsAPI = {
 
     player_getGamePassword: function (data) {
         return callCPMSAPI("player", "getGamePassword", data);
+    },
+
+    player_modifyGamePassword: function (data) {
+        return callCPMSAPI("player", "modifyGamePassword", data);
     }
 
 };

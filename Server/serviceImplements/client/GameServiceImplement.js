@@ -252,6 +252,11 @@ var GameServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, cpmsAPI.player_getGamePassword, [data], isValidData, false, false, true);
     };
 
+    this.modifyGamePassword.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.providerId && data.username && data.newPassword);
+        WebSocketUtil.performAction(conn, wsFunc, data, cpmsAPI.player_modifyGamePassword, [data], isValidData, false, false, true);
+    };
+
 };
 
 var proto = GameServiceImplement.prototype = Object.create(GameService.prototype);
