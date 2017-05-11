@@ -275,7 +275,8 @@
                 "searchGame",
                 "getGameGroupTreeInfo",
                 "searchGameByGroup",
-                "getGamePassword"
+                "getGamePassword",
+                "modifyGamePassword"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

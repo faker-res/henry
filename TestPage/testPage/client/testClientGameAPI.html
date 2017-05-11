@@ -475,6 +475,34 @@
     <textarea></textarea>
 </div>
 
+<h3>Modify game password(修改游戏密码)</h3>
+<div class="test-container">
+    <div>
+        <label>platformId
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>providerId
+            <input name="providerId">
+        </label>
+    </div>
+    <div>
+        <label>username
+            <input name="username">
+        </label>
+    </div>
+    <div>
+        <label>newPassword
+            <input name="newPassword">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="modifyGamePassword">Modify</button>
+    </div>
+    <textarea></textarea>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientGameAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest' ,'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientGameAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
