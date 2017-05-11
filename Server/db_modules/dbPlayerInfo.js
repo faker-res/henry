@@ -1494,10 +1494,10 @@ let dbPlayerInfo = {
                     };
                     var logData = null;
                     if (proposalData && proposalData.data) {
-                        if (topUpType == constPlayerTopUpType.ONLINE) {
+                        if (topUpType == constPlayerTopUpType.MANUAL) {
                             recordData.bankCardType = proposalData.data.bankCardType;
                         }
-                        else if (topUpType == constPlayerTopUpType.MANUAL) {
+                        else if (topUpType == constPlayerTopUpType.ONLINE) {
                             recordData.merchantTopUpType = proposalData.data.topupType;
                         }
                         logData = proposalData.data;

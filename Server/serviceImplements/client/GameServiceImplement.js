@@ -247,6 +247,11 @@ var GameServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameStatus.searchGameByGroup, [data.platformId, data.groups], isValidData, false, false, true);
     };
 
+    this.getGamePassword.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.providerId && data.username);
+        WebSocketUtil.performAction(conn, wsFunc, data, cpmsAPI.player_getGamePassword, [data], isValidData, false, false, true);
+    };
+
 };
 
 var proto = GameServiceImplement.prototype = Object.create(GameService.prototype);
