@@ -6225,10 +6225,10 @@ let dbPlayerInfo = {
                     }
 
                     let providerEnabled = true;
-                    let providerInfo = playerData.platform.gameProviderInfo[gameData.provider._id];
+                    let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
 
-                    if (providerInfo && (providerInfo.isEnabled == false)) {
-                        providerEnabled = false;
+                    if (providerInfo) {
+                        providerEnabled = providerInfo.isEnabled;
                     }
 
                     // Added checking for platform level disable game provider
