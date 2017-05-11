@@ -6223,7 +6223,8 @@ let dbPlayerInfo = {
                             gameStatus: gameData.status
                         });
                     }
-                    if (gameData.provider.status != constProviderStatus.NORMAL) {
+                    if (gameData.provider.status != constProviderStatus.NORMAL
+                        || !playerData.platform.gameProviderInfo[gameData.provider._id].isEnabled) {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",

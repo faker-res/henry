@@ -528,7 +528,9 @@ var dbPlatform = {
     },
 
     updateProviderFromPlatformById: function (platformObjId, providerObjId, isEnable) {
-        let statusUpdate = {
+        let statusUpdatePath = "gameProviderInfo." + providerObjId;
+        let statusUpdate = {};
+        statusUpdate[statusUpdatePath] = {
             status: isEnable ? constProviderStatus.NORMAL : constProviderStatus.MAINTENANCE
         };
 
