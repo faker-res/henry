@@ -531,7 +531,7 @@ var dbPlatform = {
         let statusUpdatePath = "gameProviderInfo." + providerObjId;
         let statusUpdate = {};
         statusUpdate[statusUpdatePath] = {
-            status: isEnable ? constProviderStatus.NORMAL : constProviderStatus.MAINTENANCE
+            isEnable: isEnable
         };
 
         return dbconfig.collection_platform.findOneAndUpdate(
