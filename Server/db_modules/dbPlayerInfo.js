@@ -3224,7 +3224,9 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
-                    if ((data[0].validCredit + data[0].lockedCredit) < 1 || amount == 0 || data[0].validCredit < amount) {
+                    if (( (parseFloat(data[0].validCredit).toFixed(2)) + data[0].lockedCredit) < 1
+                        || amount == 0
+                        || (parseFloat(data[0].validCredit).toFixed(2)) < amount) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -3309,7 +3311,9 @@ let dbPlayerInfo = {
                 if (playerData1) {
                     playerData = playerData1;
                     // Check player have enough credit
-                    if ((playerData1.validCredit + playerData1.lockedCredit) < 1 || amount == 0 || playerData1.validCredit < amount) {
+                    if (((parseFloat(playerData1.validCredit).toFixed(2)) + playerData1.lockedCredit) < 1
+                        || amount == 0
+                        || (parseFloat(playerData1.validCredit).toFixed(2)) < amount) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "NumError",
@@ -3408,6 +3412,9 @@ let dbPlayerInfo = {
                             errorMessage: "Player does not have enough credit."
                         });
                     }
+
+                    // Deduct amount from player validCredit before transfer
+                    // Amount is already floored
                     let updateObj = {
                         lastPlayedProvider: providerId,
                         $inc: {validCredit: -amount}
@@ -3434,8 +3441,15 @@ let dbPlayerInfo = {
             }
         ).then(
             //check if player's credit is enough to transfer
+            // to prevent concurrent deduction
             function (updateData) {
                 if (updateData) {
+                    // amount after round = amount check
+                    // If same after round, use the after round amount, else use back the original amount
+                    updateData.validCredit = updateData.validCredit == (parseFloat(updateData.validCredit).toFixed(2))
+                        ? (parseFloat(updateData.validCredit).toFixed(2))
+                        : updateData.validCredit;
+
                     //console.log("Before transfer credit:", playerData.validCredit);
                     if (updateData.validCredit < 0) {
                         //console.log("Transfer invalid credit", playerData.validCredit);
@@ -5619,7 +5633,7 @@ let dbPlayerInfo = {
 
                     //check if player has enough credit
                     player = playerData;
-                    if ((parseInt(parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount))) {
+                    if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -5681,7 +5695,7 @@ let dbPlayerInfo = {
                                         //     bUpdateCredit = false;
                                         // }
                                         //to fix float problem...
-                                        if (newPlayerData.validCredit < -0.01) {
+                                        if (newPlayerData.validCredit < -0.02) {
                                             //credit will be reset below
                                             return Q.reject({
                                                 status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
