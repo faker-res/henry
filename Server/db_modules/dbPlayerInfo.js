@@ -6218,7 +6218,17 @@ let dbPlayerInfo = {
                             gameStatus: gameData.status
                         });
                     }
-                    if (gameData.provider.status != constProviderStatus.NORMAL) {
+
+                    let providerEnabled = true;
+
+                    if (playerData.platform.gameProviderInfo[gameData.provider._id]
+                        && !playerData.platform.gameProviderInfo[gameData.provider._id].isEnabled) {
+                        providerEnabled = false;
+                    }
+
+                    // Added checking for platform level disable game provider
+                    if (gameData.provider.status != constProviderStatus.NORMAL
+                        || !providerEnabled) {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
