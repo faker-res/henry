@@ -57,7 +57,8 @@
                 "modifyGamePassword",
                 "grabPlayerTransferRecords",
                 "syncPlatforms",
-                "getCreditLog"
+                "getCreditLog",
+                "getGamePassword"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames, ["username", "platformId", "providerId"]);
 

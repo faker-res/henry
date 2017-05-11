@@ -143,6 +143,10 @@ const cpmsAPI = {
 
     player_getCreditLog: function (data) {
         return callCPMSAPI("player", "getCreditLog", data);
+    },
+
+    player_getGamePassword: function (data) {
+        return callCPMSAPI("player", "getGamePassword", data);
     }
 
 };
