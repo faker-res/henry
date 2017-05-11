@@ -11,6 +11,6 @@ var phoneNumberSchema = new Schema({
 });
 
 //record is unique by name and platform
-phoneNumberSchema.index({ platform: 1, name: 1 }, {unique: true});
+phoneNumberSchema.index({ platform: 1, phoneNumber: 1 }, {unique: true});
 
 module.exports = phoneNumberSchema;
