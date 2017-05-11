@@ -6220,9 +6220,11 @@ let dbPlayerInfo = {
                     }
 
                     // Precaution steps to prevent empty gameProviderInfo
-                    if (!playerData.platform.gameProviderInfo[gameData.provider._id]) {
+                    if (!playerData.platform.gameProviderInfo.hasOwnProperty(gameData.provider._id)) {
                         playerData.platform.gameProviderInfo[gameData.provider._id].isEnabled = true;
                     }
+
+                    console.log('playerData.platform.gameProviderInfo[gameData.provider._id]', playerData.platform.gameProviderInfo[gameData.provider._id]);
 
                     // Added checking for platform level disable game provider
                     if (gameData.provider.status != constProviderStatus.NORMAL
