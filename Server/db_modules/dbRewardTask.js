@@ -589,11 +589,10 @@ var dbRewardTask = {
                     else {
                         reject({name: "DataError", message: "Can't update reward task and player credit"});
                     }
-                }
-            ).catch(
+                },
                 error => {
                     // Revert reward task status
-                    dbconfig.collection_rewardTask.findOneAndUpdate(
+                    return dbconfig.collection_rewardTask.findOneAndUpdate(
                         {_id: taskData._id, platformId: taskData.platformId},
                         {status: constRewardTaskStatus.STARTED},
                         {new: true}
@@ -606,7 +605,8 @@ var dbRewardTask = {
                             });
                         }
                     );
-                });
+                }
+            );
         })
     },
 
