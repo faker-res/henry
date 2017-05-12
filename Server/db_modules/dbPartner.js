@@ -86,7 +86,6 @@ let dbPartner = {
      * @param {json} partnerdata - The data of the partner user. Refer to Partner schema.
      */
     createPartner: function (partnerdata) {
-        console.log(partnerdata);
         return dbconfig.collection_platform.findOne({_id: partnerdata.platform}).then(
             platformData => {
                 if(platformData){
@@ -109,12 +108,10 @@ let dbPartner = {
                             });
                         }
                     }
- console.log(partnerdata);
                     return dbPartner.isPhoneNumberValidToRegister({
                         phoneNumber: partnerdata.phoneNumber,
                         platform: platformData._id
                     }).then((data)=>{
-                         console.log(data);
                         if (("allowSamePhoneNumberToRegister" in platformData) && !platformData.allowSamePhoneNumberToRegister && !data) {
                                 return Q.reject({
                                     name: "DataError", 
