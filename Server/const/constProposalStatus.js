@@ -10,7 +10,8 @@ const constProposalStatus = {
     SUCCESS: "Success",
     FAIL: "Fail",
     CANCEL: "Cancel",
-    EXPIRED: "Expired"
+    EXPIRED: "Expired",
+    UNDETERMINED: "Undetermined"
 };
 
 module.exports = constProposalStatus;
