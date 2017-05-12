@@ -805,6 +805,6 @@
   "deficitAmount": "Deficit Amount",
   "disableWechatPay": "Disable WechatPay",
   "DEFAULT_PASSWORD": "Default",
-  "LOGIN_IP": "Login IP"
-
+  "LOGIN_IP": "Login IP",
+  "ModifyGamePassword": "Modify Game Password"
 }

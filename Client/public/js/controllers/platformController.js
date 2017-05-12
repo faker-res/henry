@@ -4391,7 +4391,14 @@ define(['js/app'], function (myApp) {
                 vm.creditChange.socketStr = "createReturnFixProposal";
                 vm.creditChange.modaltitle = "ConsumptionReturnFix";
             }
-        }
+        };
+
+        vm.prepareModifyPlayerGamePassword = () => {
+            vm.playerModifyGamePassword = {};
+            vm.playerModifyGamePassword.resMsg = "";
+            vm.getPlatformGameData();
+        };
+
         vm.updatePlayerCredit = function () {
             var sendData = {
                 platformId: vm.selectedPlatform.id,
@@ -4461,6 +4468,20 @@ define(['js/app'], function (myApp) {
                     });
                 });
         };
+
+        //
+        vm.modifyGamePassword = () => {
+            let sendObj = {
+                playerId: vm.isOneSelectedPlayer().playerId,
+                providerId: vm.playerModifyGamePassword.provider,
+                newPassword: vm.playerModifyGamePassword.newPassword
+            };
+
+            socketService.$socket($scope.AppSocket, 'modifyGamePassword', sendObj, data => {
+                vm.playerModifyGamePassword.resMsg = $translate('SUCCESS');
+            });
+        };
+
         // vm.showPlayerTopupModal = function (row) {
         //     return vm.prepareShowPlayerTopup(row._id);
         // }
