@@ -9,6 +9,7 @@ var dbPlatformGameStatus = require('./../db_modules/dbPlatformGameStatus');
 var constSystemParam = require('./../const/constSystemParam');
 var constServerCode = require('./../const/constServerCode');
 var constGameStatus = require('../const/constGameStatus');
+var cpmsAPI = require("../../externalAPI/cpmsAPI");
 var Q = require("q");
 
 var dbGame = {
@@ -529,6 +530,27 @@ var dbGame = {
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error finding game provider.", error: error});
+            }
+        );
+    },
+
+    modifyGamePassword: function(playerId, providerId, newPassword) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).lean().then(
+            playerData => {
+                if( playerData && playerData.platform ){
+                    let requestData = {
+                        username: playerData.name,
+                        platformId: playerData.platform.platformId,
+                        providerId: providerId,
+                        newPassword: newPassword
+                    };
+                    return cpmsAPI.player_modifyGamePassword(requestData);
+                }
+                else{
+                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                }
             }
         );
     }
