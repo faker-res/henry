@@ -1813,5 +1813,6 @@
   "Left": "还剩",
   "mins": "分钟",
   "LOGIN_IP": "登入IP",
-  "Undetermined": "待定"
+  "Undetermined": "待定",
+  "ModifyGamePassword": "更改游戏密码"
 }
