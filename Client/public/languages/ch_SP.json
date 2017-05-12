@@ -1812,5 +1812,6 @@
   "editPlayerCredit:Deduction": "编辑玩家额度:减少",
   "Left": "还剩",
   "mins": "分钟",
-  "LOGIN_IP": "登入IP"
+  "LOGIN_IP": "登入IP",
+  "Undetermined": "待定"
 }
