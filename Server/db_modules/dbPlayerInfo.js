@@ -6227,7 +6227,7 @@ let dbPlayerInfo = {
                     }
 
                     // Added checking for platform level disable game provider
-                    if (gameData.provider.status != constProviderStatus.NORMAL || !providerEnabled) {
+                    if (gameData.provider.status != constProviderStatus.NORMAL) {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
