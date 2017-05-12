@@ -3226,7 +3226,7 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
-                    if (( (parseFloat(data[0].validCredit).toFixed(2)) + data[0].lockedCredit) < 1
+                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1
                         || amount == 0) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
