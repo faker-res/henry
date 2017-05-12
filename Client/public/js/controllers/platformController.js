@@ -849,7 +849,7 @@ define(['js/app'], function (myApp) {
             vm.sendMultiMessage.sendBtnText =
                 vm.sendMultiMessage.sendCompleted ? $translate("DONE")
                     : vm.sendMultiMessage.sendInitiated ? $translate("Sending")
-                        : $translate("SEND");
+                    : $translate("SEND");
         }
 
         ////////////////Mark::Game Group functions//////////////////
@@ -1634,7 +1634,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.confirmUpdateProviderStatus = function (providerData) {
-            var type = vm.getPlatformsProviderEnable(providerData);
+            let type = vm.getPlatformsProviderEnable(providerData);
             GeneralModal.confirm({
                 title: $translate('Please confirm your action.'),
                 text: $translate("Are you sure to update") + " " + providerData.name + "(" + providerData.code + ") -> " + $translate(type) + " ?"
@@ -1785,7 +1785,7 @@ define(['js/app'], function (myApp) {
                 }
                 function updateShowPlayerCredit() {
                     if (!errorLogObjReady || !vm.selectedThisPlayer) return;
-                    vm.linkedPlayerTransferId = playerTransfer.transferId;
+                    vm.linkedPlayerTransferId = playerTransfer._id;
                     vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount
                         + vm.selectedThisPlayer.validCredit).toFixed(2);
                     vm.creditChange.finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
@@ -1816,13 +1816,14 @@ define(['js/app'], function (myApp) {
         vm.submitRepairTransfer = function () {
             socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id}
                 , function (pData) {
-                    var playerTransfer;
+                    let playerTransfer = {};
                     pData.data.forEach(function (playerTransLog) {
-                        if (playerTransLog.transferId == vm.linkedPlayerTransferId) {
+                        if (playerTransLog._id == vm.linkedPlayerTransferId) {
                             playerTransfer = playerTransLog
                         }
-                    })
-                    var sendData = {
+                    });
+
+                    let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
@@ -1836,7 +1837,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     if (vm.linkedPlayerTransferId) {
-                        sendData.data.transferId = vm.linkedPlayerTransferId;
+                        sendData.data.transferId = playerTransfer.transferId;
                         sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
                         sendData.data.curLockedAmount = vm.selectedThisPlayer.lockedCredit;
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
@@ -1870,12 +1871,12 @@ define(['js/app'], function (myApp) {
             vm.advancedPlayerQuery(newSearch);
         };
 
-        var getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
+        let getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
             // NOTE: If the response is ignoring your field filter and returning all players, please check that the
             // field is whitelisted in buildPlayerQueryString() in encrypt.js
             utilService.hideAllPopoversExcept();
             vm.advancedQueryObj = $.extend({}, vm.advancedQueryObj, playerQuery);
-            for (var k in playerQuery) {
+            for (let k in playerQuery) {
                 if (!playerQuery[k] || $.isEmptyObject(playerQuery)) {
                     delete vm.advancedQueryObj[k];
                 }
@@ -1892,11 +1893,19 @@ define(['js/app'], function (myApp) {
                 var te = $("#playerTable-search-filters > div").not(":nth-child(11)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee")
+            } else if (playerQuery.bankAccount) {
+                let te = $("#playerTable-search-filters > div").not(":nth-child(12)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee")
+            } else if (playerQuery.email) {
+                let te = $("#playerTable-search-filters > div").not(":nth-child(13)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee")
             } else {
                 $("#playerTable-search-filters .form-control").prop("disabled", false).css("background-color", "#fff");
                 $("#playerTable-search-filters .form-control input").prop("disabled", false).css("background-color", "#fff");
             }
-            if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber) {
+            if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber || playerQuery.bankAccount || playerQuery.email) {
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
                     query: playerQuery,
@@ -2375,7 +2384,10 @@ define(['js/app'], function (myApp) {
                         },
                         "sClass": "alignRight"
                     },
-                    // {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
+                    {title: $translate('PHONENUMBER'), data: "phoneNumber", advSearch: true, visible: false,},
+                    {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
+                    {title: $translate("EMAIL"), visible: false, data: "email", advSearch: true},
+                    {title: $translate("LOGIN_IP"), visible: false, data: "loginIps", advSearch: true},
                     // {
                     //     visible: false,
                     //     title: $translate('PLAYER_TYPE'),
@@ -2401,7 +2413,6 @@ define(['js/app'], function (myApp) {
                     //         }
                     //     }
                     // },
-                    {title: $translate('PHONENUMBER'), data: "phoneNumber", advSearch: true, visible: false,},
                 ],
                 //"autoWidth": false,
                 "scrollX": true,
@@ -2992,7 +3003,21 @@ define(['js/app'], function (myApp) {
                         playerId: vm.selectedSinglePlayer._id
                     }, function (data) {
                         if (data && data.data.playerId == vm.selectedSinglePlayer.playerId) {
-                            vm.similarPlayersForPlayer = data.data.similarData;
+                            let preDistinctCheckData = data.data.similarData;
+                            let distinctData = [];
+                            for(let i = 0; i < preDistinctCheckData.length; i++) {
+                                let duplicate = false;
+                                for (let j = 0; j < distinctData.length; j++) {
+                                    if(distinctData[j].field === preDistinctCheckData[i].field &&  JSON.stringify(distinctData[j].playerObjId) === JSON.stringify(preDistinctCheckData[i].playerObjId)) {
+                                        duplicate = true;
+                                        break;
+                                    }
+                                }
+                                if(duplicate === false) {
+                                    distinctData.push(preDistinctCheckData[i]);
+                                }
+                            }
+                            vm.similarPlayersForPlayer = distinctData;
                             console.log("similarPlayers", vm.similarPlayersForPlayer);
                         }
                         $scope.safeApply();
@@ -3208,6 +3233,13 @@ define(['js/app'], function (myApp) {
                     vm.selectedSinglePlayer.bankAccount ?
                         vm.selectedSinglePlayer.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-4)
                         : null;
+
+                // Fix partnerName disappeared on second load
+                if (!vm.selectedSinglePlayer.partnerName) {
+                    if (vm.selectedSinglePlayer.partner) {
+                        vm.selectedSinglePlayer.partnerName = vm.selectedSinglePlayer.partner.partnerName;
+                    }
+                }
 
                 $scope.safeApply();
                 deferred.resolve();
@@ -3590,6 +3622,10 @@ define(['js/app'], function (myApp) {
                         data: 'children$',
                     },
                     {
+                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
+                        "sClass": "alignRight"
+                    },
+                    {
                         title: $translate('CREDIT'),
                         data: 'credits'
                     },
@@ -3607,10 +3643,6 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('LAST_LOGIN_IP'), orderable: false,
                         data: 'lastLoginIp'
-                    },
-                    {
-                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
-                        "sClass": "alignRight"
                     },
                     {
                         title: $translate('ACTIVE_PLAYER'), data: 'activePlayers$',
@@ -3695,9 +3727,25 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformPlayersData();
             });
         };
+
+        vm.initResetPlayerPasswordModal = () => {
+            vm.playerNewPassword = "";
+            vm.resetPartnerNewPassword = false;
+        };
+
         vm.submitResetPlayerPassword = function () {
             console.log('here', {_id: vm.isOneSelectedPlayer()._id});
-            socketService.$socket($scope.AppSocket, 'resetPlayerPassword', {playerId: vm.isOneSelectedPlayer()._id}, function (data) {
+
+            let queryObj = {
+                playerId: vm.isOneSelectedPlayer()._id,
+                platform: vm.isOneSelectedPlayer().platform
+            };
+
+            if (vm.resetPartnerNewPassword) {
+                queryObj.resetPartnerPassword = true;
+            }
+
+            socketService.$socket($scope.AppSocket, 'resetPlayerPassword', queryObj, function (data) {
                 console.log('password', data);
                 vm.playerNewPassword = data.data;
                 $scope.safeApply();
@@ -3819,41 +3867,41 @@ define(['js/app'], function (myApp) {
 
         vm.processCreditChangeLogData = function (data) {
             return data ? data.map(a => {
-                    if (!a) return;
-                    var checkForObjIdRegExp = new RegExp(/^[a-f\d]{24}$/i);
-                    var newStr = [];
-                    a.amount = a.amount != null ? a.amount.toFixed(2) : new Number(0).toFixed(2);
-                    a.curAmount = a.curAmount != null ? a.curAmount.toFixed(2) : new Number(0).toFixed(2);
-                    a.lockedAmount = a.lockedAmount != null ? a.lockedAmount.toFixed(2) : new Number(0).toFixed(2);
-                    a.changedLockedAmount = a.changedLockedAmount != null ? a.changedLockedAmount.toFixed(2) : new Number(0).toFixed(2);
-                    var newObj = $.extend({}, a.data);
-                    delete newObj.creator;
-                    // switch (a.operationType) {
-                    //     case "TopUp":
-                    //         break;
-                    //     case "ManualTopUp":
-                    //         newObj = {proposalId: newObj.proposalId};
-                    //         break;
-                    // }
-                    if (a.data._inputCredit != null && a.data.initAmount != null) {
-                        newObj = {rewardType: a.data.rewardType};
-                    } else if (a.data.proposalId && a.operationType == 'ManualTopUp') {
-                        newObj = {proposalId: newObj.proposalId};
-                    }
-                    $.each(newObj, (i, v) => {
-                        if (!checkForObjIdRegExp.test(v)) {
-                            if (i == 'createTime') {
-                            } else if (i == '__v') {
-                            } else if (i == 'remark') {
-                            } else if (i == 'data') {
-                            } else {
-                                newStr.push($translate(i) + ':' + $translate(v))
-                            }
+                if (!a) return;
+                var checkForObjIdRegExp = new RegExp(/^[a-f\d]{24}$/i);
+                var newStr = [];
+                a.amount = a.amount != null ? a.amount.toFixed(2) : new Number(0).toFixed(2);
+                a.curAmount = a.curAmount != null ? a.curAmount.toFixed(2) : new Number(0).toFixed(2);
+                a.lockedAmount = a.lockedAmount != null ? a.lockedAmount.toFixed(2) : new Number(0).toFixed(2);
+                a.changedLockedAmount = a.changedLockedAmount != null ? a.changedLockedAmount.toFixed(2) : new Number(0).toFixed(2);
+                var newObj = $.extend({}, a.data);
+                delete newObj.creator;
+                // switch (a.operationType) {
+                //     case "TopUp":
+                //         break;
+                //     case "ManualTopUp":
+                //         newObj = {proposalId: newObj.proposalId};
+                //         break;
+                // }
+                if (a.data._inputCredit != null && a.data.initAmount != null) {
+                    newObj = {rewardType: a.data.rewardType};
+                } else if (a.data.proposalId && a.operationType == 'ManualTopUp') {
+                    newObj = {proposalId: newObj.proposalId};
+                }
+                $.each(newObj, (i, v) => {
+                    if (!checkForObjIdRegExp.test(v)) {
+                        if (i == 'createTime') {
+                        } else if (i == '__v') {
+                        } else if (i == 'remark') {
+                        } else if (i == 'data') {
+                        } else {
+                            newStr.push($translate(i) + ':' + $translate(v))
                         }
-                    })
-                    a.detail = newStr
-                    return a;
-                }) : [];
+                    }
+                })
+                a.detail = newStr
+                return a;
+            }) : [];
         }
         vm.getPlayerCreditChangeLogRecords = function (socketAction, data, callback) {
             console.log("CreditChangeLogs:Query:", data);
@@ -4219,10 +4267,10 @@ define(['js/app'], function (myApp) {
                 console.log('referral data', data);
                 vm.playerReferral.totalCount = data.data ? data.data.size : 0;
                 var tableData = data.data ? data.data.data.map(item => {
-                        item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
-                        item.registrationTime$ = vm.dateReformat(item.registrationTime);
-                        return item;
-                    }) : [];
+                    item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
+                    item.registrationTime$ = vm.dateReformat(item.registrationTime);
+                    return item;
+                }) : [];
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: tableData,
                     order: vm.playerReferral.aaSorting,
@@ -4314,7 +4362,7 @@ define(['js/app'], function (myApp) {
                                 }
                             })
 
-                            vm.linkedPlayerTransferId = playerTransfer.transferId;
+                            vm.linkedPlayerTransferId = playerTransfer._id;
                             vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit).toFixed(2);
                             vm.creditChange.finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
                             $scope.safeApply();
@@ -4359,7 +4407,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            console.log('send credit', sendData);
+            console.log('\n\n\n\n\n\nsend credit\n\n', sendData);
             socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
                 var newData = data.data;
                 console.log('credit proposal', newData);
@@ -4372,16 +4420,16 @@ define(['js/app'], function (myApp) {
 
         };
         vm.repairTransaction = function () {
-
             socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}
                 , function (pData) {
-                    var playerTransfer;
+                    let playerTransfer = {};
                     pData.data.forEach(function (playerTransLog) {
-                        if (playerTransLog.transferId == vm.linkedPlayerTransferId) {
+                        if (playerTransLog._id == vm.linkedPlayerTransferId) {
                             playerTransfer = playerTransLog
                         }
-                    })
-                    var sendData = {
+                    });
+
+                    let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
@@ -4395,7 +4443,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     if (vm.linkedPlayerTransferId) {
-                        sendData.data.transferId = vm.linkedPlayerTransferId;
+                        sendData.data.transferId = playerTransfer.transferId;
                         sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
                         sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
@@ -4829,7 +4877,8 @@ define(['js/app'], function (myApp) {
                         // },
                     ],
                     destroy: true,
-                    paging: false
+                    paging: false,
+                    autoWidth: true
                 });
                 // $('#playerExpenseTable').DataTable(option);
                 var a = utilService.createDatatableWithFooter('#playerExpenseTable', option, {
@@ -4857,11 +4906,11 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'getPlayerPendingPaymentProposal', queryData, function (data) {
                     vm.allPendingRequest = data.data ? data.data.map(item => {
-                            item.createTime$ = vm.dateReformat(item.createTime);
-                            item.merchantUseType$ = item.data.merchantUseType ? $scope.merchantUseTypeJson[item.data.merchantUseType] : "NULL";
-                            item.topupType$ = item.data.topupType ? $scope.merchantTopupTypeJson[item.data.topupType] : "NULL";
-                            return item;
-                        }) : [];
+                        item.createTime$ = vm.dateReformat(item.createTime);
+                        item.merchantUseType$ = item.data.merchantUseType ? $scope.merchantUseTypeJson[item.data.merchantUseType] : "NULL";
+                        item.topupType$ = item.data.topupType ? $scope.merchantTopupTypeJson[item.data.topupType] : "NULL";
+                        return item;
+                    }) : [];
                     $scope.safeApply();
                     vm.updateDataTableinModal(modalID, '#playerRepairPaymentTbl', null, function (tbl) {
                         $('#playerRepairPaymentTbl tbody').on('click', 'tr', function () {
@@ -5371,18 +5420,18 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPlayerRewardTask', sendQuery, function (data) {
                 console.log('getPlayerRewardTask', data);
                 var tblData = data && data.data ? data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
-                                    return pro.name + ' ';
-                                }) : $translate('all')) + ')';
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
+                            return pro.name + ' ';
+                        }) : $translate('all')) + ')';
 
-                        if (!item.targetEnable && item.targetProviders && item.targetProviders.length > 0) {
-                            item.provider$ = $translate('Excluded') + ' ' + item.providerStr$
-                        } else {
-                            item.provider$ = item.providerStr$;
-                        }
-                        return item;
-                    }) : [];
+                    if (!item.targetEnable && item.targetProviders && item.targetProviders.length > 0) {
+                        item.provider$ = $translate('Excluded') + ' ' + item.providerStr$
+                    } else {
+                        item.provider$ = item.providerStr$;
+                    }
+                    return item;
+                }) : [];
                 var size = data.data ? data.data.size : 0;
                 vm.rewardTaskLog.totalCount = size;
                 vm.drawRewardTaskTable(newSearch, tblData, size);
@@ -5683,14 +5732,14 @@ define(['js/app'], function (myApp) {
             console.log("Second:Query:", sendQuery);
             socketService.$socket($scope.AppSocket, 'queryRewardProposal', sendQuery, function (data) {
                 var tableData = data.data ? data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.rewardType$ = $translate(vm.platformRewardtype[item.type]);
-                        item.rewardAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
-                        item.status$ = $translate(item.status || item.process.status);
-                        item.entryType$ = $translate($scope.constProposalEntryType[item.entryType]);
-                        item.userType$ = $translate(item.userType ? $scope.constProposalUserType[item.userType] : "");
-                        return item;
-                    }) : [];
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.rewardType$ = $translate(vm.platformRewardtype[item.type]);
+                    item.rewardAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
+                    item.status$ = $translate(item.status || item.process.status);
+                    item.entryType$ = $translate($scope.constProposalEntryType[item.entryType]);
+                    item.userType$ = $translate(item.userType ? $scope.constProposalUserType[item.userType] : "");
+                    return item;
+                }) : [];
                 vm.playerRewardHistory.loading = false;
                 vm.playerRewardHistory.totalCount = data.data ? data.data.total : 0
                 console.log("RewardHist:length:", tableData);
@@ -5763,11 +5812,11 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
             socketService.$socket($scope.AppSocket, 'queryBonusProposal', sendQuery, function (data) {
                 var showData = data.data ? data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
-                        item.status$ = $translate(item.status);
-                        return item;
-                    }) : [];
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
+                    item.status$ = $translate(item.status);
+                    return item;
+                }) : [];
                 vm.playerBonusHistory.totalCount = data.data ? data.data.total : 0;
                 console.log("RewardHist:length:", showData);
                 vm.drawPlayerBonusHistoryTbl(showData, vm.playerBonusHistory.totalCount, newSearch);
@@ -6329,13 +6378,13 @@ define(['js/app'], function (myApp) {
 
         var getPartnersByAdvancedQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
 
-          utilService.hideAllPopoversExcept();
-          vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
-          for (var k in partnerQuery) {
-              if (!partnerQuery[k] || $.isEmptyObject(partnerQuery)) {
-                  delete vm.advancedPartnerQueryObj[k];
-              }
-          }
+            utilService.hideAllPopoversExcept();
+            vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
+            for (var k in partnerQuery) {
+                if (!partnerQuery[k] || $.isEmptyObject(partnerQuery)) {
+                    delete vm.advancedPartnerQueryObj[k];
+                }
+            }
 
             var apiQuery = {
                 platformId: vm.selectedPlatform.id,
@@ -6360,6 +6409,12 @@ define(['js/app'], function (myApp) {
 
         //draw partner table based on data
         vm.drawPartnerTable = function (data) {
+            //convert decimal to 2 digits
+            data.forEach((partner) => {
+                if (partner.credits) {
+                    partner.credits = partner.credits.toFixed(2);
+                }
+            });
             vm.partners = data;
             vm.selectedPartnerCount = 0;
             //vm.partnerTable = $('#partnerDataTable').DataTable({data:[]});
@@ -6404,15 +6459,15 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('STATUS'), data: 'status',
                         render: function (data, type, row) {
-                          var showText = $translate(vm.allPartnersStatusKeys[data - 1]) || 'No Value';
-                          var textClass = '';
+                            var showText = $translate(vm.allPartnersStatusKeys[data - 1]) || 'No Value';
+                            var textClass = '';
 
-                          return $('<a class="partnerStatusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                              'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                              .attr('data-row', JSON.stringify(row))
-                              .text(showText)
-                              .addClass(textClass)
-                              .prop('outerHTML');
+                            return $('<a class="partnerStatusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                                .attr('data-row', JSON.stringify(row))
+                                .text(showText)
+                                .addClass(textClass)
+                                .prop('outerHTML');
                         },
                         advSearch: true,
                         filterConfig: {
@@ -6457,6 +6512,26 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
+                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
+                        render: function (data, type, row) {
+                            var $a = $('<a>', {
+                                // class: "totalReferralPopover",
+                                // style: "z-index: auto",
+                                // "data-toggle": "popover",
+                                // "data-container": "body",
+                                // "data-placement": "bottom",
+                                // "data-trigger": "focus",
+                                // "data-row": JSON.stringify(row),
+                                "ng-click": "vm.preShowReferralPlayer(" + data + ")"
+                                // type: "button",
+                                // "data-html": "true",
+                                // href: "#"
+                            }).text(data);
+                            return $a.prop('outerHTML');
+                        },
+                        "sClass": "alignRight sumInt",
+                    },
+                    {
                         title: $translate('CREDIT'),
                         "sClass": "alignRight sumFloat",
                         data: 'credits'
@@ -6472,10 +6547,10 @@ define(['js/app'], function (myApp) {
                         data: 'level',
                         render: function (level, type, row) {
                             return level ? $('<a class="partnerLevelPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#">')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text($translate(level.name))
-                                    .prop('outerHTML') : "";
+                                'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#">')
+                                .attr('data-row', JSON.stringify(row))
+                                .text($translate(level.name))
+                                .prop('outerHTML') : "";
                         },
                         advSearch: true,
                         filterConfig: {
@@ -6521,26 +6596,6 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('LAST_LOGIN_IP'), orderable: false,
                         data: 'lastLoginIp'
-                    },
-                    {
-                        title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
-                        render: function (data, type, row) {
-                            var $a = $('<a>', {
-                                // class: "totalReferralPopover",
-                                // style: "z-index: auto",
-                                // "data-toggle": "popover",
-                                // "data-container": "body",
-                                // "data-placement": "bottom",
-                                // "data-trigger": "focus",
-                                // "data-row": JSON.stringify(row),
-                                "ng-click": "vm.preShowReferralPlayer(" + data + ")"
-                                // type: "button",
-                                // "data-html": "true",
-                                // href: "#"
-                            }).text(data);
-                            return $a.prop('outerHTML');
-                        },
-                        "sClass": "alignRight sumInt",
                     },
                     {
                         title: $translate('ACTIVE_PLAYER'), data: '_id',
@@ -6910,6 +6965,7 @@ define(['js/app'], function (myApp) {
 
 
             var status = aData.status;
+            aData.credits = parseFloat(aData.credits);
             var statusKey = '';
             $.each(vm.allPartnersStatusString, function (key, val) {
                 if (status == val) {
@@ -6953,6 +7009,10 @@ define(['js/app'], function (myApp) {
                 //    console.log('single partner selected', vm.selectedSinglePartner);
                 //}
                 vm.selectedSinglePartner = aData;
+
+                vm.isOneSelectedPartner = function () {
+                    return vm.selectedSinglePartner;
+                };
 
                 // Mask partners bank account
                 vm.selectedSinglePartner.bankAccount =
@@ -7103,7 +7163,7 @@ define(['js/app'], function (myApp) {
 
         //Enable or disable selected partner
         vm.updatePartnerStatus = function (rowData, sendData) {
-            console.log('update partner status\n',rowData, sendData);
+            console.log('update partner status\n', rowData, sendData);
             socketService.$socket($scope.AppSocket, 'updatePartnerStatus', sendData, function (data) {
                 vm.getPlatformPartnersData();
             });
@@ -7111,7 +7171,7 @@ define(['js/app'], function (myApp) {
 
         vm.getPartnerStatusChangeLog = function (rowData) {
             var deferred = Q.defer();
-            console.log('partnerStatusLog rowData\n',rowData);
+            console.log('partnerStatusLog rowData\n', rowData);
             socketService.$socket($scope.AppSocket, 'getPartnerStatusChangeLog', {
                 _id: rowData._id
             }, function (data) {
@@ -7329,17 +7389,21 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPagePartnerReferralPlayers', sendQuery, function (data) {
                 console.log('tableData', data);
                 var tableData = data.data.data ? data.data.data.map(item => {
-                        item.$lastAccessTime = utilService.getFormatTime(item.lastAccessTime);
-                        item.$registrationTime = utilService.getFormatTime(item.registrationTime);
-                        return item;
-                    }) : [];
+                    item.$lastAccessTime = utilService.getFormatTime(item.lastAccessTime);
+                    item.$registrationTime = utilService.getFormatTime(item.registrationTime);
+                    return item;
+                }) : [];
                 vm.totalReferralPlayer.totalCount = data.data.size;
                 vm.drawTotalReferralPlayerTable(newSearch, tableData, data.data.size)
             })
         }
         vm.drawTotalReferralPlayerTable = function (newSearch, tableData, size) {
             var option = $.extend({}, vm.generalDataTableOptions, {
-                data: tableData,
+                data: tableData.map(item => {
+                    item.consumptionSum$ = item.consumptionSum.toFixed(2);
+                    item.validCredit$ = item.validCredit.toFixed(2);
+                    return item;
+                }),
                 order: vm.totalReferralPlayer.aaSorting || [[0, 'desc']],
                 columnDefs: [
                     {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [2]},
@@ -7355,10 +7419,10 @@ define(['js/app'], function (myApp) {
                     {'title': $translate('REAL_NAME'), data: 'realName', sClass: "realName"},
                     {'title': $translate('registrationTime'), data: '$registrationTime', sClass: "tbodyNoWrap"},
                     {'title': $translate('lastAccessTime'), data: '$lastAccessTime'},
-                    {'title': $translate('CONSUMPTION'), data: 'consumptionSum'},
+                    {'title': $translate('CONSUMPTION'), data: 'consumptionSum$'},
                     {'title': $translate('TOP_UP_SUM'), data: 'topUpSum', sClass: "topUpSum"},
                     {'title': $translate('TOP_UP_TIMES'), data: 'topUpTimes', sClass: "topUpTimes"},
-                    {'title': $translate('VALID_CREDIT'), data: 'validCredit', sClass: "tbodyNoWrap"},
+                    {'title': $translate('VALID_CREDIT'), data: 'validCredit$', sClass: "tbodyNoWrap"},
                     {'title': $translate('Domain Name'), data: 'domain', sClass: "tbodyNoWrap"},
                     // {'title': $translate('STATUS'), data: 'status', sClass: "tbodyNoWrap"},
                     // {'title': $translate('TRUST_LEVEL'), data: 'trustLevel'}
@@ -7454,6 +7518,46 @@ define(['js/app'], function (myApp) {
                 showSubmit: true,
                 notSent: true,
             };
+        };
+
+        vm.prepareShowPartnerCreditAdjustment = function (type) {
+            vm.partnerCreditChange = {
+                finalValidAmount: vm.isOneSelectedPartner().credits,
+                finalLockedAmount: null,
+                remark: '',
+                updateAmount: 0
+            };
+
+            if (type == "adjust") {
+                vm.partnerCreditChange.socketStr = "createUpdatePartnerCreditProposal";
+                vm.partnerCreditChange.modaltitle = "CREDIT_ADJUSTMENT";
+            }
+        }
+
+        vm.updatePartnerCredit = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.id,
+                creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                isPartner: true,
+                data: {
+                    partnerObjId: vm.isOneSelectedPartner()._id,
+                    partnerName: vm.isOneSelectedPartner().partnerName,
+                    updateAmount: vm.partnerCreditChange.updateAmount,
+                    curAmount: vm.isOneSelectedPartner().credits,
+                    realName: vm.isOneSelectedPartner().realName,
+                    remark: vm.partnerCreditChange.remark,
+                    adminName: authService.adminName
+                }
+            }
+
+            socketService.$socket($scope.AppSocket, vm.partnerCreditChange.socketStr, sendData, function (data) {
+                var newData = data.data;
+                if (data.data && data.data.stepInfo) {
+                    socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                }
+                vm.getPlatformPartnersData();
+                $scope.safeApply();
+            });
         };
 
         vm.applyPartnerBonus = function () {
@@ -8498,11 +8602,11 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
         vm.getBonusBasic = () => {
-          console.log('getBonusBasic',JSON.stringify(vm.selectedPlatform.data));
-          vm.bonusBasic = vm.bonusBasic || {};
-          vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
-          vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
-          $scope.safeApply();
+            console.log('getBonusBasic', JSON.stringify(vm.selectedPlatform.data));
+            vm.bonusBasic = vm.bonusBasic || {};
+            vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
+            vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
+            $scope.safeApply();
         }
 
         vm.submitAddPlayerLvl = function () {
@@ -8726,18 +8830,18 @@ define(['js/app'], function (myApp) {
         }
 
         function updateBonusBasic(srcData) {
-          console.log('\n\n\nupdateBonusBasic',JSON.stringify(srcData));
+            console.log('\n\n\nupdateBonusBasic', JSON.stringify(srcData));
             var sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
-                    bonusCharges : srcData.bonusCharges
+                    bonusCharges: srcData.bonusCharges
                 }
             };
-            console.log('\n\n\nupdateBonusBasic sendData',JSON.stringify(sendData));
+            console.log('\n\n\nupdateBonusBasic sendData', JSON.stringify(sendData));
 
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-              console.log('update bonus socket',JSON.stringify(data));
+                console.log('update bonus socket', JSON.stringify(data));
                 vm.loadPlatformData({loadAll: false});
             });
         }
@@ -9805,7 +9909,7 @@ define(['js/app'], function (myApp) {
                             keys.push(key);
                         }
                     }
-                    console.log('\n\n\n\nallPartnersStatusString',keys);
+                    console.log('\n\n\n\nallPartnersStatusString', keys);
                     vm.allPartnersStatusKeys = keys;
                 });
         };

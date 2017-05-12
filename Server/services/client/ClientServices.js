@@ -44,6 +44,7 @@
                 "captcha",
                 "login",
                 "loginPlayerPartner",
+                "loginPlayerPartnerWithSMS",
                 "logout",
                 "logoutPlayerPartner",
                 "isLogin",
@@ -273,7 +274,9 @@
                 "getFavoriteGames",
                 "searchGame",
                 "getGameGroupTreeInfo",
-                "searchGameByGroup"
+                "searchGameByGroup",
+                "getGamePassword",
+                "modifyGamePassword"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

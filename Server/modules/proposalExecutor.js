@@ -69,7 +69,7 @@ var proposalExecutor = {
                 proposalExecutor.executions[executionType](proposalData, deferred);
                 return deferred.promise.then(
                     responseData => {
-                        if (proposalData.mainType === 'Reward') {
+                        if (proposalData.mainType === 'Reward' && executionType != "executeManualUnlockPlayerReward") {
                             return createRewardLogForProposal("GET_FROM_PROPOSAL", proposalData).then(
                                 () => responseData
                             );
@@ -105,6 +105,7 @@ var proposalExecutor = {
         this.executions.executeUpdatePlayerBankInfo.des = "Update player bank information";
         this.executions.executeAddPlayerRewardTask.des = "Add player reward task";
         this.executions.executeUpdatePartnerBankInfo.des = "Update partner bank information";
+        this.executions.executeUpdatePartnerCredit.des = "Update partner credit";
         this.executions.executeUpdatePartnerEmail.des = "Update partner email";
         this.executions.executeUpdatePartnerPhone.des = "Update partner phone number";
         this.executions.executeUpdatePartnerInfo.des = "Update partner information";
@@ -233,6 +234,29 @@ var proposalExecutor = {
             }
         ).then(
             () => "Proposal is rejected"
+        );
+    },
+
+    refundPartner: function (proposalData, refundAmount, reason) {
+        return Q.resolve().then(
+            () => {
+                if (!proposalData || !proposalData.data) {
+                    return Q.reject({name: "DataError", message: "Invalid proposal data"});
+                }
+                // It is safe to throw inside a .then().  It is equivalent to returning a rejection, just a lazy way.
+                // Rejecting with Errors give us the benefit of a stack trace.
+                const partnerObjId = proposalData.data.partnerObjId || proposalData.data.partnerId;
+                if (!partnerObjId) {
+                    throw Error("No partnerObjId, needed for refund");
+                }
+                // (At the time of writing, proposalData.data.platformObjId was never actually used)
+                const platformObjId = proposalData.data.platformObjId || proposalData.data.platformId;
+                if (!platformObjId) {
+                    throw Error("No platformObjId, needed for refund");
+                }
+
+                return dbPartner.refundPartnerCredit(partnerObjId, platformObjId, refundAmount, reason, proposalData.data)
+            }
         );
     },
 
@@ -1749,6 +1773,55 @@ var proposalExecutor = {
                 deferred.reject({name: "DataError", message: "Incorrect player top up return proposal data"});
             }
         },
+
+        /**
+         * execution function for update partner credit proposal type
+         */
+        executeUpdatePartnerCredit: function (proposalData, deferred) {
+            //valid data
+            if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.updateAmount != null) {
+                // changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount, constProposalType.UPDATE_PARTNER_CREDIT, proposalData.data).then(deferred.resolve, deferred.reject);
+
+                var updateObj = {
+                    $inc: {
+                        credits: proposalData.data.updateAmount > 0 ? proposalData.data.updateAmount : 0
+                    }
+                };
+                return dbconfig.collection_partner.findOneAndUpdate(
+                    {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},
+                    updateObj,
+                    {new: true}
+                ).then(
+                    newPartner => {
+                        //make sure credit can not be negative number
+                        if (newPartner.credits < 0) {
+                            newPartner.credits = 0;
+                        }
+                        return newPartner.save();
+                    }
+                ).then(
+                    partner => {
+                        if (!partner) {
+                            deferred.reject({
+                                name: "DataError",
+                                message: "Can't update partner credit: partner not found."
+                            });
+                            return;
+                        }
+
+                        var changeType = constProposalType.UPDATE_PARTNER_CREDIT;
+                        dbLogger.createPartnerCreditChangeLog(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.updateAmount,changeType, partner.credits, null, proposalData.data);
+                        deferred.resolve(partner);
+                    },
+                    error => {
+                        deferred.reject({name: "DBError", message: "Error updating partner.", error: error});
+                    }
+                );
+            }
+            else {
+                deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+            }
+        },
     },
 
     /**
@@ -1850,6 +1923,24 @@ var proposalExecutor = {
         rejectUpdatePartnerInfo: function (proposalData, deferred) {
             deferred.resolve("Proposal is rejected");
         },
+
+        /**
+         * reject function for UpdatePartnerCredit proposal
+         */
+        rejectUpdatePartnerCredit: function (proposalData, deferred) {
+            if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
+                //todo::add more reasons here, ex:cancel request
+                return proposalExecutor.refundPartner(proposalData, -proposalData.data.updateAmount, "rejectUpdatePartnerCredit")
+                    .then(
+                        res => deferred.resolve("Proposal is rejected"),
+                        error => deferred.reject(error)
+                    );
+            }
+            else {
+                deferred.resolve("Proposal is rejected");
+            }
+        },
+
 
         /**
          * reject function for FullAttendance proposal

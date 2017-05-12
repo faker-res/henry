@@ -71,6 +71,32 @@ var dbLogger = {
         record.save().then().catch(err => errorSavingLog(err, logData));
     },
 
+
+    /**
+     * Create the log  of credit transfer action to the partner
+     * @param {objectId} partnerId
+     * @param {number} amount
+     * @param {string} type
+     * @param {objectId} operatorId
+     * @param {Object} data - details
+     */
+    createPartnerCreditChangeLog: function (partnerId, platformId, amount, type, curAmount, operatorId, data) {
+        if (curAmount < 0) {
+            curAmount = 0;
+        }
+        var logData = {
+            partnerId: partnerId,
+            platformId: platformId,
+            amount: amount,
+            operationType: type,
+            curAmount: curAmount ? curAmount : null,
+            operatorId: operatorId ? operatorId : null,
+            data: data ? data : null
+        };
+        var record = new dbconfig.collection_partnerCreditChangeLog(logData);
+        record.save().then().catch(err => errorSavingLog(err, logData));
+    },
+
     queryCreditChangeLog: function (query, index, limit, sortCol) {
         index = index || 0;
         limit = Math.min(limit, constSystemParam.MAX_RECORD_NUM);

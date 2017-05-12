@@ -12,6 +12,7 @@ var captchapng = require('captchapng');
 var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
+let rsaCrypto = require("../modules/rsaCrypto");
 
 let env = require('../config/env').config();
 
@@ -34,7 +35,6 @@ var constShardKeys = require('../const/constShardKeys');
 var constPlayerTopUpType = require('../const/constPlayerTopUpType');
 var constProposalMainType = require('../const/constProposalMainType');
 var constGameStatus = require("./../const/constGameStatus");
-var constProviderStatus = require("./../const/constProviderStatus");
 var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
@@ -46,7 +46,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
-var rsaCrypto = require("../modules/rsaCrypto");
+
 var queryPhoneLocation = require('query-mobile-phone-area');
 var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
@@ -54,6 +54,9 @@ var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
 var SMSSender = require('../modules/SMSSender');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
+
+// constants
+const constProviderStatus = require("./../const/constProviderStatus");
 
 // db_modules
 let dbGeoIp = require('./../db_modules/dbGeoIp');
@@ -938,11 +941,13 @@ let dbPlayerInfo = {
 
     /**
      * Reset player password
-     * @param {String}  query - The query string
-     * @param {string} updateData - The update data string
+     * @param {String}  playerId - The query string
+     * @param {string} newPassword - The update data string
+     * @param {objectId} platform - player's platform
+     * @param {boolean} resetPartnerPassword - reset partner password also if true
      */
-    resetPlayerPassword: function (playerId, newPassword) {
-        var deferred = Q.defer();
+    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword) {
+        let deferred = Q.defer();
 
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
@@ -960,12 +965,32 @@ let dbPlayerInfo = {
                     {password: hash},
                     constShardKeys.collection_players
                 ).then(
-                    function (data) {
+                    data => {
+                        // update partner password if selected
+                        if (resetPartnerPassword) {
+                            return dbUtility.findOneAndUpdateForShard(
+                                dbconfig.collection_partner,
+                                {
+                                    platform: platform,
+                                    player: playerId
+                                },
+                                {password: hash},
+                                constShardKeys.collection_partner
+                            );
+                        }
+
                         deferred.resolve(newPassword);
                     },
-                    function (error) {
+                    error => {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
                     }
+                ).then(
+                    data => deferred.resolve(newPassword),
+                    error => deferred.reject({
+                        name: "DBError",
+                        message: "Error updating player password.",
+                        error: error
+                    })
                 );
             });
         });
@@ -1471,10 +1496,10 @@ let dbPlayerInfo = {
                     };
                     var logData = null;
                     if (proposalData && proposalData.data) {
-                        if (topUpType == constPlayerTopUpType.ONLINE) {
+                        if (topUpType == constPlayerTopUpType.MANUAL) {
                             recordData.bankCardType = proposalData.data.bankCardType;
                         }
-                        else if (topUpType == constPlayerTopUpType.MANUAL) {
+                        else if (topUpType == constPlayerTopUpType.ONLINE) {
                             recordData.merchantTopUpType = proposalData.data.topupType;
                         }
                         logData = proposalData.data;
@@ -1624,10 +1649,14 @@ let dbPlayerInfo = {
                 // TODO  - proposal status check below
                 return dbconfig.collection_proposal.find({
                     "data.platformId": data.platform,
-                    "data.playerId": data._id,
-                    "data.periodType": 0,
-                    type: proposalType
-                });
+                    "data.playerId": data.playerId,
+                    "data.periodType": '0',
+                    type: proposalType,
+                    $or: [
+                        {status: constProposalStatus.SUCCESS},
+                        {status: constProposalStatus.APPROVED}
+                    ]
+                })
 
             }, function (error) {
                 deferred.reject({name: "DataError", message: "Can't find player data", error: error});
@@ -1784,7 +1813,7 @@ let dbPlayerInfo = {
             }
         ).then(
             firstRecordData => {
-                if(firstRecordData && firstRecordData[0]){
+                if (firstRecordData && firstRecordData[0]) {
                     weekFirstRecordId = String(firstRecordData[0]._id);
                 }
 
@@ -1827,7 +1856,7 @@ let dbPlayerInfo = {
             function (eData) {
                 eventData = eData;
                 if (eventData.param.periodType == 1 && weekFirstRecordId &&
-                    topUpRecordIds.indexOf(weekFirstRecordId) < 0 ) {
+                    topUpRecordIds.indexOf(weekFirstRecordId) < 0) {
                     deferred.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
@@ -2582,7 +2611,7 @@ let dbPlayerInfo = {
             isMatch => {
                 if (isMatch) {
                     if (playerObj.status == constPlayerStatus.FORBID) {
-                         deferred.reject({
+                        deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
                             code: constServerCode.PLAYER_IS_FORBIDDEN
@@ -2813,6 +2842,172 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
+    playerLoginWithSMS: function (loginData, userAgent, isSMSVerified) {
+        let deferred = Q.defer();
+        let newAgentArray = [];
+        let platformId = null;
+        let uaObj = null;
+        let playerObj = null;
+        let retObj = {};
+        let platformPrefix = "";
+
+        dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    platformId = platformData._id;
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
+
+                    return dbconfig.collection_players.findOne(
+                        {
+                            $or: [
+                                {phoneNumber: encryptedPhoneNumber},
+                                {phoneNumber: loginData.phoneNumber}
+                            ],
+                            platform: platformData._id
+                        }
+                    ).lean();
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                deferred.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
+            data => {
+                if (data) {
+                    playerObj = data;
+
+                    if (playerObj.status == constPlayerStatus.FORBID) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                        return;
+                    }
+                    newAgentArray = playerObj.userAgent || [];
+                    uaObj = {
+                        browser: userAgent.browser.name || '',
+                        device: userAgent.device.name || '',
+                        os: userAgent.os.name || '',
+                    };
+                    let bExit = false;
+                    newAgentArray.forEach(
+                        agent => {
+                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                bExit = true;
+                            }
+                        }
+                    );
+                    if (!bExit) {
+                        newAgentArray.push(uaObj);
+                    }
+
+                    let bUpdateIp = false;
+                    if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
+                        bUpdateIp = true;
+                    }
+
+                    let geo = geoip.lookup(loginData.lastLoginIp);
+                    let updateData = {
+                        isLogin: true,
+                        lastLoginIp: loginData.lastLoginIp,
+                        userAgent: newAgentArray,
+                        lastAccessTime: new Date().getTime(),
+                    };
+                    let geoInfo = {};
+                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                        geoInfo = {
+                            country: geo ? geo.country : null,
+                            city: geo ? geo.city : null,
+                            longitude: geo && geo.ll ? geo.ll[1] : null,
+                            latitude: geo && geo.ll ? geo.ll[0] : null
+                        }
+                    }
+                    Object.assign(updateData, geoInfo);
+                    if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
+                        updateData.$push = {loginIps: loginData.lastLoginIp};
+                    }
+                    dbconfig.collection_players.findOneAndUpdate({
+                        _id: playerObj._id,
+                        platform: playerObj.platform
+                    }, updateData).populate({
+                        path: "playerLevel",
+                        model: dbconfig.collection_playerLevel
+                    }).then(
+                        data => {
+                            //add player login record
+                            let recordData = {
+                                player: data._id,
+                                platform: platformId,
+                                loginIP: loginData.lastLoginIp,
+                                clientDomain: loginData.clientDomain ? loginData.clientDomain : "",
+                                userAgent: uaObj
+                            };
+                            Object.assign(recordData, geoInfo);
+                            let record = new dbconfig.collection_playerLoginRecord(recordData);
+                            return record.save().then(
+                                function () {
+                                    if (bUpdateIp) {
+                                        dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                    }
+                                }
+                            ).then(
+                                () => {
+                                    dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                        path: "playerLevel",
+                                        model: dbconfig.collection_playerLevel
+                                    }).lean().then(
+                                        res => {
+                                            res.name = res.name.replace(platformPrefix, "");
+                                            retObj = res;
+                                            let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                            let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                            let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                                            let creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+
+                                            return Q.all([a, b, c, creditProm]);
+                                        }
+                                    ).then(
+                                        zoneData => {
+                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                                            retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                                            deferred.resolve(retObj);
+                                        },
+                                        errorZone => {
+                                            deferred.resolve(retObj);
+                                        }
+                                    );
+                                }
+                            );
+                        },
+                        error => {
+                            deferred.reject({
+                                name: "DBError",
+                                message: "Error in updating player",
+                                error: error
+                            });
+                        }
+                    );
+                } else {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Cannot find player",
+                        code: constServerCode.INVALID_USER_PASSWORD
+                    });
+                }
+            },
+            error => {
+                deferred.reject({name: "DBError", message: "Error in getting player data", error: error});
+            }
+        );
+        return deferred.promise;
+    },
+
     updateGeoipws: function (playerObjId, platformObjId, ip) {
         dbUtility.getGeoIp(ip).then(
             data => {
@@ -3016,21 +3211,24 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
-        var deferred = Q.defer();
-        var prom0 = forSync
+        let deferred = Q.defer();
+        let prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform});
-        var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
-        var playerData = null;
-        var providerData = null;
+        let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
+        let playerData = null;
+        let providerData = null;
+
         Q.all([prom0, prom1]).then(
             function (data) {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
-                    if ((data[0].validCredit + data[0].lockedCredit) < 1 || amount == 0 || data[0].validCredit < amount) {
+                    if (( (parseFloat(data[0].validCredit).toFixed(2)) + data[0].lockedCredit) < 1
+                        || amount == 0
+                        || (parseFloat(data[0].validCredit).toFixed(2)) < amount) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -3048,7 +3246,10 @@ let dbPlayerInfo = {
                     //     });
                     // }
                     // else {
-                    var platformId = playerData.platform ? playerData.platform.platformId : null;
+
+                    // Enough credit to proceed
+                    let platformId = playerData.platform ? playerData.platform.platformId : null;
+                    // First log before processing
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
                     return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
@@ -3072,10 +3273,11 @@ let dbPlayerInfo = {
             },
             function (err) {
                 if (!err || !err.hasLog) {
-                    var platformId = playerData.platform ? playerData.platform.platformId : null;
-                    var platformObjId = playerData.platform ? playerData.platform._id : null;
+                    let platformId = playerData.platform ? playerData.platform.platformId : null;
+                    let platformObjId = playerData.platform ? playerData.platform._id : null;
+                    // Second log - failed processing before calling cpmsAPI
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
-                        "unknown", providerId, playerData.validCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
+                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
                 deferred.reject(err);
             }
@@ -3091,25 +3293,29 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditToProviderbyPlayerObjId: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
-        var deferred = Q.defer();
-        var gameAmount = 0;
-        var rewardAmount = 0;
-        var providerAmount = 0;
-        var playerCredit = 0;
-        var rewardTaskAmount = 0;
-        var rewardDataObj = null;
-        var playerData = null;
-        var notEnoughtCredit = false;
-        var rewardData = null;
-        var bUpdateReward = false;
-        var transferAmount = 0;
-        var bTransfered = false;
-        var transferId = new Date().getTime();
+        let deferred = Q.defer();
+        let gameAmount = 0;
+        let rewardAmount = 0;
+        let providerAmount = 0;
+        let playerCredit = 0;
+        let rewardTaskAmount = 0;
+        let rewardDataObj = null;
+        let playerData = null;
+        let notEnoughtCredit = false;
+        let rewardData = null;
+        let bUpdateReward = false;
+        let transferAmount = 0;
+        let bTransfered = false;
+        let transferId = new Date().getTime();
+
         return dbconfig.collection_players.findOne({_id: playerObjId}).then(
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
-                    if ((playerData1.validCredit + playerData1.lockedCredit) < 1 || amount == 0 || playerData1.validCredit < amount) {
+                    // Check player have enough credit
+                    if ((parseFloat(playerData1.validCredit.toFixed(2)) + playerData1.lockedCredit) < 1
+                        || amount == 0
+                        || (parseFloat(playerData1.validCredit).toFixed(2)) < amount) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "NumError",
@@ -3118,6 +3324,7 @@ let dbPlayerInfo = {
                         notEnoughtCredit = true;
                         return;
                     }
+                    // Check player current reward task
                     return dbRewardTask.getPlayerCurRewardTask(playerObjId)
                 } else {
                     return Q.reject({name: "DataError", message: "Can't find player information."});
@@ -3130,15 +3337,18 @@ let dbPlayerInfo = {
             function (taskData) {
                 rewardData = taskData;
                 if (!notEnoughtCredit) {
+                    // Player has enough credit
                     //if amount is less than 0, means transfer all
-                    amount = amount > 0 ? amount : playerData.validCredit;
+                    amount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
                     if (!rewardData) {
+                        // Player has no reward ongoing
                         amount = Math.floor(amount);
                         gameAmount = amount;
                         rewardData = true;
                         //return true;
                     }
                     else {
+                        // Player has ongoing reward
                         rewardDataObj = rewardData;
                         if ((!rewardData.targetProviders || rewardData.targetProviders.length <= 0 ) // target all providers
                             || (rewardData.targetEnable && rewardData.targetProviders.indexOf(providerId) >= 0)//target this provider
@@ -3204,9 +3414,13 @@ let dbPlayerInfo = {
                             errorMessage: "Player does not have enough credit."
                         });
                     }
-                    var updateObj = {
+
+                    // Deduct amount from player validCredit before transfer
+                    // Amount is already floored
+                    let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
+                    let updateObj = {
                         lastPlayedProvider: providerId,
-                        $inc: {validCredit: -amount}
+                        $inc: {validCredit: -decreaseAmount}
                     };
                     if (bUpdateReward) {
                         updateObj.lockedCredit = rewardData.currentAmount;
@@ -3230,6 +3444,7 @@ let dbPlayerInfo = {
             }
         ).then(
             //check if player's credit is enough to transfer
+            // to prevent concurrent deduction
             function (updateData) {
                 if (updateData) {
                     //console.log("Before transfer credit:", playerData.validCredit);
@@ -3269,6 +3484,7 @@ let dbPlayerInfo = {
                         function (id) {
                             transferId = id;
                             let lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
+                            // Second log before call cpmsAPI
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                 id, providerShortId, transferAmount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return cpmsAPI.player_transferIn(
@@ -3284,6 +3500,7 @@ let dbPlayerInfo = {
                                 error => {
                                     // var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                                     let status = (error.error && error.error.errorMessage && error.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
+                                    // Third log - transfer in failed
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                         id, providerShortId, transferAmount, lockedAmount, adminName, error, status);
                                     error.hasLog = true;
@@ -3337,6 +3554,7 @@ let dbPlayerInfo = {
             function (res) {
                 if (res) {
                     //playerCredit = res.validCredit;
+                    // Log credit change when transfer success
                     dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -amount, constPlayerCreditChangeType.TRANSFER_IN, playerCredit, 0, -rewardAmount, null, {
                         providerId: providerShortId,
                         providerName: cpName,
@@ -3753,7 +3971,7 @@ let dbPlayerInfo = {
                             ],
                             status: constProposalStatus.PENDING,
                             mainType: "Reward"
-                        }).lean().then(
+                        }).populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
                             proposals => {
                                 var sumAmount = 0;
                                 for (var key in proposals) {
@@ -3761,7 +3979,12 @@ let dbPlayerInfo = {
                                         var applyAmount = proposals[key].data.applyAmount || 0;
                                         var rewardAmount = proposals[key].data.rewardAmount || 0;
                                         var currentAmount = proposals[key].data.currentAmount || 0;
-                                        sumAmount = sumAmount + Number(applyAmount) + Number(rewardAmount) + Number(currentAmount);
+                                        if (proposals[key].type && proposals[key].type == constProposalType.PLAYER_CONSUMPTION_RETURN) {
+                                            sumAmount = sumAmount + Number(rewardAmount) + Number(currentAmount);
+                                        }
+                                        else {
+                                            sumAmount = sumAmount + Number(applyAmount) + Number(rewardAmount) + Number(currentAmount);
+                                        }
                                     }
                                 }
                                 returnObj.pendingRewardAmount = sumAmount;
@@ -5407,7 +5630,7 @@ let dbPlayerInfo = {
 
                     //check if player has enough credit
                     player = playerData;
-                    if ((parseInt(parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount))) {
+                    if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -5469,7 +5692,7 @@ let dbPlayerInfo = {
                                         //     bUpdateCredit = false;
                                         // }
                                         //to fix float problem...
-                                        if (newPlayerData.validCredit < -0.01) {
+                                        if (newPlayerData.validCredit < -0.02) {
                                             //credit will be reset below
                                             return Q.reject({
                                                 status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -5995,7 +6218,16 @@ let dbPlayerInfo = {
                             gameStatus: gameData.status
                         });
                     }
-                    if (gameData.provider.status != constProviderStatus.NORMAL) {
+
+                    let providerEnabled = true;
+                    let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
+
+                    if (providerInfo) {
+                        providerEnabled = providerInfo.isEnabled;
+                    }
+
+                    // Added checking for platform level disable game provider
+                    if (gameData.provider.status != constProviderStatus.NORMAL || !providerEnabled) {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
@@ -6003,6 +6235,7 @@ let dbPlayerInfo = {
                             providerStatus: gameData.provider.status
                         });
                     }
+
                     return dbconfig.collection_platformGameStatus.findOne({
                         platform: playerData.platform._id,
                         game: gameData._id
@@ -7182,10 +7415,10 @@ let dbPlayerInfo = {
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = dbRewardTask.getPendingRewardTaskCount({
-                            mainType:'Reward',
-                            "data.playerObjId":playerInfo._id,
-                            status:'Pending'
-                    },rewardTaskWithProposalList);
+                        mainType: 'Reward',
+                        "data.playerObjId": playerInfo._id,
+                        status: 'Pending'
+                    }, rewardTaskWithProposalList);
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
@@ -7197,8 +7430,8 @@ let dbPlayerInfo = {
                             }
 
                             // if that's one reward pending , then you cannot apply other reward
-                            if(timeCheckData[2] && timeCheckData[2]>0){
-                                if(rewardTaskWithProposalList.indexOf(rewardEvent.type.name)!=-1){
+                            if (timeCheckData[2] && timeCheckData[2] > 0) {
+                                if (rewardTaskWithProposalList.indexOf(rewardEvent.type.name) != -1) {
                                     return Q.reject({
                                         status: constServerCode.PLAYER_PENDING_REWARD_PROPOSAL,
                                         name: "DataError",

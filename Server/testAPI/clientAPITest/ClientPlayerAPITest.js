@@ -228,6 +228,26 @@
         });
     };
 
+    proto.loginPlayerPartnerWithSMS = function (callback, requestData) {
+        let data = requestData || testPlayerLoginData;
+
+        if (!isNode) {
+            console.log("Not node");
+            document.cookie = "phoneNumber=" + data.phoneNumber;
+            document.cookie = "smsCode=" + data.smsCode;
+            document.cookie = "platform=" + data.platformId;
+            document.cookie = "expires=" + date + (5 * 60 * 60 * 1000);
+        }
+        this.playerService.loginPlayerPartnerWithSMS.request(data);
+        this.playerService.loginPlayerPartnerWithSMS.once(function (data) {
+            testPlayerObjId = data && data.data ? data.data._id : null;
+            testPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.isLogin = function (callback, requestData) {
         var data = requestData || {
                 playerId: testPlayerId

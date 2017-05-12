@@ -546,6 +546,10 @@ var dbPlayerTopUpRecord = {
                     if (player.forbidTopUpType && player.forbidTopUpType.indexOf(topupRequest.topupType) >= 0) {
                         return Q.reject({name: "DataError", message: "Top up type is forbidden for this player"});
                     }
+                    //check player merchant group
+                    if (!player.merchantGroup || !player.merchantGroup.merchants) {
+                        return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
+                    }
                     var proposalData = Object.assign({}, topupRequest);
                     proposalData.playerId = playerId;
                     proposalData.playerObjId = playerData._id;
@@ -1066,8 +1070,10 @@ var dbPlayerTopUpRecord = {
                         }
                     }
                     else {
-                        queryObj.name = {$in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_TOP_UP,
-                            constProposalType.PLAYER_ALIPAY_TOP_UP, constProposalType.PLAYER_WECHAT_TOP_UP]}
+                        queryObj.name = {
+                            $in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_TOP_UP,
+                                constProposalType.PLAYER_ALIPAY_TOP_UP, constProposalType.PLAYER_WECHAT_TOP_UP]
+                        }
                     }
                     return dbconfig.collection_proposalType.find(queryObj).lean();
                 }
@@ -1120,7 +1126,7 @@ var dbPlayerTopUpRecord = {
                 if (data && data[0] && data[0].length > 0) {
                     for (var i = 0; i < data[0].length; i++) {
                         var record = data[0][i];
-                        switch(record.type.name){
+                        switch (record.type.name) {
                             case constProposalType.PLAYER_MANUAL_TOP_UP:
                                 record.type = 1;
                                 break;
@@ -1258,7 +1264,7 @@ var dbPlayerTopUpRecord = {
                         proposalData.alipayName = alipayName;
                         proposalData.alipayAccount = alipayAccount;
                         proposalData.remark = remark;
-                        if(createTime){
+                        if (createTime) {
                             proposalData.depositeTime = new Date(createTime);
                         }
                         proposalData.creator = entryType === "ADMIN" ? {
@@ -1299,6 +1305,7 @@ var dbPlayerTopUpRecord = {
                             groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
                             remark: remark,
                             createTime: cTimeString,
+                            operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         if (alipayAccount) {
                             requestData.groupAlipayList = [alipayAccount];
@@ -1363,20 +1370,19 @@ var dbPlayerTopUpRecord = {
         }
     },
 
-    getPlayerWechatPayStatus:
-        playerId => {
-            return dbconfig.collection_players.findOne({playerId: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform})
-                .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
-                    playerData => {
-                        if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
-                            return true;
-                        }
-
-                        return false;
+    getPlayerWechatPayStatus: playerId => {
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
+                playerData => {
+                    if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
+                        return true;
                     }
-                )
-        },
+
+                    return false;
+                }
+            )
+    },
 
     /**
      * add wechat topup records of the player
@@ -1428,7 +1434,7 @@ var dbPlayerTopUpRecord = {
                         proposalData.wechatName = wechatName;
                         proposalData.wechatAccount = wechatAccount;
                         proposalData.remark = remark;
-                        if(createTime){
+                        if (createTime) {
                             proposalData.depositeTime = new Date(createTime);
                         }
                         proposalData.creator = entryType === "ADMIN" ? {
@@ -1474,7 +1480,7 @@ var dbPlayerTopUpRecord = {
                             requestData.groupWechatList = [wechatAccount];
                         }
                         //console.log("requestData", requestData);
-                        return pmsAPI.payment_requestWeChatAccount(requestData);
+                        return pmsAPI.payment_requestWeChatQRAccount(requestData);
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});

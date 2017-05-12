@@ -42,7 +42,7 @@
         //    text(ng-if="vm.selectedSinglePlayer.status != 1 ") {{"ENABLE" | translate}}
         //    img.img-delete
         //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalEditPlayer')
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.playerNewPassword=""', data-target='#modalPlayerPasswordReset')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset')
             text {{"RESET_PASSWORD" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ForbidTopupTypes')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerForbidTopUpType()' data-target='#modalPlayerForbidTopupTypes')
@@ -248,8 +248,12 @@ include modalGameCreditLog
                     .form-group-col-md-6
                         label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
                         select.form-control(ng-model='vm.playerPayment.bankAccountType', ng-disabled='!vm.isEditingPlayerPayment')
-                            option(value='2') {{'Debit Card'|translate}}
-                            option(value='1') {{'Credit Card'|translate}}
+                            option(value='2') {{'Debit Card '|translate}} | 42385
+                            option(value='1') {{'Credit Card '|translate}} | 859
+                            option(value='3') {{'储存卡'|translate}} | 1
+                            option(value='4') {{'储蓄卡'|translate}} | 14
+                            option(value='5') {{'商务理财卡'|translate}} | 1
+                            option(value='6') {{'工商银行一卡通'|translate}} | 1
                     .form-group-col-md-6
                         .col-md-4(style='padding-left:0')
                             label.control-label {{"PHONE_PROVINCE" | translate}}
@@ -379,6 +383,7 @@ include modalGameCreditLog
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePlayerFeedback();") {{"ADD" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
 #modalPlayerPasswordReset.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         .modal-content
@@ -394,6 +399,9 @@ include modalGameCreditLog
                                 //input.form-control(ng-model='vm.PlayerPassword.PlayerName')
                                 text.text-success(ng-repeat="(i,v) in vm.selectedPlayers") &nbsp;{{v.name}}
                                 span &nbsp;{{"will be reset. Are you sure?"|translate}}
+                            .form-group
+                                input(type='checkbox', ng-model='vm.resetPartnerNewPassword')
+                                text {{"RESET_PARTNER_PASSWORD"|translate}}
                         .well(ng-if='vm.playerNewPassword')
                             .form-group
                                 text The new password for&nbsp;
@@ -963,8 +971,12 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_TYPE' | translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card' | translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card' | translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card '|translate}} | 42385
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card '|translate}} | 859
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==3 || vm.selectedSinglePlayer.bankAccountType=="3"') {{'储存卡'|translate}} | 1
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==4 || vm.selectedSinglePlayer.bankAccountType=="4"') {{'储蓄卡'|translate}} | 14
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==5 || vm.selectedSinglePlayer.bankAccountType=="5"') {{'商务理财卡'|translate}} | 1
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}} | 1
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_PROVINCE' | translate}}
                                             text {{vm.showProvinceStr}}

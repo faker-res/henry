@@ -15,7 +15,7 @@ var partnerSchema = new Schema({
     //partner name
     partnerName: {type: String, required: true, index: true},
     //display name
-    realName: String,
+    realName: {type: String, index: true},
     //partner password
     password: String,
     //email
@@ -133,7 +133,7 @@ var partnerSchema = new Schema({
         disableCommSettlement: {type: Boolean, default: false}
     },
     // partner status normal or forbid
-    status: {type: Number, default: constPartnerStatus.NORMAL}
+    status: {type: Number, default: constPartnerStatus.NORMAL, index: true}
 
 });
 
@@ -185,6 +185,23 @@ partnerSchema.post('find', function(result) {
             if(result[i].phoneNumber && result[i].phoneNumber.length > 0){
                 var startIndex = Math.max(Math.floor((result[i].phoneNumber.length - 4)/2), 0);
                 result[i].phoneNumber = result[i].phoneNumber.substr(0, startIndex) + "****" + result[i].phoneNumber.substr(startIndex+4);
+            }
+
+            // hide part of the e-mail
+            if(result[i].email && result[i].email.length > 0){
+                let partnerEmail = result[i].email;
+                let emailParts = partnerEmail.split("@");
+                let emailLocal = emailParts[0];
+                let emailLocalChar = emailLocal.split('');
+                for(let i in emailLocalChar) {
+                    if(i < 3) {
+                        continue;
+                    }
+                    emailLocalChar[i] = '*';
+                }
+                let hiddenEmailLocal = emailLocalChar.join('');
+                emailParts[0] = hiddenEmailLocal;
+                result[i].email = emailParts.join('@');
             }
         }
         return result;

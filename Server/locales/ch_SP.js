@@ -90,7 +90,7 @@ var simplifiedChinese = {
     "Error finding player": "无法找到玩家",
     "Error getting platform reward data": "无法找到奖励数据",
     "Error creating proposal": "无法创建提案",
-    "The player already has this reward. Not Valid for the reward.": "玩家以申请该奖励",
+    "The player already has this reward. Not Valid for the reward.": "玩家已申请该奖励",
     "This top up record has been used": "该充值记录已被使用",
     "Player is not enable": "用户没有发现或无效密码",
     "Player does not have enough credit.": "玩家额度不够",
@@ -134,7 +134,7 @@ var simplifiedChinese = {
     "Error in creating partner": "创建渠道失败",
     "Top up amount is not enough": "充值额度不够",
     "Player has too much valid credit": "玩家额度过多",
-    "Player has applied for this reward": "玩家以申请过该奖励",
+    "Player has applied for this reward": "玩家已申请过该奖励",
     "Amount is not enough": "申请兑奖数量过少",
     "This proposal has been processed": "该提案已在处理中",
     "Invalid player bankcard group data": "玩家无可支付的银行卡",
@@ -147,7 +147,8 @@ var simplifiedChinese = {
     "Player do not have permission for reward": "您好， 您目前暂无申请优惠的权限，请联系客服。",
     "Username should be alphanumeric and within 12 characters": "用户名只能为6-12位的数字和字母",
     "Realname should be chinese character": "真实姓名必须为汉字",
-    "There is consumption after top up": "玩家充值后已有消费"
+    "There is consumption after top up": "玩家充值后已有消费",
+    "Player does not have valid merchant data": "玩家没有有效的商户信息"
     //todo::add missing messages here
 
     /*
