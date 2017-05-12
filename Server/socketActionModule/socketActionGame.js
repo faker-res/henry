@@ -158,6 +158,13 @@ function socketActionGame(socketIO, socket) {
             var isValidData = Boolean(data && data.gameId);
             var argArr = [data, null, null, ObjectId(data.gameId), data.index, data.limit, data.sortCol];
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getPagedGameProviderConsumptionRecord, argArr, actionName, isValidData);
+        },
+
+        modifyGamePassword: function modifyGamePassword(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.providerId && data.newPassword);
+            let argArr = [data.playerId, data.providerId, data.newPassword];
+            socketUtil.emitter(self.socket, dbGame.modifyGamePassword, argArr, actionName, isValidData);
         }
     };
     socketActionGame.actions = this.actions;
