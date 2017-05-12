@@ -205,11 +205,11 @@ var GameServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getGameUserInfo, [conn.playerId, data.platformId, data.providerId], isValidData);
     };
 
-    this.modifyGamePassword.expectsData = 'username: String, platformId: String, providerId: String, oldPassword: String, newPassword: String';
-    this.modifyGamePassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data && data.username && data.platformId && data.providerId && data.oldPassword && data.newPassword);
-        WebSocketUtil.performAction(conn, wsFunc, data, cpmsAPI.player_modifyGamePassword, [data], isValidData);
-    };
+    // this.modifyGamePassword.expectsData = 'username: String, platformId: String, providerId: String, oldPassword: String, newPassword: String';
+    // this.modifyGamePassword.onRequest = function (wsFunc, conn, data) {
+    //     var isValidData = Boolean(conn.playerId && data && data.username && data.platformId && data.providerId && data.oldPassword && data.newPassword);
+    //     WebSocketUtil.performAction(conn, wsFunc, data, cpmsAPI.player_modifyGamePassword, [data], isValidData);
+    // };
 
     this.grabPlayerTransferRecords.expectsData = 'platformId: String, providerId: String';
     this.grabPlayerTransferRecords.onRequest = function (wsFunc, conn, data) {
