@@ -9,7 +9,7 @@ var dbPlatformGameStatus = require('./../db_modules/dbPlatformGameStatus');
 var constSystemParam = require('./../const/constSystemParam');
 var constServerCode = require('./../const/constServerCode');
 var constGameStatus = require('../const/constGameStatus');
-var cpmsAPI = require("../../externalAPI/cpmsAPI");
+var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
 
 var dbGame = {
