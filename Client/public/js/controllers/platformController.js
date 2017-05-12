@@ -1634,7 +1634,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.confirmUpdateProviderStatus = function (providerData) {
-            var type = vm.getPlatformsProviderEnable(providerData);
+            let type = vm.getPlatformsProviderEnable(providerData);
             GeneralModal.confirm({
                 title: $translate('Please confirm your action.'),
                 text: $translate("Are you sure to update") + " " + providerData.name + "(" + providerData.code + ") -> " + $translate(type) + " ?"
@@ -1785,7 +1785,7 @@ define(['js/app'], function (myApp) {
                 }
                 function updateShowPlayerCredit() {
                     if (!errorLogObjReady || !vm.selectedThisPlayer) return;
-                    vm.linkedPlayerTransferId = playerTransfer.transferId;
+                    vm.linkedPlayerTransferId = playerTransfer._id;
                     vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount
                         + vm.selectedThisPlayer.validCredit).toFixed(2);
                     vm.creditChange.finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
@@ -1816,13 +1816,14 @@ define(['js/app'], function (myApp) {
         vm.submitRepairTransfer = function () {
             socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id}
                 , function (pData) {
-                    var playerTransfer;
+                    let playerTransfer = {};
                     pData.data.forEach(function (playerTransLog) {
-                        if (playerTransLog.transferId == vm.linkedPlayerTransferId) {
+                        if (playerTransLog._id == vm.linkedPlayerTransferId) {
                             playerTransfer = playerTransLog
                         }
-                    })
-                    var sendData = {
+                    });
+
+                    let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
@@ -1836,7 +1837,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     if (vm.linkedPlayerTransferId) {
-                        sendData.data.transferId = vm.linkedPlayerTransferId;
+                        sendData.data.transferId = playerTransfer.transferId;
                         sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
                         sendData.data.curLockedAmount = vm.selectedThisPlayer.lockedCredit;
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
@@ -4361,7 +4362,7 @@ define(['js/app'], function (myApp) {
                                 }
                             })
 
-                            vm.linkedPlayerTransferId = playerTransfer.transferId;
+                            vm.linkedPlayerTransferId = playerTransfer._id;
                             vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit).toFixed(2);
                             vm.creditChange.finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
                             $scope.safeApply();
@@ -4419,16 +4420,16 @@ define(['js/app'], function (myApp) {
 
         };
         vm.repairTransaction = function () {
-
             socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}
                 , function (pData) {
-                    var playerTransfer;
+                    let playerTransfer = {};
                     pData.data.forEach(function (playerTransLog) {
-                        if (playerTransLog.transferId == vm.linkedPlayerTransferId) {
+                        if (playerTransLog._id == vm.linkedPlayerTransferId) {
                             playerTransfer = playerTransLog
                         }
-                    })
-                    var sendData = {
+                    });
+
+                    let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
@@ -4442,7 +4443,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     if (vm.linkedPlayerTransferId) {
-                        sendData.data.transferId = vm.linkedPlayerTransferId;
+                        sendData.data.transferId = playerTransfer.transferId;
                         sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
                         sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
@@ -4876,7 +4877,8 @@ define(['js/app'], function (myApp) {
                         // },
                     ],
                     destroy: true,
-                    paging: false
+                    paging: false,
+                    autoWidth: true
                 });
                 // $('#playerExpenseTable').DataTable(option);
                 var a = utilService.createDatatableWithFooter('#playerExpenseTable', option, {

@@ -28,9 +28,11 @@ var rsaCrypto = require("../modules/rsaCrypto");
 var dbRewardEvent = require("../db_modules/dbRewardEvent");
 var dbLogger = require('./../modules/dbLogger');
 
+// constants
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalStatus = require('../const/constProposalStatus');
 const constProposalUserType = require('../const/constProposalUserType');
+const constProviderStatus = require("./../const/constProviderStatus");
 const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
@@ -526,8 +528,8 @@ var dbPlatform = {
     },
 
     updateProviderFromPlatformById: function (platformObjId, providerObjId, isEnable) {
-        var statusUpdatePath = "gameProviderInfo." + providerObjId;
-        var statusUpdate = {};
+        let statusUpdatePath = "gameProviderInfo." + providerObjId;
+        let statusUpdate = {};
         statusUpdate[statusUpdatePath] = {
             isEnable: isEnable
         };

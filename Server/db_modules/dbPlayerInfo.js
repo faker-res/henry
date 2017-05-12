@@ -35,7 +35,6 @@ var constShardKeys = require('../const/constShardKeys');
 var constPlayerTopUpType = require('../const/constPlayerTopUpType');
 var constProposalMainType = require('../const/constProposalMainType');
 var constGameStatus = require("./../const/constGameStatus");
-var constProviderStatus = require("./../const/constProviderStatus");
 var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
@@ -55,6 +54,9 @@ var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
 var SMSSender = require('../modules/SMSSender');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
+
+// constants
+const constProviderStatus = require("./../const/constProviderStatus");
 
 // db_modules
 let dbGeoIp = require('./../db_modules/dbGeoIp');
@@ -1494,10 +1496,10 @@ let dbPlayerInfo = {
                     };
                     var logData = null;
                     if (proposalData && proposalData.data) {
-                        if (topUpType == constPlayerTopUpType.ONLINE) {
+                        if (topUpType == constPlayerTopUpType.MANUAL) {
                             recordData.bankCardType = proposalData.data.bankCardType;
                         }
-                        else if (topUpType == constPlayerTopUpType.MANUAL) {
+                        else if (topUpType == constPlayerTopUpType.ONLINE) {
                             recordData.merchantTopUpType = proposalData.data.topupType;
                         }
                         logData = proposalData.data;
@@ -1649,8 +1651,12 @@ let dbPlayerInfo = {
                     "data.platformId": data.platform,
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
-                    type: proposalType
-                });
+                    type: proposalType,
+                    $or: [
+                        {status: constProposalStatus.SUCCESS},
+                        {status: constProposalStatus.APPROVED}
+                    ]
+                })
 
             }, function (error) {
                 deferred.reject({name: "DataError", message: "Can't find player data", error: error});
@@ -3220,7 +3226,9 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
-                    if ((data[0].validCredit + data[0].lockedCredit) < 1 || amount == 0 || data[0].validCredit < amount) {
+                    if (( (parseFloat(data[0].validCredit).toFixed(2)) + data[0].lockedCredit) < 1
+                        || amount == 0
+                        || (parseFloat(data[0].validCredit).toFixed(2)) < amount) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -3305,7 +3313,9 @@ let dbPlayerInfo = {
                 if (playerData1) {
                     playerData = playerData1;
                     // Check player have enough credit
-                    if ((playerData1.validCredit + playerData1.lockedCredit) < 1 || amount == 0 || playerData1.validCredit < amount) {
+                    if ((parseFloat(playerData1.validCredit.toFixed(2)) + playerData1.lockedCredit) < 1
+                        || amount == 0
+                        || (parseFloat(playerData1.validCredit).toFixed(2)) < amount) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "NumError",
@@ -3329,7 +3339,7 @@ let dbPlayerInfo = {
                 if (!notEnoughtCredit) {
                     // Player has enough credit
                     //if amount is less than 0, means transfer all
-                    amount = amount > 0 ? amount : playerData.validCredit;
+                    amount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
                     if (!rewardData) {
                         // Player has no reward ongoing
                         amount = Math.floor(amount);
@@ -3404,9 +3414,13 @@ let dbPlayerInfo = {
                             errorMessage: "Player does not have enough credit."
                         });
                     }
+
+                    // Deduct amount from player validCredit before transfer
+                    // Amount is already floored
+                    let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
                     let updateObj = {
                         lastPlayedProvider: providerId,
-                        $inc: {validCredit: -amount}
+                        $inc: {validCredit: -decreaseAmount}
                     };
                     if (bUpdateReward) {
                         updateObj.lockedCredit = rewardData.currentAmount;
@@ -3430,6 +3444,7 @@ let dbPlayerInfo = {
             }
         ).then(
             //check if player's credit is enough to transfer
+            // to prevent concurrent deduction
             function (updateData) {
                 if (updateData) {
                     //console.log("Before transfer credit:", playerData.validCredit);
@@ -5615,7 +5630,7 @@ let dbPlayerInfo = {
 
                     //check if player has enough credit
                     player = playerData;
-                    if ((parseInt(parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount))) {
+                    if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -5677,7 +5692,7 @@ let dbPlayerInfo = {
                                         //     bUpdateCredit = false;
                                         // }
                                         //to fix float problem...
-                                        if (newPlayerData.validCredit < -0.01) {
+                                        if (newPlayerData.validCredit < -0.02) {
                                             //credit will be reset below
                                             return Q.reject({
                                                 status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -6203,7 +6218,16 @@ let dbPlayerInfo = {
                             gameStatus: gameData.status
                         });
                     }
-                    if (gameData.provider.status != constProviderStatus.NORMAL) {
+
+                    let providerEnabled = true;
+                    let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
+
+                    if (providerInfo) {
+                        providerEnabled = providerInfo.isEnabled;
+                    }
+
+                    // Added checking for platform level disable game provider
+                    if (gameData.provider.status != constProviderStatus.NORMAL || !providerEnabled) {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
@@ -6211,6 +6235,7 @@ let dbPlayerInfo = {
                             providerStatus: gameData.provider.status
                         });
                     }
+
                     return dbconfig.collection_platformGameStatus.findOne({
                         platform: playerData.platform._id,
                         game: gameData._id

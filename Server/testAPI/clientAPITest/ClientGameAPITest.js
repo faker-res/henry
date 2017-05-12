@@ -207,6 +207,18 @@
         this.gameService.searchGameByGroup.once(callback);
     };
 
+    proto.getGamePassword = function (callback, requestData) {
+        var data = requestData || {platformId: 1};
+        this.gameService.getGamePassword.request(data);
+        this.gameService.getGamePassword.once(callback);
+    };
+
+    proto.modifyGamePassword = function (callback, requestData) {
+        var data = requestData || {platformId: 1};
+        this.gameService.modifyGamePassword.request(data);
+        this.gameService.modifyGamePassword.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientGameAPITest;
     } else {
