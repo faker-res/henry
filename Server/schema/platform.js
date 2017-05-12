@@ -68,7 +68,7 @@ var platformSchema = new Schema({
     // Platform-wide SMS Verification Setting
     requireSMSVerification: {type: Boolean, default: false},
     // only allow register with unique phone number
-    uniquePhoneNumber: {type: Boolean, default: false}
+    allowSamePhoneNumberToRegister: {type: Boolean, default: false}
 });
 
 //add platform id before save
