@@ -18,8 +18,8 @@ form(name="form_new_partner", novalidate)
         input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.newPartner.email", required)
         span.help-block(ng-show="form_new_partner.email.$dirty && form_new_partner.email.$error.email") {{"EMAIL_INVALID" | translate}}
     div.form-group.col-md-6
-        label.control-label {{"MOBILE" | translate}}
-        input.form-control(type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="vm.newPartner.phoneNumber")
+        label.control-label * {{"MOBILE" | translate}}
+        input.form-control(type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="vm.newPartner.phoneNumber",required)
     div.form-group.col-md-6
         label.control-label {{"PARTNER_LEVEL_SHORT" | translate}}
         select.form-control(ng-model="vm.newPartner.level")
