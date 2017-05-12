@@ -3226,9 +3226,8 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
-                    if (( (parseFloat(data[0].validCredit).toFixed(2)) + data[0].lockedCredit) < 1
-                        || amount == 0
-                        || (parseFloat(data[0].validCredit).toFixed(2)) < amount) {
+                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1
+                        || amount == 0) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -3314,8 +3313,7 @@ let dbPlayerInfo = {
                     playerData = playerData1;
                     // Check player have enough credit
                     if ((parseFloat(playerData1.validCredit.toFixed(2)) + playerData1.lockedCredit) < 1
-                        || amount == 0
-                        || (parseFloat(playerData1.validCredit).toFixed(2)) < amount) {
+                        || amount == 0) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "NumError",
@@ -3341,8 +3339,8 @@ let dbPlayerInfo = {
                     //if amount is less than 0, means transfer all
                     amount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
                     if (!rewardData) {
-                        // Player has no reward ongoing
                         amount = Math.floor(amount);
+                        // Player has no reward ongoing
                         gameAmount = amount;
                         rewardData = true;
                         //return true;
@@ -3536,6 +3534,7 @@ let dbPlayerInfo = {
                     function () {
                         //change player credit back if transfer failed
                         if (bTransfered) {
+                            console.error(err);
                             if (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) {
                             } else {
                                 return dbconfig.collection_players.findOneAndUpdate(
