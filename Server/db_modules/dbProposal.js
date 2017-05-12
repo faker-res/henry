@@ -495,7 +495,9 @@ var proposal = {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, true);
                 } else if (status == constProposalStatus.FAIL) {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark);
-                } else if (status == constProposalStatus.PENDING || status == constProposalStatus.PROCESSING) {
+                } else if (status == constProposalStatus.PENDING
+                    || status == constProposalStatus.PROCESSING
+                    || status == constProposalStatus.UNDETERMINED) {
                     return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                         proposalData => {
                             proposalData.status = status;
