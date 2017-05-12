@@ -3338,8 +3338,8 @@ let dbPlayerInfo = {
                     // Player has enough credit
                     //if amount is less than 0, means transfer all
                     amount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
-                    amount = Math.floor(amount);
                     if (!rewardData) {
+                        amount = Math.floor(amount);
                         // Player has no reward ongoing
                         gameAmount = amount;
                         rewardData = true;
@@ -3415,10 +3415,10 @@ let dbPlayerInfo = {
 
                     // Deduct amount from player validCredit before transfer
                     // Amount is already floored
-                    //let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
+                    let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
                     let updateObj = {
                         lastPlayedProvider: providerId,
-                        $inc: {validCredit: -amount}
+                        $inc: {validCredit: -decreaseAmount}
                     };
                     if (bUpdateReward) {
                         updateObj.lockedCredit = rewardData.currentAmount;
@@ -3534,6 +3534,7 @@ let dbPlayerInfo = {
                     function () {
                         //change player credit back if transfer failed
                         if (bTransfered) {
+                            console.error(err);
                             if (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) {
                             } else {
                                 return dbconfig.collection_players.findOneAndUpdate(
