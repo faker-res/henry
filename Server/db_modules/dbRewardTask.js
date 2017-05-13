@@ -518,7 +518,7 @@ var dbRewardTask = {
     completeRewardTask: function (taskData) {
         return new Promise((resolve, reject) => {
             let bUpdateProposal = false;
-            let originalReward = taskData.currentAmount;
+            let originalStatus = taskData.status;
             let rewardAmount = taskData.currentAmount;
 
             if (taskData.requiredBonusAmount > 0 && rewardAmount > taskData.requiredBonusAmount) {
@@ -562,6 +562,10 @@ var dbRewardTask = {
                     else {
                         reject({name: "DataError", message: "Incorrect reward task status"});
                     }
+                },
+                error => {
+                    console.log("Update reward task to complete failed", error, rewardTask);
+                    reject({name: "DataError", message: "Fail to update reward task", error: error});
                 }
             ).then(
                 data => {
@@ -569,32 +573,34 @@ var dbRewardTask = {
                         //if (rewardAmount > 0) {
                         dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, taskData);
                         //}
+                        resolve(taskData.currentAmount);
 
-                        if (bUpdateProposal) {
-                            var diffAmount = taskData.currentAmount - taskData.maxRewardAmount;
-
-                            return dbUtil.findOneAndUpdateForShard(
-                                dbconfig.collection_proposal,
-                                {proposalId: taskData.proposalId},
-                                {"data.diffAmount": diffAmount},
-                                constShardKeys.collection_proposal
-                            ).then(() => {
-                                resolve(taskData.currentAmount);
-                            });
-                        }
-                        else {
-                            resolve(taskData.currentAmount);
-                        }
+                        // if (bUpdateProposal) {
+                        //     var diffAmount = taskData.currentAmount - taskData.maxRewardAmount;
+                        //
+                        //     return dbUtil.findOneAndUpdateForShard(
+                        //         dbconfig.collection_proposal,
+                        //         {proposalId: taskData.proposalId},
+                        //         {"data.diffAmount": diffAmount},
+                        //         constShardKeys.collection_proposal
+                        //     ).then(() => {
+                        //         resolve(taskData.currentAmount);
+                        //     });
+                        // }
+                        // else {
+                        //     resolve(taskData.currentAmount);
+                        // }
                     }
                     else {
                         reject({name: "DataError", message: "Can't update reward task and player credit"});
                     }
                 },
                 error => {
+                    console.log("Update player credit failed when complete reward task", error, taskData);
                     // Revert reward task status
                     return dbconfig.collection_rewardTask.findOneAndUpdate(
                         {_id: taskData._id, platformId: taskData.platformId},
-                        {status: constRewardTaskStatus.STARTED},
+                        {status: originalStatus},
                         {new: true}
                     ).then(
                         data => {
