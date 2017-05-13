@@ -6379,6 +6379,37 @@ let dbPlayerInfo = {
             );
     },
 
+    getTestLoginURLWithoutUser: function (gameId, ip, lang, clientDomainName, clientType) {
+
+        var providerData = null;
+
+        return dbconfig.collection_game.findOne({gameId: gameId})
+            .populate({path: "provider", model: dbconfig.collection_gameProvider})
+            .then(gameData => {
+                if (gameData) {
+                    providerData = gameData.provider.toObject();
+                    if (ip == "undefined") {
+                        ip = "127.0.0.1";
+                    }
+                    var sendData = {
+                        providerId: providerData.providerId,
+                        gameId: gameId,
+                        clientDomainName: clientDomainName || "Can not find domain",
+                        lang: lang || localization.lang.ch_SP,
+                        ip: ip,
+                        clientType: clientType || 1
+                    };
+                    //var isHttp = providerData.interfaceType == 1 ? true : false;
+                    return cpmsAPI.player_getTestLoginURL(sendData);
+                } else {
+                    return Q.reject({name: "DataError", message: "Cannot find game"})
+                }
+            })
+            .then(
+                loginData => ({gameURL: loginData.gameURL})
+            );
+    },
+
     getGameUserInfo: function (playerId, platformId, providerId) {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .then(
