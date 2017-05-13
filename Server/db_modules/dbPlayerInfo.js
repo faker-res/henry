@@ -13,7 +13,9 @@ var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
 let rsaCrypto = require("../modules/rsaCrypto");
+
 let env = require('../config/env').config();
+
 var counterManager = require('./../modules/counterManager');
 var dbUtility = require('./../modules/dbutility');
 var dbconfig = require('./../modules/dbproperties');
@@ -95,11 +97,6 @@ let dbPlayerInfo = {
                             realName: inputData.realName,
                             platform: platformData._id
                         });
-                        let phoneNumberChecker = dbPlayerInfo.isPhoneNumberValidToRegister({
-                            phoneNumber: inputData.phoneNumber,
-                            platform: platformData._id
-                        });
-
                         if (!("allowSameRealNameToRegister" in platformData)) {
                             platformData.allowSameRealNameToRegister = true;
                         }
@@ -107,54 +104,22 @@ let dbPlayerInfo = {
                             return playerNameChecker;
                         }
 
-                        if (!("allowSamePhoneNumberToRegister" in platformData)) {
-                            console.log("\n\n",platformData);
-                            platformData.allowSamePhoneNumberToRegister = true;
-                        }
-                        if (platformData.allowSamePhoneNumberToRegister) {
-                            return phoneNumberChecker;
-                        }
-
-                        return Q.all([playerNameChecker, realNameChecker, phoneNumberChecker]).then(data => {
-
-                            if(data){
-                                var validSet = {};
-
-                                if (data[0] && data[1]) {
-                                    if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
-                                        // return {"isPlayerNameValid": true};
-                                        validSet.isPlayerNameValid = true;
-                                    }
-                                    else {
-                                        return Q.reject({
-                                            status: constServerCode.USERNAME_ALREADY_EXIST,
-                                            name: "DBError",
-                                            message: "Realname already exists"
-                                        });
-                                    }
+                        return Q.all([playerNameChecker, realNameChecker]).then(data => {
+                            if (data && data.length == 2 && data[0] && data[1]) {
+                                if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
+                                    // console.log();
+                                    return {"isPlayerNameValid": true};
                                 }
                                 else {
-                                    // return {"isPlayerNameValid": false};
-                                    validSet.isPlayerNameValid = false;
+                                    return Q.reject({
+                                        status: constServerCode.USERNAME_ALREADY_EXIST,
+                                        name: "DBError",
+                                        message: "Realname already exists"
+                                    });
                                 }
-
-                                if (data[2]) {
-                                    if (data[2].isPhoneNumberValid) {
-                                        validSet.isPhoneNumberValid = true;
-                                    }
-                                    else {
-                                        return Q.reject({
-                                            status: constServerCode.PHONE_NUMBER_REGISTERED,
-                                            name: "DBError",
-                                            message: "Phone Number already registered"
-                                        });
-                                    }
-                                }
-                                else {
-                                    validSet.isPhoneNumberValid = false;
-                                }
-
-                                return Q.all(validSet);
+                            }
+                            else {
+                                return {"isPlayerNameValid": false};
                             }
                         });
                     }
@@ -582,19 +547,10 @@ let dbPlayerInfo = {
                     if (!skipPrefix) {
                         playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
                     }
-
-                    let checkPlayerName =  dbPlayerInfo.isPlayerNameValidToRegister({
+                    return dbPlayerInfo.isPlayerNameValidToRegister({
                         name: playerdata.name,
                         platform: playerdata.platform
                     });
-
-                    let phoneNumber =  dbPlayerInfo.isPhoneNumberValidToRegister({
-                        phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
-                        platform: playerdata.platform
-                    });
-
-                    return Q.all([checkPlayerName,phoneNumber]);
-
                 } else {
                     deferred.reject({name: "DBError", message: "No such platform"});
                 }
@@ -609,28 +565,20 @@ let dbPlayerInfo = {
         ).then(
             //make sure player name is unique
             function (data) {
-                var proms = [];
-                if (data[0].isPlayerNameValid && data[1].isPhoneNumberValid) {
+                if (data.isPlayerNameValid) {
                     var playerName = new dbconfig.collection_playerName({
                         name: playerdata.name,
                         platform: playerdata.platform
                     });
                     return playerName.save();
                 } else {
-                    var errorMessage = "";
-                    if(!data[0].isPlayerNameValid){
-                        errorMessage = "Username already exists";
-                    }
-                    else if(!data[1].isPhoneNumberValid){
-                        errorMessage = "Phone number already registered";
-                    }
-                    return Q.reject({name: "DBError", message: errorMessage});
+                    deferred.reject({name: "DBError", message: "Username already exists"});
                 }
             },
             function (error) {
                 deferred.reject({
                     name: "DBError",
-                    message: errorMessage,
+                    message: "Username already exists",
                     error: error
                 });
             }
@@ -646,7 +594,7 @@ let dbPlayerInfo = {
             function (error) {
                 deferred.reject({
                     name: "DBError",
-                    message: "Error in checking player uniqueness " + error.message,
+                    message: "Error in checking player name uniqueness " + error.message,
                     error: error
                 });
             }
@@ -4274,19 +4222,6 @@ let dbPlayerInfo = {
         );
     },
 
-    // isValidPhoneNumber: function (inputData) {
-    //     return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
-    //         platformData => {
-    //             if (platformData) {
-    //                 return dbPlayerInfo.isPhoneNumberValidToRegister({name: inputData.phoneNumber, platform: platformData._id});
-    //             }
-    //             else {
-    //                 return Q.reject({name: "DataError", message: "Cannot find platform"});
-    //             }
-    //         }
-    //     );
-    // },
-
     getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince) {
         //todo: active player indicator
         var matchObj = {
@@ -4330,18 +4265,6 @@ let dbPlayerInfo = {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
-                }
-            }
-        );
-    },
-
-    isPhoneNumberValidToRegister: function (query) {
-        return dbconfig.collection_players.findOne(query).then(
-            playerData => {
-                if (playerData) {
-                    return {isPhoneNumberValid: false};
-                } else {
-                    return {isPhoneNumberValid: true};
                 }
             }
         );
