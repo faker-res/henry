@@ -264,6 +264,7 @@
                 "notifyProviderStatusUpdate",
                 "getLoginURL",
                 "getTestLoginURL",
+                "getTestLoginURLWithoutUser",
                 "getGameUserInfo",
                 "modifyGamePassword",
                 "grabPlayerTransferRecords",
