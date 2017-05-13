@@ -3005,15 +3005,15 @@ define(['js/app'], function (myApp) {
                         if (data && data.data.playerId == vm.selectedSinglePlayer.playerId) {
                             let preDistinctCheckData = data.data.similarData;
                             let distinctData = [];
-                            for(let i = 0; i < preDistinctCheckData.length; i++) {
+                            for (let i = 0; i < preDistinctCheckData.length; i++) {
                                 let duplicate = false;
                                 for (let j = 0; j < distinctData.length; j++) {
-                                    if(distinctData[j].field === preDistinctCheckData[i].field &&  JSON.stringify(distinctData[j].playerObjId) === JSON.stringify(preDistinctCheckData[i].playerObjId)) {
+                                    if (distinctData[j].field === preDistinctCheckData[i].field && JSON.stringify(distinctData[j].playerObjId) === JSON.stringify(preDistinctCheckData[i].playerObjId)) {
                                         duplicate = true;
                                         break;
                                     }
                                 }
-                                if(duplicate === false) {
+                                if (duplicate === false) {
                                     distinctData.push(preDistinctCheckData[i]);
                                 }
                             }
@@ -6435,6 +6435,12 @@ define(['js/app'], function (myApp) {
                 if (partner.credits) {
                     partner.credits = partner.credits.toFixed(2);
                 }
+                if (partner.registrationTime) {
+                    partner.registrationTime = utilService.getFormatTime(partner.registrationTime);
+                }
+                if (partner.lastAccessTime) {
+                    partner.lastAccessTime = utilService.getFormatTime(partner.lastAccessTime)
+                }
             });
             vm.partners = data;
             vm.selectedPartnerCount = 0;
@@ -6558,10 +6564,10 @@ define(['js/app'], function (myApp) {
                         data: 'credits'
                     },
                     {
-                        title: $translate('REGISTRATION_TIME'), data: 'registrationTime',
-                        render: function (data, type, row) {
-                            return utilService.getFormatTime(data);
-                        }
+                        title: $translate('REGISTRATION_TIME'), data: 'registrationTime'
+                        // render: function (data, type, row) {
+                        //     return utilService.getFormatTime(data);
+                        // }
                     },
                     {
                         title: $translate('PARTNER_LEVEL_SHORT'),
@@ -6609,10 +6615,10 @@ define(['js/app'], function (myApp) {
                         "sClass": "alignLeft"
                     },
                     {
-                        title: $translate('LAST_ACCESS_TIME'), data: 'lastAccessTime',
-                        render: function (data, type, row) {
-                            return utilService.getFormatTime(data);
-                        }
+                        title: $translate('LAST_ACCESS_TIME'), data: 'lastAccessTime'
+                        // render: function (data, type, row) {
+                        //     return utilService.getFormatTime(data);
+                        // }
                     },
                     {
                         title: $translate('LAST_LOGIN_IP'), orderable: false,
