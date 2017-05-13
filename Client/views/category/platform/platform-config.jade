@@ -484,12 +484,7 @@
                                 td
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSameRealNameToRegister', ng-disabled='!vm.configTableEdit')
-                          tr
-                              td {{'allow same phone number to register' | translate}}
-                              td
-                                  text(ng-show='!vm.configTableEdit') 
-                                  input(type='checkbox', ng-model='vm.platformBasic.allowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
-                      br
+
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
@@ -519,7 +514,6 @@
                       img.img-edit
                   button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bonusBasic")') {{"CANCEL" | translate}}
                   button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bonusBasic")') {{"CONFIRM" | translate}}
-
                   
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
