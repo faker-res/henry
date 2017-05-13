@@ -21,7 +21,7 @@ var partnerSchema = new Schema({
     //email
     email: {type: String, default: ""},
     //mobile Number
-    phoneNumber: {type: String, default: ""},
+    phoneNumber: {type: String, default: "", index: true},
     //registration time
     registrationTime: {type: Date, default: Date.now},
     //last login time

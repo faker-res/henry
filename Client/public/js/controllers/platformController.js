@@ -8620,14 +8620,15 @@ define(['js/app'], function (myApp) {
             vm.platformBasic = vm.platformBasic || {};
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
+            vm.platformBasic.allowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
             $scope.safeApply();
         }
+
         vm.getBonusBasic = () => {
-            console.log('getBonusBasic', JSON.stringify(vm.selectedPlatform.data));
-            vm.bonusBasic = vm.bonusBasic || {};
-            vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
-            vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
-            $scope.safeApply();
+          vm.bonusBasic = vm.bonusBasic || {};
+          vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
+          vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
+          $scope.safeApply();
         }
 
         vm.submitAddPlayerLvl = function () {
@@ -8842,7 +8843,8 @@ define(['js/app'], function (myApp) {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
                     minTopUpAmount: srcData.showMinTopupAmount,
-                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister
+                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
+                    allowSamePhoneNumberToRegister: srcData.allowSamePhoneNumberToRegister
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -8851,7 +8853,6 @@ define(['js/app'], function (myApp) {
         }
 
         function updateBonusBasic(srcData) {
-            console.log('\n\n\nupdateBonusBasic', JSON.stringify(srcData));
             var sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
@@ -8859,8 +8860,6 @@ define(['js/app'], function (myApp) {
                     bonusCharges: srcData.bonusCharges
                 }
             };
-            console.log('\n\n\nupdateBonusBasic sendData', JSON.stringify(sendData));
-
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                 console.log('update bonus socket', JSON.stringify(data));
                 vm.loadPlatformData({loadAll: false});
