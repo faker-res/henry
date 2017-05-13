@@ -48,7 +48,7 @@
                 "addTestPlayer",
                 "getLoginURL",
                 "getTestLoginURL",
-                'getTestLoginURLWithoutUser',
+                "getTestLoginURLWithoutUser",
                 "getConsumptionRecords",
                 "getTransferRecords",
                 "queryCredit",
