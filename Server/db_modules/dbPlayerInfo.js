@@ -80,6 +80,7 @@ let dbPlayerInfo = {
     createPlayerInfoAPI: function (inputData) {
         let platformObjId = null;
         let platformPrefix = "";
+        let platformObj = null;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -87,6 +88,7 @@ let dbPlayerInfo = {
             return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
                 platformData => {
                     if (platformData) {
+                        platformObj = platformData;
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
                         let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
@@ -130,6 +132,25 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
+                        if(platformObj.allowSamePhoneNumberToRegister === true){
+                            return {isPhoneNumberValid : true}
+                        }else{
+                            return dbPlayerInfo.isPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                                platform: inputData.platformId
+                            });
+                        }
+                    }else {
+                        return Q.reject({
+                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                            name: "DBError",
+                            message: "Username already exists"
+                        });
+                    }
+                }
+            ).then(
+                data => {
+                    if (data.isPhoneNumberValid) {
                         inputData.platform = platformObjId;
                         inputData.name = inputData.name.toLowerCase();
                         delete inputData.platformId;
@@ -200,9 +221,9 @@ let dbPlayerInfo = {
                         return Q.all(proms);
                     } else {
                         return Q.reject({
-                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                             name: "DBError",
-                            message: "Username already exists"
+                            message: "Phone number already exists"
                         });
                     }
                 }
