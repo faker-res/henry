@@ -159,6 +159,12 @@
         this.gameService.getTestLoginURL.once(callback);
     };
 
+    proto.getTestLoginURLWithoutUser = function (callback, requestData) {
+        var data = requestData || {playerId: testPlayerId, gameId: providerId};
+        this.gameService.getTestLoginURLWithoutUser.request(data);
+        this.gameService.getTestLoginURLWithoutUser.once(callback);
+    };
+
     proto.getGameUserInfo = function (callback, requestData) {
         var data = requestData || {playerId: testPlayerId, gameId: providerId};
         this.gameService.getGameUserInfo.request(data);
