@@ -501,6 +501,7 @@ let dbPlayerInfo = {
     createPlayerInfo: function (playerdata, skipReferrals, skipPrefix) {
         let deferred = Q.defer();
         let playerData = null;
+        let platformData = null;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -540,17 +541,19 @@ let dbPlayerInfo = {
         dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(
             function (platform) {
                 if (platform) {
-                    var delimitedPrefix = platform.prefix + PLATFORM_PREFIX_SEPARATOR;
-                    //if (playerdata.name.substring(0, delimitedPrefix.length) === delimitedPrefix) {
+                    platformData = platform;
+                    // if (playerdata.name.substring(0, delimitedPrefix.length) === delimitedPrefix) {
                     //    // Player name already contains expected platform prefix
-                    //}
-                    if (!skipPrefix) {
-                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    // }
+
+                    if (platformData.allowSamePhoneNumberToRegister===true) {
+                        return {isPhoneNumberValid: true};
+                    } else{
+                        return dbPlayerInfo.isPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
+                            platform: playerdata.platform
+                        });
                     }
-                    return dbPlayerInfo.isPlayerNameValidToRegister({
-                        name: playerdata.name,
-                        platform: playerdata.platform
-                    });
                 } else {
                     deferred.reject({name: "DBError", message: "No such platform"});
                 }
@@ -559,6 +562,31 @@ let dbPlayerInfo = {
                 deferred.reject({
                     name: "DBError",
                     message: "Error when finding platform",
+                    error: error
+                });
+            }
+        ).then(
+            //make sure phone number is unique
+            function (data) {
+                if (data.isPhoneNumberValid) {
+                    var delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
+
+                    if (!skipPrefix) {
+                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    }
+
+                    return dbPlayerInfo.isPlayerNameValidToRegister({
+                        name: playerdata.name,
+                        platform: playerdata.platform
+                    });
+                } else {
+                    deferred.reject({name: "DBError", message: "Phone number already exists"});
+                }
+            },
+            function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Phone number already exists",
                     error: error
                 });
             }
@@ -4265,6 +4293,18 @@ let dbPlayerInfo = {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
+                }
+            }
+        );
+    },
+
+    isPhoneNumberValidToRegister: function (query) {
+        return dbconfig.collection_players.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
                 }
             }
         );
