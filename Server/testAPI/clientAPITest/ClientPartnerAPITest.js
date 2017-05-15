@@ -169,6 +169,24 @@
         this.partnerService.getPartnerPlayerRegistrationStats.once(callback);
     };
 
+    proto.getSMSCode = function (callback, requestData) {
+        let data = requestData || {
+                phoneNumber: 97787654
+            };
+        this.partnerService.getSMSCode.request(data);
+        this.partnerService.getSMSCode.once(function (data) {
+            smsCode = data.data;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.updatePhoneNumberWithSMS = function (callback, requestData) {
+        let data = requestData || {};
+        this.partnerService.updatePhoneNumberWithSMS.request(data);
+        this.partnerService.updatePhoneNumberWithSMS.once(callback);
+    };
 
     if (isNode) {
         module.exports = ClientPartnerAPITest;
