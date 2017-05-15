@@ -277,10 +277,7 @@ let dailyProviderSettlement = {
 };
 
 let removeDuplicatedConsumptionRecords = function (startTime, endTime) {
-    // TODO: Pending Testing
-    return Q.resolve();
-
-
+    
     // Find duplicate consumption records
     let balancer = new SettlementBalancer();
     let stream = dbconfig.collection_playerConsumptionRecord.aggregate(
@@ -304,7 +301,7 @@ let removeDuplicatedConsumptionRecords = function (startTime, endTime) {
                 count: { $gte: 2 }
             }
         }
-    ).cursor({batchSize: 10}).exec();
+    ).cursor({batchSize: 100}).exec();
 
     return balancer.initConns().then(() => {
         return Q(
