@@ -317,7 +317,9 @@
                 "getPartnerPlayerRegistrationReport",
                 "getPartnerCommission",
                 "getPartnerCommissionValue",
-                "getPartnerPlayerRegistrationStats"
+                "getPartnerPlayerRegistrationStats",
+                "getSMSCode",
+                "updatePhoneNumberWithSMS"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

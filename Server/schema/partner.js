@@ -7,6 +7,8 @@ var ensureFieldsAreUnique = require("../db_modules/middleware/ensureFieldsAreUni
 var dbUtil = require("../modules/dbutility");
 var Schema = mongoose.Schema;
 
+let rsaCrypto = require("../modules/rsaCrypto");
+
 const A_LONG_TIME_AGO = 0;   // 1970
 
 var partnerSchema = new Schema({
@@ -183,8 +185,12 @@ partnerSchema.post('find', function(result) {
         for( var i = 0; i < result.length; i++ ){
             //hide middle 4 digits for phone number
             if(result[i].phoneNumber && result[i].phoneNumber.length > 0){
-                var startIndex = Math.max(Math.floor((result[i].phoneNumber.length - 4)/2), 0);
-                result[i].phoneNumber = result[i].phoneNumber.substr(0, startIndex) + "****" + result[i].phoneNumber.substr(startIndex+4);
+                if (result[i].phoneNumber.length > 20) {
+                    result[i].phoneNumber = rsaCrypto.decrypt(result[i].phoneNumber);
+                }
+                result[i].phoneNumber = dbUtil.encodePhoneNum(result[i].phoneNumber);
+                // let startIndex = Math.max(Math.floor((result[i].phoneNumber.length - 4)/2), 0);
+                // result[i].phoneNumber = result[i].phoneNumber.substr(0, startIndex) + "****" + result[i].phoneNumber.substr(startIndex+4);
             }
 
             // hide part of the e-mail

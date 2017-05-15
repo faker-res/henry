@@ -14,6 +14,9 @@ var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 var SMSSender = require('../../modules/SMSSender');
 var queryPhoneLocation = require('query-mobile-phone-area');
 
+let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
+let dbPlayerPartner = require('./../../db_modules/dbPlayerPartner');
+
 var PartnerServiceImplement = function () {
     PartnerService.call(this);
     var self = this;
@@ -343,6 +346,28 @@ var PartnerServiceImplement = function () {
         data.startTime = data.startTime || new Date(0);
         data.endTime = data.endTime || new Date();
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayerRegistrationStats, [conn.partnerId, new Date(data.startTime), new Date(data.endTime)], isValidData);
+    };
+
+    this.getSMSCode.expectsData = 'phoneNumber: String';
+    this.getSMSCode.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.phoneNumber && data.platformId);
+        let randomCode = parseInt(Math.random() * 9000 + 1000);
+        conn.phoneNumber = data.phoneNumber;
+        conn.smsCode = randomCode;
+        // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId], isValidData, false, false, true);
+    };
+
+    this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';
+    this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.partnerId && (data.partnerId == conn.partnerId) && data.phoneNumber && data.smsCode);
+        let queryRes = queryPhoneLocation(data.phoneNumber);
+        if (queryRes) {
+            data.phoneProvince = queryRes.province;
+            data.phoneCity = queryRes.city;
+            data.phoneType = queryRes.type;
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.partnerId, data.newPhoneNumber, data.smsCode, 1], isValidData);
     };
 
 };

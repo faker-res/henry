@@ -223,7 +223,7 @@ let PlayerServiceImplement = function () {
             data.phoneCity = queryRes.city;
             data.phoneType = queryRes.type;
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerPhoneNumberWithSMS, [data.platformId, data.playerId, data.newPhoneNumber, data.smsCode], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.playerId, data.newPhoneNumber, data.smsCode, 0], isValidData);
     };
 
     //player login api handler

@@ -85,7 +85,11 @@
 <h3>TEST partner LOGIN (登录)</h3>
 
 <div class="test-container">
-
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
     <label id="partnerNameLogin">Username
         <input id="partnerNameLoginInput" type=text name="name">
     </label>
@@ -243,6 +247,42 @@
         <button id="ModifyPlayerPayment" data-api-name="fillBankInformation">Update</button>
         <div>
             <textarea id="ModifyPlayerPaymentOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>UPDATE PARTNER PHONE NUMBER WITH SMS (通过短信验证码修改推广渠道手机号码)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>PartnerId Id
+            <input name="partnerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Old Number
+            <input type=number name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>New Number
+            <input type=number name="newPhoneNumber">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get Verification Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+
+    <div>
+        <button data-api-name="updatePhoneNumberWithSMS">Update</button>
+        <div>
+            <textarea></textarea>
         </div>
     </div>
 </div>
