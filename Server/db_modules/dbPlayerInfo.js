@@ -895,6 +895,123 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
     },
 
+    /**
+     * Steps:
+     *  1. Get current platform detail
+     *  2. Get current player info
+     *  3. Check if number has already registered on platform
+     *  4. Check if smsCode is matched
+     *  5. Update player data
+     * @param platformId
+     * @param playerId
+     * @param newPhoneNumber
+     * @param smsCode
+     */
+    updatePlayerPhoneNumberWithSMS: function (platformId, playerId, newPhoneNumber, smsCode) {
+        let platformObjId = null;
+        let playerCurPhoneNumber = null;
+        let playerNewPhoneNumber = null;
+        let _playerData = null;
+
+        // 1. Get current platform detail
+        return dbconfig.collection_platform.findOne({
+            platformId: platformId,
+        }).then(
+            platformData => {
+                platformObjId = platformData._id;
+                if (platformData) {
+                    // 2. Get current player info
+                    return dbconfig.collection_players.findOne({
+                        platform: platformObjId,
+                        playerId: playerId
+                    });
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    _playerData = playerData;
+                    playerCurPhoneNumber = playerData.phoneNumber;
+                    playerNewPhoneNumber = rsaCrypto.encrypt(String(newPhoneNumber));
+
+                    // 3. Check if number has already registered on platform
+                    return dbconfig.collection_players.findOne({
+                        platform: platformObjId,
+                        phoneNumber: playerNewPhoneNumber
+                    });
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    });
+                }
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    // 4. Check if smsCode is matched
+                    return dbconfig.collection_smsVerificationLog.findOne({
+                        platformObjId: platformObjId,
+                        tel: playerCurPhoneNumber
+                    }).sort({createTime: -1}).then(
+                        verificationSMS => {
+                            // Check verification SMS code
+                            if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                                verificationSMS = verificationSMS || {};
+                                return dbconfig.collection_smsVerificationLog.remove(
+                                    {_id: verificationSMS._id}
+                                ).then(
+                                    () => {
+                                        return Q.resolve(true);
+                                    }
+                                )
+                            }
+                            else {
+                                return Q.reject({
+                                    status: constServerCode.VALIDATION_CODE_INVALID,
+                                    name: "ValidationError",
+                                    message: "Invalid SMS Validation Code"
+                                });
+                            }
+                        }
+                    )
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PHONE_NUMBER,
+                        name: "ValidationError",
+                        message: "Phone number already registered on platform"
+                    });
+                }
+            }
+        ).then(
+            result => {
+                if (result) {
+                    let query = {
+                        platform: platformObjId,
+                        playerId: playerId
+                    };
+
+                    let updateData = {
+                        phoneNumber: playerNewPhoneNumber
+                    };
+
+                    // 5. Update player data
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
+                }
+            }
+        );
+    },
+
     updatePlayerPermission: function (query, admin, permission, remark) {
         var updateObj = {};
         for (var key in permission) {

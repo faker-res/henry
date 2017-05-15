@@ -41,6 +41,7 @@
                 "get",
                 "getPlayerPartner",
                 "update",
+                "updatePhoneNumberWithSMS",
                 "captcha",
                 "login",
                 "loginPlayerPartner",
