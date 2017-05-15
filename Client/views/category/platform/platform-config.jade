@@ -484,7 +484,12 @@
                                 td
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSameRealNameToRegister', ng-disabled='!vm.configTableEdit')
-
+                            tr
+                                td {{'allowSamePhoneNumberToRegister' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
+                    br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
