@@ -1,12 +1,15 @@
 'use strict';
 
 let Q = require("q");
+let rsaCrypto = require("../modules/rsaCrypto");
 
 const constServerCode = require('../const/constServerCode');
+const constShardKeys = require('../const/constShardKeys');
 
 let dbConfig = require('../modules/dbproperties');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
+let dbUtility = require('./../modules/dbutility');
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI: registerData => {
@@ -223,6 +226,171 @@ let dbPlayerPartner = {
                     });
                 }
             )
+    },
+
+    /**
+     * Steps:
+     *  1. Get current platform detail
+     *  2. Get current player info
+     *  3. Check if number has already registered on platform
+     *  4. Check if smsCode is matched
+     *  5. Update player data
+     * @param platformId
+     * @param userId - playerId or partnerId
+     * @param newPhoneNumber
+     * @param smsCode
+     * @param targetType - 0: Player, 1: Partner, 2: Player Partner
+     */
+    updatePhoneNumberWithSMS: function (platformId, userId, newPhoneNumber, smsCode, targetType) {
+        let platformObjId = null;
+        let curPhoneNumber = null;
+        let newEncrpytedPhoneNumber = null;
+        let playerData = null;
+        let partnerData = null;
+
+        // 1. Get current platform detail
+        return dbConfig.collection_platform.findOne({
+            platformId: platformId,
+        }).then(
+            platformData => {
+                platformObjId = platformData._id;
+                if (platformData) {
+                    // 2. Get current player and/or partner info
+                    let plyProm = dbConfig.collection_players.findOne({
+                        platform: platformObjId,
+                        playerId: userId
+                    });
+                    let partnerProm = dbConfig.collection_partner.findOne({
+                        platform: platformObjId,
+                        partnerId: userId
+                    });
+
+                    switch (targetType) {
+                        case 0:
+                            return plyProm;
+                        case 1:
+                            return partnerProm;
+                        case 2:
+                            return Promise.all([plyProm, partnerProm]);
+                    }
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            userData => {
+                if (userData) {
+                    // 3. Check if number has already registered on platform
+                    newEncrpytedPhoneNumber = rsaCrypto.encrypt(String(newPhoneNumber));
+
+                    let plyProm = dbConfig.collection_players.findOne({
+                        platform: platformObjId,
+                        phoneNumber: newEncrpytedPhoneNumber
+                    });
+                    let partnerProm = dbConfig.collection_partner.findOne({
+                        platform: platformObjId,
+                        $or: [
+                            {phoneNumber: newPhoneNumber},
+                            {phoneNumber: newEncrpytedPhoneNumber}
+                        ]
+                    });
+
+                    switch (targetType) {
+                        case 0:
+                            playerData = userData;
+                            curPhoneNumber = playerData.phoneNumber;
+                            return plyProm;
+                        case 1:
+                            partnerData = userData;
+                            curPhoneNumber = partnerData.phoneNumber;
+                            return partnerProm;
+                        case 2:
+                            playerData = userData[0];
+                            partnerData = userData[1];
+                            // for player partner, phone number is suppose to be the same
+                            curPhoneNumber = playerData.phoneNumber;
+                            return Promise.all([plyProm, partnerProm]);
+                    }
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find user"
+                    });
+                }
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    // 4. Check if smsCode is matched
+                    return dbConfig.collection_smsVerificationLog.findOne({
+                        platformObjId: platformObjId,
+                        tel: curPhoneNumber
+                    }).sort({createTime: -1}).then(
+                        verificationSMS => {
+                            // Check verification SMS code
+                            if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                                verificationSMS = verificationSMS || {};
+                                return dbConfig.collection_smsVerificationLog.remove(
+                                    {_id: verificationSMS._id}
+                                ).then(
+                                    () => {
+                                        return Q.resolve(true);
+                                    }
+                                )
+                            }
+                            else {
+                                return Q.reject({
+                                    status: constServerCode.VALIDATION_CODE_INVALID,
+                                    name: "ValidationError",
+                                    message: "Invalid SMS Validation Code"
+                                });
+                            }
+                        }
+                    )
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PHONE_NUMBER,
+                        name: "ValidationError",
+                        message: "Phone number already registered on platform"
+                    });
+                }
+            }
+        ).then(
+            result => {
+                if (result) {
+                    let queryPlayer = {
+                        platform: platformObjId,
+                        playerId: playerData ? playerData.playerId : null
+                    };
+                    let queryPartner = {
+                        platform: platformObjId,
+                        partnerId: partnerData ? partnerData.partnerId : null
+                    };
+                    let updateData = {
+                        phoneNumber: newEncrpytedPhoneNumber
+                    };
+                    let plyProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_players, queryPlayer, updateData, constShardKeys.collection_players);
+                    let partnerProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_partner, queryPartner, updateData, constShardKeys.collection_partner);
+
+                    switch (targetType) {
+                        case 0:
+                            return plyProm;
+                        case 1:
+                            return partnerProm;
+                        case 2:
+                            return Promise.all([plyProm, partnerProm]);
+                    }
+                }
+            }
+        );
     }
 };
 
