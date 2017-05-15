@@ -6412,7 +6412,7 @@ let dbPlayerInfo = {
                     clientType: clientType || 1
                 };
                 //var isHttp = providerData.interfaceType == 1 ? true : false;
-                return cpmsAPI.player_getTestLoginURLWithoutUser(sendData);
+                return cpmsAPI.player_getTestLoginURLWithOutUser(sendData);
             } else {
                 return Q.reject({name: "DataError", message: "Cannot find game"})
             }
