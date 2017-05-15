@@ -41,6 +41,7 @@
                 "get",
                 "getPlayerPartner",
                 "update",
+                "updatePhoneNumberWithSMS",
                 "captcha",
                 "login",
                 "loginPlayerPartner",
@@ -264,7 +265,7 @@
                 "notifyProviderStatusUpdate",
                 "getLoginURL",
                 "getTestLoginURL",
-                "getTestLoginURLWithoutUser",
+                "getTestLoginURLWithOutUser",
                 "getGameUserInfo",
                 "modifyGamePassword",
                 "grabPlayerTransferRecords",
@@ -316,7 +317,9 @@
                 "getPartnerPlayerRegistrationReport",
                 "getPartnerCommission",
                 "getPartnerCommissionValue",
-                "getPartnerPlayerRegistrationStats"
+                "getPartnerPlayerRegistrationStats",
+                "getSMSCode",
+                "updatePhoneNumberWithSMS"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

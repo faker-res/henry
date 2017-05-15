@@ -207,7 +207,7 @@ var GameServiceImplement = function () {
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             ip = forwardedIp[0].trim();
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURLWithoutUser, [data.platformId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURLWithoutUser, [data.platformId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType], isValidData, false, false, true);
     };
 
     this.getGameUserInfo.expectsData = 'platformId: String, providerId: String';

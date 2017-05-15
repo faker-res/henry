@@ -311,6 +311,12 @@
         this.playerService.update.once(callback);
     };
 
+    proto.updatePhoneNumberWithSMS = function (callback, requestData) {
+        let data = requestData || {};
+        this.playerService.updatePhoneNumberWithSMS.request(data);
+        this.playerService.updatePhoneNumberWithSMS.once(callback);
+    };
+
     proto.updateSmsSetting = function(callback, requestData) {
 
         var data = requestData ||

@@ -105,8 +105,8 @@ const cpmsAPI = {
         return callCPMSAPI("player", "getTestLoginURL", data);
     },
 
-    player_getTestLoginURLWithoutUser: function (data) {
-        return callCPMSAPI("player", "getTestLoginURLWithoutUser", data);
+    player_getTestLoginURLWithOutUser: function (data) {
+        return callCPMSAPI("player", "getTestLoginURLWithOutUser", data);
     },
 
     player_getGameUserInfo: function (data) {

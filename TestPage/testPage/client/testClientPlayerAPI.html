@@ -891,6 +891,68 @@
     </div>
 </div>
 
+<h3>UPDATE PLAYER PHONE NUMBER WITH SMS (通过短信验证码修改玩家手机号码)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Player Id
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Old Number
+            <input type=number name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>New Number
+            <input type=number name="newPhoneNumber">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get Verification Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+
+    <div>
+        <button data-api-name="updatePhoneNumberWithSMS">Update</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>UPDATE PARTNER PHONE NUMBER WITH SMS (通过短信验证码修改推广渠道手机号码)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Partner Id
+            <input name="partnerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>New Number
+            <input type=number name="phoneNumber">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get Verification Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+
+    <div>
+        <button data-api-name="updatePhoneNumberWithSMS">Update</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
 <h3>UPDATE PLAYER PHOTO URL (修改玩家头像)</h3>
 
 <div class="test-container">
