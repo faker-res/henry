@@ -386,12 +386,28 @@ define(['js/app'], function (myApp) {
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
             } else if (fieldName == 'bankAccountType') {
-                if (val == 1 || val == '1') {
-                    return $translate('Credit Card');
-                } else if (val == 2 || val == '2') {
-                    return $translate('Debit Card');
-                } else {
-                    return val;
+                switch(parseInt(val)) {
+                    case 1:
+                        result = $translate('Credit Card');
+                        break;
+                    case 2:
+                        result = $translate('Debit Card');
+                        break;
+                    case 3:
+                        result = "储存卡";
+                        break;
+                    case 4:
+                        result = "储蓄卡";
+                        break;
+                    case 5:
+                        result = "商务理财卡";
+                        break;
+                    case 6:
+                        result = "工商银行一卡通";
+                        break;
+                    default:
+                        result = val;
+                        break;
                 }
             } else if (fieldName == 'clientType') {
                 result = $translate($scope.merchantTargetDeviceJson[val]);
