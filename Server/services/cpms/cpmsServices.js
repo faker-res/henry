@@ -1,26 +1,26 @@
-(function(){
+(function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
 
     var rootObj = {};
 
     //create and add async function to WebSocketService
-    var addServiceFunctions = function(sinonet, service, functionNames){
-        for( var i = 0; i < functionNames.length; i++ ){
+    var addServiceFunctions = function (sinonet, service, functionNames) {
+        for (var i = 0; i < functionNames.length; i++) {
             service[functionNames[i]] = new sinonet.WebSocketAsyncFunction(functionNames[i]);
             service.addFunction(service[functionNames[i]]);
         }
     };
 
     //create and add sync function to WebSocketService
-    var addServiceSyncFunctions = function(sinonet, service, functionNames, keys){
-        for( var i = 0; i < functionNames.length; i++ ){
+    var addServiceSyncFunctions = function (sinonet, service, functionNames, keys) {
+        for (var i = 0; i < functionNames.length; i++) {
             service[functionNames[i]] = new sinonet.WebSocketSyncFunction(functionNames[i], keys);
             service.addFunction(service[functionNames[i]]);
         }
     };
 
-    var defineConnectionService = function(sinonet){
-        var ConnectionService = function(connection){
+    var defineConnectionService = function (sinonet) {
+        var ConnectionService = function (connection) {
             sinonet.WebSocketService.call(this, "connection", connection);
 
             //define functions
@@ -38,8 +38,8 @@
         rootObj.ConnectionService = ConnectionService;
     };
 
-    var definePlayerService = function(sinonet){
-        var PlayerService = function(connection){
+    var definePlayerService = function (sinonet) {
+        var PlayerService = function (connection) {
             sinonet.WebSocketService.call(this, "player", connection);
 
             //define functions
@@ -48,6 +48,7 @@
                 "addTestPlayer",
                 "getLoginURL",
                 "getTestLoginURL",
+                "getTestLoginURLWithoutUser",
                 "getConsumptionRecords",
                 "getTransferRecords",
                 "queryCredit",
@@ -74,14 +75,14 @@
 
         rootObj.PlayerService = PlayerService;
     };
-    
-    if(isNode){
+
+    if (isNode) {
         var sinonet = require("./../../server_common/WebSocketService");
         definePlayerService(sinonet);
         defineConnectionService(sinonet);
         module.exports = rootObj;
     } else {
-        define(["common/WebSocketService"], function(sinonet){
+        define(["common/WebSocketService"], function (sinonet) {
             defineConnectionService(sinonet);
             definePlayerService(sinonet);
             return rootObj;

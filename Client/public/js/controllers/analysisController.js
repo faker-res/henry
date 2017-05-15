@@ -1758,7 +1758,8 @@ define(['js/app'], function (myApp) {
             for (var i in graphData) {
                 var obj = {};
                 obj.date = String(utilService.$getTimeFromStdTimeFormat(new Date(graphData[i][0]))).substring(0, 10);
-                obj.amount = graphData[i][1] || 0;
+                let amount = graphData[i][1] || 0;
+                obj.amount = amount.toFixed(2);
                 tableData.push(obj);
             }
             var dataOptions = {
