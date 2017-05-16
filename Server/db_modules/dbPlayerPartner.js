@@ -391,6 +391,123 @@ let dbPlayerPartner = {
                 }
             }
         );
+    },
+
+    /**
+     * Steps:
+     *  1. Get player info
+     *  2. Get partner info
+     *  3. Get platform info
+     *  4. Check if platform sms verification is required
+     *  5. Update player and partner data
+     * @param playerQuery
+     * @param updateData
+     */
+    updatePaymentInfo: function (playerQuery, updateData) {
+        let playerObj = null;
+        let partnerQuery = null;
+        // 1. Get player info
+        return dbConfig.collection_players.findOne(playerQuery).lean().then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+
+                    // 2. Get partner info
+                    return dbConfig.collection_partner.findOne({player: playerData._id}).lean();
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    })
+                }
+            }
+        ).then(
+            partnerData => {
+                if (partnerData) {
+                    partnerQuery = {
+                        _id: partnerData._id,
+                        platform: partnerData.platform
+                    };
+                    // Check whether player and partner queried is from same platform
+                    if (String(playerObj.platform) == String(partnerData.platform)) {
+                        // 3. Get platform info
+                        return dbConfig.collection_platform.findOne({
+                            _id: playerObj.platform
+                        }).lean();
+                    }
+                    else {
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.DATA_INVALID,
+                            message: "Player and partner does not match"
+                        });
+                    }
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find partner"
+                    });
+                }
+            }
+        ).then(
+            platformData => {
+                if (platformData) {
+                    // 4. Check if platform sms verification is required
+                    if (!platformData.requireSMSVerification) {
+                        // SMS verification not required
+                        return Q.resolve(true);
+                    } else {
+                        // Check verification SMS match
+                        return dbConfig.collection_smsVerificationLog.findOne({
+                            platformObjId: playerObj.platform,
+                            tel: playerObj.phoneNumber
+                        }).sort({createTime: -1}).then(
+                            verificationSMS => {
+                                // Check verification SMS code
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == updateData.smsCode) {
+                                    verificationSMS = verificationSMS || {};
+                                    return dbConfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(
+                                        () => {
+                                            return Q.resolve(true);
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_INVALID,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
+                            }
+                        )
+                    }
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    })
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
+                    // 5. Update player and partner data
+                    let plyProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_players, playerQuery, updateData, constShardKeys.collection_players);
+                    let partnerProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
+
+                    return Promise.all([plyProm, partnerProm]);
+                }
+            }
+        )
     }
 };
 
