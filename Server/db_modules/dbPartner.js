@@ -96,7 +96,6 @@ let dbPartner = {
      * @param {json} partnerdata - The data of the partner user. Refer to Partner schema.
      */
     createPartner: function (partnerdata) {
-        console.log(partnerdata);
         let deferred = Q.defer();
         let partnerName = partnerdata.partnerName;
         let platformData = null;
@@ -153,13 +152,11 @@ let dbPartner = {
         ).then(
             function (data) {
                 if(data.isPhoneNumberValid){
-                   console.log('phone number valid');
                     return dbPartner.isPartnerNameValidToRegister({
                         name: partnerdata.partnerName,
                         platform: partnerdata.platform
                     });
                 }else{
-                    console.log('phone number reject');
                     deferred.reject({
                         name: "DBError", 
                         message: "Phone number already exists"
@@ -167,7 +164,6 @@ let dbPartner = {
                 }
             },
             function (error) {
-                console.log('phone number reject callback');
                 deferred.reject({
                     name: "DBError",
                     message: "Phone number already exists",
@@ -177,7 +173,6 @@ let dbPartner = {
         ).then(
             function (data) {
                 if (data.isPartnerNameValid) {
-                    console.log(data);
                     // If level was provided then use that, otherwise select the first level on the platform
                     return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
                         platform: partnerdata.platform,
@@ -191,7 +186,6 @@ let dbPartner = {
                 }
             },
             function (error) {
-                console.log('phone number reject callback');
                 deferred.reject({
                     name: "DataError",
                     message: "Error in checking partner name validity",
