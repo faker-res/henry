@@ -675,6 +675,58 @@ let PlayerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
+    this.updatePlayerPartnerPaymentInfo.expectsData = 'playerId: String';
+    this.updatePlayerPartnerPaymentInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
+        if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
+            isValidData = false;
+        }
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.updatePaymentInfo, [{playerId: conn.playerId}, data], isValidData, true, true, false).then(
+            function (res) {
+                if (res && res.length > 1) {
+                    wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
+                    //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                    let loggerInfo = {
+                        source: constProposalEntryType.CLIENT,
+                        bankName: data.bankName,
+                        bankAccount: data.bankAccount,
+                        bankAccountName: data.bankAccountName,
+                        bankAccountType: data.bankAccountType,
+                        bankAccountProvince: data.bankAccountProvince,
+                        bankAccountCity: data.bankAccountCity,
+                        bankAccountDistrict: data.bankAccountDistrict,
+                        bankAddress: data.bankAddress,
+                        bankBranch: data.bankBranch,
+                        targetObjectId: res[0]._id,
+                        targetType: constProposalUserType.PLAYERS,
+                        creatorType: constProposalUserType.PLAYERS,
+                        creatorObjId: res[0]._id
+                    };
+                    dbLogger.createBankInfoLog(loggerInfo);
+
+                    loggerInfo.targetObjectId = res[1]._id;
+                    loggerInfo.targetType = constProposalUserType.PARTNERS;
+                    loggerInfo.creatorType = constProposalUserType.PARTNERS;
+                    loggerInfo.creatorObjId = res[1]._id;
+                    dbLogger.createBankInfoLog(loggerInfo);
+                }
+                else {
+                    wsFunc.response(conn, {
+                        status: constServerCode.COMMON_ERROR,
+                        errorMessage: "Player or partner is not found"
+                    }, data);
+                }
+            },
+            function (error) {
+                if (error != "INVALID_DATA") {
+                    wsFunc.response(conn, {
+                        status: constServerCode.COMMON_ERROR
+                    }, data);
+                }
+            }
+        ).catch(WebSocketUtil.errorHandler).done();
+    };
+
     this.captcha.expectsData = '';
     this.captcha.onRequest = function (wsFunc, conn, data) {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCaptcha, [conn], true, false, false, true);
