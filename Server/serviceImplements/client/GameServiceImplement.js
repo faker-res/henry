@@ -199,8 +199,8 @@ var GameServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURL, [conn.playerId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType], isValidData);
     };
 
-    this.getTestLoginURLWithoutUser.expectsData = 'platformId: String, gameId: String, clientDomainName: String';
-    this.getTestLoginURLWithoutUser.onRequest = function (wsFunc, conn, data) {
+    this.getTestLoginURLWithOutUser.expectsData = 'platformId: String, gameId: String, clientDomainName: String';
+    this.getTestLoginURLWithOutUser.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId && data.gameId && data.clientDomainName);
         var ip = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
