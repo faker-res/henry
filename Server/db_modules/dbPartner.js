@@ -3684,7 +3684,8 @@ let dbPartner = {
                                         $match: {
                                             platformId: partnerData.platform,
                                             playerId: {$in: playerObjIds},
-                                            createTime: {$gte: startTime, $lt: endTime}
+                                            createTime: {$gte: startTime, $lt: endTime},
+                                            amount: {$gt: 0}
                                         }
                                     },
                                     {
