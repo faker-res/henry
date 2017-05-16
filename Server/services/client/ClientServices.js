@@ -51,6 +51,7 @@
                 "isLogin",
                 "getSMSCode",
                 "updatePaymentInfo",
+                "updatePlayerPartnerPaymentInfo",
                 "updateSmsSetting",
                 "updatePassword",
                 "updatePasswordPlayerPartner",
