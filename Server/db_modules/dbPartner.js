@@ -45,22 +45,44 @@ let dbPartner = {
                         partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
                     }
 
-                    if (partnerData.parent) {
-                        return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
-                            parentData => {
-                                if (parentData) {
-                                    partnerData.parent = parentData._id;
-                                    return dbPartner.createPartnerWithParent(partnerData);
+                    return dbPartner.isPhoneNumberValidToRegister({
+                        phoneNumber: partnerData.phoneNumber,
+                        platform:platformData._id
+                    }).then(
+                        function(data){
+                            if (("allowSamePhoneNumberToRegister" in platformData) && !platformData.allowSamePhoneNumberToRegister && !data.isPhoneNumberValid){
+                                return Q.reject({
+                                    name:"DataError",
+                                    message:"Phone number already exists"
+                                });
+                            }
+                            else{
+                                if (partnerData.parent) {
+                                    return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
+                                        parentData => {
+                                            if (parentData) {
+                                                partnerData.parent = parentData._id;
+                                                return dbPartner.createPartnerWithParent(partnerData);
+                                            }
+                                            else {
+                                                return Q.reject({name: "DataError", message: "Cannot find parent partner"});
+                                            }
+                                        }
+                                    );
                                 }
                                 else {
-                                    return Q.reject({name: "DataError", message: "Cannot find parent partner"});
+                                    return dbPartner.createPartner(partnerData);
                                 }
                             }
-                        );
-                    }
-                    else {
-                        return dbPartner.createPartner(partnerData);
-                    }
+                        },
+                        function (error) {
+                            deferred.reject({
+                                name: "DBError",
+                                message: "Error when finding phone number",
+                                error: error
+                            });
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
