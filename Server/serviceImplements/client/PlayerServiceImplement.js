@@ -226,6 +226,18 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.playerId, data.newPhoneNumber, data.smsCode, 0], isValidData);
     };
 
+    this.updatePlayerPartnerPhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
+    this.updatePlayerPartnerPhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.phoneNumber && data.smsCode);
+        let queryRes = queryPhoneLocation(data.phoneNumber);
+        if (queryRes) {
+            data.phoneProvince = queryRes.province;
+            data.phoneCity = queryRes.city;
+            data.phoneType = queryRes.type;
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.playerId, data.newPhoneNumber, data.smsCode, 2], isValidData);
+    };
+
     //player login api handler
     this.login.expectsData = 'name: String, password: String, platformId: String';
     this.login.onRequest = function (wsFunc, conn, data) {

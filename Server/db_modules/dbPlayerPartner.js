@@ -271,7 +271,15 @@ let dbPlayerPartner = {
                         case 1:
                             return partnerProm;
                         case 2:
-                            return Promise.all([plyProm, partnerProm]);
+                            let _playerData = null;
+                            return plyProm.then(
+                                playerData => {
+                                    _playerData = playerData;
+                                    return dbConfig.collection_partner.findOne({player: playerData._id}).lean();
+                                }
+                            ).then(
+                                partnerData => [_playerData, partnerData]
+                            )
                     }
                 }
                 else {
@@ -327,7 +335,7 @@ let dbPlayerPartner = {
             }
         ).then(
             playerData => {
-                if (!playerData) {
+                if (!playerData || (!playerData[0] && !playerData[1])) {
                     // 4. Check if smsCode is matched
                     return dbConfig.collection_smsVerificationLog.findOne({
                         platformObjId: platformObjId,

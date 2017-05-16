@@ -986,17 +986,27 @@
     </div>
 </div>
 
-<h3>UPDATE PARTNER PHONE NUMBER WITH SMS (通过短信验证码修改推广渠道手机号码)</h3>
+<h3>UPDATE PLAYER PARTNER PHONE NUMBER WITH SMS (通过短信验证码修改玩家+推广渠道手机号码)</h3>
 
 <div class="test-container">
     <div>
-        <label>Partner Id
-            <input name="partnerId" type=text>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Player Id
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Old Number
+            <input type=number name="phoneNumber">
         </label>
     </div>
     <div>
         <label>New Number
-            <input type=number name="phoneNumber">
+            <input type=number name="newPhoneNumber">
         </label>
     </div>
     <button data-api-name="getSMSCode">Get Verification Code</button>
@@ -1005,7 +1015,7 @@
     </label>
 
     <div>
-        <button data-api-name="updatePhoneNumberWithSMS">Update</button>
+        <button data-api-name="updatePlayerPartnerPhoneNumberWithSMS">Update</button>
         <div>
             <textarea></textarea>
         </div>
