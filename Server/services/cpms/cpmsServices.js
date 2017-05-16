@@ -27,7 +27,6 @@
             var functionNames = [
                 "login",
                 "heartBeat"
-
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -48,7 +47,7 @@
                 "addTestPlayer",
                 "getLoginURL",
                 "getTestLoginURL",
-                "getTestLoginURLWithoutUser",
+                "getTestLoginURLWithOutUser",
                 "getConsumptionRecords",
                 "getTransferRecords",
                 "queryCredit",

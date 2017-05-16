@@ -6484,7 +6484,7 @@ let dbPlayerInfo = {
     },
 
     getGameUserInfo: function (playerId, platformId, providerId) {
-        return dbconfig.collection_players.findOne({playerId: playerId})
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean()
             .then(
                 data => {
                     if (data) {
@@ -6494,7 +6494,7 @@ let dbPlayerInfo = {
                             platformId: platformId,
                             providerId: providerId
                         };
-                        return cpmsAPI.player_getGameUserInfo(sendData);
+                        return cpmsAPI.player_getGamePassword(sendData);
                     } else {
                         return Q.reject({name: "DataError", message: "Cannot find player"})
                     }
