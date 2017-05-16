@@ -342,6 +342,19 @@
         this.playerService.updatePaymentInfo.once(callback);
     };
 
+    proto.updatePlayerPartnerPaymentInfo = function (callback, requestData) {
+        let data = requestData ||
+            {
+                playerId: testPlayerId,
+                bankType: "testBank",
+                bankAccount: "123",
+                bankAccountName: "testPlayer",
+                bankAccountType: "saving"
+            };
+        this.playerService.updatePlayerPartnerPaymentInfo.request(data);
+        this.playerService.updatePlayerPartnerPaymentInfo.once(callback);
+    };
+
     proto.authenticate = function (callback, requestData) {
         var data = requestData || {
                 playerId: testPlayerId,
