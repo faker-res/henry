@@ -259,8 +259,8 @@ var GameServiceImplement = function () {
     };
 
     this.getGamePassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId && data.providerId && data.username);
-        WebSocketUtil.performAction(conn, wsFunc, data, cpmsAPI.player_getGamePassword, [data], isValidData, false, false, true);
+        var isValidData = Boolean(conn.playerId && data && data.platformId && data.providerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getGameUserInfo, [conn.playerId, data.platformId, data.providerId], isValidData);
     };
 
     this.modifyGamePassword.onRequest = function (wsFunc, conn, data) {

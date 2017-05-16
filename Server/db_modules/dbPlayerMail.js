@@ -154,6 +154,7 @@ const dbPlayerMail = {
 
             smsAPI.sending_sendMessage(sendObj).then(
                 retData => {
+                    console.log('[smsAPI] Sent verification code to: ', telNum);
                     return true;
                 },
                 retErr => {
