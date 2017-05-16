@@ -2373,7 +2373,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
                 player: proposalData.data.playerId || proposalData.data.playerObjId,
                 rewardType: rewardType._id,
                 rewardTypeName: rewardTypeName,
-                amount: proposalData.data.rewardAmount || proposalData.data.amount || 0,
+                amount: proposalData.data.rewardAmount || proposalData.data.amount || proposalData.data.updateAmount || 0,
                 createTime: Date.now(),
             };
             if (rewardEvent) {
