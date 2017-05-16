@@ -685,7 +685,7 @@ let PlayerServiceImplement = function () {
             function (res) {
                 if (res && res.length > 1) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
-                    //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                    SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                     let loggerInfo = {
                         source: constProposalEntryType.CLIENT,
                         bankName: data.bankName,
