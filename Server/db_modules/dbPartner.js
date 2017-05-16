@@ -97,7 +97,7 @@ let dbPartner = {
      */
     createPartner: function (partnerdata) {
         let deferred = Q.defer();
-        let partnerName = partnerdata.partnerName;
+        // let partnerName = partnerdata.partnerName;
         let platformData = null;
 
         if (partnerdata.parent === '') {
@@ -112,7 +112,7 @@ let dbPartner = {
 
         // Player name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        if (partnerName.length > 15 || !partnerName.match(alphaNumRegex)) {
+        if (partnerdata.partnerName.length > 15 || !partnerdata.partnerName.match(alphaNumRegex)) {
             // ignore for unit test
             if (env.mode !== "local" && env.mode !== "qa") {
                 return Q.reject({
@@ -127,6 +127,12 @@ let dbPartner = {
             function (platform) {
                 if(platform){
                     platformData = platform;
+
+                    // attach platform prefix to player name if available
+                    if (platform.partnerPrefix) {
+                        partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
+                    }
+
                     if (platformData.allowSamePhoneNumberToRegister===true) {
                         return {isPhoneNumberValid: true};
                     } else{
@@ -153,7 +159,7 @@ let dbPartner = {
             function (data) {
                 if(data.isPhoneNumberValid){
                     return dbPartner.isPartnerNameValidToRegister({
-                        name: partnerdata.partnerName,
+                        partnerName: partnerdata.partnerName,
                         platform: partnerdata.platform
                     });
                 }else{
@@ -198,7 +204,7 @@ let dbPartner = {
                     () => {
                         let partner = new dbconfig.collection_partner(partnerdata);
                         partner.level = level;
-                        partner.partnerName = partnerName.toLowerCase();
+                        partner.partnerName = partnerdata.partnerName.toLowerCase();
                         return partner.save();
                     },
                     function(error){ 
