@@ -148,7 +148,8 @@ var simplifiedChinese = {
     "Username should be alphanumeric and within 12 characters": "用户名只能为6-12位的数字和字母",
     "Realname should be chinese character": "真实姓名必须为汉字",
     "There is consumption after top up": "玩家充值后已有消费",
-    "Player does not have valid merchant data": "玩家没有有效的商户信息"
+    "Player does not have valid merchant data": "玩家没有有效的商户信息",
+    "Please login and try again": "请登陆账号后再试"
     //todo::add missing messages here
 
     /*
