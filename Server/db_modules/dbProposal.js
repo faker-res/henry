@@ -50,13 +50,13 @@ var proposal = {
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();
         // create proposal for partner
-        if(proposalData.isPartner){
+        if (proposalData.isPartner) {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
             // query related partner info
-           var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
+            var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
                 .populate({path: 'level', model: dbconfig.collection_partnerLevel});
         }
-        else{
+        else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
             // query related player info
             var plyProm = dbconfig.collection_players.findOne({_id: playerId})
@@ -81,18 +81,18 @@ var proposal = {
             (proposalType) => {
                 //check if player or partner has pending proposal for this type
 
-                if(proposalData.isPartner){
+                if (proposalData.isPartner) {
                     var queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
-                        "data.partnerObjId" : proposalData.data.partnerObjId
+                        "data.partnerObjId": proposalData.data.partnerObjId
                     }
                 }
-                else{
+                else {
                     var queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
-                        "data.playerObjId" : proposalData.data.playerObjId
+                        "data.playerObjId": proposalData.data.playerObjId
                     }
                 }
 
@@ -110,7 +110,7 @@ var proposal = {
             }
         ).then(
             () => {
-                if(proposalData && proposalData.data && proposalData.data.updateAmount < 0 && proposalData.isPartner){
+                if (proposalData && proposalData.data && proposalData.data.updateAmount < 0 && proposalData.isPartner) {
                     return dbPartner.tryToDeductCreditFromPartner(proposalData.data.partnerObjId, platformId, -proposalData.data.updateAmount, "editPartnerCredit:Deduction", proposalData.data);
                 }
                 else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
@@ -170,13 +170,13 @@ var proposal = {
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
         let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
-        if(proposalData.isPartner){
+        if (proposalData.isPartner) {
             var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
-            .populate({path: 'level', model: dbconfig.collection_partnerLevel});
+                .populate({path: 'level', model: dbconfig.collection_partnerLevel});
         }
-        else{
+        else {
             var plyProm = dbconfig.collection_players.findOne({_id: playerId})
-            .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
         }
 
         proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
@@ -244,12 +244,12 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
-                        if(proposalData.isPartner){
+                        if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
                             proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPartnerLevel = data[2].level.name;
                         }
-                        else{
+                        else {
                             proposalData.data.playerName = data[2].name;
                             proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
@@ -1898,12 +1898,20 @@ var proposal = {
             ]
         };
 
-        var limit = limit || constSystemParam.MAX_RECORD_NUM;
-        var a = dbconfig.collection_proposal.find(query).count();
-        var b = dbconfig.collection_proposal.find(query).sort(sortCol).skip(index).limit(count)
+        let limit = limit || constSystemParam.MAX_RECORD_NUM;
+        let a = dbconfig.collection_proposal.find(query).count();
+        let b = dbconfig.collection_proposal.find(query).sort(sortCol).skip(index).limit(count)
             .populate({path: 'process', model: dbconfig.collection_proposalProcess});
-        return Q.all([a, b]).then(data => {
-            return {total: data[0], data: data[1]}
+        let c = dbconfig.collection_proposal.find(query).then(data => {
+            let sum = 0;
+            data.forEach(item => {
+                let amt = (item && item.data && item.data.amount) ? item.data.amount : 0;
+                sum += amt;
+            })
+            return {sumAmt: sum};
+        });
+        return Q.all([a, b, c]).then(data => {
+            return {total: data[0], data: data[1], summary: data[2]}
         })
     },
 
