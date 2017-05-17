@@ -851,7 +851,7 @@ var dbRewardTask = {
 
     fixPlayerRewardAmount: function (playerId) {
         let playerObj = null;
-        return dbconfig.collection_players.findOne({playerId: playerId}).then(
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
@@ -865,14 +865,20 @@ var dbRewardTask = {
             }
         ).then(
             taskData => {
-                if(taskData){
+                if (taskData) {
                     return Q.reject({name: "DataError", message: "Reward task is not completed"});
                 }
-                else{
-                    if(playerObj.lockedCredit >= 1){
+                else {
+                    if (playerObj.lockedCredit >= 1) {
                         playerObj.validCredit += playerObj.lockedCredit;
                         playerObj.lockedCredit = 0;
-                        return playerObj.save();
+                        return playerObj.save().then(() => {
+                            playerObj.fixedStatus = 'fixed';
+                            return playerObj;
+                        });
+                    } else {
+                        playerObj.fixedStatus = 'unnecessary';
+                        return playerObj;
                     }
                 }
             }
