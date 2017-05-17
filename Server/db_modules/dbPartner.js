@@ -3256,7 +3256,7 @@ let dbPartner = {
                         data.forEach(
                             eachRecord => {
                                 if (eachRecord) {
-                                    eachRecord.operationFee = eachRecord.totalBonusAmount;
+                                    eachRecord.operationFee = eachRecord.totalTopUpAmount - eachRecord.totalPlayerBonusAmount;
                                     eachRecord.marketCost = eachRecord.totalRewardAmount + eachRecord.platformFee + eachRecord.serviceFee;
                                     // eachRecord.totalTopUpAmount = 0;
                                     // eachRecord.totalBonusAmount = 0;
@@ -3636,14 +3636,14 @@ let dbPartner = {
                 var rewardInfo = data[1];
                 var topUpInfo = data[2];
                 var bonusInfo = data[3];
-                var operationAmount = 0;
                 var totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
                 var totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
+                var operationAmount = totalTopUpAmount - totalPlayerBonusAmount;
                 var platformFeeAmount = 0;
                 if (consumptionInfo && consumptionInfo[0]) {
                     totalValidAmount = consumptionInfo[0].totalValidAmount;
                     totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
-                    operationAmount = totalBonusAmount;
+                    // operationAmount = totalBonusAmount;
                     platformFeeAmount = Math.abs(totalBonusAmount);
                 }
                 if (rewardInfo && rewardInfo[0]) {

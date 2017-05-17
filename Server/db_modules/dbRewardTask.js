@@ -850,15 +850,30 @@ var dbRewardTask = {
     },
 
     fixPlayerRewardAmount: function (playerId) {
+        let playerObj = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             playerData => {
                 if (playerData) {
+                    playerObj = playerData;
                     return dbconfig.collection_rewardTask.findOne(
-                        {playerId: playerData._id, }
+                        {playerId: playerData._id, status: constRewardTaskStatus.STARTED}
                     ).lean();
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find player"});
+                }
+            }
+        ).then(
+            taskData => {
+                if(taskData){
+                    return Q.reject({name: "DataError", message: "Reward task is not completed"});
+                }
+                else{
+                    if(playerObj.lockedCredit >= 1){
+                        playerObj.validCredit += playerObj.lockedCredit;
+                        playerObj.lockedCredit = 0;
+                        return playerObj.save();
+                    }
                 }
             }
         );

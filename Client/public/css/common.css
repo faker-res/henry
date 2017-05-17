@@ -920,6 +920,9 @@ ul.roleList {
     width: 30% !important;
 }
 
+.width10Per {
+    width: 10%;
+}
 .width30Per {
     width: 30%;
 }
