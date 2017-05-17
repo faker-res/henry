@@ -288,14 +288,14 @@ let dbPlayerInfo = {
             phoneNumber: data.phoneNumber,
             platform: platformObjId,
             _id: {$ne: newPlayerObjId}
-        });
+        }).lean();
         proms.push(prom_findByPhNo);
 
         var prom_findByIp = dbconfig.collection_players.find({
-            lastLoginIp: data.lastLoginIp,
+            loginIps: data.lastLoginIp,
             platform: platformObjId,
             _id: {$ne: newPlayerObjId}
-        });
+        }).lean();
         proms.push(prom_findByIp);
 
         if (data.realName) {
@@ -303,7 +303,7 @@ let dbPlayerInfo = {
                 realName: data.realName,
                 platform: platformObjId,
                 _id: {$ne: newPlayerObjId}
-            });
+            }).lean();
             proms.push(prom_findByName);
         }
 
@@ -312,7 +312,7 @@ let dbPlayerInfo = {
                 bankAccount: data.bankAccount,
                 platform: platformObjId,
                 _id: {$ne: newPlayerObjId}
-            }));
+            }).lean());
         }
 
         return Q.all(proms).then(
@@ -443,16 +443,19 @@ let dbPlayerInfo = {
     },
 
     findAndUpdateSimilarPlayerInfoByField: function (playerData, fieldName, val) {
-        var newPlayerObjId = playerData._id;
-        var platformObjId = playerData.platform;
-        var searchVal = val || playerData[fieldName]
+        let newPlayerObjId = playerData._id;
+        let platformObjId = playerData.platform;
+        let searchVal = val || playerData[fieldName];
         let prom1 = Q.resolve(true);
         let query = {
             platform: platformObjId,
             _id: {$ne: newPlayerObjId}
-        }
-        query[fieldName] = searchVal;
-        prom1 = dbconfig.collection_players.find(query);
+        };
+        let searchFieldName = (fieldName == 'lastLoginIp')
+            ? 'loginIps'
+            : fieldName;
+        query[searchFieldName] = searchVal;
+        prom1 = dbconfig.collection_players.find(query).lean();
         let func = (fieldName == 'phoneNumber')
             ? dbUtility.encodePhoneNum
             : ((fieldName == 'bankAccount')
@@ -460,13 +463,19 @@ let dbPlayerInfo = {
                 : null);
         return Q.resolve(prom1).then(results => {
             let prom = [];
-            var similarPlayersArray = [];
+            let similarPlayersArray = [];
             if (results && results.length > 0) {
-                for (var i = 0; i < results.length; i++) {
-                    var similarPlayerData = {
+                for (let i = 0; i < results.length; i++) {
+                    let similarPlayerDataContent;
+                    if (fieldName == 'lastLoginIp') {
+                        similarPlayerDataContent = searchVal;
+                    } else {
+                        similarPlayerDataContent = func ? func(result[i][fieldName]) : result[i][fieldName];
+                    }
+                    let similarPlayerData = {
                         playerObjId: results[i]._id,
                         field: fieldName,
-                        content: func ? func(results[i][fieldName]) : results[i][fieldName]
+                        content: similarPlayerDataContent
                     };
                     similarPlayersArray.push(similarPlayerData);
                     prom.push(
@@ -487,8 +496,13 @@ let dbPlayerInfo = {
                 prom.push(
                     dbconfig.collection_players.findOneAndUpdate(
                         {_id: newPlayerObjId, platform: platformObjId},
-                        {similarPlayers: similarPlayersArray},
-                        {new: true}
+                        {
+                            $push: {
+                                similarPlayers: {
+                                    $each: similarPlayersArray
+                                }
+                            }
+                        }
                     )
                 );
                 return Q.all(prom);
@@ -2640,6 +2654,11 @@ let dbPlayerInfo = {
                         bUpdateIp = true;
                     }
 
+                    var updateSimilarIpPlayer = false;
+                    if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
+                        updateSimilarIpPlayer = true;
+                    }
+
                     // Revert due to IP DB not ready
 
                     var geo = geoip.lookup(playerData.lastLoginIp);
@@ -2659,7 +2678,7 @@ let dbPlayerInfo = {
                         }
                     }
                     Object.assign(updateData, geoInfo);
-                    if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp) {
+                    if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
                         updateData.$push = {loginIps: playerData.lastLoginIp};
                     }
                     dbconfig.collection_players.findOneAndUpdate({
@@ -2684,6 +2703,10 @@ let dbPlayerInfo = {
                                 function () {
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                    }
+
+                                    if (updateSimilarIpPlayer) {
+                                        dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
                                     }
                                 }
                             ).then(
