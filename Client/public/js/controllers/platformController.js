@@ -4015,6 +4015,7 @@ define(['js/app'], function (myApp) {
             vm.creditModal = $('#modalPlayerGameProviderCredit').modal();
             vm.playerCredit = {};
             vm.creditTransfer = {};
+            vm.fixPlayerRewardAmount = {rewardInfo: row.rewardInfo};
             vm.transferAllCredit = {};
             vm.rewardTotalAmount = 0;
             vm.creditTransfer.needClose = false;
@@ -4231,6 +4232,21 @@ define(['js/app'], function (myApp) {
             }
         }
 
+        vm.sendFixPlayerRewardAmount = function () {
+            vm.fixPlayerRewardAmount.isProcessing = true;
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'fixPlayerRewardAmount', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
+                console.log('data', data);
+                $('#fixedRewardAmountResult').text(data.data.fixedStatus).fadeIn(1).fadeOut(3000);
+                vm.fixPlayerRewardAmount.isProcessing = false;
+                $scope.safeApply();
+            }, function (err) {
+                console.log('err', err);
+                $('#fixedRewardAmountResult').text(err.error.message).fadeIn(1).fadeOut(3000);
+                vm.fixPlayerRewardAmount.isProcessing = false;
+                $scope.safeApply();
+            })
+        }
         vm.initPlayerReferral = function () {
             $('#playerReferralPopover').show();
             vm.playerReferral = {};
