@@ -1473,9 +1473,12 @@ var dbPlayerTopUpRecord = {
                             aliPayAccount: 1,
                             amount: amount,
                             groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
-                            remark: remark || player.name,
+                            // remark: remark || player.name,
                             createTime: cTimeString,
                         };
+                        if (remark) {
+                            requestData.remark = remark;
+                        }
                         if (wechatAccount) {
                             requestData.groupWechatList = [wechatAccount];
                         }
