@@ -1898,7 +1898,7 @@ var proposal = {
             ]
         };
 
-        let limit = limit || constSystemParam.MAX_RECORD_NUM;
+        limit = limit || constSystemParam.MAX_RECORD_NUM;
         let a = dbconfig.collection_proposal.find(query).count();
         let b = dbconfig.collection_proposal.find(query).sort(sortCol).skip(index).limit(count)
             .populate({path: 'process', model: dbconfig.collection_proposalProcess});
