@@ -2856,6 +2856,7 @@ let dbPartner = {
                             commissionLevel: commissionLevel,
                             commissionRate: commissionRate,
                             bonusCommissionRate: bonusCommissionRate,
+                            negativeProfitAmount: negativeProfitAmount,
                             totalValidAmount: totalValidAmount,
                             totalBonusAmount: totalBonusAmount,
                             totalPlayerBonusAmount: totalPlayerBonusAmount,
