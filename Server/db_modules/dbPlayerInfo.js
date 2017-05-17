@@ -3978,8 +3978,8 @@ let dbPlayerInfo = {
                                         var applyAmount = proposals[key].data.applyAmount || 0;
                                         var rewardAmount = proposals[key].data.rewardAmount || 0;
                                         var currentAmount = proposals[key].data.currentAmount || 0;
-                                        if (proposals[key].type && proposals[key].type == constProposalType.PLAYER_CONSUMPTION_RETURN) {
-                                            sumAmount = sumAmount + Number(rewardAmount) + Number(currentAmount);
+                                        if (proposals[key].type && proposals[key].type.name == constProposalType.PLAYER_CONSUMPTION_RETURN) {
+                                            sumAmount = sumAmount + Number(rewardAmount);
                                         }
                                         else {
                                             sumAmount = sumAmount + Number(applyAmount) + Number(rewardAmount) + Number(currentAmount);
