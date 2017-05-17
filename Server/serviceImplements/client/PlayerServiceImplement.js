@@ -226,6 +226,18 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.playerId, data.newPhoneNumber, data.smsCode, 0], isValidData);
     };
 
+    this.updatePlayerPartnerPhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
+    this.updatePlayerPartnerPhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.phoneNumber && data.smsCode);
+        let queryRes = queryPhoneLocation(data.phoneNumber);
+        if (queryRes) {
+            data.phoneProvince = queryRes.province;
+            data.phoneCity = queryRes.city;
+            data.phoneType = queryRes.type;
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.playerId, data.newPhoneNumber, data.smsCode, 2], isValidData);
+    };
+
     //player login api handler
     this.login.expectsData = 'name: String, password: String, platformId: String';
     this.login.onRequest = function (wsFunc, conn, data) {
@@ -685,7 +697,7 @@ let PlayerServiceImplement = function () {
             function (res) {
                 if (res && res.length > 1) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
-                    //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                    SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                     let loggerInfo = {
                         source: constProposalEntryType.CLIENT,
                         bankName: data.bankName,

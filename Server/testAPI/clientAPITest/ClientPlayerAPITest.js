@@ -317,6 +317,12 @@
         this.playerService.updatePhoneNumberWithSMS.once(callback);
     };
 
+    proto.updatePlayerPartnerPhoneNumberWithSMS = function (callback, requestData) {
+        let data = requestData || {};
+        this.playerService.updatePlayerPartnerPhoneNumberWithSMS.request(data);
+        this.playerService.updatePlayerPartnerPhoneNumberWithSMS.once(callback);
+    };
+
     proto.updateSmsSetting = function(callback, requestData) {
 
         var data = requestData ||

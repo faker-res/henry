@@ -42,6 +42,7 @@
                 "getPlayerPartner",
                 "update",
                 "updatePhoneNumberWithSMS",
+                "updatePlayerPartnerPhoneNumberWithSMS",
                 "captcha",
                 "login",
                 "loginPlayerPartner",
@@ -278,8 +279,7 @@
                 "searchGame",
                 "getGameGroupTreeInfo",
                 "searchGameByGroup",
-                "getGamePassword",
-                "modifyGamePassword"
+                "getGamePassword"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
