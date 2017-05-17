@@ -6396,30 +6396,33 @@ let dbPlayerInfo = {
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
-            }).then(gameData => {
-            if (gameData) {
-                providerData = gameData.provider.toObject();
-                if (ip == "undefined") {
-                    ip = "127.0.0.1";
-                }
-                var sendData = {
-                    platformId: platformData.platformId,
-                    providerId: providerData.providerId,
-                    gameId: gameId,
-                    clientDomainName: clientDomainName || "Can not find domain",
-                    lang: lang || localization.lang.ch_SP,
-                    ip: ip,
-                    clientType: clientType || 1
-                };
-                //var isHttp = providerData.interfaceType == 1 ? true : false;
-                return cpmsAPI.player_getTestLoginURLWithOutUser(sendData);
-            } else {
-                return Q.reject({name: "DataError", message: "Cannot find game"})
             }
-        })
-            .then(
-                loginData => ({gameURL: loginData.gameURL})
-            );
+        ).then(
+            gameData => {
+                if (gameData) {
+                    providerData = gameData.provider.toObject();
+                    if (ip == "undefined") {
+                        ip = "127.0.0.1";
+                    }
+                    var sendData = {
+                        platformId: platformData.platformId,
+                        providerId: providerData.providerId,
+                        gameId: gameId,
+                        clientDomainName: clientDomainName || "Can not find domain",
+                        lang: lang || localization.lang.ch_SP,
+                        ip: ip,
+                        clientType: clientType || 1
+                    };
+                    //var isHttp = providerData.interfaceType == 1 ? true : false;
+                    return cpmsAPI.player_getTestLoginURLWithOutUser(sendData);
+                } else {
+                    return Q.reject({name: "DataError", message: "Cannot find game"});
+                }
+            }
+        ).then(
+            loginData => ({gameURL: loginData.gameURL}),
+            error => Q.reject({status: constServerCode.TEST_GAME_REQUIRE_LOGIN, name: "DataError", message: "Please login and try again"})
+        );
     },
 
     getGameUserInfo: function (playerId, platformId, providerId) {
