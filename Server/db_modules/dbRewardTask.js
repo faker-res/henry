@@ -847,6 +847,21 @@ var dbRewardTask = {
             playerObjId => dbRewardTask.checkPlayerRewardTaskStatus(playerObjId)
         );
         return Q.all(proms);
+    },
+
+    fixPlayerRewardAmount: function (playerId) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).then(
+            playerData => {
+                if (playerData) {
+                    return dbconfig.collection_rewardTask.findOne(
+                        {playerId: playerData._id, }
+                    ).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player"});
+                }
+            }
+        );
     }
 
 };
