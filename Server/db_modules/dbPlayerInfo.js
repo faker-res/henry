@@ -502,7 +502,7 @@ let dbPlayerInfo = {
                                     $each: similarPlayersArray
                                 }
                             }
-                        } // test if an id without similar player work, and test if it wont replace old column anymore
+                        }
                     )
                 );
                 return Q.all(prom);
