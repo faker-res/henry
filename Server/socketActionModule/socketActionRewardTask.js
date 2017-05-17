@@ -56,6 +56,12 @@ function socketActionRewardTask(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data[0] && data[1] && data[0].playerId && data[0].platformId);
             socketUtil.emitter(self.socket, dbRewardTask.manualUnlockRewardTask, [data, getAdminId(), getAdminName()], actionName, isValidData);
+        },
+
+        fixPlayerRewardAmount: function fixPlayerRewardAmount(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbRewardTask.fixPlayerRewardAmount, [data.playerId], actionName, isValidData);
         }
     };
     socketActionRewardTask.actions = this.actions;
