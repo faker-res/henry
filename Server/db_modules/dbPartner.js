@@ -3180,7 +3180,7 @@ let dbPartner = {
                         data.forEach(
                             eachRecord => {
                                 if (eachRecord) {
-                                    eachRecord.operationFee = eachRecord.totalTopUpAmount - eachRecord.totalBonusAmount;
+                                    eachRecord.operationFee = eachRecord.totalTopUpAmount - eachRecord.totalPlayerBonusAmount;
                                     eachRecord.marketCost = eachRecord.totalRewardAmount + eachRecord.platformFee + eachRecord.serviceFee;
                                     // eachRecord.totalTopUpAmount = 0;
                                     // eachRecord.totalBonusAmount = 0;
