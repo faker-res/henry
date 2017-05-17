@@ -2729,8 +2729,8 @@ let dbPartner = {
                         serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                     }
 
-                    if (rewardInfo && rewardInfo[0]) {
-                        totalRewardAmount = rewardInfo[0].totalRewardAmount;
+                    if (rewardInfo && rewardInfo[0] && configData && configData.rewardRate) {
+                        totalRewardAmount = rewardInfo[0].totalRewardAmount * configData.rewardRate;
                     }
 
                     switch (configData.settlementMode) {
@@ -3571,8 +3571,8 @@ let dbPartner = {
                     // operationAmount = totalBonusAmount;
                     platformFeeAmount = Math.abs(totalBonusAmount);
                 }
-                if (rewardInfo && rewardInfo[0]) {
-                    totalRewardAmount = rewardInfo[0].totalRewardAmount;
+                if (rewardInfo && rewardInfo[0] && configData && configData.rewardRate) {
+                    totalRewardAmount = rewardInfo[0].totalRewardAmount * configData.rewardRate;
                 }
                 if (configData && configData.serviceFeeRate > 0) {
                     serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
