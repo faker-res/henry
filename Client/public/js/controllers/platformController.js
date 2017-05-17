@@ -4237,7 +4237,17 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
             socketService.$socket($scope.AppSocket, 'fixPlayerRewardAmount', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 console.log('data', data);
-                $('#fixedRewardAmountResult').text(data.data.fixedStatus).fadeIn(1).fadeOut(3000);
+                const textMap = {
+                    fixed: 'fixed',
+                    unnecessary: 'unnecessary to fix',
+                }
+                let showText = textMap[data.data.fixedStatus] || data.data.fixedStatus;
+                $('#fixedRewardAmountResult').text($translate(showText)).fadeIn(1).fadeOut(3000);
+                if (data.data.fixedStatus == 'fixed') {
+                    vm.creditTransfer.showValidCredit = data.validCredit;
+                    vm.selectedSinglePlayer.validCredit = data.validCredit;
+                    vm.selectedSinglePlayer.lockedCredit = data.lockedCredit;
+                }
                 vm.fixPlayerRewardAmount.isProcessing = false;
                 $scope.safeApply();
             }, function (err) {
