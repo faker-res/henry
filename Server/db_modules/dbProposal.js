@@ -992,7 +992,7 @@ var proposal = {
         var proposalStatus = [];
         var totalCount = 0;
         var finalSummary = [];
-        size = Math.min(size, constSystemParam.MAX_RECORD_NUM);
+        size = Math.min(size, constSystemParam.REPORT_MAX_RECORD_NUM);
 
         var prom1 = dbconfig.collection_proposalType.find({platformId: platformId}).exec();
         var prom2 = dbconfig.collection_admin.findOne({_id: adminId}).exec();
