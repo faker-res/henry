@@ -1722,6 +1722,7 @@
   "Partner Commission": "推广渠道提成设置",
   "platformFeeRate": "平台费率",
   "serviceFeeRate": "服务费率",
+  "rewardRate": "红利率",
   "commissionPeriod": "提成周期",
   "CommissionHistoryTimes": "周期数",
   "bonusRate": "奖励比率",
