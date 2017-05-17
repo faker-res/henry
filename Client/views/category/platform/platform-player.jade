@@ -799,6 +799,8 @@ include modalGameCreditLog
                 h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | number : 3}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.selectedSinglePlayer.lockedCredit || 0 | number : 3}} )
             .modal-body
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.fixPlayerRewardAmount.rewardInfo.length > 0 || vm.fixPlayerRewardAmount.isProcessing', ng-click='vm.sendFixPlayerRewardAmount()') {{'Fix Player RewardAmount' | translate}}
+                label#fixedRewardAmountResult.margin-left-5
                 label.pull-right.blink(ng-show='vm.creditTransfer.needClose') {{'Please close the dialog to refresh the data.' | translate}}
                 table.simple-table
                     thead
