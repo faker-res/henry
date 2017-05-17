@@ -149,7 +149,7 @@ define(['js/app'], function (myApp) {
                 // } while (nowDate <= sendData.endDate);
                 var graphData = [];
                 playerData.map(item => {
-                    var dateText = new Date(item._id.date);
+                    var dateText = utilService.$getDateFromStdTimeFormat(item._id.date);
                     graphData.push([dateText, item.number]);
                     lastDayNum = item.number;
                 })
