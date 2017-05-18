@@ -39,7 +39,9 @@ var partnerCommissionRecordSchema = new Schema({
     //sum of all the commissionAmounts of this partner's children
     totalCommissionOfChildren: {type: Number},
     //commission amount awarded to this partner based on its children's performance
-    commissionAmountFromChildren: {type: Number}
+    commissionAmountFromChildren: {type: Number},
+    // negative profit amount
+    negativeProfitAmount: {type: Number}
 });
 
 module.exports = partnerCommissionRecordSchema;
