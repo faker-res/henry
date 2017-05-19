@@ -1845,6 +1845,11 @@ define(['js/app'], function (myApp) {
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
                     }
 
+                    if (!(vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0)) {
+                        sendData.data.updateAmount = playerTransfer.amount;
+                        sendData.data.updateLockedAmount = -sendData.data.curLockedAmount;
+                    }
+
                     console.log('repairTransaction', sendData);
                     socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
                         var newData = data.data;
@@ -4487,6 +4492,11 @@ define(['js/app'], function (myApp) {
                         sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.updateAmount;
                         sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
+                    }
+
+                    if (!(vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0)) {
+                        sendData.data.updateAmount = playerTransfer.amount;
+                        sendData.data.updateLockedAmount = -sendData.data.curLockedAmount;
                     }
 
                     console.log('repairTransaction', sendData);
