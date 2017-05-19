@@ -1823,13 +1823,15 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
+                    let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
+
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
                             playerObjId: playerTransfer.playerObjId,
                             playerName: playerTransfer.playerName,
-                            updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
+                            updateAmount: updateAmount < 0 ? 0 : updateAmount,
                             curAmount: vm.selectedThisPlayer.validCredit,
                             realName: vm.selectedThisPlayer.realName,
                             remark: vm.creditChange.remark,
@@ -1838,7 +1840,7 @@ define(['js/app'], function (myApp) {
                     }
                     if (vm.linkedPlayerTransferId) {
                         sendData.data.transferId = playerTransfer.transferId;
-                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
+                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
                         sendData.data.curLockedAmount = vm.selectedThisPlayer.lockedCredit;
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
                     }
@@ -4389,8 +4391,11 @@ define(['js/app'], function (myApp) {
                             })
 
                             vm.linkedPlayerTransferId = playerTransfer._id;
-                            vm.creditChange.finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit).toFixed(2);
-                            vm.creditChange.finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
+                            let finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit).toFixed(2);
+                            let finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
+                            // added negative value handling to address credit transfer out issue
+                            vm.creditChange.finalValidAmount = finalValidAmount < 0 ? parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2) : finalValidAmount;
+                            vm.creditChange.finalLockedAmount = finalLockedAmount < 0 ? parseFloat(vm.selectedSinglePlayer.lockedCredit).toFixed(2) : finalLockedAmount;
                             $scope.safeApply();
                         });
                     }
@@ -4462,13 +4467,15 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
+                    let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
+
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
                             playerObjId: playerTransfer.playerObjId,
                             playerName: playerTransfer.playerName,
-                            updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
+                            updateAmount: updateAmount < 0 ? 0 : updateAmount,
                             curAmount: vm.isOneSelectedPlayer().validCredit,
                             realName: vm.isOneSelectedPlayer().realName,
                             remark: vm.creditChange.remark,
@@ -4477,7 +4484,7 @@ define(['js/app'], function (myApp) {
                     }
                     if (vm.linkedPlayerTransferId) {
                         sendData.data.transferId = playerTransfer.transferId;
-                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
+                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.updateAmount;
                         sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
                     }
