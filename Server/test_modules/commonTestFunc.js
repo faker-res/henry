@@ -16,6 +16,7 @@ var dbProposalProcess = require('./../db_modules/dbProposalProcess');
 var dbAdminInfo = require('../db_modules/dbAdminInfo');
 var dbDepartment = require('../db_modules/dbDepartment');
 var dbRole = require('../db_modules/dbRole');
+var dbPartner = require('../db_modules/dbPartner');
 var constProposalStepStatus = require('../const/constProposalStepStatus');
 var clientApiInstances = require("../modules/clientApiInstances.js");
 
@@ -36,14 +37,14 @@ var commonTestFunc = {
     testGameName: 'testGame',
     testChannelName: 'testChannelName',
     testRewardRuleName: 'testRewardRuleName',
-    testPartner : 'testPartner',
+    testPartnerName : 'testPartner',
 
     testAdminName: "step1admin",
     testRoleName: "step1Role",
     testDepartName: "step1Department",
 
 
-    createTestPlatform: function () {
+    createTestPlatform: function (data) {
         var date = new Date();
         var platformName = commonTestFunc.testPlatformName + date.getTime();
         var platformData = {
@@ -52,6 +53,11 @@ var commonTestFunc = {
             code: new Date().getTime(),
             description: "a platform for testing"
         };
+
+        if(data){
+            Object.assign(platformData,data);
+        }
+        
         return dbPlatform.createPlatform(platformData);
     },
 
@@ -69,7 +75,7 @@ var commonTestFunc = {
                     platform: platformId,
                     password: '123456',
                     validCredit: 300,
-
+                    realName:"Test Player",
                     phoneNumber: '80808080',
                     email: 'testPlayer@sinonet.com.sg',
 
@@ -89,6 +95,22 @@ var commonTestFunc = {
                 return dbPlayerInfo.createPlayerInfo(playerData);
             }
         );
+    },
+
+    createTestPartner: function (platformId) {
+
+            let date = new Date();
+            let partnerName = commonTestFunc.testPartnerName+ date.getTime() + commonTestFunc.getRandomInt();
+
+            let partnerData = {
+                "partnerName": partnerName,
+                "email": "testPartner123@gmail.com",
+                "password": "123123",
+                "platform": platformId,
+                "phoneNumber":"123123123"
+            };
+
+            return dbPartner.createPartner(partnerData);
     },
 
     getTestMerchantGroup: function (platformObjId) {
@@ -245,6 +267,7 @@ var commonTestFunc = {
         let adminQuery = ".*" + commonTestFunc.testAdminName + "*.";
         let departmentQuery = ".*" + commonTestFunc.testDepartName + "*.";
         let roleQuery = ".*" + commonTestFunc.testRoleName + "*.";
+        let partnerQuery = ".*" + commonTestFunc.testPartnerName + "*.";
 
         let pm1 = dbconfig.collection_platform.find({name: {$regex: platformNameQuery}}, {_id: 1}).then(
             platforms => {
@@ -259,6 +282,8 @@ var commonTestFunc = {
         let pm7 = dbconfig.collection_role.remove({roleName: {$regex: roleQuery} });
         let pm8 = dbconfig.collection_admin.remove({adminName: {$regex: adminQuery}});
         let pm9 = dbconfig.collection_department.remove({departmentName: {$regex: departmentQuery}});
+        let pm10 = dbconfig.collection_partner.remove({name: {$regex: partnerQuery}});
+
         let pmA = dbconfig.collection_platformMerchantGroup.remove({name: 'TestMerchantGroup.*'});
         let pmB = dbconfig.collection_platformBankCardGroup.remove({name: 'TestBankCardGroup.*'});
 
