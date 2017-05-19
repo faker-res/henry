@@ -4392,8 +4392,8 @@ define(['js/app'], function (myApp) {
                             let finalValidAmount = parseFloat(playerTransfer.amount - playerTransfer.lockedAmount + vm.selectedSinglePlayer.validCredit).toFixed(2);
                             let finalLockedAmount = parseFloat(playerTransfer.lockedAmount).toFixed(2);
                             // added negative value handling to address credit transfer out issue
-                            vm.creditChange.finalValidAmount = finalValidAmount < 0 ? vm.selectedSinglePlayer.validCredit : finalValidAmount;
-                            vm.creditChange.finalLockedAmount = finalLockedAmount < 0 ? vm.selectedSinglePlayer.lockedCredit : finalLockedAmount;
+                            vm.creditChange.finalValidAmount = finalValidAmount < 0 ? parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2) : finalValidAmount;
+                            vm.creditChange.finalLockedAmount = finalLockedAmount < 0 ? parseFloat(vm.selectedSinglePlayer.lockedCredit).toFixed(2) : finalLockedAmount;
                             $scope.safeApply();
                         });
                     }
