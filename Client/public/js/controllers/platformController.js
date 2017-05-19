@@ -5610,7 +5610,7 @@ define(['js/app'], function (myApp) {
                 }
             } else if (vm.modifyCritical.changeType == 'phone') {
                 sendData.data.curData = {
-                    phoneNumber: vm.selectedSinglePlayer.phoneNumber
+                    phoneNumber: vm.modifyCritical.phoneNumber
                 }
                 sendData.data.updateData = {
                     phoneNumber: vm.modifyCritical.newPhoneNumber
