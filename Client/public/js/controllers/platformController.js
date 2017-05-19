@@ -3816,7 +3816,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {'title': $translate('CREATE_TIME'), data: 'createTime$'},
-                    {'title': $translate('Type'), data: 'operationType$', sClass: "tbodyNoWrap"},
+                    {'title': $translate('Type'), data: 'operationType$', sClass: "wordWrap width10Per"},
                     {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
                     {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "wordWrap"},
                     {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "tbodyNoWrap"},
@@ -4015,6 +4015,7 @@ define(['js/app'], function (myApp) {
             vm.creditModal = $('#modalPlayerGameProviderCredit').modal();
             vm.playerCredit = {};
             vm.creditTransfer = {};
+            vm.fixPlayerRewardAmount = {rewardInfo: row.rewardInfo};
             vm.transferAllCredit = {};
             vm.rewardTotalAmount = 0;
             vm.creditTransfer.needClose = false;
@@ -4231,6 +4232,31 @@ define(['js/app'], function (myApp) {
             }
         }
 
+        vm.sendFixPlayerRewardAmount = function () {
+            vm.fixPlayerRewardAmount.isProcessing = true;
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'fixPlayerRewardAmount', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
+                console.log('data', data);
+                const textMap = {
+                    fixed: 'fixed',
+                    unnecessary: 'unnecessary to fix',
+                }
+                let showText = textMap[data.data.fixedStatus] || data.data.fixedStatus;
+                $('#fixedRewardAmountResult').text($translate(showText)).fadeIn(1).fadeOut(3000);
+                if (data.data.fixedStatus == 'fixed') {
+                    vm.creditTransfer.showValidCredit = data.validCredit;
+                    vm.selectedSinglePlayer.validCredit = data.validCredit;
+                    vm.selectedSinglePlayer.lockedCredit = data.lockedCredit;
+                }
+                vm.fixPlayerRewardAmount.isProcessing = false;
+                $scope.safeApply();
+            }, function (err) {
+                console.log('err', err);
+                $('#fixedRewardAmountResult').text(err.error.message).fadeIn(1).fadeOut(3000);
+                vm.fixPlayerRewardAmount.isProcessing = false;
+                $scope.safeApply();
+            })
+        }
         vm.initPlayerReferral = function () {
             $('#playerReferralPopover').show();
             vm.playerReferral = {};
@@ -4882,7 +4908,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate('orderId'), data: "orderNo"},
                         {title: $translate('CREATION_TIME'), data: "createTime$"},
                         {title: $translate('PROVIDER'), data: "providerId.name"},
-                        {title: $translate('GAME_TITLE'), data: "gameId.name"},
+                        {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
                         // {title: $translate('GAME_TYPE'), data: "gameType$", sClass: 'sumText'},
                         // {title: $translate('Game Round'), data: "roundNo", sClass: 'sumText'},
                         {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
@@ -5839,13 +5865,14 @@ define(['js/app'], function (myApp) {
                     return item;
                 }) : [];
                 vm.playerBonusHistory.totalCount = data.data ? data.data.total : 0;
+                let summary = data.data ? data.data.summary : {sumAmt: 0};
                 console.log("RewardHist:length:", showData);
-                vm.drawPlayerBonusHistoryTbl(showData, vm.playerBonusHistory.totalCount, newSearch);
+                vm.drawPlayerBonusHistoryTbl(showData, vm.playerBonusHistory.totalCount, newSearch, summary);
                 vm.playerBonusHistory.isSearching = false;
                 $scope.safeApply();
             });
         }
-        vm.drawPlayerBonusHistoryTbl = function (showData, size, newSearch) {
+        vm.drawPlayerBonusHistoryTbl = function (showData, size, newSearch, summary) {
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: showData,
                 "aaSorting": vm.playerBonusHistory.aaSorting || [],
@@ -5859,14 +5886,16 @@ define(['js/app'], function (myApp) {
                     {title: $translate('proposalId'), data: "proposalId"},
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('bonusId'), data: "data.bonusId"},
-                    {title: $translate('bonusCredit'), data: "data.bonusCredit"},
-                    {title: $translate('amount'), data: "data.amount"},
+                    {title: $translate('bonusCredit'), data: "data.bonusCredit", sClass: 'sumText'},
+                    {title: $translate('amount'), data: "data.amount", sClass: 'sumInt'},
                     {title: $translate('CUR_AMOUNT'), data: "curAmount$"},
                     {title: $translate('HONOREE_DETAIL'), data: "data.honoreeDetail"},
                 ],
                 "paging": false,
             });
-            var aTable = $("#playerBonusHistoryTbl").DataTable(tableOptions);
+            utilService.createDatatableWithFooter("#playerBonusHistoryTbl", tableOptions, {5: summary.sumAmt});
+
+            // var aTable = $("#playerBonusHistoryTbl").DataTable(tableOptions);
             vm.playerBonusHistory.pageObj.init({maxCount: size}, newSearch);
             $("#playerBonusHistoryTbl").off('order.dt');
             $("#playerBonusHistoryTbl").on('order.dt', function (event, a, b) {

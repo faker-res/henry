@@ -38,7 +38,9 @@ let partnerCommissionConfigSchema = new Schema({
     //reset period，number of days to clear negative value
     resetPeriod: {type: Number, default: 0},
     // settlement mode
-    settlementMode: {type: String, default: constPartnerCommissionSettlementMode.OPSR}
+    settlementMode: {type: String, default: constPartnerCommissionSettlementMode.OPSR},
+    // reward rate
+    rewardRate: {type: Number, default: 1}
 });
 
 module.exports = partnerCommissionConfigSchema;

@@ -2707,39 +2707,44 @@ let dbPartner = {
                     let topUpInfo = data[2];
                     let bonusInfo = data[3];
                     // var operationAmount = 0;
+                    let platformFeeAmount = 0;
                     totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
                     totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
 
+                    if (consumptionInfo && consumptionInfo.length > 0) {
+                        consumptionInfo.forEach(
+                            conInfo => {
+                                totalValidAmount += conInfo.totalValidAmount;
+                                totalBonusAmount += conInfo.totalBonusAmount;
+                                platformFeeAmount += Math.abs(conInfo.totalBonusAmount);
+                            }
+                        );
+
+                        if (configData && configData.platformFeeRate > 0) {
+                            platformFee = Math.max(0, platformFeeAmount * configData.platformFeeRate);
+                        }
+                    }
+
+                    if (configData && configData.serviceFeeRate > 0) {
+                        serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
+                    }
+
+                    if (rewardInfo && rewardInfo[0] && configData && configData.rewardRate) {
+                        totalRewardAmount = rewardInfo[0].totalRewardAmount * configData.rewardRate;
+                    }
+
                     switch (configData.settlementMode) {
                         case 'TB':
-                            profitAmount = totalTopUpAmount - totalPlayerBonusAmount;
+                            operationAmount = totalTopUpAmount - totalPlayerBonusAmount;
                             break;
                         case 'OPSR':
                         default:
-                            let platformFeeAmount = 0;
-                            if (consumptionInfo && consumptionInfo.length > 0) {
-                                consumptionInfo.forEach(
-                                    conInfo => {
-                                        totalValidAmount += conInfo.totalValidAmount;
-                                        totalBonusAmount += conInfo.totalBonusAmount;
-                                        platformFeeAmount += Math.abs(conInfo.totalBonusAmount);
-                                    }
-                                );
-                                totalBonusAmount = -totalBonusAmount;
-                                operationAmount = totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
-                                if (configData && configData.platformFeeRate > 0) {
-                                    platformFee = Math.max(0, platformFeeAmount * configData.platformFeeRate);
-                                }
-                            }
-                            if (rewardInfo && rewardInfo[0]) {
-                                totalRewardAmount = rewardInfo[0].totalRewardAmount;
-                            }
-                            if (configData && configData.serviceFeeRate > 0) {
-                                serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
-                            }
-                            profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
+                            operationAmount = -totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
+
                             break;
                     }
+
+                    profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
                     //get partner active player number
                     return dbPartner.getPartnerActiveValidPlayers(platformObjId, partnerObjId, true, {
@@ -2851,6 +2856,7 @@ let dbPartner = {
                             commissionLevel: commissionLevel,
                             commissionRate: commissionRate,
                             bonusCommissionRate: bonusCommissionRate,
+                            negativeProfitAmount: negativeProfitAmount,
                             totalValidAmount: totalValidAmount,
                             totalBonusAmount: totalBonusAmount,
                             totalPlayerBonusAmount: totalPlayerBonusAmount,
@@ -3175,7 +3181,7 @@ let dbPartner = {
                         data.forEach(
                             eachRecord => {
                                 if (eachRecord) {
-                                    eachRecord.operationFee = eachRecord.totalBonusAmount;
+                                    eachRecord.operationFee = eachRecord.totalTopUpAmount - eachRecord.totalPlayerBonusAmount;
                                     eachRecord.marketCost = eachRecord.totalRewardAmount + eachRecord.platformFee + eachRecord.serviceFee;
                                     // eachRecord.totalTopUpAmount = 0;
                                     // eachRecord.totalBonusAmount = 0;
@@ -3555,18 +3561,18 @@ let dbPartner = {
                 var rewardInfo = data[1];
                 var topUpInfo = data[2];
                 var bonusInfo = data[3];
-                var operationAmount = 0;
                 var totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
                 var totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
+                var operationAmount = totalTopUpAmount - totalPlayerBonusAmount;
                 var platformFeeAmount = 0;
                 if (consumptionInfo && consumptionInfo[0]) {
                     totalValidAmount = consumptionInfo[0].totalValidAmount;
                     totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
-                    operationAmount = totalBonusAmount;
+                    // operationAmount = totalBonusAmount;
                     platformFeeAmount = Math.abs(totalBonusAmount);
                 }
-                if (rewardInfo && rewardInfo[0]) {
-                    totalRewardAmount = rewardInfo[0].totalRewardAmount;
+                if (rewardInfo && rewardInfo[0] && configData && configData.rewardRate) {
+                    totalRewardAmount = rewardInfo[0].totalRewardAmount * configData.rewardRate;
                 }
                 if (configData && configData.serviceFeeRate > 0) {
                     serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
