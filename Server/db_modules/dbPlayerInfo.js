@@ -3438,10 +3438,10 @@ let dbPlayerInfo = {
 
                     // Deduct amount from player validCredit before transfer
                     // Amount is already floored
-                    let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
+                    // let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
                     let updateObj = {
                         lastPlayedProvider: providerId,
-                        $inc: {validCredit: -decreaseAmount}
+                        $inc: {validCredit: -amount}
                     };
                     if (bUpdateReward) {
                         updateObj.lockedCredit = rewardData.currentAmount;
@@ -3469,12 +3469,11 @@ let dbPlayerInfo = {
             function (updateData) {
                 if (updateData) {
                     //console.log("Before transfer credit:", playerData.validCredit);
-                    if (updateData.validCredit < 0) {
-                        //console.log("Transfer invalid credit", playerData.validCredit);
+                    if (updateData.validCredit < -0.02) {
                         //reset player credit to 0
                         return dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerObjId, platform: platform},
-                            {validCredit: 0},
+                            {$inc: {validCredit: amount}},
                             {new: true}
                         ).catch(errorUtils.reportError).then(
                             () => Q.reject({
@@ -3486,7 +3485,18 @@ let dbPlayerInfo = {
                     }
                     else {
                         playerCredit = updateData.validCredit;
-                        return true;
+                        //fix float number problem after update
+                        if( updateData.validCredit > -0.02 && updateData.validCredit < 0){
+                            playerCredit = 0;
+                            return dbconfig.collection_players.findOneAndUpdate(
+                                {_id: playerObjId, platform: platform},
+                                {validCredit: 0},
+                                {new: true}
+                            );
+                        }
+                        else{
+                            return true;
+                        }
                     }
                 }
                 else {
