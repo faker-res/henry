@@ -1823,13 +1823,15 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
+                    let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
+
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
                             playerObjId: playerTransfer.playerObjId,
                             playerName: playerTransfer.playerName,
-                            updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
+                            updateAmount: updateAmount < 0 ? 0 : updateAmount,
                             curAmount: vm.selectedThisPlayer.validCredit,
                             realName: vm.selectedThisPlayer.realName,
                             remark: vm.creditChange.remark,
@@ -1838,8 +1840,14 @@ define(['js/app'], function (myApp) {
                     }
                     if (vm.linkedPlayerTransferId) {
                         sendData.data.transferId = playerTransfer.transferId;
-                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
-                        sendData.data.curLockedAmount = vm.selectedThisPlayer.lockedCredit;
+                        //if reward task is still there fix locked amount otherwise fix valid amount
+                        if (vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
+                            sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
+                            sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
+                        }
+                        else {
+                            sendData.data.updateAmount += playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
+                        }
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
                     }
 
@@ -4464,13 +4472,15 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
+                    let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
+
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
                             playerObjId: playerTransfer.playerObjId,
                             playerName: playerTransfer.playerName,
-                            updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
+                            updateAmount: updateAmount < 0 ? 0 : updateAmount,
                             curAmount: vm.isOneSelectedPlayer().validCredit,
                             realName: vm.isOneSelectedPlayer().realName,
                             remark: vm.creditChange.remark,
@@ -4479,8 +4489,15 @@ define(['js/app'], function (myApp) {
                     }
                     if (vm.linkedPlayerTransferId) {
                         sendData.data.transferId = playerTransfer.transferId;
-                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
-                        sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
+                        //if reward task is still there fix locked amount otherwise fix valid amount
+                        if (vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
+                            sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
+                            sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
+                        }
+                        else {
+                            sendData.data.updateAmount += playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
+                        }
+
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
                     }
 
