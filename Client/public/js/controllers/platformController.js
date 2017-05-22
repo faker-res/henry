@@ -3478,6 +3478,8 @@ define(['js/app'], function (myApp) {
                     if (newPlayerData[key] != oldPlayerData[key]) {
                         if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup") {
                             //do nothing
+                        } else if (key == "referralName" && newPlayerData["referral"] == oldPlayerData["referral"] ) {
+                            //do nothing
                         } else {
                             isUpdate = true;
                         }
