@@ -1842,11 +1842,11 @@ define(['js/app'], function (myApp) {
                         sendData.data.transferId = playerTransfer.transferId;
                         //if reward task is still there fix locked amount otherwise fix valid amount
                         if (vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
-                            sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.updateAmount;
+                            sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
                             sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
                         }
                         else {
-                            sendData.data.updateAmount += playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.updateAmount;
+                            sendData.data.updateAmount += playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
                         }
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
                     }
@@ -4492,11 +4492,11 @@ define(['js/app'], function (myApp) {
                         sendData.data.transferId = playerTransfer.transferId;
                         //if reward task is still there fix locked amount otherwise fix valid amount
                         if (vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
-                            sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.updateAmount;
+                            sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
                             sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
                         }
                         else {
-                            sendData.data.updateAmount += playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.updateAmount;
+                            sendData.data.updateAmount += playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
                         }
 
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
