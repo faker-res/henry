@@ -1622,7 +1622,7 @@ let dbPartner = {
                     //     });
                     // }
                     if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
-                        || !partnerData.bankAccount || !partnerData.bankAddress || !partnerData.phoneNumber) {
+                        || !partnerData.bankAccount || !partnerData.bankAddress ) {
                         return Q.reject({
                             status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                             name: "DataError",
