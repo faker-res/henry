@@ -517,11 +517,20 @@ let PlayerServiceImplement = function () {
                     conn.partnerId = null;
                     conn.partnerObjId = null;
                     conn.captchaCode = null;
-                    wsFunc.response(conn, {
-                        status: constServerCode.INVALID_USER_PASSWORD,
-                        data: {noOfAttempt: conn.noOfAttempt},
-                        errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
-                    }, data);
+
+                    if (error && error.message == "Invalid SMS Validation Code") {
+                        wsFunc.response(conn, {
+                            status: constServerCode.VALIDATION_CODE_EXPIRED,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang),
+                        }, data);
+                    } else {
+                        wsFunc.response(conn, {
+                            status: constServerCode.INVALID_USER_PASSWORD,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
+                        }, data);
+                    }
                 }
             }
         ).catch(WebSocketUtil.errorHandler)
