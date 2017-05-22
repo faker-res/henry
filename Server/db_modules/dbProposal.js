@@ -393,7 +393,8 @@ var proposal = {
                 if (proposalData && proposalData.data && (proposalData.data.weChatAccount != null || proposalData.data.weChatQRCode != null)) {
                     type = constPlayerTopUpType.WECHAT;
                 }
-                if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING) && proposalData.data && proposalData.data.requestId == requestId) {
+                if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING ||
+                    proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING) && proposalData.data && proposalData.data.requestId == requestId) {
                     return proposalData;
                 }
                 else {
