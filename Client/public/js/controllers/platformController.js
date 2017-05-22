@@ -3478,6 +3478,8 @@ define(['js/app'], function (myApp) {
                     if (newPlayerData[key] != oldPlayerData[key]) {
                         if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup") {
                             //do nothing
+                        } else if (key == "referralName" && newPlayerData["referral"] == oldPlayerData["referral"] ) {
+                            //do nothing
                         } else {
                             isUpdate = true;
                         }
@@ -5613,7 +5615,7 @@ define(['js/app'], function (myApp) {
                 }
             } else if (vm.modifyCritical.changeType == 'phone') {
                 sendData.data.curData = {
-                    phoneNumber: vm.selectedSinglePlayer.phoneNumber
+                    phoneNumber: vm.modifyCritical.phoneNumber
                 }
                 sendData.data.updateData = {
                     phoneNumber: vm.modifyCritical.newPhoneNumber
