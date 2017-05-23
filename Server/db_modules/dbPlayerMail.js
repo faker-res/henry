@@ -127,7 +127,7 @@ const dbPlayerMail = {
         let c = dbconfig.collection_smsVerificationLog.findOne({tel: telNum, createTime: {$gt: lastMin}});
 
         return Q.all([a, b, c]).then(data => {
-            channel = data[0] && data[0].channels && data[0].channels[1] ? data[0].channels[1] : 2;
+            channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
             platformId = data[1] && data[1].platformId ? data[1].platformId : null;
             platformObjId = data[1] && data[1]._id ? data[1]._id : null;
             lastMinuteHistory = data[2];
