@@ -8,7 +8,9 @@ const constPlayerSMSSetting = {
     APPLY_REWARD: "applyReward",
     CONSUMPTION_RETURN: "consumptionReturn",
     UPDATE_PAYMENT_INFO: "updatePaymentInfo",
-    UPDATE_PASSWORD: "updatePassword"
+    UPDATE_PASSWORD: "updatePassword",
+
+    SMS_VERIFICATION: "smsVerificationCode"
 };
 
 module.exports = constPlayerSMSSetting;
