@@ -273,7 +273,9 @@ define(['js/app'], function (myApp) {
                 vm.queryTopup = {};
                 vm.queryTopup.type = 'all';
                 vm.queryTopup.paymentChannel = 'all';
+                vm.merchantNoNameObj = {};
                 vm.queryTopup.totalCount = 0;
+
                 socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
                     delete data.data.APPROVED;
                     delete data.data.REJECTED;
@@ -287,11 +289,12 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
-                        vm.proposalStatusList = data.data.merchants.filter(mer => {
+                        vm.merchantNoList = data.data.merchants.filter(mer => {
+                                vm.merchantNoNameObj[mer.merchantNo] = mer.name;
                                 return mer.status != 'DISABLED';
                             }) || [];
                     }
-                    console.log('merchantList', vm.proposalStatusList);
+                    console.log('merchantList', vm.merchantNoList);
                     $scope.safeApply();
                 }, function (data) {
                     console.log("merchantList", data);
@@ -851,6 +854,7 @@ define(['js/app'], function (myApp) {
             //     sendObj.status = {'$in': staArr}
             // }
 
+            vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : '';
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
                 $('#topupTableSpin').hide();
                 console.log('topup', data);
@@ -860,6 +864,7 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
+                        item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
@@ -882,7 +887,7 @@ define(['js/app'], function (myApp) {
                     // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
                     {title: $translate('STATUS'), data: "status$"},
                     // {title: $translate('ISNEWPLAYER'), data: null},
-                    {title: $translate('ACCOUNT'), data: "data.bankAccount"},
+                    {title: $translate('Merchant No'), data: "merchantName"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "sumText"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},

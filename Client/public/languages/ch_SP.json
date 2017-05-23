@@ -1818,5 +1818,7 @@
   "mins": "分钟",
   "LOGIN_IP": "登入IP",
   "Undetermined": "待定",
-  "ModifyGamePassword": "更改游戏密码"
+  "ModifyGamePassword": "更改游戏密码",
+  "smsVerificationCode": "短信验证码",
+  "VERIFICATION_TEMPLATE_NOTE": "注： 短信验证码请将'smsCode'置于任意位置，例 - 你好，验证码是smsCode，祝您愉快游戏！"
 }
