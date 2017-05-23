@@ -3041,6 +3041,12 @@ define(['js/app'], function (myApp) {
                             })
                         }
                     }
+                    if (vm.selectedSinglePlayer.referral) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function(data) {
+                            vm.selectedSinglePlayer.referralName = data.data.name;
+                            $scope.safeApply();
+                        });
+                    }
                     vm.processDataTableinModal('#modalPlayerInfo', '#similarPlayersTable');
                     vm.showProvinceStr = '';
                     vm.showCityStr = '';
