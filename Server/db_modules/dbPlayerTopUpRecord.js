@@ -130,8 +130,7 @@ var dbPlayerTopUpRecord = {
                 }
 
                 if (query.merchantNo) {
-                    queryObj['data'] = queryObj['data'] || {};
-                    queryObj['data']['merchantNo'] = query.merchantNo
+                    queryObj['data.merchantNo'] = query.merchantNo
                 }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
