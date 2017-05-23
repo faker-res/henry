@@ -1309,6 +1309,7 @@
   "TOPUPONLINE": "在线充值",
   "TOPUPMANUAL": "手工存款",
   "TOPUPALIPAY": "支付宝存款",
+  "TOPUPWECHAT": "微信存款",
   "TopUp Sum": "总充值额",
   "clientType": "客户类型",
   "merchantUseType": "商户号用途",
