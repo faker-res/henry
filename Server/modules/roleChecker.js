@@ -280,7 +280,8 @@ var roleChecker = {
                 BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPlayerBankAccount'],
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
-                PartnerPermission: ['updatePartnerPermission']
+                PartnerPermission: ['updatePartnerPermission'],
+                CreditAdjustment: ['createUpdatePartnerCreditProposal']
             },
             "Game": {
                 Read: ['getAllGameProviders', 'getGamesByPlatformAndProvider', 'getGamesNotAttachedToPlatform'],
