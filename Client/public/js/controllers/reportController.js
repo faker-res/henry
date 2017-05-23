@@ -284,14 +284,28 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     console.log("cannot find proposal status", data);
                 });
+
+                socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                    if (data.data && data.data.merchants) {
+                        vm.proposalStatusList = data.data.merchants.filter(mer => {
+                                return mer.status != 'DISABLED';
+                            }) || [];
+                    }
+                    console.log('merchantList', vm.proposalStatusList);
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("merchantList", data);
+                });
+
                 utilService.actionAfterLoaded("#topupTablePage", function () {
                     vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
                     vm.queryTopup.merchantType = null;
                     vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryTopup", vm.searchTopupRecord)
                     });
+                    $scope.safeApply();
                 })
-                $scope.safeApply();
+
             } else if (choice == "RewardReport") {
                 vm.rewardTypeName = 'ALL';
                 vm.currentRewardCode = 'ALL';
