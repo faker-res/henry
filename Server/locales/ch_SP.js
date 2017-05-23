@@ -151,7 +151,8 @@ var simplifiedChinese = {
     "Player does not have valid merchant data": "玩家没有有效的商户信息",
     "Please login and try again": "请登陆账号后再试",
     "Invalid SMS Validation Code": "验证码已过期，请重新获取验证码",
-    "Verification SMS already sent within last minute": "验证码已发送，请稍后再试"
+    "Verification SMS already sent within last minute": "验证码已发送，请稍后再试",
+    "Invalid referral": "推荐人不存在"
     //todo::add missing messages here
 
     /*
