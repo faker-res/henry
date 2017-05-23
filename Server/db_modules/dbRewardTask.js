@@ -606,7 +606,7 @@ var dbRewardTask = {
                     }
                 },
                 error => {
-                    console.error("Update player credit failed when complete reward task", error, taskData);
+                    console.log("Update player credit failed when complete reward task", error, taskData);
                     // Revert reward task status
                     return dbconfig.collection_rewardTask.findOneAndUpdate(
                         {_id: taskData._id, platformId: taskData.platformId},
@@ -627,15 +627,15 @@ var dbRewardTask = {
     },
 
     findOneAndUpdateWithRetry: function (model, query, update, options) {
-        const maxAttempts = 10;
-        const delayBetweenAttempts = 3000;
+        const maxAttempts = 4;
+        const delayBetweenAttempts = 500;
 
         const attemptUpdate = (currentAttemptCount) => {
             return model.findOneAndUpdate(query, update, options).catch(
                 error => {
                     if (currentAttemptCount >= maxAttempts) {
                         // This is a bad situation, so we log a lot to help debugging
-                        console.error(`Update attempt ${currentAttemptCount}/${maxAttempts} failed.  query=`, query, `update=`, update, `error=`, error);
+                        console.log(`Update attempt ${currentAttemptCount}/${maxAttempts} failed.  query=`, query, `update=`, update, `error=`, error);
                         return Q.reject({
                             name: 'DBError',
                             message: "Failed " + currentAttemptCount + " attempts to findOneAndUpdate",
@@ -646,7 +646,7 @@ var dbRewardTask = {
                         });
                     }
 
-                    console.warn(`Update attempt ${currentAttemptCount}/${maxAttempts} failed with "${error}", retrying...`);
+                    console.log(`Update attempt ${currentAttemptCount}/${maxAttempts} failed with "${error}", retrying...`);
                     return Q.delay(delayBetweenAttempts).then(
                         () => attemptUpdate(currentAttemptCount + 1)
                     );
