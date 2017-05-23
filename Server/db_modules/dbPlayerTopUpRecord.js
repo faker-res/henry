@@ -104,6 +104,8 @@ var dbPlayerTopUpRecord = {
                 } else if (query && query.mainTopupType == constPlayerTopUpType.MANUAL) {
                     str = constProposalType.PLAYER_MANUAL_TOP_UP;
                     query.depositMethod ? queryObj['data'] = {'depositMethod': query.depositMethod} : '';
+                } else if (query && query.mainTopupType == constPlayerTopUpType.WECHAT) {
+                    str = constProposalType.PLAYER_WECHAT_TOP_UP
                 } else {
                     str = {
                         $in: [constProposalType.PLAYER_TOP_UP,
@@ -130,8 +132,7 @@ var dbPlayerTopUpRecord = {
                 }
 
                 if (query.merchantNo) {
-                    queryObj['data'] = queryObj['data'] || {};
-                    queryObj['data']['merchantNo'] = query.merchantNo
+                    queryObj['data.merchantNo'] = query.merchantNo
                 }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
@@ -143,7 +144,8 @@ var dbPlayerTopUpRecord = {
                 queryObj.type = {$in: typeIds};
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
                 var a = dbconfig.collection_proposal.find(queryObj).count();
-                var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit);
+                var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
+                    .populate({path: 'type', model: dbconfig.collection_proposalType});
                 var c = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
                     $group: {
                         _id: null,

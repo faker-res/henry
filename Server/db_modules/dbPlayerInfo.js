@@ -75,7 +75,7 @@ let dbPlayerInfo = {
 
     /**
      * Create a new player user
-     * @param {json} inputData - The data of the player user. Refer to playerInfo schema.
+     * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData) {
         let platformObjId = null;
@@ -138,7 +138,7 @@ let dbPlayerInfo = {
                         if (inputData.referral) {
                             let referralName = platformPrefix + inputData.referral;
                             let referrralProm = dbconfig.collection_players.findOne({
-                                name: referralName,
+                                name: referralName.toLowerCase(),
                                 platform: platformObjId
                             }).then(
                                 data => {
@@ -147,11 +147,14 @@ let dbPlayerInfo = {
                                         return inputData;
                                     }
                                     else {
-                                        delete inputData.referral;
-                                        return inputData;
+                                        // If user key in invalid referral during register, we will not proceed
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_REFERRAL,
+                                            name: "DataError",
+                                            message: "Invalid referral"
+                                        });
                                     }
                                 }
-                                //TODO:: Return error when referral not found
                             );
                             proms.push(referrralProm);
                         }

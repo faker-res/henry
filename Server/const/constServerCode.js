@@ -44,6 +44,8 @@ const constServerCode = {
     VALIDATION_CODE_EXPIRED: 435,
     PLAYER_PENDING_REWARD_PROPOSAL: 436,
     TEST_GAME_REQUIRE_LOGIN: 430,
+    INVALID_REFERRAL: 437,
+    INVALID_PLATFORM: 438,
 
     // Payment API Server code
     INVALID_PAYMENT_SERVICE_GATEWAY: 401,
@@ -59,6 +61,6 @@ const constServerCode = {
     EXTERNAL_API_TIMEOUT: 430,
     PARTNER_IS_FORBIDDEN:430
 
-}
+};
 
 module.exports = constServerCode;
