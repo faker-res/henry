@@ -176,7 +176,7 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             wsFunc.response(conn, {
                 status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                errorMessage: localization.translate("Verification code invalid", conn.lang),
+                errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang),
                 data: null
             }, data);
         }
