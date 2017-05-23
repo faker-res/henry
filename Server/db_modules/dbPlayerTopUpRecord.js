@@ -127,8 +127,8 @@ var dbPlayerTopUpRecord = {
                             {'data.depositMethod': {$exists: false}}
                         ]
                     })
-
                 }
+                query.merchantNo ? queryObj['data']['merchantNo'] = query.merchantNo : '';
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
         ).then(
