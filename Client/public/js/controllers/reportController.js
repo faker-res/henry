@@ -865,6 +865,15 @@ define(['js/app'], function (myApp) {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
                         item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
+                        if (item.type.name == 'PlayerTopUp') {
+                            //show detail topup type info for online topup.
+                            item.topupTypeStr = item.data.topUpType
+                                ? $translate(vm.topupTypeJson[item.data.topUpType])
+                                : $translate("Unknown")
+                        } else {
+                            //show topup type for other types
+                            item.topupTypeStr = $translate(item.type.name)
+                        }
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
@@ -883,7 +892,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    // {title: $translate('DINGDAN_ID'), data: null},
+                    {title: $translate('proposalId'), data: 'proposalId'},
                     // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
                     {title: $translate('STATUS'), data: "status$"},
                     // {title: $translate('ISNEWPLAYER'), data: null},
@@ -891,12 +900,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "sumText"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
-                    {
-                        title: $translate('Topup Type'), data: "topUpType",
-                        render: function (data, type, row) {
-                            return $translate(vm.topupTypeJson[data] || "Unknown");
-                        }
-                    },
+                    {title: $translate('Topup Type'), data: "topupTypeStr"},
                     // {title: $translate('IP'), data: null},
                     {
                         title: $translate('TIME'), data: "createTime",
