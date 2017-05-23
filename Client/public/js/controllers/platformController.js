@@ -3409,7 +3409,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
-                        $('.dialogEditPlayerSubmitBtn').removeClass('disabled');
+                        $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
                         $('.referralValidTrue').show();
                         $('.referralValidFalse').hide();
                         editObj.referral = player._id;
@@ -3418,14 +3418,14 @@ define(['js/app'], function (myApp) {
                             $('.referralValue').val(player.name);
                         }
                     } else {
-                        $('.dialogEditPlayerSubmitBtn').addClass('disabled');
+                        $('.dialogEditPlayerSubmitBtn').attr('disabled',true);
                         $('.referralValidTrue').hide();
                         $('.referralValidFalse').show();
                         editObj.referral = null;
                     }
                 })
             } else {
-                $('.dialogEditPlayerSubmitBtn').removeClass('disabled');
+                $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
                 $('.referralValidTrue').hide();
                 $('.referralValidFalse').hide();
                 editObj.referral = null;
