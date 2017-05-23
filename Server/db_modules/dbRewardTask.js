@@ -557,16 +557,16 @@ var dbRewardTask = {
             //     rewardAmount = taskData.maxRewardAmount;
             //     updateData.$inc = {validCredit: taskData.maxRewardAmount};
             // }
-            let playerProm = dbconfig.collection_players.findOneAndUpdate(
-                {_id: taskData.playerId, platform: taskData.platformId},
-                updateData,
-                {new: true}
-            );
 
             taskProm.then(
                 rewardTask => {
+                    // This is the old document we have replaced. If the old document had already been marked as completed by another process, then we will not proceed.
                     if (rewardTask && rewardTask.status != constRewardTaskStatus.COMPLETED) {
-                        return playerProm;
+                        return dbconfig.collection_players.findOneAndUpdate(
+                            {_id: taskData.playerId, platform: taskData.platformId},
+                            updateData,
+                            {new: true}
+                        );
                     }
                     else {
                         reject({name: "DataError", message: "Incorrect reward task status"});
@@ -605,7 +605,7 @@ var dbRewardTask = {
                     }
                 },
                 error => {
-                    console.log("Update player credit failed when complete reward task", error, taskData);
+                    console.error("Update player credit failed when complete reward task", error, taskData);
                     // Revert reward task status
                     return dbconfig.collection_rewardTask.findOneAndUpdate(
                         {_id: taskData._id, platformId: taskData.platformId},
