@@ -874,7 +874,7 @@ var dbRewardTask = {
                         playerObj.lockedCredit = 0;
                         return dbconfig.collection_players.findOneAndUpdate({
                             _id: playerObj._id,
-                            platform: playerObj.platformId
+                            platform: playerObj.platform
                         }, {
                             validCredit: playerObj.validCredit,
                             lockedCredit: 0
