@@ -3418,7 +3418,7 @@ define(['js/app'], function (myApp) {
                             $('.referralValue').val(player.name);
                         }
                     } else {
-                        $('.dialogEditPlayerSubmitBtn').attr('disabled',true);
+                        $('.dialogEditPlayerSubmitBtn').attr('disabled', true);
                         $('.referralValidTrue').hide();
                         $('.referralValidFalse').show();
                         editObj.referral = null;
@@ -3485,7 +3485,7 @@ define(['js/app'], function (myApp) {
                     if (newPlayerData[key] != oldPlayerData[key]) {
                         if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup") {
                             //do nothing
-                        } else if (key == "referralName" && newPlayerData["referral"] == oldPlayerData["referral"] ) {
+                        } else if (key == "referralName" && newPlayerData["referral"] == oldPlayerData["referral"]) {
                             //do nothing
                         } else {
                             isUpdate = true;
@@ -4264,6 +4264,7 @@ define(['js/app'], function (myApp) {
                     vm.creditTransfer.showValidCredit = data.validCredit;
                     vm.selectedSinglePlayer.validCredit = data.validCredit;
                     vm.selectedSinglePlayer.lockedCredit = data.lockedCredit;
+                    vm.creditTransfer.needRefreshPlatformPlayerData = true;
                 }
                 vm.fixPlayerRewardAmount.isProcessing = false;
                 $scope.safeApply();
