@@ -517,6 +517,14 @@ var dbRewardTask = {
      */
     completeRewardTask: function (taskData) {
         return new Promise((resolve, reject) => {
+            // Check that we have the input we need to proceed
+            if (!taskData._id) {
+                return Q.reject({name: "DataError", message: "Cannot update task with no _id: " + JSON.stringify(taskData)});
+            }
+            if (!taskData.platformId) {
+                return Q.reject({name: "DataError", message: "Cannot update task with no platformId: " + JSON.stringify(taskData)});
+            }
+
             let bUpdateProposal = false;
             let originalStatus = taskData.status;
             let rewardAmount = taskData.currentAmount;
@@ -525,7 +533,8 @@ var dbRewardTask = {
                 rewardAmount = taskData.requiredBonusAmount;
             }
             taskData.status = constRewardTaskStatus.COMPLETED;
-            let taskProm = dbconfig.collection_rewardTask.findOneAndUpdate(
+            const taskProm = dbRewardTask.findOneAndUpdateWithRetry(
+                dbconfig.collection_rewardTask,
                 {_id: taskData._id, platformId: taskData.platformId},
                 taskData
             );
@@ -548,16 +557,17 @@ var dbRewardTask = {
             //     rewardAmount = taskData.maxRewardAmount;
             //     updateData.$inc = {validCredit: taskData.maxRewardAmount};
             // }
-            let playerProm = dbconfig.collection_players.findOneAndUpdate(
-                {_id: taskData.playerId, platform: taskData.platformId},
-                updateData,
-                {new: true}
-            );
 
             taskProm.then(
                 rewardTask => {
+                    // This is the old document we have replaced. If the old document had already been marked as completed by another process, then we will not proceed.
                     if (rewardTask && rewardTask.status != constRewardTaskStatus.COMPLETED) {
-                        return playerProm;
+                        return dbRewardTask.findOneAndUpdateWithRetry(
+                            dbconfig.collection_players,
+                            {_id: taskData.playerId, platform: taskData.platformId},
+                            updateData,
+                            {new: true}
+                        );
                     }
                     else {
                         reject({name: "DataError", message: "Incorrect reward task status"});
@@ -596,7 +606,7 @@ var dbRewardTask = {
                     }
                 },
                 error => {
-                    console.log("Update player credit failed when complete reward task", error, taskData);
+                    console.error("Update player credit failed when complete reward task", error, taskData);
                     // Revert reward task status
                     return dbconfig.collection_rewardTask.findOneAndUpdate(
                         {_id: taskData._id, platformId: taskData.platformId},
@@ -614,6 +624,37 @@ var dbRewardTask = {
                 }
             );
         })
+    },
+
+    findOneAndUpdateWithRetry: function (model, query, update, options) {
+        const maxAttempts = 10;
+        const delayBetweenAttempts = 3000;
+
+        const attemptUpdate = (currentAttemptCount) => {
+            return model.findOneAndUpdate(query, update, options).catch(
+                error => {
+                    if (currentAttemptCount >= maxAttempts) {
+                        // This is a bad situation, so we log a lot to help debugging
+                        console.error(`Update attempt ${currentAttemptCount}/${maxAttempts} failed.  query=`, query, `update=`, update, `error=`, error);
+                        return Q.reject({
+                            name: 'DBError',
+                            message: "Failed " + currentAttemptCount + " attempts to findOneAndUpdate",
+                            //collection: '...',
+                            query: query,
+                            update: update,
+                            error: error
+                        });
+                    }
+
+                    console.warn(`Update attempt ${currentAttemptCount}/${maxAttempts} failed with "${error}", retrying...`);
+                    return Q.delay(delayBetweenAttempts).then(
+                        () => attemptUpdate(currentAttemptCount + 1)
+                    );
+                }
+            );
+        };
+
+        return attemptUpdate(1);
     },
 
     getPlatformRewardAnalysis: function (type, period, platformId, startDate, endDate) {
