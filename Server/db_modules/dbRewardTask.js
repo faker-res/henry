@@ -562,7 +562,8 @@ var dbRewardTask = {
                 rewardTask => {
                     // This is the old document we have replaced. If the old document had already been marked as completed by another process, then we will not proceed.
                     if (rewardTask && rewardTask.status != constRewardTaskStatus.COMPLETED) {
-                        return dbconfig.collection_players.findOneAndUpdate(
+                        return dbRewardTask.findOneAndUpdateWithRetry(
+                            dbconfig.collection_players,
                             {_id: taskData.playerId, platform: taskData.platformId},
                             updateData,
                             {new: true}
@@ -625,12 +626,12 @@ var dbRewardTask = {
         })
     },
 
-    findOneAndUpdateWithRetry: function (model, query, update) {
+    findOneAndUpdateWithRetry: function (model, query, update, options) {
         const maxAttempts = 10;
         const delayBetweenAttempts = 3000;
 
         const attemptUpdate = (currentAttemptCount) => {
-            return model.findOneAndUpdate(query, update).catch(
+            return model.findOneAndUpdate(query, update, options).catch(
                 error => {
                     if (currentAttemptCount >= maxAttempts) {
                         // This is a bad situation, so we log a lot to help debugging
