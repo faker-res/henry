@@ -3376,9 +3376,9 @@ let dbPlayerInfo = {
                             || (!rewardData.targetEnable && rewardData.targetProviders.indexOf(providerId) < 0)//banded provider
                         ) {
                             if (rewardData.inProvider == true) {//already in provider
-                                if (String(playerData.lastPlayedProvider) != String(providerId)) {
-                                    return Q.reject({name: "DataError", message: "Player is playing a different game"});
-                                }
+                                // if (String(playerData.lastPlayedProvider) != String(providerId)) {
+                                //     return Q.reject({name: "DataError", message: "Player is playing a different game"});
+                                // }
                                 if (rewardData.requiredBonusAmount > 0) {
                                     amount = 0;
                                     gameAmount = amount;
