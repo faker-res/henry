@@ -872,7 +872,13 @@ var dbRewardTask = {
                     if (playerObj.lockedCredit >= 1) {
                         playerObj.validCredit += playerObj.lockedCredit;
                         playerObj.lockedCredit = 0;
-                        return playerObj.save().then(() => {
+                        return dbconfig.collection_players.findOneAndUpdate({
+                            _id: playerObj._id,
+                            platform: playerObj.platformId
+                        }, {
+                            validCredit: playerObj.validCredit,
+                            lockedCredit: 0
+                        }).then(() => {
                             playerObj.fixedStatus = 'fixed';
                             return playerObj;
                         });
