@@ -69,6 +69,7 @@ describe("Test Partner API - Partner service", () => {
             },
             (error) => {
                 console.error("init player and partner data error \n",error);
+                done();
             }
         );
     });
@@ -90,6 +91,7 @@ describe("Test Partner API - Partner service", () => {
             },
             (error) => {
                 console.error("partner phone number error \n",error);
+                done();
             }
          );
     });
@@ -109,6 +111,7 @@ describe("Test Partner API - Partner service", () => {
             },
             (error) => {
                 console.error("partner name error \n",error);
+                done();
             }
          );
     });
@@ -130,6 +133,7 @@ describe("Test Partner API - Partner service", () => {
             },
             (error) => {
                 console.error("player phone number error \n",error);
+                done();
             }
          );
     });
@@ -150,6 +154,7 @@ describe("Test Partner API - Partner service", () => {
             },
             (error) => {
                 console.error("palyer real name error \n",error);
+                done();
             }
          );
     });
@@ -170,6 +175,7 @@ describe("Test Partner API - Partner service", () => {
             },
             (error) => {
                 console.error("palyer name error \n",error);
+                done();
             }
          );
     });
