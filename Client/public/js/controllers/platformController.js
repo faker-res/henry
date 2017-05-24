@@ -3493,6 +3493,8 @@ define(['js/app'], function (myApp) {
                             //do nothing
                         } else if (key == "referralName" && newPlayerData["referral"] == oldPlayerData["referral"]) {
                             //do nothing
+                        } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
+                            //do nothing
                         } else {
                             isUpdate = true;
                         }
