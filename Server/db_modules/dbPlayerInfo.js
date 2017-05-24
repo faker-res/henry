@@ -6960,7 +6960,7 @@ let dbPlayerInfo = {
                         };
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: false},
-                            {bDirty: true, usedType: constRewardType.PARTNER_TOP_UP_RETURN},
+                            {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
                             {new: true}
                         ).then(
                             data => {

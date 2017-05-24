@@ -335,8 +335,11 @@ describe("Test player consumption incentive event", function () {
     });
 
     it('update player credits daily log to yesterday', function (done) {
+        console.log('testPlayerId-pre', testPlayerId);
         dbConfig.collection_playerCreditsDailyLog.findOne({playerObjId: testPlayerId}).lean().then(
             record => {
+                console.log('record', record);
+                console.log('testPlayerId', testPlayerId);
                 record.createTime = new Date(new Date(record.createTime).getTime() - 24*60*60*1000);
                 delete record._id;
                 let newRecord = new dbConfig.collection_playerCreditsDailyLog(record);
