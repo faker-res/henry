@@ -3908,9 +3908,9 @@ define(['js/app'], function (myApp) {
                 //         newObj = {proposalId: newObj.proposalId};
                 //         break;
                 // }
-                if (a.data._inputCredit != null && a.data.initAmount != null) {
+                if (a.data && a.data._inputCredit != null && a.data.initAmount != null) {
                     newObj = {rewardType: a.data.rewardType};
-                } else if (a.data.proposalId && a.operationType == 'ManualTopUp') {
+                } else if (a.data && a.data.proposalId && a.operationType == 'ManualTopUp') {
                     newObj = {proposalId: newObj.proposalId};
                 }
                 $.each(newObj, (i, v) => {
