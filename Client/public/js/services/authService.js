@@ -77,6 +77,9 @@ define([], function () {
                 expires: exp,
                 //secure: true
             });
+            if (!language) {
+                language = "zh_CN";
+            }
             $cookies.put(this.cookieLanguageKey, language, {
                 expires: exp,
                 //secure: true
