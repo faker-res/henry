@@ -3826,7 +3826,7 @@ define(['js/app'], function (myApp) {
                 item.beforeUnlockedAmount = item.beforeUnlockedAmount.toFixed(2);
                 let remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
                 item.details$ = remark + item.detail.join(', ');
-                item.proposalId$ = item.data ? item.data.proposalId : item.data[0] ? item.data[0].proposalId : '';
+                item.proposalId$ = item.data ? item.data.proposalId : '';
                 return item;
             });
 
