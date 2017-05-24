@@ -39,7 +39,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             return;
         }
 
-        $scope.langKey = authService.language;
+        $scope.langKey = authService.language || "zh_CN";
         $translate.use($scope.langKey);
 
         WSCONFIG.Default = CONFIG[CONFIG.NODE_ENV];

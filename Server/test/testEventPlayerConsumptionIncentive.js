@@ -325,7 +325,7 @@ describe("Test player consumption incentive event", function () {
     it('Generate player credits daily log', function (done) {
         dbRewardEvent.startSavePlayersCredit(testPlatformId).then(
             data => {
-                done();
+                setTimeout(done, 1000);
             }
         ).catch(
             error => {
@@ -335,11 +335,8 @@ describe("Test player consumption incentive event", function () {
     });
 
     it('update player credits daily log to yesterday', function (done) {
-        console.log('testPlayerId-pre', testPlayerId);
         dbConfig.collection_playerCreditsDailyLog.findOne({playerObjId: testPlayerId}).lean().then(
             record => {
-                console.log('record', record);
-                console.log('testPlayerId', testPlayerId);
                 record.createTime = new Date(new Date(record.createTime).getTime() - 24*60*60*1000);
                 delete record._id;
                 let newRecord = new dbConfig.collection_playerCreditsDailyLog(record);
@@ -379,7 +376,6 @@ describe("Test player consumption incentive event", function () {
         dbPlatform.getConsumptionIncentivePlayer(testPlatformShortId).then(
             function (data) {
                 if (data) {
-                    console.log(data);
                     done();
                 }
             },

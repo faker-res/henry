@@ -879,13 +879,17 @@ define(['js/app'], function (myApp) {
                         item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
                         if (item.type.name == 'PlayerTopUp') {
                             //show detail topup type info for online topup.
+                            let typeID = item.data.topUpType || item.data.topupType
                             item.topupTypeStr = item.data.topUpType
-                                ? $translate(vm.topupTypeJson[item.data.topUpType])
+                                ? $translate(vm.topupTypeJson[typeID])
                                 : $translate("Unknown")
                         } else {
                             //show topup type for other types
                             item.topupTypeStr = $translate(item.type.name)
                         }
+                        item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime);
+
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
@@ -897,30 +901,28 @@ define(['js/app'], function (myApp) {
             console.log('data', data);
             var tableOptions = {
                 data: data,
-                "order": vm.queryTopup.aaSorting || [[5, 'desc']],
+                "order": vm.queryTopup.aaSorting || [[0, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [3]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('proposalId'), data: 'proposalId'},
+                    {title: $translate('DINGDAN_ID'), data: "data.requestId"},
                     // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
                     {title: $translate('STATUS'), data: "status$"},
                     // {title: $translate('ISNEWPLAYER'), data: null},
                     {title: $translate('Merchant No'), data: "merchantName"},
-                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "sumText"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName"},
+                    {title: $translate('realName'), data: "data.playerObjId.realName", sClass: "sumText"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
-                    {title: $translate('DINGDAN_ID'), data: "data.requestId"},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
                     {title: $translate('Topup Type'), data: "topupTypeStr"},
                     // {title: $translate('IP'), data: null},
-                    {
-                        title: $translate('TIME'), data: "createTime",
-                        render: function (data, type, row) {
-                            return utilService.$getTimeFromStdTimeFormat(data);
-                        }
-                    },
+                    {title: $translate('START_TIME'), data: "startTime$"},
+                    {title: $translate('END_TIME'), data: "endTime$"},
                     // {title: $translate('END_TIME'), data: null},
                     // {title: $translate('REMARK'), data: null},
                 ],
