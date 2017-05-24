@@ -39,6 +39,9 @@ let dbPlayerPartner = {
                         platform: platformData._id
                     }).lean();
                 }
+                else {
+                    return true;
+                }
             }
         ).then(
             referralData => {
