@@ -911,6 +911,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('Merchant No'), data: "merchantName"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "sumText"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
+                    {title: $translate('DINGDAN_ID'), data: "data.requestId"},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
                     {title: $translate('Topup Type'), data: "topupTypeStr"},
                     // {title: $translate('IP'), data: null},
