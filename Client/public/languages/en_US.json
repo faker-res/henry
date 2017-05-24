@@ -864,5 +864,9 @@
   "wechatAccount": "Wechat Account",
   "wechatName": "Wechat Name",
   "smsVerificationCode": "SMS Verification",
-  "VERIFICATION_TEMPLATE_NOTE": "Note: For SMS Verification insert 'smsCode' at desired position. Example - Hi, your code is smsCode. Happy Betting!"
+  "VERIFICATION_TEMPLATE_NOTE": "Note: For SMS Verification insert 'smsCode' at desired position. Example - Hi, your code is smsCode. Happy Betting!",
+  "autoApproveWhenSingleBonusApplyLessThan": "Auto Approve: Single Bonus Apply Less Than",
+  "autoApproveWhenSingleDayTotalBonusApplyLessThan": "Auto Approve: Single Day Total Bonus Apply Less Than",
+  "autoApproveRepeatCount": "Auto Approve: Repeat Count",
+  "autoApproveRepeatDelay": "Auto Approve: Repeat Delay Time"
 }
