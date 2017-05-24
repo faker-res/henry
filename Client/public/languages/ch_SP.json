@@ -1459,6 +1459,8 @@
   "Reward period": "奖励周期",
   "If target is enabled": "符合：☑，禁用：☐",
   "Game Provider": "游戏提供商",
+  "ENABLED":"启用",
+  "DISABLED":"禁用",
   "Consumption amount times": "消费倍数",
   "Minimal top up amount": "最小充值额",
   "Reward parameter for each level": "玩家等级对应奖励参数",
