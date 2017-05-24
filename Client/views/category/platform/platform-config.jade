@@ -496,6 +496,26 @@
                                 td
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'autoApproveWhenSingleBonusApplyLessThan' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showAutoApproveWhenSingleBonusApplyLessThan')
+                            tr
+                                td {{'autoApproveWhenSingleDayTotalBonusApplyLessThan' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
+                            tr
+                                td {{'autoApproveRepeatCount' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showAutoApproveRepeatCount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showAutoApproveRepeatCount')
+                            tr
+                                td {{'autoApproveRepeatDelay' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showAutoApproveRepeatDelay}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showAutoApproveRepeatDelay')
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}

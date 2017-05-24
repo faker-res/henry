@@ -3826,7 +3826,7 @@ define(['js/app'], function (myApp) {
                 item.beforeUnlockedAmount = item.beforeUnlockedAmount.toFixed(2);
                 let remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
                 item.details$ = remark + item.detail.join(', ');
-                item.proposalId$ = item.data ? item.data.proposalId : item.data[0] ? item.data[0].proposalId : '';
+                item.proposalId$ = item.data ? item.data.proposalId : '';
                 return item;
             });
 
@@ -3908,9 +3908,9 @@ define(['js/app'], function (myApp) {
                 //         newObj = {proposalId: newObj.proposalId};
                 //         break;
                 // }
-                if (a.data._inputCredit != null && a.data.initAmount != null) {
+                if (a.data && a.data._inputCredit != null && a.data.initAmount != null) {
                     newObj = {rewardType: a.data.rewardType};
-                } else if (a.data.proposalId && a.operationType == 'ManualTopUp') {
+                } else if (a.data && a.data.proposalId && a.operationType == 'ManualTopUp') {
                     newObj = {proposalId: newObj.proposalId};
                 }
                 $.each(newObj, (i, v) => {
@@ -8693,6 +8693,10 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
+            vm.platformBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
+            vm.platformBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
+            vm.platformBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
+            vm.platformBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             $scope.safeApply();
         }
         vm.getBonusBasic = () => {
@@ -8916,7 +8920,11 @@ define(['js/app'], function (myApp) {
                 updateData: {
                     minTopUpAmount: srcData.showMinTopupAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
-                    allowSamePhoneNumberToRegister:srcData.showAllowSamePhoneNumberToRegister
+                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                    autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
+                    autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
+                    autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
+                    autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
