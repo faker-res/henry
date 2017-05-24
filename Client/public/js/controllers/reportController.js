@@ -271,11 +271,9 @@ define(['js/app'], function (myApp) {
 
             if (choice == "TOPUP_REPORT") {
                 vm.queryTopup = {};
-                vm.queryTopup.type = 'all';
-                vm.queryTopup.paymentChannel = 'all';
                 vm.merchantNoNameObj = {};
                 vm.queryTopup.totalCount = 0;
-
+                vm.resetTopupRecord();
                 socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
                     delete data.data.APPROVED;
                     delete data.data.REJECTED;
@@ -823,6 +821,17 @@ define(['js/app'], function (myApp) {
         }
 
         //Start topup report
+        vm.resetTopupRecord = function () {
+            vm.queryTopup.status = '';
+            vm.queryTopup.proposalID = '';
+            vm.queryTopup.mainTopupType = '';
+            vm.queryTopup.topupType = '';
+            vm.queryTopup.merchantNo = '';
+            vm.queryTopup.dingdanID = '';
+            vm.queryTopup.type = 'all';
+            vm.queryTopup.playerName = '';
+            vm.queryTopup.paymentChannel = 'all';
+        }
         vm.searchTopupRecord = function (newSearch) {
 
             console.log('vm.queryTopup', vm.queryTopup);
@@ -841,9 +850,12 @@ define(['js/app'], function (myApp) {
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
                 platformId: vm.curPlatformId,
+                dingdanID: vm.queryTopup.dingdanID,
                 mainTopupType: vm.queryTopup.mainTopupType,
                 topupType: vm.queryTopup.topupType,
                 depositMethod: vm.queryTopup.depositMethod,
+                proposalNo: vm.queryTopup.proposalID,
+                playerName: vm.queryTopup.playerName,
                 // merchant: vm.queryTopup.merchant,
                 status: staArr,
                 index: newSearch ? 0 : (vm.queryTopup.index || 0),

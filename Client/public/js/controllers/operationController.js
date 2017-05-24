@@ -858,6 +858,7 @@ define(['js/app'], function (myApp) {
             vm.queryProposal.pageObj.init({maxCount: size}, newSearch);
             $('#proposalDataTable').empty();
             //no idea why is 7, and 7 is not working, so I change it to 8
+            //lizhu: the number here indicates the data should be listed in N-th column
             vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {8: (summary ? summary.amount : 0)});
             // utilService.setDataTablePageInput('proposalDataTable', vm.proposalTable, $translate);
 

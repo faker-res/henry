@@ -134,6 +134,15 @@ var dbPlayerTopUpRecord = {
                 if (query.merchantNo) {
                     queryObj['data.merchantNo'] = query.merchantNo
                 }
+                if (query.dingdanID) {
+                    queryObj['data.requestId'] = query.dingdanID
+                }
+                if (query.playerName) {
+                    queryObj['data.playerName'] = query.playerName
+                }
+                if (query.proposalNo) {
+                    queryObj['proposalId'] = query.proposalNo
+                }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
         ).then(
