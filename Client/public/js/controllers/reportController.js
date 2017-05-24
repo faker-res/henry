@@ -913,7 +913,7 @@ define(['js/app'], function (myApp) {
                         if (item.type.name == 'PlayerTopUp') {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType
-                            item.topupTypeStr = item.data.topUpType
+                            item.topupTypeStr = typeID
                                 ? $translate(vm.topupTypeJson[typeID])
                                 : $translate("Unknown")
                         } else {
@@ -986,7 +986,7 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
 
-            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {3: summary.amount});
+            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
