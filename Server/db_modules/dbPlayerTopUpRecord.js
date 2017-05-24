@@ -154,7 +154,8 @@ var dbPlayerTopUpRecord = {
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
                 var a = dbconfig.collection_proposal.find(queryObj).count();
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
-                    .populate({path: 'type', model: dbconfig.collection_proposalType});
+                    .populate({path: 'type', model: dbconfig.collection_proposalType})
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players});
                 var c = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
                     $group: {
                         _id: null,
