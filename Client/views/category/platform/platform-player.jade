@@ -936,13 +936,13 @@ include modalGameCreditLog
                                             label {{'Partner' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
                                         .inlineBlk
-                                            label {{'REFERRER' | translate}}
+                                            label {{'REFERRAL' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.referralName || 'NONE' | translate}}
                                         .inlineBlk
                                             label {{'REMARK' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
                                         .inlineBlk
-                                            button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRAL" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRER" | translate}}
                                 tr
                                     td
                                         div {{'PLAYER_CREDIT' | translate}}
