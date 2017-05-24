@@ -75,7 +75,7 @@ let dbPlayerInfo = {
 
     /**
      * Create a new player user
-     * @param {json} inputData - The data of the player user. Refer to playerInfo schema.
+     * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData) {
         let platformObjId = null;
@@ -159,7 +159,7 @@ let dbPlayerInfo = {
                         if (inputData.referral) {
                             let referralName = platformPrefix + inputData.referral;
                             let referrralProm = dbconfig.collection_players.findOne({
-                                name: referralName,
+                                name: referralName.toLowerCase(),
                                 platform: platformObjId
                             }).then(
                                 data => {
@@ -168,8 +168,12 @@ let dbPlayerInfo = {
                                         return inputData;
                                     }
                                     else {
-                                        delete inputData.referral;
-                                        return inputData;
+                                        // If user key in invalid referral during register, we will not proceed
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_REFERRAL,
+                                            name: "DataError",
+                                            message: "Invalid referral"
+                                        });
                                     }
                                 }
                             );
@@ -3425,9 +3429,9 @@ let dbPlayerInfo = {
                             || (!rewardData.targetEnable && rewardData.targetProviders.indexOf(providerId) < 0)//banded provider
                         ) {
                             if (rewardData.inProvider == true) {//already in provider
-                                if (String(playerData.lastPlayedProvider) != String(providerId)) {
-                                    return Q.reject({name: "DataError", message: "Player is playing a different game"});
-                                }
+                                // if (String(playerData.lastPlayedProvider) != String(providerId)) {
+                                //     return Q.reject({name: "DataError", message: "Player is playing a different game"});
+                                // }
                                 if (rewardData.requiredBonusAmount > 0) {
                                     amount = 0;
                                     gameAmount = amount;
@@ -3487,10 +3491,10 @@ let dbPlayerInfo = {
 
                     // Deduct amount from player validCredit before transfer
                     // Amount is already floored
-                    let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
+                    // let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
                     let updateObj = {
                         lastPlayedProvider: providerId,
-                        $inc: {validCredit: -decreaseAmount}
+                        $inc: {validCredit: -amount}
                     };
                     if (bUpdateReward) {
                         updateObj.lockedCredit = rewardData.currentAmount;
@@ -3518,12 +3522,11 @@ let dbPlayerInfo = {
             function (updateData) {
                 if (updateData) {
                     //console.log("Before transfer credit:", playerData.validCredit);
-                    if (updateData.validCredit < 0) {
-                        //console.log("Transfer invalid credit", playerData.validCredit);
+                    if (updateData.validCredit < -0.02) {
                         //reset player credit to 0
                         return dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerObjId, platform: platform},
-                            {validCredit: 0},
+                            {$inc: {validCredit: amount}},
                             {new: true}
                         ).catch(errorUtils.reportError).then(
                             () => Q.reject({
@@ -3535,7 +3538,18 @@ let dbPlayerInfo = {
                     }
                     else {
                         playerCredit = updateData.validCredit;
-                        return true;
+                        //fix float number problem after update
+                        if( updateData.validCredit > -0.02 && updateData.validCredit < 0){
+                            playerCredit = 0;
+                            return dbconfig.collection_players.findOneAndUpdate(
+                                {_id: playerObjId, platform: platform},
+                                {validCredit: 0},
+                                {new: true}
+                            );
+                        }
+                        else{
+                            return true;
+                        }
                     }
                 }
                 else {
@@ -5596,11 +5610,16 @@ let dbPlayerInfo = {
         var bUpdateCredit = false;
         var resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
-            return dbconfig.collection_players.findOneAndUpdate({
-                _id: playerObjId,
-                platform: platformObjId
-            }, {$inc: {validCredit: credit}}).then(
+            return dbconfig.collection_players.findOneAndUpdate(
+                {
+                    _id: playerObjId,
+                    platform: platformObjId
+                },
+                {$inc: {validCredit: credit}},
+                {new: true}
+            ).then(
                 resetPlayer => {
+                    dbLogger.createCreditChangeLog(playerObjId, platformObjId, credit, "PlayerBonus:resetCredit", resetPlayer.validCredit, null, error);
                     if (error) {
                         return Q.reject(error);
                     }
@@ -5720,20 +5739,10 @@ let dbPlayerInfo = {
                             errorMessage: "Player does not have enough credit."
                         });
                     }
-                    //check if player credit balance.
-                    //todo::remove credit balance check for now
-                    // if ((playerData.creditBalance > 0) && !bForce) {
-                    //     return Q.reject({
-                    //         status: constServerCode.PLAYER_CREDIT_BALANCE_NOT_ENOUGH,
-                    //         name: "DataError",
-                    //         errorMessage: "Player does not have enough Expenses.",
-                    //         creditBalance: playerData.creditBalance
-                    //     });
-                    // }
 
                     let todayTime = dbUtility.getTodaySGTime();
-                    return dbconfig.collection_proposal
-                        .find({
+                    return dbconfig.collection_proposal.find(
+                        {
                             mainType: "PlayerBonus",
                             createTime: {
                                 $gte: todayTime.startTime,
@@ -5743,23 +5752,20 @@ let dbPlayerInfo = {
                             status: {
                                 $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
                             }
-                        })
-                        // .populate({path: "process", model: dbconfig.collection_proposalProcess})
-                        .lean()
-                        .then(todayBonusApply => {
+                        }
+                    ).lean().then(
+                        todayBonusApply => {
 
-                            var changeCredit = -amount;
-                            var finalAmount = amount;
-                            var creditCharge = 0;
+                            let changeCredit = -amount;
+                            let finalAmount = amount;
+                            let creditCharge = 0;
+                            let amountAfterUpdate = player.validCredit - amount;
 
                             if (todayBonusApply.length >= playerData.platform.bonusCharges && playerData.platform.bonusPercentageCharges > 0) {
                                 creditCharge = (finalAmount * playerData.platform.bonusPercentageCharges) * 0.01;
                                 finalAmount = finalAmount - creditCharge;
                             }
 
-                            // if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
-                            //     changeCredit = -playerData.validCredit;
-                            // }
                             return dbconfig.collection_players.findOneAndUpdate(
                                 {
                                     _id: player._id,
@@ -5768,12 +5774,12 @@ let dbPlayerInfo = {
                                 {$inc: {validCredit: changeCredit}},
                                 {new: true}
                             ).then(
+                                //check if player's credit is correct after update
+                                updateRes => dbconfig.collection_players.findOne({_id: player._id})
+                            ).then(
                                 newPlayerData => {
                                     if (newPlayerData) {
                                         bUpdateCredit = true;
-                                        // if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
-                                        //     bUpdateCredit = false;
-                                        // }
                                         //to fix float problem...
                                         if (newPlayerData.validCredit < -0.02) {
                                             //credit will be reset below
@@ -5784,9 +5790,23 @@ let dbPlayerInfo = {
                                                 data: '(detected after withdrawl)'
                                             });
                                         }
-                                        if (newPlayerData.validCredit < 0) {
+                                        //check if player's credit is correct after update
+                                        if (amountAfterUpdate != newPlayerData.validCredit) {
+                                            console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
+                                            return Q.reject({
+                                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                                name: "DataError",
+                                                errorMessage: "Update player credit failed",
+                                                data: '(detected after withdrawl)'
+                                            });
+                                        }
+                                        //fix player negative credit
+                                        if (newPlayerData.validCredit < 0 && newPlayerData.validCredit > -0.02) {
                                             newPlayerData.validCredit = 0;
-                                            newPlayerData.save().then();
+                                            newPlayerData.findOneAndUpdate(
+                                                { _id: newPlayerData._id, platform: newPlayerData.platform },
+                                                {validCredit: 0}
+                                            ).then();
                                         }
                                         player.validCredit = newPlayerData.validCredit;
                                         //create proposal
@@ -6505,7 +6525,11 @@ let dbPlayerInfo = {
             }
         ).then(
             loginData => ({gameURL: loginData.gameURL}),
-            error => Q.reject({status: constServerCode.TEST_GAME_REQUIRE_LOGIN, name: "DataError", message: "Please login and try again"})
+            error => Q.reject({
+                status: constServerCode.TEST_GAME_REQUIRE_LOGIN,
+                name: "DataError",
+                message: "Please login and try again"
+            })
         );
     },
 

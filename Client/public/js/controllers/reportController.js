@@ -273,7 +273,9 @@ define(['js/app'], function (myApp) {
                 vm.queryTopup = {};
                 vm.queryTopup.type = 'all';
                 vm.queryTopup.paymentChannel = 'all';
+                vm.merchantNoNameObj = {};
                 vm.queryTopup.totalCount = 0;
+
                 socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
                     delete data.data.APPROVED;
                     delete data.data.REJECTED;
@@ -284,14 +286,29 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     console.log("cannot find proposal status", data);
                 });
+
+                socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                    if (data.data && data.data.merchants) {
+                        vm.merchantNoList = data.data.merchants.filter(mer => {
+                                vm.merchantNoNameObj[mer.merchantNo] = mer.name;
+                                return mer.status != 'DISABLED';
+                            }) || [];
+                    }
+                    console.log('merchantList', vm.merchantNoList);
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("merchantList", data);
+                });
+
                 utilService.actionAfterLoaded("#topupTablePage", function () {
                     vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
                     vm.queryTopup.merchantType = null;
                     vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryTopup", vm.searchTopupRecord)
                     });
+                    $scope.safeApply();
                 })
-                $scope.safeApply();
+
             } else if (choice == "RewardReport") {
                 vm.rewardTypeName = 'ALL';
                 vm.currentRewardCode = 'ALL';
@@ -837,6 +854,7 @@ define(['js/app'], function (myApp) {
             //     sendObj.status = {'$in': staArr}
             // }
 
+            vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : '';
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
                 $('#topupTableSpin').hide();
                 console.log('topup', data);
@@ -846,6 +864,16 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
+                        item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
+                        if (item.type.name == 'PlayerTopUp') {
+                            //show detail topup type info for online topup.
+                            item.topupTypeStr = item.data.topUpType
+                                ? $translate(vm.topupTypeJson[item.data.topUpType])
+                                : $translate("Unknown")
+                        } else {
+                            //show topup type for other types
+                            item.topupTypeStr = $translate(item.type.name)
+                        }
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
@@ -864,20 +892,15 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    // {title: $translate('DINGDAN_ID'), data: null},
+                    {title: $translate('proposalId'), data: 'proposalId'},
                     // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
                     {title: $translate('STATUS'), data: "status$"},
                     // {title: $translate('ISNEWPLAYER'), data: null},
-                    {title: $translate('ACCOUNT'), data: "data.bankAccount"},
+                    {title: $translate('Merchant No'), data: "merchantName"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "sumText"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
-                    {
-                        title: $translate('Topup Type'), data: "topUpType",
-                        render: function (data, type, row) {
-                            return $translate(vm.topupTypeJson[data] || "Unknown");
-                        }
-                    },
+                    {title: $translate('Topup Type'), data: "topupTypeStr"},
                     // {title: $translate('IP'), data: null},
                     {
                         title: $translate('TIME'), data: "createTime",

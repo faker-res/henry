@@ -1823,13 +1823,15 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
+                    let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
+
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
                             playerObjId: playerTransfer.playerObjId,
                             playerName: playerTransfer.playerName,
-                            updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
+                            updateAmount: updateAmount < 0 ? 0 : updateAmount,
                             curAmount: vm.selectedThisPlayer.validCredit,
                             realName: vm.selectedThisPlayer.realName,
                             remark: vm.creditChange.remark,
@@ -1838,8 +1840,14 @@ define(['js/app'], function (myApp) {
                     }
                     if (vm.linkedPlayerTransferId) {
                         sendData.data.transferId = playerTransfer.transferId;
-                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
-                        sendData.data.curLockedAmount = vm.selectedThisPlayer.lockedCredit;
+                        //if reward task is still there fix locked amount otherwise fix valid amount
+                        if (vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
+                            sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
+                            sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
+                        }
+                        else {
+                            sendData.data.updateAmount += playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
+                        }
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
                     }
 
@@ -3401,6 +3409,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
+                        $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
                         $('.referralValidTrue').show();
                         $('.referralValidFalse').hide();
                         editObj.referral = player._id;
@@ -3409,11 +3418,17 @@ define(['js/app'], function (myApp) {
                             $('.referralValue').val(player.name);
                         }
                     } else {
+                        $('.dialogEditPlayerSubmitBtn').attr('disabled', true);
                         $('.referralValidTrue').hide();
                         $('.referralValidFalse').show();
                         editObj.referral = null;
                     }
                 })
+            } else {
+                $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
+                $('.referralValidTrue').hide();
+                $('.referralValidFalse').hide();
+                editObj.referral = null;
             }
         }
         vm.getPartnerinPlayer = function (editObj, type) {
@@ -3469,6 +3484,8 @@ define(['js/app'], function (myApp) {
                 Object.keys(newPlayerData).forEach(function (key) {
                     if (newPlayerData[key] != oldPlayerData[key]) {
                         if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup") {
+                            //do nothing
+                        } else if (key == "referralName" && newPlayerData["referral"] == oldPlayerData["referral"]) {
                             //do nothing
                         } else {
                             isUpdate = true;
@@ -4247,6 +4264,7 @@ define(['js/app'], function (myApp) {
                     vm.creditTransfer.showValidCredit = data.validCredit;
                     vm.selectedSinglePlayer.validCredit = data.validCredit;
                     vm.selectedSinglePlayer.lockedCredit = data.lockedCredit;
+                    vm.creditTransfer.needRefreshPlatformPlayerData = true;
                 }
                 vm.fixPlayerRewardAmount.isProcessing = false;
                 $scope.safeApply();
@@ -4464,13 +4482,15 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
+                    let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
+
                     let sendData = {
                         platformId: vm.selectedPlatform.id,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
                             playerObjId: playerTransfer.playerObjId,
                             playerName: playerTransfer.playerName,
-                            updateAmount: playerTransfer.amount - playerTransfer.lockedAmount,
+                            updateAmount: updateAmount < 0 ? 0 : updateAmount,
                             curAmount: vm.isOneSelectedPlayer().validCredit,
                             realName: vm.isOneSelectedPlayer().realName,
                             remark: vm.creditChange.remark,
@@ -4479,8 +4499,15 @@ define(['js/app'], function (myApp) {
                     }
                     if (vm.linkedPlayerTransferId) {
                         sendData.data.transferId = playerTransfer.transferId;
-                        sendData.data.updateLockedAmount = playerTransfer.lockedAmount;
-                        sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
+                        //if reward task is still there fix locked amount otherwise fix valid amount
+                        if (vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
+                            sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
+                            sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
+                        }
+                        else {
+                            sendData.data.updateAmount += playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
+                        }
+
                         vm.creditChange.socketStr = "createFixPlayerCreditTransferProposal";
                     }
 
@@ -5595,7 +5622,7 @@ define(['js/app'], function (myApp) {
                 }
             } else if (vm.modifyCritical.changeType == 'phone') {
                 sendData.data.curData = {
-                    phoneNumber: vm.selectedSinglePlayer.phoneNumber
+                    phoneNumber: vm.modifyCritical.phoneNumber
                 }
                 sendData.data.updateData = {
                     phoneNumber: vm.modifyCritical.newPhoneNumber

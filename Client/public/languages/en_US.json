@@ -861,5 +861,7 @@
   "PlayerWechatTopUp": "Player Wechat Topup",
   "depositeTime": "Deposite Time",
   "wechatAccount": "Wechat Account",
-  "wechatName": "Wechat Name"
+  "wechatName": "Wechat Name",
+  "smsVerificationCode": "SMS Verification",
+  "VERIFICATION_TEMPLATE_NOTE": "Note: For SMS Verification insert 'smsCode' at desired position. Example - Hi, your code is smsCode. Happy Betting!"
 }
