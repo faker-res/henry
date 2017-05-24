@@ -66,7 +66,9 @@ var platformSchema = new Schema({
     //allow same real name to register? for frontEnd only, they still can register via office
     allowSameRealNameToRegister: {type: Boolean, default: true},
     // Platform-wide SMS Verification Setting
-    requireSMSVerification: {type: Boolean, default: false}
+    requireSMSVerification: {type: Boolean, default: false},
+    //allow same phone number to register
+    allowSamePhoneNumberToRegister: {type: Boolean, default: true}
 });
 
 //add platform id before save
