@@ -7,6 +7,8 @@ var constProposalType = require('./../const/constProposalType');
 let cpmsAPI = require("../externalAPI/cpmsAPI");
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
 
+let dbUtil = require('../modules/dbutility');
+
 var dbRewardEvent = {
 
     /**
@@ -234,129 +236,157 @@ var dbRewardEvent = {
         return deferred.promise;
     },
 
-    startSavePlayersCredit:
-        (platformId) => {
-            return dbconfig.collection_rewardType.findOne({
-                name: constRewardType.PLAYER_CONSUMPTION_INCENTIVE
-            }).lean().then(
-                rewardType => {
-                    return dbconfig.collection_rewardEvent.find({
-                        type: rewardType._id
-                    })
-                }
-            ).then(
-                rewardEvents => {
-                    let settlePlayerCredit = platformId => {
-                        let stream = dbconfig.collection_players.find(
-                            {
-                                platform: platformId
+    startSavePlayersCredit: (platformId) => {
+        let queryTime = dbUtil.getYesterdaySGTime();
+        return dbconfig.collection_rewardType.findOne({
+            name: constRewardType.PLAYER_CONSUMPTION_INCENTIVE
+        }).lean().then(
+            rewardType => {
+                return dbconfig.collection_rewardEvent.find({
+                    type: rewardType._id
+                })
+            }
+        ).then(
+            rewardEvents => {
+                let settlePlayerCredit = platformId => {
+                    dbconfig.collection_playerTopUpRecord.aggregate([
+                        {
+                            $match: {
+                                platformId: platformId,
+                                createTime: {
+                                    $gte: queryTime.startTime,
+                                    $lt: queryTime.endTime
+                                }
                             }
-                        ).lean().cursor({batchSize: 100});
+                        },
+                        {
 
-                        let balancer = new SettlementBalancer();
-                        return balancer.initConns().then(function () {
-                            return Q(
-                                balancer.processStream(
-                                    {
-                                        stream: stream,
-                                        batchSize: 10,
-                                        makeRequest: function (playerObjs, request) {
-                                            request("player", "savePlayerCredit", {
-                                                playerObjId: playerObjs.map(player => {
-                                                    return {
-                                                        _id: player._id,
-                                                        name: player.name,
-                                                        platform: player.platform,
-                                                        validCredit: player.validCredit,
-                                                        lockedCredit: player.lockedCredit
-                                                    }
-                                                })
-                                            });
-                                        }
-                                    }
-                                )
-                            );
-                        });
-                    };
-
-                    if (platformId) {
-                        // Work on single platform only
-                        return settlePlayerCredit(platformId);
-                    }
-                    else {
-                        // Work on all platforms
-                        let platformIds = new Set(rewardEvents.map(rewardEvent => String(rewardEvent.platform)));
-
-                        platformIds.forEach(
-                            platformId => {
-                                //if there is commission config, start settlement
-                                settlePlayerCredit(platformId);
+                            $group: {
+                                _id: "$playerId",
+                                topUpCount: {$sum: 1}
                             }
-                        );
-                    }
-                }
-            )
-        },
 
-    savePlayerCredit:
-        (playerDatas) => {
-            playerDatas.map(
-                playerData => {
-                    return dbconfig.collection_platform.findById(playerData.platform)
-                        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean()
-                        .then(
-                            platformData => {
-                                if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
-                                    let proms = [];
-                                    for (let i = 0; i < platformData.gameProviders.length; i++) {
-                                        proms.push(cpmsAPI.player_queryCredit(
-                                            {
-                                                username: playerData.name,
-                                                platformId: platformData.platformId,
-                                                providerId: platformData.gameProviders[i].providerId,
+                        }]
+                    ).then(
+                        data => {
+                            let playerObjIds = data.map(player => player._id);
+                            let stream = dbconfig.collection_players.find(
+                                {
+                                    _id: {$in: playerObjIds}
+                                }
+                            ).lean().cursor({batchSize: 100});
+
+                            let balancer = new SettlementBalancer();
+                            return balancer.initConns().then(function () {
+                                return Q(
+                                    balancer.processStream(
+                                        {
+                                            stream: stream,
+                                            batchSize: 10,
+                                            makeRequest: function (playerObjs, request) {
+                                                request("player", "savePlayerCredit", {
+                                                    playerObjId: playerObjs.map(player => {
+                                                        return {
+                                                            _id: player._id,
+                                                            name: player.name,
+                                                            platform: player.platform,
+                                                            validCredit: player.validCredit,
+                                                            lockedCredit: player.lockedCredit
+                                                        }
+                                                    })
+                                                });
                                             }
-                                        ));
-                                    }
-                                    return Q.all(proms);
-                                }
-                            }
-                        ).then(
-                            providerCredit => {
-                                if (providerCredit && providerCredit.length > 0) {
-                                    let credit = 0;
-                                    for (let i = 0; i < providerCredit.length; i++) {
-                                        if (providerCredit[i].credit === undefined) {
-                                            providerCredit[i].credit = 0;
                                         }
-                                        credit += parseFloat(providerCredit[i].credit);
-                                    }
-                                    return credit;
+                                    )
+                                );
+                            });
+                        }
+                    );
+                };
+
+                if (platformId) {
+                    // Work on single platform only
+                    return settlePlayerCredit(platformId);
+                }
+                else {
+                    // Work on all platforms
+                    let platformIds = new Set(rewardEvents.map(rewardEvent => String(rewardEvent.platform)));
+
+                    platformIds.forEach(
+                        platformId => {
+                            //if there is commission config, start settlement
+                            settlePlayerCredit(platformId);
+                        }
+                    );
+                }
+            }
+        )
+    },
+
+    savePlayerCredit: (playerDatas) => {
+        let queryTime = dbUtil.getYesterdaySGTime();
+        playerDatas.map(
+            playerData => {
+                return dbconfig.collection_platform.findById(playerData.platform)
+                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean()
+                    .then(
+                        platformData => {
+                            if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
+                                let proms = [];
+                                for (let i = 0; i < platformData.gameProviders.length; i++) {
+                                    proms.push(cpmsAPI.player_queryCredit(
+                                        {
+                                            username: playerData.name,
+                                            platformId: platformData.platformId,
+                                            providerId: platformData.gameProviders[i].providerId,
+                                        }
+                                    ));
                                 }
-                                else {
-                                    return 0;
-                                }
+                                return Q.all(proms);
                             }
-                        ).then(
-                            gameCredit => {
-                                let log = new dbconfig.collection_playerCreditsDailyLog({
+                        }
+                    ).then(
+                        providerCredit => {
+                            if (providerCredit && providerCredit.length > 0) {
+                                let credit = 0;
+                                for (let i = 0; i < providerCredit.length; i++) {
+                                    if (providerCredit[i].credit === undefined) {
+                                        providerCredit[i].credit = 0;
+                                    }
+                                    credit += parseFloat(providerCredit[i].credit);
+                                }
+                                return credit;
+                            }
+                            else {
+                                return 0;
+                            }
+                        }
+                    ).then(
+                        gameCredit => {
+                            return dbconfig.collection_playerCreditsDailyLog.update({
+                                    playerObjId: playerData._id,
+                                    platformObjId: playerData.platform,
+                                    createTime: {$gte: queryTime.startTime, $lt: queryTime.endTime}
+                                },
+                                {
                                     playerObjId: playerData._id,
                                     platformObjId: playerData.platform,
                                     validCredit: playerData.validCredit,
                                     lockedCredit: playerData.lockedCredit,
                                     gameCredit: gameCredit,
                                     createTime: Date.now()
+                                },
+                                {
+                                    upsert: true
                                 });
-                                return log.save();
-                            }
-                        );
-                }
-            );
+                        }
+                    );
+            }
+        );
 
 
-
-
-            return Q.resolve(true);
-        }
+        return Q.resolve(true);
+    }
 
 };
 
