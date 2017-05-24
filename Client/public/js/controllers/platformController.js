@@ -4467,7 +4467,6 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            console.log('\n\n\n\n\n\nsend credit\n\n', sendData);
             socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
                 var newData = data.data;
                 console.log('credit proposal', newData);
@@ -8691,6 +8690,7 @@ define(['js/app'], function (myApp) {
             vm.platformBasic = vm.platformBasic || {};
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
+            vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
             $scope.safeApply();
         }
         vm.getBonusBasic = () => {
@@ -8913,7 +8913,8 @@ define(['js/app'], function (myApp) {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
                     minTopUpAmount: srcData.showMinTopupAmount,
-                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister
+                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
+                    allowSamePhoneNumberToRegister:srcData.showAllowSamePhoneNumberToRegister
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

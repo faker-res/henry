@@ -9,9 +9,15 @@
         div(ng-if='vm.showPageName=="TOPUP_REPORT"')
             #topUpReportQuery.block-query.col-md-12.well
                 div
+                    label &nbsp;
+                    button.btn.btn-primary(ng-click='vm.resetTopupRecord()') {{'Reset' | translate}}
+                div
                     label {{'STATUS' | translate}}
                     select.form-control(ng-model='vm.queryTopup.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList')
                         option(value='') {{'any' | translate}}
+                div(style='max-width:125px')
+                    label {{'Proposal No' | translate}}
+                    input.form-control(type='text', ng-model='vm.queryTopup.proposalID')
                 div
                     label {{'topupType' | translate}}
                     select.form-control(ng-model='vm.queryTopup.mainTopupType', required)
@@ -30,6 +36,9 @@
                     label {{'Merchant No' | translate}}
                     select.form-control(ng-model='vm.queryTopup.merchantNo',ng-options='mer.merchantNo as mer.name for mer in vm.merchantNoList')
                         option(value='') {{'any' | translate}}
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
+                    label {{'DINGDAN_ID' | translate}}
+                    input.form-control(type='text', ng-model='vm.queryTopup.dingdanID')
                 div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="1"',style='max-width:125px')
                     label {{'depositMethod' | translate}}
                     select.form-control(ng-model='vm.queryTopup.depositMethod')
@@ -41,6 +50,9 @@
                 //    label {{'Merchant' | translate}}
                 //    select.form-control(ng-model='vm.queryTopup.merchant', ng-options='a.merchantTypeId as a.showStr for a in vm.allMerchantsArr')
                 //        option(value='') {{'any' | translate}}
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
+                    label {{'PLAYER_NAME' | translate}}
+                    input.form-control(type='text', ng-model='vm.queryTopup.playerName')
                 div
                     label.control-label {{'Start date' | translate}}
                     .startTime
