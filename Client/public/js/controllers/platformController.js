@@ -3007,6 +3007,7 @@ define(['js/app'], function (myApp) {
                     }
                     console.log('playerConsumptionQuery', playerConsumptionQuery);
 
+                    vm.showReferralName = '';
                     socketService.$socket($scope.AppSocket, 'getSimilarPlayers', {
                         playerId: vm.selectedSinglePlayer._id
                     }, function (data) {
@@ -3042,8 +3043,8 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     if (vm.selectedSinglePlayer.referral) {
-                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function(data) {
-                            vm.selectedSinglePlayer.referralName = data.data.name;
+                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
+                            vm.showReferralName = data.data.name;
                             $scope.safeApply();
                         });
                     }
