@@ -35,61 +35,11 @@ let dbAutoProposal = {
             }
         ).then(
             proposals => {
-                let checkProps1 = [], checkProps2 = [];
-                let todayTime = dbUtility.getTodaySGTime();
-
                 // 1. Check single withdrawal limit - passed
-                proposals.map(proposal => {
-                    if (proposal.data.amount >= platformData.autoApproveWhenSingleBonusApplyLessThan) {
-                        sendToAudit(proposal._id, proposal.createTime, "Amount exceed single bonus limit");
-                    } else {
-                        checkProps1.push(proposal);
-                    }
-                });
+                let checkProps1 = checkSingleWithdrawalLimit(proposals, platformData);
 
                 // 2. Check single day withdrawal limit
-                let playersToAggregate = checkProps1.map(proposal => proposal.data.playerObjId);
-
-                return dbconfig.collection_proposal.aggregate(
-                    {
-                        $match: {
-                            type: proposalTypeObjId,
-                            createTime: {
-                                $gte: todayTime.startTime,
-                                $lt: todayTime.endTime
-                            },
-                            'data.playerObjId': {$in: playersToAggregate},
-                            // TODO:: Check success bonus history only??
-                            //status: constProposalStatus.SUCCESS
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$data.playerObjId",
-                            amount: {$sum: "$data.amount"}
-                        }
-                    }
-                ).then(
-                    bonusRecord => {
-                        let playersToFilter = checkProps1.map(proposal => String(proposal.data.playerObjId));
-
-                        bonusRecord.map(record => {
-                            if (record.amount >= platformData.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
-                                if (playersToFilter.indexOf(String(record._id) != -1)) {
-                                    checkProps1.map(proposal => {
-                                        if (String(proposal.data.playerObjId) == String(record._id)) {
-                                            sendToAudit(proposal._id, proposal.createTime, "Amount exceed single day bonus limit");
-                                            let removeIndex = checkProps1.indexOf(proposal);
-                                            checkProps1.splice(removeIndex, 1);
-                                        }
-                                    })
-                                }
-                            }
-                        });
-
-                        return checkProps1;
-                    }
-                );
+                return checkSingleDayWithdrawalLimit(checkProps1, platformData, proposalTypeObjId);
             }
         ).then(
             proposals => {
@@ -148,6 +98,71 @@ function sendToAudit(proposalObjId, createTime, remark) {
         'data.remark': 'Auto Approval Denied: ' + remark
     }).exec();
 }
+
+function checkSingleWithdrawalLimit(proposals, platformData) {
+    let passedProposal = [];
+    proposals.map(proposal => {
+        if (proposal.data.amount >= platformData.autoApproveWhenSingleBonusApplyLessThan) {
+            sendToAudit(proposal._id, proposal.createTime, "Amount exceed single bonus limit");
+        } else {
+            passedProposal.push(proposal);
+        }
+    });
+
+    return passedProposal;
+}
+
+function checkSingleDayWithdrawalLimit(proposals, platformData, proposalTypeObjId) {
+    let playersToAggregate = proposals.map(proposal => proposal.data.playerObjId);
+
+    return getBonusRecordsOfPlayers(playersToAggregate, proposalTypeObjId).then(
+        bonusRecord => {
+            let playersToFilter = proposals.map(proposal => String(proposal.data.playerObjId));
+
+            bonusRecord.map(record => {
+                if (record.amount >= platformData.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
+                    if (playersToFilter.indexOf(String(record._id) != -1)) {
+                        proposals.map(proposal => {
+                            if (String(proposal.data.playerObjId) == String(record._id)) {
+                                sendToAudit(proposal._id, proposal.createTime, "Amount exceed single day bonus limit");
+                                let removeIndex = proposals.indexOf(proposal);
+                                proposals.splice(removeIndex, 1);
+                            }
+                        })
+                    }
+                }
+            });
+
+            return proposals;
+        }
+    );
+}
+
+function getBonusRecordsOfPlayers(players, proposalTypeObjId) {
+    let todayTime = dbUtility.getTodaySGTime();
+
+    return dbconfig.collection_proposal.aggregate(
+        {
+            $match: {
+                type: proposalTypeObjId,
+                createTime: {
+                    $gte: todayTime.startTime,
+                    $lt: todayTime.endTime
+                },
+                'data.playerObjId': {$in: players},
+                // TODO:: Check success bonus history only??
+                //status: constProposalStatus.SUCCESS
+            }
+        },
+        {
+            $group: {
+                _id: "$data.playerObjId",
+                amount: {$sum: "$data.amount"}
+            }
+        }
+    );
+}
+
 
 function getPlayerLastProposalDateOfType(playerObjId, type) {
     return dbconfig.collection_proposal.find({
