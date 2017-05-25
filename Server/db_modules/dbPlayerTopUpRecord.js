@@ -1407,7 +1407,7 @@ var dbPlayerTopUpRecord = {
                             queryId: serverInstance.getQueryId()
                         }).then(
                             wechats => {
-                                let bValid = false;
+                                let bValid = true;
                                 if (wechats) {
                                     wechats.forEach(
                                         wechat => {
