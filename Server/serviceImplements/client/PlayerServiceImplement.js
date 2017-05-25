@@ -25,7 +25,7 @@ let PlayerServiceImplement = function () {
     //player create api handler
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
+        var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH) && (!data.realName || data.realName.match(/\d+/g) === null));
         if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
@@ -109,7 +109,7 @@ let PlayerServiceImplement = function () {
     // player and partner create api handler
     this.createPlayerPartner.expectsData = 'platformId: String, password: String';
     this.createPlayerPartner.onRequest = (wsFunc, conn, data) => {
-        let isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
+        let isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH) && data.realName.match(/\d+/g) == null);
         if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha === 'testCaptcha') {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
@@ -202,7 +202,7 @@ let PlayerServiceImplement = function () {
     //player update api handler
     this.update.expectsData = 'playerId: String, nickName: String';
     this.update.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && ( data.playerId == conn.playerId) && data.nickName);
+        var isValidData = Boolean(data && data.playerId && ( data.playerId == conn.playerId) && data.nickName && data.realName.match(/\d+/g) == null);
         if (data.phoneNumber) {
             var queryRes = queryPhoneLocation(data.phoneNumber);
             if (queryRes) {
