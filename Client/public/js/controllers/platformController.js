@@ -1864,6 +1864,12 @@ define(['js/app'], function (myApp) {
                 });
         };
 
+        vm.triggerAutoProposal = function () {
+            socketService.$socket($scope.AppSocket, 'triggerAutoProposal', {platformObjId: vm.selectedPlatform.id}, function (playerCount) {
+                console.log('playerCount', playerCount);
+            });
+        };
+
         /////////////////////////////////Mark::Platform players functions//////////////////
 
         //get all platform players data from server
