@@ -101,17 +101,40 @@ let dbAutoProposal = {
                         proposals.splice(removeIndex, 1);
                     } else {
                         // 4. Check player last bonus
-                        dbconfig.collection_proposal.find({})
+                        getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type).then(
+                            lastWithdrawDate => {
+                                if (lastWithdrawDate) {
+                                    proposals[proposals.indexOf(proposal)].lastWithdrawDate = lastWithdrawDate;
+                                } else {
+                                    sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
+                                    let removeIndex = proposals.indexOf(proposal);
+                                    proposals.splice(removeIndex, 1);
+                                }
+                            }
+                        );
                     }
                 });
 
+                return proposals;
+            }
+        ).then(
+            proposals => {
                 console.log('third check passed', proposals);
-
-                let playersToFilter = proposals.map(proposal => String(proposal.data.playerObjId));
-
-                // 4. Check last player withdrawal
             }
         )
+
+        //
+        //         let playersToFilter = proposals.map(proposal => String(proposal.data.playerObjId));
+        //
+        //         // 4. Check last player withdrawal
+        //         // dbconfig.collection_proposal.find({
+        //         //     'data.playerObjId': proposal.data.playerObjId,
+        //         //     createTime: {$gt: lastWithdrawDate},
+        //         //     $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}]
+        //         // })
+        //
+        //     }
+        // )
     }
 };
 
@@ -124,6 +147,20 @@ function sendToAudit(proposalObjId, createTime, remark) {
         status: constProposalStatus.PENDING,
         'data.remark': 'Auto Approval Denied: ' + remark
     }).exec();
+}
+
+function getPlayerLastProposalDateOfType(playerObjId, type) {
+    return dbconfig.collection_proposal.find({
+        'data.playerObjId': playerObjId,
+        type: type,
+        $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}]
+    }).sort({createTime: -1}).limit(1).then(
+        retData => {
+            if (retData && retData[0]) {
+                return retData[0].createTime;
+            }
+        }
+    )
 }
 
 module.exports = dbAutoProposal;
