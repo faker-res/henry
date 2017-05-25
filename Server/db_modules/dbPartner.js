@@ -47,16 +47,16 @@ let dbPartner = {
 
                     return dbPartner.isPhoneNumberValidToRegister({
                         phoneNumber: partnerData.phoneNumber,
-                        platform:platformData._id
+                        platform: platformData._id
                     }).then(
-                        function(data){
-                            if (("allowSamePhoneNumberToRegister" in platformData) && !platformData.allowSamePhoneNumberToRegister && !data.isPhoneNumberValid){
+                        function (data) {
+                            if (("allowSamePhoneNumberToRegister" in platformData) && !platformData.allowSamePhoneNumberToRegister && !data.isPhoneNumberValid) {
                                 return Q.reject({
-                                    name:"DataError",
-                                    message:"Phone number already exists"
+                                    name: "DataError",
+                                    message: "Phone number already exists"
                                 });
                             }
-                            else{
+                            else {
                                 if (partnerData.parent) {
                                     return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
                                         parentData => {
@@ -65,7 +65,10 @@ let dbPartner = {
                                                 return dbPartner.createPartnerWithParent(partnerData);
                                             }
                                             else {
-                                                return Q.reject({name: "DataError", message: "Cannot find parent partner"});
+                                                return Q.reject({
+                                                    name: "DataError",
+                                                    message: "Cannot find parent partner"
+                                                });
                                             }
                                         }
                                     );
@@ -125,7 +128,7 @@ let dbPartner = {
 
         dbconfig.collection_platform.findOne({_id: partnerdata.platform}).then(
             function (platform) {
-                if(platform){
+                if (platform) {
                     platformData = platform;
 
                     // attach platform prefix to player name if available
@@ -133,17 +136,17 @@ let dbPartner = {
                         partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
                     }
 
-                    if (platformData.allowSamePhoneNumberToRegister===true) {
+                    if (platformData.allowSamePhoneNumberToRegister === true) {
                         return {isPhoneNumberValid: true};
-                    } else{
+                    } else {
                         return dbPartner.isPhoneNumberValidToRegister({
                             phoneNumber: partnerdata.phoneNumber,
                             platform: partnerdata.platform
                         });
                     }
-                }else{
+                } else {
                     deferred.reject({
-                        name: "DBError", 
+                        name: "DBError",
                         message: "No such platform"
                     });
                 }
@@ -157,14 +160,14 @@ let dbPartner = {
             }
         ).then(
             function (data) {
-                if(data.isPhoneNumberValid){
+                if (data.isPhoneNumberValid) {
                     return dbPartner.isPartnerNameValidToRegister({
                         partnerName: partnerdata.partnerName,
                         platform: partnerdata.platform
                     });
-                }else{
+                } else {
                     deferred.reject({
-                        name: "DBError", 
+                        name: "DBError",
                         message: "Phone number already exists"
                     });
                 }
@@ -207,7 +210,7 @@ let dbPartner = {
                         partner.partnerName = partnerdata.partnerName.toLowerCase();
                         return partner.save();
                     },
-                    function(error){ 
+                    function (error) {
                         deferred.reject({
                             name: "DataError",
                             message: "Partner domain have been used",
@@ -816,17 +819,62 @@ let dbPartner = {
                         }
                     };
 
-                    const consumptionSummariesProm = dbconfig.collection_playerConsumptionDaySummary.find(matchPlayerSummaries);
-                    const topUpSummariesProm = dbconfig.collection_playerTopUpDaySummary.find(matchPlayerSummaries);
+                    const matchRecordSummaries = {
+                        platformId: platformObjId,
+                        playerId: {$in: playerIds},
+                        createTime: {
+                            $gte: times.startTime,
+                            $lt: times.endTime
+                        }
+                    };
 
+                    let consumptionSummariesProm = {};
+                    let topUpSummariesProm = {};
+                    if (times.startTime.getTime() >= dbUtil.getTodaySGTime().startTime.getTime()) {
+                        consumptionSummariesProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+                            {$match: matchRecordSummaries},
+                            {
+                                $group: {
+                                    _id: "$playerId",
+                                    // playerId: "$playerId",
+                                    times: {$sum: 1},
+                                    amount: {$sum: "$validAmount"}
+                                }
+                            }
+                        );
+                        topUpSummariesProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                            {$match: matchRecordSummaries},
+                            {
+                                $group: {
+                                    _id: "$playerId",
+                                    // playerId: "$playerId",
+                                    times: {$sum: 1},
+                                    amount: {$sum: "$amount"}
+                                }
+                            }
+                        );
+                    }
+                    else {
+                        consumptionSummariesProm = dbconfig.collection_playerConsumptionDaySummary.find(matchPlayerSummaries);
+                        topUpSummariesProm = dbconfig.collection_playerTopUpDaySummary.find(matchPlayerSummaries);
+                    }
                     return Q.all([consumptionSummariesProm, topUpSummariesProm]).then(
                         data => {
                             let playersObj = [];
-
                             const consumptionSummaries = data[0];
                             const topUpSummaries = data[1];
-                            const consumptionSummariesByPlayerId = dataUtils.byKey(consumptionSummaries, 'playerId');
-                            const topUpSummariesByPlayerId = dataUtils.byKey(topUpSummaries, 'playerId');
+                            let consumptionSummariesByPlayerId = [];
+                            let topUpSummariesByPlayerId = [];
+
+                            if (times.startTime.getTime() >= dbUtil.getTodaySGTime().startTime.getTime()) {
+                                consumptionSummariesByPlayerId = dataUtils.byKey(consumptionSummaries, '_id');
+                                topUpSummariesByPlayerId = dataUtils.byKey(topUpSummaries, '_id');
+                            }
+                            else {
+                                consumptionSummariesByPlayerId = dataUtils.byKey(consumptionSummaries, 'playerId');
+                                topUpSummariesByPlayerId = dataUtils.byKey(topUpSummaries, 'playerId');
+                            }
+
 
                             playerIds.forEach(
                                 playerId => {
@@ -919,10 +967,10 @@ let dbPartner = {
                 if (isMatch) {
                     if (partnerObj.status == constPartnerStatus.FORBID) {
                         return Q.reject({
-                              name: "DataError",
-                              message: "Partner is not enable",
-                              code: constServerCode.PARTNER_IS_FORBIDDEN
-                          });
+                            name: "DataError",
+                            message: "Partner is not enable",
+                            code: constServerCode.PARTNER_IS_FORBIDDEN
+                        });
                     }
                     var newAgentArray = partnerObj.userAgent || [];
                     var uaObj = {
@@ -1698,7 +1746,7 @@ let dbPartner = {
                     //     });
                     // }
                     if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
-                        || !partnerData.bankAccount || !partnerData.bankAddress ) {
+                        || !partnerData.bankAccount || !partnerData.bankAddress) {
                         return Q.reject({
                             status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                             name: "DataError",
@@ -2614,10 +2662,12 @@ let dbPartner = {
                             totalReferrals: {$gt: 0},
                             $and: [
                                 {$or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]},
-                                {$or: [
-                                    {permission: {$exists: false}},
-                                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
-                                ]}
+                                {
+                                    $or: [
+                                        {permission: {$exists: false}},
+                                        {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                                    ]
+                                }
                             ]
                         }
                     ).cursor({batchSize: 100});
@@ -3918,7 +3968,8 @@ let dbPartner = {
                 return Q.reject({
                     name: "DBError",
                     message: "Error updating partner permission.",
-                    error: error});
+                    error: error
+                });
             }
         ).then(
             suc => {
@@ -3935,28 +3986,28 @@ let dbPartner = {
     },
 
     /**
-        * Update partner status info and record change reasono
-        * @param {objectId} partnerObjId
-        * @param {String} status
-        * @param {String} reason
-    */
-    updatePartnerStatus : function(partnerObjId, status, reason, adminName) {
-      var updateData = {
-        status: status
-      };
+     * Update partner status info and record change reasono
+     * @param {objectId} partnerObjId
+     * @param {String} status
+     * @param {String} reason
+     */
+    updatePartnerStatus: function (partnerObjId, status, reason, adminName) {
+        var updateData = {
+            status: status
+        };
 
-      var partnerProm = dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, {
-        _id: partnerObjId
-      }, updateData, constShardKeys.collection_partner);
-      var newLog = {
-        _partnerId: partnerObjId,
-        status: status,
-        reason: reason,
-        adminName: adminName
-      };
-      var log = new dbconfig.collection_partnerStatusChangeLog(newLog);
-      var logProm = log.save();
-      return Q.all([partnerProm, logProm]);
+        var partnerProm = dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, {
+            _id: partnerObjId
+        }, updateData, constShardKeys.collection_partner);
+        var newLog = {
+            _partnerId: partnerObjId,
+            status: status,
+            reason: reason,
+            adminName: adminName
+        };
+        var log = new dbconfig.collection_partnerStatusChangeLog(newLog);
+        var logProm = log.save();
+        return Q.all([partnerProm, logProm]);
     },
 
     /*
@@ -3967,7 +4018,7 @@ let dbPartner = {
         return dbconfig.collection_partnerStatusChangeLog.find({_partnerId: partnerObjId}).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
     },
 
-        /**
+    /**
      * Adds the given amount into the partner's account, and creates a creditChangeLog record.
      * Can also be used to deduct credits from the account, by providing a negative value.
      *
@@ -4021,7 +4072,10 @@ let dbPartner = {
                 }
             }
         ).then(
-            () => dbconfig.collection_partner.findOne({_id: partnerObjId, platform: platformObjId}).select('validCredit')
+            () => dbconfig.collection_partner.findOne({
+                _id: partnerObjId,
+                platform: platformObjId
+            }).select('validCredit')
         ).then(
             partner => {
                 if (partner.credits < updateAmount) {

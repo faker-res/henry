@@ -425,15 +425,15 @@ var dbPlayerConsumptionRecord = {
                     var prom1 = dbconfig.collection_players.findOne({
                         name: recordData.userName,
                         platform: platformData._id
-                    });
-                    var prom2 = dbconfig.collection_game.findOne({gameId: recordData.gameId}).then(
+                    }).lean();
+                    var prom2 = dbconfig.collection_game.findOne({gameId: recordData.gameId}).lean().then(
                         game => {
                             if (game) {
                                 return game;
                             } else {
                                 // try harder
                                 if (recordData.code) {
-                                    return dbconfig.collection_game.findOne({code: recordData.code}).then(
+                                    return dbconfig.collection_game.findOne({code: recordData.code}).lean().then(
                                         gameByCode => {
                                             if (gameByCode) {
                                                 return gameByCode;
@@ -455,12 +455,11 @@ var dbPlayerConsumptionRecord = {
                             }
                         }
                     );
-                    var prom3 = dbconfig.collection_gameProvider.findOne({providerId: recordData.providerId});
+                    var prom3 = dbconfig.collection_gameProvider.findOne({providerId: recordData.providerId}).lean();
 
                     return Q.all([prom1, prom2, prom3]);
                 }
                 else {
-                    console.error("createExternalPlayerConsumptionRecord", "Can't find platform");
                     return resolveError ? Q.resolve(null) : Q.reject({
                         name: "DataError",
                         message: "Can't find platform"
