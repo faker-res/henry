@@ -113,11 +113,19 @@ let dbPlayerInfo = {
                                     return {"isPlayerNameValid": true};
                                 }
                                 else {
-                                    return Q.reject({
-                                        status: constServerCode.USERNAME_ALREADY_EXIST,
-                                        name: "DBError",
-                                        message: "Realname already exists"
-                                    });
+                                    if(!data[0].isPlayerNameValid){
+                                        return Q.reject({
+                                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                                            name: "DBError",
+                                            message: "Player name already exists"
+                                        });
+                                    }else{
+                                        return Q.reject({
+                                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                                            name: "DBError",
+                                            message: "Realname already exists"
+                                        });
+                                    }
                                 }
                             }
                             else {
@@ -137,7 +145,7 @@ let dbPlayerInfo = {
                         }else{
                             return dbPlayerInfo.isPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-                                platform: inputData.platformId
+                                platform: platformObjId
                             });
                         }
                     }else {
