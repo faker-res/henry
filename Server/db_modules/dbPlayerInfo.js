@@ -575,6 +575,14 @@ let dbPlayerInfo = {
             //         message: "Realname should be chinese character"
             //     });
             // }
+
+            if ((playerdata.realName && playerdata.realName.match(/\d+/g) == null)) {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Realname should not include digit"
+                });
+            }
         }
 
         dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(

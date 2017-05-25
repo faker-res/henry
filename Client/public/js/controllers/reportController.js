@@ -2911,9 +2911,21 @@ define(['js/app'], function (myApp) {
                 vm.generalRewardProposalQuery.totalCount = data.data.size;
                 $scope.safeApply();
                 vm.drawGeneralRewardProposalTable(data.data.data.map(item => {
-                    item.$amount = item.data.rewardAmount ?
-                        item.data.rewardAmount :
-                        (item.data.returnAmount ? item.data.returnAmount : 0);
+                    // item.$amount = item.data.rewardAmount ?
+                    //     item.data.rewardAmount :
+                    //     (item.data.returnAmount ? item.data.returnAmount : 0);
+                    if (item.data.rewardAmount) {
+                        item.$amount = item.data.rewardAmount;
+                    } else if (item.data.returnAmount) {
+                        item.$amount = item.data.returnAmount;
+                    } else if (item.data.updateAmount) {
+                        item.$amount = item.data.updateAmount;
+                    } else if (item.data.amount) {
+                        item.$amount = item.data.amount;
+                    } else {
+                        item.$amount = 0;
+                    }
+
                     item.$amount = parseFloat(item.$amount).toFixed(2);
                     item.$createTime = utilService.$getTimeFromStdTimeFormat(item.createTime);
                     if (vm.rewardTypeName == 'ALL') {
