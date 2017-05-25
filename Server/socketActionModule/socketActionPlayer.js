@@ -45,7 +45,7 @@ function socketActionPlayer(socketIO, socket) {
          */
         createPlayer: function createPlayer(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.name && data.password && data.password.length >= constSystemParam.PASSWORD_LENGTH);
+            var isValidData = Boolean(data && data.name && data.password && data.password.length >= constSystemParam.PASSWORD_LENGTH && (!data.realName || data.realName.match(/\d+/g) === null));
             if (data.phoneNumber) {
                 var queryRes = queryPhoneLocation(data.phoneNumber);
                 if (queryRes) {
@@ -54,7 +54,7 @@ function socketActionPlayer(socketIO, socket) {
                     data.phoneType = queryRes.type;
                 }
             }
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfo, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfoAPI, [data], actionName, isValidData);
         },
 
         /**
