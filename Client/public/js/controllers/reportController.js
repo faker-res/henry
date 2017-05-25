@@ -241,6 +241,19 @@ define(['js/app'], function (myApp) {
         ]
 
         vm.loadPage = function (choice, pageName, code, eventObjId) {
+
+            function createMerGroupList(nameObj, listObj) {
+                if (!nameObj || !listObj) return [];
+                let obj = [];
+                $.each(listObj, (name, arr) => {
+                    obj.push({
+                        name: nameObj[name],
+                        list: arr.list
+                    });
+                })
+                return obj;
+            };
+
             socketService.clearValue();
             console.log('reward', choice, pageName, code);
             vm.seleDataType = {};
@@ -272,6 +285,9 @@ define(['js/app'], function (myApp) {
             if (choice == "TOPUP_REPORT") {
                 vm.queryTopup = {};
                 vm.merchantNoNameObj = {};
+                vm.merchantGroupObj = [];
+                let merGroupName = {};
+                let merGroupList = {};
                 vm.queryTopup.totalCount = 0;
                 vm.resetTopupRecord();
                 socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
@@ -288,15 +304,31 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
                         vm.merchantNoList = data.data.merchants.filter(mer => {
-                                vm.merchantNoNameObj[mer.merchantNo] = mer.name;
-                                return mer.status != 'DISABLED';
-                            }) || [];
+                            vm.merchantNoNameObj[mer.merchantNo] = mer.name;
+                            return mer.status != 'DISABLED';
+                        });
+                        vm.merchantNoList.forEach(item => {
+                            merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
+                            merGroupList[item.merchantTypeId].list.push(item.merchantNo);
+                        }) || [];
+
+                        vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
                     }
-                    console.log('merchantList', vm.merchantNoList);
                     $scope.safeApply();
                 }, function (data) {
                     console.log("merchantList", data);
                 });
+
+                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                    data.data.merchantTypes.forEach(mer => {
+                        merGroupName[mer.merchantTypeId] = mer.name;
+                    })
+                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("merchantList", data);
+                });
+
 
                 utilService.actionAfterLoaded("#topupTablePage", function () {
                     vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
@@ -855,6 +887,7 @@ define(['js/app'], function (myApp) {
                 topupType: vm.queryTopup.topupType,
                 depositMethod: vm.queryTopup.depositMethod,
                 proposalNo: vm.queryTopup.proposalID,
+                merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
                 playerName: vm.queryTopup.playerName,
                 // merchant: vm.queryTopup.merchant,
                 status: staArr,
@@ -880,7 +913,7 @@ define(['js/app'], function (myApp) {
                         if (item.type.name == 'PlayerTopUp') {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType
-                            item.topupTypeStr = item.data.topUpType
+                            item.topupTypeStr = typeID
                                 ? $translate(vm.topupTypeJson[typeID])
                                 : $translate("Unknown")
                         } else {
@@ -953,7 +986,7 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
 
-            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {3: summary.amount});
+            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
@@ -1548,9 +1581,9 @@ define(['js/app'], function (myApp) {
         function drawPlayerTblSummary(api, data, tableId) {
             var result = utilService.getDatatableSummary(api, ['totalConsumedAmount', 'validAmount', 'timesConsumed'], ['totalConsumedAmount', 'validAmount', 'timesConsumed']);
             $(tableId).html(
-                '总计' + data.length + '个记录, 总消费额(本页：' + result.totalConsumedAmount.page.toFixed(2) + ', 总计：' + result.totalConsumedAmount.total.toFixed(2) + ')'
+                '总计' + data.length + '个记录, 总投注额(本页：' + result.totalConsumedAmount.page.toFixed(2) + ', 总计：' + result.totalConsumedAmount.total.toFixed(2) + ')'
                 + ', 有效额度(本页：' + result.validAmount.page.toFixed(2) + ', 总计：' + result.validAmount.total.toFixed(2) + ')'
-                + ', 消费笔数(本页：' + result.timesConsumed.page.toFixed(0) + ', 总计：' + result.timesConsumed.total.toFixed(0) + ')'
+                + ', 投注笔数(本页：' + result.timesConsumed.page.toFixed(0) + ', 总计：' + result.timesConsumed.total.toFixed(0) + ')'
             );
         }
 
