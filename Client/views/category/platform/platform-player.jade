@@ -937,7 +937,7 @@ include modalGameCreditLog
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
                                         .inlineBlk
                                             label {{'REFERRAL' | translate}}
-                                            text(style='height:inherit') {{vm.selectedSinglePlayer.referralName || 'NONE' | translate}}
+                                            text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
                                         .inlineBlk
                                             label {{'REMARK' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
