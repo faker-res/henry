@@ -1,9 +1,6 @@
 const should = require('should');
 const dbconfig = require('../modules/dbproperties');
 const dbPlatform = require('../db_modules/dbPlatform');
-const WebSocketClient = require('../server_common/WebSocketClient');
-const PlayerService = require('../services/client/ClientServices').PlayerService;
-const PartnerService = require('../services/client/ClientServices').PartnerService;
 const RegistrationIntentionService = require('../services/client/ClientServices').RegistrationIntentionService;
 const ClientPartnerAPITest = require('../testAPI/clientAPITest/ClientPartnerAPITest');
 const ClientRegistrationIntentionAPITest = require('../testAPI/clientAPITest/ClientRegistrationIntentionAPITest');
@@ -27,17 +24,6 @@ let playerRealName = null;
 
 describe("Test Partner API - Partner service", () => {
 
-    let client = new WebSocketClient(env.clientAPIServerUrl);
-
-    let partnerService = new PartnerService();
-    client.addService(partnerService);
-
-    let registrationIntentionService = new RegistrationIntentionService();
-    client.addService(registrationIntentionService);
-
-    let clientPartnerAPITest = new ClientPartnerAPITest(partnerService);
-
-
     //// Init Data - Start ///////
     it('Should create test API partner and platform', (done) => {
 
@@ -50,7 +36,7 @@ describe("Test Partner API - Partner service", () => {
                 testPlatformId = data.platformId;
 
                 let createNewTestPartner = commonTestFun.createTestPartner(testPlatformObjId);
-                let createNewTestPlayer = commonTestFun.createTestPlayer(testPlatformObjId);
+                let createNewTestPlayer = commonTestFun.createTestPlayer(testPlatformObjId,testPlatformId);
                 return Q.all([createNewTestPartner,createNewTestPlayer]);
             },
             (error) => {
@@ -119,15 +105,16 @@ describe("Test Partner API - Partner service", () => {
     // test player uniquess
     it('Should fail due to player phone number is not unique', (done) => {
             let playerData = {
-                platform: testPlatformObjId,
+                platformId: testPlatformId,
                 name: "testPlayer1",
                 password: '123456',
                 realName:"Test Player 1",
                 email: 'testPlayer1@sinonet.com.sg',
-                phoneNumber: rsaCrypto.decrypt(playerPhoneNumber)
+                phoneNumber: rsaCrypto.decrypt(playerPhoneNumber),
+                "domain": "localhost"
             }
 
-            dbPlayerInfo.createPlayerInfo(playerData).then(
+            dbPlayerInfo.createPlayerInfoAPI(playerData).then(
             (data) => {
                 done();
             },
@@ -140,15 +127,16 @@ describe("Test Partner API - Partner service", () => {
 
     it('Should failed due to player real name is not unique', (done) => {
             let playerData = {
-                platform: testPlatformObjId,
+                platformId: testPlatformId,
                 name: "testPlayer2",
                 password: '123456',
                 phoneNumber: "1234561231",
                 email: 'testPlayer2@sinonet.com.sg',
-                realName: playerRealName
+                realName: playerRealName,
+                "domain": "localhost"
             }
 
-            dbPlayerInfo.createPlayerInfo(playerData).then(
+            dbPlayerInfo.createPlayerInfoAPI(playerData).then(
             (data) => {
                 done();
             },
@@ -161,15 +149,16 @@ describe("Test Partner API - Partner service", () => {
 
     it('Should failed due to player name is not unique', (done) => {
             let playerData = {
-                platform: testPlatformObjId,
+                platformId: testPlatformId,
                 password: '123456',
                 phoneNumber: "1234561232",
                 email: 'testPlayer3@sinonet.com.sg',
                 realName: "Test Player 3",
-                name: playerName
+                name: playerName,
+                "domain": "localhost"
             }
 
-            dbPlayerInfo.createPlayerInfo(playerData).then(
+            dbPlayerInfo.createPlayerInfoAPI(playerData).then(
             (data) => {
                 done();
             },

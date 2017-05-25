@@ -33,6 +33,10 @@
                         option(value='4') 微信App支付(WechatApp)
                         option(value='5') 支付宝App支付(AlipayApp)
                 div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
+                    label {{'Merchant Group' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupObj')
+                        option(value='') {{'any' | translate}}
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
                     label {{'Merchant No' | translate}}
                     select.form-control(ng-model='vm.queryTopup.merchantNo',ng-options='mer.merchantNo as mer.name for mer in vm.merchantNoList')
                         option(value='') {{'any' | translate}}
