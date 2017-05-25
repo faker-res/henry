@@ -1864,6 +1864,12 @@ define(['js/app'], function (myApp) {
                 });
         };
 
+        vm.triggerAutoProposal = function () {
+            socketService.$socket($scope.AppSocket, 'triggerAutoProposal', {platformObjId: vm.selectedPlatform.id}, function (playerCount) {
+                console.log('playerCount', playerCount);
+            });
+        };
+
         /////////////////////////////////Mark::Platform players functions//////////////////
 
         //get all platform players data from server
@@ -3587,7 +3593,7 @@ define(['js/app'], function (myApp) {
         };
         //Create new player
         vm.createNewPlayer = function () {
-            vm.newPlayer.platform = vm.selectedPlatform.id;
+            vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
             //console.log('newPlayer',vm.newPlayer);
             socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
                 $('#modalCreatePlayer').modal('toggle');

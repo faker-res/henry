@@ -157,6 +157,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
             text {{"Platform Credit Transfer Log" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'TriggerAutoProposal')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.triggerAutoProposal()')
+            text {{"Trigger Auto Approval" | translate}}
+            img.img-edit
 
 // Sub-views
 #modalCreatePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
