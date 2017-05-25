@@ -167,7 +167,7 @@ let dbPlayerInfo = {
                         if (inputData.referral) {
                             let referralName = platformPrefix + inputData.referral;
                             let referrralProm = dbconfig.collection_players.findOne({
-                                name: referralName.toLowerCase(),
+                                name: referralName,
                                 platform: platformObjId
                             }).then(
                                 data => {
