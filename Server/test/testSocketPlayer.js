@@ -17,6 +17,7 @@ describe("Test socket player", function () {
     var testPlatform = null;
     var testPlatformDescription = "testPlatformDescription";
     var testPlatformObjId = null;
+    var testPlatformId = null;
 
     var testAdminId = null;
     var testAdminName = null;
@@ -38,6 +39,7 @@ describe("Test socket player", function () {
             function (data) {
                 testPlatform = data;
                 testPlatformObjId = data._id;
+                testPlatformId=data.platformId;
                 done();
             },
             function (error) {
@@ -61,6 +63,7 @@ describe("Test socket player", function () {
                 "realName": "testPlayerRealName",
                 "password": "123456",
                 "platform": testPlatformObjId,
+                "platformId": testPlatformId,
                 "phoneNumber": "93354765",
                 isTestPlayer: true
 

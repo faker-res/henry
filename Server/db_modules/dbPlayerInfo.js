@@ -113,11 +113,19 @@ let dbPlayerInfo = {
                                     return {"isPlayerNameValid": true};
                                 }
                                 else {
-                                    return Q.reject({
-                                        status: constServerCode.USERNAME_ALREADY_EXIST,
-                                        name: "DBError",
-                                        message: "Realname already exists"
-                                    });
+                                    if(!data[0].isPlayerNameValid){
+                                        return Q.reject({
+                                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                                            name: "DBError",
+                                            message: "Player name already exists"
+                                        });
+                                    }else{
+                                        return Q.reject({
+                                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                                            name: "DBError",
+                                            message: "Realname already exists"
+                                        });
+                                    }
                                 }
                             }
                             else {
@@ -137,7 +145,7 @@ let dbPlayerInfo = {
                         }else{
                             return dbPlayerInfo.isPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-                                platform: inputData.platformId
+                                platform: platformObjId
                             });
                         }
                     }else {
@@ -575,6 +583,14 @@ let dbPlayerInfo = {
             //         message: "Realname should be chinese character"
             //     });
             // }
+
+            if ((playerdata.realName && playerdata.realName.match(/\d+/g) == null)) {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Realname should not include digit"
+                });
+            }
         }
 
         dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(
