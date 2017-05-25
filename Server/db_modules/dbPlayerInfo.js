@@ -584,7 +584,7 @@ let dbPlayerInfo = {
             //     });
             // }
 
-            if ((playerdata.realName && playerdata.realName.match(/\d+/g) == null)) {
+            if ((playerdata.realName && playerdata.realName.match(/\d+/g) != null)) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
