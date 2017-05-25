@@ -1402,28 +1402,29 @@ var dbPlayerTopUpRecord = {
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
-                        return pmsAPI.weChat_getWechatList({
-                            platformId: playerData.platform.platformId,
-                            queryId: serverInstance.getQueryId()
-                        }).then(
-                            wechats => {
-                                let bValid = true;
-                                if (wechats) {
-                                    wechats.forEach(
-                                        wechat => {
-                                            playerData.wechatPayGroup.wechats.forEach(
-                                                pWechat => {
-                                                    if (pWechat == wechat.accountNumber && wechat.status == "NORMAL") {
-                                                        bValid = true;
-                                                    }
-                                                }
-                                            );
-                                        }
-                                    );
-                                }
-                                return bValid;
-                            }
-                        );
+                        // return pmsAPI.weChat_getWechatList({
+                        //     platformId: playerData.platform.platformId,
+                        //     queryId: serverInstance.getQueryId()
+                        // }).then(
+                        //     wechats => {
+                        //         let bValid = true;
+                        //         if (wechats) {
+                        //             wechats.forEach(
+                        //                 wechat => {
+                        //                     playerData.wechatPayGroup.wechats.forEach(
+                        //                         pWechat => {
+                        //                             if (pWechat == wechat.accountNumber && wechat.status == "NORMAL") {
+                        //                                 bValid = true;
+                        //                             }
+                        //                         }
+                        //                     );
+                        //                 }
+                        //             );
+                        //         }
+                        //         return bValid;
+                        //     }
+                        // );
+                        return true;
                     }
                     else {
                         return false;
