@@ -1746,6 +1746,7 @@ var proposal = {
                             _id: null,
                             sum1: {$sum: "$data.returnAmount"},
                             sum2: {$sum: "$data.rewardAmount"},
+                            sum3: {$sum: "$data.amount"}, // may be there is a better variable for it
                             sumApplyAmount: {$sum: "$data.applyAmount"}
                         }
                     }
@@ -1763,10 +1764,11 @@ var proposal = {
             function (data) {
                 if (data && data[1]) {
                     var obj = {data: data[0], size: data[1]};
-                    var temp = data[2] ? data[2][0] : {sum1: 0, sum2: 0, sumApplyAmount: 0};
+                    var temp = data[2] ? data[2][0] : {sum1: 0, sum2: 0, sum3: 0, sumApplyAmount: 0};
                     obj.summary = {
-                        amount: parseFloat(temp.sum1 + temp.sum2).toFixed(2),
-                        applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)
+                        amount: parseFloat(temp.sum1 + temp.sum2 + temp.sum3).toFixed(2),
+                        // applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)
+                        applyAmount: parseFloat(temp.sum3).toFixed(2) // the one that use for 'total' on the page
                     };
                     deferred.resolve(obj);
                 } else {
