@@ -1413,7 +1413,7 @@ var dbPlayerTopUpRecord = {
                                         wechat => {
                                             playerData.wechatPayGroup.wechats.forEach(
                                                 pWechat => {
-                                                    if (pWechat == wechat.accountNumber && wechat.status == "NORMAL") {
+                                                    if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
                                                         bValid = true;
                                                     }
                                                 }
