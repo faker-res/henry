@@ -232,12 +232,12 @@ var proposal = {
                         proposalData.status = constProposalStatus.APPROVED;
                     }
                     //check if player or partner has pending proposal for this type
-                    var queryObj = {
+                    let queryObj = {
                         type: proposalData.type,
                         "data.platformId": data[0].platformId,
-                        status: constProposalStatus.PENDING
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING]}
                     };
-                    var queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
+                    let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
                         param => {
                             if (proposalData.data && proposalData.data[param]) {

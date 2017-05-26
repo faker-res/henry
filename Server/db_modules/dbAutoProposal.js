@@ -54,7 +54,7 @@ let dbAutoProposal = {
                         getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type).then(
                             lastWithdrawDate => {
                                 if (lastWithdrawDate) {
-                                    proposals[proposals.indexOf(proposal)].lastWithdrawDate = lastWithdrawDate;
+                                    checkPreviousProposals(proposal, lastWithdrawDate);
                                 } else {
                                     sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
                                     let removeIndex = proposals.indexOf(proposal);
@@ -67,24 +67,7 @@ let dbAutoProposal = {
 
                 return proposals;
             }
-        ).then(
-            proposals => {
-                console.log('third check passed', proposals);
-            }
         )
-
-        //
-        //         let playersToFilter = proposals.map(proposal => String(proposal.data.playerObjId));
-        //
-        //         // 4. Check last player withdrawal
-        //         // dbconfig.collection_proposal.find({
-        //         //     'data.playerObjId': proposal.data.playerObjId,
-        //         //     createTime: {$gt: lastWithdrawDate},
-        //         //     $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}]
-        //         // })
-        //
-        //     }
-        // )
     }
 };
 
@@ -176,6 +159,22 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
             }
         }
     )
+}
+
+function checkPreviousProposals(proposal, lastWithdrawDate) {
+    console.log(proposal, lastWithdrawDate);
+    return dbconfig.collection_proposal.find({
+        'data.platformId': proposal.data.platformId,
+        'data.playerObjId': proposal.data.playerObjId,
+        createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
+        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+        mainType: {$in: ["TopUp", "Reward"]}
+    }).then(
+        proposals => {
+            console.log('proposals', proposals);
+        }
+    )
+
 }
 
 module.exports = dbAutoProposal;
