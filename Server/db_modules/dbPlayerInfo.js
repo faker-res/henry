@@ -549,7 +549,7 @@ let dbPlayerInfo = {
         let deferred = Q.defer();
         let playerData = null;
         let platformData = null;
-
+        
         playerdata.name = playerdata.name.toLowerCase();
 
         // Player name and password should be alphanumeric and between 6 to 20 characters

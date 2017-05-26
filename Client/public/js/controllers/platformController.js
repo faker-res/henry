@@ -3587,7 +3587,7 @@ define(['js/app'], function (myApp) {
         };
         //Create new player
         vm.createNewPlayer = function () {
-            vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
+            vm.newPlayer.platform = vm.selectedPlatform.id;
             //console.log('newPlayer',vm.newPlayer);
             socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
                 $('#modalCreatePlayer').modal('toggle');
