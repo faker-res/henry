@@ -51,8 +51,8 @@ let dbPlayerPartner = {
                     if (!platformObj.requireSMSVerification) {
                         // SMS verification not required
                         let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
-                        let partnerProm = dbPartner.createPartnerAPI(registerData);
-
+                        let pRegisterData = Object.assign({}, registerData);
+                        let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
                         return Promise.all([plyProm, partnerProm]);
                     }
                     else {
