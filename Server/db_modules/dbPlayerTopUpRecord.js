@@ -1408,12 +1408,12 @@ var dbPlayerTopUpRecord = {
                         }).then(
                             wechats => {
                                 let bValid = false;
-                                if (wechats) {
-                                    wechats.forEach(
+                                if (wechats.data && wechats.data.length > 0) {
+                                    wechats.data.forEach(
                                         wechat => {
                                             playerData.wechatPayGroup.wechats.forEach(
                                                 pWechat => {
-                                                    if (pWechat == wechat.accountNumber && wechat.status == "NORMAL") {
+                                                    if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
                                                         bValid = true;
                                                     }
                                                 }
