@@ -208,7 +208,9 @@ var playerSchema = new Schema({
     //has been used for referral reward
     isReferralReward: {type: Boolean, default: false},
     //if this player is from online registration
-    isOnline: {type: Boolean}
+    isOnline: {type: Boolean},
+    //if player has applied consumption return
+    isConsumptionReturn: {type: Boolean}
 });
 
 //record is unique by name and platform
