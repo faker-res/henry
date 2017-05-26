@@ -8,6 +8,8 @@ const constSystemLogLevel = require('./../const/constSystemLogLevel');
 const constSystemParam = require('./../const/constSystemParam');
 const constShardKeys = require('../const/constShardKeys');
 
+const dbProposal = require('./../db_modules/dbProposal');
+
 const dbconfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 
@@ -169,12 +171,64 @@ function checkPreviousProposals(proposal, lastWithdrawDate) {
         createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
         mainType: {$in: ["TopUp", "Reward"]}
-    }).then(
+    }).sort({createTime: -1}).then(
         proposals => {
             console.log('proposals', proposals);
+            while (proposals && proposals.length > 0) {
+                let isApprove = false, proms = [];
+                let getProp = proposals.shift();
+
+                console.log('getProp', getProp);
+                switch (getProp.mainType) {
+                    case "TopUp":
+                        console.log("This proposal ", getProp.proposalId, " is topup proposal");
+                        proms.push(dbconfig.collection_playerConsumptionRecord.aggregate(
+                            {
+                                $match: {
+                                    platformId: getProp.data.platformId,
+                                    createTime: {
+                                        $gte: getProp.createTime,
+                                        $lt: proposal.createTime
+                                    },
+                                    playerId: getProp.data.playerObjId
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: {playerId: "$playerId", platformId: "$platformId"},
+                                    validAmount: {$sum: "$validAmount"}
+                                }
+                            }
+                        ).then(record => {
+                            console.log('got record', record);
+
+                            // TODO:: TEMP TESTING
+                            record[0] = {validAmount: 400};
+
+                            if (record[0].validAmount > proposal.data.amount) {
+                                isApprove = true;
+                            }
+                        }));
+                        console.log('isApprove', isApprove);
+                        break;
+                }
+
+                Promise.all(proms).then(
+                    () => {
+                        if (isApprove) {
+                            console.log('Updating proposal', getProp.proposalId, ' to success');
+                            dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
+                        }
+                    }
+                );
+            }
+
+            console.log('While loop done');
         }
     )
 
 }
+
+//function getPlayerConsumptionRecordInTimeframe (playerObjId, )
 
 module.exports = dbAutoProposal;
