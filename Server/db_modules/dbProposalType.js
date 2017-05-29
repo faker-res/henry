@@ -74,7 +74,13 @@ var proposalType = {
      * @param {objectId} platformId - The platform Id
      */
     getProposalTypeByPlatformId: function (platformId) {
-        return dbconfig.collection_proposalType.find({platformId: platformId}).exec();
+        return dbconfig.collection_proposalType.find(
+            {
+                platformId: {
+                    $in: platformId
+                }
+            }
+        ).exec();
     },
 
     /**
