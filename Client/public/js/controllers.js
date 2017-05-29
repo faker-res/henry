@@ -842,7 +842,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                         $scope.serverStatus.server = $scope.AppSocket.connected;
                         $scope.serverStatus.cpServer = data.cpms;
                         $scope.serverStatus.pServer = data.pms;
-                        $scope.$apply();
+                        $scope.safeApply();
                     }
                 });
 
