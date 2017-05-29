@@ -75,11 +75,12 @@ let dbPlayerInfo = {
 
     /**
      * Create a new player user
-     * @param {json} inputData - The data of the player user. Refer to playerInfo schema.
+     * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData) {
         let platformObjId = null;
         let platformPrefix = "";
+        let platformObj = null;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -87,6 +88,7 @@ let dbPlayerInfo = {
             return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
                 platformData => {
                     if (platformData) {
+                        platformObj = platformData;
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
                         let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
@@ -111,11 +113,19 @@ let dbPlayerInfo = {
                                     return {"isPlayerNameValid": true};
                                 }
                                 else {
-                                    return Q.reject({
-                                        status: constServerCode.USERNAME_ALREADY_EXIST,
-                                        name: "DBError",
-                                        message: "Realname already exists"
-                                    });
+                                    if(!data[0].isPlayerNameValid){
+                                        return Q.reject({
+                                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                                            name: "DBError",
+                                            message: "Player name already exists"
+                                        });
+                                    }else{
+                                        return Q.reject({
+                                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                                            name: "DBError",
+                                            message: "Realname already exists"
+                                        });
+                                    }
                                 }
                             }
                             else {
@@ -130,6 +140,25 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
+                        if(platformObj.allowSamePhoneNumberToRegister === true){
+                            return {isPhoneNumberValid : true}
+                        }else{
+                            return dbPlayerInfo.isPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                                platform: platformObjId
+                            });
+                        }
+                    }else {
+                        return Q.reject({
+                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                            name: "DBError",
+                            message: "Username already exists"
+                        });
+                    }
+                }
+            ).then(
+                data => {
+                    if (data.isPhoneNumberValid) {
                         inputData.platform = platformObjId;
                         inputData.name = inputData.name.toLowerCase();
                         delete inputData.platformId;
@@ -147,8 +176,12 @@ let dbPlayerInfo = {
                                         return inputData;
                                     }
                                     else {
-                                        delete inputData.referral;
-                                        return inputData;
+                                        // If user key in invalid referral during register, we will not proceed
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_REFERRAL,
+                                            name: "DataError",
+                                            message: "Invalid referral"
+                                        });
                                     }
                                 }
                             );
@@ -200,9 +233,9 @@ let dbPlayerInfo = {
                         return Q.all(proms);
                     } else {
                         return Q.reject({
-                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                             name: "DBError",
-                            message: "Username already exists"
+                            message: "Phone number already exists"
                         });
                     }
                 }
@@ -515,7 +548,8 @@ let dbPlayerInfo = {
     createPlayerInfo: function (playerdata, skipReferrals, skipPrefix) {
         let deferred = Q.defer();
         let playerData = null;
-
+        let platformData = null;
+        
         playerdata.name = playerdata.name.toLowerCase();
 
         // Player name and password should be alphanumeric and between 6 to 20 characters
@@ -549,22 +583,32 @@ let dbPlayerInfo = {
             //         message: "Realname should be chinese character"
             //     });
             // }
+
+            if ((playerdata.realName && playerdata.realName.match(/\d+/g) != null)) {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Realname should not include digit"
+                });
+            }
         }
 
         dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(
             function (platform) {
                 if (platform) {
-                    var delimitedPrefix = platform.prefix + PLATFORM_PREFIX_SEPARATOR;
-                    //if (playerdata.name.substring(0, delimitedPrefix.length) === delimitedPrefix) {
+                    platformData = platform;
+                    // if (playerdata.name.substring(0, delimitedPrefix.length) === delimitedPrefix) {
                     //    // Player name already contains expected platform prefix
-                    //}
-                    if (!skipPrefix) {
-                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    // }
+
+                    if (platformData.allowSamePhoneNumberToRegister===true) {
+                        return {isPhoneNumberValid: true};
+                    } else{
+                        return dbPlayerInfo.isPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
+                            platform: playerdata.platform
+                        });
                     }
-                    return dbPlayerInfo.isPlayerNameValidToRegister({
-                        name: playerdata.name,
-                        platform: playerdata.platform
-                    });
                 } else {
                     deferred.reject({name: "DBError", message: "No such platform"});
                 }
@@ -573,6 +617,31 @@ let dbPlayerInfo = {
                 deferred.reject({
                     name: "DBError",
                     message: "Error when finding platform",
+                    error: error
+                });
+            }
+        ).then(
+            //make sure phone number is unique
+            function (data) {
+                if (data.isPhoneNumberValid) {
+                    var delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
+
+                    if (!skipPrefix) {
+                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    }
+
+                    return dbPlayerInfo.isPlayerNameValidToRegister({
+                        name: playerdata.name,
+                        platform: playerdata.platform
+                    });
+                } else {
+                    deferred.reject({name: "DBError", message: "Phone number already exists"});
+                }
+            },
+            function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Phone number already exists",
                     error: error
                 });
             }
@@ -3376,9 +3445,9 @@ let dbPlayerInfo = {
                             || (!rewardData.targetEnable && rewardData.targetProviders.indexOf(providerId) < 0)//banded provider
                         ) {
                             if (rewardData.inProvider == true) {//already in provider
-                                if (String(playerData.lastPlayedProvider) != String(providerId)) {
-                                    return Q.reject({name: "DataError", message: "Player is playing a different game"});
-                                }
+                                // if (String(playerData.lastPlayedProvider) != String(providerId)) {
+                                //     return Q.reject({name: "DataError", message: "Player is playing a different game"});
+                                // }
                                 if (rewardData.requiredBonusAmount > 0) {
                                     amount = 0;
                                     gameAmount = amount;
@@ -4298,6 +4367,18 @@ let dbPlayerInfo = {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
+                }
+            }
+        );
+    },
+
+    isPhoneNumberValidToRegister: function (query) {
+        return dbconfig.collection_players.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
                 }
             }
         );
@@ -6895,7 +6976,7 @@ let dbPlayerInfo = {
                         };
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: false},
-                            {bDirty: true, usedType: constRewardType.PARTNER_TOP_UP_RETURN},
+                            {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
                             {new: true}
                         ).then(
                             data => {

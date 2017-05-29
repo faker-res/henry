@@ -209,7 +209,7 @@ include modalGameCreditLog
                         include player-edit-form
         .dialog-footer
             button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-            button.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+            button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
 #modalEditPlayerPayment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
         .modal-content
@@ -251,12 +251,12 @@ include modalGameCreditLog
                     .form-group-col-md-6
                         label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
                         select.form-control(ng-model='vm.playerPayment.bankAccountType', ng-disabled='!vm.isEditingPlayerPayment')
-                            option(value='2') {{'Debit Card '|translate}} | 42385
-                            option(value='1') {{'Credit Card '|translate}} | 859
-                            option(value='3') {{'储存卡'|translate}} | 1
-                            option(value='4') {{'储蓄卡'|translate}} | 14
-                            option(value='5') {{'商务理财卡'|translate}} | 1
-                            option(value='6') {{'工商银行一卡通'|translate}} | 1
+                            option(value='2') {{'Debit Card '|translate}} 
+                            option(value='1') {{'Credit Card '|translate}}
+                            option(value='3') {{'储存卡'|translate}} 
+                            option(value='4') {{'储蓄卡'|translate}} 
+                            option(value='5') {{'商务理财卡'|translate}}
+                            option(value='6') {{'工商银行一卡通'|translate}} 
                     .form-group-col-md-6
                         .col-md-4(style='padding-left:0')
                             label.control-label {{"PHONE_PROVINCE" | translate}}
@@ -936,10 +936,13 @@ include modalGameCreditLog
                                             label {{'Partner' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
                                         .inlineBlk
+                                            label {{'REFERRAL' | translate}}
+                                            text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
+                                        .inlineBlk
                                             label {{'REMARK' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
                                         .inlineBlk
-                                            button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRAL" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRER" | translate}}
                                 tr
                                     td
                                         div {{'PLAYER_CREDIT' | translate}}
@@ -999,12 +1002,12 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_TYPE' | translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card '|translate}} | 42385
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card '|translate}} | 859
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==3 || vm.selectedSinglePlayer.bankAccountType=="3"') {{'储存卡'|translate}} | 1
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==4 || vm.selectedSinglePlayer.bankAccountType=="4"') {{'储蓄卡'|translate}} | 14
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==5 || vm.selectedSinglePlayer.bankAccountType=="5"') {{'商务理财卡'|translate}} | 1
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}} | 1
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card '|translate}} 
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card '|translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==3 || vm.selectedSinglePlayer.bankAccountType=="3"') {{'储存卡'|translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==4 || vm.selectedSinglePlayer.bankAccountType=="4"') {{'储蓄卡'|translate}} 
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==5 || vm.selectedSinglePlayer.bankAccountType=="5"') {{'商务理财卡'|translate}} 
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}} 
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_PROVINCE' | translate}}
                                             text {{vm.showProvinceStr}}

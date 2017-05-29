@@ -437,11 +437,35 @@ var dbPlayerConsumptionWeekSummary = {
         ).then(
             function (eventsData) {
                 if (eventsData) {
-                    var proms = [];
-                    for (let eventData of eventsData) {
-                        proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest));
-                    }
-                    return Q.all(proms);
+                    return dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform._id}, {isConsumptionReturn: true}).then(
+                        updatePlayer => {
+                            if(!updatePlayer.isConsumptionReturn){
+                                let proms = [];
+                                for (let eventData of eventsData) {
+                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest));
+                                }
+                                return Q.all(proms).then(
+                                    data => {
+                                        //reset consumption return status
+                                        dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform._id}, {isConsumptionReturn: false}).then();
+                                        return data;
+                                    },
+                                    error => {
+                                        //reset consumption return status
+                                        dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform._id}, {isConsumptionReturn: false}).then();
+                                        return Q.reject(error);
+                                    }
+                                );
+                            }
+                            else{
+                                deferred.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "Player is applying consumption return"
+                                });
+                            }
+                        }
+                    );
                 }
                 else {
                     deferred.reject({

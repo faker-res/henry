@@ -325,7 +325,7 @@ describe("Test player consumption incentive event", function () {
     it('Generate player credits daily log', function (done) {
         dbRewardEvent.startSavePlayersCredit(testPlatformId).then(
             data => {
-                done();
+                setTimeout(done, 1000);
             }
         ).catch(
             error => {
@@ -376,7 +376,6 @@ describe("Test player consumption incentive event", function () {
         dbPlatform.getConsumptionIncentivePlayer(testPlatformShortId).then(
             function (data) {
                 if (data) {
-                    console.log(data);
                     done();
                 }
             },

@@ -60,13 +60,20 @@ var platformSchema = new Schema({
     //min top up amount
     minTopUpAmount: {type: Number, default: 0},
     //percentage charges of apply bonus
-    bonusPercentageCharges:{type: Number, default: 0},
+    bonusPercentageCharges: {type: Number, default: 0},
     //numbers of times apply bonus without charges
-    bonusCharges:{type:Number},
+    bonusCharges: {type:Number},
     //allow same real name to register? for frontEnd only, they still can register via office
     allowSameRealNameToRegister: {type: Boolean, default: true},
     // Platform-wide SMS Verification Setting
-    requireSMSVerification: {type: Boolean, default: false}
+    requireSMSVerification: {type: Boolean, default: false},
+    //allow same phone number to register
+    allowSamePhoneNumberToRegister: {type: Boolean, default: true},
+    //auto approve related
+    autoApproveWhenSingleBonusApplyLessThan: {type: Number, default: 0},
+    autoApproveWhenSingleDayTotalBonusApplyLessThan: {type: Number, default: 0},
+    autoApproveRepeatCount: {type: Number, default: 0},
+    autoApproveRepeatDelay: {type: Number, default: 0}
 });
 
 //add platform id before save

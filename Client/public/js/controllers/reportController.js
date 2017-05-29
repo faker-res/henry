@@ -241,6 +241,19 @@ define(['js/app'], function (myApp) {
         ]
 
         vm.loadPage = function (choice, pageName, code, eventObjId) {
+
+            function createMerGroupList(nameObj, listObj) {
+                if (!nameObj || !listObj) return [];
+                let obj = [];
+                $.each(listObj, (name, arr) => {
+                    obj.push({
+                        name: nameObj[name],
+                        list: arr.list
+                    });
+                })
+                return obj;
+            };
+
             socketService.clearValue();
             console.log('reward', choice, pageName, code);
             vm.seleDataType = {};
@@ -271,9 +284,12 @@ define(['js/app'], function (myApp) {
 
             if (choice == "TOPUP_REPORT") {
                 vm.queryTopup = {};
-                vm.queryTopup.type = 'all';
-                vm.queryTopup.paymentChannel = 'all';
+                vm.merchantNoNameObj = {};
+                vm.merchantGroupObj = [];
+                let merGroupName = {};
+                let merGroupList = {};
                 vm.queryTopup.totalCount = 0;
+                vm.resetTopupRecord();
                 socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
                     delete data.data.APPROVED;
                     delete data.data.REJECTED;
@@ -284,14 +300,45 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     console.log("cannot find proposal status", data);
                 });
+
+                socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                    if (data.data && data.data.merchants) {
+                        vm.merchantNoList = data.data.merchants.filter(mer => {
+                            vm.merchantNoNameObj[mer.merchantNo] = mer.name;
+                            return mer.status != 'DISABLED';
+                        });
+                        vm.merchantNoList.forEach(item => {
+                            merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
+                            merGroupList[item.merchantTypeId].list.push(item.merchantNo);
+                        }) || [];
+
+                        vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                    }
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("merchantList", data);
+                });
+
+                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                    data.data.merchantTypes.forEach(mer => {
+                        merGroupName[mer.merchantTypeId] = mer.name;
+                    })
+                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("merchantList", data);
+                });
+
+
                 utilService.actionAfterLoaded("#topupTablePage", function () {
                     vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
                     vm.queryTopup.merchantType = null;
                     vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryTopup", vm.searchTopupRecord)
                     });
+                    $scope.safeApply();
                 })
-                $scope.safeApply();
+
             } else if (choice == "RewardReport") {
                 vm.rewardTypeName = 'ALL';
                 vm.currentRewardCode = 'ALL';
@@ -806,6 +853,17 @@ define(['js/app'], function (myApp) {
         }
 
         //Start topup report
+        vm.resetTopupRecord = function () {
+            vm.queryTopup.status = '';
+            vm.queryTopup.proposalID = '';
+            vm.queryTopup.mainTopupType = '';
+            vm.queryTopup.topupType = '';
+            vm.queryTopup.merchantNo = '';
+            vm.queryTopup.dingdanID = '';
+            vm.queryTopup.type = 'all';
+            vm.queryTopup.playerName = '';
+            vm.queryTopup.paymentChannel = 'all';
+        }
         vm.searchTopupRecord = function (newSearch) {
 
             console.log('vm.queryTopup', vm.queryTopup);
@@ -824,9 +882,13 @@ define(['js/app'], function (myApp) {
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
                 platformId: vm.curPlatformId,
+                dingdanID: vm.queryTopup.dingdanID,
                 mainTopupType: vm.queryTopup.mainTopupType,
                 topupType: vm.queryTopup.topupType,
                 depositMethod: vm.queryTopup.depositMethod,
+                proposalNo: vm.queryTopup.proposalID,
+                merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
+                playerName: vm.queryTopup.playerName,
                 // merchant: vm.queryTopup.merchant,
                 status: staArr,
                 index: newSearch ? 0 : (vm.queryTopup.index || 0),
@@ -837,6 +899,7 @@ define(['js/app'], function (myApp) {
             //     sendObj.status = {'$in': staArr}
             // }
 
+            vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : '';
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
                 $('#topupTableSpin').hide();
                 console.log('topup', data);
@@ -846,6 +909,20 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
+                        item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
+                        if (item.type.name == 'PlayerTopUp') {
+                            //show detail topup type info for online topup.
+                            let typeID = item.data.topUpType || item.data.topupType
+                            item.topupTypeStr = typeID
+                                ? $translate(vm.topupTypeJson[typeID])
+                                : $translate("Unknown")
+                        } else {
+                            //show topup type for other types
+                            item.topupTypeStr = $translate(item.type.name)
+                        }
+                        item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime);
+
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
@@ -857,34 +934,28 @@ define(['js/app'], function (myApp) {
             console.log('data', data);
             var tableOptions = {
                 data: data,
-                "order": vm.queryTopup.aaSorting || [[5, 'desc']],
+                "order": vm.queryTopup.aaSorting || [[0, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [3]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    // {title: $translate('DINGDAN_ID'), data: null},
+                    {title: $translate('proposalId'), data: 'proposalId'},
+                    {title: $translate('DINGDAN_ID'), data: "data.requestId"},
                     // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
                     {title: $translate('STATUS'), data: "status$"},
                     // {title: $translate('ISNEWPLAYER'), data: null},
-                    {title: $translate('ACCOUNT'), data: "data.bankAccount"},
-                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "sumText"},
+                    {title: $translate('Merchant No'), data: "merchantName"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName"},
+                    {title: $translate('realName'), data: "data.playerObjId.realName", sClass: "sumText"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
-                    {
-                        title: $translate('Topup Type'), data: "topUpType",
-                        render: function (data, type, row) {
-                            return $translate(vm.topupTypeJson[data] || "Unknown");
-                        }
-                    },
+                    {title: $translate('Topup Type'), data: "topupTypeStr"},
                     // {title: $translate('IP'), data: null},
-                    {
-                        title: $translate('TIME'), data: "createTime",
-                        render: function (data, type, row) {
-                            return utilService.$getTimeFromStdTimeFormat(data);
-                        }
-                    },
+                    {title: $translate('START_TIME'), data: "startTime$"},
+                    {title: $translate('END_TIME'), data: "endTime$"},
                     // {title: $translate('END_TIME'), data: null},
                     // {title: $translate('REMARK'), data: null},
                 ],
@@ -915,7 +986,7 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
 
-            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {3: summary.amount});
+            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
@@ -2840,9 +2911,21 @@ define(['js/app'], function (myApp) {
                 vm.generalRewardProposalQuery.totalCount = data.data.size;
                 $scope.safeApply();
                 vm.drawGeneralRewardProposalTable(data.data.data.map(item => {
-                    item.$amount = item.data.rewardAmount ?
-                        item.data.rewardAmount :
-                        (item.data.returnAmount ? item.data.returnAmount : 0);
+                    // item.$amount = item.data.rewardAmount ?
+                    //     item.data.rewardAmount :
+                    //     (item.data.returnAmount ? item.data.returnAmount : 0);
+                    if (item.data.rewardAmount) {
+                        item.$amount = item.data.rewardAmount;
+                    } else if (item.data.returnAmount) {
+                        item.$amount = item.data.returnAmount;
+                    } else if (item.data.updateAmount) {
+                        item.$amount = item.data.updateAmount;
+                    } else if (item.data.amount) {
+                        item.$amount = item.data.amount;
+                    } else {
+                        item.$amount = 0;
+                    }
+
                     item.$amount = parseFloat(item.$amount).toFixed(2);
                     item.$createTime = utilService.$getTimeFromStdTimeFormat(item.createTime);
                     if (vm.rewardTypeName == 'ALL') {

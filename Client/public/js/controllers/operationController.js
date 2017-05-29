@@ -595,6 +595,13 @@ define(['js/app'], function (myApp) {
                     //     return item ? item.content : '';
                     // });
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
+                    v.merchantNo$ = v.data.merchantNo != null
+                    ? v.data.merchantNo
+                    : v.data.weChatAccount != null 
+                        ? v.data.weChatAccount 
+                        : v.data.alipayAccount != null
+                        ? v.data.alipayAccount
+                        : null;
                     tableData.push(v);
                 }
             });
@@ -656,9 +663,16 @@ define(['js/app'], function (myApp) {
                         bSortable: true
                     },
                     {
+                        "title": $translate('request Id'),
+                        "data": "data.requestId"
+                    },
+                    {
+                        "title": $translate('Merchant No'),
+                        "data": "merchantNo$"
+                    },                      
+                    {
                         "title": $translate('MAIN_TYPE'),
-                        "data": "mainType$",
-                        "sClass": "alignLeft"
+                        "data": "mainType$"
                     },
                     {
                         "title": $translate('TYPE'),
@@ -858,6 +872,7 @@ define(['js/app'], function (myApp) {
             vm.queryProposal.pageObj.init({maxCount: size}, newSearch);
             $('#proposalDataTable').empty();
             //no idea why is 7, and 7 is not working, so I change it to 8
+            //lizhu: the number here indicates the data should be listed in N-th column
             vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {8: (summary ? summary.amount : 0)});
             // utilService.setDataTablePageInput('proposalDataTable', vm.proposalTable, $translate);
 

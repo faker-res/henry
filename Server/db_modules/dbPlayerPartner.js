@@ -13,47 +13,89 @@ let dbUtility = require('./../modules/dbutility');
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI: registerData => {
+        let platformObj;
+
         return dbConfig.collection_platform.findOne({
             platformId: registerData.platformId
         }).lean().then(
             platformData => {
-                // Check if platform sms verification is required
-                if (!platformData.requireSMSVerification) {
-                    // SMS verification not required
-                    let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
-                    let partnerProm = dbPartner.createPartnerAPI(registerData);
+                platformObj = platformData;
 
-                    return Promise.all([plyProm, partnerProm]);
-                } else {
-                    let smsProm = dbConfig.collection_smsVerificationLog.findOne({
-                        platformId: registerData.platformId,
-                        tel: registerData.phoneNumber
-                    }).sort({createTime: -1});
+                // Check if platform exist
+                if (!platformData) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PLATFORM,
+                        name: "DBError",
+                        message: "Platform does not exist"
+                    });
+                }
 
-                    return smsProm.then(
-                        verificationSMS => {
-                            // Check verification SMS code
-                            if ((registerData.captcha && !registerData.smsCode) || (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode)) {
-                                let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
-                                let partnerProm = dbPartner.createPartnerAPI(registerData);
-                                verificationSMS = verificationSMS || {};
-                                return dbConfig.collection_smsVerificationLog.remove(
-                                    {_id: verificationSMS._id}
-                                ).then(
-                                    data => {
-                                        return Promise.all([plyProm, partnerProm]);
-                                    }
-                                )
+                // Check if referral exist
+                if (registerData.referral) {
+                    let referralName = platformData.prefix + registerData.referral;
+
+                    return dbConfig.collection_players.findOne({
+                        name: referralName.toLowerCase(),
+                        platform: platformData._id
+                    }).lean();
+                }
+                else {
+                    return true;
+                }
+            }
+        ).then(
+            referralData => {
+                if (referralData) {
+                    // Referral is valid
+                    // Check if platform sms verification is required
+                    if (!platformObj.requireSMSVerification) {
+                        // SMS verification not required
+                        let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
+                        let pRegisterData = Object.assign({}, registerData);
+                        let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
+                        return Promise.all([plyProm, partnerProm]);
+                    }
+                    else {
+                        let smsProm = dbConfig.collection_smsVerificationLog.findOne({
+                            platformId: registerData.platformId,
+                            tel: registerData.phoneNumber
+                        }).sort({createTime: -1});
+
+                        return smsProm.then(
+                            verificationSMS => {
+                                // Check verification SMS code
+                                if ((registerData.captcha && !registerData.smsCode) || (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode)) {
+                                    verificationSMS = verificationSMS || {};
+                                    return dbConfig.collection_smsVerificationLog.remove({
+                                        _id: verificationSMS._id
+                                    }).then(
+                                        retData => {
+                                            let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
+                                            let partnerProm = dbPartner.createPartnerAPI(registerData);
+
+                                            return Promise.all([plyProm, partnerProm]);
+                                        }
+                                    );
+                                }
+                                else {
+                                    // Verification code is invalid
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_INVALID,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
                             }
-                            else {
-                                return Q.reject({
-                                    status: constServerCode.VALIDATION_CODE_INVALID,
-                                    name: "ValidationError",
-                                    message: "Invalid SMS Validation Code"
-                                });
-                            }
-                        }
-                    )
+                        )
+                    }
+                }
+                else {
+                    // Invalid referral
+                    return Q.reject({
+                        status: constServerCode.INVALID_REFERRAL,
+                        name: "ValidationError",
+                        message: "Invalid referral"
+                    });
                 }
             }
         ).then(

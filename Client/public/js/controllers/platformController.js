@@ -3007,6 +3007,7 @@ define(['js/app'], function (myApp) {
                     }
                     console.log('playerConsumptionQuery', playerConsumptionQuery);
 
+                    vm.showReferralName = '';
                     socketService.$socket($scope.AppSocket, 'getSimilarPlayers', {
                         playerId: vm.selectedSinglePlayer._id
                     }, function (data) {
@@ -3040,6 +3041,12 @@ define(['js/app'], function (myApp) {
                                 $scope.safeApply();
                             })
                         }
+                    }
+                    if (vm.selectedSinglePlayer.referral) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
+                            vm.showReferralName = data.data.name;
+                            $scope.safeApply();
+                        });
                     }
                     vm.processDataTableinModal('#modalPlayerInfo', '#similarPlayersTable');
                     vm.showProvinceStr = '';
@@ -3409,6 +3416,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
+                        $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
                         $('.referralValidTrue').show();
                         $('.referralValidFalse').hide();
                         editObj.referral = player._id;
@@ -3417,11 +3425,17 @@ define(['js/app'], function (myApp) {
                             $('.referralValue').val(player.name);
                         }
                     } else {
+                        $('.dialogEditPlayerSubmitBtn').attr('disabled', true);
                         $('.referralValidTrue').hide();
                         $('.referralValidFalse').show();
                         editObj.referral = null;
                     }
                 })
+            } else {
+                $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
+                $('.referralValidTrue').hide();
+                $('.referralValidFalse').hide();
+                editObj.referral = null;
             }
         }
         vm.getPartnerinPlayer = function (editObj, type) {
@@ -3477,6 +3491,10 @@ define(['js/app'], function (myApp) {
                 Object.keys(newPlayerData).forEach(function (key) {
                     if (newPlayerData[key] != oldPlayerData[key]) {
                         if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup") {
+                            //do nothing
+                        } else if (key == "referralName" && newPlayerData["referral"] == oldPlayerData["referral"]) {
+                            //do nothing
+                        } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                             //do nothing
                         } else {
                             isUpdate = true;
@@ -3809,7 +3827,7 @@ define(['js/app'], function (myApp) {
                 item.beforeUnlockedAmount = item.beforeUnlockedAmount.toFixed(2);
                 let remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
                 item.details$ = remark + item.detail.join(', ');
-                item.proposalId$ = item.data ? item.data.proposalId : item.data[0] ? item.data[0].proposalId : '';
+                item.proposalId$ = item.data ? item.data.proposalId : '';
                 return item;
             });
 
@@ -3891,9 +3909,9 @@ define(['js/app'], function (myApp) {
                 //         newObj = {proposalId: newObj.proposalId};
                 //         break;
                 // }
-                if (a.data._inputCredit != null && a.data.initAmount != null) {
+                if (a.data && a.data._inputCredit != null && a.data.initAmount != null) {
                     newObj = {rewardType: a.data.rewardType};
-                } else if (a.data.proposalId && a.operationType == 'ManualTopUp') {
+                } else if (a.data && a.data.proposalId && a.operationType == 'ManualTopUp') {
                     newObj = {proposalId: newObj.proposalId};
                 }
                 $.each(newObj, (i, v) => {
@@ -4255,6 +4273,7 @@ define(['js/app'], function (myApp) {
                     vm.creditTransfer.showValidCredit = data.validCredit;
                     vm.selectedSinglePlayer.validCredit = data.validCredit;
                     vm.selectedSinglePlayer.lockedCredit = data.lockedCredit;
+                    vm.creditTransfer.needRefreshPlatformPlayerData = true;
                 }
                 vm.fixPlayerRewardAmount.isProcessing = false;
                 $scope.safeApply();
@@ -4451,7 +4470,6 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            console.log('\n\n\n\n\n\nsend credit\n\n', sendData);
             socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
                 var newData = data.data;
                 console.log('credit proposal', newData);
@@ -5613,7 +5631,7 @@ define(['js/app'], function (myApp) {
                 }
             } else if (vm.modifyCritical.changeType == 'phone') {
                 sendData.data.curData = {
-                    phoneNumber: vm.selectedSinglePlayer.phoneNumber
+                    phoneNumber: vm.modifyCritical.phoneNumber
                 }
                 sendData.data.updateData = {
                     phoneNumber: vm.modifyCritical.newPhoneNumber
@@ -8675,6 +8693,11 @@ define(['js/app'], function (myApp) {
             vm.platformBasic = vm.platformBasic || {};
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
+            vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
+            vm.platformBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
+            vm.platformBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
+            vm.platformBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
+            vm.platformBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             $scope.safeApply();
         }
         vm.getBonusBasic = () => {
@@ -8897,7 +8920,12 @@ define(['js/app'], function (myApp) {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
                     minTopUpAmount: srcData.showMinTopupAmount,
-                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister
+                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
+                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                    autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
+                    autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
+                    autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
+                    autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

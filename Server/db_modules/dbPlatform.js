@@ -887,7 +887,10 @@ var dbPlatform = {
                                 platformId: platform._id,
                                 amount: {$gte: minTopUpAmount},
                                 createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                                bDirty: false
+                                $or: [{bDirty: false}, {
+                                    bDirty: true,
+                                    usedType: constRewardType.PLAYER_TOP_UP_RETURN
+                                }]
                             }
                         },
                         {
@@ -941,7 +944,10 @@ var dbPlatform = {
                                     platformId: playerData.platform,
                                     amount: {$gte: minAmount},
                                     createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                                    bDirty: false
+                                    $or: [{bDirty: false}, {
+                                        bDirty: true,
+                                        usedType: constRewardType.PLAYER_TOP_UP_RETURN
+                                    }]
                                 }
                             },
                             {
@@ -988,7 +994,10 @@ var dbPlatform = {
                     platformId: platformId,
                     amount: {$gte: minTopUpAmount},
                     createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                    bDirty: false
+                    $or: [{bDirty: false}, {
+                        bDirty: true,
+                        usedType: constRewardType.PLAYER_TOP_UP_RETURN
+                    }]
                 }
             },
             {
