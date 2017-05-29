@@ -53,6 +53,7 @@ const constProposalMainType = {
     "ManualUnlockPlayerReward": constMainType.REWARD,
     "PlayerConsumptionReturnFix": constMainType.REWARD,
     "PlayerDoubleTopUpReward": constMainType.REWARD,
+    "PlayerConsecutiveLoginReward": constMainType.REWARD,
 
     //BONUS
     "PlayerBonus": constMainType.BONUS,
