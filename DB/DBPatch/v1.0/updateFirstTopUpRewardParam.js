@@ -183,3 +183,30 @@ var param17Cursor = db.rewardParam.find({"name": type17});
 var param17 = param17Cursor.next();
 
 db.rewardType.insert({"name": type17, params: param17._id, des: "Player Double Top Up Reward"});
+
+//Player consecutive login reward
+var type18 = "PlayerConsecutiveLoginReward";
+db.rewardParam.insert({
+    "name": type17, params: {
+        targetEnable: {type: "Boolean", des: "If target is enabled"},
+        providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
+        bonusAmount: {type: "Number", des: "Bonus amount"},
+        bonusRequiredTimes: {type: "Number", des: "Bonus amount required times"},
+        dailyTopUpAmount: {type: "Number", des: "Daily top up amount"},
+        dailyConsumptionAmount: {type: "Number", des: "Daily consumption amount"},
+        reward: {
+            type: "Table",
+            data: {
+                dayIndex: {type: "Number", des: "Day Index"},
+                rewardAmount: {type: "Number", des: "Reward amount"},
+                consumptionTimes: {type: "Number", des: "Consumption Times"}
+            },
+            des: "Reward parameter for each day"
+        }
+    }
+});
+
+var param18Cursor = db.rewardParam.find({"name": type18});
+var param18 = param18Cursor.next();
+
+db.rewardType.insert({"name": type18, params: param18._id, des: "Player Consecutive Login Reward"});
