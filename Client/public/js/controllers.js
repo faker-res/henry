@@ -799,7 +799,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                 fn();
             }
         } else {
-            $scope.$apply(fn);
+            $scope.$digest(fn);
         }
     };
 
