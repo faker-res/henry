@@ -187,7 +187,7 @@ db.rewardType.insert({"name": type17, params: param17._id, des: "Player Double T
 //Player consecutive login reward
 var type18 = "PlayerConsecutiveLoginReward";
 db.rewardParam.insert({
-    "name": type17, params: {
+    "name": type18, params: {
         targetEnable: {type: "Boolean", des: "If target is enabled"},
         providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
         bonusAmount: {type: "Number", des: "Bonus amount"},
