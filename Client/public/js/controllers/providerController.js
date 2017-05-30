@@ -8,6 +8,21 @@ define(['js/app'], function (myApp) {
         var $translate = $filter('translate');
         var vm = this;
 
+        // declare constants
+        vm.allProviderStatusString = {
+            NORMAL: 1,
+            MAINTENANCE: 2,
+            HALT: 3
+        };
+        vm.allProviderStatusKeys = ['NORMAL', 'MAINTENANCE', 'HALT'];
+        vm.allGameStatusString = {
+            ENABLE: 1 , // "Enable",
+            MAINTENANCE: 2, //"Maintenance" //
+            DISABLE: 3, //"Disable", //2
+            DELETED: 4
+        };
+        vm.allGameStatusKeys = ['ENABLE', 'MAINTENANCE', 'DISABLE', 'DELETED'];
+
         //vm.getAllGameType = function () {
         //    socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
         //        vm.gameAllTypes = data.data;
@@ -901,35 +916,35 @@ define(['js/app'], function (myApp) {
                     vm.filterPlayGameType = 'all';
 
                     vm.selectedPenalClass = 'panel-default';
-                    socketService.$socket($scope.AppSocket, 'getAllGameStatus', '', function (data) {
-                        console.log("all game status", data.data);
-                        vm.allGameStatusString = data.data;
-
-                        var allStatus = data.data;
-                        var keys = [];
-                        for (var key in allStatus) {
-                            if (allStatus.hasOwnProperty(key)) { //to be safe
-                                keys.push(key);
-                            }
-                        }
-                        vm.allGameStatusKeys = keys;
-                        $scope.safeApply();
-                    })
-                    socketService.$socket($scope.AppSocket, 'getAllProviderStatus', '', function (data) {
-                        console.log("all provider status", data.data);
-                        vm.allProviderStatusString = data.data;
-
-                        var allStatus = data.data;
-                        var keys = [];
-                        for (var key in allStatus) {
-                            if (allStatus.hasOwnProperty(key)) { //to be safe
-                                keys.push(key);
-                            }
-                        }
-                        vm.allProviderStatusKeys = keys;
-                        console.log('vm.allProviderStatusKeys', vm.allProviderStatusKeys);
-                        $scope.safeApply();
-                    })
+                    // socketService.$socket($scope.AppSocket, 'getAllGameStatus', '', function (data) {
+                    //     console.log("all game status", data.data);
+                    //     vm.allGameStatusString = data.data;
+                    //
+                    //     var allStatus = data.data;
+                    //     var keys = [];
+                    //     for (var key in allStatus) {
+                    //         if (allStatus.hasOwnProperty(key)) { //to be safe
+                    //             keys.push(key);
+                    //         }
+                    //     }
+                    //     vm.allGameStatusKeys = keys;
+                    //     $scope.safeApply();
+                    // })
+                    // socketService.$socket($scope.AppSocket, 'getAllProviderStatus', '', function (data) {
+                    //     console.log("all provider status", data.data);
+                    //     vm.allProviderStatusString = data.data;
+                    //
+                    //     var allStatus = data.data;
+                    //     var keys = [];
+                    //     for (var key in allStatus) {
+                    //         if (allStatus.hasOwnProperty(key)) { //to be safe
+                    //             keys.push(key);
+                    //         }
+                    //     }
+                    //     vm.allProviderStatusKeys = keys;
+                    //     console.log('vm.allProviderStatusKeys', vm.allProviderStatusKeys);
+                    //     $scope.safeApply();
+                    // })
 
                     socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                         if (data.data) {
