@@ -1864,6 +1864,18 @@ define(['js/app'], function (myApp) {
                 });
         };
 
+        vm.triggerAutoProposal = function () {
+            socketService.$socket($scope.AppSocket, 'triggerAutoProposal', {platformObjId: vm.selectedPlatform.id}, function (playerCount) {
+                console.log('playerCount', playerCount);
+            });
+        };
+
+        vm.triggerSavePlayersCredit = function () {
+            socketService.$socket($scope.AppSocket, 'triggerSavePlayersCredit', {platformObjId: vm.selectedPlatform.id}, function () {
+                console.log('triggerSavePlayersCredit: Done');
+            });
+        };
+
         /////////////////////////////////Mark::Platform players functions//////////////////
 
         //get all platform players data from server

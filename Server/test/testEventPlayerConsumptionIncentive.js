@@ -32,7 +32,7 @@ var commonTestFunc = require('../test_modules/commonTestFunc');
 describe("Test player consumption incentive event", function () {
 
     // TODO: Disabled again due to no playerDailyCreditLog in production yet
-    return true;
+    // return true;
 
     var typeName = constProposalType.PLAYER_CONSUMPTION_INCENTIVE;
     var proposalTypeId = null;
