@@ -49,17 +49,19 @@ var proposal = {
      */
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();
+        let plyProm = null;
+
         // create proposal for partner
         if (proposalData.isPartner) {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
             // query related partner info
-            var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
+            plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
                 .populate({path: 'level', model: dbconfig.collection_partnerLevel});
         }
         else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
             // query related player info
-            var plyProm = dbconfig.collection_players.findOne({_id: playerId})
+            plyProm = dbconfig.collection_players.findOne({_id: playerId})
                 .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
         }
 
@@ -80,16 +82,17 @@ var proposal = {
         return ptProm.then(
             (proposalType) => {
                 //check if player or partner has pending proposal for this type
+                let queryObj;
 
                 if (proposalData.isPartner) {
-                    var queryObj = {
+                    queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
                         "data.partnerObjId": proposalData.data.partnerObjId
                     }
                 }
                 else {
-                    var queryObj = {
+                    queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
                         "data.playerObjId": proposalData.data.playerObjId
@@ -166,16 +169,17 @@ var proposal = {
     createProposalWithTypeId: function (typeId, proposalData) {
         let deferred = Q.defer();
         let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
+        let plyProm;
 
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
         let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
         if (proposalData.isPartner) {
-            var plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
+            plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
                 .populate({path: 'level', model: dbconfig.collection_partnerLevel});
         }
         else {
-            var plyProm = dbconfig.collection_players.findOne({_id: playerId})
+            plyProm = dbconfig.collection_players.findOne({_id: playerId})
                 .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
         }
 
@@ -185,7 +189,7 @@ var proposal = {
 
     /**
      * Get one proposal by _id
-     * @param {json} ptProm - Propm
+     * @param ptProm - Propm
      * @param {json} ptpProm - Promise create proposal process
      * @param {json} plyProm - Promise player info
      * @param {Object} proposalData - Proposal Data
@@ -228,12 +232,12 @@ var proposal = {
                         proposalData.status = constProposalStatus.APPROVED;
                     }
                     //check if player or partner has pending proposal for this type
-                    var queryObj = {
+                    let queryObj = {
                         type: proposalData.type,
                         "data.platformId": data[0].platformId,
-                        status: constProposalStatus.PENDING
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING]}
                     };
-                    var queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
+                    let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
                         param => {
                             if (proposalData.data && proposalData.data[param]) {
@@ -255,6 +259,12 @@ var proposal = {
                             proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
                         }
                     }
+
+                    // TODO:: Switch this on when system is ready for auto proposal
+                    // SCHEDULED AUTO APPROVAL
+                    // if (proposalTypeData.name == constProposalType.PLAYER_BONUS) {
+                    //     proposalData.status = constProposalStatus.PROCESSING;
+                    // }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
