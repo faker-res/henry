@@ -249,6 +249,7 @@ var dbRewardEvent = {
         ).then(
             rewardEvents => {
                 let settlePlayerCredit = platformId => {
+                    console.log('[Save player credits] Settling platform:', platformId);
                     dbconfig.collection_playerTopUpRecord.aggregate([
                         {
                             $match: {
@@ -278,6 +279,7 @@ var dbRewardEvent = {
 
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
+                                    console.log('[Save player credits] Settlement Server initialized');
                                 return Q(
                                     balancer.processStream(
                                         {
@@ -299,7 +301,8 @@ var dbRewardEvent = {
                                         }
                                     )
                                 );
-                            });
+                                },
+                                error => console.log('[Save player credits] Settlement Server initialization error:', error));
                         }
                     );
                 };
@@ -379,6 +382,10 @@ var dbRewardEvent = {
                                 {
                                     upsert: true
                                 });
+                        }
+                    ).catch(
+                        error => {
+                            console.log('[Save player credits] Error upserting credit log:', error);
                         }
                     );
             }
