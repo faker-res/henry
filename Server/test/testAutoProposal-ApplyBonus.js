@@ -29,7 +29,12 @@ var constRewardType = require('./../const/constRewardType');
 var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var testGameTypes = require("../test/testGameTypes");
 
-var commonTestFunc = require('../test_modules/commonTestFunc');
+const constProposalStatus = require('../const/constProposalStatus');
+
+let dbAutoProposal = require('../db_modules/dbAutoProposal');
+
+let commonTestFunc = require('../test_modules/commonTestFunc');
+let socketConnection = require('../test_modules/socketConnection');
 /**
  * Case
  *  1:  Amount > Single withdrawal limit
@@ -48,6 +53,8 @@ describe("Test Auto Proposal - Apply Bonus", function () {
 
     let testPlatformObj;
     let testPlayerObj;
+
+    let proposalTypeObjId;
 
     var testRewardEventId = null;
     var testRewardEventCode = null;
@@ -78,7 +85,6 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         commonTestFunc.createTestPlatform(platformData).then(
             data => {
                 testPlatformObj = data;
-                console.log('testPlatformObj', testPlatformObj);
                 done();
             },
             error => {
@@ -91,50 +97,48 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         return commonTestFunc.createTestPlayer(testPlatformObj._id).then(
             data => {
                 testPlayerObj = data;
-                console.log('testPlayerObj', testPlayerObj);
+                //console.log('testPlayerObj', testPlayerObj);
+                return dbConfig.collection_proposalType.findOne({
+                    platformId: testPlatformObj._id,
+                    name: constProposalType.PLAYER_BONUS
+                }).lean()
+            }
+        ).then(
+            proposalType => {
+                proposalTypeObjId = proposalType._id;
+
+                // Create top up proposal
+                let proposalData = {
+                    playerId: testPlayerObj.playerId,
+                    playerObjId: testPlayerObj._id,
+                    playerName: testPlayerObj.name,
+                    bonusId: 123,
+                    platformId: testPlatformObj._id,
+                    platform: testPlatformObj.platformId,
+                    amount: 500,
+                    type: proposalTypeObjId,
+                    status: constProposalStatus.PROCESSING
+                };
+                return commonTestFunc.createTestAutoTopUpProposal(proposalData);
+            }
+        ).then(
+            () => dbAutoProposal.applyBonus(testPlatformObj._id)
+        ).then(
+            () => {
+                return dbConfig.collection_proposal.findOne({
+                    platform: testPlatformObj.platformId,
+                    type: proposalTypeObjId
+                }).then(
+                    proposal => {
+                        console.log('proposal', proposal);
+                    }
+                )
             }
         );
     });
 
-    it('Topup all players', () => {
-        let proms = [];
-        let playerObjIds = [];
-        let endTime = new Date();
-        endTime.setHours(0, 0, 0, 0);
-        endTime.setDate(endTime.getDate() + 1);
-        let startTime = new Date();
-        startTime.setHours(0, 0, 0, 0);
-        startTime.setDate(startTime.getDate() - 1);
-
-        return dbPlayerInfo.getPlayersByPlatform(testPlatformObj._id, 10)
-            .then(
-                players => {
-                    players.map(
-                        player => {
-                            playerObjIds.push(player._id);
-                            proms.push(commonTestFunc.createTopUpRecord(player._id, testPlatformObj._id));
-                        }
-                    );
-
-                    return Promise.all(proms);
-                }
-            )
-    });
-
     it('Check first case', function () {
-        let proposalData = {
-            playerId: testPlayerObj.playerId,
-            playerObjId: testPlayerObj._id,
-            playerName: testPlayerObj.name,
-            bonusId: 123,
-            platformId: testPlatformObj._id,
-            platform: testPlatformObj.platformId,
-            bankTypeId: player.bankName,
-            amount: 500,
-            bonusCredit: bonusDetail.credit,
-            curAmount: testPlayerObj.validCredit,
-            lastSettleTime: new Date()
-        };
+
 
     });
 
