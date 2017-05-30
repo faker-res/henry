@@ -78,7 +78,7 @@ let dbAutoProposal = {
 };
 
 function sendToAudit(proposalObjId, createTime, remark) {
-    console.log('Sending to audit', proposalObjId);
+    console.log('Sending to audit', proposalObjId, remark);
     return dbconfig.collection_proposal.findOneAndUpdate({
         _id: proposalObjId,
         createTime: createTime

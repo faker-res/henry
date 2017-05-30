@@ -3189,7 +3189,14 @@ let dbPlayerInfo = {
     },
 
     getLoggedInPlayersCount: function (platform) {
-        return dbconfig.collection_players.find({platform: platform, isLogin: true}).count();
+        return dbconfig.collection_players.find(
+            {
+                platform: {
+                    $in: platform
+                },
+                isLogin: true
+            }
+        ).count();
     },
 
     getPlayerPermissionLog: function (platform, id, createTime) {
@@ -7191,7 +7198,7 @@ let dbPlayerInfo = {
                     let providerCreditProm = dbconfig.collection_playerCreditsDailyLog.findOne({
                         platformObjId: player.platform,
                         playerObjId: player._id,
-                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime}
+                        createTime: {$gt: yerTime.startTime, $lte: yerTime.endTime}
                     }).lean().then(
                         creditLogData => {
                             if (creditLogData) {

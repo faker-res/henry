@@ -8,6 +8,8 @@ let cpmsAPI = require("../externalAPI/cpmsAPI");
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 let dbUtil = require('../modules/dbutility');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbRewardEvent = {
 
@@ -249,10 +251,11 @@ var dbRewardEvent = {
         ).then(
             rewardEvents => {
                 let settlePlayerCredit = platformId => {
+                    console.log('[Save player credits] Settling platform:', platformId, queryTime);
                     dbconfig.collection_playerTopUpRecord.aggregate([
                         {
                             $match: {
-                                platformId: platformId,
+                                platformId: ObjectId(platformId),
                                 createTime: {
                                     $gte: queryTime.startTime,
                                     $lt: queryTime.endTime
@@ -270,6 +273,7 @@ var dbRewardEvent = {
                     ).then(
                         data => {
                             let playerObjIds = data.map(player => player._id);
+                            console.log(playerObjIds);
                             let stream = dbconfig.collection_players.find(
                                 {
                                     _id: {$in: playerObjIds}
@@ -278,28 +282,33 @@ var dbRewardEvent = {
 
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
-                                return Q(
-                                    balancer.processStream(
-                                        {
-                                            stream: stream,
-                                            batchSize: 10,
-                                            makeRequest: function (playerObjs, request) {
-                                                request("player", "savePlayerCredit", {
-                                                    playerObjId: playerObjs.map(player => {
-                                                        return {
-                                                            _id: player._id,
-                                                            name: player.name,
-                                                            platform: player.platform,
-                                                            validCredit: player.validCredit,
-                                                            lockedCredit: player.lockedCredit
-                                                        }
-                                                    })
-                                                });
+                                    console.log('[Save player credits] Settlement Server initialized');
+                                    return Q(
+                                        balancer.processStream(
+                                            {
+                                                stream: stream,
+                                                batchSize: 100,
+                                                makeRequest: function (playerObjs, request) {
+                                                    request("player", "savePlayerCredit", {
+                                                        playerObjId: playerObjs.map(player => {
+                                                            return {
+                                                                _id: player._id,
+                                                                name: player.name,
+                                                                platform: player.platform,
+                                                                validCredit: player.validCredit,
+                                                                lockedCredit: player.lockedCredit
+                                                            }
+                                                        })
+                                                    });
+                                                }
                                             }
-                                        }
-                                    )
-                                );
-                            });
+                                        ).then(
+                                            data => console.log("savePlayerCredit settle success:", data),
+                                            error => console.log("savePlayerCredit settle failed:", error)
+                                        )
+                                    );
+                                },
+                                error => console.log('[Save player credits] Settlement Server initialization error:', error));
                         }
                     );
                 };
@@ -325,27 +334,37 @@ var dbRewardEvent = {
 
     savePlayerCredit: (playerDatas) => {
         let queryTime = dbUtil.getYesterdaySGTime();
-        playerDatas.map(
+        let proms = [];
+        playerDatas.forEach(
             playerData => {
-                return dbconfig.collection_platform.findById(playerData.platform)
-                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean()
-                    .then(
-                        platformData => {
-                            if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
-                                let proms = [];
-                                for (let i = 0; i < platformData.gameProviders.length; i++) {
-                                    proms.push(cpmsAPI.player_queryCredit(
-                                        {
-                                            username: playerData.name,
-                                            platformId: platformData.platformId,
-                                            providerId: platformData.gameProviders[i].providerId,
-                                        }
-                                    ));
+                proms.push(
+                    dbconfig.collection_platform.findById(playerData.platform)
+                        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean()
+                        .then(
+                            platformData => {
+                                if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
+                                    let proms = [];
+                                    for (let i = 0; i < platformData.gameProviders.length; i++) {
+                                        proms.push(
+                                            cpmsAPI.player_queryCredit(
+                                                {
+                                                    username: playerData.name,
+                                                    platformId: platformData.platformId,
+                                                    providerId: platformData.gameProviders[i].providerId,
+                                                }
+                                            ).then(
+                                                data => data,
+                                                //treat error as 0 credit for now, todo::refactor code here with retries
+                                                error => {
+                                                    return {};
+                                                }
+                                            )
+                                        )
+                                    }
+                                    return Q.all(proms);
                                 }
-                                return Q.all(proms);
                             }
-                        }
-                    ).then(
+                        ).then(
                         providerCredit => {
                             if (providerCredit && providerCredit.length > 0) {
                                 let credit = 0;
@@ -366,7 +385,7 @@ var dbRewardEvent = {
                             return dbconfig.collection_playerCreditsDailyLog.update({
                                     playerObjId: playerData._id,
                                     platformObjId: playerData.platform,
-                                    createTime: {$gte: queryTime.startTime, $lt: queryTime.endTime}
+                                    createTime: queryTime.endTime
                                 },
                                 {
                                     playerObjId: playerData._id,
@@ -374,18 +393,22 @@ var dbRewardEvent = {
                                     validCredit: playerData.validCredit,
                                     lockedCredit: playerData.lockedCredit,
                                     gameCredit: gameCredit,
-                                    createTime: Date.now()
                                 },
                                 {
                                     upsert: true
-                                });
+                                }
+                            );
                         }
-                    );
+                    ).catch(
+                        error => {
+                            console.log('[Save player credits] Error upserting credit log:', error);
+                        }
+                    )
+                );
             }
         );
 
-
-        return Q.resolve(true);
+        return Q.all(proms);
     }
 
 };

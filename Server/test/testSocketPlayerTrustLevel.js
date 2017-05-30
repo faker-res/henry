@@ -109,6 +109,8 @@ describe("Test player trust level", function () {
 
     /* Test 4 - get all playerTrustLevel */
     it('Should get all player trust level', function (done) {
+        this.timeout(20000);
+
         socketConnection.createConnection().then(function (socket) {
             socket.connected.should.equal(true);
 

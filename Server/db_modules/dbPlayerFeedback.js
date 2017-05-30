@@ -57,6 +57,27 @@ var dbPlayerFeedback = {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {}
 
+        function getTopupCoountWithinPeriod(feedback) {
+            return dbconfig.collection_playerTopUpRecord.aggregate([
+                {
+                    $match: {
+                        playerId: feedback.playerId._id,
+                        platformId: feedback.platform,
+                        createTime: {$gte: feedback.createTime, $lt: endTime}
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$playerId",
+                        topupTimes: {$sum: 1},
+                        amount: {$sum: "$amount"}
+                    }
+                }
+            ]).then(res => {
+                return {topup: res, time: feedback.createTime}
+            })
+        }
+
         if (query.startTime && query.endTime) {
             query.createTime = {$gte: query.startTime, $lt: query.endTime}
             delete  query.startTime;
@@ -101,22 +122,23 @@ var dbPlayerFeedback = {
                 feedback => {
                     if (feedback.result == constPlayerFeedbackResult.NORMAL) {
                         proms.push(
-                            dbconfig.collection_playerTopUpRecord.aggregate([
-                                {
-                                    $match: {
-                                        playerId: feedback.playerId._id,
-                                        platformId: feedback.platform,
-                                        createTime: {$gte: feedback.createTime, $lt: endTime}
-                                    }
-                                },
-                                {
-                                    $group: {
-                                        _id: "$playerId",
-                                        topupTimes: {$sum: 1},
-                                        amount: {$sum: "$amount"}
-                                    }
-                                }
-                            ])
+                            getTopupCoountWithinPeriod(feedback)
+                            // dbconfig.collection_playerTopUpRecord.aggregate([
+                            //     {
+                            //         $match: {
+                            //             playerId: feedback.playerId._id,
+                            //             platformId: feedback.platform,
+                            //             createTime: {$gte: feedback.createTime, $lt: endTime}
+                            //         }
+                            //     },
+                            //     {
+                            //         $group: {
+                            //             _id: "$playerId",
+                            //             topupTimes: {$sum: 1},
+                            //             amount: {$sum: "$amount"}
+                            //         }
+                            //     }
+                            // ])
                         )
                     } else {
                         proms.push(Q.resolve({}));
@@ -127,8 +149,9 @@ var dbPlayerFeedback = {
         }).then(data => {
             var objPlayerToTopupTimes = {};
             data.forEach(item => {
-                if (item[0]) {
-                    objPlayerToTopupTimes[item[0]._id] = item[0];
+                if (item && item.topup && item.topup[0]) {
+                    //use playerId and timestamp as the key
+                    objPlayerToTopupTimes[item.topup[0]._id + new Date(item.time).getTime()] = item.topup[0];
                 }
             });
             var key = Object.keys(sortCol)[0];
@@ -136,8 +159,9 @@ var dbPlayerFeedback = {
 
             var finalData = returnedData.map(item => {
                 var newObj = Object.assign({}, item);
-                newObj.topupTimes = objPlayerToTopupTimes[newObj.playerId._id] ? objPlayerToTopupTimes[newObj.playerId._id].topupTimes : 0;
-                newObj.amount = objPlayerToTopupTimes[newObj.playerId._id] ? objPlayerToTopupTimes[newObj.playerId._id].amount : 0;
+                let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
+                newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
+                newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
                 return newObj;
             }).sort((a, b) => {
                 var test = 0;

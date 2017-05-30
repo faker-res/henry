@@ -1936,6 +1936,12 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.triggerSavePlayersCredit = function () {
+            socketService.$socket($scope.AppSocket, 'triggerSavePlayersCredit', {platformObjId: vm.selectedPlatform.id}, function () {
+                console.log('triggerSavePlayersCredit: Done');
+            });
+        };
+
         /////////////////////////////////Mark::Platform players functions//////////////////
 
         //get all platform players data from server
@@ -8078,6 +8084,30 @@ define(['js/app'], function (myApp) {
                 });
             } else if (vm.showRewardTypeData.name == "GameProviderReward") {
                 vm.rewardParams.games = vm.rewardParams.games || [];
+                vm.allGames = [];
+
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                    vm.platformProvider = data.data.gameProviders;
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("cannot get gameProvider", data);
+                });
+
+                //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                if (vm.rewardParams.provider) {
+                    socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                        vm.allGames = data.data;
+                        console.log('ok', vm.allGames);
+                        $scope.safeApply();
+                    }, function (data) {
+                        console.log("created not", data);
+                        //vm.rewardTabClicked();
+                    });
+                }
+                $scope.safeApply();
+
+            } else if (vm.showRewardTypeData.name == "PlayerConsecutiveLoginReward") {
+                vm.rewardParams.reward = vm.rewardParams.reward || [];
                 vm.allGames = [];
 
                 socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
