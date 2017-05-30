@@ -8,6 +8,22 @@ define(['js/app'], function (myApp) {
         var $translate = $filter('translate');
         var vm = this;
 
+        // declare constants
+        vm.topUpTypeList = {
+            1: 'TOPUPMANUAL',
+            2: 'TOPUPONLINE',
+            3: 'TOPUPALIPAY',
+            4: 'TOPUPWECHAT'
+        };
+        vm.allPlayersStatusString = {
+            NORMAL: 1,
+            FORBID_GAME: 2,
+            FORBID: 3,
+            BALCKLIST: 4,
+            ATTENTION: 5
+        };
+        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION'];
+
         ////////////////Mark::Platform functions//////////////////
         vm.updatePageTile = function () {
             window.document.title = $translate("payment") + "->" + $translate(vm.paymentPageName);
@@ -1275,21 +1291,21 @@ define(['js/app'], function (myApp) {
             }
         }
         //////////////////////////initial socket actions//////////////////////////////////
-        vm.getPlayerStatusList = function () {
-            return $scope.$socketPromise('getPlayerStatusList')
-                .then(function (data) {
-                    vm.allPlayersStatusString = data.data;
-                    var allStatus = data.data;
-                    var keys = [];
-                    for (var key in allStatus) {
-                        if (allStatus.hasOwnProperty(key)) { //to be safe
-                            keys.push(key);
-                        }
-                    }
-                    vm.allPlayersStatusKeys = keys;
-                });
-
-        };
+        // vm.getPlayerStatusList = function () {
+        //     return $scope.$socketPromise('getPlayerStatusList')
+        //         .then(function (data) {
+        //             vm.allPlayersStatusString = data.data;
+        //             var allStatus = data.data;
+        //             var keys = [];
+        //             for (var key in allStatus) {
+        //                 if (allStatus.hasOwnProperty(key)) { //to be safe
+        //                     keys.push(key);
+        //                 }
+        //             }
+        //             vm.allPlayersStatusKeys = keys;
+        //         });
+        //
+        // };
         ////////////////Mark::$viewContentLoaded function//////////////////
         //##Mark content loaded function
         $scope.$on('$viewContentLoaded', function () {
@@ -1313,7 +1329,7 @@ define(['js/app'], function (myApp) {
                             //console.info("init data", data);
 
                             vm.loadPlatformData();
-                            vm.getPlayerStatusList();
+                            // vm.getPlayerStatusList();
 
                             window.document.title = $translate("payment") + "->" + $translate(vm.paymentPageName);
                             var showLeft = $cookies.get("paymentShowLeft");
@@ -1326,18 +1342,18 @@ define(['js/app'], function (myApp) {
                         }
                     ).done();
 
-                    socketService.$socket($scope.AppSocket, 'getAllTopUpType', {}, function (data) {
-                        vm.topUpTypeList = {};
-                        if (data.data) {
-                            $.each(data.data, function (i, v) {
-                                vm.topUpTypeList[v] = 'TOPUP' + i;
-                            })
-                        }
-                        console.log("getAllTopUpType", vm.topUpTypeList);
-                        $scope.safeApply();
-                    }, function (err) {
-                        console.log("cannot get topup type", err);
-                    });
+                    // socketService.$socket($scope.AppSocket, 'getAllTopUpType', {}, function (data) {
+                    //     vm.topUpTypeList = {};
+                    //     if (data.data) {
+                    //         $.each(data.data, function (i, v) {
+                    //             vm.topUpTypeList[v] = 'TOPUP' + i;
+                    //         })
+                    //     }
+                    //     console.log("getAllTopUpType", vm.topUpTypeList);
+                    //     $scope.safeApply();
+                    // }, function (err) {
+                    //     console.log("cannot get topup type", err);
+                    // });
 
                     socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                         if (data && data.data && data.data.data) {
@@ -1350,7 +1366,7 @@ define(['js/app'], function (myApp) {
                             })
                         }
                         $scope.safeApply();
-                    })
+                    });
 
                     vm.generalDataTableOptions = {
                         "paging": true,

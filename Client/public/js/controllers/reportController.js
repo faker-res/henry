@@ -10,6 +10,30 @@ define(['js/app'], function (myApp) {
         // For debugging:
         window.VM = vm;
 
+        // declare constant
+        vm.proposalStatusList = { // removed APPROVED and REJECTED
+            PREPENDING: "PrePending",
+            PENDING: "Pending",
+            PROCESSING: "Processing",
+            SUCCESS: "Success",
+            FAIL: "Fail",
+            CANCEL: "Cancel",
+            EXPIRED: "Expired",
+            UNDETERMINED: "Undetermined"
+        };
+        vm.topUpTypeList = {
+            MANUAL: 1,
+            ONLINE: 2,
+            ALIPAY: 3,
+            WECHAT: 4
+        };
+        vm.feedbackResultList = {
+            NORMAL: "Normal",
+            MISSED_CALL: "MissedCall",
+            PLAYER_BUSY: "PlayerBusy",
+            OTHER: "Other"
+        };
+
         //get all platform data from server
         vm.setPlatform = function (platObj) {
             vm.operSelPlatform = false;
@@ -290,16 +314,16 @@ define(['js/app'], function (myApp) {
                 let merGroupList = {};
                 vm.queryTopup.totalCount = 0;
                 vm.resetTopupRecord();
-                socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
-                    delete data.data.APPROVED;
-                    delete data.data.REJECTED;
-                    // delete data.data.PROCESSING;
-                    console.log('proposalStatusList', data.data);
-                    vm.proposalStatusList = data.data;
-                    $scope.safeApply();
-                }, function (data) {
-                    console.log("cannot find proposal status", data);
-                });
+                // socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
+                //     delete data.data.APPROVED;
+                //     delete data.data.REJECTED;
+                //     // delete data.data.PROCESSING;
+                //     console.log('proposalStatusList', data.data);
+                //     vm.proposalStatusList = data.data;
+                //     $scope.safeApply();
+                // }, function (data) {
+                //     console.log("cannot find proposal status", data);
+                // });
 
                 socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
@@ -3330,37 +3354,38 @@ define(['js/app'], function (myApp) {
                         vm.setPlatform(JSON.stringify(tPlat));
                         $scope.safeApply();
                     });
-                    socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
-                        delete data.data.APPROVED;
-                        delete data.data.REJECTED;
-                        delete data.data.PROCESSING;
-                        vm.proposalStatusList = data.data;
-                        //console.log("proposalStatusList", vm.proposalStatusList);
-                        $scope.safeApply();
-                        //if (vm.proposalStatusList.length == 0)return;
-                        //vm.selectedStatus = vm.proposalStatusList[0];
-                    }, function (data) {
-                        console.log("create not", data);
-                    });
+                    // socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
+                    //     delete data.data.APPROVED;
+                    //     delete data.data.REJECTED;
+                    //     delete data.data.PROCESSING;
+                    //     vm.proposalStatusList = data.data;
+                    //     //console.log("proposalStatusList", vm.proposalStatusList);
+                    //     $scope.safeApply();
+                    //     //if (vm.proposalStatusList.length == 0)return;
+                    //     //vm.selectedStatus = vm.proposalStatusList[0];
+                    // }, function (data) {
+                    //     console.log("create not", data);
+                    // });
 
-                    socketService.$socket($scope.AppSocket, 'getAllFeedbackResultList', {}, function (data) {
-                        vm.feedbackResultList = data.data;
-                        vm.playerFeedbackQuery = vm.playerFeedbackQuery || {};
-                        //console.log("proposalStatusList", vm.proposalStatusList);
-                        $scope.safeApply();
-                        //if (vm.proposalStatusList.length == 0)return;
-                        //vm.selectedStatus = vm.proposalStatusList[0];
-                    }, function (data) {
-                        console.log("create not", data);
-                    });
+                    // socketService.$socket($scope.AppSocket, 'getAllFeedbackResultList', {}, function (data) {
+                    //     vm.feedbackResultList = data.data;
+                    //     //console.log("proposalStatusList", vm.proposalStatusList);
+                    //     $scope.safeApply();
+                    //     //if (vm.proposalStatusList.length == 0)return;
+                    //     //vm.selectedStatus = vm.proposalStatusList[0];
+                    // }, function (data) {
+                    //     console.log("create not", data);
+                    // });
 
-                    socketService.$socket($scope.AppSocket, 'getAllTopUpType', {}, function (data) {
-                        vm.topUpTypeList = data.data;
-                        console.log("getAllTopUpType", vm.topUpTypeList);
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("create not", data);
-                    });
+                    vm.playerFeedbackQuery = vm.playerFeedbackQuery || {};
+
+                    // socketService.$socket($scope.AppSocket, 'getAllTopUpType', {}, function (data) {
+                    //     vm.topUpTypeList = data.data;
+                    //     console.log("getAllTopUpType", vm.topUpTypeList);
+                    //     $scope.safeApply();
+                    // }, function (data) {
+                    //     console.log("create not", data);
+                    // });
 
                     vm.rewardNamePage = {
                         "FirstTopUp": "FIRST_TOPUP_REWARD_REPORT",
