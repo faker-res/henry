@@ -10,6 +10,9 @@ let ObjectId = mongoose.Types.ObjectId;
 let constPlayerCreditTransferStatus = require('./../const/constPlayerCreditTransferStatus');
 let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommissionSettlementMode');
 
+let dbAutoProposal = require('./../db_modules/dbAutoProposal');
+let dbRewardEvent = require('./../db_modules/dbRewardEvent');
+
 function socketActionPlatform(socketIO, socket) {
 
     this.socketIO = socketIO;
@@ -211,6 +214,18 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             self.socket.emit("_" + actionName, {success: true, data: constPartnerCommissionSettlementMode});
         },
+
+        triggerAutoProposal: function triggerAutoProposal(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbAutoProposal.applyBonus, [data.platformObjId], actionName, isDataValid);
+        },
+
+        triggerSavePlayersCredit: function triggerSavePlayersCredit(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbRewardEvent.startSavePlayersCredit, [data.platformObjId], actionName, isDataValid);
+        }
     };
     socketActionPlatform.actions = this.actions;
 };

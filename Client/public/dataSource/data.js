@@ -268,5 +268,6 @@ var creditChangeTypeStrings = [
     "PartnerReferralReward",
     "PlatformTransactionReward",
     "PlayerRegistrationReward",
+    "PlayerConsecutiveLoginReward",
     "ManualPlayerTopUp",
 ]
