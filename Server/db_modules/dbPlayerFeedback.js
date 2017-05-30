@@ -150,6 +150,7 @@ var dbPlayerFeedback = {
             var objPlayerToTopupTimes = {};
             data.forEach(item => {
                 if (item && item.topup && item.topup[0]) {
+                    //use playerId and timestamp as the key
                     objPlayerToTopupTimes[item.topup[0]._id + new Date(item.time).getTime()] = item.topup[0];
                 }
             });

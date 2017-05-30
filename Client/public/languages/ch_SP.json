@@ -609,7 +609,9 @@
   "Reward amount": "奖励额",
   "Reward number": "奖励数",
   "Minimum spending amount for reward task": "奖励最低投注额",
-  "Minimum top up amount every day": "每日最低充值额",
+  "Minimum daily top up amount": "每日最低充值额",
+  "Minimum daily consumption amount": "每日最低充值额",
+
   "No of top up days for past week": "上周充值天数",
   "Return ratio for weekly total consumption": "每周总投注额回报率",
   "Weekly Consecutive Top Up": "每周连续充值",
@@ -1793,6 +1795,9 @@
   "DEPOSITE_TIME": "存款时间",
   "fixed":"已修复",
   "unnecessary to fix":"无需修复",
+  "Reward parameter for each day":"每日奖励参数",
+  "Bonus amount required times":"加送需求次数",
+  "Bonus amount":"加送额",
 
   "TopUp - Bonus": "下线会员总存款-下线会员总提款",
   "operationAmount - platformFee - serviceFee - totalRewardAmount": "运营值-平台费用-服务费用-奖励额度",
@@ -1829,6 +1834,7 @@
   "VERIFICATION_TEMPLATE_NOTE": "注： 短信验证码请将'smsCode'置于任意位置，例 - 你好，验证码是smsCode，祝您愉快游戏！",
   "autoApproveWhenSingleBonusApplyLessThan": "自动审核：单笔提款金额小于",
   "autoApproveWhenSingleDayTotalBonusApplyLessThan": "自动审核：单日总体款金额小于",
+  "PlayerConsecutiveLoginReward":"累计签到奖励",
   "autoApproveRepeatCount": "自动审核：回圈次数",
   "autoApproveRepeatDelay": "自动审核：回圈等待时间"
 }

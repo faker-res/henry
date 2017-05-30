@@ -94,6 +94,8 @@
                     include ./reward-event-type/PlayerReferralReward
                 div(ng-if='vm.showRewardTypeData.name=="PlayerRegistrationReward"')
                     include ./reward-event-type/PlayerRegistrationReward
+                div(ng-if='vm.showRewardTypeData.name=="PlayerConsecutiveLoginReward"')
+                    include ./reward-event-type/PlayerConsecutiveLoginReward
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.
