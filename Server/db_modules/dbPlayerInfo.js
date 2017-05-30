@@ -3189,7 +3189,14 @@ let dbPlayerInfo = {
     },
 
     getLoggedInPlayersCount: function (platform) {
-        return dbconfig.collection_players.find({platform: platform, isLogin: true}).count();
+        return dbconfig.collection_players.find(
+            {
+                platform: {
+                    $in: platform
+                },
+                isLogin: true
+            }
+        ).count();
     },
 
     getPlayerPermissionLog: function (platform, id, createTime) {

@@ -20,6 +20,7 @@ const constRewardType = {
     PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward",
     PLAYER_DOUBLE_TOP_UP_REWARD: "PlayerDoubleTopUpReward",
     PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward"
+
 };
 
 module.exports = constRewardType;
