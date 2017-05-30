@@ -41,7 +41,9 @@ var playerConsumptionRecordSchema = new Schema({
     //check if record has been used for other reward
     bDirty: {type: Boolean, default: false, index: true},
     // check if record is duplicate
-    isDuplicate: {type: Boolean, default: false, index: true}
+    isDuplicate: {type: Boolean, default: false, index: true},
+    // record insert time
+    insertTime: {type: Date, default: Date.now},
 });
 
 //record is unique by playerId platformId and date
