@@ -35,6 +35,10 @@ var commonTestFunc = require('../test_modules/commonTestFunc');
  *  1:  Amount > Single withdrawal limit
  */
 describe("Test Auto Proposal - Apply Bonus", function () {
+
+    // TODO:: Under development
+    return true;
+
     var typeName = constProposalType.PLAYER_CONSUMPTION_INCENTIVE;
     var proposalTypeId = null;
     var proposalTypeProcessId = null;
