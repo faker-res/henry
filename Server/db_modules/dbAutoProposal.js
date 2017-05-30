@@ -50,8 +50,6 @@ let dbAutoProposal = {
                     // 3. Check player status
                     if (proposal.data.playerStatus != constPlayerStatus.NORMAL) {
                         sendToAudit(proposal._id, proposal.createTime, "Player not allowed for auto proposal");
-                        let removeIndex = proposals.indexOf(proposal);
-                        proposals.splice(removeIndex, 1);
                     } else {
                         // 4. Check player last bonus
                         getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type).then(
@@ -63,8 +61,6 @@ let dbAutoProposal = {
                                 } else {
                                     // Player first time withdraw
                                     sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
-                                    let removeIndex = proposals.indexOf(proposal);
-                                    proposals.splice(removeIndex, 1);
                                 }
                             }
                         );
