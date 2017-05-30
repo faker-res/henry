@@ -167,7 +167,7 @@ let dbPlayerInfo = {
                         if (inputData.referral) {
                             let referralName = platformPrefix + inputData.referral;
                             let referrralProm = dbconfig.collection_players.findOne({
-                                name: referralName.toLowerCase(),
+                                name: referralName,
                                 platform: platformObjId
                             }).then(
                                 data => {
@@ -549,7 +549,7 @@ let dbPlayerInfo = {
         let deferred = Q.defer();
         let playerData = null;
         let platformData = null;
-
+        
         playerdata.name = playerdata.name.toLowerCase();
 
         // Player name and password should be alphanumeric and between 6 to 20 characters
@@ -584,7 +584,7 @@ let dbPlayerInfo = {
             //     });
             // }
 
-            if ((playerdata.realName && playerdata.realName.match(/\d+/g) == null)) {
+            if ((playerdata.realName && playerdata.realName.match(/\d+/g) != null)) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",

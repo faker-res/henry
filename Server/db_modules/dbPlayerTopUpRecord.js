@@ -2,28 +2,29 @@ var dbPlayerTopUpRecordFunc = function () {
 };
 module.exports = new dbPlayerTopUpRecordFunc();
 
-var Q = require('q');
-var dbconfig = require('./../modules/dbproperties');
-var dataUtility = require('./../modules/encrypt');
-var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
-var dbProposal = require('./../db_modules/dbProposal');
-var dbProposalType = require('./../db_modules/dbProposalType');
-var constProposalStatus = require('./../const/constProposalStatus');
-var constSystemParam = require('./../const/constSystemParam');
-var constProposalType = require('./../const/constProposalType');
-var constPlayerTopUpType = require('./../const/constPlayerTopUpType');
-var constProposalMainType = require('../const/constProposalMainType');
-var pmsAPI = require("../externalAPI/pmsAPI.js");
-var counterManager = require("../modules/counterManager.js");
+const Q = require('q');
+const dbconfig = require('./../modules/dbproperties');
+const dataUtility = require('./../modules/encrypt');
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const dbProposal = require('./../db_modules/dbProposal');
+const dbProposalType = require('./../db_modules/dbProposalType');
+const constProposalStatus = require('./../const/constProposalStatus');
+const constSystemParam = require('./../const/constSystemParam');
+const constProposalType = require('./../const/constProposalType');
+const constPlayerTopUpType = require('./../const/constPlayerTopUpType');
+const constProposalMainType = require('../const/constProposalMainType');
+const pmsAPI = require("../externalAPI/pmsAPI.js");
+const counterManager = require("../modules/counterManager.js");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
 const constServerCode = require("../const/constServerCode");
-var dbUtility = require("../modules/dbutility");
+const dbUtility = require("../modules/dbutility");
 const constProposalEntryType = require("../const/constProposalEntryType");
 const constProposalUserType = require('../const/constProposalUserType');
-var constShardKeys = require('../const/constShardKeys');
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
-var moment = require('moment-timezone');
+const constShardKeys = require('../const/constShardKeys');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+const moment = require('moment-timezone');
+const serverInstance = require("../modules/serverInstance");
 
 var dbPlayerTopUpRecord = {
     /**
@@ -1401,10 +1402,32 @@ var dbPlayerTopUpRecord = {
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
-                        return true;
+                        return pmsAPI.weChat_getWechatList({
+                            platformId: playerData.platform.platformId,
+                            queryId: serverInstance.getQueryId()
+                        }).then(
+                            wechats => {
+                                let bValid = false;
+                                if (wechats.data && wechats.data.length > 0) {
+                                    wechats.data.forEach(
+                                        wechat => {
+                                            playerData.wechatPayGroup.wechats.forEach(
+                                                pWechat => {
+                                                    if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
+                                                        bValid = true;
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    );
+                                }
+                                return bValid;
+                            }
+                        );
                     }
-
-                    return false;
+                    else {
+                        return false;
+                    }
                 }
             )
     },
