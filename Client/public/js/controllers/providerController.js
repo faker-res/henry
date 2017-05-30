@@ -608,15 +608,23 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
             $('#modalSettlementAction').modal().show();
         }
+
         vm.doSettlement = function () {
             vm.settlementAction.result = '';
             $scope.safeApply();
-
             if (!vm.SelectedProvider) return;
-            socketService.$socket($scope.AppSocket, 'manualDailyProviderSettlement', {
+            let sendData={
                 providerId: vm.SelectedProvider._id,
                 settlementDay: vm.settlementAction.date
-            }, function (data) {
+            };
+            
+            if(vm.selectedPlatformID !== "_allPlatform") {
+                sendData.selectedPlatformID = vm.selectedPlatformID;
+            }
+
+            console.log(sendData);
+
+            socketService.$socket($scope.AppSocket, sendData, function (data) {
                 console.log("Settlement done:", data);
                 vm.getAllProvider(function () {
                     var selectedTree = $('#providerTree').treeview('search', [vm.SelectedProvider.name, {
