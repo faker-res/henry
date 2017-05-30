@@ -261,7 +261,8 @@ var roleChecker = {
                 ManualUnlockRewardTask: ['manualUnlockRewardTask'],
                 PlatformCreditTransferLog: ['getPagedPlatformCreditTransferLog', 'getAllPlayerCreditTransferStatus'],
                 ModifyGamePassword: ['modifyGamePassword'],
-                TriggerAutoProposal: ['triggerAutoProposal']
+                TriggerAutoProposal: ['triggerAutoProposal'],
+                TriggerSavePlayersCredit: ['triggerSavePlayersCredit']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
