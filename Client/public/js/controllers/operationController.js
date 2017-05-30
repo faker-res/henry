@@ -11,6 +11,47 @@ define(['js/app'], function (myApp) {
         // For debugging:
         window.VM = vm;
 
+        // declare constants
+        vm.proposalEntryTypeList = {
+            0: "ENTRY_TYPE_CLIENT",
+            //proposal entry type is admin
+            1: "ENTRY_TYPE_ADMIN",
+            //proposal is created by system
+            2: "ENTRY_TYPE_SYSTEM"
+        };
+        vm.proposalPriorityList = {
+            0: "GENERAL",
+            1: "HIGH",
+            2: "HIGHER",
+            3: "HIGHEST"
+        };
+        vm.proposalUserTypeList = {
+            0: "PLAYERS",
+            1: "PARTNERS",
+            2: "SYSTEM_USERS",
+            3: "TEST_PLAYERS"
+        };
+        vm.proposalStatusList = { // removed APPROVED and REJECTED
+            PREPENDING: "PrePending",
+            PENDING: "Pending",
+            PROCESSING: "Processing",
+            SUCCESS: "Success",
+            FAIL: "Fail",
+            CANCEL: "Cancel",
+            EXPIRED: "Expired",
+            UNDETERMINED: "Undetermined"
+        };
+        vm.depositMethodList = {
+            Online: 1,
+            ATM: 2,
+            Counter: 3
+        };
+        vm.getDepositMethodbyId = {
+            1: 'Online',
+            2: 'ATM',
+            3: 'Counter'
+        }
+
         vm.newProposalNum = 0;
         var allProposalStatusClr = {
             Pending: 'colorYellow',
@@ -18,7 +59,7 @@ define(['js/app'], function (myApp) {
             Success: 'colorGreen',
             Fail: 'colorRed',
             Rejected: 'colorRed'
-        }
+        };
         vm.toggleShowOperationList = function (flag) {
             if (flag) {
                 vm.leftPanelClass = 'widthto25';
@@ -31,7 +72,7 @@ define(['js/app'], function (myApp) {
             }
             $cookies.put("operationShowLeft", vm.showOperationList);
             $scope.safeApply();
-        }
+        };
 
         ///////////////////////////////////Proposal related functions///////////////////////////////////
         //get all operation data from server
@@ -1502,77 +1543,77 @@ define(['js/app'], function (myApp) {
             return $translate(result);
         };
 
-        vm.getProposalEntryTypeList = function () {
-            var deferred = Q.defer();
+        // vm.getProposalEntryTypeList = function () {
+        //     var deferred = Q.defer();
+        //
+        //     socketService.$socket($scope.AppSocket, 'getProposalEntryTypeList', {}, function (data) {
+        //         vm.proposalEntryTypeList = {};
+        //         for (var key in data.data) {
+        //             vm.proposalEntryTypeList[data.data[key]] = "ENTRY_TYPE_" + key;
+        //         }
+        //         console.log('vm.proposalEntryTypeList', vm.proposalEntryTypeList);
+        //         deferred.resolve(true);
+        //     }, function (error) {
+        //         deferred.reject(error);
+        //     });
+        //
+        //     return deferred.promise;
+        // };
 
-            socketService.$socket($scope.AppSocket, 'getProposalEntryTypeList', {}, function (data) {
-                vm.proposalEntryTypeList = {};
-                for (var key in data.data) {
-                    vm.proposalEntryTypeList[data.data[key]] = "ENTRY_TYPE_" + key;
-                }
-                console.log('vm.proposalEntryTypeList', vm.proposalEntryTypeList);
-                deferred.resolve(true);
-            }, function (error) {
-                deferred.reject(error);
-            });
+        // vm.getProposalPriorityList = function () {
+        //     var deferred = Q.defer();
+        //
+        //     socketService.$socket($scope.AppSocket, 'getProposalPriorityList', {}, function (data) {
+        //         vm.proposalPriorityList = {};
+        //         for (var key in data.data) {
+        //             vm.proposalPriorityList[data.data[key]] = key;
+        //         }
+        //         console.log('vm.proposalPriorityList', vm.proposalPriorityList);
+        //         deferred.resolve(true);
+        //     }, function (error) {
+        //         deferred.reject(error);
+        //     });
+        //
+        //     return deferred.promise;
+        // };
 
-            return deferred.promise;
-        };
+        // vm.getProposalUserTypeList = function () {
+        //     var deferred = Q.defer();
+        //
+        //     socketService.$socket($scope.AppSocket, 'getProposalUserTypeList', {}, function (data) {
+        //         vm.proposalUserTypeList = {};
+        //         for (var key in data.data) {
+        //             vm.proposalUserTypeList[data.data[key]] = key;
+        //         }
+        //         console.log('vm.proposalUserTypeList', vm.proposalUserTypeList);
+        //         deferred.resolve(true);
+        //     }, function (error) {
+        //         deferred.reject(error);
+        //     });
+        //
+        //     return deferred.promise;
+        // };
 
-        vm.getProposalPriorityList = function () {
-            var deferred = Q.defer();
-
-            socketService.$socket($scope.AppSocket, 'getProposalPriorityList', {}, function (data) {
-                vm.proposalPriorityList = {};
-                for (var key in data.data) {
-                    vm.proposalPriorityList[data.data[key]] = key;
-                }
-                console.log('vm.proposalPriorityList', vm.proposalPriorityList);
-                deferred.resolve(true);
-            }, function (error) {
-                deferred.reject(error);
-            });
-
-            return deferred.promise;
-        };
-
-        vm.getProposalUserTypeList = function () {
-            var deferred = Q.defer();
-
-            socketService.$socket($scope.AppSocket, 'getProposalUserTypeList', {}, function (data) {
-                vm.proposalUserTypeList = {};
-                for (var key in data.data) {
-                    vm.proposalUserTypeList[data.data[key]] = key;
-                }
-                console.log('vm.proposalUserTypeList', vm.proposalUserTypeList);
-                deferred.resolve(true);
-            }, function (error) {
-                deferred.reject(error);
-            });
-
-            return deferred.promise;
-        };
-
-        vm.getAllProposalStatus = function () {
-
-            var deferred = Q.defer();
-            socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data, callback) {
-                delete data.data.APPROVED;
-                delete data.data.REJECTED;
-                //delete data.data.PROCESSING;
-                vm.proposalStatusList = data.data;
-                console.log('vm.getAllProposalStatus:', vm.proposalStatusList);
-                deferred.resolve(true);
-                //$scope.safeApply();
-                if (callback) {
-                    callback();
-                }
-            }, function (error) {
-                deferred.reject(error);
-                //console.log("getAllProposalStatus:error", error);
-            });
-            return deferred.promise;
-        }
+        // vm.getAllProposalStatus = function () {
+        //
+        //     var deferred = Q.defer();
+        //     socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data, callback) {
+        //         delete data.data.APPROVED;
+        //         delete data.data.REJECTED;
+        //         //delete data.data.PROCESSING;
+        //         vm.proposalStatusList = data.data;
+        //         console.log('vm.getAllProposalStatus:', vm.proposalStatusList);
+        //         deferred.resolve(true);
+        //         //$scope.safeApply();
+        //         if (callback) {
+        //             callback();
+        //         }
+        //     }, function (error) {
+        //         deferred.reject(error);
+        //         //console.log("getAllProposalStatus:error", error);
+        //     });
+        //     return deferred.promise;
+        // }
 
 
         vm.updateProposalData = function () {
@@ -1717,8 +1758,9 @@ define(['js/app'], function (myApp) {
                         });
                     });
 
-                    Q.all([vm.getAllPlatforms(), vm.getProposalEntryTypeList(), vm.getProposalPriorityList(),
-                        vm.getProposalUserTypeList(), vm.getAllProposalStatus()])
+                    // Q.all([vm.getAllPlatforms(), vm.getProposalEntryTypeList(), vm.getProposalPriorityList(),
+                    //     vm.getProposalUserTypeList(), vm.getAllProposalStatus()])
+                    Q.all([vm.getAllPlatforms()])
                     //removed vm.getPlayerTopUpIntentRecordStatusList()
                         .then(
                             function (data) {
@@ -1733,17 +1775,17 @@ define(['js/app'], function (myApp) {
                                         })
                                     }
                                     // $scope.safeApply();
-                                })
+                                });
 
-                                socketService.$socket($scope.AppSocket, 'getDepositMethodList', {}, function (data) {
-                                    console.log("vm.depositMethodList", data.data);
-                                    vm.depositMethodList = data.data;
-                                    vm.getDepositMethodbyId = {};
-                                    $.each(data.data, function (i, v) {
-                                        vm.getDepositMethodbyId[v] = i;
-                                    })
-                                    // $scope.safeApply();
-                                })
+                                // socketService.$socket($scope.AppSocket, 'getDepositMethodList', {}, function (data) {
+                                //     console.log("vm.depositMethodList", data.data);
+                                //     vm.depositMethodList = data.data;
+                                //     vm.getDepositMethodbyId = {};
+                                //     $.each(data.data, function (i, v) {
+                                //         vm.getDepositMethodbyId[v] = i;
+                                //     })
+                                //     // $scope.safeApply();
+                                // });
                                 socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
                                     vm.allGameProviderById = {};
                                     data.data.map(item => {
