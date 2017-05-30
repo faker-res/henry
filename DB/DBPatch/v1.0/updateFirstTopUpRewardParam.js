@@ -192,8 +192,8 @@ db.rewardParam.insert({
         providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
         bonusAmount: {type: "Number", des: "Bonus amount"},
         bonusRequiredTimes: {type: "Number", des: "Bonus amount required times"},
-        dailyTopUpAmount: {type: "Number", des: "Daily top up amount"},
-        dailyConsumptionAmount: {type: "Number", des: "Daily consumption amount"},
+        dailyTopUpAmount: {type: "Number", des: "Minimum daily top up amount"},
+        dailyConsumptionAmount: {type: "Number", des: "Minimum daily consumption amount"},
         reward: {
             type: "Table",
             data: {
