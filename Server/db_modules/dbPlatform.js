@@ -1162,7 +1162,7 @@ var dbPlatform = {
                         }
                     ).then(
                         bonusData => {
-                            if (bonusData && bonusData > 0) {
+                            if (bonusData && bonusData.length > 0) {
                                 let bonusCredit = 0;
                                 bonusData.forEach(
                                     data => {
@@ -1240,6 +1240,7 @@ var dbPlatform = {
                             platformId: platformId,
                             deficitAmount: deficitAmount,
                             curAmount: player.validCredit,
+                            providerCreditAmount: data[1],
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
