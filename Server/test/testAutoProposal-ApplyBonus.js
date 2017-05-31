@@ -44,7 +44,7 @@ let socketConnection = require('../test_modules/socketConnection');
 describe("Test Auto Proposal - Apply Bonus", function () {
 
     // TODO:: Under development
-    // return true;
+    return true;
 
     var typeName = constProposalType.PLAYER_CONSUMPTION_INCENTIVE;
     var proposalTypeId = null;
@@ -144,6 +144,72 @@ describe("Test Auto Proposal - Apply Bonus", function () {
     });
 
     it('Case 2: Amount > Single day withdrawal limit', function () {
+        return commonTestFunc.createTestPlayer(testPlatformObj._id).then(
+            data => {
+                testPlayerObj = data;
+
+                return dbConfig.collection_proposalType.findOne({
+                    platformId: testPlatformObj._id,
+                    name: constProposalType.PLAYER_BONUS
+                }).lean()
+            }
+        ).then(
+            proposalType => {
+                proposalTypeObjId = proposalType._id;
+
+                // Create top up proposal
+                let proposalData1 = {
+                    type: proposalTypeObjId,
+                    status: constProposalStatus.SUCCESS,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 280,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    }
+                };
+
+                let proposalData2 = {
+                    type: proposalTypeObjId,
+                    status: constProposalStatus.PROCESSING,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 290,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    }
+                };
+
+                return Promise.all([
+                    commonTestFunc.createTestAutoBonusProposal(proposalData1),
+                    commonTestFunc.createTestAutoBonusProposal(proposalData2)]
+                );
+            }
+        ).then(
+            () => dbAutoProposal.applyBonus(testPlatformObj._id)
+        ).then(
+            () => {
+                return dbConfig.collection_proposal.findOne({
+                    'data.platformId': testPlatformObj._id,
+                    type: proposalTypeObjId
+                }).then(
+                    proposal => {
+                        proposal.status.should.equal("Pending");
+                    }
+                )
+            }
+        );
+    });
+
+    it('Case 3: Amount > Single day withdrawal limit', function () {
         return commonTestFunc.createTestPlayer(testPlatformObj._id).then(
             data => {
                 testPlayerObj = data;
