@@ -3189,6 +3189,7 @@ let dbPlayerInfo = {
     },
 
     getLoggedInPlayersCount: function (platform) {
+        platform = Array.isArray(platform) ?platform :[platform];
         return dbconfig.collection_players.find(
             {
                 platform: {

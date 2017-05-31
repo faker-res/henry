@@ -1167,6 +1167,8 @@ var proposal = {
     },
 
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, relateUser, entryType, startTime, endTime, index, size, sortCol) {//need
+        platformId = Array.isArray(platformId) ?platformId :[platformId];
+
         //check proposal without process
         var prom1 = dbconfig.collection_proposalType.find({platformId: {$in:platformId}}).lean();
 
