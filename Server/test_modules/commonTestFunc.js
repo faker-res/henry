@@ -186,7 +186,7 @@ var commonTestFunc = {
         return dbPlayerTopUpRecord.createPlayerTopUpRecord(topUpData);
     },
 
-    createTestAutoTopUpProposal: function (proposalData) {
+    createTestAutoBonusProposal: function (proposalData) {
         return new dbconfig.collection_proposal(proposalData).save();
     },
 

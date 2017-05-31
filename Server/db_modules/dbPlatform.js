@@ -1240,6 +1240,7 @@ var dbPlatform = {
                             platformId: platformId,
                             deficitAmount: deficitAmount,
                             curAmount: player.validCredit,
+                            providerCreditAmount: data[1],
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
