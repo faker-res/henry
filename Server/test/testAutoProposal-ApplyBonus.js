@@ -39,6 +39,7 @@ let socketConnection = require('../test_modules/socketConnection');
 /**
  * Case
  *  1:  Amount > Single withdrawal limit
+ *  2:  Amount > Single day withdrawal limit
  */
 describe("Test Auto Proposal - Apply Bonus", function () {
 
@@ -94,11 +95,11 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         );
     });
 
-    it('(First case) Amount > Single withdrawal limit', function () {
+    it('Case 1: Amount > Single withdrawal limit', function () {
         return commonTestFunc.createTestPlayer(testPlatformObj._id).then(
             data => {
                 testPlayerObj = data;
-                //console.log('testPlayerObj', testPlayerObj);
+
                 return dbConfig.collection_proposalType.findOne({
                     platformId: testPlatformObj._id,
                     name: constProposalType.PLAYER_BONUS
@@ -124,7 +125,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                     }
                 };
 
-                return commonTestFunc.createTestAutoTopUpProposal(proposalData);
+                return commonTestFunc.createTestAutoBonusProposal(proposalData);
             }
         ).then(
             () => dbAutoProposal.applyBonus(testPlatformObj._id)
@@ -142,9 +143,70 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         );
     });
 
-    it('Check first case', function () {
+    it('Case 2: Amount > Single day withdrawal limit', function () {
+        return commonTestFunc.createTestPlayer(testPlatformObj._id).then(
+            data => {
+                testPlayerObj = data;
 
+                return dbConfig.collection_proposalType.findOne({
+                    platformId: testPlatformObj._id,
+                    name: constProposalType.PLAYER_BONUS
+                }).lean()
+            }
+        ).then(
+            proposalType => {
+                proposalTypeObjId = proposalType._id;
 
+                // Create top up proposal
+                let proposalData1 = {
+                    type: proposalTypeObjId,
+                    status: constProposalStatus.SUCCESS,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 280,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    }
+                };
+
+                let proposalData2 = {
+                    type: proposalTypeObjId,
+                    status: constProposalStatus.PROCESSING,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 290,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    }
+                };
+
+                return Promise.all([
+                    commonTestFunc.createTestAutoBonusProposal(proposalData1),
+                    commonTestFunc.createTestAutoBonusProposal(proposalData2)]
+                );
+            }
+        ).then(
+            () => dbAutoProposal.applyBonus(testPlatformObj._id)
+        ).then(
+            () => {
+                return dbConfig.collection_proposal.findOne({
+                    'data.platformId': testPlatformObj._id,
+                    type: proposalTypeObjId
+                }).then(
+                    proposal => {
+                        proposal.status.should.equal("Pending");
+                    }
+                )
+            }
+        );
     });
 
     it('Should remove  test Data', function (done) {

@@ -109,7 +109,9 @@ function checkSingleDayWithdrawalLimit(proposals, platformData, proposalTypeObjI
             let playersToFilter = proposals.map(proposal => String(proposal.data.playerObjId));
 
             bonusRecord.map(record => {
+                // Check if particular record has exceeded limit
                 if (record.amount >= platformData.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
+                    // Check if the player is available for filter
                     if (playersToFilter.indexOf(String(record._id) != -1)) {
                         proposals.map(proposal => {
                             if (String(proposal.data.playerObjId) == String(record._id)) {
