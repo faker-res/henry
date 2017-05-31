@@ -1162,7 +1162,7 @@ var dbPlatform = {
                         }
                     ).then(
                         bonusData => {
-                            if (bonusData && bonusData > 0) {
+                            if (bonusData && bonusData.length > 0) {
                                 let bonusCredit = 0;
                                 bonusData.forEach(
                                     data => {
