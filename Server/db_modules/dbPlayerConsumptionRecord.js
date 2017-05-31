@@ -3,23 +3,24 @@ var dbPlayerConsumptionRecordFunc = function () {
 };
 module.exports = new dbPlayerConsumptionRecordFunc();
 
-var Q = require('q');
-var env = require('../config/env');
-var moment = require('moment-timezone');
-var dbconfig = require('./../modules/dbproperties');
-var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
-var constRewardType = require('./../const/constRewardType');
-var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
-var dbRewardTask = require('../db_modules/dbRewardTask');
-var constShardKeys = require('../const/constShardKeys');
-var constSystemParam = require('../const/constSystemParam');
-var SettlementBalancer = require('../settlementModule/settlementBalancer');
-var promiseUtils = require("../modules/promiseUtils.js");
-var constGameStatus = require("./../const/constGameStatus");
-var constServerCode = require('../const/constServerCode');
-var dataUtils = require("../modules/dataUtils.js");
+const Q = require('q');
+const env = require('../config/env');
+const moment = require('moment-timezone');
+const dbconfig = require('./../modules/dbproperties');
+const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+const constRewardType = require('./../const/constRewardType');
+const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
+const dbRewardTask = require('../db_modules/dbRewardTask');
+const constShardKeys = require('../const/constShardKeys');
+const constSystemParam = require('../const/constSystemParam');
+const SettlementBalancer = require('../settlementModule/settlementBalancer');
+const promiseUtils = require("../modules/promiseUtils.js");
+const constGameStatus = require("./../const/constGameStatus");
+const constServerCode = require('../const/constServerCode');
+const dataUtils = require("../modules/dataUtils.js");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const constProposalType = require('./../const/constProposalType');
 
 let dbUtility = require('./../modules/dbutility');
 
@@ -279,25 +280,9 @@ var dbPlayerConsumptionRecord = {
      * @param {Json} data
      */
     createPlayerConsumptionRecord: function (data) {
-        var deferred = Q.defer();
-        var record = null;
-        var newOrderNo = data.orderNo;
+        let deferred = Q.defer();
+        let record = null;
 
-        // var newOrderNumObj = {orderNo: newOrderNo};
-        // if (data.createTime) {
-        //     newOrderNumObj.createTime = data.createTime;
-        // }
-        // var newConsumptionNum = new dbconfig.collection_consumptionOrderNumModal(newOrderNumObj);
-        //
-        // newConsumptionNum.save().then(
-        //     newOrderNo => {
-        //         var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
-        //         return newRecord.save();
-        //     },
-        //     err => {
-        //         deferred.reject({status: constServerCode.CONSUMPTION_ORDERNO_ERROR, name: "DataError", error: err});
-        //     }
-        // );
         var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
         newRecord.save().then(
             function (data) {
@@ -311,9 +296,49 @@ var dbPlayerConsumptionRecord = {
                 }
             },
             function (error) {
-                //dbconfig.collection_consumptionOrderNumModal.remove({orderNo: newOrderNo}).then();
-                //console.error("Player consumption record save failed", error);
                 deferred.reject({name: "DBError", message: "Error creating consumption record", error: error});
+            }
+        ).then(
+            //check if player has double top up reward and if this consumption record is from double top up reward
+            checkResult => {
+                if (!checkResult) {
+                    const rewardProposalProm = dbconfig.collection_proposalType.findOne(
+                        {name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD, platformId: record.platformId}
+                    ).lean().then(
+                        pType => {
+                            return dbconfig.collection_proposal.find({
+                                type: pType._id,
+                                "data.playerObjId": record.playerId
+                            }).sort({createTime: -1}).limit(1).lean();
+                        }
+                    );
+                    const topUpRecord = dbconfig.collection_playerTopUpRecord.find({playerId: record.playerId}).sort({createTime: -1}).limit(1).lean();
+                    return Q.all([rewardProposalProm, topUpRecord]).then(
+                        data => {
+                            if (data && data[0] && data[0].length > 0) {
+                                let rewardTime = new Date(data[0][0].createTime);
+                                let topUpTime = new Date();
+                                if (data[1] && data[1].length > 0) {
+                                    topUpTime = new Date(data[1][0].createTime);
+                                }
+                                const recordTime = new Date(record.createTime);
+                                if (topUpTime.getTime() > rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime() && recordTime.getTime() < topUpTime.getTime()) {
+                                    return true;
+                                }
+                                if (topUpTime.getTime() < rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime()) {
+                                    return true;
+                                }
+                                return checkResult;
+                            }
+                            else {
+                                return checkResult;
+                            }
+                        }
+                    );
+                }
+                else {
+                    return checkResult;
+                }
             }
         ).then(
             function (bDirty) {
