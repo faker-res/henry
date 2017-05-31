@@ -29,6 +29,7 @@ var constRewardType = require('./../const/constRewardType');
 var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var testGameTypes = require("../test/testGameTypes");
 
+const constPlayerStatus = require('../const/constPlayerStatus');
 const constProposalStatus = require('../const/constProposalStatus');
 
 let dbAutoProposal = require('../db_modules/dbAutoProposal');
@@ -42,7 +43,7 @@ let socketConnection = require('../test_modules/socketConnection');
 describe("Test Auto Proposal - Apply Bonus", function () {
 
     // TODO:: Under development
-    return true;
+    // return true;
 
     var typeName = constProposalType.PLAYER_CONSUMPTION_INCENTIVE;
     var proposalTypeId = null;
@@ -93,7 +94,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         );
     });
 
-    it('create test player (First case)', function () {
+    it('(First case) Amount > Single withdrawal limit', function () {
         return commonTestFunc.createTestPlayer(testPlatformObj._id).then(
             data => {
                 testPlayerObj = data;
@@ -109,16 +110,20 @@ describe("Test Auto Proposal - Apply Bonus", function () {
 
                 // Create top up proposal
                 let proposalData = {
-                    playerId: testPlayerObj.playerId,
-                    playerObjId: testPlayerObj._id,
-                    playerName: testPlayerObj.name,
-                    bonusId: 123,
-                    platformId: testPlatformObj._id,
-                    platform: testPlatformObj.platformId,
-                    amount: 500,
                     type: proposalTypeObjId,
-                    status: constProposalStatus.PROCESSING
+                    status: constProposalStatus.PROCESSING,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 500,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    }
                 };
+
                 return commonTestFunc.createTestAutoTopUpProposal(proposalData);
             }
         ).then(
@@ -126,11 +131,11 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         ).then(
             () => {
                 return dbConfig.collection_proposal.findOne({
-                    platform: testPlatformObj.platformId,
+                    'data.platformId': testPlatformObj._id,
                     type: proposalTypeObjId
                 }).then(
                     proposal => {
-                        console.log('proposal', proposal);
+                        proposal.status.should.equal("Pending");
                     }
                 )
             }

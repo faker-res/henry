@@ -38,34 +38,38 @@ let dbAutoProposal = {
             }
         ).then(
             proposals => {
-                // 1. Check single withdrawal limit - passed
-                let checkProps1 = checkSingleWithdrawalLimit(proposals, platformData);
+                if (proposals && proposals.length > 0) {
+                    // 1. Check single withdrawal limit - passed
+                    let checkProps1 = checkSingleWithdrawalLimit(proposals, platformData);
 
-                // 2. Check single day withdrawal limit
-                return checkSingleDayWithdrawalLimit(checkProps1, platformData, proposalTypeObjId);
+                    // 2. Check single day withdrawal limit
+                    return checkSingleDayWithdrawalLimit(checkProps1, platformData, proposalTypeObjId);
+                }
             }
         ).then(
             proposals => {
-                proposals.map(proposal => {
-                    // 3. Check player status
-                    if (proposal.data.playerStatus != constPlayerStatus.NORMAL) {
-                        sendToAudit(proposal._id, proposal.createTime, "Player not allowed for auto proposal");
-                    } else {
-                        // 4. Check player last bonus
-                        getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type).then(
-                            lastWithdrawDate => {
-                                if (lastWithdrawDate) {
-                                    // Player withdrew before
-                                    let repeatCount = platformData.autoApproveRepeatCount;
-                                    checkPreviousProposals(proposal, lastWithdrawDate, repeatCount);
-                                } else {
-                                    // Player first time withdraw
-                                    sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
+                if (proposals && proposals.length > 0) {
+                    proposals.map(proposal => {
+                        // 3. Check player status
+                        if (proposal.data.playerStatus != constPlayerStatus.NORMAL) {
+                            sendToAudit(proposal._id, proposal.createTime, "Player not allowed for auto proposal");
+                        } else {
+                            // 4. Check player last bonus
+                            getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type).then(
+                                lastWithdrawDate => {
+                                    if (lastWithdrawDate) {
+                                        // Player withdrew before
+                                        let repeatCount = platformData.autoApproveRepeatCount;
+                                        checkPreviousProposals(proposal, lastWithdrawDate, repeatCount);
+                                    } else {
+                                        // Player first time withdraw
+                                        sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
+                                    }
                                 }
-                            }
-                        );
-                    }
-                });
+                            );
+                        }
+                    });
+                }
 
                 return proposals;
             }
