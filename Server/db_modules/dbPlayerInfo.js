@@ -7181,11 +7181,11 @@ let dbPlayerInfo = {
                         }
                     ).then(
                         bonusData => {
-                            if (bonusData && bonusData > 0) {
+                            if (bonusData && bonusData.length > 0) {
                                 let bonusCredit = 0;
                                 bonusData.forEach(
                                     data => {
-                                        bonusCredit += data.data.amount * data.data.bonusCredit
+                                        bonusCredit += data.data.amount
                                     }
                                 );
                                 return bonusCredit;
