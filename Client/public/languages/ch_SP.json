@@ -1836,5 +1836,6 @@
   "autoApproveWhenSingleDayTotalBonusApplyLessThan": "自动审核：单日总体款金额小于",
   "PlayerConsecutiveLoginReward":"累计签到奖励",
   "autoApproveRepeatCount": "自动审核：回圈次数",
-  "autoApproveRepeatDelay": "自动审核：回圈等待时间"
+  "autoApproveRepeatDelay": "自动审核：回圈等待时间",
+  "providerCreditAmount": "账户余额"
 }
