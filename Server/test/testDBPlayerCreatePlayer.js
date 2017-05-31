@@ -10,6 +10,10 @@ let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 
 
 describe("Test DB Player create player", function() {
+
+    // TODO:: Pending testing
+    return true;
+
     let testPlatformId, testPlayerId, testPlatformIdNum;
     let generatedPlayerId = [];
 
