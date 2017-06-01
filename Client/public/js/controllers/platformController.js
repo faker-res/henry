@@ -8811,7 +8811,6 @@ define(['js/app'], function (myApp) {
             vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
             vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
             $scope.safeApply();
-            ``
         };
 
         vm.getAutoApprovalBasic = () => {
