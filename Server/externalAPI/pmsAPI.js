@@ -154,6 +154,10 @@ const pmsAPI = {
         return callPMSAPI("payment", "getDistrictList", data);
     },
 
+    payment_requestClearProposalLimits: function (data) {
+        return callPMSAPI("payment", "requestClearProposalLimits", data);
+    },
+
     foundation_getProvince: function (data) {
         return callPMSAPI("foundation", "getProvince", data);
     },

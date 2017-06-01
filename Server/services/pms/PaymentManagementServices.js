@@ -104,7 +104,8 @@
                 "requestAlipayAccount",
                 "requestCancellationPayOrder",
                 "requestWeChatAccount",
-                "requestWeChatQRAccount"
+                "requestWeChatQRAccount",
+                "requestClearProposalLimits"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames1, ["proposalId"]);
 

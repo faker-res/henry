@@ -65,6 +65,13 @@
         this._service.requestCancellationPayOrder.onceSync(key, callback);
     };
 
+    proto.requestClearProposalLimits = function(callback, requestData){
+        var data = requestData;
+        this._service.requestClearProposalLimits.request(data);
+        var key = this._service.requestClearProposalLimits.generateSyncKey(data);
+        this._service.requestClearProposalLimits.onceSync(key, callback);
+    };
+
     if(isNode){
         module.exports = PaymentAPITest;
     } else {
