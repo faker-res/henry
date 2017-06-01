@@ -9,6 +9,10 @@ let dbConfig = require('../modules/dbproperties');
 let dbPartner = require('./../db_modules/dbPartner');
 
 describe('Test DB Partner create partner', function () {
+
+    // TODO:: Pending testing
+    return true;
+
     let testPlatformObjId, testPlatformId;
     // let generatedPartnerId = [];
 
