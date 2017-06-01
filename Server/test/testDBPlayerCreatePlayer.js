@@ -33,7 +33,7 @@ describe("Test DB Player create player", function() {
 
     });
 
-    it('can create a player through createPlayer', function(done) {
+    it('can create a player through createPlayerInfo', function(done) {
         let exampleInput = {
             domain: 'localhost',
             referral: null,
