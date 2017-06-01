@@ -7241,7 +7241,16 @@ let dbPlayerInfo = {
                         }
                     });
 
-                    eventParam = curParam;
+                    if (!curParam) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                            name: "DataError",
+                            message: "Not enough reward amount"
+                        });
+                    }
+                    else {
+                        eventParam = curParam;
+                    }
 
                     let proposalData = {
                         type: event.executeProposal,
