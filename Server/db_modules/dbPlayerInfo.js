@@ -7180,11 +7180,11 @@ let dbPlayerInfo = {
                         }
                     ).then(
                         bonusData => {
-                            if (bonusData && bonusData > 0) {
+                            if (bonusData && bonusData.length > 0) {
                                 let bonusCredit = 0;
                                 bonusData.forEach(
                                     data => {
-                                        bonusCredit += data.data.amount * data.data.bonusCredit
+                                        bonusCredit += data.data.amount
                                     }
                                 );
                                 return bonusCredit;
@@ -7202,12 +7202,12 @@ let dbPlayerInfo = {
                     }).lean().then(
                         creditLogData => {
                             if (creditLogData) {
-                                return creditLogData.gameCredit;
+                                return creditLogData.validCredit + creditLogData.lockedCredit + creditLogData.gameCredit;
                             } else {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                                     name: "DataError",
-                                    message: "Error in getting player game credit"
+                                    message: "Error in getting player balance credit"
                                 });
                             }
                         }
@@ -7258,6 +7258,7 @@ let dbPlayerInfo = {
                             platformId: platformId,
                             deficitAmount: deficitAmount,
                             curAmount: player.validCredit,
+                            providerCreditAmount: data[1],
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
