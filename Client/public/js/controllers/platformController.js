@@ -8536,7 +8536,9 @@ define(['js/app'], function (myApp) {
                 case 'bonusBasic':
                     vm.getBonusBasic();
                     break;
-
+                case 'autoApproval':
+                    vm.getAutoApprovalBasic();
+                    break;
             }
         }
 
@@ -8802,13 +8804,21 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             $scope.safeApply();
         }
+
         vm.getBonusBasic = () => {
             console.log('getBonusBasic', JSON.stringify(vm.selectedPlatform.data));
             vm.bonusBasic = vm.bonusBasic || {};
             vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
             vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
             $scope.safeApply();
-        }
+            ``
+        };
+
+        vm.getAutoApprovalBasic = () => {
+            vm.autoApprovalBasic = vm.autoApprovalBasic || {};
+            vm.autoApprovalBasic.enableAutoApplyBonus = vm.selectedPlatform.data.enableAutoApplyBonus;
+            $scope.safeApply();
+        };
 
         vm.submitAddPlayerLvl = function () {
             var sendData = vm.newPlayerLvl;
