@@ -13,7 +13,6 @@ const dbProposal = require('./../db_modules/dbProposal');
 
 const dbconfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
-var Q = require("q");
 
 const pmsAPI = require("../externalAPI/pmsAPI.js");
 
