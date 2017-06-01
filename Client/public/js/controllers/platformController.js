@@ -5897,7 +5897,7 @@ define(['js/app'], function (myApp) {
                 var tableData = data.data ? data.data.data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.rewardType$ = $translate(vm.platformRewardtype[item.type]);
-                    item.rewardAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
+                    item.rewardAmount$ = parseFloat((item.data.rewardAmount || item.data.amount)).toFixed(2);
                     item.status$ = $translate(item.status || item.process.status);
                     item.entryType$ = $translate($scope.constProposalEntryType[item.entryType]);
                     item.userType$ = $translate(item.userType ? $scope.constProposalUserType[item.userType] : "");
@@ -5906,9 +5906,6 @@ define(['js/app'], function (myApp) {
                 vm.playerRewardHistory.loading = false;
                 vm.playerRewardHistory.totalCount = data.data ? data.data.total : 0
                 console.log("RewardHist:length:", tableData);
-                tableData.forEach(
-                    task => task.data.rewardAmount = task.data.rewardAmount || task.data.amount
-                );
                 vm.drawPlayerRewardHistoryTbl(tableData, vm.playerRewardHistory.totalCount, newSearch);
             });
         }
