@@ -7180,11 +7180,11 @@ let dbPlayerInfo = {
                         }
                     ).then(
                         bonusData => {
-                            if (bonusData && bonusData > 0) {
+                            if (bonusData && bonusData.length > 0) {
                                 let bonusCredit = 0;
                                 bonusData.forEach(
                                     data => {
-                                        bonusCredit += data.data.amount * data.data.bonusCredit
+                                        bonusCredit += data.data.amount
                                     }
                                 );
                                 return bonusCredit;
@@ -7258,6 +7258,7 @@ let dbPlayerInfo = {
                             platformId: platformId,
                             deficitAmount: deficitAmount,
                             curAmount: player.validCredit,
+                            providerCreditAmount: data[1],
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
@@ -7277,7 +7278,7 @@ let dbPlayerInfo = {
                     else if ((deficitAmount * eventParam.rewardPercentage) >= eventParam.minRewardAmount) {
                         // Incentive by percentage
                         proposalData.data.rewardAmount = Math.min(Math.floor(deficitAmount * eventParam.rewardPercentage), eventParam.maxRewardAmount);
-                        proposalData.data.spendingAmount = deficitAmount * eventParam.spendingTimes;
+                        proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventParam.spendingTimes;
 
                         return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
                     }
