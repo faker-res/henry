@@ -71,7 +71,8 @@
                 "getProposalById",
                 "getProposalList",
                 "getBankcardListByGroup",
-                "getMerchantIdListByGroup"
+                "getMerchantIdListByGroup",
+                "setUpdateCreditProposalStatus"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
