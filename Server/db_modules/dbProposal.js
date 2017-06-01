@@ -544,6 +544,11 @@ var proposal = {
         );
     },
 
+    //todo: implement this function later
+    setUpdateCreditProposalStatus: () => {
+
+    },
+
     /**
      * Get one proposal by array of ids
      * @param {json} proposalIds - The array of ids

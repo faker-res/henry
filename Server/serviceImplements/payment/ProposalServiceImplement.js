@@ -222,6 +222,30 @@ var ProposalServiceImplement = function () {
         var isValidData = Boolean(data && data.platformId && data.groupId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformMerchantGroup.getMerchantsInPlatformMerchantGroup, [data.platformId, data.groupId], isValidData);
     };
+
+    this.setUpdateCreditProposalStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.proposalId && data.orderStatus);
+        var statusText;
+        switch (Number(data.orderStatus)) {
+            case 1:
+                statusText = constProposalStatus.SUCCESS;
+                break;
+            case 2:
+                statusText = constProposalStatus.FAIL;
+                break;
+            default:
+                isValidData = false;
+                break;
+        }
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbProposal.updatePlayerCreditProposal, [data.proposalId, statusText, data.remark], isValidData, true, true).then(
+            res => {
+                resLogHandler(conn, wsFunc, data, res, "setBonusProposalStatus");
+            },
+            err => {
+                errorLogHandler(conn, wsFunc, data, err, "setBonusProposalStatus");
+            }
+        );
+    };
 };
 
 var proto = ProposalServiceImplement.prototype = Object.create(ProposalService.prototype);

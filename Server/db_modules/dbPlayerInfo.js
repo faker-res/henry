@@ -113,13 +113,13 @@ let dbPlayerInfo = {
                                     return {"isPlayerNameValid": true};
                                 }
                                 else {
-                                    if(!data[0].isPlayerNameValid){
+                                    if (!data[0].isPlayerNameValid) {
                                         return Q.reject({
                                             status: constServerCode.USERNAME_ALREADY_EXIST,
                                             name: "DBError",
                                             message: "Player name already exists"
                                         });
-                                    }else{
+                                    } else {
                                         return Q.reject({
                                             status: constServerCode.USERNAME_ALREADY_EXIST,
                                             name: "DBError",
@@ -140,15 +140,15 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
-                        if(platformObj.allowSamePhoneNumberToRegister === true){
-                            return {isPhoneNumberValid : true}
-                        }else{
+                        if (platformObj.allowSamePhoneNumberToRegister === true) {
+                            return {isPhoneNumberValid: true}
+                        } else {
                             return dbPlayerInfo.isPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
                                 platform: platformObjId
                             });
                         }
-                    }else {
+                    } else {
                         return Q.reject({
                             status: constServerCode.USERNAME_ALREADY_EXIST,
                             name: "DBError",
@@ -549,7 +549,7 @@ let dbPlayerInfo = {
         let deferred = Q.defer();
         let playerData = null;
         let platformData = null;
-        
+
         playerdata.name = playerdata.name.toLowerCase();
 
         // Player name and password should be alphanumeric and between 6 to 20 characters
@@ -601,9 +601,9 @@ let dbPlayerInfo = {
                     //    // Player name already contains expected platform prefix
                     // }
 
-                    if (platformData.allowSamePhoneNumberToRegister===true) {
+                    if (platformData.allowSamePhoneNumberToRegister === true) {
                         return {isPhoneNumberValid: true};
-                    } else{
+                    } else {
                         return dbPlayerInfo.isPhoneNumberValidToRegister({
                             phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
                             platform: playerdata.platform
@@ -3563,7 +3563,7 @@ let dbPlayerInfo = {
                     else {
                         playerCredit = updateData.validCredit;
                         //fix float number problem after update
-                        if( updateData.validCredit > -0.02 && updateData.validCredit < 0){
+                        if (updateData.validCredit > -0.02 && updateData.validCredit < 0) {
                             playerCredit = 0;
                             return dbconfig.collection_players.findOneAndUpdate(
                                 {_id: playerObjId, platform: platform},
@@ -3571,7 +3571,7 @@ let dbPlayerInfo = {
                                 {new: true}
                             );
                         }
-                        else{
+                        else {
                             return true;
                         }
                     }
@@ -3630,10 +3630,16 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     if (bUpdateReward) {
-                        return dbRewardTask.updateRewardTask({
-                            _id: rewardData._id,
-                            platformId: rewardData.platformId
-                        }, rewardData);
+                        return dbRewardTask.updateRewardTask(
+                            {
+                                _id: rewardData._id,
+                                platformId: rewardData.platformId
+                            }, {
+                                inProvider: rewardData.inProvider,
+                                _inputCredit: rewardData._inputCredit,
+                                currentAmount: rewardData.currentAmount
+                            }
+                        );
                     }
                     else {
                         return (rewardData);
@@ -3916,7 +3922,11 @@ let dbPlayerInfo = {
                     if (bUpdateTask) {
                         return dbconfig.collection_rewardTask.findOneAndUpdate(
                             {_id: rewardTask._id, platformId: rewardTask.platformId},
-                            rewardTask,
+                            {
+                                currentAmount: rewardTask.currentAmount,
+                                inProvider: rewardTask.inProvider,
+                                _inputCredit: rewardTask._inputCredit
+                            },
                             {new: true}
                         ).exec();
                     }
@@ -5828,7 +5838,7 @@ let dbPlayerInfo = {
                                         if (newPlayerData.validCredit < 0 && newPlayerData.validCredit > -0.02) {
                                             newPlayerData.validCredit = 0;
                                             newPlayerData.findOneAndUpdate(
-                                                { _id: newPlayerData._id, platform: newPlayerData.platform },
+                                                {_id: newPlayerData._id, platform: newPlayerData.platform},
                                                 {validCredit: 0}
                                             ).then();
                                         }
