@@ -10,32 +10,30 @@ let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 
 
 describe("Test DB Player create player", function() {
-    let testPlatformId, testPlayerId, testPlatformIdNum;
+    let testPlatformObjId, testPlatformId;
     let generatedPlayerId = [];
 
     it('Should create test player and platform', function (done) {
 
         commonTestFun.createTestPlatform().then(
             function (data) {
-                testPlatformId = data._id;
-                testPlatformIdNum = data.platformId;
-                return commonTestFun.createTestPlayer(testPlatformId);
-            },
-            function (error) {
-                console.error(error);
-            }
-        ).then(
-            function (data) {
-                generatedPlayerId.push(data._id);
+                testPlatformObjId = data._id;
+                testPlatformId = data.platformId;
                 done();
             },
             function (error) {
                 console.error(error);
+                done(new Error(JSON.stringify(error, null, 2)));
+            }
+        ).catch(
+            function (error) {
+                done(error);
             }
         );
+
     });
 
-    it('can create a player through createPlayerInfo', function(done) {
+    it('can create a player through createPartner', function(done) {
         let exampleInput = {
             domain: 'localhost',
             referral: null,
@@ -46,7 +44,7 @@ describe("Test DB Player create player", function() {
             realName: 'testtest',
             nickName: 'testtest',
             partner: null,
-            platform: testPlatformId
+            platform: testPlatformObjId
         };
 
         dbPlayerInfo.createPlayerInfo(exampleInput).then(
@@ -76,7 +74,7 @@ describe("Test DB Player create player", function() {
             realName: 'testtest',
             nickName: 'testtest',
             partner: null,
-            platform: testPlatformId
+            platform: testPlatformObjId
         };
 
         dbPlayerInfo.createPlayerInfo(exampleInput).then(
@@ -134,7 +132,7 @@ describe("Test DB Player create player", function() {
             isOnline: true,
             lastLoginIp: '218.107.132.66',
             loginIps: [ '218.107.132.66' ],
-            platformId: testPlatformIdNum
+            platformId: testPlatformId
         };
 
         dbPlayerInfo.createPlayerInfoAPI(exampleInput).then(
@@ -154,13 +152,13 @@ describe("Test DB Player create player", function() {
     });
 
     it('Should remove all test Data', function(done) {
-        commonTestFun.removeTestData(testPlatformId,  generatedPlayerId).then(function(data){
+        commonTestFun.removeTestData(testPlatformObjId,  generatedPlayerId).then(function(data){
             done();
         })
     });
 
     it('Should remove all test Data', function(done) {
-        commonTestFun.removeTestProposalData([],testPlatformId, [], generatedPlayerId).then(function(data){
+        commonTestFun.removeTestProposalData([],testPlatformObjId, [], generatedPlayerId).then(function(data){
             done();
         })
     });
