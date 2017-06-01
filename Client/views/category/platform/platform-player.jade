@@ -105,6 +105,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ModifyGamePassword')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareModifyPlayerGamePassword()' data-target='#modalModifyGamePassword')
             text {{"ModifyGamePassword" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ClearProposalLimit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearProposalLimit', ng-click='vm.prepareClearPlayerProposalLimit()')
+            text {{"ClearProposalLimit" | translate}}
+            img.img-edit
 .col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
@@ -1371,6 +1374,21 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                 label.inlineBlk.margin-right-5(ng-if='vm.playerBonus.resMsg') {{vm.playerBonus.resMsg}}
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.playerBonus.showSubmit && !vm.playerBonus.resMsg')
+
+#modalClearProposalLimit.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ClearProposalLimit" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                label {{'ClearProposalLimit' | translate}}
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.clearPlayerProposalLimit.showSubmit', ng-click='vm.requestClearProposalLimit()') {{'APPLY' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+                label.inlineBlk.margin-right-5(ng-if='vm.clearPlayerProposalLimit.resMsg') {{vm.clearPlayerProposalLimit.resMsg}}
+                i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.clearPlayerProposalLimit.showSubmit && !vm.clearPlayerProposalLimit.resMsg')
+
 #modalPlayerApplyReward.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
         .modal-content

@@ -298,7 +298,7 @@ describe("Test player consumption incentive event", function () {
     });
 
     it('player should top up first time', function (done) {
-        dbPlayerInfo.playerTopUp(testPlayerId, 500, "testPayment").then(
+        dbPlayerInfo.playerTopUp(testPlayerId, 5000, "testPayment").then(
             function (data) {
                 done();
             },
@@ -337,10 +337,11 @@ describe("Test player consumption incentive event", function () {
     it('update player credits daily log to yesterday', function (done) {
         dbConfig.collection_playerCreditsDailyLog.findOne({playerObjId: testPlayerId}).lean().then(
             record => {
-                record.createTime = new Date(new Date(record.createTime).getTime() - 24*60*60*1000);
-                delete record._id;
-                let newRecord = new dbConfig.collection_playerCreditsDailyLog(record);
-                return newRecord.save();
+                return dbConfig.collection_playerCreditsDailyLog.findOneAndUpdate({
+                    _id: record._id
+                }, {
+                    validCredit: 300
+                }, {new: true});
             }
         ).then(
             data => done()
@@ -400,7 +401,6 @@ describe("Test player consumption incentive event", function () {
     });
 
     it('Should step1Admin user be able to see the test proposal and approve', function (done) {
-
         dbProposal.getAvailableProposalsByAdminId(step1AdminId, testPlatformId).then(
             function (data) {
                 if (data && data.length == 1) {

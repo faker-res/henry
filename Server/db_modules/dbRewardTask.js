@@ -536,7 +536,7 @@ var dbRewardTask = {
             const taskProm = dbRewardTask.findOneAndUpdateWithRetry(
                 dbconfig.collection_rewardTask,
                 {_id: taskData._id, platformId: taskData.platformId},
-                taskData
+                {status: constRewardTaskStatus.COMPLETED}
             );
 
             let updateData = {
@@ -607,20 +607,25 @@ var dbRewardTask = {
                 },
                 error => {
                     console.log("Update player credit failed when complete reward task", error, taskData);
+                    reject({
+                        name: "DBError",
+                        message: "Error updating reward task and player credit",
+                        error: error
+                    });
                     // Revert reward task status
-                    return dbconfig.collection_rewardTask.findOneAndUpdate(
-                        {_id: taskData._id, platformId: taskData.platformId},
-                        {status: originalStatus},
-                        {new: true}
-                    ).then(
-                        data => {
-                            reject({
-                                name: "DBError",
-                                message: "Error updating reward task and player credit",
-                                error: error
-                            });
-                        }
-                    );
+                    // return dbconfig.collection_rewardTask.findOneAndUpdate(
+                    //     {_id: taskData._id, platformId: taskData.platformId},
+                    //     {status: originalStatus},
+                    //     {new: true}
+                    // ).then(
+                    //     data => {
+                    //         reject({
+                    //             name: "DBError",
+                    //             message: "Error updating reward task and player credit",
+                    //             error: error
+                    //         });
+                    //     }
+                    // );
                 }
             );
         })
