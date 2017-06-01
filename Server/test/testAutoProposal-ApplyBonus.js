@@ -44,7 +44,7 @@ let socketConnection = require('../test_modules/socketConnection');
 describe("Test Auto Proposal - Apply Bonus", function () {
 
     // TODO:: Under development
-    // return true;
+    return true;
 
     var typeName = constProposalType.PLAYER_CONSUMPTION_INCENTIVE;
     var proposalTypeId = null;
