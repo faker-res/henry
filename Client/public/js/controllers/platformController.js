@@ -5906,6 +5906,9 @@ define(['js/app'], function (myApp) {
                 vm.playerRewardHistory.loading = false;
                 vm.playerRewardHistory.totalCount = data.data ? data.data.total : 0
                 console.log("RewardHist:length:", tableData);
+                tableData.forEach(
+                    task => task.data.rewardAmount = task.data.rewardAmount || task.data.amount
+                );
                 vm.drawPlayerRewardHistoryTbl(tableData, vm.playerRewardHistory.totalCount, newSearch);
             });
         }
