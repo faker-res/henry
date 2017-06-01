@@ -19,6 +19,7 @@ var queryPhoneLocation = require('query-mobile-phone-area');
 var dbUtil = require('./../modules/dbutility');
 var smsAPI = require('../externalAPI/smsAPI');
 var cpmsAPI = require('../externalAPI/cpmsAPI');
+let pmsAPI = require('../externalAPI/pmsAPI');
 var Chance = require('chance');
 var chance = new Chance();
 
@@ -706,8 +707,14 @@ function socketActionPlayer(socketIO, socket) {
         getPagedPlatformCreditTransferLog: function getPagedPlatformCreditTransferLog(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPlatform.getPagedPlatformCreditTransferLog, [data.startTime, data.endTime, data.provider, data.type, data.index, data.limit, data.sortCol, data.status,data.PlatformObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getPagedPlatformCreditTransferLog, [data.startTime, data.endTime, data.provider, data.type, data.index, data.limit, data.sortCol, data.status, data.PlatformObjId], actionName, isValidData);
+        },
 
+        requestClearProposalLimit: function requestClearProposalLimit(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.username);
+            let username = data.username || '';
+            socketUtil.emitter(self.socket, pmsAPI.payment_requestClearProposalLimits, [username], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

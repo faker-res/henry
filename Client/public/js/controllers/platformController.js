@@ -5897,7 +5897,7 @@ define(['js/app'], function (myApp) {
                 var tableData = data.data ? data.data.data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.rewardType$ = $translate(vm.platformRewardtype[item.type]);
-                    item.rewardAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
+                    item.rewardAmount$ = parseFloat((item.data.rewardAmount || item.data.amount)).toFixed(2);
                     item.status$ = $translate(item.status || item.process.status);
                     item.entryType$ = $translate($scope.constProposalEntryType[item.entryType]);
                     item.userType$ = $translate(item.userType ? $scope.constProposalUserType[item.userType] : "");
@@ -6211,6 +6211,24 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.prepareClearPlayerProposalLimit = function () {
+            vm.clearPlayerProposalLimit = {
+                resMsg: '',
+                showSubmit: true
+            };
+        }
+        vm.requestClearProposalLimit = function () {
+            vm.clearPlayerProposalLimit.resMsg = '';
+            vm.clearPlayerProposalLimit.showSubmit = false;
+            socketService.$socket($scope.AppSocket, 'requestClearProposalLimit', {username: vm.selectedSinglePlayer.name}, function (data) {
+                vm.clearPlayerProposalLimit.resMsg = data;
+                vm.clearPlayerProposalLimit.showSubmit = true;
+                console.log('feedback', data);
+                $scope.safeApply();
+            }, function (err) {
+                console.log('err', err);
+            });
+        }
         ///////////////////////////////// player feedback //////////////////////////////////////////
         vm.initFeedbackQuery = function () {
             vm.playerFeedbackQuery = vm.playerFeedbackQuery || {
