@@ -11,14 +11,9 @@ let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 
 describe("Test DB Player create player", function() {
     let testPlatformObjId, testPlatformId;
-
-    // TODO:: Pending testing
-    return true;
-    
     let generatedPlayerId = [];
 
     it('Should create test player and platform', function (done) {
-
         commonTestFun.createTestPlatform().then(
             function (data) {
                 testPlatformObjId = data._id;
