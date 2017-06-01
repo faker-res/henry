@@ -1459,7 +1459,7 @@ define(['js/app'], function (myApp) {
                         playerId: vm.newPlayerExpenseQuery.playerId,
                         providerId: vm.newPlayerExpenseQuery.providerId,
                         index: newSearch ? 0 : vm.newPlayerExpenseQuery.index,
-                        limit: newSearch ? 10 : vm.newPlayerExpenseQuery.limit,
+                        limit: vm.newPlayerExpenseQuery.limit || 10,
                         sortCol: vm.newPlayerExpenseQuery.sortCol || {}
                     }
 
