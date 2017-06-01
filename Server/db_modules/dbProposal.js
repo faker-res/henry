@@ -360,7 +360,9 @@ var proposal = {
 
     getPlatformProposal: function (platform, proposalId) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
-            .populate({path: "type", model: dbconfig.collection_proposalType}).then(
+            .populate({path: "type", model: dbconfig.collection_proposalType})
+            .populate({path: "process", model: dbconfig.collection_proposalProcess})
+            .then(
                 proposalData => {
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
