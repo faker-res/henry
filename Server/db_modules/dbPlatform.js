@@ -1185,12 +1185,12 @@ var dbPlatform = {
                     }).lean().then(
                         creditLogData => {
                             if (creditLogData) {
-                                return creditLogData.gameCredit;
+                                return creditLogData.validCredit + creditLogData.lockedCredit + creditLogData.gameCredit;
                             } else {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                                     name: "DataError",
-                                    message: "Error in getting player game credit"
+                                    message: "Error in getting player balance credit"
                                 });
                             }
                         }
