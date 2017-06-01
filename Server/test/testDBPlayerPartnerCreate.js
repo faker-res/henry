@@ -12,9 +12,6 @@ describe("Test DB CreatePlayerPartner", function() {
     let testPlatformObjId, testPlatformId;
     let generatedPlayerId = [];
 
-    // TODO:: Pending testing
-    return true;
-
     it('Should create test player and platform', function (done) {
         commonTestFun.createTestPlatform().then(
             function (data) {
