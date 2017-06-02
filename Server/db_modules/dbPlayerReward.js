@@ -132,7 +132,7 @@ let dbPlayerReward = {
                         // TODO:: Refactor this two into common functions
 
                         // Check player top up amount and consumption amount has hitted requirement
-                        let topupProm = dbConfig.collection_playerTopUpRecord.find(
+                        let topupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                             {
                                 $match: {
                                     playerId: player._id,
@@ -143,65 +143,52 @@ let dbPlayerReward = {
                                         usedType: constRewardType.PLAYER_TOP_UP_RETURN
                                     }]
                                 }
+                            },
+                            {
+                                $group: {
+                                    _id: {playerId: "$playerId", platformId: "$platformId"},
+                                    amount: {$sum: "$amount"}
+                                }
                             }
                         ).then(
-                            topupData => {
-                                if (topupData && topupData.length > 0) {
-                                    let topupCredit = 0;
-                                    topupData.forEach(
-                                        data => {
-                                            topupCredit += data.data.amount
-                                        }
-                                    );
-                                    return topupCredit;
+                            summary => {
+                                if (String(summary[0]._id.playerId) == String(player._id)) {
+                                    return summary[0].amount;
                                 }
                                 else {
+                                    // No topup record will return 0
                                     return 0;
                                 }
                             }
                         );
 
-                        let bonusProm = dbConfig.collection_proposalType.findOne({
-                            platformId: player.platform,
-                            name: constProposalType.PLAYER_BONUS
-                        }).then(
-                            typeData => {
-                                if (typeData) {
-                                    return dbConfig.collection_proposal.find(
-                                        {
-                                            type: typeData._id,
-                                            "data.playerObjId": player._id,
-                                            "data.platformId": player.platform,
-                                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                            createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
-                                        }
-                                    ).lean();
+                        let consumptionProm = dbConfig.collection_playerConsumptionRecord.aggregate(
+                            {
+                                $match: {
+                                    playerId: player._id,
+                                    platformId: player.platform,
+                                    createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                                 }
-                                else {
-                                    return Q.reject({
-                                        name: "DataError",
-                                        message: "Can not find player bonus proposal type"
-                                    });
+                            },
+                            {
+                                $group: {
+                                    _id: {playerId: "$playerId", platformId: "$platformId"},
+                                    validAmount: {$sum: "$validAmount"}
                                 }
                             }
                         ).then(
-                            bonusData => {
-                                if (bonusData && bonusData.length > 0) {
-                                    let bonusCredit = 0;
-                                    bonusData.forEach(
-                                        data => {
-                                            bonusCredit += data.data.amount
-                                        }
-                                    );
-                                    return bonusCredit;
+                            summary => {
+                                if (String(summary[0]._id.playerId) == String(player._id)) {
+                                    return summary[0].validAmount;
                                 }
                                 else {
+                                    // No consumption record will return 0
                                     return 0;
                                 }
                             }
                         );
 
-                        return Promise.all([topupProm, bonusProm]);
+                        return Promise.all([topupProm, consumptionProm]);
                     }
                     else {
                         return Q.reject({
