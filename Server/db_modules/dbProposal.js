@@ -1776,7 +1776,7 @@ var proposal = {
                     obj.summary = {
                         amount: parseFloat(temp.sum1 + temp.sum2 + temp.sum3).toFixed(2),
                         // applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)
-                        applyAmount: parseFloat(temp.sum3).toFixed(2) // the one that use for 'total' on the page
+                        applyAmount: parseFloat(temp.sum3 + sumApplyAmount).toFixed(2) // the one that use for 'total' on the page
                     };
                     deferred.resolve(obj);
                 } else {
