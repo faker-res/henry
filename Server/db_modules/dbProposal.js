@@ -260,11 +260,10 @@ var proposal = {
                         }
                     }
 
-                    // TODO:: Switch this on when system is ready for auto proposal
                     // SCHEDULED AUTO APPROVAL
-                    // if (proposalTypeData.name == constProposalType.PLAYER_BONUS) {
-                    //     proposalData.status = constProposalStatus.PROCESSING;
-                    // }
+                    if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
+                        proposalData.status = constProposalStatus.PROCESSING;
+                    }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
