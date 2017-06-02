@@ -137,11 +137,7 @@ let dbPlayerReward = {
                                 $match: {
                                     playerId: player._id,
                                     platformId: player.platform,
-                                    createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                                    $or: [{bDirty: false}, {
-                                        bDirty: true,
-                                        usedType: constRewardType.PLAYER_TOP_UP_RETURN
-                                    }]
+                                    createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                                 }
                             },
                             {
