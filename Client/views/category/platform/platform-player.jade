@@ -476,6 +476,12 @@ include modalGameCreditLog
                                     option 200
                                     option(value='-1') {{'Unlimited' | translate}}
                             .inlineBlk
+                                label {{'Occupy' | translate}}
+                                select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
+                                    option(value='') {{'any' | translate}}
+                                    option(value='Y') {{'Yes' | translate}}
+                                    option(value='N') {{'No' | translate}}
+                            .inlineBlk
                                 button.btn.btn-primary(ng-click='vm.getPlayerExpenseByFilter(true)') {{'SEARCH' | translate}}
                         .well
                             .row

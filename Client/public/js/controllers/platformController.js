@@ -4846,7 +4846,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.applyPlayerReward = function () {
-            var idArr = [];
+            let idArr = [];
             if (vm.playerApplyRewardShow.topUpRecordIds) {
                 $.each(vm.playerApplyRewardShow.topUpRecordIds, function (i, v) {
                     if (v) {
@@ -4854,7 +4854,7 @@ define(['js/app'], function (myApp) {
                     }
                 })
             }
-            var sendQuery = {
+            let sendQuery = {
                 code: vm.playerApplyRewardPara.code,
                 playerId: vm.isOneSelectedPlayer().playerId,
                 data: {
@@ -4962,6 +4962,11 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
                 sortCol: vm.playerExpenseLog.sortCol || null
             };
+            if (vm.queryPara.playerExpense.dirty == 'Y') {
+                sendData.dirty = true;
+            } else if (vm.queryPara.playerExpense.dirty == 'N') {
+                sendData.dirty = false;
+            }
             if (vm.queryPara.playerExpense.providerId) {
                 sendData.providerId = vm.queryPara.playerExpense.providerId
             }
@@ -4996,6 +5001,7 @@ define(['js/app'], function (myApp) {
                         record.amount$ = parseFloat(record.amount).toFixed(2);
                         record.bonusAmount$ = parseFloat(record.bonusAmount).toFixed(2);
                         record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
+                        record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
                         return record
                     }
                 );
@@ -5033,6 +5039,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('bonusAmount1'),
                             data: "bonusAmount$", sClass: 'alignRight sumFloat'
                         },
+                        {title: $translate('Occupy'), data: "bDirty$"},
                         // {
                         //     title: $translate('commissionAmount'),
                         //     data: "commissionAmount$",
@@ -7964,6 +7971,7 @@ define(['js/app'], function (myApp) {
                     var text = time2 > time1 ? '' : $translate('RewardEndTimeStartTIme');
                     $('#rewardEndTimeValid').text(text);
                 }
+                let dateTimeRegex = /\d{4}\/\d{2}\/\d{2}\ \d{2}\:\d{2}\:\d{2}/g;
 
                 utilService.createDatePicker("#rewardValidStartTime");
                 utilService.createDatePicker("#rewardValidEndTime", {
@@ -7980,18 +7988,26 @@ define(['js/app'], function (myApp) {
                 $("#rewardValidEndTime").off('changeDate change keyup');
                 $("#rewardValidStartTime").on('changeDate change keyup', function (data) {
                     if (vm.showReward) {
+                        let inputFieldValue = $("#rewardValidStartTime > div > input").val();
+                        if( dateTimeRegex.test(inputFieldValue)) {
+                            $("#rewardValidStartTime").datetimepicker('update');
+                        }
                         vm.showReward.validStartTime = $("#rewardValidStartTime").data('datetimepicker').getLocalDate();
                         checkValidTime();
                     }
-                })
+                });
                 $("#rewardValidEndTime").on('changeDate change keyup', function (data) {
                     if (vm.showReward) {
+                        let inputFieldValue = $("#rewardValidEndTime > div > input").val();
+                        if( dateTimeRegex.test(inputFieldValue)) {
+                            $("#rewardValidEndTime").datetimepicker('update');
+                        }
                         vm.showReward.validEndTime = $("#rewardValidEndTime").data('datetimepicker').getLocalDate();
                         checkValidTime();
                     }
-                })
-            })
-        }
+                });
+            });
+        };
         vm.initReward = function () {
             vm.platformRewardPageName = "newReward";
             vm.showRewardTypeData = {};
@@ -8816,10 +8832,6 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
-            vm.platformBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
-            vm.platformBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
-            vm.platformBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
-            vm.platformBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             $scope.safeApply();
         }
 
@@ -8833,7 +8845,12 @@ define(['js/app'], function (myApp) {
 
         vm.getAutoApprovalBasic = () => {
             vm.autoApprovalBasic = vm.autoApprovalBasic || {};
+            console.log('vm.selectedPlatform.data', vm.selectedPlatform.data);
             vm.autoApprovalBasic.enableAutoApplyBonus = vm.selectedPlatform.data.enableAutoApplyBonus;
+            vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
+            vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
+            vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
+            vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             $scope.safeApply();
         };
 

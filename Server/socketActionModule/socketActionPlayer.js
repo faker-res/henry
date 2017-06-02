@@ -575,8 +575,8 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         applyRewardEvent: function applyRewardEvent(data) {
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.playerId && data.code && data.data);
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.code && data.data);
             socketUtil.emitter(self.socket, dbPlayerInfo.applyRewardEvent, [data.playerId, data.code, data.data, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
