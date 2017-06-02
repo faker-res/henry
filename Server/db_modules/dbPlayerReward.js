@@ -84,7 +84,7 @@ let dbPlayerReward = {
                     );
 
                     return {
-                        dayIndex: dayIndex,
+                        dayIndex: isApplied ? proposals.length : dayIndex,
                         isApplied: isApplied
                     };
                 }
