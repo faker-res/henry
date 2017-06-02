@@ -267,6 +267,56 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         );
     });
 
+    it('Case 4: First time withdrawal', function () {
+        return commonTestFunc.createTestPlayer(testPlatformObj._id).then(
+            data => {
+                testPlayerObj = data;
+
+                return dbConfig.collection_proposalType.findOne({
+                    platformId: testPlatformObj._id,
+                    name: constProposalType.PLAYER_BONUS
+                }).lean();
+            }
+        ).then(
+            proposalType => {
+                proposalTypeObjId = proposalType._id;
+
+                // Create top up proposal
+                let proposalData = {
+                    type: proposalTypeObjId,
+                    status: constProposalStatus.PROCESSING,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 250,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    }
+                };
+
+                return commonTestFunc.createTestAutoBonusProposal(proposalData);
+            }
+        ).then(
+            () => dbAutoProposal.applyBonus(testPlatformObj._id)
+        ).then(
+            (data) => {
+                return dbConfig.collection_proposal.findOne({
+                    'data.platformId': testPlatformObj._id,
+                    type: proposalTypeObjId,
+                    'data.playerObjId': testPlayerObj._id
+                }).then(
+                    proposal => {
+                        console.log(proposal._id);
+                        proposal.status.should.equal("Pending");
+                    }
+                );
+            }
+        );
+    });
+
     it('Should remove  test Data', function (done) {
         commonTestFunc.removeTestData(testPlatformId, [testPlayerId]).then(function (data) {
             done();

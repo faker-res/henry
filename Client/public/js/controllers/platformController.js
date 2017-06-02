@@ -7971,6 +7971,7 @@ define(['js/app'], function (myApp) {
                     var text = time2 > time1 ? '' : $translate('RewardEndTimeStartTIme');
                     $('#rewardEndTimeValid').text(text);
                 }
+                let dateTimeRegex = /\d{4}\/\d{2}\/\d{2}\ \d{2}\:\d{2}\:\d{2}/g;
 
                 utilService.createDatePicker("#rewardValidStartTime");
                 utilService.createDatePicker("#rewardValidEndTime", {
@@ -7987,18 +7988,26 @@ define(['js/app'], function (myApp) {
                 $("#rewardValidEndTime").off('changeDate change keyup');
                 $("#rewardValidStartTime").on('changeDate change keyup', function (data) {
                     if (vm.showReward) {
+                        let inputFieldValue = $("#rewardValidStartTime > div > input").val();
+                        if( dateTimeRegex.test(inputFieldValue)) {
+                            $("#rewardValidStartTime").datetimepicker('update');
+                        }
                         vm.showReward.validStartTime = $("#rewardValidStartTime").data('datetimepicker').getLocalDate();
                         checkValidTime();
                     }
-                })
+                });
                 $("#rewardValidEndTime").on('changeDate change keyup', function (data) {
                     if (vm.showReward) {
+                        let inputFieldValue = $("#rewardValidEndTime > div > input").val();
+                        if( dateTimeRegex.test(inputFieldValue)) {
+                            $("#rewardValidEndTime").datetimepicker('update');
+                        }
                         vm.showReward.validEndTime = $("#rewardValidEndTime").data('datetimepicker').getLocalDate();
                         checkValidTime();
                     }
-                })
-            })
-        }
+                });
+            });
+        };
         vm.initReward = function () {
             vm.platformRewardPageName = "newReward";
             vm.showRewardTypeData = {};
@@ -8823,10 +8832,6 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
-            vm.platformBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
-            vm.platformBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
-            vm.platformBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
-            vm.platformBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             $scope.safeApply();
         }
 
@@ -8840,7 +8845,12 @@ define(['js/app'], function (myApp) {
 
         vm.getAutoApprovalBasic = () => {
             vm.autoApprovalBasic = vm.autoApprovalBasic || {};
+            console.log('vm.selectedPlatform.data', vm.selectedPlatform.data);
             vm.autoApprovalBasic.enableAutoApplyBonus = vm.selectedPlatform.data.enableAutoApplyBonus;
+            vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
+            vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
+            vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
+            vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             $scope.safeApply();
         };
 
