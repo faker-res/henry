@@ -1408,6 +1408,9 @@ let dbPlayerInfo = {
         if (query.providerId) {
             queryObject.providerId = ObjectId(query.providerId);
         }
+        if (query.dirty != null) {
+            queryObject.bDirty = query.dirty;
+        }
         var a = dbconfig.collection_playerConsumptionRecord
             .find(queryObject).sort(sortCol).skip(index).limit(limit)
             .populate({
