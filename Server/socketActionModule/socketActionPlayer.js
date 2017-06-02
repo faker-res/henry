@@ -715,6 +715,12 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.username);
             let username = data.username || '';
             socketUtil.emitter(self.socket, pmsAPI.payment_requestClearProposalLimits, [username], actionName, isValidData);
+        },
+
+        getPlayerCreditsDaily: function getPlayerCreditsDaily(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerCreditsDaily, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

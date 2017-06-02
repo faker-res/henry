@@ -6027,6 +6027,70 @@ define(['js/app'], function (myApp) {
                 notSent: true,
             };
         }
+
+        vm.initPlayerCreditLog = function () {
+            vm.playerCreditLog = vm.playerCreditLog || {totalCount: 0, limit: 10, index: 0, query: {}};
+            utilService.actionAfterLoaded('#modalPlayerCreditLog.in #playerCreditLogQuery .endTime', function () {
+                vm.playerCreditLog.query.startTime = utilService.createDatePicker('#playerCreditLogQuery .startTime');
+                vm.playerCreditLog.query.endTime = utilService.createDatePicker('#playerCreditLogQuery .endTime');
+                vm.playerCreditLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.playerCreditLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.playerCreditLog.pageObj = utilService.createPageForPagingTable("#playerCreditLogQueryTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "playerCreditLog", vm.getPlayerCreditLogData)
+                });
+                vm.getPlayerCreditLogData(true);
+            });
+        }
+
+        vm.getPlayerCreditLogData = function (newSearch) {
+            var sendQuery = {
+                playerId: vm.selectedSinglePlayer._id,
+                from: vm.playerCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
+                to: vm.playerCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
+                index: newSearch ? 0 : vm.playerCreditLog.index,
+                limit: newSearch ? 10 : vm.playerCreditLog.limit,
+                sortCol: vm.playerCreditLog.sortCol || null
+            }
+            socketService.$socket($scope.AppSocket, 'getPlayerCreditsDaily', sendQuery, function (data) {
+                console.log('getPlayerDailyCredit', data);
+                var tblData = data && data.data ? data.data.data.map(item => {
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
+                            return pro.name + ' ';
+                        }) : $translate('all')) + ')';
+                    return item;
+                }) : [];
+                var size = data.data ? data.data.size : 0;
+                vm.playerCreditLog.totalCount = size;
+                vm.drawPlayerCreditLogTable(newSearch, tblData, size);
+            });
+        }
+        vm.drawPlayerCreditLogTable = function (newSearch, tblData, size) {
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('CREATETIME'), data: "createTime$"},
+                    {title: $translate('valid Credit'), data: "validCredit"},
+                    {title: $translate('locked Credit'), data: "lockedCredit"},
+                    {title: $translate('game Credit'), data: "gameCredit"}
+                ],
+                "paging": false,
+            });
+            var aTable = $("#playerCreditLogTbl").DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            vm.playerCreditLog.pageObj.init({maxCount: size}, newSearch);
+            $('#playerCreditLogTbl').resize();
+            $('#playerCreditLogTbl').off('order.dt');
+            $('#playerCreditLogTbl').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'playerCreditLog', vm.getPlayerCreditLogData);
+            });
+
+            $scope.safeApply();
+        }
+
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
             vm.provinceList = [];
@@ -8824,7 +8888,6 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getBonusBasic = () => {
-            console.log('getBonusBasic', JSON.stringify(vm.selectedPlatform.data));
             vm.bonusBasic = vm.bonusBasic || {};
             vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
             vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
