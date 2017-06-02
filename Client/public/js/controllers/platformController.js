@@ -4962,6 +4962,11 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
                 sortCol: vm.playerExpenseLog.sortCol || null
             };
+            if (vm.queryPara.playerExpense.dirty == 'Y') {
+                sendData.dirty = true;
+            } else if (vm.queryPara.playerExpense.dirty == 'N') {
+                sendData.dirty = false;
+            }
             if (vm.queryPara.playerExpense.providerId) {
                 sendData.providerId = vm.queryPara.playerExpense.providerId
             }
@@ -4996,6 +5001,7 @@ define(['js/app'], function (myApp) {
                         record.amount$ = parseFloat(record.amount).toFixed(2);
                         record.bonusAmount$ = parseFloat(record.bonusAmount).toFixed(2);
                         record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
+                        record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
                         return record
                     }
                 );
@@ -5033,6 +5039,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('bonusAmount1'),
                             data: "bonusAmount$", sClass: 'alignRight sumFloat'
                         },
+                        {title: $translate('Occupy'), data: "bDirty$"},
                         // {
                         //     title: $translate('commissionAmount'),
                         //     data: "commissionAmount$",
