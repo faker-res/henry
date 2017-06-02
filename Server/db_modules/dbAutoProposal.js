@@ -49,28 +49,35 @@ let dbAutoProposal = {
         ).then(
             proposals => {
                 if (proposals && proposals.length > 0) {
+                    let prom = [];
                     proposals.map(proposal => {
                         // 3. Check player status
-                        if (proposal.data.playerStatus != constPlayerStatus.NORMAL) {
+                        if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
                             sendToAudit(proposal._id, proposal.createTime, "Player not allowed for auto proposal");
                         } else {
                             // 4. Check player last bonus
-                            getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type).then(
-                                lastWithdrawDate => {
-                                    if (lastWithdrawDate) {
-                                        // Player withdrew before
-                                        let repeatCount = platformData.autoApproveRepeatCount;
-                                        checkPreviousProposals(proposal, lastWithdrawDate, repeatCount);
-                                    } else {
-                                        // Player first time withdraw
-                                        sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
+                            prom.push(
+                                getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type).then(
+                                    lastWithdrawDate => {
+                                        if (lastWithdrawDate) {
+                                            // Player withdrew before
+                                            let repeatCount = platformData.autoApproveRepeatCount;
+                                            checkPreviousProposals(proposal, lastWithdrawDate, repeatCount);
+                                        } else {
+                                            // Player first time withdraw
+                                            sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
+                                        }
                                     }
-                                }
+                                )
                             );
                         }
                     });
+                    return Promise.all(prom).then(
+                        data => {
+                            return proposals;
+                        }
+                    );
                 }
-
                 return proposals;
             }
         )

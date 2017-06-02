@@ -63,6 +63,7 @@ let dbGeoIp = require('./../db_modules/dbGeoIp');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
+let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 let dbProposal = require('./../db_modules/dbProposal');
 let dbProposalType = require('./../db_modules/dbProposalType');
@@ -7599,7 +7600,7 @@ let dbPlayerInfo = {
                     }
 
                     //  the following behavior can generate reward task
-                    var rewardTaskWithProposalList = [
+                    let rewardTaskWithProposalList = [
                         constRewardType.FIRST_TOP_UP,
                         constRewardType.PLAYER_TOP_UP_RETURN,
                         constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
@@ -7608,8 +7609,9 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_REGISTRATION_REWARD,
                         constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
                         constRewardType.FULL_ATTENDANCE,
-                        constRewardType.GAME_PROVIDER_REWARD
-                    ]
+                        constRewardType.GAME_PROVIDER_REWARD,
+                        constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD
+                    ];
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
@@ -7700,6 +7702,9 @@ let dbPlayerInfo = {
                                         });
                                     }
                                     return dbPlayerInfo.applyPlayerDoubleTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD:
+                                    return dbPlayerReward.applyConsecutiveLoginReward(playerId, code, adminInfo);
                                     break;
                                 default:
                                     return Q.reject({

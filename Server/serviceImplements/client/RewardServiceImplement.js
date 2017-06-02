@@ -1,4 +1,4 @@
-var WebSocketUtil = require("./../../server_common/WebSocketUtil");
+WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var RewardService = require("./../../services/client/ClientServices").RewardService;
 var dbRewardEvent = require('./../../db_modules/dbRewardEvent');
 var dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
@@ -10,7 +10,9 @@ var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 var SMSSender = require('../../modules/SMSSender');
 var constServerCode = require('./../../const/constServerCode');
 
-var RewardServiceImplement = function () {
+const dbPlayerReward = require('./../../db_modules/dbPlayerReward');
+
+let RewardServiceImplement = function () {
     RewardService.call(this);
     var self = this;
 
@@ -88,6 +90,12 @@ var RewardServiceImplement = function () {
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerReferralList, [conn.playerId, data.startIndex, data.requestCount, !data.sort, data.status], isValidData);
+    };
+
+    this.getConsecutiveLoginRewardDay.expectsData = 'playerId: String, code: String';
+    this.getConsecutiveLoginRewardDay.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.code && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getConsecutiveLoginRewardDay, [conn.playerId, data.code], isValidData);
     };
 
 };

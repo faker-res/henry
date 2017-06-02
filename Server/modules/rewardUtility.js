@@ -39,26 +39,11 @@ function isValidRewardEvent(type, eventData) {
             }
             break;
         case constRewardType.FIRST_TOP_UP :
-            if (eventData && eventData.param && eventData.param.reward && eventData.executeProposal) {
-                return true
-            }
-            break;
         case constRewardType.PLAYER_TOP_UP_RETURN:
-            if (eventData && eventData.param && eventData.executeProposal && eventData.param.reward) {
-                return true;
-            }
-            break;
         case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
-            if (eventData && eventData.param && eventData.executeProposal && eventData.param.reward) {
-                return true;
-            }
-            break;
         case constRewardType.PLAYER_TOP_UP_REWARD:
-            if (eventData && eventData.param && eventData.executeProposal && eventData.param.reward) {
-                return true;
-            }
-            break;
         case constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD:
+        case constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD:
             if (eventData && eventData.param && eventData.executeProposal && eventData.param.reward) {
                 return true;
             }
