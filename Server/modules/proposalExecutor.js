@@ -133,6 +133,7 @@ var proposalExecutor = {
         this.executions.executePartnerCommission.des = "Partner commission";
         this.executions.executePlayerDoubleTopUpReward.des = "Player double top up reward";
         this.executions.executePlayerWechatTopUp.des = "Player wechat top up";
+        this.executions.executePlayerConsecutiveLoginReward.des = "Player Consecutive Login Reward";
 
         this.rejections.rejectProposal.des = "Reject proposal";
         this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -170,6 +171,7 @@ var proposalExecutor = {
         this.rejections.rejectPartnerCommission.des = "Reject Partner commission";
         this.rejections.rejectPlayerDoubleTopUpReward.des = "Reject Player double top up return";
         this.rejections.rejectPlayerWechatTopUp.des = "Reject Player Top up";
+        this.rejections.rejectPlayerConsecutiveLoginReward.des = "Reject Player Consecutive Login Reward";
     },
 
     refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1822,6 +1824,40 @@ var proposalExecutor = {
                 deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
             }
         },
+
+        executePlayerConsecutiveLoginReward: function (proposalData, deferred) {
+            if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                //todo: Currently the no rewardTask is created, but direct credit to player
+                let updatePlayer = {
+                    $inc: {validCredit: proposalData.data.rewardAmount}
+                };
+
+                dbconfig.collection_players.findOneAndUpdate({
+                    _id: proposalData.data.playerObjId,
+                    platform: proposalData.data.platformId
+                }, updatePlayer, {new: true}).lean().then(
+                    function (data) {
+                        dbLogger.createCreditChangeLog(
+                            data._id, data.platform,
+                            proposalData.data.rewardAmount,
+                            proposalData.type.name,
+                            data.validCredit,
+                            null, proposalData);
+                        deferred.resolve(data);
+                    },
+                    function (err) {
+                        deferred.reject({name: "DataError", message: "Failed to update player info", error: err});
+                    }
+                );
+
+            }
+            else {
+                deferred.reject({
+                    name: "DataError",
+                    message: "Incorrect player consecutive login reward proposal data"
+                });
+            }
+        }
     },
 
     /**
@@ -2282,6 +2318,10 @@ var proposalExecutor = {
                 () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
             );
         },
+
+        rejectPlayerConsecutiveLoginReward: function (proposalData, deferred) {
+            deferred.resolve("Proposal is rejected");
+        }
     }
 };
 

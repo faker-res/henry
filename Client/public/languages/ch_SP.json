@@ -1837,5 +1837,9 @@
   "PlayerConsecutiveLoginReward":"累计签到奖励",
   "autoApproveRepeatCount": "自动审核：回圈次数",
   "autoApproveRepeatDelay": "自动审核：回圈等待时间",
-  "providerCreditAmount": "账户余额"
+  "providerCreditAmount": "账户余额",
+  "todayTopUpAmount": "今日充值额",
+  "todayBonusAmount": "今日投注额",
+  "eventDescription": "奖励活动注解",
+  "dayIndex": "累计天数"
 }
