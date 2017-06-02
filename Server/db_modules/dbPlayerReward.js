@@ -132,7 +132,7 @@ let dbPlayerReward = {
                         // TODO:: Refactor this two into common functions
 
                         // Check player top up amount and consumption amount has hitted requirement
-                        let topupProm = dbConfig.collection_playerTopUpRecord.aggregate(
+                        let topupProm = dbConfig.collection_playerTopUpRecord.find(
                             {
                                 $match: {
                                     playerId: player._id,
@@ -143,20 +143,19 @@ let dbPlayerReward = {
                                         usedType: constRewardType.PLAYER_TOP_UP_RETURN
                                     }]
                                 }
-                            },
-                            {
-                                $group: {
-                                    _id: {playerId: "$playerId", platformId: "$platformId"},
-                                    amount: {$sum: "$amount"}
-                                }
                             }
                         ).then(
-                            summary => {
-                                if (String(summary[0]._id.playerId) == String(player._id)) {
-                                    return summary[0].amount;
+                            topupData => {
+                                if (topupData && topupData.length > 0) {
+                                    let topupCredit = 0;
+                                    topupData.forEach(
+                                        data => {
+                                            topupCredit += data.data.amount
+                                        }
+                                    );
+                                    return topupCredit;
                                 }
                                 else {
-                                    // No topup record will return 0
                                     return 0;
                                 }
                             }
