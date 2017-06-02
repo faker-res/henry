@@ -21,6 +21,7 @@ const dataUtils = require("../modules/dataUtils.js");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const constProposalType = require('./../const/constProposalType');
+const constProposalStatus = require('./../const/constProposalStatus');
 
 let dbUtility = require('./../modules/dbutility');
 
@@ -308,11 +309,12 @@ var dbPlayerConsumptionRecord = {
                         pType => {
                             return dbconfig.collection_proposal.find({
                                 type: pType._id,
-                                "data.playerObjId": record.playerId
+                                "data.playerObjId": record.playerId,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                             }).sort({createTime: -1}).limit(1).lean();
                         }
                     );
-                    const topUpRecord = dbconfig.collection_playerTopUpRecord.find({playerId: record.playerId}).sort({createTime: -1}).limit(1).lean();
+                    const topUpRecord = dbconfig.collection_playerTopUpRecord.find({playerId: record.playerId, bDirty: false}).sort({createTime: -1}).limit(1).lean();
                     return Q.all([rewardProposalProm, topUpRecord]).then(
                         data => {
                             if (data && data[0] && data[0].length > 0) {
