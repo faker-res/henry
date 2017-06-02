@@ -8470,6 +8470,31 @@ let dbPlayerInfo = {
         return dbPlayerInfo.changePlayerCredit(playerObjId, platformObjId, refundAmount, reasonType, data);
     },
 
+    /**
+     * Get Player credit on specific days
+     * @param {String} query - The query String.
+     */
+    getPlayerCreditsDaily: function (playerId, from, to, index, limit, sortCol) {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {'createTime': -1};
+        var queryObj = {
+            playerObjId: playerId,
+            createTime: {
+                $gte: new Date(from),
+                $lt: new Date(to)
+            }
+        }
+        var a = dbconfig.collection_playerCreditsDailyLog.find(queryObj).count();
+        var b = dbconfig.collection_playerCreditsDailyLog.find(queryObj).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Q.all([a, b]).then(
+            data => {
+                return {size: data[0], data: data[1]}
+            }
+        )
+    },
+
     //todo::send sms to player with content ???
     sendSMStoPlayer: function (playerObjId, type, content) {
         dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
@@ -8480,6 +8505,9 @@ let dbPlayerInfo = {
             }
         );
     }
+
+
+
 };
 
 var proto = dbPlayerInfoFunc.prototype;
