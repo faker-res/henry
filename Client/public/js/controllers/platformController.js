@@ -4846,7 +4846,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.applyPlayerReward = function () {
-            var idArr = [];
+            let idArr = [];
             if (vm.playerApplyRewardShow.topUpRecordIds) {
                 $.each(vm.playerApplyRewardShow.topUpRecordIds, function (i, v) {
                     if (v) {
@@ -4854,7 +4854,7 @@ define(['js/app'], function (myApp) {
                     }
                 })
             }
-            var sendQuery = {
+            let sendQuery = {
                 code: vm.playerApplyRewardPara.code,
                 playerId: vm.isOneSelectedPlayer().playerId,
                 data: {

@@ -235,7 +235,8 @@
                 "createFirstTopUpRewardProposal",
                 "applyProviderReward",
                 "applyRewardEvent",
-                "getPlayerReferralList"
+                "getPlayerReferralList",
+                "getConsecutiveLoginRewardDay"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 
