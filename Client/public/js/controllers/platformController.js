@@ -4846,7 +4846,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.applyPlayerReward = function () {
-            var idArr = [];
+            let idArr = [];
             if (vm.playerApplyRewardShow.topUpRecordIds) {
                 $.each(vm.playerApplyRewardShow.topUpRecordIds, function (i, v) {
                     if (v) {
@@ -4854,7 +4854,7 @@ define(['js/app'], function (myApp) {
                     }
                 })
             }
-            var sendQuery = {
+            let sendQuery = {
                 code: vm.playerApplyRewardPara.code,
                 playerId: vm.isOneSelectedPlayer().playerId,
                 data: {
@@ -4962,6 +4962,11 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
                 sortCol: vm.playerExpenseLog.sortCol || null
             };
+            if (vm.queryPara.playerExpense.dirty == 'Y') {
+                sendData.dirty = true;
+            } else if (vm.queryPara.playerExpense.dirty == 'N') {
+                sendData.dirty = false;
+            }
             if (vm.queryPara.playerExpense.providerId) {
                 sendData.providerId = vm.queryPara.playerExpense.providerId
             }
@@ -4996,6 +5001,7 @@ define(['js/app'], function (myApp) {
                         record.amount$ = parseFloat(record.amount).toFixed(2);
                         record.bonusAmount$ = parseFloat(record.bonusAmount).toFixed(2);
                         record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
+                        record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
                         return record
                     }
                 );
@@ -5033,6 +5039,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('bonusAmount1'),
                             data: "bonusAmount$", sClass: 'alignRight sumFloat'
                         },
+                        {title: $translate('Occupy'), data: "bDirty$"},
                         // {
                         //     title: $translate('commissionAmount'),
                         //     data: "commissionAmount$",
@@ -5897,7 +5904,7 @@ define(['js/app'], function (myApp) {
                 var tableData = data.data ? data.data.data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.rewardType$ = $translate(vm.platformRewardtype[item.type]);
-                    item.rewardAmount$ = parseFloat(item.data.rewardAmount).toFixed(2);
+                    item.rewardAmount$ = parseFloat((item.data.rewardAmount || item.data.amount)).toFixed(2);
                     item.status$ = $translate(item.status || item.process.status);
                     item.entryType$ = $translate($scope.constProposalEntryType[item.entryType]);
                     item.userType$ = $translate(item.userType ? $scope.constProposalUserType[item.userType] : "");
@@ -8825,10 +8832,6 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
-            vm.platformBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
-            vm.platformBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
-            vm.platformBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
-            vm.platformBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             $scope.safeApply();
         }
 
@@ -8842,7 +8845,12 @@ define(['js/app'], function (myApp) {
 
         vm.getAutoApprovalBasic = () => {
             vm.autoApprovalBasic = vm.autoApprovalBasic || {};
+            console.log('vm.selectedPlatform.data', vm.selectedPlatform.data);
             vm.autoApprovalBasic.enableAutoApplyBonus = vm.selectedPlatform.data.enableAutoApplyBonus;
+            vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
+            vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
+            vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
+            vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             $scope.safeApply();
         };
 

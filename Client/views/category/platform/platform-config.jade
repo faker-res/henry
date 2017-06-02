@@ -498,26 +498,6 @@
                                 td
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
-                            tr
-                                td {{'autoApproveWhenSingleBonusApplyLessThan' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showAutoApproveWhenSingleBonusApplyLessThan')
-                            tr
-                                td {{'autoApproveWhenSingleDayTotalBonusApplyLessThan' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
-                            tr
-                                td {{'autoApproveRepeatCount' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showAutoApproveRepeatCount}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showAutoApproveRepeatCount')
-                            tr
-                                td {{'autoApproveRepeatDelay' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showAutoApproveRepeatDelay}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showAutoApproveRepeatDelay')
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
@@ -549,32 +529,43 @@
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bonusBasic")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bonusBasic")') {{"CONFIRM" | translate}}
 
-                    //div(ng-if='vm.selectedConfigTab=="autoApproval"')
-                        div
-                            text {{Player Bonus Auto Approval | translate}}
-                            input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
-                        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
-                            thead
-                                tr
-                                    th {{'NAME' | translate}}
-                                    th {{'VALUE' | translate}}
-                            tbody
-                                tr
-                                    td {{'Percentage Charge' | translate}}
-                                    td
-                                        text(ng-show='!vm.configTableEdit') {{vm.bonusBasic.bonusPercentageCharges}}%
-                                        input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.bonusBasic.bonusPercentageCharges')
-                                tr
-                                    td {{'Apply without charge' | translate}}
-                                    td
-                                        text(ng-show='!vm.configTableEdit') {{vm.bonusBasic.bonusCharges}}
-                                        input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.bonusBasic.bonusCharges')
-                        br
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'bonusBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
-                            text {{'EDIT' | translate}}
-                            img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bonusBasic")') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bonusBasic")') {{"CONFIRM" | translate}}
+                div(ng-if='vm.selectedConfigTab=="autoApproval"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'Player Bonus Auto Approval' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.enableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Single Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan')
+                            tr
+                                td {{'Single Day Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
+                            tr
+                                td {{'Auto Approval Retry Count' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatCount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveRepeatCount')
+                            tr
+                                td {{'Auto Approval Interval' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatDelay}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveRepeatDelay')
+                    br
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bonusBasic")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bonusBasic")') {{"CONFIRM" | translate}}
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")

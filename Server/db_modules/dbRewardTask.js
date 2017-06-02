@@ -278,14 +278,6 @@ var dbRewardTask = {
         ).then(
             function (taskData) {
                 if (taskData) {
-                    //if unlockedAmount + amount > requiredUnlockAmount, means reward task is completed
-                    //unlock reward task
-                    // taskData.unlockedAmount += consumptionRecord.validAmount;
-                    // if (taskData.unlockedAmount >= taskData.requiredUnlockAmount) {
-                    //     taskData.isUnlock = true;
-                    //     taskData.status = constRewardTaskStatus.ACHIEVED;
-                    // }
-
                     taskData.unlockedAmount += (taskData.requiredBonusAmount > 0 ? 0 : consumptionRecord.validAmount);
                     taskData.bonusAmount += consumptionRecord.bonusAmount;
                     taskData.unlockedBonusAmount += (taskData.requiredBonusAmount > 0 ? consumptionRecord.bonusAmount : 0);
@@ -332,7 +324,7 @@ var dbRewardTask = {
                             else {
                                 proms.push(Q.resolve(taskData));
                             }
-                            if (newTaskData.useConsumption && !(newTaskData.isUnlock && bAchieved)) {
+                            if (newTaskData.useConsumption && (!newTaskData.isUnlock && bAchieved)) {
                                 bDirty = true;
                                 proms.push(dbconfig.collection_playerConsumptionRecord.findOneAndUpdate(
                                     {_id: consumptionRecord._id, createTime: consumptionRecord.createTime},
@@ -342,54 +334,6 @@ var dbRewardTask = {
                             return Q.all(proms);
                         }
                     );
-
-                    //////////original code
-                    //
-                    // var proms = [];
-                    // var taskProm = dbconfig.collection_rewardTask.findOneAndUpdate(
-                    //     {_id: taskData._id, platformId: taskData.platformId},
-                    //     {
-                    //         $inc: {
-                    //             unlockedAmount: (taskData.requiredBonusAmount > 0 ? 0 : consumptionRecord.validAmount),
-                    //             bonusAmount: consumptionRecord.bonusAmount,
-                    //             unlockedBonusAmount: (taskData.requiredBonusAmount > 0 ? consumptionRecord.bonusAmount : 0),
-                    //         }
-                    //     },
-                    //     {new: true}
-                    // ).then(
-                    //     newTask => {
-                    //         if (newTask) {
-                    //             if (newTask.bonusAmount < 1) {
-                    //                 newTask.isUnlock = true;
-                    //                 newTask.status = constRewardTaskStatus.NO_CREDIT;
-                    //             }
-                    //             //check player registration reward task
-                    //             else if (newTask.unlockedBonusAmount >= newTask.requiredBonusAmount && newTask.requiredBonusAmount > 0) {
-                    //                 newTask.isUnlock = true;
-                    //                 newTask.status = constRewardTaskStatus.ACHIEVED;
-                    //             }
-                    //             else if (newTask.unlockedAmount >= newTask.requiredUnlockAmount && newTask.requiredUnlockAmount > 0) {
-                    //                 newTask.isUnlock = true;
-                    //                 newTask.status = constRewardTaskStatus.ACHIEVED;
-                    //             }
-                    //             return newTask.save();
-                    //         }
-                    //         else {
-                    //             return newTask;
-                    //         }
-                    //     }
-                    // );
-                    // proms.push(taskProm);
-                    // if (taskData.useConsumption) {
-                    //     bDirty = true;
-                    //     var recordProm = dbconfig.collection_playerConsumptionRecord.findOneAndUpdate(
-                    //         {_id: consumptionRecord._id, createTime: consumptionRecord.createTime},
-                    //         {bDirty: true}
-                    //     );
-                    //     proms.push(recordProm);
-                    // }
-                    //
-                    // return Q.all(proms);
                 }
                 else {
                     //deferred.resolve(false);
@@ -429,7 +373,6 @@ var dbRewardTask = {
                         }
                     }
                     else {
-                        //deferred.resolve(bDirty);
                         return bDirty;
                     }
                 }

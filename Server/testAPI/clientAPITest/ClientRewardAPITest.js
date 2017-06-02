@@ -165,6 +165,12 @@
         this.rewardService.getPlayerReferralList.once(callback);
     };
 
+    proto.getConsecutiveLoginRewardDay = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getConsecutiveLoginRewardDay.request(data);
+        this.rewardService.getConsecutiveLoginRewardDay.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {
