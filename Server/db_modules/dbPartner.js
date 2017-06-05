@@ -41,9 +41,9 @@ let dbPartner = {
                     partnerData.platform = platformData._id;
 
                     // attach platform prefix to player name if available
-                    if (platformData.partnerPrefix) {
-                        partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
-                    }
+                    // if (platformData.partnerPrefix) {
+                    //     partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
+                    // }
 
                     return dbPartner.isPhoneNumberValidToRegister({
                         phoneNumber: partnerData.phoneNumber,
