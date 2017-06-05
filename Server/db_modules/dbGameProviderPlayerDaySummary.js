@@ -1,12 +1,12 @@
-var dbconfig = require('./../modules/dbproperties');
-var dbUtil = require('../modules/dbutility');
-var SettlementBalancer = require('../settlementModule/settlementBalancer');
-var constSystemParam = require('../const/constSystemParam');
-var constServerCode = require('./../const/constServerCode');
-var constShardKeys = require('../const/constShardKeys');
-var Q = require("q");
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
+const dbconfig = require('./../modules/dbproperties');
+const dbUtil = require('../modules/dbutility');
+const SettlementBalancer = require('../settlementModule/settlementBalancer');
+const constSystemParam = require('../const/constSystemParam');
+const constServerCode = require('./../const/constServerCode');
+const constShardKeys = require('../const/constShardKeys');
+const Q = require("q");
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbGameProviderPlayerDaySummary = {
 
@@ -44,27 +44,34 @@ var dbGameProviderPlayerDaySummary = {
      * @param {ObjectId} providerId - The provider id
      */
     streamPlayersWithConsumptionInTimeFrame: function (startTime, endTime, providerId, platformId) {
-        platformId = Array.isArray(platformId) ?platformId :[platformId];
+        if (platformId) {
+            platformId = Array.isArray(platformId) ? platformId.map(id => ObjectId(id)) : [ObjectId(platformId)];
+        }
+        let matchObj = {
+            providerId: providerId,
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            $or: [
+                {isDuplicate: {$exists: false}},
+                {
+                    $and: [
+                        {isDuplicate: {$exists: true}},
+                        {isDuplicate: false}
+                    ]
+                }
+            ]
+        };
+        if (platformId) {
+            matchObj.platformId = {
+                $in: platformId
+            };
+        }
         return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
-                    $match: {
-                        providerId: providerId,
-                        createTime: {
-                            $gte: startTime,
-                            $lt: endTime
-                        },
-                        platformId: {
-                            $in:platformId
-                        },
-                        $or: [
-                            {isDuplicate: {$exists: false}},
-                            {$and: [
-                                {isDuplicate: {$exists: true}},
-                                {isDuplicate: false}
-                            ]}
-                        ]
-                    }
+                    $match: matchObj
                 },
                 {
                     $group: {
@@ -129,10 +136,12 @@ var dbGameProviderPlayerDaySummary = {
                         },
                         $or: [
                             {isDuplicate: {$exists: false}},
-                            {$and: [
-                                {isDuplicate: {$exists: true}},
-                                {isDuplicate: false}
-                            ]}
+                            {
+                                $and: [
+                                    {isDuplicate: {$exists: true}},
+                                    {isDuplicate: false}
+                                ]
+                            }
                         ]
                     }
                 },
