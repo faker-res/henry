@@ -148,7 +148,7 @@ let dbPlayerReward = {
                             }
                         ).then(
                             summary => {
-                                if (String(summary[0]._id.playerId) == String(player._id)) {
+                                if (summary && summary[0] && String(summary[0]._id.playerId) == String(player._id)) {
                                     return summary[0].amount;
                                 }
                                 else {
