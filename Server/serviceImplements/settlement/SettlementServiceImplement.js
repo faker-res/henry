@@ -1,20 +1,22 @@
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var PlayerService = require("./../../settlementService/SettlementServices").PlayerService;
-var dbPlayerConsumptionDaySummary = require('./../../db_modules/dbPlayerConsumptionDaySummary');
-var dbPlayerConsumptionWeekSummary = require('./../../db_modules/dbPlayerConsumptionWeekSummary');
-var dbPlayerGameTypeConsumptionWeekSummary = require('./../../db_modules/dbPlayerGameTypeConsumptionWeekSummary');
-var dbPlayerTopUpDaySummary = require('./../../db_modules/dbPlayerTopUpDaySummary');
-var dbPlayerTopUpWeekSummary = require('./../../db_modules/dbPlayerTopUpWeekSummary');
-var dbGameProviderPlayerDaySummary = require('./../../db_modules/dbGameProviderPlayerDaySummary');
-var dbPartnerWeekSummary = require("../../db_modules/dbPartnerWeekSummary.js");
-let dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
-var dbPlatform = require('./../../db_modules/dbPlatform');
-var dbPartner = require('./../../db_modules/dbPartner');
-var dbRewardTask = require('./../../db_modules/dbRewardTask');
-let dbRewardEvent = require('./../../db_modules/dbRewardEvent');
 
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
+const dbAutoProposal = require('./../../db_modules/dbAutoProposal');
+const dbPlayerConsumptionDaySummary = require('./../../db_modules/dbPlayerConsumptionDaySummary');
+const dbPlayerConsumptionWeekSummary = require('./../../db_modules/dbPlayerConsumptionWeekSummary');
+const dbPlayerGameTypeConsumptionWeekSummary = require('./../../db_modules/dbPlayerGameTypeConsumptionWeekSummary');
+const dbPlayerTopUpDaySummary = require('./../../db_modules/dbPlayerTopUpDaySummary');
+const dbPlayerTopUpWeekSummary = require('./../../db_modules/dbPlayerTopUpWeekSummary');
+const dbGameProviderPlayerDaySummary = require('./../../db_modules/dbGameProviderPlayerDaySummary');
+const dbPartnerWeekSummary = require("../../db_modules/dbPartnerWeekSummary.js");
+const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
+const dbPlatform = require('./../../db_modules/dbPlatform');
+const dbPartner = require('./../../db_modules/dbPartner');
+const dbRewardTask = require('./../../db_modules/dbRewardTask');
+const dbRewardEvent = require('./../../db_modules/dbRewardEvent');
+
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 var SettlementServiceImplement = function () {
     PlayerService.call(this);
@@ -204,7 +206,13 @@ var SettlementServiceImplement = function () {
         let isValidData = Boolean(data && data.dupsSummariesData);
         let args = [data.dupsSummariesData];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionRecord.markDuplicatedConsumptionRecords, args, isValidData);
-    }
+    };
+
+    this.processAutoProposals.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.proposals && data.platformObj && data.proposalTypeObjId);
+        let args = [data.proposals, data.platformObj, data.proposalTypeObjId];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbAutoProposal.processAutoProposals, args, isValidData);
+    };
 };
 
 let proto = SettlementServiceImplement.prototype = Object.create(PlayerService.prototype);
