@@ -301,7 +301,7 @@ let removeDuplicatedConsumptionRecords = function (startTime, endTime) {
                 count: { $gte: 2 }
             }
         }
-    ).cursor({batchSize: 100}).exec();
+    ).cursor({batchSize: 100}).allowDiskUse(true).exec();
 
     return balancer.initConns().then(() => {
         return Q(
