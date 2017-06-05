@@ -1,8 +1,10 @@
-var dbconfig = require('./../modules/dbproperties');
-var dbUtil = require('../modules/dbutility');
-var constServerCode = require('./../const/constServerCode');
-var constShardKeys = require('../const/constShardKeys');
-var Q = require("q");
+const dbconfig = require('./../modules/dbproperties');
+const dbUtil = require('../modules/dbutility');
+const constServerCode = require('./../const/constServerCode');
+const constShardKeys = require('../const/constShardKeys');
+const Q = require("q");
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbGameProviderDaySummary = {
 
@@ -37,33 +39,44 @@ var dbGameProviderDaySummary = {
      * @param {Date} endTime - The end time
      * @param {ObjectId} providerId - The provider id
      */
-    calculateProviderDaySummaryForTimeFrame: function(startTime, endTime, providerId, platformId){
+    calculateProviderDaySummaryForTimeFrame: function (startTime, endTime, providerId, platformId) {
         let deferred = Q.defer();
-        platformId = Array.isArray(platformId) ?platformId :[platformId];
-
+        if (platformId) {
+            platformId = Array.isArray(platformId) ? platformId.map(id => ObjectId(id)) : [ObjectId(platformId)];
+        }
+        const matchObj = {
+            providerId: providerId,
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            $or: [
+                {isDuplicate: {$exists: false}},
+                {
+                    $and: [
+                        {isDuplicate: {$exists: true}},
+                        {isDuplicate: false}
+                    ]
+                }
+            ]
+        };
+        if (platformId) {
+            matchObj.platformId = {$in: platformId};
+        }
         //because this aggregate will not have too many records, so no stream for this
         dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
-                    $match: {
-                        providerId: providerId,
-                        createTime: {
-                            $gte: startTime,
-                            $lt: endTime
-                        },
-                        platformId :{$in: platformId},
-                        $or: [
-                            {isDuplicate: {$exists: false}},
-                            {$and: [
-                                {isDuplicate: {$exists: true}},
-                                {isDuplicate: false}
-                            ]}
-                        ]
-                    }
+                    $match: matchObj
                 },
                 {
                     $group: {
-                        _id: {providerId: "$providerId", gameId: "$gameId", gameType: "$gameType", platformId: "$platformId"},
+                        _id: {
+                            providerId: "$providerId",
+                            gameId: "$gameId",
+                            gameType: "$gameType",
+                            platformId: "$platformId"
+                        },
                         amount: {$sum: "$amount"},
                         validAmount: {$sum: "$validAmount"},
                         bonusAmount: {$sum: "$bonusAmount"},
@@ -72,10 +85,10 @@ var dbGameProviderDaySummary = {
                 }
             ]
         ).exec().then(
-            function(data){
-                if( data && data.length > 0 ){
+            function (data) {
+                if (data && data.length > 0) {
                     var prom = [];
-                    for( var i = 0; i < data.length; i++ ){
+                    for (var i = 0; i < data.length; i++) {
                         var summary = {
                             providerId: data[i]._id.providerId,
                             gameId: data[i]._id.gameId,
@@ -87,23 +100,23 @@ var dbGameProviderDaySummary = {
                             bonusAmount: data[i].bonusAmount,
                             consumptionTimes: data[i].times
                         };
-                        prom.push( dbGameProviderDaySummary.upsert(summary) );
+                        prom.push(dbGameProviderDaySummary.upsert(summary));
                     }
                     return Q.all(prom);
                 }
-                else{
+                else {
                     //todo:: replace string with const???
                     deferred.resolve("No player consumption today!");
                 }
             },
-            function(error){
+            function (error) {
                 deferred.reject({name: "DBError", message: "Error finding player consumption record!", error: error});
             }
         ).then(
-            function(data){
+            function (data) {
                 deferred.resolve(data);
             },
-            function(error){
+            function (error) {
                 deferred.reject({name: "DBError", message: "Error creating provider day summary!", error: error});
             }
         );
