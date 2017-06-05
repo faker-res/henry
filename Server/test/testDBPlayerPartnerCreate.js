@@ -13,7 +13,7 @@ describe("Test DB CreatePlayerPartner", function() {
     let generatedPlayerId = [];
 
     it('Should create test player and platform', function (done) {
-        commonTestFun.createTestPlatform().then(
+        commonTestFun.createTestPlatform({"prefix": "RE", "partnerPrefix":'REP'}).then(
             function (data) {
                 testPlatformObjId = data._id;
                 testPlatformId = data.platformId;
@@ -48,8 +48,8 @@ describe("Test DB CreatePlayerPartner", function() {
             data => {
                 // data[0] is the player object, data[1] is the partner object
                 data.length.should.be.equal(2);
-                data[0].name.should.be.equal('huatzhi');
-                data[1].partnerName.should.be.equal('huatzhi');
+                data[0].name.should.be.equal('rehuatzhi');
+                data[1].partnerName.should.be.equal('rephuatzhi');
                 data[1].email.should.be.equal('huat@snsoft.com');
                 data[0].password.should.not.be.equal('LorGianZhi');
                 data[0].platform.toString().should.be.equal(testPlatformObjId.toString());
