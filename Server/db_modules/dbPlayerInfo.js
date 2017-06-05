@@ -5841,7 +5841,7 @@ let dbPlayerInfo = {
                                         //fix player negative credit
                                         if (newPlayerData.validCredit < 0 && newPlayerData.validCredit > -0.02) {
                                             newPlayerData.validCredit = 0;
-                                            newPlayerData.findOneAndUpdate(
+                                            dbconfig.collection_players.findOneAndUpdate(
                                                 {_id: newPlayerData._id, platform: newPlayerData.platform},
                                                 {validCredit: 0}
                                             ).then();
