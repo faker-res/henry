@@ -6062,6 +6062,9 @@ define(['js/app'], function (myApp) {
                 console.log('getPlayerDailyCredit', data);
                 var tblData = data && data.data ? data.data.data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
+                    item.validCredit = (item.validCredit).toFixed(2);
+                    item.lockedCredit = (item.lockedCredit).toFixed(2);
+                    item.gameCredit = (item.gameCredit).toFixed(2);
                     item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
                             return pro.name + ' ';
                         }) : $translate('all')) + ')';
