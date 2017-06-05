@@ -153,7 +153,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initGameCreditLog()', data-target='#modalGameCreditLog')
             text {{"GAME_CREDIT_LOG" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'playerCreditLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerCreditLog()', data-target='#modalPlayerCreditLog')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerCreditLog()', data-target='#modalPlayerCreditLog')
             text {{"Player Credit Log" | translate}}
             img.img-edit
 

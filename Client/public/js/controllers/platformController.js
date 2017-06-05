@@ -6050,6 +6050,9 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getPlayerCreditLogData = function (newSearch) {
+            if (!authService.checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')) {
+                return;
+            }
             var sendQuery = {
                 playerId: vm.selectedSinglePlayer._id,
                 from: vm.playerCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
