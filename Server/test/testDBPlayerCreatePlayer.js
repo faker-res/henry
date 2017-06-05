@@ -14,7 +14,7 @@ describe("Test DB Player create player", function() {
     let generatedPlayerId = [];
 
     it('Should create test player and platform', function (done) {
-        commonTestFun.createTestPlatform().then(
+        commonTestFun.createTestPlatform({"prefix": "RE", "partnerPrefix":'REP'}).then(
             function (data) {
                 testPlatformObjId = data._id;
                 testPlatformId = data.platformId;
@@ -49,7 +49,7 @@ describe("Test DB Player create player", function() {
         dbPlayerInfo.createPlayerInfo(exampleInput).then(
             data => {
                 generatedPlayerId.push(data._id);
-                data.name.should.be.equal('testplayerone');
+                data.name.should.be.equal('retestplayerone');
                 data.email.should.be.equal('huat@snsoft.my');
                 data.password.should.not.be.equal('testplay');
                 done();
@@ -137,7 +137,7 @@ describe("Test DB Player create player", function() {
         dbPlayerInfo.createPlayerInfoAPI(exampleInput).then(
             data => {
                 generatedPlayerId.push(data._id);
-                data.name.should.be.equal('testplayerthree');
+                data.name.should.be.equal('retestplayerthree');
                 data.email.should.be.equal('huat@****ft.cot'); // api output censored the email
                 data.password.should.not.be.equal('testplay');
                 done();
