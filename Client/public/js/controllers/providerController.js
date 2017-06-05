@@ -608,15 +608,28 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
             $('#modalSettlementAction').modal().show();
         }
+
         vm.doSettlement = function () {
             vm.settlementAction.result = '';
             $scope.safeApply();
-
             if (!vm.SelectedProvider) return;
-            socketService.$socket($scope.AppSocket, 'manualDailyProviderSettlement', {
+            let sendData={
                 providerId: vm.SelectedProvider._id,
                 settlementDay: vm.settlementAction.date
-            }, function (data) {
+            };
+
+            sendData.selectedPlatformID = (vm.selectedPlatformID === "_allPlatform") ?vm.allPlatformId :vm.selectedPlatformID;
+            
+            // if(vm.selectedPlatformID !== "_allPlatform") {
+            //     sendData.selectedPlatformID = vm.selectedPlatformID;
+            // }
+            // else{
+            //     sendData.selectedPlatformID = vm.allPlatformId;
+            // }
+
+            console.log(sendData);
+
+            socketService.$socket($scope.AppSocket, 'manualDailyProviderSettlement',sendData, function (data) {
                 console.log("Settlement done:", data);
                 vm.getAllProvider(function () {
                     var selectedTree = $('#providerTree').treeview('search', [vm.SelectedProvider.name, {
@@ -949,6 +962,10 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                         if (data.data) {
                             vm.platformList = data.data;
+                            vm.allPlatformId = vm.platformList.reduce((temp,platform)=>{
+                                temp.push(platform._id);
+                                return temp;
+                            },[]);
                             if (vm.platformList.length == 0) {
                                 return;
                             } else {

@@ -155,7 +155,7 @@ let dailyProviderSettlement = {
         );
     },
 
-    manualDailyProviderSettlement: function (providerId, settlementDay) {
+    manualDailyProviderSettlement: function (providerId, settlementDay, platformId) {
         let startTime = dbutility.getDayStartTime(settlementDay);
         let endTime = dbutility.getDayEndTime(settlementDay);
 
@@ -174,11 +174,11 @@ let dailyProviderSettlement = {
             }
         ).then(
             data => {
-                return dbGameProviderPlayerDaySummary.calculateProviderPlayerDaySummaryForTimeFrame(startTime, endTime, providerId);
+                return dbGameProviderPlayerDaySummary.calculateProviderPlayerDaySummaryForTimeFrame(startTime, endTime, providerId, platformId);
             }
         ).then(
             data => {
-                return dbGameProviderDaySummary.calculateProviderDaySummaryForTimeFrame(startTime, endTime, providerId);
+                return dbGameProviderDaySummary.calculateProviderDaySummaryForTimeFrame(startTime, endTime, providerId, platformId);
             }
         ).then(
             data => {

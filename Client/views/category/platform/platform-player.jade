@@ -150,9 +150,13 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'rewardTaskLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initRewardTaskLog()', data-target='#modalRewardTaskLog')
             text {{"RewardTask Log" | translate}}
             img.img-edit
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initGameCreditLog()', data-target='#modalGameCreditLog')
-                text {{"GAME_CREDIT_LOG" | translate}}
-                img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initGameCreditLog()', data-target='#modalGameCreditLog')
+            text {{"GAME_CREDIT_LOG" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'playerCreditLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerCreditLog()', data-target='#modalPlayerCreditLog')
+            text {{"Player Credit Log" | translate}}
+            img.img-edit
+
 // All Players Query
 .col-md-12.playerBtn
     hr.margin-top-bottom-small
@@ -1178,6 +1182,27 @@ include modalGameCreditLog
                 label {{"Total" | translate}} {{vm.playerBonusHistory.totalCount}} {{"records" | translate}}
                 table#playerBonusHistoryTbl.common-table(style='min-width:100%')
                 #playerBonusHistoryTblPage.height30
+
+#modalPlayerCreditLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:90%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Player Credit Log" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                #playerCreditLogQuery.well
+                    .inlineBlk
+                        label {{"Start date" | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{"End date" | translate}}
+                        .endTime
+                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerCreditLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                div
+                    label {{"Total" | translate}} {{vm.playerCreditLog.totalCount}} {{"records" | translate}}
+                    table#playerCreditLogTbl.common-table.display(style='min-width:100%')
+                    #playerCreditLogTblPage.height30
+
 #modalPlayerManualTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
         .modal-content

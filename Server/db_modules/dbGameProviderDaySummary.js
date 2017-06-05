@@ -37,8 +37,9 @@ var dbGameProviderDaySummary = {
      * @param {Date} endTime - The end time
      * @param {ObjectId} providerId - The provider id
      */
-    calculateProviderDaySummaryForTimeFrame: function(startTime, endTime, providerId){
+    calculateProviderDaySummaryForTimeFrame: function(startTime, endTime, providerId, platformId){
         let deferred = Q.defer();
+        platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //because this aggregate will not have too many records, so no stream for this
         dbconfig.collection_playerConsumptionRecord.aggregate(
@@ -50,6 +51,7 @@ var dbGameProviderDaySummary = {
                             $gte: startTime,
                             $lt: endTime
                         },
+                        platformId :{$in: platformId},
                         $or: [
                             {isDuplicate: {$exists: false}},
                             {$and: [
