@@ -263,7 +263,8 @@ var roleChecker = {
                 ModifyGamePassword: ['modifyGamePassword'],
                 ClearProposalLimit: ['requestClearProposalLimit'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
-                TriggerSavePlayersCredit: ['triggerSavePlayersCredit']
+                TriggerSavePlayersCredit: ['triggerSavePlayersCredit'],
+                playerDailyCreditLog :['playerCreditDailyLog']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
