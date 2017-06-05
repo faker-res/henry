@@ -43,7 +43,8 @@ var dbGameProviderPlayerDaySummary = {
      * @param {Date} endTime - The end time
      * @param {ObjectId} providerId - The provider id
      */
-    streamPlayersWithConsumptionInTimeFrame: function (startTime, endTime, providerId) {
+    streamPlayersWithConsumptionInTimeFrame: function (startTime, endTime, providerId, platformId) {
+        platformId = Array.isArray(platformId) ?platformId :[platformId];
         return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
@@ -52,6 +53,9 @@ var dbGameProviderPlayerDaySummary = {
                         createTime: {
                             $gte: startTime,
                             $lt: endTime
+                        },
+                        platformId: {
+                            $in:platformId
                         },
                         $or: [
                             {isDuplicate: {$exists: false}},
@@ -77,11 +81,11 @@ var dbGameProviderPlayerDaySummary = {
      * @param {Date} endTime - The end time
      * @param {ObjectId} providerId - The provider id
      */
-    calculateProviderPlayerDaySummaryForTimeFrame: function (startTime, endTime, providerId) {
+    calculateProviderPlayerDaySummaryForTimeFrame: function (startTime, endTime, providerId, platformId) {
         let balancer = new SettlementBalancer();
 
         return balancer.initConns().then(function () {
-            let stream = dbGameProviderPlayerDaySummary.streamPlayersWithConsumptionInTimeFrame(startTime, endTime, providerId);
+            let stream = dbGameProviderPlayerDaySummary.streamPlayersWithConsumptionInTimeFrame(startTime, endTime, providerId, platformId);
 
             return Q(
                 balancer.processStream({

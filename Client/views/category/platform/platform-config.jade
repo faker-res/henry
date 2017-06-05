@@ -564,8 +564,8 @@
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
-                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bonusBasic")') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bonusBasic")') {{"CONFIRM" | translate}}
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("autoApproval")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("autoApproval")') {{"CONFIRM" | translate}}
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")

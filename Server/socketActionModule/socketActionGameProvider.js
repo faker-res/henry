@@ -130,7 +130,7 @@ function socketActionGame(socketIO, socket) {
         manualDailyProviderSettlement: function manualDailyProviderSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.providerId && data.settlementDay);
-            socketUtil.emitter(self.socket, dailyProviderSettlement.manualDailyProviderSettlement, [ObjectId(data.providerId), new Date(data.settlementDay)], actionName, isValidData);
+            socketUtil.emitter(self.socket, dailyProviderSettlement.manualDailyProviderSettlement, [ObjectId(data.providerId), new Date(data.settlementDay), data.selectedPlatformID], actionName, isValidData);
         },
 
         /**

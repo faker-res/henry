@@ -1556,6 +1556,10 @@ var dbPlatform = {
         return Q.all([countProm, recordProm]).then(data => {
             return {total: data[0], data: data[1]};
         })
+    },
+
+    updateAutoApprovalConfig: function (query, updateData) {
+        return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true});
     }
 };
 

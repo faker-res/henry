@@ -70,6 +70,7 @@ var platformSchema = new Schema({
     //allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
     //auto approve related
+    enableAutoApplyBonus: {type: Boolean, default: false},
     autoApproveWhenSingleBonusApplyLessThan: {type: Number, default: 0},
     autoApproveWhenSingleDayTotalBonusApplyLessThan: {type: Number, default: 0},
     autoApproveRepeatCount: {type: Number, default: 0},
