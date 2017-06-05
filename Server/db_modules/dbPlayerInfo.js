@@ -7302,7 +7302,7 @@ let dbPlayerInfo = {
                     }
                     else if ((deficitAmount * eventParam.rewardPercentage) >= eventParam.minRewardAmount) {
                         // Incentive by percentage
-                        proposalData.data.rewardAmount = Math.min(Math.floor(deficitAmount * eventParam.rewardPercentage), eventParam.maxRewardAmount);
+                        proposalData.data.rewardAmount = Math.min((deficitAmount * eventParam.rewardPercentage), eventParam.maxRewardAmount);
                         proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventParam.spendingTimes;
 
                         return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
