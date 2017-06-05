@@ -131,15 +131,17 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             () => dbAutoProposal.applyBonus(testPlatformObj._id)
         ).then(
             () => {
-                return dbConfig.collection_proposal.findOne({
-                    'data.platformId': testPlatformObj._id,
-                    type: proposalTypeObjId,
-                    'data.playerObjId': testPlayerObj._id
-                }).then(
-                    proposal => {
-                        proposal.status.should.equal("Pending");
-                    }
-                )
+                setTimeout(() => {
+                    return dbConfig.collection_proposal.findOne({
+                        'data.platformId': testPlatformObj._id,
+                        type: proposalTypeObjId,
+                        'data.playerObjId': testPlayerObj._id
+                    }).then(
+                        proposal => {
+                            proposal.status.should.equal("Pending");
+                        }
+                    )
+                }, 100);
             }
         );
     });
@@ -198,15 +200,17 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             () => dbAutoProposal.applyBonus(testPlatformObj._id)
         ).then(
             () => {
-                return dbConfig.collection_proposal.findOne({
-                    'data.platformId': testPlatformObj._id,
-                    type: proposalTypeObjId,
-                    'data.playerObjId': testPlayerObj._id
-                }).then(
-                    proposal => {
-                        proposal.status.should.equal("Pending");
-                    }
-                )
+                setTimeout(() => {
+                    return dbConfig.collection_proposal.findOne({
+                        'data.platformId': testPlatformObj._id,
+                        type: proposalTypeObjId,
+                        'data.playerObjId': testPlayerObj._id
+                    }).then(
+                        proposal => {
+                            proposal.status.should.equal("Pending");
+                        }
+                    )
+                }, 100);
             }
         );
     });
@@ -254,15 +258,17 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             () => dbAutoProposal.applyBonus(testPlatformObj._id)
         ).then(
             () => {
-                return dbConfig.collection_proposal.findOne({
-                    'data.platformId': testPlatformObj._id,
-                    type: proposalTypeObjId,
-                    'data.playerObjId': testPlayerObj._id
-                }).then(
-                    proposal => {
-                        proposal.status.should.equal("Pending");
-                    }
-                );
+                setTimeout(() => {
+                    return dbConfig.collection_proposal.findOne({
+                        'data.platformId': testPlatformObj._id,
+                        type: proposalTypeObjId,
+                        'data.playerObjId': testPlayerObj._id
+                    }).then(
+                        proposal => {
+                            proposal.status.should.equal("Pending");
+                        }
+                    );
+                }, 200);
             }
         );
     });
@@ -303,16 +309,18 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             () => dbAutoProposal.applyBonus(testPlatformObj._id)
         ).then(
             (data) => {
-                return dbConfig.collection_proposal.findOne({
-                    'data.platformId': testPlatformObj._id,
-                    type: proposalTypeObjId,
-                    'data.playerObjId': testPlayerObj._id
-                }).then(
-                    proposal => {
-                        console.log(proposal._id);
-                        proposal.status.should.equal("Pending");
-                    }
-                );
+                setTimeout(() => {
+                    return dbConfig.collection_proposal.findOne({
+                        'data.platformId': testPlatformObj._id,
+                        type: proposalTypeObjId,
+                        'data.playerObjId': testPlayerObj._id
+                    }).then(
+                        proposal => {
+                            console.log(proposal._id);
+                            proposal.status.should.equal("Pending");
+                        }
+                    );
+                }, 200);
             }
         );
     });
