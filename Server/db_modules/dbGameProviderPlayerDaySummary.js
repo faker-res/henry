@@ -47,7 +47,7 @@ var dbGameProviderPlayerDaySummary = {
         if (platformId) {
             platformId = Array.isArray(platformId) ? platformId.map(id => ObjectId(id)) : [ObjectId(platformId)];
         }
-        const matchObj = {
+        let matchObj = {
             providerId: providerId,
             createTime: {
                 $gte: startTime,
