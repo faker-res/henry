@@ -3193,6 +3193,7 @@ let dbPlayerInfo = {
     },
 
     getLoggedInPlayersCount: function (platform) {
+        platform = Array.isArray(platform) ?platform :[platform];
         return dbconfig.collection_players.find(
             {
                 platform: {
@@ -5642,10 +5643,10 @@ let dbPlayerInfo = {
         if (amount < 100) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
-        var player = null;
-        var bonusDetail = null;
-        var bUpdateCredit = false;
-        var resetCredit = function (playerObjId, platformObjId, credit, error) {
+        let player = null;
+        let bonusDetail = null;
+        let bUpdateCredit = false;
+        let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
                 {
@@ -5866,7 +5867,8 @@ let dbPlayerInfo = {
                                             remark: player.remark,
                                             lastSettleTime: new Date(),
                                             honoreeDetail: honoreeDetail,
-                                            creditCharge: creditCharge
+                                            creditCharge: creditCharge,
+                                            isAutoApproval: player.platform.enableAutoApplyBonus
                                             //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                         };
                                         var newProposal = {
@@ -8469,6 +8471,31 @@ let dbPlayerInfo = {
         return dbPlayerInfo.changePlayerCredit(playerObjId, platformObjId, refundAmount, reasonType, data);
     },
 
+    /**
+     * Get Player credit on specific days
+     * @param {String} query - The query String.
+     */
+    getPlayerCreditsDaily: function (playerId, from, to, index, limit, sortCol) {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {'createTime': -1};
+        var queryObj = {
+            playerObjId: playerId,
+            createTime: {
+                $gte: new Date(from),
+                $lt: new Date(to)
+            }
+        }
+        var a = dbconfig.collection_playerCreditsDailyLog.find(queryObj).count();
+        var b = dbconfig.collection_playerCreditsDailyLog.find(queryObj).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Q.all([a, b]).then(
+            data => {
+                return {size: data[0], data: data[1]}
+            }
+        )
+    },
+
     //todo::send sms to player with content ???
     sendSMStoPlayer: function (playerObjId, type, content) {
         dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
@@ -8479,6 +8506,9 @@ let dbPlayerInfo = {
             }
         );
     }
+
+
+
 };
 
 var proto = dbPlayerInfoFunc.prototype;

@@ -203,6 +203,11 @@
                     .panel-body
                         .col-md-12.block-query.well
                             div
+                                label{{"Platform" | translate}}
+                                select.form-control(ng-model='vm.selectedPlatformID')
+                                    option(value='_allPlatform' ng-selected='vm.selectedPlatformID=="_allPlatform"') All Platforms
+                                    option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatformID==v._id') {{v.name}}
+                            div
                                 label {{'date' | translate}}
                                 input.form-control(type='date', ng-model='vm.settlementAction.date')
                             div

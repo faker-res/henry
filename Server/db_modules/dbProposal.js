@@ -260,11 +260,10 @@ var proposal = {
                         }
                     }
 
-                    // TODO:: Switch this on when system is ready for auto proposal
                     // SCHEDULED AUTO APPROVAL
-                    // if (proposalTypeData.name == constProposalType.PLAYER_BONUS) {
-                    //     proposalData.status = constProposalStatus.PROCESSING;
-                    // }
+                    if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
+                        proposalData.status = constProposalStatus.PROCESSING;
+                    }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
@@ -1012,7 +1011,7 @@ var proposal = {
         var finalSummary = [];
         size = Math.min(size, constSystemParam.REPORT_MAX_RECORD_NUM);
 
-        var prom1 = dbconfig.collection_proposalType.find({platformId: platformId}).exec();
+        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in:platformId}}).exec();
         var prom2 = dbconfig.collection_admin.findOne({_id: adminId}).exec();
         return Q.all([prom1, prom2]).then(
             function (data) {
@@ -1174,8 +1173,10 @@ var proposal = {
     },
 
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, relateUser, entryType, startTime, endTime, index, size, sortCol) {//need
+        platformId = Array.isArray(platformId) ?platformId :[platformId];
+
         //check proposal without process
-        var prom1 = dbconfig.collection_proposalType.find({platformId: platformId}).lean();
+        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in:platformId}}).lean();
 
         //check proposal with process
         // var prom2 = dbconfig.collection_proposalTypeProcess.find({platformId: platformId}).lean().then(
