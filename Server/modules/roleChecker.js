@@ -342,7 +342,7 @@ var roleChecker = {
                 ValidActiveUpdate: ['updatePartnerLevelConfig'],
                 PartnerCommission: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig'],
                 platformBasic: [],
-                autoApproval: []
+                autoApproval: ['updateAutoApprovalConfig']
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],

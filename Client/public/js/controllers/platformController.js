@@ -9020,6 +9020,9 @@ define(['js/app'], function (myApp) {
                 case 'bonusBasic':
                     updateBonusBasic(vm.bonusBasic);
                     break;
+                case 'autoApproval':
+                    updateAutoApprovalConfig(vm.autoApprovalBasic);
+                    break;
             }
         };
 
@@ -9130,11 +9133,7 @@ define(['js/app'], function (myApp) {
                 updateData: {
                     minTopUpAmount: srcData.showMinTopupAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
-                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
-                    autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
-                    autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                    autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
-                    autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay
+                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -9155,6 +9154,26 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                 console.log('update bonus socket', JSON.stringify(data));
+                vm.loadPlatformData({loadAll: false});
+            });
+        }
+
+        function updateAutoApprovalConfig(srcData) {
+            console.log('\n\n\nupdateAutoApprovalConfig', JSON.stringify(srcData));
+            let sendData = {
+                query: {_id: vm.selectedPlatform.id},
+                updateData: {
+                    enableAutoApplyBonus: srcData.enableAutoApplyBonus,
+                    autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
+                    autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
+                    autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
+                    autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay
+                }
+            };
+            console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
+
+            socketService.$socket($scope.AppSocket, 'updateAutoApprovalConfig', sendData, function (data) {
+                console.log('update auto approval socket', JSON.stringify(data));
                 vm.loadPlatformData({loadAll: false});
             });
         }

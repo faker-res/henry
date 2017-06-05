@@ -225,6 +225,12 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbRewardEvent.startSavePlayersCredit, [data.platformObjId], actionName, isDataValid);
+        },
+
+        updateAutoApprovalConfig: function updateAutoApprovalConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updateAutoApprovalConfig, [data.query, data.updateData], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;

@@ -5643,10 +5643,10 @@ let dbPlayerInfo = {
         if (amount < 100) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
-        var player = null;
-        var bonusDetail = null;
-        var bUpdateCredit = false;
-        var resetCredit = function (playerObjId, platformObjId, credit, error) {
+        let player = null;
+        let bonusDetail = null;
+        let bUpdateCredit = false;
+        let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
                 {
@@ -5867,7 +5867,8 @@ let dbPlayerInfo = {
                                             remark: player.remark,
                                             lastSettleTime: new Date(),
                                             honoreeDetail: honoreeDetail,
-                                            creditCharge: creditCharge
+                                            creditCharge: creditCharge,
+                                            isAutoApproval: player.platform.enableAutoApplyBonus
                                             //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                         };
                                         var newProposal = {

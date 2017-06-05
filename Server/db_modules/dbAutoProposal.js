@@ -229,7 +229,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
                                             // There is no spending amount specified for reward
                                             checkPassed = true;
                                         }
-                                        else if (record[0].validAmount > getProp.data.spendingAmount) {
+                                        else if (record && record[0] && record[0].validAmount > getProp.data.spendingAmount) {
                                             // Consumption Sum exceed required unlock amount
                                             checkPassed = true;
                                         }
