@@ -1848,13 +1848,14 @@
   "PLAYER_REGISTRATION_REWARD_REPORT": "注册彩金奖励报表",
   "Auto Approval Retry Count": "回圈次数",
   "Auto Approval Interval": "回圈等待时间",
-  "providerCreditAmount": "账户余额",
-  "todayTopUpAmount": "今日充值额",
-  "todayBonusAmount": "今日投注额",
+  "todayTopUpAmount": "当日充值额",
+  "todayBonusAmount": "当日投注额",
   "eventDescription": "奖励活动注解",
   "dayIndex": "累计天数",
   "Player Bonus Auto Approval": "玩家提款自动审核",
   "Auto Approval Setting": "自动审核设置",
   "autoApproval": "自动审核",
-  "PREVIOUS_CONSECUTIVE_LOGIN": "补签"
+  "PREVIOUS_CONSECUTIVE_LOGIN": "补签",
+  "applyForDate": "签到日期",
+  "isPrevious": "是否为补签"
 }
