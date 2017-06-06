@@ -1,6 +1,6 @@
 'use strict';
 
-// var Q = require("q");
+var Q = require("q");
 // var moment = require('moment-timezone');
 // var dbUtil = require('./modules/dbutility');
 //
@@ -94,6 +94,19 @@
 // testTree.add(12);
 // testTree.printPreOrder(testTree.root);
 
-var moment = require('moment-timezone');
-var temp = moment().tz('Asia/Singapore').startOf("week").add(3, 'day').toDate().setHours(23, 2, 0, 0);
-console.log(moment(temp).tz('Asia/Singapore'));
+// var moment = require('moment-timezone');
+// var temp = moment().tz('Asia/Singapore').startOf("week").add(3, 'day').toDate().setHours(23, 2, 0, 0);
+// console.log(moment(temp).tz('Asia/Singapore'));
+
+function runSerial(tasks) {
+    var result = Promise.resolve();
+    tasks.forEach(task => {
+        result = result.then(() => task());
+    });
+    return result;
+}
+
+let proms = [];
+for( let i = 0; i < 10; i++ ){
+    proms.push(Q.resolve(i));
+}
