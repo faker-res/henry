@@ -314,23 +314,28 @@ var dbPlayerConsumptionRecord = {
                             }).sort({createTime: -1}).limit(1).lean();
                         }
                     );
-                    const topUpRecord = dbconfig.collection_playerTopUpRecord.find({playerId: record.playerId, bDirty: false}).sort({createTime: -1}).limit(1).lean();
-                    return Q.all([rewardProposalProm, topUpRecord]).then(
+                    return rewardProposalProm.then(
                         data => {
-                            if (data && data[0] && data[0].length > 0) {
-                                let rewardTime = new Date(data[0][0].createTime);
-                                let topUpTime = new Date();
-                                if (data[1] && data[1].length > 0) {
-                                    topUpTime = new Date(data[1][0].createTime);
-                                }
-                                const recordTime = new Date(record.createTime);
-                                if (topUpTime.getTime() > rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime() && recordTime.getTime() < topUpTime.getTime()) {
-                                    return true;
-                                }
-                                if (topUpTime.getTime() < rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime()) {
-                                    return true;
-                                }
-                                return checkResult;
+                            if (data && data.length > 0) {
+                                let rewardTime = new Date(data[0].createTime);
+                                return dbconfig.collection_playerTopUpRecord.find({playerId: record.playerId, createTime: {$gte: rewardTime}}).sort({createTime: 1}).limit(1).lean().then(
+                                    tRecord => {
+                                        let topUpTime = new Date();
+                                        if (tRecord && tRecord.length > 0) {
+                                            topUpTime = new Date(tRecord[0].createTime);
+                                        }
+                                        const recordTime = new Date(record.createTime);
+                                        if (topUpTime.getTime() > rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime() && recordTime.getTime() < topUpTime.getTime()) {
+                                            return true;
+                                        }
+                                        if (topUpTime.getTime() < rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime()) {
+                                            return true;
+                                        }
+                                        return checkResult;
+                                    }
+                                );
+
+
                             }
                             else {
                                 return checkResult;

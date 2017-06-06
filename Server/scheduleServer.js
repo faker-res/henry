@@ -7,6 +7,7 @@ let scheduleSettlement = require('./schedule/scheduleSettlement');
 let scheduleProposal = require('./schedule/scheduleProposal');
 let scheduleSavePlayersCredit = require('./schedule/scheduleSavePlayersCredit');
 //todo:: eanble this later
+//let scheduleAutoProposal = require('./schedule/scheduleAutoProposal');
 //var scheduleProposalExpiration = require('./schedule/scheduleProposalExpiration');
 
 //var scheduleStatistics = require('./schedule/scheduleStatistics');

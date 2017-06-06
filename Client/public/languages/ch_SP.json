@@ -1841,6 +1841,11 @@
   "Single Withdrawal Limit": "单笔提款金额小于",
   "Single Day Withdrawal Limit": "单日总提款金额小于",
   "PlayerConsecutiveLoginReward":"累计签到奖励",
+  "autoApproveRepeatCount": "自动审核：回圈次数",
+  "autoApproveRepeatDelay": "自动审核：回圈等待时间",
+  "providerCreditAmount": "账户余额",
+  "PLAYER_DOUBLE_TOP_UP_REWARD_REPORT": "玩家多次充值奖励报表",
+  "PLAYER_REGISTRATION_REWARD_REPORT": "注册彩金奖励报表",
   "Auto Approval Retry Count": "回圈次数",
   "Auto Approval Interval": "回圈等待时间",
   "providerCreditAmount": "账户余额",
@@ -1850,5 +1855,6 @@
   "dayIndex": "累计天数",
   "Player Bonus Auto Approval": "玩家提款自动审核",
   "Auto Approval Setting": "自动审核设置",
-  "autoApproval": "自动审核"
+  "autoApproval": "自动审核",
+  "PREVIOUS_CONSECUTIVE_LOGIN": "补签"
 }

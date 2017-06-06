@@ -44,7 +44,8 @@
                 "checkPlatformPlayersRewardTask",
                 "getPartnerPlayersCommissionInfo",
                 "savePlayerCredit",
-                "markDuplicatedConsumptionRecords"
+                "markDuplicatedConsumptionRecords",
+                "processAutoProposals"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

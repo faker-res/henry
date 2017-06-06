@@ -11,10 +11,12 @@ const constShardKeys = require('../const/constShardKeys');
 
 const dbProposal = require('./../db_modules/dbProposal');
 
+const pmsAPI = require("../externalAPI/pmsAPI.js");
+
 const dbconfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 
-const pmsAPI = require("../externalAPI/pmsAPI.js");
+const SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 let dbAutoProposal = {
     applyBonus: (platformObjId) => {
@@ -26,61 +28,81 @@ let dbAutoProposal = {
                 return dbconfig.collection_proposalType.findOne({
                     platformId: platformObjId,
                     name: constProposalType.PLAYER_BONUS
-                })
+                }).lean();
             }
         ).then(
             proposalType => {
-                proposalTypeObjId = proposalType._id;
-                return dbconfig.collection_proposal.find({
-                    type: proposalTypeObjId,
-                    status: constProposalStatus.PROCESSING
-                })
-            }
-        ).then(
-            proposals => {
-                if (proposals && proposals.length > 0) {
-                    // 1. Check single withdrawal limit - passed
-                    let checkProps1 = checkSingleWithdrawalLimit(proposals, platformData);
+                if (proposalType) {
+                    proposalTypeObjId = proposalType._id;
 
-                    // 2. Check single day withdrawal limit
-                    return checkSingleDayWithdrawalLimit(checkProps1, platformData, proposalTypeObjId);
-                }
-            }
-        ).then(
-            proposals => {
-                if (proposals && proposals.length > 0) {
-                    let prom = [];
-                    proposals.map(proposal => {
-                        // 3. Check player status
-                        if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
-                            sendToAudit(proposal._id, proposal.createTime, "Player not allowed for auto proposal");
-                        } else {
-                            // 4. Check player last bonus
-                            prom.push(
-                                getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type).then(
-                                    lastWithdrawDate => {
-                                        if (lastWithdrawDate) {
-                                            // Player withdrew before
-                                            let repeatCount = platformData.autoApproveRepeatCount;
-                                            checkPreviousProposals(proposal, lastWithdrawDate, repeatCount);
-                                        } else {
-                                            // Player first time withdraw
-                                            sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
-                                        }
-                                    }
-                                )
-                            );
-                        }
+                    let stream = dbconfig.collection_proposal.find({
+                        type: proposalTypeObjId,
+                        status: constProposalStatus.PROCESSING
+                    }).cursor({batchSize: 10000});
+
+                    let balancer = new SettlementBalancer();
+                    return balancer.initConns().then(function () {
+                        return balancer.processStream(
+                            {
+                                stream: stream,
+                                batchSize: constSystemParam.BATCH_SIZE,
+                                makeRequest: function (proposals, request) {
+                                    request("player", "processAutoProposals", {
+                                        proposals: proposals,
+                                        platformObj: platformData,
+                                        proposalTypeObjId: proposalTypeObjId,
+                                    });
+                                }
+                            }
+                        );
                     });
-                    return Promise.all(prom).then(
-                        data => {
-                            return proposals;
-                        }
-                    );
                 }
-                return proposals;
             }
         )
+    },
+
+    processAutoProposals: (proposals, platformObj, proposalTypeObjId) => {
+        if (proposals && proposals.length > 0) {
+            // 1. Check single withdrawal limit - passed
+            let checkProps1 = checkSingleWithdrawalLimit(proposals, platformObj);
+
+            // 2. Check single day withdrawal limit
+            return checkSingleDayWithdrawalLimit(checkProps1, platformObj, proposalTypeObjId).then(
+                proposals => {
+                    if (proposals && proposals.length > 0) {
+                        let prom = [];
+                        proposals.map(proposal => {
+                            // 3. Check player status
+                            if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
+                                sendToAudit(proposal._id, proposal.createTime, "Player not allowed for auto proposal");
+                            } else {
+                                // 4. Check player last bonus
+                                prom.push(
+                                    getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type).then(
+                                        lastWithdrawDate => {
+                                            if (lastWithdrawDate) {
+                                                // Player withdrew before
+                                                let repeatCount = platformData.autoApproveRepeatCount;
+                                                checkPreviousProposals(proposal, lastWithdrawDate, repeatCount);
+                                            } else {
+                                                // Player first time withdraw
+                                                sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
+                                            }
+                                        }
+                                    )
+                                );
+                            }
+                        });
+                        return Promise.all(prom).then(
+                            data => {
+                                return proposals;
+                            }
+                        );
+                    }
+                    return proposals;
+                }
+            )
+        }
     }
 };
 
@@ -148,8 +170,7 @@ function getBonusRecordsOfPlayers(players, proposalTypeObjId) {
                     $lt: todayTime.endTime
                 },
                 'data.playerObjId': {$in: players},
-                // TODO:: Check success bonus history only??
-                //status: constProposalStatus.SUCCESS
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }
         },
         {
@@ -173,7 +194,7 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
                 return retData[0].createTime;
             }
         }
-    )
+    ).lean();
 }
 
 function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
@@ -183,7 +204,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
         createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
         mainType: {$in: ["TopUp", "Reward"]}
-    }).sort({createTime: -1}).then(
+    }).sort({createTime: -1}).lean().then(
         proposals => {
             let isApprove = true, proms = [];
             let countProposals = 0;

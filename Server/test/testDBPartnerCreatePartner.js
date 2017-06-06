@@ -13,7 +13,7 @@ describe('Test DB Partner create partner', function () {
     // let generatedPartnerId = [];
 
     it('Should create test player and platform', function (done) {
-        commonTestFun.createTestPlatform().then(
+        commonTestFun.createTestPlatform({"prefix": "RE", "partnerPrefix":'REP'}).then(
             function (data) {
                 testPlatformObjId = data._id;
                 testPlatformId = data.platformId;
@@ -47,7 +47,7 @@ describe('Test DB Partner create partner', function () {
         dbPartner.createPartner(exampleInput).then(
             data => {
                 // console.log('data', data);
-                data.partnerName.should.be.equal('sarahyoh');
+                data.partnerName.should.be.equal('repsarahyoh');
                 data.email.should.be.equal('sarahYoh@sarahYoh.com');
                 data.password.should.not.be.equal('sarahYoh');
                 data.platform.should.be.equal(testPlatformObjId);
@@ -135,7 +135,7 @@ describe('Test DB Partner create partner', function () {
         dbPartner.createPartnerAPI(exampleInput).then(
             data => {
                 console.log('data', data);
-                data.partnerName.should.be.equal('zorualeong');
+                data.partnerName.should.be.equal('repzorualeong');
                 data.email.should.be.equal('Zorua@LeongUniverse.co');
                 data.password.should.not.be.equal('ZoruaLeong');
                 data.platform.toString().should.be.equal(testPlatformObjId.toString());
@@ -152,15 +152,15 @@ describe('Test DB Partner create partner', function () {
         );
     });
 
-    it('Should remove all test Data', function(done) {
-        commonTestFun.removeTestData(testPlatformObjId,  []).then(function(data){
+    it('Should remove all test Data', function (done) {
+        commonTestFun.removeTestData(testPlatformObjId, []).then(function (data) {
             done();
-        })
+        });
     });
 
-    it('Should remove all test Data', function(done) {
-        commonTestFun.removeTestProposalData([],testPlatformObjId, [], []).then(function(data){
+    it('Should remove all test Data', function (done) {
+        commonTestFun.removeTestProposalData([], testPlatformObjId, [], []).then(function (data) {
             done();
-        })
+        });
     });
 });

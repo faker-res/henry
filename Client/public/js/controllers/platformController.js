@@ -4794,14 +4794,16 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         }
+
         vm.playerApplyRewardCodeChange = function (obj) {
             console.log('received', obj);
             vm.playerApplyEventResult = null;
             if (!obj)return;
-            var rewardObj = angular.fromJson(obj);
+            let rewardObj = angular.fromJson(obj);
             if (!rewardObj)return;
             vm.playerApplyRewardPara.code = rewardObj.code;
-            var type = rewardObj.type ? rewardObj.type.name : null;
+            let type = rewardObj.type ? rewardObj.type.name : null;
+
             if (type == 'FirstTopUp') {
                 vm.playerApplyRewardShow.selectTopupRecordsMulti = true;
                 vm.playerApplyRewardShow.topUpRecordIds = {};
@@ -4809,6 +4811,7 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardShow.selectTopupRecordsMulti = false;
                 vm.playerApplyRewardShow.topUpRecordIds = {};
             }
+
             if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward") {
                 vm.playerApplyRewardShow.TopupRecordSelect = true;
                 vm.playerAllTopupRecords = null;
@@ -4816,8 +4819,11 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.playerApplyRewardShow.TopupRecordSelect = false;
             }
+
             vm.playerApplyRewardShow.AmountInput = type == "GameProviderReward";
             vm.playerApplyRewardShow.showReferral = type == "PlayerReferralReward"
+
+            // PlayerConsumptionReturn
             vm.playerApplyRewardShow.showConsumptionReturn = type == "PlayerConsumptionReturn";
             vm.playerApplyRewardShow.consumptionReturnData = {};
             if (type == "PlayerConsumptionReturn") {
@@ -4842,8 +4848,12 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            // PlayerConsecutiveLoginReward
+            vm.playerApplyRewardShow.manualSignConsecutiveLogin = type == "PlayerConsecutiveLoginReward";
+
             $scope.safeApply();
-        }
+        };
 
         vm.applyPlayerReward = function () {
             let idArr = [];
@@ -4874,7 +4884,24 @@ define(['js/app'], function (myApp) {
                 console.log(err);
                 $scope.safeApply();
             });
-        }
+        };
+
+        vm.applyPreviousConsecutiveLoginReward = function () {
+            let sendQuery = {
+                code: vm.playerApplyRewardPara.code,
+                playerId: vm.isOneSelectedPlayer().playerId
+            };
+            socketService.$socket($scope.AppSocket, 'applyPreviousConsecutiveLoginReward', sendQuery, function (data) {
+                console.log('sent', data);
+                vm.playerApplyEventResult = data;
+                vm.getPlatformPlayersData();
+                $scope.safeApply();
+            }, function (err) {
+                vm.playerApplyEventResult = err;
+                console.log(err);
+                $scope.safeApply();
+            });
+        };
 
         vm.initPlayerAddRewardTask = function () {
             vm.playerAddRewadTask = {
@@ -8466,6 +8493,9 @@ define(['js/app'], function (myApp) {
         vm.topupProviderChange = function (provider, checked) {
             if (!provider) {
                 return;
+            }
+            if(!vm.rewardParams.hasOwnProperty('providers')){
+                vm.rewardParams.providers = [];
             }
             if (checked && vm.rewardParams.providers.indexOf(provider) == -1) {
                 vm.rewardParams.providers.push(provider);
