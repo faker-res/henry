@@ -317,7 +317,7 @@ var dbPlayerConsumptionRecord = {
                     return rewardProposalProm.then(
                         data => {
                             if (data && data.length > 0) {
-                                let rewardTime = new Date(data[0][0].createTime);
+                                let rewardTime = new Date(data[0].createTime);
                                 return dbconfig.collection_playerTopUpRecord.find({playerId: record.playerId, createTime: {$gte: rewardTime}}).sort({createTime: 1}).limit(1).lean().then(
                                     tRecord => {
                                         let topUpTime = new Date();
