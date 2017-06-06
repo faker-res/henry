@@ -40,7 +40,7 @@ let dbAutoProposal = {
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
                         status: constProposalStatus.PROCESSING,
-                        $or:[{"data.lastAutoApproveCheckTime": {$exist: false}}, {"data.lastAutoApproveCheckTime": {$lte: lastCheckBefore}}]
+                        $or:[{"data.lastAutoApproveCheckTime": {$exists: false}}, {"data.lastAutoApproveCheckTime": {$lte: lastCheckBefore}}]
                     }).cursor({batchSize: 10000});
 
                     let balancer = new SettlementBalancer();
@@ -191,13 +191,13 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
         'data.playerObjId': playerObjId,
         type: type,
         $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}]
-    }).sort({createTime: -1}).limit(1).then(
+    }).sort({createTime: -1}).limit(1).lean().then(
         retData => {
             if (retData && retData[0]) {
                 return retData[0].createTime;
             }
         }
-    ).lean();
+    );
 }
 
 function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
