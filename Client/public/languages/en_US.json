@@ -871,5 +871,6 @@
   "autoApproveRepeatDelay": "Auto Approve: Repeat Delay Time",
   "providerCreditAmount": "Provider Credit Amount",
   "PLAYER_DOUBLE_TOP_UP_REWARD_REPORT": "Player Double Top Up Reward Report",
-  "PLAYER_REGISTRATION_REWARD_REPORT": "Player Registration Reward Report"
+  "PLAYER_REGISTRATION_REWARD_REPORT": "Player Registration Reward Report",
+  "PREVIOUS_CONSECUTIVE_LOGIN": "Previous Consecutive Login"
 }
