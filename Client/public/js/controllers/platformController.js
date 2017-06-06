@@ -8494,6 +8494,9 @@ define(['js/app'], function (myApp) {
             if (!provider) {
                 return;
             }
+            if(!vm.rewardParams.hasOwnProperty('providers')){
+                vm.rewardParams.providers = [];
+            }
             if (checked && vm.rewardParams.providers.indexOf(provider) == -1) {
                 vm.rewardParams.providers.push(provider);
             } else if (!checked && vm.rewardParams.providers.indexOf(provider) !== -1) {
