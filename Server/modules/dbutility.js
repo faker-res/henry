@@ -199,6 +199,13 @@ var dbUtility = {
         return date ? moment(date).tz('Asia/Singapore').startOf('day').add(1, 'days').toDate() : null;
     },
 
+    getPreviousSGDayOfDate: function (date) {
+        return date ? {
+            startTime: moment(date).subtract(1, 'days').tz('Asia/Singapore').startOf('day').toDate(),
+            endTime: moment(date).subtract(1, 'days').tz('Asia/Singapore').startOf('day').add(1, 'days').toDate()
+        } : null;
+    },
+
     /**
      * @deprecated
      *
