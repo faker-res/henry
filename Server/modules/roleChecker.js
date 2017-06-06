@@ -247,7 +247,7 @@ var roleChecker = {
                 CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
                 PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
                 AddRewardTask: ['createPlayerRewardTask'],
-                applyReward: [],
+                applyReward: ['applyPreviousConsecutiveLoginReward'],
                 RewardHistory: ['queryRewardProposal', 'getPlatformRewardProposal'],
                 PlayerPermission: ['updatePlayerPermission'],
                 CallPlayer: [],

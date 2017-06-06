@@ -103,7 +103,6 @@ let dbPlayerReward = {
         let todayTime = dbUtility.getTodaySGTime();
         let event = {};
         let adminInfo = ifAdmin;
-        let todayTopUpAmount, todayBonusAmount;
 
         let playerProm = dbConfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
@@ -129,62 +128,7 @@ let dbPlayerReward = {
                     if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD, eventData) && eventData.needApply) {
                         event = eventData;
 
-                        // TODO:: Refactor this two into common functions
-
-                        // Check player top up amount and consumption amount has hitted requirement
-                        let topupProm = dbConfig.collection_playerTopUpRecord.aggregate(
-                            {
-                                $match: {
-                                    playerId: player._id,
-                                    platformId: player.platform,
-                                    createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
-                                }
-                            },
-                            {
-                                $group: {
-                                    _id: {playerId: "$playerId", platformId: "$platformId"},
-                                    amount: {$sum: "$amount"}
-                                }
-                            }
-                        ).then(
-                            summary => {
-                                if (summary && summary[0] && String(summary[0]._id.playerId) == String(player._id)) {
-                                    return summary[0].amount;
-                                }
-                                else {
-                                    // No topup record will return 0
-                                    return 0;
-                                }
-                            }
-                        );
-
-                        let consumptionProm = dbConfig.collection_playerConsumptionRecord.aggregate(
-                            {
-                                $match: {
-                                    playerId: player._id,
-                                    platformId: player.platform,
-                                    createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
-                                }
-                            },
-                            {
-                                $group: {
-                                    _id: {playerId: "$playerId", platformId: "$platformId"},
-                                    validAmount: {$sum: "$validAmount"}
-                                }
-                            }
-                        ).then(
-                            summary => {
-                                if (String(summary[0]._id.playerId) == String(player._id)) {
-                                    return summary[0].validAmount;
-                                }
-                                else {
-                                    // No consumption record will return 0
-                                    return 0;
-                                }
-                            }
-                        );
-
-                        return Promise.all([topupProm, consumptionProm]);
+                        return processConsecutiveLoginRewardRequest(player, todayTime, event, adminInfo);
                     }
                     else {
                         return Q.reject({
@@ -202,56 +146,187 @@ let dbPlayerReward = {
                     });
                 }
             }
-        ).then(
+        );
+    },
+
+    /*
+     * player apply for previous consecutive login reward
+     * @param {String} playerId
+     * @param {String} code
+     */
+    applyPreviousConsecutiveLoginReward: function (playerId, code, ifAdmin) {
+        let platformId = null;
+        let player = {};
+        let todayTime = dbUtility.getTodaySGTime();
+        let event = {};
+        let adminInfo = ifAdmin;
+        let todayTopUpAmount, todayBonusAmount;
+
+        let playerProm = dbConfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+        return playerProm.then(
             data => {
-                todayTopUpAmount = data[0];
-                todayBonusAmount = data[1];
+                //get player's platform reward event data
+                if (data && data.playerLevel) {
+                    player = data;
+                    platformId = player.platform;
 
-                let curWeekTime = dbUtility.getCurrentWeekSGTime();
-
-                if (todayTopUpAmount >= event.param.dailyTopUpAmount && todayBonusAmount >= event.param.dailyConsumptionAmount) {
-                    // Check proposals for this week's reward apply
-                    return dbConfig.collection_proposal.find({
-                        type: event.executeProposal,
-                        'data.platformId': platformId,
-                        'data.playerId': player.playerId,
-                        createTime: {$gte: curWeekTime.startTime, $lt: curWeekTime.endTime},
-                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                    });
+                    //get reward event data
+                    return dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD, code);
                 }
                 else {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                        name: "DataError",
-                        message: "Player does not have enough top up or consumption amount"
-                    });
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
                 }
             }
         ).then(
-            proposals => {
-                if (proposals) {
-                    let dayIndex = proposals.length + 1;
-                    let curReward = null;
-                    let todayTime = dbUtility.getTodaySGTime();
-                    let isApplied = false;
+            data => {
+                if (data) {
+                    let eventData = data;
+                    let promsArray = [];
 
-                    // Check if player has applied today
-                    proposals.some(
-                        (elem, index, arr) => {
-                            isApplied = elem.createTime >= todayTime.startTime && elem.createTime < todayTime.endTime;
+                    if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD, eventData) && eventData.needApply) {
+                        event = eventData;
 
-                            return isApplied;
+                        let queryTime = todayTime;
+                        let curWeekTime = dbUtility.getCurrentWeekSGTime();
+
+                        do {
+                            queryTime = dbUtility.getPreviousSGDayOfDate(todayTime.startTime);
+                            promsArray.push(processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo));
                         }
-                    );
+                        while (queryTime.startTime.getTime() != curWeekTime.startTime.getTime());
 
-                    if (isApplied) {
+                        return Promise.all(promsArray);
+                    }
+                    else {
                         return Q.reject({
-                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            status: constServerCode.REWARD_EVENT_INVALID,
                             name: "DataError",
-                            message: "Player has already applied for this reward"
+                            message: "Invalid player consecutive login event data for platform"
                         });
                     }
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "Cannot find player consecutive login event data for platform"
+                    });
+                }
+            }
+        )
+    },
+};
 
+function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo) {
+    let todayTopUpAmount = 0, todayBonusAmount = 0;
+
+    // Check player top up amount and consumption amount has hitted requirement
+    let topupProm = dbConfig.collection_playerTopUpRecord.aggregate(
+        {
+            $match: {
+                playerId: playerData._id,
+                platformId: playerData.platform,
+                createTime: {$gte: inputDate.startTime, $lt: inputDate.endTime}
+            }
+        },
+        {
+            $group: {
+                _id: {playerId: "$playerId", platformId: "$platformId"},
+                amount: {$sum: "$amount"}
+            }
+        }
+    ).then(
+        summary => {
+            if (summary && summary[0] && String(summary[0]._id.playerId) == String(playerData._id)) {
+                return summary[0].amount;
+            }
+            else {
+                // No topup record will return 0
+                return 0;
+            }
+        }
+    );
+
+    let consumptionProm = dbConfig.collection_playerConsumptionRecord.aggregate(
+        {
+            $match: {
+                playerId: playerData._id,
+                platformId: playerData.platform,
+                createTime: {$gte: inputDate.startTime, $lt: inputDate.endTime}
+            }
+        },
+        {
+            $group: {
+                _id: {playerId: "$playerId", platformId: "$platformId"},
+                validAmount: {$sum: "$validAmount"}
+            }
+        }
+    ).then(
+        summary => {
+            if (summary && summary[0] && String(summary[0]._id.playerId) == String(playerData._id)) {
+                return summary[0].validAmount;
+            }
+            else {
+                // No consumption record will return 0
+                return 0;
+            }
+        }
+    );
+
+    return Promise.all([topupProm, consumptionProm]).then(
+        data => {
+            todayTopUpAmount = data[0];
+            todayBonusAmount = data[1];
+
+            let curWeekTime = dbUtility.getCurrentWeekSGTime();
+
+            if (todayTopUpAmount >= event.param.dailyTopUpAmount && todayBonusAmount >= event.param.dailyConsumptionAmount) {
+                // Check proposals for this week's reward apply
+                return dbConfig.collection_proposal.find({
+                    type: event.executeProposal,
+                    'data.platformId': playerData.platform,
+                    'data.playerId': playerData.playerId,
+                    createTime: {$gte: curWeekTime.startTime, $lt: curWeekTime.endTime},
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                });
+            }
+            else {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                    name: "DataError",
+                    message: "Player does not have enough top up or consumption amount"
+                });
+            }
+        }
+    ).then(
+        proposals => {
+            if (proposals) {
+                let dayIndex = proposals.length + 1;
+                let curReward = null;
+                let todayTime = dbUtility.getTodaySGTime();
+                let isApplied = false;
+                let isToday = todayTime.startTime.getTime() == inputDate.startTime.getTime()
+                    && todayTime.endTime.getTime() == inputDate.endTime.getTime();
+
+                // Check if player has applied on this date
+                proposals.some(
+                    (elem, index, arr) => {
+                        isApplied = elem.data.applyForDate.getTime() == inputDate.startTime.getTime();
+
+                        return isApplied;
+                    }
+                );
+
+                if (isApplied && isToday) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Player has already applied for this reward"
+                    });
+                }
+
+                if (!isApplied) {
                     event.param.reward.some(
                         (elem, index, arr) => {
                             if (elem.dayIndex == dayIndex) {
@@ -266,19 +341,20 @@ let dbPlayerReward = {
                         creator: adminInfo ? adminInfo :
                             {
                                 type: 'player',
-                                name: player.name,
-                                id: playerId
+                                name: playerData.name,
+                                id: playerData.playerId
                             },
                         data: {
-                            playerObjId: player._id,
-                            playerId: player.playerId,
-                            playerName: player.name,
-                            platformId: platformId,
+                            playerObjId: playerData._id,
+                            playerId: playerData.playerId,
+                            playerName: playerData.name,
+                            platformId: playerData.platform,
                             dayIndex: dayIndex,
                             todayTopUpAmount: todayTopUpAmount,
                             todayBonusAmount: todayBonusAmount,
                             rewardAmount: curReward.rewardAmount,
                             spendingAmount: curReward.rewardAmount * curReward.consumptionTimes,
+                            applyForDate: inputDate.startTime,
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
@@ -291,8 +367,8 @@ let dbPlayerReward = {
                     return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
                 }
             }
-        );
-    },
-};
+        }
+    );
+}
 
 module.exports = dbPlayerReward;
