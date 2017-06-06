@@ -97,12 +97,19 @@ let dbPlayerReward = {
      * @param {String} playerId
      * @param {String} code
      */
-    applyConsecutiveLoginReward: function (playerId, code, ifAdmin) {
+    applyConsecutiveLoginReward: function (playerId, code, adminId, adminName, isPrevious) {
         let platformId = null;
         let player = {};
         let todayTime = dbUtility.getTodaySGTime();
         let event = {};
-        let adminInfo = ifAdmin;
+        let adminInfo = {};
+        if (adminId && adminName) {
+            adminInfo = {
+                name: adminName,
+                type: 'admin',
+                id: adminId
+            }
+        }
 
         let playerProm = dbConfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
@@ -128,7 +135,21 @@ let dbPlayerReward = {
                     if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD, eventData) && eventData.needApply) {
                         event = eventData;
 
-                        return processConsecutiveLoginRewardRequest(player, todayTime, event, adminInfo);
+                        if (isPrevious) {
+                            let queryTime = todayTime;
+                            let curWeekTime = dbUtility.getCurrentWeekSGTime();
+
+                            do {
+                                queryTime = dbUtility.getPreviousSGDayOfDate(queryTime.startTime);
+                                processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious);
+                            }
+                            while (queryTime.startTime.getTime() != curWeekTime.startTime.getTime());
+
+                            return true;
+                        }
+                        else {
+                            return processConsecutiveLoginRewardRequest(player, todayTime, event, adminInfo);
+                        }
                     }
                     else {
                         return Q.reject({
@@ -147,78 +168,10 @@ let dbPlayerReward = {
                 }
             }
         );
-    },
-
-    /*
-     * player apply for previous consecutive login reward
-     * @param {String} playerId
-     * @param {String} code
-     */
-    applyPreviousConsecutiveLoginReward: function (playerId, code, ifAdmin) {
-        let platformId = null;
-        let player = {};
-        let todayTime = dbUtility.getTodaySGTime();
-        let event = {};
-        let adminInfo = ifAdmin;
-        let todayTopUpAmount, todayBonusAmount;
-
-        let playerProm = dbConfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
-        return playerProm.then(
-            data => {
-                //get player's platform reward event data
-                if (data && data.playerLevel) {
-                    player = data;
-                    platformId = player.platform;
-
-                    //get reward event data
-                    return dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD, code);
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Invalid player data"});
-                }
-            }
-        ).then(
-            data => {
-                if (data) {
-                    let eventData = data;
-                    let promsArray = [];
-
-                    if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD, eventData) && eventData.needApply) {
-                        event = eventData;
-
-                        let queryTime = todayTime;
-                        let curWeekTime = dbUtility.getCurrentWeekSGTime();
-
-                        do {
-                            queryTime = dbUtility.getPreviousSGDayOfDate(todayTime.startTime);
-                            promsArray.push(processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo));
-                        }
-                        while (queryTime.startTime.getTime() != curWeekTime.startTime.getTime());
-
-                        return Promise.all(promsArray);
-                    }
-                    else {
-                        return Q.reject({
-                            status: constServerCode.REWARD_EVENT_INVALID,
-                            name: "DataError",
-                            message: "Invalid player consecutive login event data for platform"
-                        });
-                    }
-                }
-                else {
-                    return Q.reject({
-                        status: constServerCode.REWARD_EVENT_INVALID,
-                        name: "DataError",
-                        message: "Cannot find player consecutive login event data for platform"
-                    });
-                }
-            }
-        )
-    },
+    }
 };
 
-function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo) {
+function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {
     let todayTopUpAmount = 0, todayBonusAmount = 0;
 
     // Check player top up amount and consumption amount has hitted requirement
@@ -363,6 +316,10 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
                     };
+
+                    if (isPrevious) {
+                        proposalData.data.isPrevious = isPrevious;
+                    }
 
                     return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
                 }
