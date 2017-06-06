@@ -34,10 +34,13 @@ let dbAutoProposal = {
             proposalType => {
                 if (proposalType) {
                     proposalTypeObjId = proposalType._id;
+                    let lastCheckBefore = new Date();
+                    lastCheckBefore.setMinutes(lastCheckBefore.getMinutes() - platformData.autoApproveRepeatDelay);
 
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
-                        status: constProposalStatus.PROCESSING
+                        status: constProposalStatus.PROCESSING,
+                        $or:[{"data.lastAutoApproveCheckTime": {$exist: false}}, {"data.lastAutoApproveCheckTime": {$lte: lastCheckBefore}}]
                     }).cursor({batchSize: 10000});
 
                     let balancer = new SettlementBalancer();
@@ -289,7 +292,8 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
                                 _id: proposal._id,
                                 createTime: proposal.createTime
                             }, {
-                                'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount
+                                'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
+                                'data.lastAutoApproveCheckTime': new Date()
                             }).exec();
                         }
                         else {
