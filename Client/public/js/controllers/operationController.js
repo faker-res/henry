@@ -500,6 +500,8 @@ define(['js/app'], function (myApp) {
                 result = $translate($scope.constPlayerStatus[val]);
             } else if (fieldName === 'proposalPlayerLevel') {
                 result = $translate(val);
+            } else if (fieldName === 'applyForDate') {
+                result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
             }
