@@ -1466,13 +1466,13 @@ include modalGameCreditLog
                                     td {{v.ratio}}
                                     td {{v.consumptionAmount}}
                                     td {{v.returnAmount}}
-
                 .well(ng-show='vm.playerApplyEventResult.success')
                     label.text-success {{'SUCCESS' | translate}}
                 .well(ng-show='vm.playerApplyEventResult && !vm.playerApplyEventResult.success')
                     label.text-danger {{'FAIL' | translate}}
                     label.form-control {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
             .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult && vm.playerApplyRewardShow.manualSignConsecutiveLogin", ng-click='vm.applyPreviousConsecutiveLoginReward()') {{'PREVIOUS_CONSECUTIVE_LOGIN' | translate}}
                 button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult",ng-disabled='form_player_reward.$invalid || form_player_reward.$pristine || !vm.playerApplyRewardPara.code || (vm.playerApplyRewardShow.showReferral && !vm.playerApplyRewardPara.referPlayer)', ng-click='vm.applyPlayerReward()') {{'APPLY' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
 
