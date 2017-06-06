@@ -1855,5 +1855,6 @@
   "dayIndex": "累计天数",
   "Player Bonus Auto Approval": "玩家提款自动审核",
   "Auto Approval Setting": "自动审核设置",
-  "autoApproval": "自动审核"
+  "autoApproval": "自动审核",
+  "PREVIOUS_CONSECUTIVE_LOGIN": "补签"
 }

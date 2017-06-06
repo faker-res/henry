@@ -1,6 +1,7 @@
-var dbRewardTask = require('./../db_modules/dbRewardTask');
-var socketUtil = require('./../modules/socketutility');
-var dbPlayerConsumptionWeekSummary = require('./../db_modules/dbPlayerConsumptionWeekSummary');
+const dbRewardTask = require('./../db_modules/dbRewardTask');
+const socketUtil = require('./../modules/socketutility');
+const dbPlayerConsumptionWeekSummary = require('./../db_modules/dbPlayerConsumptionWeekSummary');
+const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 
 function socketActionRewardTask(socketIO, socket) {
 
@@ -62,6 +63,12 @@ function socketActionRewardTask(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbRewardTask.fixPlayerRewardAmount, [data.playerId], actionName, isValidData);
+        },
+
+        applyPreviousConsecutiveLoginReward: function applyPreviousConsecutiveLoginReward(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.code);
+            socketUtil.emitter(self.socket, dbPlayerReward.applyPreviousConsecutiveLoginReward, [data.playerId, data.code], actionName, isValidData);
         }
     };
     socketActionRewardTask.actions = this.actions;
