@@ -205,7 +205,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
         }
     ).then(
         summary => {
-            if (summary && summary[0] && String(summary[0]._id.playerId) == String(playerData._id)) {
+            if (summary && summary[0]) {
                 return summary[0].amount;
             }
             else {
@@ -231,7 +231,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
         }
     ).then(
         summary => {
-            if (summary && summary[0] && String(summary[0]._id.playerId) == String(playerData._id)) {
+            if (summary && summary[0]) {
                 return summary[0].validAmount;
             }
             else {
@@ -247,7 +247,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
             todayBonusAmount = data[1];
 
             let curWeekTime = dbUtility.getCurrentWeekSGTime();
-
+            console.log( "processConsecutiveLoginRewardRequest:", playerData.name, todayTopUpAmount, todayBonusAmount, inputDate );
             if (todayTopUpAmount >= event.param.dailyTopUpAmount && todayBonusAmount >= event.param.dailyConsumptionAmount) {
                 // Check proposals for this week's reward apply
                 return dbConfig.collection_proposal.find({
@@ -259,11 +259,13 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                 });
             }
             else {
-                return Q.reject({
-                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                    name: "DataError",
-                    message: "Player does not have enough top up or consumption amount"
-                });
+                if( !isPrevious ){
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player does not have enough top up or consumption amount"
+                    });
+                }
             }
         }
     ).then(
