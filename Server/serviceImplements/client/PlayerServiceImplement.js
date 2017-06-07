@@ -63,7 +63,7 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             data.isOnline = true;
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, true, false, true).then(
-                function (playerData) {
+                (playerData) =>{
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData);
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
@@ -80,6 +80,9 @@ let PlayerServiceImplement = function () {
                         data: playerData,
                         token: token,
                     }, data);
+                },(error) => {
+                    console.log(error);
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data);
                 }
             ).catch(WebSocketUtil.errorHandler)
                 .done();
