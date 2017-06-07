@@ -34,13 +34,11 @@ let dbAutoProposal = {
             proposalType => {
                 if (proposalType) {
                     proposalTypeObjId = proposalType._id;
-                    let lastCheckBefore = new Date();
-                    lastCheckBefore.setMinutes(lastCheckBefore.getMinutes() - platformData.autoApproveRepeatDelay);
 
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
                         status: constProposalStatus.PROCESSING,
-                        $or:[{"data.lastAutoApproveCheckTime": {$exists: false}}, {"data.lastAutoApproveCheckTime": {$lte: lastCheckBefore}}]
+                        $or:[{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: new Date()}}]
                     }).cursor({batchSize: 10000});
 
                     let balancer = new SettlementBalancer();
@@ -86,7 +84,7 @@ let dbAutoProposal = {
                                             if (lastWithdrawDate) {
                                                 // Player withdrew before
                                                 let repeatCount = platformData.autoApproveRepeatCount;
-                                                checkPreviousProposals(proposal, lastWithdrawDate, repeatCount);
+                                                checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj);
                                             } else {
                                                 // Player first time withdraw
                                                 sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
@@ -200,7 +198,7 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
     );
 }
 
-function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
+function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj) {
     return dbconfig.collection_proposal.find({
         'data.platformId': proposal.data.platformId,
         'data.playerObjId': proposal.data.playerObjId,
@@ -288,12 +286,14 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
                                 : repeatCount - 1;
 
                         if (proposal.data.autoApproveRepeatCount >= 0) {
+                            let nextCheckTime = new Date();
+                            nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
                             return dbconfig.collection_proposal.findOneAndUpdate({
                                 _id: proposal._id,
                                 createTime: proposal.createTime
                             }, {
                                 'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
-                                'data.lastAutoApproveCheckTime': new Date()
+                                'data.nextCheckTime': nextCheckTime
                             }).exec();
                         }
                         else {
