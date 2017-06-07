@@ -247,8 +247,9 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
             todayBonusAmount = data[1];
 
             let curWeekTime = dbUtility.getCurrentWeekSGTime();
-            console.log( "processConsecutiveLoginRewardRequest:", playerData.name, todayTopUpAmount, todayBonusAmount, inputDate );
+
             if (todayTopUpAmount >= event.param.dailyTopUpAmount && todayBonusAmount >= event.param.dailyConsumptionAmount) {
+                console.log( "processConsecutiveLoginRewardRequest success:", playerData.name, todayTopUpAmount, todayBonusAmount, inputDate );
                 // Check proposals for this week's reward apply
                 return dbConfig.collection_proposal.find({
                     type: event.executeProposal,
@@ -259,6 +260,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                 });
             }
             else {
+                console.log( "processConsecutiveLoginRewardRequest failed:", playerData.name, todayTopUpAmount, todayBonusAmount, inputDate );
                 if( !isPrevious ){
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
