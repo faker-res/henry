@@ -81,7 +81,6 @@ let PlayerServiceImplement = function () {
                         token: token,
                     }, data);
                 },(error) => {
-                    console.log(error);
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data);
                 }
             ).catch(WebSocketUtil.errorHandler)
