@@ -230,7 +230,7 @@ var dbRewardTask = {
         let createTime = new Date(consumptionRecord.createTime);
 
         //get the most recent task and check it
-        dbconfig.collection_rewardTask.findOne(
+        dbconfig.collection_rewardTask.find(
             {
                 playerId: consumptionRecord.playerId,
                 status: constRewardTaskStatus.STARTED,
@@ -239,8 +239,9 @@ var dbRewardTask = {
                 // $or: [{targetGames: consumptionRecord.gameId}, {targetGames: []}],
                 isUnlock: false
             }
-        ).lean().then(
-            taskData => {
+        ).sort({createTime: -1}).limit(1).lean().then(
+            tasks => {
+                let taskData = tasks ? tasks[0] : null;
                 let isTaskValid = true;
                 if (taskData) {
                     let isTargetProvider = false;
@@ -336,7 +337,6 @@ var dbRewardTask = {
                     );
                 }
                 else {
-                    //deferred.resolve(false);
                     return [true];
                 }
             },
