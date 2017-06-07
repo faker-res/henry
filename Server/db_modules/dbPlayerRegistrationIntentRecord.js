@@ -7,6 +7,7 @@ let constSystemParam = require('../const/constSystemParam');
 let constProposalType = require('../const/constProposalType');
 let constProposalEntryType = require('../const/constProposalEntryType');
 let constProposalUserType = require('../const/constProposalUserType');
+let constProposalMainType = require('../const/constProposalMainType');
 let Q = require("q");
 
 var dbPlayerRegistrationIntentRecord = {
