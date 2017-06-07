@@ -138,14 +138,25 @@ let dbPlayerReward = {
                         if (isPrevious) {
                             let queryTime = todayTime;
                             let curWeekTime = dbUtility.getCurrentWeekSGTime();
+                            let dateArr = [];
 
-                            do {
+                            while (queryTime.startTime.getTime() != curWeekTime.startTime.getTime()) {
                                 queryTime = dbUtility.getPreviousSGDayOfDate(queryTime.startTime);
-                                processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious);
+                                dateArr.push(queryTime);
                             }
-                            while (queryTime.startTime.getTime() != curWeekTime.startTime.getTime());
 
-                            return true;
+                            let proc = () => {
+                                queryTime = dateArr.pop();
+                                processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
+                                    data => {
+                                        if (dateArr && dateArr.length > 0) {
+                                            proc();
+                                        }
+                                    }
+                                );
+                            };
+
+                            return proc();
                         }
                         else {
                             return processConsecutiveLoginRewardRequest(player, todayTime, event, adminInfo);
