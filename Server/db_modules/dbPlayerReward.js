@@ -143,8 +143,8 @@ let dbPlayerReward = {
                             while (queryTime.startTime.getTime() != curWeekTime.startTime.getTime()) {
                                 queryTime = dbUtility.getPreviousSGDayOfDate(queryTime.startTime);
                                 dateArr.push({
-                                    startTime: queryTime.startTime,
-                                    endTime: queryTime.endTime
+                                    startTime: new Date(queryTime.startTime),
+                                    endTime: new Date(queryTime.endTime)
                                 });
                             }
 
