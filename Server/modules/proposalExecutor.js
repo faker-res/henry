@@ -134,7 +134,6 @@ var proposalExecutor = {
             this.executions.executePlayerDoubleTopUpReward.des = "Player double top up reward";
             this.executions.executePlayerWechatTopUp.des = "Player wechat top up";
             this.executions.executePlayerConsecutiveLoginReward.des = "Player Consecutive Login Reward";
-            this.executions.executePlayerRegistrationIntention.des = "Player Registration Intention";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -173,7 +172,6 @@ var proposalExecutor = {
             this.rejections.rejectPlayerDoubleTopUpReward.des = "Reject Player double top up return";
             this.rejections.rejectPlayerWechatTopUp.des = "Reject Player Top up";
             this.rejections.rejectPlayerConsecutiveLoginReward.des = "Reject Player Consecutive Login Reward";
-            this.rejections.rejectPlayerRegistrationIntention.des = "Reject Player Registration Intention";
 
         },
 
