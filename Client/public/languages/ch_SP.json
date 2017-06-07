@@ -1857,5 +1857,6 @@
   "autoApproval": "自动审核",
   "PREVIOUS_CONSECUTIVE_LOGIN": "补签",
   "applyForDate": "签到日期",
-  "isPrevious": "是否为补签"
+  "isPrevious": "是否为补签",
+  "Player Consecutive Login Reward": "累计签到奖励"
 }
