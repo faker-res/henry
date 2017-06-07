@@ -1738,22 +1738,7 @@ var proposalExecutor = {
                             if (proposalData.data.providers) {
                                 taskData.targetProviders = proposalData.data.providers;
                             }
-                            var deferred1 = Q.defer();
-                            createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, proposalData);
-                            deferred1.promise.then(
-                                data => {
-                                    dbconfig.collection_players.findOneAndUpdate(
-                                        {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
-                                        {$inc: {dailyTopUpIncentiveAmount: proposalData.data.rewardAmount}}
-                                    ).then(
-                                        () => {
-                                            deferred.resolve(data);
-                                        },
-                                        deferred.reject
-                                    );
-                                },
-                                deferred.reject
-                            );
+                            createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, proposalData);
                         }
                         else {
                             deferred.reject({
