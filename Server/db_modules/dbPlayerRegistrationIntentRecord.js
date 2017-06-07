@@ -1,8 +1,13 @@
-var dbconfig = require('./../modules/dbproperties');
-var dbUtil = require('./../modules/dbutility');
-var constShardKeys = require('../const/constShardKeys');
-var constSystemParam = require('../const/constSystemParam');
-var Q = require("q");
+let dbconfig = require('./../modules/dbproperties');
+let dbUtil = require('./../modules/dbutility');
+let dbProposal = require('./../db_modules/dbProposal');
+let dbProposalType = require('./../db_modules/dbProposalType');
+let constShardKeys = require('../const/constShardKeys');
+let constSystemParam = require('../const/constSystemParam');
+let constProposalType = require('../const/constProposalType');
+let constProposalEntryType = require('../const/constProposalEntryType');
+let constProposalUserType = require('../const/constProposalUserType');
+let Q = require("q");
 
 var dbPlayerRegistrationIntentRecord = {
 
@@ -16,7 +21,8 @@ var dbPlayerRegistrationIntentRecord = {
             dbconfig.collection_platform.findOne({platformId: data.platformId}).then(
                 function (plat) {
                     if (plat && plat._id) {
-                        data.platformId = plat._id;
+                        data.platformId = plat.platformId;
+                        data.platform=plat._id,
                         deferred.resolve(dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data));
                     } else {
                         deferred.reject({name: "DataError", message: "Platform does not exist"});
@@ -35,6 +41,28 @@ var dbPlayerRegistrationIntentRecord = {
         if(data){
             data.operationList=['Add registration intention'];
         }
+        let proposalData = {
+            creator: data.adminInfo || {
+                type: 'player',
+                name: data.name,
+                id: data.playerId
+            },
+            playerId: data.playerId,
+            playerObjId: data._id,
+            playerName: data.name,
+            platformObjId: data.platform,
+            curAmount: data.validCredit,
+            realName: data.realName,
+            platformId: data.platform,
+            platform: data.platformId
+        };
+        let newProposal = {
+            creator: proposalData.creator,
+            data: proposalData,
+            entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+            userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+        };
+        dbProposal.createProposalWithTypeName(data.platform, constProposalType.PLAYER_REGISTRATION_INTENTION, newProposal);
         var newRecord = new dbconfig.collection_playerRegistrationIntentRecord(data);
         return newRecord.save();
     },
