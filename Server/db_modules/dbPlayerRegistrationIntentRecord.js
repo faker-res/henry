@@ -51,11 +51,8 @@ var dbPlayerRegistrationIntentRecord = {
             playerId: data.playerId,
             playerObjId: data._id,
             playerName: data.name,
-            platformObjId: data.platform,
             curAmount: data.validCredit,
             realName: data.realName,
-            platformId: data.platform,
-            platform: data.platformId
         };
         let newProposal = {
             creator: proposalData.creator,
