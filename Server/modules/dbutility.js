@@ -201,8 +201,8 @@ var dbUtility = {
 
     getPreviousSGDayOfDate: function (date) {
         return date ? {
-            startTime: moment(date).subtract(1, 'days').tz('Asia/Singapore').startOf('day').toDate(),
-            endTime: moment(date).subtract(1, 'days').tz('Asia/Singapore').startOf('day').add(1, 'days').toDate()
+            startTime: moment(date).tz('Asia/Singapore').subtract(1, 'days').startOf('day').toDate(),
+            endTime: moment(date).tz('Asia/Singapore').subtract(1, 'days').startOf('day').add(1, 'days').toDate()
         } : null;
     },
 
