@@ -16,57 +16,59 @@ block body
             include category/common-widget/message
             include category/common-widget/confirmation-modal
 
+    script(src='js/lib/site.min.js')
 
     // jQuery
-    script(src='js/lib/jquery/jquery-2.1.4.min.js')
+    //script(src='js/lib/jquery/jquery-2.1.4.min.js')
 
-    script(src='js/lib/dataTables/jquery.dataTables.min.js')
-    script(src='js/lib/dataTables/dataTables.bootstrap.js')
-    script(src='js/lib/dataTables/dataTables.colResize.js')
-    script(src='js/lib/dataTables/dataTables.colVis.js')
+    //script(src='js/lib/dataTables/jquery.dataTables.min.js')
+    //script(src='js/lib/dataTables/dataTables.bootstrap.js')
+    //script(src='js/lib/dataTables/dataTables.colResize.js')
+    //script(src='js/lib/dataTables/dataTables.colVis.js')
 
-    link(rel='stylesheet', href='js/lib/dataTables/dataTables.bootstrap.css')
+    //link(rel='stylesheet', href='js/lib/dataTables/dataTables.bootstrap.css')
     link(rel='stylesheet', href='js/lib/dataTables/jquery.dataTables.css')
-    link(rel='stylesheet', href='js/lib/dataTables/dataTables.colVis.css')
+    //link(rel='stylesheet', href='js/lib/dataTables/dataTables.colVis.css')
 
-    script(src='js/lib/angular/angular.min.js')
+    //script(src='js/lib/angular/angular.min.js')
 
     //angular cookies
-    script(src='js/lib/angular/angular-cookies.min.js')
-    script(src='js/lib/angular/lib/angular-local-storage.min.js')
+    //script(src='js/lib/angular/angular-cookies.min.js')
+    //script(src='js/lib/angular/lib/angular-local-storage.min.js')
 
     //angular route
-    script(src='js/lib/angular/angular-route.min.js')
+    //script(src='js/lib/angular/angular-route.min.js')
 
     //localization JavaScript
-    script(src='js/lib/angular-translate.min.js')
-    script(src='js/lib/angular-translate-loader-static-files.min.js')
+    //script(src='js/lib/angular-translate.min.js')
+    //script(src='js/lib/angular-translate-loader-static-files.min.js')
 
     //Bootstrap
-    script(src='sb-admin-2/js/bootstrap.min.js')
-    script(src='js/lib/bootstrap/bootstrap-treeview.js')
+    //script(src='sb-admin-2/js/bootstrap.min.js')
+    //script(src='js/lib/bootstrap/bootstrap-treeview.js')
 
     //- script(src='js/lib/sinostrap/collapsible-dialogs.js')
     script(src='js/lib/sinostrap/floating-dialogs.js')
     script(src='js/lib/sinostrap/GeneralModal.js')
 
     //- Angular datepicker
-    script(src='js/lib/angular-datepicker/angular-datepicker.min.js')
-    link(rel='stylesheet', href='js/lib/angular-datepicker/angular-datepicker.min.css')
+    //script(src='js/lib/angular-datepicker/angular-datepicker.min.js')
+    //link(rel='stylesheet', href='js/lib/angular-datepicker/angular-datepicker.min.css')
 
     // - Bootstrap dateTime Picker
     script(src='js/lib/bootstrap/bootstrap-datetimepicker.min.js')
     //script(src='sb-admin-2/js/bootstrap-datetimepicker.pt-BR.js')
-    link(rel='stylesheet', href='public/css/bootstrap-datetimepicker.min.css')
+    //link(rel='stylesheet', href='public/css/bootstrap-datetimepicker.min.css')
 
     // Metis Menu Plugin Js
-    script(src='sb-admin-2/js/plugins/metisMenu/metisMenu.min.js')
+    //script(src='sb-admin-2/js/plugins/metisMenu/metisMenu.min.js')
 
     //Custom Theme Js
-    script(src='sb-admin-2/js/sb-admin-2.js')
+    //script(src='sb-admin-2/js/sb-admin-2.js')
 
     //socket io client
-    script(src='js/lib/socket.io.js')
+    //script(src='js/lib/socket.io.js')
+    script(src='js/lib/socket.io.slim.js')
 
     //q lib
     script(src='js/lib/q.js')
@@ -86,12 +88,14 @@ block body
     script(src='js/flowchart_directive.js')
 
     //file upload js
-    script(src='js/lib/ng-file-upload-shim.min.js')
-    script(src='js/lib/ng-file-upload.min.js')
+    //script(src='js/lib/ng-file-upload-shim.min.js')
+    //script(src='js/lib/ng-file-upload.min.js')
 
     script(src='js/lib/multiple-select.js')
 
     //Load custom scripts via RequireJS
     script(src="js/lib/require.js" data-main="js/main")
+
+
 
     include category/common-widget/templates
