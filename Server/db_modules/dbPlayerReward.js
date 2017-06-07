@@ -147,11 +147,14 @@ let dbPlayerReward = {
                                     endTime: new Date(queryTime.endTime)
                                 });
                             }
-
+                            let bProposal = false;
                             let proc = () => {
                                 queryTime = dateArr.pop();
-                                processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
+                                return processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
                                     data => {
+                                        if(data){
+                                            bProposal = true;
+                                        }
                                         if (dateArr && dateArr.length > 0) {
                                             proc();
                                         }
@@ -159,7 +162,17 @@ let dbPlayerReward = {
                                 );
                             };
 
-                            return proc();
+                            return proc().then(
+                                data => {
+                                    if(!bProposal){
+                                        return Q.reject({
+                                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                            name: "DataError",
+                                            message: "Player does not match the condition for this reward"
+                                        });
+                                    }
+                                }
+                            );
                         }
                         else {
                             return processConsecutiveLoginRewardRequest(player, todayTime, event, adminInfo);
