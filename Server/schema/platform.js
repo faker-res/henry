@@ -74,7 +74,9 @@ var platformSchema = new Schema({
     autoApproveWhenSingleBonusApplyLessThan: {type: Number, default: 0},
     autoApproveWhenSingleDayTotalBonusApplyLessThan: {type: Number, default: 0},
     autoApproveRepeatCount: {type: Number, default: 0},
-    autoApproveRepeatDelay: {type: Number, default: 0}
+    autoApproveRepeatDelay: {type: Number, default: 0},
+    //can apply multiple reward
+    canMultiReward: {type: Boolean, default: false}
 });
 
 //add platform id before save
