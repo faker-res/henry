@@ -1431,7 +1431,7 @@ var dbPlayerConsumptionRecord = {
                     totalAmount: {$sum: "$amount"}
                 }
             }
-        ).cursor({batchSize: 5000}).allowDiskUse(true).exec().then(
+        ).allowDiskUse(true).exec().then(
             function (data) {
                 return dbconfig.collection_platform.populate(data, {path: '_id', model: dbconfig.collection_platform})
             }
