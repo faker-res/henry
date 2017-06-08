@@ -1580,10 +1580,10 @@ var proposalExecutor = {
             },
 
             /**
-             * execution function for create player intention proposal
+             * execution function for player intention proposal
              */
             executePlayerRegistrationIntention:function (proposalData, deferred) {
-
+                 deferred.resolve(proposalData);
             }
         },
 

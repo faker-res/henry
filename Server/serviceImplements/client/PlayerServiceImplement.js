@@ -62,7 +62,7 @@ let PlayerServiceImplement = function () {
             }
             conn.captchaCode = null;
             data.isOnline = true;
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, true, false, true).then(
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, true, true, true).then(
                 (playerData) =>{
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData);
                     conn.isAuth = true;
@@ -82,6 +82,11 @@ let PlayerServiceImplement = function () {
                     }, data);
                 },(error) => {
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data);
+                    wsFunc.response(conn, {
+                        status: constServerCode.PLAYER_IS_FORBIDDEN,
+                        data: {noOfAttempt: 0},
+                        errorMessage: localization.translate(error.message, conn.lang),
+                    }, data);
                 }
             ).catch(WebSocketUtil.errorHandler)
                 .done();
