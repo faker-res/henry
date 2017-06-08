@@ -310,7 +310,8 @@ var dbPlayerConsumptionRecord = {
                             return dbconfig.collection_proposal.find({
                                 type: pType._id,
                                 "data.playerObjId": record.playerId,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                createTime: {$lt: record.createTime}
                             }).sort({createTime: -1}).limit(1).lean();
                         }
                     );
@@ -1430,7 +1431,7 @@ var dbPlayerConsumptionRecord = {
                     totalAmount: {$sum: "$amount"}
                 }
             }
-        ).exec().then(
+        ).cursor({batchSize: 5000}).allowDiskUse(true).exec().then(
             function (data) {
                 return dbconfig.collection_platform.populate(data, {path: '_id', model: dbconfig.collection_platform})
             }

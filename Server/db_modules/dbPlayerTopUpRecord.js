@@ -1048,7 +1048,7 @@ var dbPlayerTopUpRecord = {
                     totalAmount: {$sum: "$amount"}
                 }
             }
-        ).exec().then(
+        ).cursor({batchSize: 5000}).allowDiskUse(true).exec().then(
             function (data) {
                 return dbconfig.collection_platform.populate(data, {path: '_id'})
             }
