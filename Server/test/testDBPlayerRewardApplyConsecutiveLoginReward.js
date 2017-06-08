@@ -10,6 +10,7 @@ let dbPlayerReward = require('./../db_modules/dbPlayerReward');
 let dbRewardEvent = require('./../db_modules/dbRewardEvent');
 let dbRewardType = require('./../db_modules/dbRewardType');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+let dbconfig = require('./../modules/dbproperties');
 
 
 
@@ -18,28 +19,28 @@ describe("test DBPlayerReward Apply Consecutive Login Reward", function(){
     // Under development
     return true;
 
-    let testPlatformObjId, testPlatformId, rewardTypeObjId, rewardEvent, testPlayerId;
+    let testPlatformObjId, testPlatformId, rewardTypeObjId, rewardEvent, testPlayerId, playerValidCredit;
     let generatedPlayerId = [];
+    let generatedProposals = [];
 
     it('Should create test API player and platform', function (done) {
-        commonTestFun.createTestPlatform().then(
+        commonTestFun.createTestPlatform({}).then(
             function (data) {
                 testPlatformObjId = data._id;
                 testPlatformId = data.platformId;
                 return commonTestFun.createTestPlayer(testPlatformObjId);
             },
             function (error) {
-                console.error(error);
                 done(error);
             }
         ).then(
             function (data) {
                 generatedPlayerId.push(data._id);
                 testPlayerId = data.playerId;
+                playerValidCredit = data.validCredit;
                 done();
             },
             function (error) {
-                console.error(error);
                 done(error);
             }
         );
@@ -59,6 +60,7 @@ describe("test DBPlayerReward Apply Consecutive Login Reward", function(){
                 let testRewardEventData = {
                     "name": "日日相息",
                     "code": "RRXX",
+                    "needApply": true,
                     "validStartTime": aMonthAgo,
                     "validEndTime": aMonthAfter,
                     "description": "RRXX",
@@ -66,31 +68,31 @@ describe("test DBPlayerReward Apply Consecutive Login Reward", function(){
                     "param": {
                         "reward": [
                             {
-                                "dayIndex": 0,
+                                "dayIndex": 1,
                                 "rewardAmount": 8
                             },
                             {
-                                "dayIndex": 1,
+                                "dayIndex": 2,
                                 "rewardAmount": 28
                             },
                             {
-                                "dayIndex": 2,
+                                "dayIndex": 3,
                                 "rewardAmount": 58
                             },
                             {
-                                "dayIndex": 3,
+                                "dayIndex": 4,
                                 "rewardAmount": 98
                             },
                             {
-                                "dayIndex": 4,
+                                "dayIndex": 5,
                                 "rewardAmount": 138
                             },
                             {
-                                "dayIndex": 5,
+                                "dayIndex": 6,
                                 "rewardAmount": 188
                             },
                             {
-                                "dayIndex": 6,
+                                "dayIndex": 7,
                                 "rewardAmount": 258
                             }
                         ],
@@ -119,16 +121,172 @@ describe("test DBPlayerReward Apply Consecutive Login Reward", function(){
         );
     });
 
-    it('apply the correct reward day 1', function(done){
+    it('should reward player correctly at day 1 when applied', function(done){
         dbPlayerReward.applyConsecutiveLoginReward(testPlayerId, "RRXX").then(
             function(data) {
-                // TODO :: check if the reward add correctly
-                console.log(data);
-                // dbPlayerInfo.getPlayerInfo()
+                generatedProposals.push({
+                    _id: data._id,
+                    createTime: data.createTime,
+                    "data.applyForDate": data.data.applyForDate
+                });
+                
+                return dbPlayerInfo.getPlayerInfo({_id: generatedPlayerId[0]});
+            },
+            function(error){
+                throw(new Error(JSON.stringify(error, null, 2)));
+            }
+        ).then(
+            function (playerData) {
+                let creditIncreased = playerData.validCredit - playerValidCredit;
+                creditIncreased.should.be.equal(8);
+                playerValidCredit = playerData.validCredit;
                 done();
             },
-            function(err){
-                done(err);
+            function(error){
+                throw(new Error(JSON.stringify(error, null, 2)));
+            }
+        ).catch(
+            function(error) {
+                done(error);
+            }
+        );
+    });
+
+    it('should not be able to reward player again in day 1', function(done){
+        dbPlayerReward.applyConsecutiveLoginReward(testPlayerId, "RRXX").then(
+            function(data) {
+                let errorMessage = {
+                    message: "The player should not be able to get reward twice in a day.",
+                    data: data
+                }
+                done(new Error(JSON.stringify(errorMessage, null, 2)));
+            },
+            function(error) {
+                done();
+            }
+        );
+    });
+
+    it('shift the reward date of proposal to previous day to prepare for next test', function(done){
+        let proms = [];
+        generatedProposals.forEach(function(proposal) {
+            let oneDayEarlierCreatedTime = new Date(proposal.createTime);
+            oneDayEarlierCreatedTime.setDate(oneDayEarlierCreatedTime.getDate() - 1);
+            
+            let oneDayEarlierDateApplyFor = new Date(proposal["data.applyForDate"]);
+            oneDayEarlierDateApplyFor.setDate(oneDayEarlierDateApplyFor.getDate() - 1);
+
+            proms.push(
+                dbconfig.collection_proposal.findOneAndUpdate({
+                    _id: proposal._id
+                }, {
+                    $set:{
+                        createTime: oneDayEarlierCreatedTime,
+                        "data.applyForDate": oneDayEarlierDateApplyFor
+                    }
+                }).exec()
+            );
+        });
+
+        Promise.all(proms).then(
+            function(data) {
+                done();
+            },
+            function (error) {
+                done(JSON.stringify(error, null, 2));
+            }
+        );
+    });
+
+    it('should reward player correctly at day 2 when applied', function(done){
+        dbPlayerReward.applyConsecutiveLoginReward(testPlayerId, "RRXX").then(
+            function(data) {
+                generatedProposals.push({
+                    _id: data._id,
+                    createTime: data.createTime,
+                    "data.applyForDate": data.data.applyForDate
+                });
+                
+                return dbPlayerInfo.getPlayerInfo({_id: generatedPlayerId[0]});
+            },
+            function(error){
+                throw(new Error(JSON.stringify(error, null, 2)));
+            }
+        ).then(
+            function (playerData) {
+                let creditIncreased = playerData.validCredit - playerValidCredit;
+                creditIncreased.should.be.equal(28);
+                playerValidCredit = playerData.validCredit;
+                done();
+            },
+            function(error){
+                done(error)
+            }
+        ).catch(
+            function(error) {
+                done(error);
+            }
+        );
+    });
+
+    it('shift the reward date of proposal to previous day to prepare for next test', function(done){
+        let proms = [];
+        generatedProposals.forEach(function(proposal) {
+            let oneDayEarlierCreatedTime = new Date(proposal.createTime);
+            oneDayEarlierCreatedTime.setDate(oneDayEarlierCreatedTime.getDate() - 1);
+            
+            let oneDayEarlierDateApplyFor = new Date(proposal["data.applyForDate"]);
+            oneDayEarlierDateApplyFor.setDate(oneDayEarlierDateApplyFor.getDate() - 1);
+
+            proms.push(
+                dbconfig.collection_proposal.findOneAndUpdate({
+                    _id: proposal._id
+                }, {
+                    $set:{
+                        createTime: oneDayEarlierCreatedTime,
+                        "data.applyForDate": oneDayEarlierDateApplyFor
+                    }
+                }).exec()
+            );
+        });
+
+        Promise.all(proms).then(
+            function(data) {
+                done();
+            },
+            function (error) {
+                done(JSON.stringify(error, null, 2));
+            }
+        );
+    });
+
+    it('should reward player correctly at day 3 when applied', function(done){
+        dbPlayerReward.applyConsecutiveLoginReward(testPlayerId, "RRXX").then(
+            function(data) {
+                generatedProposals.push({
+                    _id: data._id,
+                    createTime: data.createTime,
+                    "data.applyForDate": data.data.applyForDate
+                });
+                
+                return dbPlayerInfo.getPlayerInfo({_id: generatedPlayerId[0]});
+            },
+            function(error){
+                throw(new Error(JSON.stringify(error, null, 2)));
+            }
+        ).then(
+            function (playerData) {
+                let creditIncreased = playerData.validCredit - playerValidCredit;
+                creditIncreased.should.be.equal(58);
+                playerValidCredit = playerData.validCredit;
+                done();
+            },
+            function(error){
+                done(error)
+            }
+        ).catch(
+            function(error) {
+                done(error);
             }
         );
     });
@@ -145,15 +303,3 @@ describe("test DBPlayerReward Apply Consecutive Login Reward", function(){
         })
     });
 });
-
-// applyConsecutiveLoginReward
-/*
-*  1) get playerinfo and player level of player id
-*  2) look for particular event
-*  3) check if it is a valid reward event
-*  goto:: processConsecutiveLoginRewardRequest
-*  1) Check player top up amount and consumption amount has hitted requirement
-*  2) Check proposals for this week's reward apply
-*  3) Check if player has applied on this date
-*
-**/
