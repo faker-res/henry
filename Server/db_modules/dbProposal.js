@@ -1920,7 +1920,11 @@ var proposal = {
         };
 
         if(status){
-            query.status = status;
+            if (status === 'Fail_or_Rejected') {
+                query.status = {$in: ['Fail','Rejected']};
+            } else {
+                query.status = status;
+            }
         }
 
         let a = dbconfig.collection_proposal.find(query).count();
