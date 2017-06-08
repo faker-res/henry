@@ -1902,7 +1902,7 @@ var proposal = {
             return {total: data[0], data: data[1]}
         })
     },
-    queryBonusProposal: function (player, startTime, endTime, index, limit, sortCol) {
+    queryBonusProposal: function (player, startTime, endTime, status, index, limit, sortCol) {
         index = index || 0;
         var count = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {createTime: -1}
@@ -1918,6 +1918,10 @@ var proposal = {
                 {"data.playerObjId": player}
             ]
         };
+
+        if(status){
+            query.status = status;
+        }
 
         let a = dbconfig.collection_proposal.find(query).count();
         let b = dbconfig.collection_proposal.find(query).sort(sortCol).skip(index).limit(count)

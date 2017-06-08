@@ -280,7 +280,13 @@ function socketActionProposal(socketIO, socket) {
         queryBonusProposal: function queryBonusProposal(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.startTime && data.endTime && data.playerId);
-            socketUtil.emitter(self.socket, dbProposal.queryBonusProposal, [data.playerId, data.startTime, data.endTime, data.index, data.limit, data.sortCol], actionName, isValidData);
+            var statusFilter;
+            if(data && data.status){
+                statusFilter = data.status;
+            } else {
+                statusFilter = "";
+            }
+            socketUtil.emitter(self.socket, dbProposal.queryBonusProposal, [data.playerId, data.startTime, data.endTime, statusFilter, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
         getAllRewardProposal: function getAllRewardProposal(data) {
