@@ -142,13 +142,19 @@ let dbPlayerReward = {
 
                             while (queryTime.startTime.getTime() != curWeekTime.startTime.getTime()) {
                                 queryTime = dbUtility.getPreviousSGDayOfDate(queryTime.startTime);
-                                dateArr.push(queryTime);
+                                dateArr.push({
+                                    startTime: new Date(queryTime.startTime),
+                                    endTime: new Date(queryTime.endTime)
+                                });
                             }
-
+                            let bProposal = false;
                             let proc = () => {
                                 queryTime = dateArr.pop();
-                                processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
+                                return processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
                                     data => {
+                                        if(data){
+                                            bProposal = true;
+                                        }
                                         if (dateArr && dateArr.length > 0) {
                                             proc();
                                         }
@@ -156,7 +162,17 @@ let dbPlayerReward = {
                                 );
                             };
 
-                            return proc();
+                            return proc().then(
+                                data => {
+                                    if(!bProposal){
+                                        return Q.reject({
+                                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                            name: "DataError",
+                                            message: "Player does not match the condition for this reward"
+                                        });
+                                    }
+                                }
+                            );
                         }
                         else {
                             return processConsecutiveLoginRewardRequest(player, todayTime, event, adminInfo);
@@ -202,7 +218,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
         }
     ).then(
         summary => {
-            if (summary && summary[0] && String(summary[0]._id.playerId) == String(playerData._id)) {
+            if (summary && summary[0]) {
                 return summary[0].amount;
             }
             else {
@@ -228,7 +244,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
         }
     ).then(
         summary => {
-            if (summary && summary[0] && String(summary[0]._id.playerId) == String(playerData._id)) {
+            if (summary && summary[0]) {
                 return summary[0].validAmount;
             }
             else {
@@ -256,11 +272,13 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                 });
             }
             else {
-                return Q.reject({
-                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                    name: "DataError",
-                    message: "Player does not have enough top up or consumption amount"
-                });
+                if( !isPrevious ){
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player does not have enough top up or consumption amount"
+                    });
+                }
             }
         }
     ).then(
