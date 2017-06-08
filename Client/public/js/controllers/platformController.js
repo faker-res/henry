@@ -5938,7 +5938,7 @@ define(['js/app'], function (myApp) {
                     return item;
                 }) : [];
                 vm.playerRewardHistory.loading = false;
-                vm.playerRewardHistory.totalCount = data.data ? data.data.total : 0
+                vm.playerRewardHistory.totalCount = data.data ? data.data.total : 0;
                 console.log("RewardHist:length:", tableData);
                 vm.drawPlayerRewardHistoryTbl(tableData, vm.playerRewardHistory.totalCount, newSearch);
             });
@@ -6004,6 +6004,9 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : vm.playerBonusHistory.index,
                 sortCol: vm.playerBonusHistory.sortCol || undefined
             };
+            if(vm.playerBonusHistory.status){
+                sendQuery.status = vm.playerBonusHistory.status;
+            }
             vm.playerBonusHistory.isSearching = true;
             console.log("Second:Query:", sendQuery);
             $scope.safeApply();
