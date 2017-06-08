@@ -153,7 +153,8 @@ var simplifiedChinese = {
     "Invalid SMS Validation Code": "验证码已过期，请重新获取验证码",
     "Verification SMS already sent within last minute": "验证码已发送，请稍后再试",
     "Invalid referral": "推荐人不存在",
-    "Player does not have enough top up or consumption amount": "玩家没有达到奖励要求"
+    "Player does not have enough top up or consumption amount": "玩家没有达到奖励要求",
+    "Player or partner already has a pending reward proposal for this type": "玩家有待审批的奖励，请稍后再试"
     //todo::add missing messages here
 
     /*
