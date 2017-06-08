@@ -223,7 +223,7 @@
                     .inlineBlk
                         button.btn.btn-primary(ng-click='vm.updateAdminLog($event)') {{'SEARCH' | translate}}
                         i.fa.fa-spin.fa-spinner.pull-right(style='font-size:1.7em', ng-if='vm.gettingAdminLog')
-                table.simple-table.display#thisAdminLogDataTable(style='min-width:100%')
+                table.simple-table.display(style='max-width: 100%; width: 100%')#thisAdminLogDataTable
                     thead
                         tr
                             th {{'TIME' | translate}}
