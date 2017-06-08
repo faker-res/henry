@@ -34,6 +34,8 @@ let dbAutoProposal = {
             proposalType => {
                 if (proposalType) {
                     proposalTypeObjId = proposalType._id;
+                    let lastCheckBefore = new Date();
+                    lastCheckBefore.setMinutes(lastCheckBefore.getMinutes() - platformData.autoApproveRepeatDelay);
 
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
