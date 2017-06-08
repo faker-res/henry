@@ -82,6 +82,7 @@ let dbPlayerInfo = {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
+        let platformId = null;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -89,6 +90,7 @@ let dbPlayerInfo = {
             return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
                 platformData => {
                     if (platformData) {
+                        platformId = platformData.platformId;
                         platformObj = platformData;
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
@@ -265,6 +267,7 @@ let dbPlayerInfo = {
                     }).lean().then(
                         pdata => {
                             pdata.name = pdata.name.replace(platformPrefix, "");
+                            pdata.platformId = platformId;
                             return pdata;
                         }
                     )

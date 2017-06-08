@@ -71,7 +71,7 @@ describe("Test Partner API - Partner service", () => {
                 "phoneNumber":partnerPhoneNumber
             };
 
-            dbPartner.createPartner(partnerData).then(
+            dbPartner.createPartnerAPI(partnerData).then(
             (data) => {
                 done();
             },
@@ -91,7 +91,7 @@ describe("Test Partner API - Partner service", () => {
                 "partnerName": partnerName
             };
 
-            dbPartner.createPartner(partnerData).then(
+            dbPartner.createPartnerAPI(partnerData).then(
             (data) => {
                 done();
             },
@@ -114,7 +114,7 @@ describe("Test Partner API - Partner service", () => {
                 "domain": "localhost"
             }
 
-            dbPlayerInfo.createPlayerInfo(playerData).then(
+            dbPlayerInfo.createPlayerInfoAPI(playerData).then(
             (data) => {
                 done();
             },
@@ -136,7 +136,7 @@ describe("Test Partner API - Partner service", () => {
                 "domain": "localhost"
             }
 
-            dbPlayerInfo.createPlayerInfo(playerData).then(
+            dbPlayerInfo.createPlayerInfoAPI(playerData).then(
             (data) => {
                 done();
             },
@@ -158,7 +158,7 @@ describe("Test Partner API - Partner service", () => {
                 "domain": "localhost"
             }
 
-            dbPlayerInfo.createPlayerInfo(playerData).then(
+            dbPlayerInfo.createPlayerInfoAPI(playerData).then(
             (data) => {
                 done();
             },

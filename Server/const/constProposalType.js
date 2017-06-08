@@ -39,7 +39,8 @@ const constProposalType = {
     MANUAL_UNLOCK_PLAYER_REWARD: "ManualUnlockPlayerReward",
     PLAYER_DOUBLE_TOP_UP_REWARD: "PlayerDoubleTopUpReward",
     UPDATE_PARTNER_CREDIT:"UpdatePartnerCredit",
-    PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward"
+    PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward",
+    PLAYER_REGISTRATION_INTENTION: "PlayerRegistrationIntention"
 };
 
 module.exports = constProposalType;

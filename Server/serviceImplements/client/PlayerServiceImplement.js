@@ -17,6 +17,7 @@ let constProposalEntryType = require('./../../const/constProposalEntryType');
 let constProposalUserType = require('./../../const/constProposalUserType');
 let dbLogger = require('./../../modules/dbLogger');
 let dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
+let dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
 
 let PlayerServiceImplement = function () {
     PlayerService.call(this);
@@ -62,7 +63,8 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             data.isOnline = true;
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, true, false, true).then(
-                function (playerData) {
+                (playerData) =>{
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData);
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
                     conn.playerObjId = playerData._id;
@@ -72,11 +74,14 @@ let PlayerServiceImplement = function () {
                     };
                     var profile = {name: playerData.name, password: playerData.password};
                     var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
                         data: playerData,
                         token: token,
                     }, data);
+                },(error) => {
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data);
                 }
             ).catch(WebSocketUtil.errorHandler)
                 .done();
