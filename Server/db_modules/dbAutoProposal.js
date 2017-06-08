@@ -1,5 +1,8 @@
 'use strict';
 
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+
 const constPlayerLevel = require('../const/constPlayerLevel');
 const constPlayerStatus = require('../const/constPlayerStatus');
 const constProposalStatus = require('../const/constProposalStatus');
@@ -85,7 +88,7 @@ let dbAutoProposal = {
                                         lastWithdrawDate => {
                                             if (lastWithdrawDate) {
                                                 // Player withdrew before
-                                                let repeatCount = platformData.autoApproveRepeatCount;
+                                                let repeatCount = platformObj.autoApproveRepeatCount;
                                                 checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj);
                                             } else {
                                                 // Player first time withdraw
@@ -134,7 +137,7 @@ function checkSingleWithdrawalLimit(proposals, platformData) {
 }
 
 function checkSingleDayWithdrawalLimit(proposals, platformData, proposalTypeObjId) {
-    let playersToAggregate = proposals.map(proposal => proposal.data.playerObjId);
+    let playersToAggregate = proposals.map(proposal => ObjectId(proposal.data.playerObjId));
 
     return getBonusRecordsOfPlayers(playersToAggregate, proposalTypeObjId).then(
         bonusRecord => {
@@ -167,13 +170,13 @@ function getBonusRecordsOfPlayers(players, proposalTypeObjId) {
     return dbconfig.collection_proposal.aggregate(
         {
             $match: {
-                type: proposalTypeObjId,
+                type: ObjectId(proposalTypeObjId),
                 createTime: {
                     $gte: todayTime.startTime,
                     $lt: todayTime.endTime
                 },
                 'data.playerObjId': {$in: players},
-                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }
         },
         {
@@ -188,8 +191,8 @@ function getBonusRecordsOfPlayers(players, proposalTypeObjId) {
 
 function getPlayerLastProposalDateOfType(playerObjId, type) {
     return dbconfig.collection_proposal.find({
-        'data.playerObjId': playerObjId,
-        type: type,
+        'data.playerObjId': ObjectId(playerObjId),
+        type: ObjectId(type),
         $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}]
     }).sort({createTime: -1}).limit(1).lean().then(
         retData => {
@@ -201,9 +204,10 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
 }
 
 function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj) {
+    // Find proposals since previous withdrawal
     return dbconfig.collection_proposal.find({
-        'data.platformId': proposal.data.platformId,
-        'data.playerObjId': proposal.data.playerObjId,
+        'data.platformId': ObjectId(proposal.data.platformId),
+        'data.playerObjId': ObjectId(proposal.data.playerObjId),
         createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
         mainType: {$in: ["TopUp", "Reward"]}
@@ -226,7 +230,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                         proms.push(
                             getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, dateFrom, dateTo).then(
                                 record => {
-                                    if (record[0].validAmount < proposal.data.amount) {
+                                    if ((record && !record[0]) || (record && record[0] && record[0].validAmount < proposal.data.amount)) {
                                         isApprove = false;
                                     }
                                 }

@@ -23,16 +23,19 @@ describe("Test Auto Proposal - Apply Bonus", function () {
     let proposalTypeId = null;
     let testPlayerId = null;
     let testPlatformId = null;
+    let step1RoleId;
 
     let testPlatformObj;
     let testPlayerObj;
 
     let proposalTypeObjId;
+    let playerBonusProposalTypeObjId, playerTopUpProposalTypeObjId;
 
     it('Should create test API platform', function (done) {
         let platformData = {
             autoApproveWhenSingleBonusApplyLessThan: 300,
-            autoApproveWhenSingleDayTotalBonusApplyLessThan: 500
+            autoApproveWhenSingleDayTotalBonusApplyLessThan: 500,
+            autoApproveRepeatCount: 3
         };
 
         commonTestFunc.createTestPlatform(platformData).then(
@@ -47,23 +50,35 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         );
     });
 
+    it('Should get proposal types id', function (done) {
+        dbConfig.collection_proposalType.findOne({
+            platformId: testPlatformObj._id,
+            name: constProposalType.PLAYER_BONUS
+        }).lean().then(
+            proposalType => {
+                playerBonusProposalTypeObjId = proposalType._id;
+
+                return dbConfig.collection_proposalType.findOne({
+                    platformId: testPlatformObj._id,
+                    name: constProposalType.PLAYER_TOP_UP
+                }).lean();
+            }
+        ).then(
+            proposalType => {
+                playerTopUpProposalTypeObjId = proposalType._id;
+                done();
+            }
+        )
+    });
+
     it('Case 1: Amount > Single withdrawal limit', function (done) {
         commonTestFunc.createTestPlayer(testPlatformObj._id).then(
             data => {
                 testPlayerObj = data;
 
-                return dbConfig.collection_proposalType.findOne({
-                    platformId: testPlatformObj._id,
-                    name: constProposalType.PLAYER_BONUS
-                }).lean()
-            }
-        ).then(
-            proposalType => {
-                proposalTypeObjId = proposalType._id;
-
-                // Create top up proposal
+                // Create bonus proposal
                 let proposalData = {
-                    type: proposalTypeObjId,
+                    type: playerBonusProposalTypeObjId,
                     status: constProposalStatus.PROCESSING,
                     data: {
                         platformId: testPlatformObj._id,
@@ -77,7 +92,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                     }
                 };
 
-                return commonTestFunc.createTestAutoBonusProposal(proposalData);
+                return commonTestFunc.createTestProposal(proposalData);
             }
         ).then(
             () => dbAutoProposal.applyBonus(testPlatformObj._id)
@@ -86,7 +101,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 setTimeout(() => {
                     return dbConfig.collection_proposal.findOne({
                         'data.platformId': testPlatformObj._id,
-                        type: proposalTypeObjId,
+                        type: playerBonusProposalTypeObjId,
                         'data.playerObjId': testPlayerObj._id
                     }).then(
                         proposal => {
@@ -104,18 +119,9 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             data => {
                 testPlayerObj = data;
 
-                return dbConfig.collection_proposalType.findOne({
-                    platformId: testPlatformObj._id,
-                    name: constProposalType.PLAYER_BONUS
-                }).lean()
-            }
-        ).then(
-            proposalType => {
-                proposalTypeObjId = proposalType._id;
-
                 // Create top up proposal
                 let proposalData1 = {
-                    type: proposalTypeObjId,
+                    type: playerBonusProposalTypeObjId,
                     status: constProposalStatus.SUCCESS,
                     data: {
                         platformId: testPlatformObj._id,
@@ -126,11 +132,12 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                         amount: 280,
                         playerStatus: constPlayerStatus.NORMAL,
                         bonusId: 123,
-                    }
+                    },
+                    createTime: Date.now()
                 };
 
                 let proposalData2 = {
-                    type: proposalTypeObjId,
+                    type: playerBonusProposalTypeObjId,
                     status: constProposalStatus.PROCESSING,
                     data: {
                         platformId: testPlatformObj._id,
@@ -141,12 +148,13 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                         amount: 290,
                         playerStatus: constPlayerStatus.NORMAL,
                         bonusId: 123,
-                    }
+                    },
+                    createTime: Date.now()
                 };
 
                 return Promise.all([
-                    commonTestFunc.createTestAutoBonusProposal(proposalData1),
-                    commonTestFunc.createTestAutoBonusProposal(proposalData2)]
+                    commonTestFunc.createTestProposal(proposalData1),
+                    commonTestFunc.createTestProposal(proposalData2)]
                 );
             }
         ).then(
@@ -156,7 +164,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 setTimeout(() => {
                     return dbConfig.collection_proposal.findOne({
                         'data.platformId': testPlatformObj._id,
-                        type: proposalTypeObjId,
+                        type: playerBonusProposalTypeObjId,
                         'data.playerObjId': testPlayerObj._id,
                         status: {$ne: constProposalStatus.SUCCESS}
                     }).then(
@@ -205,7 +213,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 };
 
                 return Promise.all([
-                    commonTestFunc.createTestAutoBonusProposal(proposalData1)
+                    commonTestFunc.createTestProposal(proposalData1)
                 ]);
             }
         ).then(
@@ -233,18 +241,9 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             data => {
                 testPlayerObj = data;
 
-                return dbConfig.collection_proposalType.findOne({
-                    platformId: testPlatformObj._id,
-                    name: constProposalType.PLAYER_BONUS
-                }).lean();
-            }
-        ).then(
-            proposalType => {
-                proposalTypeObjId = proposalType._id;
-
-                // Create top up proposal
+                // Create bonus proposal
                 let proposalData = {
-                    type: proposalTypeObjId,
+                    type: playerBonusProposalTypeObjId,
                     status: constProposalStatus.PROCESSING,
                     data: {
                         platformId: testPlatformObj._id,
@@ -258,7 +257,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                     }
                 };
 
-                return commonTestFunc.createTestAutoBonusProposal(proposalData);
+                return commonTestFunc.createTestProposal(proposalData);
             }
         ).then(
             () => dbAutoProposal.applyBonus(testPlatformObj._id)
@@ -267,11 +266,102 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 setTimeout(() => {
                     return dbConfig.collection_proposal.findOne({
                         'data.platformId': testPlatformObj._id,
-                        type: proposalTypeObjId,
+                        type: playerBonusProposalTypeObjId,
                         'data.playerObjId': testPlayerObj._id
                     }).then(
                         proposal => {
                             proposal.status.should.equal("Pending");
+                            done();
+                        }
+                    );
+                }, 200);
+            }
+        );
+    });
+
+    it('Case 5: Situation A: topup > bonus', function (done) {
+        commonTestFunc.createTestPlayer(testPlatformObj._id).then(
+            data => {
+                testPlayerObj = data;
+
+                // Create bonus proposal
+                let proposalData = {
+                    type: playerBonusProposalTypeObjId,
+                    status: constProposalStatus.SUCCESS,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 100,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    },
+                    createTime: new Date()
+                };
+
+                return commonTestFunc.createTestProposal(proposalData);
+            }
+        ).then(
+            () => {
+                // Create top up proposal
+                let proposalData = {
+                    mainType: "TopUp",
+                    type: playerTopUpProposalTypeObjId,
+                    status: constProposalStatus.SUCCESS,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 130,
+                        playerStatus: constPlayerStatus.NORMAL
+                    },
+                    createTime: new Date()
+                };
+
+                return commonTestFunc.createTestProposal(proposalData);
+            }
+        ).then(
+            (data) => {
+                console.log('Topup proposal createtime', data.createTime);
+
+                // Create bonus proposal
+                let proposalData = {
+                    type: playerBonusProposalTypeObjId,
+                    status: constProposalStatus.PROCESSING,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 110,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    },
+                    createTime: new Date()
+                };
+
+                return commonTestFunc.createTestProposal(proposalData);
+            }
+        ).then(
+            () => dbAutoProposal.applyBonus(testPlatformObj._id)
+        ).then(
+            (data) => {
+                setTimeout(() => {
+                    return dbConfig.collection_proposal.findOne({
+                        'data.platformId': testPlatformObj._id,
+                        type: playerBonusProposalTypeObjId,
+                        'data.playerObjId': testPlayerObj._id,
+                        status: {$ne: constProposalStatus.SUCCESS}
+                    }).then(
+                        proposal => {
+                            console.log('proposal', proposal);
+                            proposal.status.should.equal("Processing");
+                            proposal.data.autoApproveRepeatCount.should.equal(2);
                             done();
                         }
                     );
