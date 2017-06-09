@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function(){
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -77,7 +71,8 @@
                 "getProposalById",
                 "getProposalList",
                 "getBankcardListByGroup",
-                "getMerchantIdListByGroup"
+                "getMerchantIdListByGroup",
+                "setUpdateCreditProposalStatus"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

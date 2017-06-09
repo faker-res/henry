@@ -77,7 +77,7 @@
                                 a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedMerchants', class='{{vm.highlightMerchant[v.merchantNo]}}', ng-click='vm.merchantClicked(i,v,"in")')
                                     table.bg-pale
                                         tr
-                                            td.text-center(rowspan="5")
+                                            td.text-center(rowspan="6")
                                                 i.fa.fa-money.text-danger
                                             td {{'TITLE' | translate}}
                                             td.text-success {{v.name}}
@@ -90,6 +90,9 @@
                                         tr
                                             td {{'Merchant Use' | translate}}
                                             td.text-success {{merchantUseTypeJson[v.merchantUse] | translate}}
+                                        tr
+                                            td {{'Status' | translate}}
+                                            td.text-success {{v.status | translate}}
                                         tr
                                             td {{'Merchant Type ID' | translate}}
                                             td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
@@ -272,12 +275,14 @@
                                 label {{'CREDIT' | translate}}
                                 input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.validCredit')
                             .inlineBlk
-                                button.btn.btn-primary.common-button(ng-click='vm.playerToGroupFilter("merchant")') {{'SEARCH' | translate}}
+                                button.btn.btn-primary.common-button(ng-click='vm.playerToGroupFilter(true,"merchant")') {{'SEARCH' | translate}}
                             .inlineBlk(ng-show='vm.loadingPlayerTable')
                                 label.blink.text-danger {{'Loading' | translate}}
                         text.text-danger(ng-show='vm.players.length==0') {{"No player is found."|translate}}
+                        label {{"Total" | translate}} {{vm.playerToGroupFilterObj.totalCount}} {{"records" | translate}}
                         table#playertoMerchantGroupDataTable.display(style="width:100%")
                             thead
+                        #playertoMerchantGroupDataTablePage
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitAddPlayersToMerchantGroup()") {{"ADD" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

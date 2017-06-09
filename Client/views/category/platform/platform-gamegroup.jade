@@ -69,17 +69,17 @@
                 label.text-danger(ng-if='vm.selectGameGroupGames.length>0') {{vm.selectGameGroupGames.length}}&nbsp;{{'game' | translate}}&nbsp;{{'is selected' | translate}}
                 #groupGameList.panel-group(ng-if='vm.SelectedGameGroupNode')
                     .panel.panel-default
-                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#groupGameList", href='#includedGroupGames', ng-click='vm.showGameCate="include";vm.toggleGameType()')
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#groupGameList", href='#includedGroupGames', ng-click='vm.showGameCate="include";vm.toggleGameType();vm.groupGameListCollapseIn();')
                             h4.panel-title
                                 text {{'INCLUDEDGAMES' | translate}}
-                                span(ng-if='vm.includedGames') &nbsp;:&nbsp;({{vm.includedGames.length}})
+                                span(ng-if='vm.includedGamesGroup') &nbsp;:&nbsp;({{vm.includedGamesGroup.length}})
                                 text.blink.margin-left-5.text-danger(ng-if='!vm.gameGroupClickable.inGameLoaded') {{'loading games' | translate}}...
                                 .pull-right.smallLink
                                     a(ng-click='vm.allGametoGameGroup("add","in");$event.stopPropagation();') {{"Select All" | translate}}
                                     a(ng-click='vm.allGametoGameGroup("remove","in");$event.stopPropagation();') {{"Clear All" | translate}}
                         #includedGroupGames.panel-collapse.collapse.in
                             .panel-body(style='height:250px;overflow-y:auto')
-                                div.platformGame(ng-repeat='(i,v) in vm.includedGames | orderBy:"index"', class='{{vm.highlightGame[v._id]}}')
+                                div.platformGame(ng-repeat='(i,v) in vm.includedGamesGroup | orderBy:"index"', class='{{vm.highlightGame[v._id]}}')
                                     a(ng-click='vm.gameInGroupClicked(i,v,"in");vm.newIndex=v.index')
                                         img(ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
                                         div(ng-if="!vm.gameSmallShow[v._id]")
@@ -87,17 +87,17 @@
                                         .text-center
                                             label {{v.name}}
                     .panel.panel-default
-                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#groupGameList", href='#excludedGroupGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType()')
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#groupGameList", href='#excludedGroupGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType();vm.groupGameListCollapseOut();')
                             h4.panel-title
                                 text {{'EXCLUDEDGAMES' | translate}}
-                                span(ng-if='vm.excludedGames') &nbsp;:&nbsp;({{vm.excludedGames.length}})
+                                span(ng-if='vm.excludedGamesGroup') &nbsp;:&nbsp;({{vm.excludedGamesGroup.length}})
                                 text.blink.margin-left-5.text-danger(ng-if='!vm.gameGroupClickable.outGameLoaded') {{'loading games' | translate}}...
                                 .pull-right.smallLink
                                     a(ng-click='vm.allGametoGameGroup("add","ex");$event.stopPropagation();') {{"Select All" | translate}}
                                     a(ng-click='vm.allGametoGameGroup("remove","ex");$event.stopPropagation();') {{"Clear All" | translate}}
                         #excludedGroupGames.panel-collapse.collapse
                             .panel-body(style='height:250px;overflow-y:auto')
-                                div.platformGame(ng-repeat='(i,v) in vm.excludedGames', class='{{vm.highlightGame[v._id]}}')
+                                div.platformGame(ng-repeat='(i,v) in vm.excludedGamesGroup', class='{{vm.highlightGame[v._id]}}')
                                     a(ng-click='vm.gameInGroupClicked(i,v,"ex")')
                                         img(ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
                                         div(ng-if="!vm.gameSmallShow[v._id]")
@@ -192,9 +192,9 @@
                             .form-group
                                 .control-label {{"Game Group display Name" | translate}}
                                 input.form-control(type='text', ng-model='vm.newGameGroup.displayName')
-                            //.form-group
-                            //    .control-label {{"Game Group Code" | translate}}
-                            //    input.form-control(type='text', ng-model='vm.newGameGroup.code')
+                            .form-group
+                                .control-label {{"Game Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newGameGroup.code')
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.renameGameGroup()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

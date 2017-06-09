@@ -32,7 +32,7 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case "PLATFORM_OVERVIEW":
                         vm.initSearchParameter('allActivePlayer', null, 4, function () {
-                            vm.queryPara.allActivePlayer = {date: utilService.setNDaysAgo(new Date(), 1)}
+                            vm.queryPara.allActivePlayer = {date: utilService.getNdayagoStartTime(1)}
                         });
 
                         vm.initSearchParameter('allNewPlayer', true, 4);
@@ -188,7 +188,13 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case "GAME_ANALYSIS":
-                        vm.getAllProvider();
+                        // vm.getAllProvider();
+                        break;
+                    case "CONSUMPTION_INTERVAL":
+                        vm.consumptionInterval = {};
+                        vm.initSearchParameter('consumptionInterval', null, 1);
+                        vm.consumptionInterval.pastDay = '1';
+                        vm.getConsumptionIntervalData();
                         break;
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
@@ -238,8 +244,8 @@ define(['js/app'], function (myApp) {
             var placeholder = "#pie-all-activePlayer";
 
             var sendData = {
-                date: vm.queryPara.allActivePlayer.date
-            };
+                date: utilService.setLocalDayStartTime(vm.queryPara.allActivePlayer.date)
+            }
             socketService.$socket($scope.AppSocket, 'countActivePlayerALLPlatform', sendData, function success(data1) {
                 console.log('allActivePlayers', data1);
                 var data = data1.data.filter(function (obj) {
@@ -393,7 +399,8 @@ define(['js/app'], function (myApp) {
                 startDate: vm.queryPara.allApiResponseTime.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.allApiResponseTime.endTime.data('datetimepicker').getLocalDate(),
                 service: vm.queryPara.allApiResponseTime.service,
-                functionName: vm.queryPara.allApiResponseTime.funcName
+                functionName: vm.queryPara.allApiResponseTime.funcName,
+                providerId: vm.queryPara.allApiResponseTime.providerId
             };
             $('#allApiResponseTimeAnalysis .block-query > *').last().show();
             socketService.$socket($scope.AppSocket, 'getApiResponseTimeQuery', sendData, function success(data) {
@@ -577,39 +584,28 @@ define(['js/app'], function (myApp) {
             // var periodText = $('#analysisActivePlayer select').val();
             var sendData = {
                 platformId: vm.selectedPlatform._id,
-                // startDate: vm.queryPara.activePlayer.startTime,
-                // endDate: vm.queryPara.activePlayer.endTime,
                 startDate: vm.queryPara.activePlayer.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.activePlayer.endTime.data('datetimepicker').getLocalDate(),
             };
             socketService.$socket($scope.AppSocket, 'countActivePlayerbyPlatform', sendData, function success(data1) {
                 console.log('received data', data1);
-                var activePlayerData = data1.data;
-                var activePlayerObjData = {};
-                for (var i = 0; i < activePlayerData.length; i++) {
-                    activePlayerObjData[activePlayerData[i]._id.date] = activePlayerData[i].number;
-                }
+                var activePlayerData = data1 ? data1.data : [];
                 var graphData = [];
-                var newOptions = {};
-                var nowDate = new Date(sendData.startDate);
+                activePlayerData.forEach(item => {
+                    graphData.push([new Date(item.date).getTime(), item.activePlayers]);
+                })
 
-                do {
-                    var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                    graphData.push([nowDate.getTime(), (activePlayerObjData[dateText] || 0)]);
-                    nowDate.setDate(nowDate.getDate() + 1);
-                } while (nowDate <= sendData.endDate);
-                newOptions = {
+                //draw graph
+                socketService.$plotLine(placeholder, [{
+                    label: $translate('Active Player'),
+                    data: graphData
+                }], {
                     xaxis: {
                         tickLength: 0,
                         mode: "time",
                         minTickSize: [1, "day"],
                     }
-                };
-                //draw graph
-                socketService.$plotLine(placeholder, [{
-                    label: $translate('Active Player'),
-                    data: graphData
-                }], newOptions);
+                });
                 $(placeholder).bind("plothover", function (event, pos, obj) {
                     var previousPoint;
                     if (!obj) {
@@ -1762,7 +1758,8 @@ define(['js/app'], function (myApp) {
             for (var i in graphData) {
                 var obj = {};
                 obj.date = String(utilService.$getTimeFromStdTimeFormat(new Date(graphData[i][0]))).substring(0, 10);
-                obj.amount = graphData[i][1] || 0;
+                let amount = graphData[i][1] || 0;
+                obj.amount = amount.toFixed(2);
                 tableData.push(obj);
             }
             var dataOptions = {
@@ -1829,6 +1826,54 @@ define(['js/app'], function (myApp) {
         }
         //client source =============================================
 
+        //consumption interval ////////////////////////////////////
+        vm.getConsumptionIntervalData = function () {
+            var sendObj = {
+                platform: vm.selectedPlatform._id,
+                days: vm.consumptionInterval.pastDay
+            }
+            socketService.$socket($scope.AppSocket, 'getConsumptionIntervalData', sendObj, function (data) {
+                console.log('data', data);
+                vm.consumptionInterval.data = data.data || [];
+                var graphData = [];
+                vm.consumptionInterval.data.forEach(item => {
+                    graphData.push([new Date(item.time0), item.count, new Date(item.time1)]);
+                })
+                vm.drawConsumptionIntervalLine('#line-consumptionInterval', graphData, {});
+            });
+        };
+        vm.drawConsumptionIntervalLine = function (dom, graphData, option) {
+            var data = {label: '', data: graphData};
+            var newOptions = {};
+            newOptions.yaxes = [{
+                position: 'left',
+                axisLabel: $translate('amount'),
+            }];
+            newOptions.xaxes = [{
+                position: 'bottom',
+                axisLabel: $translate('TIME')
+            }];
+            newOptions.xaxis = {
+                tickLength: 0,
+                mode: "time",
+                minTickSize: [1, "minute"],
+                timezone: "browser"
+            }
+            socketService.$plotLine('#line-consumptionInterval', [data], newOptions);
+            vm.bindHover('#line-consumptionInterval', function (obj) {
+                var x = obj.datapoint[0],
+                    y = obj.datapoint[1].toFixed(0);
+                var t0 = obj.series.data[obj.dataIndex][0];
+                var t1 = obj.series.data[obj.dataIndex][2];
+                var showText = $translate('from') + ' : ' + utilService.getFormatTime(t0) + '<br>'
+                    + $translate('to') + ' : ' + utilService.getFormatTime(t1) + '<br>'
+                    + $translate('amount') + ' : ' + y;
+                $("#tooltip").html(showText)
+                    .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                    .fadeIn(200);
+            })
+        }
+
         //common functions======================================================
         vm.bindHover = function (placeholder, callback) {
             $(placeholder).bind("plothover", function (event, pos, obj) {
@@ -1866,11 +1911,11 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded(('#' + field + 'Analysis'), function () {
                     vm.queryPara[field].startTime = utilService.createDatePicker('#' + field + 'Analysis .startTime');
                     vm.queryPara[field].endTime = utilService.createDatePicker('#' + field + 'Analysis .endTime');
-                    vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                    vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.queryPara[field].endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 })
             } else {
-                vm.queryPara[field].startTime = utilService.setNDaysAgo(new Date(), 30);
+                vm.queryPara[field].startTime = utilService.setNDaysAgo(new Date(), 1);
                 vm.queryPara[field].endTime = new Date();
             }
 
@@ -1935,6 +1980,7 @@ define(['js/app'], function (myApp) {
 //##Mark content loaded function
         $scope.$on('$viewContentLoaded', function () {
 
+            vm.getAllProvider();
             setTimeout(
                 function () {
                     vm.optionText = {};

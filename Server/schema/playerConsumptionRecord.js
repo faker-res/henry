@@ -3,9 +3,9 @@ var Schema = mongoose.Schema;
 
 var playerConsumptionRecordSchema = new Schema({
     //player id
-    playerId: {type: Schema.ObjectId, required: true},
+    playerId: {type: Schema.ObjectId, required: true, index: true},
     // platform Id
-    platformId: {type: Schema.ObjectId, required: true},
+    platformId: {type: Schema.ObjectId, required: true, index: true},
     // provider ID
     providerId: {type: Schema.ObjectId},
     // game ID
@@ -15,7 +15,7 @@ var playerConsumptionRecordSchema = new Schema({
     // gameRound
     roundNo: {type: String},
     // payment time
-    createTime: {type: Date, default: Date.now},
+    createTime: {type: Date, default: Date.now, index: true},
     //total amount for statistics
     amount: {type: Number, required: true, default: 0},
     //total amount for statistics
@@ -39,7 +39,11 @@ var playerConsumptionRecordSchema = new Schema({
     //has been used for which reward type
     usedType: {type: String},
     //check if record has been used for other reward
-    bDirty: {type: Boolean, default: false}
+    bDirty: {type: Boolean, default: false, index: true},
+    // check if record is duplicate
+    isDuplicate: {type: Boolean, default: false, index: true},
+    // record insert time
+    insertTime: {type: Date, default: Date.now},
 });
 
 //record is unique by playerId platformId and date

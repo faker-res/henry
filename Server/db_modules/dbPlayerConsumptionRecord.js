@@ -3,24 +3,32 @@ var dbPlayerConsumptionRecordFunc = function () {
 };
 module.exports = new dbPlayerConsumptionRecordFunc();
 
-var Q = require('q');
-var env = require('../config/env')
-var dbconfig = require('./../modules/dbproperties');
-var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
-var constRewardType = require('./../const/constRewardType');
-var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
-var dbRewardTask = require('../db_modules/dbRewardTask');
-var constShardKeys = require('../const/constShardKeys');
-var constSystemParam = require('../const/constSystemParam');
-var SettlementBalancer = require('../settlementModule/settlementBalancer');
-var promiseUtils = require("../modules/promiseUtils.js");
-var constGameStatus = require("./../const/constGameStatus");
-var constServerCode = require('../const/constServerCode');
+const Q = require('q');
+const env = require('../config/env');
+const moment = require('moment-timezone');
+const dbconfig = require('./../modules/dbproperties');
+const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+const constRewardType = require('./../const/constRewardType');
+const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
+const dbRewardTask = require('../db_modules/dbRewardTask');
+const constShardKeys = require('../const/constShardKeys');
+const constSystemParam = require('../const/constSystemParam');
+const SettlementBalancer = require('../settlementModule/settlementBalancer');
+const promiseUtils = require("../modules/promiseUtils.js");
+const constGameStatus = require("./../const/constGameStatus");
+const constServerCode = require('../const/constServerCode');
+const dataUtils = require("../modules/dataUtils.js");
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+const constProposalType = require('./../const/constProposalType');
+const constProposalStatus = require('./../const/constProposalStatus');
+
+let dbUtility = require('./../modules/dbutility');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
     if (maxAttempts === undefined) {
-        maxAttempts = 10;
+        maxAttempts = 20;
     }
     if (delayBetweenAttempts === undefined) {
         delayBetweenAttempts = 500;
@@ -273,25 +281,11 @@ var dbPlayerConsumptionRecord = {
      * @param {Json} data
      */
     createPlayerConsumptionRecord: function (data) {
-        var deferred = Q.defer();
-        var record = null;
-        var newOrderNo = data.orderNo;
+        let deferred = Q.defer();
+        let record = null;
 
-        var newOrderNumObj = {orderNo: newOrderNo};
-        if (data.createTime) {
-            newOrderNumObj.createTime = data.createTime;
-        }
-        var newConsumptionNum = new dbconfig.collection_consumptionOrderNumModal(newOrderNumObj);
-
-        newConsumptionNum.save().then(
-            newOrderNo => {
-                var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
-                return newRecord.save();
-            },
-            err => {
-                deferred.reject({status: constServerCode.CONSUMPTION_ORDERNO_ERROR, name: "DataError", error: err});
-            }
-        ).then(
+        var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
+        newRecord.save().then(
             function (data) {
                 record = data;
                 if (record && !record.bDirty) {
@@ -303,26 +297,71 @@ var dbPlayerConsumptionRecord = {
                 }
             },
             function (error) {
-                dbconfig.collection_consumptionOrderNumModal.remove({orderNo: newOrderNo}).then();
                 deferred.reject({name: "DBError", message: "Error creating consumption record", error: error});
+            }
+        ).then(
+            //check if player has double top up reward and if this consumption record is from double top up reward
+            checkResult => {
+                if (!checkResult) {
+                    const rewardProposalProm = dbconfig.collection_proposalType.findOne(
+                        {name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD, platformId: record.platformId}
+                    ).lean().then(
+                        pType => {
+                            return dbconfig.collection_proposal.find({
+                                type: pType._id,
+                                "data.playerObjId": record.playerId,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            }).sort({createTime: -1}).limit(1).lean();
+                        }
+                    );
+                    return rewardProposalProm.then(
+                        data => {
+                            if (data && data.length > 0) {
+                                let rewardTime = new Date(data[0].createTime);
+                                return dbconfig.collection_playerTopUpRecord.find({playerId: record.playerId, createTime: {$gte: rewardTime}}).sort({createTime: 1}).limit(1).lean().then(
+                                    tRecord => {
+                                        let topUpTime = new Date();
+                                        if (tRecord && tRecord.length > 0) {
+                                            topUpTime = new Date(tRecord[0].createTime);
+                                        }
+                                        const recordTime = new Date(record.createTime);
+                                        if (topUpTime.getTime() > rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime() && recordTime.getTime() < topUpTime.getTime()) {
+                                            return true;
+                                        }
+                                        if (topUpTime.getTime() < rewardTime.getTime() && recordTime.getTime() > rewardTime.getTime()) {
+                                            return true;
+                                        }
+                                        return checkResult;
+                                    }
+                                );
+
+
+                            }
+                            else {
+                                return checkResult;
+                            }
+                        }
+                    );
+                }
+                else {
+                    return checkResult;
+                }
             }
         ).then(
             function (bDirty) {
                 if (!bDirty) {
-                    //for data migration purpose, only add consumption return for newly added record
-                    if( env.mode != "qa" && data && data.createTime && new Date(data.createTime).getTime() < new Date(Date.UTC(2017, 1, 19, 16, 0, 0)).getTime() ){
-                        return record;
-                    }
                     //update consumption summary record
+                    var summaryDay = moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate();
                     var query = {
                         playerId: record.playerId,
                         platformId: record.platformId,
                         gameType: record.gameType,
+                        summaryDay: summaryDay,
                         bDirty: false
                     };
                     var updateData = {
-                        $inc: {amount: record.amount, validAmount: record.validAmount},
-                        $push: {consumptionRecords: record._id}
+                        $inc: {amount: record.amount, validAmount: record.validAmount}
+                        //$push: {consumptionRecords: record._id}
                     };
                     return dbPlayerConsumptionRecord.upsert(query, updateData);
                 }
@@ -387,28 +426,46 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
+    addMissingConsumption: function (recordData, resolveError) {
+        return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo}).lean().then(
+            record => {
+                if (record) {
+                    return Q.reject({
+                        status: constServerCode.CONSUMPTION_ORDERNO_ERROR,
+                        name: "DataError",
+                        message: "orderNo exists"
+                    });
+                }
+                else {
+                    return dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord(recordData, resolveError);
+                }
+            }
+        );
+    },
+
     /**
      *  Create player consumption record
      * @param {Json} data
      * @param {Boolean} resolveError
      */
     createExternalPlayerConsumptionRecord: function (recordData, resolveError) {
-        var verifiedData = null;
+        let verifiedData = null;
+        let providerId = recordData.providerId;
         return dbconfig.collection_platform.findOne({platformId: recordData.platformId}).then(
             platformData => {
                 if (platformData) {
                     var prom1 = dbconfig.collection_players.findOne({
                         name: recordData.userName,
                         platform: platformData._id
-                    });
-                    var prom2 = dbconfig.collection_game.findOne({gameId: recordData.gameId}).then(
+                    }).lean();
+                    var prom2 = dbconfig.collection_game.findOne({gameId: recordData.gameId}).lean().then(
                         game => {
                             if (game) {
                                 return game;
                             } else {
                                 // try harder
                                 if (recordData.code) {
-                                    return dbconfig.collection_game.findOne({code: recordData.code}).then(
+                                    return dbconfig.collection_game.findOne({code: recordData.code}).lean().then(
                                         gameByCode => {
                                             if (gameByCode) {
                                                 return gameByCode;
@@ -430,12 +487,11 @@ var dbPlayerConsumptionRecord = {
                             }
                         }
                     );
-                    var prom3 = dbconfig.collection_gameProvider.findOne({providerId: recordData.providerId});
+                    var prom3 = dbconfig.collection_gameProvider.findOne({providerId: recordData.providerId}).lean();
 
                     return Q.all([prom1, prom2, prom3]);
                 }
                 else {
-                    console.error("createExternalPlayerConsumptionRecord", "Can't find platform");
                     return resolveError ? Q.resolve(null) : Q.reject({
                         name: "DataError",
                         message: "Can't find platform"
@@ -463,7 +519,7 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             platformGameData => {
-                if (verifiedData && platformGameData && (platformGameData[0] || platformGameData[1])) {
+                if (verifiedData && verifiedData[0] && verifiedData[1] && verifiedData[2] && platformGameData && (platformGameData[0] || platformGameData[1])) {
                     var data = verifiedData;
                     recordData.playerId = data[0]._id;
                     recordData.platformId = data[0].platform;
@@ -476,7 +532,7 @@ var dbPlayerConsumptionRecord = {
                 } else {
                     const missingList = [];
                     if (verifiedData && !verifiedData[0]) {
-                        missingList.push("playerId");
+                        missingList.push("userName");
                     }
                     if (verifiedData && !verifiedData[1]) {
                         missingList.push("gameId");
@@ -491,14 +547,17 @@ var dbPlayerConsumptionRecord = {
                     });
                 }
             }
+        ).then(
+            newRecord => {
+                if (newRecord) {
+                    newRecord.providerId = providerId;
+                }
+                return newRecord;
+            }
         ).catch(
             function (error) {
                 console.error("createExternalPlayerConsumptionRecord", error);
-                return resolveError ? Q.resolve(null) : Q.reject({
-                    name: "DBError",
-                    message: "Error in creating player consumption record",
-                    error: error
-                });
+                return resolveError ? Q.resolve(null) : Q.reject(error);
             }
         );
     },
@@ -1469,11 +1528,112 @@ var dbPlayerConsumptionRecord = {
 
     streamPlayersWithTopUpDaySummaryInTimeFrame: function streamPlayersWithTopUpDaySummaryInTimeFrame(startTime, endTime, platformId) {
         return dbPlayerConsumptionRecord.streamPlayerRecordsInTimeFrame(dbconfig.collection_playerTopUpDaySummary, 'date', startTime, endTime, platformId);
-    }
+    },
 
     // streamPlayersWithConsumptionSummaryInTimeFrame: function streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId) {
     //     return dbPlayerConsumptionRecord.streamPlayerRecordsInTimeFrame(dbconfig.collection_playerConsumptionSummary, 'createTime', startTime, endTime, platformId);
     // }
+    getConsumptionIntervalData: function (platform, days) {
+        var seconds = days == 1 ? 24 * 3600 * 1000 : 2 * 24 * 3600 * 1000;
+        var startDate = new Date(Date.now() - seconds);
+        startDate.setMinutes(Math.floor(startDate.getMinutes() / 5) * 5, 0, 0, 0);
+        var nowDate = new Date(startDate.getTime() + seconds);
+        var timeArr = dataUtils.getTimeIntervalArr(startDate, nowDate, 5 * 60 * 1000);
+        var proms = [];
+
+        function getData(time0, time1, platform) {
+            return dbPlayerConsumptionRecord.getConsumptionTotalAmountForAllPlatform(time0, time1, platform).then(data => {
+                return {time0: time0, time1: time1, count: (data && data[0]) ? data[0].totalAmount : 0};
+            })
+        }
+
+        timeArr.forEach(timeFrame => {
+            proms.push(getData(timeFrame[0], timeFrame[1], platform));
+        })
+        return Q.all(proms)
+    },
+    getConsumptionIntervalByProvider: function (providers) {
+        providers = providers || [];
+        var proms = [];
+        providers.forEach(provider => {
+            proms.push(Q.resolve(dbPlayerConsumptionRecord.getConsumptionIntervalForProvider(provider)));
+        });
+        return Q.all(proms);
+    },
+    getConsumptionIntervalForProvider: function (providerId) {
+        const duration = 2 * 3600 * 1000;
+        var startDate = new Date(Date.now() - duration);
+        startDate.setMinutes(Math.floor(startDate.getMinutes() / 5) * 5, 0, 0, 0);
+        var nowDate = new Date(startDate.getTime() + duration);
+        var timeArr = dataUtils.getTimeIntervalArr(startDate, nowDate, 5 * 60 * 1000);
+        var proms = [];
+
+        function getData(time0, time1, providerId) {
+            return dbPlayerConsumptionRecord.getConsumptionTotalAmountForProvider(time0, time1, ObjectId(providerId)).then(data => {
+                return {
+                    time0: time0,
+                    time1: time1,
+                    count: (data && data[0]) ? data[0].totalAmount : 0
+                };
+            })
+        }
+
+        timeArr.forEach(timeFrame => {
+            proms.push(getData(timeFrame[0], timeFrame[1], providerId));
+        })
+        return Q.all(proms).then(result => {
+            return {
+                providerId: providerId,
+                data: result
+            }
+        })
+    },
+    getConsumptionTotalAmountForProvider: function (startTime, endTime, providerId) {
+        const matchObj = {
+            createTime: {$gte: startTime, $lt: endTime},
+            providerId: providerId
+        };
+        return dbconfig.collection_playerConsumptionRecord.aggregate(
+            {$match: matchObj},
+            {
+                $group: {
+                    _id: null,
+                    totalAmount: {$sum: "$amount"}
+                }
+            }
+        );
+    },
+
+    markDuplicatedConsumptionRecords: dupsSummaries => {
+        if (dupsSummaries.length > 0) {
+            let markDupsProm = [];
+
+            dupsSummaries.map(
+                dupsSummary => {
+                    // mark duplicates consumption records
+                    let dupsToMark = Number(dupsSummary.count) - 1;
+                    let markDups = {isDuplicate: true};
+
+                    for (let i = 0; i < dupsToMark; i++) {
+                        markDupsProm.push(dbUtility.findOneAndUpdateForShard(
+                            dbconfig.collection_playerConsumptionRecord,
+                            {
+                                _id: dupsSummary.uniqueIds[i]
+                            },
+                            markDups,
+                            constShardKeys.collection_playerConsumptionRecord
+                        ));
+                    }
+                }
+            );
+
+            return Q.all(markDupsProm);
+        }
+        else {
+            // No duplicate found
+            return Q.resolve();
+        }
+    }
 
 };
 

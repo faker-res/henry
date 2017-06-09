@@ -1,8 +1,3 @@
-/******************************************************************
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
     if (isNode) {
@@ -289,8 +284,8 @@
 
     var TestHelper = {
         // This is the default.  It may be overridden below if we are running in development
-        websocketIP: "54.255.174.69",
-        wsMigration: "52.221.222.65",
+        websocketIP: "101.78.133.210",
+        wsMigration: "101.78.133.210",
         // This will be set later, based on WebSocketIP
         websocketURL: null,
         //

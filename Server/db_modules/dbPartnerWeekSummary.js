@@ -1,9 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 "use strict";
 
 var dbconfig = require('./../modules/dbproperties');
@@ -753,7 +747,8 @@ var dbPartnerWeekSummary = {
                                     platformId: platformId,
                                     rewardAmount: rewardAmount,
                                     eventName: eventData.name,
-                                    eventCode: eventData.code
+                                    eventCode: eventData.code,
+                                    eventDescription: eventData.description
                                 }
                             };
 
@@ -882,7 +877,8 @@ var dbPartnerWeekSummary = {
                                         platformId: platformId,
                                         rewardAmount: rewardAmount,
                                         eventName: eventData.name,
-                                        eventCode: eventData.code
+                                        eventCode: eventData.code,
+                                        eventDescription: eventData.description
                                     }
                                 };
 
@@ -997,7 +993,8 @@ var dbPartnerWeekSummary = {
                                     platformId: platformId,
                                     rewardAmount: eventData.condition.rewardAmount,
                                     eventName: eventData.name,
-                                    eventCode: eventData.code
+                                    eventCode: eventData.code,
+                                    eventDescription: eventData.description
                                 }
                             };
 
@@ -1087,7 +1084,8 @@ var dbPartnerWeekSummary = {
                                 rewardAmount: rewardAmount,
                                 startTime: startTime,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             }
                         };
                         return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData).then(

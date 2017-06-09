@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -137,10 +131,48 @@
 
     };
 
+    proto.createPlayerPartner = function (callback, requestData) {
+        date = new Date().getTime();
+        let thisObj = this;
+        let data = requestData ||
+            {
+                "name": "testPlayer" + date,
+                "realName": "testPlayerRealName",
+                "password": "123456",
+                "platformId": platformId,
+                "phoneNumber": "97787654",
+                "email": "testPlayer123@gmail.com",
+                smsCode: smsCode,
+                isTestPlayer: true,
+                requestId: "testRequestId123"
+            };
+
+        thisObj.playerService.createPlayerPartner.request(data);
+        thisObj.playerService.createPlayerPartner.once(function (data) {
+            newTestPlayerObjId = data && data.data ? data.data._id : null;
+            newTestPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.get = function (callback, requestData) {
-        var data = requestData || {name: 'testclientplayer'};
+        let data = requestData || {name: 'testclientplayer'};
         this.playerService.get.request(data);
         this.playerService.get.once(function (data) {
+            testPlayerObjId = data && data.data ? data.data._id : null;
+            testPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.getPlayerPartner = function (callback, requestData) {
+        let data = requestData || {name: 'testclientplayer'};
+        this.playerService.getPlayerPartner.request(data);
+        this.playerService.getPlayerPartner.once(function (data) {
             testPlayerObjId = data && data.data ? data.data._id : null;
             testPlayerId = data && data.data ? data.data.playerId : null;
             if (typeof callback === "function") {
@@ -176,6 +208,46 @@
         });
     };
 
+    proto.loginPlayerPartner = function (callback, requestData) {
+        let data = requestData || testPlayerLoginData;
+
+        if (!isNode) {
+            console.log("Not node");
+            document.cookie = "username=" + data.name;
+            document.cookie = "password=" + data.password;
+            document.cookie = "platform=" + data.platformId;
+            document.cookie = "expires=" + date + (5 * 60 * 60 * 1000);
+        }
+        this.playerService.loginPlayerPartner.request(data);
+        this.playerService.loginPlayerPartner.once(function (data) {
+            testPlayerObjId = data && data.data ? data.data._id : null;
+            testPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.loginPlayerPartnerWithSMS = function (callback, requestData) {
+        let data = requestData || testPlayerLoginData;
+
+        if (!isNode) {
+            console.log("Not node");
+            document.cookie = "phoneNumber=" + data.phoneNumber;
+            document.cookie = "smsCode=" + data.smsCode;
+            document.cookie = "platform=" + data.platformId;
+            document.cookie = "expires=" + date + (5 * 60 * 60 * 1000);
+        }
+        this.playerService.loginPlayerPartnerWithSMS.request(data);
+        this.playerService.loginPlayerPartnerWithSMS.once(function (data) {
+            testPlayerObjId = data && data.data ? data.data._id : null;
+            testPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.isLogin = function (callback, requestData) {
         var data = requestData || {
                 playerId: testPlayerId
@@ -185,9 +257,10 @@
     };
 
     proto.logout = function (callback, requestData) {
-        var data = requestData || {
+        let data = requestData || {
                 playerId: testPlayerId
             };
+
         this.playerService.logout.request(data);
         if (!isNode) {
             document.cookie = "username=;";
@@ -195,6 +268,19 @@
             document.cookie = "expires=" + date.toString();
         }
         this.playerService.logout.once(callback);
+    };
+
+    proto.logoutPlayerPartner = function (callback, requestData) {
+        let data = requestData || {
+                playerId: testPlayerId
+            };
+        this.playerService.logoutPlayerPartner.request(data);
+        if (!isNode) {
+            document.cookie = "username=;";
+            document.cookie = "password=";
+            document.cookie = "expires=" + date.toString();
+        }
+        this.playerService.logoutPlayerPartner.once(callback);
     };
 
     proto.isValidUsername = function (callback, requestData) {
@@ -209,6 +295,12 @@
         this.playerService.updatePassword.once(callback);
     };
 
+    proto.updatePasswordPlayerPartner = function (callback, requestData) {
+        let data = requestData || {playerId: testPlayerId, oldPassword: "123456", newPassword: "654321"};
+        this.playerService.updatePasswordPlayerPartner.request(data);
+        this.playerService.updatePasswordPlayerPartner.once(callback);
+    };
+
     proto.update = function (callback, requestData) {
         var data = requestData ||
             {
@@ -217,6 +309,18 @@
             };
         this.playerService.update.request(data);
         this.playerService.update.once(callback);
+    };
+
+    proto.updatePhoneNumberWithSMS = function (callback, requestData) {
+        let data = requestData || {};
+        this.playerService.updatePhoneNumberWithSMS.request(data);
+        this.playerService.updatePhoneNumberWithSMS.once(callback);
+    };
+
+    proto.updatePlayerPartnerPhoneNumberWithSMS = function (callback, requestData) {
+        let data = requestData || {};
+        this.playerService.updatePlayerPartnerPhoneNumberWithSMS.request(data);
+        this.playerService.updatePlayerPartnerPhoneNumberWithSMS.once(callback);
     };
 
     proto.updateSmsSetting = function(callback, requestData) {
@@ -244,6 +348,19 @@
         this.playerService.updatePaymentInfo.once(callback);
     };
 
+    proto.updatePlayerPartnerPaymentInfo = function (callback, requestData) {
+        let data = requestData ||
+            {
+                playerId: testPlayerId,
+                bankType: "testBank",
+                bankAccount: "123",
+                bankAccountName: "testPlayer",
+                bankAccountType: "saving"
+            };
+        this.playerService.updatePlayerPartnerPaymentInfo.request(data);
+        this.playerService.updatePlayerPartnerPaymentInfo.once(callback);
+    };
+
     proto.authenticate = function (callback, requestData) {
         var data = requestData || {
                 playerId: testPlayerId,
@@ -251,6 +368,15 @@
             };
         this.playerService.authenticate.request(data);
         this.playerService.authenticate.once(callback);
+    };
+
+    proto.authenticatePlayerPartner = function (callback, requestData) {
+        let data = requestData || {
+                playerId: testPlayerId,
+                token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoidGVzdGNsaWVudHBsYXllciIsInBhc3N3b3JkIjoiJDJhJDEwJG0xd2hheVFhbzFxaW1DT2FYSXFjYmVrOGJWLzJvenN4ZUo1Vko5SnY0RGVLYlh3SDE0SE1xIiwiaWF0IjoxNDYyNDMyNDI5LCJleHAiOjE0NjI0NTA0Mjl9.Ma0lsHrHTST135mBV4A65-YkXYPVwsa-g9sA-NW7dGU"
+            };
+        this.playerService.authenticatePlayerPartner.request(data);
+        this.playerService.authenticatePlayerPartner.once(callback);
     };
 
     proto.getPlayerDayStatus = function(callback, requestData) {

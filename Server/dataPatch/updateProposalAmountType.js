@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var env = require("../config/env").config();
 var dbconfig = require("../modules/dbproperties");
 
@@ -19,11 +13,12 @@ property.forEach(
         cursor.eachAsync(proposalData => {
             if(proposalData.data && proposalData.data.amount != null){
                 var updateObj = {};
-                updateObj[queryParam] = parseInt(proposalData.data[pro]);
+                updateObj[queryParam] = Number(proposalData.data[pro]);
+                // console.log(updateObj);
                 dbconfig.collection_proposal.findOneAndUpdate(
-                    {_id: proposalData._id, createTime: proposalData.creaeteTime},
+                    {_id: proposalData._id, createTime: proposalData.createTime},
                     updateObj
-                );
+                ).then();
             }
             console.log("index", i, pro);
             i++;

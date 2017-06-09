@@ -1,12 +1,8 @@
-/******************************************************************
- *        Fantasy Player Management System
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 //Server side only
 
 var ws = require("ws");
 //var errorUtils = require("../modules/errorUtils.js");
+var fs = require('fs');
 
 //客户端与服务端通信规则:
 // 使用Json对象进行传输,
@@ -17,7 +13,7 @@ var ws = require("ws");
  * @param {Number} port 监听端口
  * @constructor
  */
-var WebSocketServer = function (port) {
+var WebSocketServer = function (port, useSSL) {
     //server services
     this._services = [];
     //client services to call client api
@@ -25,6 +21,7 @@ var WebSocketServer = function (port) {
     //todo::remove clients
     this._clients = [];
     this.port = port;
+    this.useSSL = useSSL;
     //todo::remove connection
     this._connection = null;
     //websocket server
@@ -112,7 +109,28 @@ proto.run = function () {
         return;
     }
 
-    this._wss = new ws.Server({port: this.port});
+    if( this.useSSL ){
+        let sslKey = '../ssl/server.key';
+        let sslCert = '../ssl/server.crt';
+        let httpServ = require('https');
+        // dummy request processing
+        let processRequest = function (req, res) {
+            res.writeHead(200);
+            res.end('WebSockets!\n');
+        };
+        let app = httpServ.createServer({
+            // providing server with  SSL key/cert
+            key: fs.readFileSync(sslKey),
+            cert: fs.readFileSync(sslCert)
+        }, processRequest).listen(this.port);
+        // passing or reference to web server so WS would knew port and SSL capabilities
+        this._wss = new ws.Server({ server: app });
+    }
+    else{
+        this._wss = new ws.Server({port: this.port});
+    }
+
+
     var self = this;
     //ws server broadcast function
     this._wss.broadcast = function broadcast(data) {

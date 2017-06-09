@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function(){
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -69,6 +63,13 @@
         this._service.requestCancellationPayOrder.request(data);
         var key = this._service.requestCancellationPayOrder.generateSyncKey(data);
         this._service.requestCancellationPayOrder.onceSync(key, callback);
+    };
+
+    proto.requestClearProposalLimits = function(callback, requestData){
+        var data = requestData;
+        this._service.requestClearProposalLimits.request(data);
+        var key = this._service.requestClearProposalLimits.generateSyncKey(data);
+        this._service.requestClearProposalLimits.onceSync(key, callback);
     };
 
     if(isNode){

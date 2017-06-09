@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 'use strict';
 
 const dbconfig = require('./dbproperties');
@@ -79,7 +73,13 @@ const SMSSender = {
     },
 
     sendByPlayerObjId: function (playerObjId, type) {
-        dbconfig.collection_players.findOne({_id: playerObjId});
+        dbconfig.collection_players.findOne({_id: playerObjId}).then(
+            playerData => {
+                if( playerData ){
+                    SMSSender.sendByPlayerId(playerData.playerId, type);
+                }
+            }
+        ).then().catch(errorUtils.reportError);
     }
 
 };

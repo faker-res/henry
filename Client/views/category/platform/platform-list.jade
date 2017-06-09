@@ -49,8 +49,14 @@
                         td(colspan=2) {{'PLATFORM_CODE' | translate}}&nbsp;:&nbsp;{{vm.selectedPlatform.data.code | translate}}
                         td(colspan=2)
                             span {{'AUTO_SETTLEMENT' | translate}}&nbsp;:&nbsp;
-                            span(ng-if='vm.selectedPlatform.data.canAutoSettlement') {{'Yes' | translate}}
-                            span(ng-if='!vm.selectedPlatform.data.canAutoSettlement') {{'No' | translate}}
+                                span(ng-if='vm.selectedPlatform.data.canAutoSettlement') {{'Yes' | translate}}
+                                span(ng-if='!vm.selectedPlatform.data.canAutoSettlement') {{'No' | translate}}
+                    tr
+                        td(colspan=2)
+                        td(colspan=2)
+                            span {{'SMS_VERIFICATION' | translate}}&nbsp;:&nbsp;
+                                span(ng-if='vm.selectedPlatform.data.requireSMSVerification') {{'Yes' | translate}}
+                                span(ng-if='!vm.selectedPlatform.data.requireSMSVerification') {{'No' | translate}}
                     tr
                         td(colspan=2)
                             text {{'SETTLEMENT_STATUS' | translate}}&nbsp;:&nbsp;
@@ -122,6 +128,12 @@
                 button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "SettlementHistory")',ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareSettlementHistory()')
                     text {{"Settlement History" | translate}}
                     img.img-edit
+                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "PartnerCommissionSettlement")',ng-disabled="!vm.selectedPlatform", ng-click='vm.startPlatformPartnerCommissionSettlement($event)')
+                    text {{"Partner Commission Settlement" | translate}}
+                    img.img-edit
+                //button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Delete")',ng-disabled="!vm.selectedPlatform", ng-click='vm.transferAllCreditOut()')
+                //    text {{"TRANSFER_OUT_FROM_AGMG" | translate}}
+                //    img.img-edit
 #modalCreatePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
@@ -242,6 +254,19 @@
                 button.btn.btn-success.common-button(ng-if='vm.platformSettlement.message!="Success"', ng-click="vm.performSettlement()", ng-disabled='vm.platformSettlement.processing') {{vm.settlementType | translate}}
                     i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.platformSettlement.processing')
                 button.btn.btn-warning.common-button(ng-if='vm.platformSettlement.message!="Success"', data-dismiss='modal') {{"CLOSE" | translate}}
-
+#partnerCommissionSettlementModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:50%;margin-left:20%')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"SETTLEMENT" | translate}} : {{vm.selectedPlatform.text}}
+            .modal-body
+                label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+            .modal-footer
+                .form-control.inlineBlk(style='width:initial', ng-if='vm.partnerCommissionSettlement.status=="completed"')
+                    .text-danger {{vm.partnerCommissionSettlement.result | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
+                button.btn.btn-success.common-button(ng-if='vm.partnerCommissionSettlement.status=="ready"', ng-click="vm.performPartnerCommissionSetlement()") {{'CONFIRM' | translate}}
+                i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.partnerCommissionSettlement.status=="processing"')
 
 

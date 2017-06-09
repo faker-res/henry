@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var ProposalService = require("./../../services/payment/PaymentServices").ProposalService;
 var dbProposal = require('./../../db_modules/dbProposal');
@@ -20,12 +14,17 @@ const lang = require("../../modules/localization").lang;
 
 var resLogHandler = function (conn, wsFunc, data, res, functionName) {
     var resObj = {status: constServerCode.SUCCESS, data: res};
+    var ip = conn.upgradeReq.connection.remoteAddress || '';
+    var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+    if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+        ip = forwardedIp[0].trim();
+    }
     dbLogger.createPaymentAPILog({
         service: "payment",
         functionName: functionName,
         requestData: data,
         responseData: resObj,
-        requestIp: conn.upgradeReq.connection.remoteAddress
+        requestIp: ip
     });
     wsFunc.response(conn, resObj, data);
 };
@@ -46,12 +45,17 @@ var errorLogHandler = function (conn, wsFunc, data, err, functionName) {
             data: null
         };
         resObj.errorMessage = err.errMessage || resObj.errorMessage;
+        var ip = conn.upgradeReq.connection.remoteAddress || '';
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            ip = forwardedIp[0].trim();
+        }
         dbLogger.createPaymentAPILog({
             service: "payment",
             functionName: functionName,
             requestData: data,
             responseData: resObj,
-            requestIp: conn.upgradeReq.connection.remoteAddress
+            requestIp: ip
         });
         wsFunc.response(conn, resObj, data);
     }
@@ -159,6 +163,12 @@ var ProposalServiceImplement = function () {
             case 2:
                 statusText = constProposalStatus.FAIL;
                 break;
+            case 3:
+                statusText = constProposalStatus.PROCESSING;
+                break;
+            case 4:
+                statusText = constProposalStatus.UNDETERMINED;
+                break;
             // case 3:
             //     statusText = constProposalStatus.PENDING;
             //     break;
@@ -169,7 +179,7 @@ var ProposalServiceImplement = function () {
                 isValidData = false;
                 break;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbProposal.updateBonusProposal, [data.proposalId, statusText, data.bonusId], isValidData, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbProposal.updateBonusProposal, [data.proposalId, statusText, data.bonusId, data.remark], isValidData, true, true).then(
             res => {
                 resLogHandler(conn, wsFunc, data, res, "setBonusProposalStatus");
             },
@@ -211,6 +221,30 @@ var ProposalServiceImplement = function () {
     this.getMerchantIdListByGroup.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId && data.groupId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformMerchantGroup.getMerchantsInPlatformMerchantGroup, [data.platformId, data.groupId], isValidData);
+    };
+
+    this.setUpdateCreditProposalStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.proposalId && data.orderStatus);
+        var statusText;
+        switch (Number(data.orderStatus)) {
+            case 1:
+                statusText = constProposalStatus.SUCCESS;
+                break;
+            case 2:
+                statusText = constProposalStatus.FAIL;
+                break;
+            default:
+                isValidData = false;
+                break;
+        }
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbProposal.updatePlayerCreditProposal, [data.proposalId, statusText, data.remark], isValidData, true, true).then(
+            res => {
+                resLogHandler(conn, wsFunc, data, res, "setBonusProposalStatus");
+            },
+            err => {
+                errorLogHandler(conn, wsFunc, data, err, "setBonusProposalStatus");
+            }
+        );
     };
 };
 

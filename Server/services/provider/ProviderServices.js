@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function(){
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -159,6 +153,10 @@
     var defineConsumptionService = function(sinonet){
         var ConsumptionService = function(connection){
             sinonet.WebSocketService.call(this, "consumption", connection);
+
+            //define functions
+            this.addMissingConsumption = new sinonet.WebSocketAsyncFunction("addMissingConsumption");
+            this.addFunction(this.addMissingConsumption);
 
             //define functions
             this.addConsumption = new sinonet.WebSocketAsyncFunction("addConsumption");

@@ -1,9 +1,3 @@
-/******************************************************************
- *  Fantasy Player Management Tool
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var dbconfig = require('./../modules/dbproperties');
 var constSystemLogLevel = require('./../const/constSystemLogLevel');
 var constSystemParam = require('./../const/constSystemParam');

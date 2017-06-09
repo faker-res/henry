@@ -61,6 +61,9 @@ var encrypt = {
         var topUpTimes = data.hasOwnProperty('topUpTimes') ? data.topUpTimes : "";
         var status = data.hasOwnProperty('status') ? data.status : "";
         var domain = data.hasOwnProperty('domain') ? data.domain : "";
+        var partner = data.hasOwnProperty('partner') ? data.partner : "";
+        var loginIps = data.hasOwnProperty('loginIps') ? data.loginIps : "";
+
 
         var query = {};
         if (playerId !== '') {
@@ -111,6 +114,13 @@ var encrypt = {
         if (registrationTime !== '') {
             query["registrationTime"] = registrationTime;
         }
+        if (partner !== '') {
+            query["partner"] = partner;
+        }
+        if (loginIps !== '') {
+            query["loginIps"] = loginIps;
+        }
+
         if (validCredit !== '') {
             // We can accept the following forms for validCredit parameter:
             //   0-100
@@ -146,6 +156,7 @@ var encrypt = {
         var realName = data.hasOwnProperty('realName') ? data.realName : "";
         var partnerId = data.hasOwnProperty('partnerId') ? data.partnerId : "";
         var level = data.hasOwnProperty('level') ? data.level : "";
+        var status = data.hasOwnProperty('status') ? data.status : "";
 
         var query = {};
         if (partnerId !== '') {
@@ -153,6 +164,9 @@ var encrypt = {
         }
         if (level !== '') {
             query["level"] = level;
+        }
+        if (status !== '') {
+            query["status"] = status;
         }
         if (partnerName !== '') {
             query["partnerName"] = new RegExp('.*' + partnerName + '.*');

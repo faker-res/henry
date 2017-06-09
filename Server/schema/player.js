@@ -31,7 +31,7 @@ var playerSchema = new Schema({
     //store player's icon
     icon: {type: String, default: ""},
     //contact number
-    phoneNumber: {type: String, minlength: 6},
+    phoneNumber: {type: String, minlength: 6, index: true},
     //is test player, convertion rate = total(isTestPlayer && isRealPlayer)/total(isTestPlayer)
     isTestPlayer: {type: Boolean, default: false},
     //is real player
@@ -45,7 +45,7 @@ var playerSchema = new Schema({
     //whether player want to receive SMS
     receiveSMS: {type: Boolean, default: true},
     //player real name
-    realName: {type: String, default: ""},
+    realName: {type: String, default: "", index: true},
     //platform
     platform: {type: Schema.ObjectId, ref: 'platform', index: true},
     //Registration data
@@ -55,7 +55,7 @@ var playerSchema = new Schema({
     //if player has login
     isLogin: {type: Boolean, default: false},
     // Last Login Ip
-    lastLoginIp: {type: String, default: ""}, //login
+    lastLoginIp: {type: String, default: "", index: true}, //login
     //login ip records
     loginIps: [],
     // player trust level (trust or untrust, cheated player)
@@ -82,6 +82,8 @@ var playerSchema = new Schema({
     photoUrl: {type: String},
     //registration domain
     domain: {type: String},
+    //external registration domain
+    sourceUrl: {type: String},
     //User agent containing 3 sub fields: browser, os, device
     userAgent: [{
         _id: false,
@@ -98,6 +100,8 @@ var playerSchema = new Schema({
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},
         alipayTransaction: {type: Boolean, default: true},
+        banReward: {type: Boolean, default: false},
+        disableWechatPay: {type: Boolean, default: false}
     },
 
     //country
@@ -178,6 +182,8 @@ var playerSchema = new Schema({
     merchantGroup: {type: Schema.ObjectId, ref: 'platformMerchantGroup'},
     //ali pay group
     alipayGroup: {type: Schema.ObjectId, ref: 'platformAlipayGroup'},
+    //wechat pay group
+    wechatPayGroup: {type: Schema.ObjectId, ref: 'platformWechatPayGroup'},
     //forbid top up types
     forbidTopUpType: [{type: String}],
     //reward info
@@ -202,7 +208,9 @@ var playerSchema = new Schema({
     //has been used for referral reward
     isReferralReward: {type: Boolean, default: false},
     //if this player is from online registration
-    isOnline: {type: Boolean}
+    isOnline: {type: Boolean},
+    //if player has applied consumption return
+    isConsumptionReturn: {type: Boolean}
 });
 
 //record is unique by name and platform
@@ -282,8 +290,10 @@ var playerPostFindUpdate = function (result, bOne) {
             }
         }
         if (!bOne) {
-            var startIndex = Math.max(Math.floor((result.phoneNumber.length - 4) / 2), 0);
-            result.phoneNumber = result.phoneNumber.substr(0, startIndex) + "****" + result.phoneNumber.substr(startIndex + 4);
+            // var startIndex = Math.max(Math.floor((result.phoneNumber.length - 4) / 2), 0);
+            // result.phoneNumber = result.phoneNumber.substr(0, startIndex) + "****" + result.phoneNumber.substr(startIndex + 4);
+            // result.phoneNumber = result.phoneNumber.substr(0, 3) + "****" + result.phoneNumber.substr(-4);
+            result.phoneNumber = dbUtil.encodePhoneNum(result.phoneNumber);
         }
     }
     //hide middle 4 digits for email
@@ -293,8 +303,9 @@ var playerPostFindUpdate = function (result, bOne) {
     }
     //hide banking information
     if (!bOne && result && result.bankAccount) {
-        var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
-        result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
+        // var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
+        // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
+        result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
     }
 };
 

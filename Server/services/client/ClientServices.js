@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -43,19 +37,29 @@
             var functionNames = [
                 "create",
                 "playerQuickReg",
+                "createPlayerPartner",
                 "get",
+                "getPlayerPartner",
                 "update",
+                "updatePhoneNumberWithSMS",
+                "updatePlayerPartnerPhoneNumberWithSMS",
                 "captcha",
                 "login",
+                "loginPlayerPartner",
+                "loginPlayerPartnerWithSMS",
                 "logout",
+                "logoutPlayerPartner",
                 "isLogin",
                 "getSMSCode",
                 "updatePaymentInfo",
+                "updatePlayerPartnerPaymentInfo",
                 "updateSmsSetting",
                 "updatePassword",
+                "updatePasswordPlayerPartner",
                 "updateSMSSetting",
                 "isValidUsername",
                 "authenticate",
+                "authenticatePlayerPartner",
                 "getPlayerDayStatus",
                 "getPlayerWeekStatus",
                 "getPlayerMonthStatus",
@@ -146,7 +150,11 @@
                 "getValidTopUpReturnRecordList",
                 "requestAlipayTopup",
                 "cancelAlipayTopup",
-                "getValidTopUpRewardRecordList"
+                "getValidTopUpRewardRecordList",
+                "getWechatTopupRequestList",
+                "requestWechatTopup",
+                "cancelWechatTopup",
+                "getPlayerWechatPayStatus"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -227,7 +235,8 @@
                 "createFirstTopUpRewardProposal",
                 "applyProviderReward",
                 "applyRewardEvent",
-                "getPlayerReferralList"
+                "getPlayerReferralList",
+                "getConsecutiveLoginRewardDay"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 
@@ -259,6 +268,7 @@
                 "notifyProviderStatusUpdate",
                 "getLoginURL",
                 "getTestLoginURL",
+                "getTestLoginURLWithOutUser",
                 "getGameUserInfo",
                 "modifyGamePassword",
                 "grabPlayerTransferRecords",
@@ -269,7 +279,8 @@
                 "getFavoriteGames",
                 "searchGame",
                 "getGameGroupTreeInfo",
-                "searchGameByGroup"
+                "searchGameByGroup",
+                "getGamePassword"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -308,7 +319,9 @@
                 "getPartnerPlayerRegistrationReport",
                 "getPartnerCommission",
                 "getPartnerCommissionValue",
-                "getPartnerPlayerRegistrationStats"
+                "getPartnerPlayerRegistrationStats",
+                "getSMSCode",
+                "updatePhoneNumberWithSMS"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

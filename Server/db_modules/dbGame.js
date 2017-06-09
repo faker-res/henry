@@ -9,6 +9,7 @@ var dbPlatformGameStatus = require('./../db_modules/dbPlatformGameStatus');
 var constSystemParam = require('./../const/constSystemParam');
 var constServerCode = require('./../const/constServerCode');
 var constGameStatus = require('../const/constGameStatus');
+var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
 
 var dbGame = {
@@ -155,7 +156,7 @@ var dbGame = {
         var deferred = Q.defer();
         if (query && query.providerId) {
             var providerObj = {providerId: query.providerId};
-            dbconfig.collection_gameProvider.findOne(providerObj).then(
+            dbconfig.collection_gameProvider.findOne(providerObj).lean().then(
                 function (data) {
                     if (data && data._id) {
                         query.provider = data._id;
@@ -166,7 +167,17 @@ var dbGame = {
                     }
                 });
         } else {
-            deferred.resolve(dbGame.getGameList(query, startIndex, count, playerId));
+            dbconfig.collection_players.findOne({playerId: playerId}).populate({
+                path: "platform",
+                model: dbconfig.collection_platform
+            }).lean().then(
+                playerData => {
+                    if (playerData && playerData.platform) {
+                        query.provider = {$in: playerData.platform.gameProviders};
+                    }
+                    deferred.resolve(dbGame.getGameList(query, startIndex, count, playerId));
+                }
+            )
         }
         return deferred.promise;
     },
@@ -175,7 +186,7 @@ var dbGame = {
         index = index || 0;
         count = count || constSystemParam.MAX_RECORD_NUM;
         query = query || {};
-        query.status = {$ne: constGameStatus.DELETED};
+        query.status = {$nin: [constGameStatus.DELETED, String(constGameStatus.DELETED)]};
         var deferred = Q.defer();
         var sum = 0;
         dbconfig.collection_game.find(query).count()
@@ -519,6 +530,27 @@ var dbGame = {
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error finding game provider.", error: error});
+            }
+        );
+    },
+
+    modifyGamePassword: function(playerId, providerId, newPassword) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).lean().then(
+            playerData => {
+                if( playerData && playerData.platform ){
+                    let requestData = {
+                        username: playerData.name,
+                        platformId: playerData.platform.platformId,
+                        providerId: providerId,
+                        newPassword: newPassword
+                    };
+                    return cpmsAPI.player_modifyGamePassword(requestData);
+                }
+                else{
+                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                }
             }
         );
     }

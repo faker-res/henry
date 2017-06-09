@@ -7,7 +7,7 @@ var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
 var constProposalStatus = require('../const/constProposalStatus');
 var counterManager = require("../modules/counterManager.js");
-
+const dbutility = require('../modules/dbutility');
 var Schema = mongoose.Schema;
 
 var proposalSchema = new Schema({
@@ -22,17 +22,17 @@ var proposalSchema = new Schema({
     // create Time
     createTime: {type: Date, default: Date.now, index: true},
     //proposal process info
-    process: {type: Schema.Types.ObjectId, ref: 'proposalProcess'},
+    process: {type: Schema.Types.ObjectId, ref: 'proposalProcess', index: true},
     //proposal data
     data: {type: JSON, default: {}},
     //priority  - {0 - general , 1 - high, 2 - higher, 3 - the highest }
     priority: {type: String, default: constProposalPriority.GENERAL},
     // Determine type of entry from which submitted the proposal - 0 - client Side, 1 - admin side
-    entryType: {type: String, default: constProposalEntryType.ADMIN},
+    entryType: {type: String, default: constProposalEntryType.ADMIN, index: true},
     //User type - for whom create the proposal - real player/partners/system users/demoPlayers
-    userType: {type: String, default: constProposalUserType.SYSTEM_USERS},
+    userType: {type: String, default: constProposalUserType.SYSTEM_USERS, index: true},
     //if this proposal has any step
-    noSteps: {type: Boolean, default: false},
+    noSteps: {type: Boolean, default: false, index: true},
     //status
     status: {type: String, index: true},
     // remark: [{
@@ -40,20 +40,27 @@ var proposalSchema = new Schema({
     //     admin: {type: Schema.Types.ObjectId, ref: 'admin'},
     //     content: {type: String}
     // }],
-    isLocked: {type: Schema.Types.ObjectId, ref: 'adminInfo'}
+    isLocked: {type: Schema.Types.ObjectId, ref: 'adminInfo'},
+    //expiry date for each proposal
+    expirationTime: {type: Date, default: Date.now}
 });
 
+proposalSchema.index({"data.playerName": 1});
+proposalSchema.index({"data.playerId": 1});
+proposalSchema.index({"data.playerObjId": 1});
+proposalSchema.index({"data.partnerName": 1});
+proposalSchema.index({"data.eventCode": 1});
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId
-proposalSchema.pre('validate', function (next) {
-    var doc = this;
-    if (doc.data && doc.data.playerId && doc.data.playerId instanceof mongoose.Types.ObjectId) {
-        next(Error("The proposal's data.playerId should be the player.playerId, NOT the player._id"))
-    } else {
-        next();
-    }
-});
-*/
+ proposalSchema.pre('validate', function (next) {
+ var doc = this;
+ if (doc.data && doc.data.playerId && doc.data.playerId instanceof mongoose.Types.ObjectId) {
+ next(Error("The proposal's data.playerId should be the player.playerId, NOT the player._id"))
+ } else {
+ next();
+ }
+ });
+ */
 
 proposalSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('proposalId'));
 
@@ -81,8 +88,10 @@ proposalSchema.post('find', function (result) {
         for (var i = 0; i < result.length; i++) {
             //hide middle 4 digits for email
             if (result[i].status != constProposalStatus.PENDING && result[i].data && result[i].data.bankCardNo) {
-                var startIndex = Math.max(Math.floor((result[i].data.bankCardNo.length - 4) / 2), 0);
-                result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, startIndex) + "****" + result[i].data.bankCardNo.substr(startIndex + 4);
+                // var startIndex = Math.max(Math.floor((result[i].data.bankCardNo.length - 4) / 2), 0);
+                // result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, startIndex) + "****" + result[i].data.bankCardNo.substr(startIndex + 4);
+                result[i].data.bankCardNo = dbutility.encodeBankAcc(result[i].data.bankCardNo);
+                // result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, 6) + "****" + result[i].data.bankCardNo.slice(-4);
             }
         }
         return result;

@@ -161,6 +161,26 @@
     <textarea></textarea>
 </div>
 
+<h3>Get Test Login URL with out user (获取试玩游戏的URL)</h3>
+<div class="test-container">
+    <label>Platform Id
+        <input name="platformId">
+    </label>
+    <p></p>
+    <label>Game Id
+        <input name="gameId">
+    </label>
+    <p></p>
+    <label>clientDomainName
+        <input name="clientDomainName">
+    </label>
+    <p></p>
+    <div>
+        <button data-api-name="getTestLoginURLWithOutUser">Get</button>
+    </div>
+    <textarea></textarea>
+</div>
+
 <h3>getGameUserInfo (获取玩家游戏中的账户信息)</h3>
 <div class="test-container">
     <label>platformId
@@ -448,6 +468,57 @@
     </div>
     <div>
         <button data-api-name="searchGameByGroup">Search</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Get game password(获取游戏密码)</h3>
+<div class="test-container">
+    <div>
+        <label>platformId
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>providerId
+            <input name="providerId">
+        </label>
+    </div>
+    <div>
+        <label>username
+            <input name="username">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="getGamePassword">Get</button>
+    </div>
+    <textarea></textarea>
+</div>
+
+<h3>Modify game password(修改游戏密码)</h3>
+<div class="test-container">
+    <div>
+        <label>platformId
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>providerId
+            <input name="providerId">
+        </label>
+    </div>
+    <div>
+        <label>username
+            <input name="username">
+        </label>
+    </div>
+    <div>
+        <label>newPassword
+            <input name="newPassword">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="modifyGamePassword">Modify</button>
     </div>
     <textarea></textarea>
 </div>

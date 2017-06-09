@@ -1,8 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var socketUtil = require('./../modules/socketutility');
 var dbApiResponseTimeLog = require('./../db_modules/dbApiResponseTimeLog');
 var dbSettlementLog = require('./../db_modules/dbSettlementLog');
@@ -49,7 +44,7 @@ function socketActionLogger(socketIO, socket) {
             var isValidData = Boolean(data && data.startDate && data.endDate && data.service && data.functionName);
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbApiResponseTimeLog.getApiResponseTimeQuery, [data.startDate, data.endDate, data.service, data.functionName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbApiResponseTimeLog.getApiResponseTimeQuery, [data.startDate, data.endDate, data.service, data.functionName, data.providerId], actionName, isValidData);
         },
 
         getClientSourceQuery: function getClientSourceQuery(data) {

@@ -15,6 +15,7 @@ var constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbUtil = require('./../modules/dbutility');
+var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 
 function socketActionReport(socketIO, socket) {
 
@@ -29,8 +30,8 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data && data.index != null && data.limit != null);
             var query = null;
 
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : new Date();
+            var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+            var endTime = data.endTime ? new Date(data.endTime) : new Date();
             data ["startTime"] = startTime;
             data["endTime"] = endTime;
             query = utility.buildProposalReportQueryString(data);
@@ -103,8 +104,8 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data);
 
             var time = dbUtil.getYesterdaySGTime();
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : time.startTime;
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : time.endTime;
+            var startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            var endTime = data.endTime ? new Date(data.endTime) : time.endTime;
             var providerId = data.providerId ? ObjectId(data.providerId) : '';
             var playerId = data.playerId ? data.playerId : '';
             var platformId = data.platformId ? ObjectId(data.platformId) : '';
@@ -127,8 +128,8 @@ function socketActionReport(socketIO, socket) {
             var args = null;
             var actionName = arguments.callee.name;
             var time = dbUtil.getYesterdaySGTime();
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : time.startTime;
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : time.endTime;
+            var startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            var endTime = data.endTime ? new Date(data.endTime) : time.endTime;
             var providerId = data.providerId ? ObjectId(data.providerId) : data.providerId;
 
             var limit = data.limit || 20;
@@ -148,8 +149,8 @@ function socketActionReport(socketIO, socket) {
             var args = null;
             var actionName = arguments.callee.name;
             var time = dbUtil.getYesterdaySGTime();
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : time.startTime;
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : time.endTime;
+            var startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            var endTime = data.endTime ? new Date(data.endTime) : time.endTime;
             var isValidData = Boolean(data && data.platformId);
             // var limit = data.limit || 20;
 
@@ -409,12 +410,23 @@ function socketActionReport(socketIO, socket) {
             var actionName = arguments.callee.name;
             self.socket.emit("_" + actionName, {success: true, data: constPlayerFeedbackResult});
         },
+        getPlayerDomainReport: function getPlayerDomainReport(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDomainReport, [data.platform, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
 
         getPlayerAlmostLevelupReport: function getPlayerAlmostLevelupReport(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerAlmostLevelupReport, [data.platform, data.percentage, data.index, data.limit, data.sortCol, data.newSummary], actionName, isValidData);
         },
+
+        getConsumptionIntervalData: function getConsumptionIntervalData(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionIntervalData, [ObjectId(data.platform), data.days], actionName, isValidData);
+        }
     };
     socketActionReport.actions = this.actions;
 };

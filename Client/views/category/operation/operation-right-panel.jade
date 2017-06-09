@@ -1,4 +1,4 @@
-.panel.panel-primary
+.panel.panel-primary(ng-if="checkViewPermission('Operation', 'Proposal','Read')")
     .panel-heading.padding-all-5
         .panel-title.left-col
             .row
@@ -17,7 +17,7 @@
                         //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
                         //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
 
-                        select.form-control#selectProposalType(multiple="multiple", style='min-width:100px;height:34px;', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in vm.allProposalType track by i.name', ng-model='vm.actionLogQuery.action')
+                        select.form-control#selectProposalType(multiple="multiple", style='min-width:100px;height:34px;', ng-options='i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='vm.actionLogQuery.action')
 
                     .inlineBlk(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL' && checkViewPermission('Operation', 'Proposal', 'queryByProposalStatus')")
                         label {{'FILTER_PROPOSAL_STATUS' | translate}}
@@ -144,8 +144,8 @@
                 .inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
                     label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
                 .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
-                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='vm.selectedProposal.process.status=="Pending" && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
-                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='vm.selectedProposal.process.status=="Pending" && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
                 button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
                 .inlineBlk(ng-if='vm.selectedProposal.cancelling')
                     label {{'Cancelling Proposal' | translate}}

@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var PaymentService = require("./../../services/client/ClientServices").PaymentService;
 var dbPlayerTopUpIntentRecord = require('./../../db_modules/dbPlayerTopUpIntentRecord');
@@ -22,6 +16,9 @@ var PaymentServiceImplement = function () {
     //add api handler
     this.createOnlineTopupProposal.expectsData = 'topupType: String, amount: Number';
     this.createOnlineTopupProposal.onRequest = function (wsFunc, conn, data) {
+        if (data) {
+            data.amount = Number(data.amount);
+        }
         var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
@@ -59,7 +56,7 @@ var PaymentServiceImplement = function () {
 
     this.applyBonus.expectsData = 'bonusId: Number|String, amount: Number|String, honoreeDetails: String';
     this.applyBonus.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data && data.bonusId && data.amount);
+        var isValidData = Boolean(conn.playerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [conn.playerId, data.bonusId, data.amount, data.honoreeDetail], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
@@ -96,7 +93,10 @@ var PaymentServiceImplement = function () {
 
     this.requestManualTopup.expectsData = 'amount: Number|String, depositMethod: ?, lastBankcardNo: ?, provinceId: String|Number, cityId: String|Number';
     this.requestManualTopup.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && data.lastBankcardNo && data.provinceId && data.cityId);
+        if (data) {
+            data.amount = Number(data.amount);
+        }
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && data.provinceId && data.cityId);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
@@ -110,8 +110,23 @@ var PaymentServiceImplement = function () {
 
     this.requestAlipayTopup.expectsData = 'amount: Number|String';
     this.requestAlipayTopup.onRequest = function (wsFunc, conn, data) {
+        if (data) {
+            data.amount = Number(data.amount);
+        }
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [conn.playerId, data.amount, data.alipayName, data.alipayAccount, "CLIENT"], isValidData);
+    };
+
+    this.requestWechatTopup.expectsData = 'amount: Number|String';
+    this.requestWechatTopup.onRequest = function (wsFunc, conn, data) {
+        if (data) {
+            data.amount = Number(data.amount);
+        }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [conn.playerId, data.amount], isValidData);
+        // if ([10, 20, 50, 100].indexOf(data.amount) < 0) {
+        //     isValidData = false;
+        // }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [conn.playerId, data.amount, data.wechatName, data.wechatAccount, "CLIENT"], isValidData);
     };
 
     this.cancelManualTopupRequest.expectsData = 'proposalId: String';
@@ -124,6 +139,12 @@ var PaymentServiceImplement = function () {
     this.cancelAlipayTopup.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data.proposalId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.cancelAlipayTopup, [conn.playerId, data.proposalId], isValidData);
+    };
+
+    this.cancelWechatTopup.expectsData = 'proposalId: String';
+    this.cancelWechatTopup.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId && data.proposalId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.cancelWechatTopup, [conn.playerId, data.proposalId], isValidData);
     };
 
     this.delayManualTopupRequest.expectsData = 'proposalId: String, delayTime: Number|String';
@@ -148,6 +169,12 @@ var PaymentServiceImplement = function () {
     this.getAlipayTopupRequestList.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getAlipayTopupRequestList, [conn.playerId], isValidData);
+    };
+
+    this.getWechatTopupRequestList.expectsData = '';
+    this.getWechatTopupRequestList.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWechatTopupRequestList, [conn.playerId], isValidData);
     };
 
     this.manualTopupStatusNotify.addListener(
@@ -237,6 +264,12 @@ var PaymentServiceImplement = function () {
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerTopUpList, [conn.playerId, data.topUpType, data.startTime, data.endTime, data.startIndex, data.requestCount, !data.sort, false, true], isValidData);
     };
+
+    this.getPlayerWechatPayStatus.expectsData = 'playerId: String';
+    this.getPlayerWechatPayStatus.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerWechatPayStatus, [conn.playerId], isValidData);
+    }
 
 };
 var proto = PaymentServiceImplement.prototype = Object.create(PaymentService.prototype);

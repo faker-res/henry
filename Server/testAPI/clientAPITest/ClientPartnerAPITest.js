@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -62,15 +56,21 @@
     };
 
     proto.logout = function (callback, requestData) {
-        var data = requestData || {};
+        let data = requestData || {};
         this.partnerService.logout.request(data);
         this.partnerService.logout.once(callback);
     };
 
     proto.authenticate = function (callback, requestData) {
-        var data = requestData || {};
+        let data = requestData || {};
         this.partnerService.authenticate.request(data);
         this.partnerService.authenticate.once(callback);
+    };
+
+    proto.authenticatePlayerPartner = function (callback, requestData) {
+        let data = requestData || {};
+        this.partnerService.authenticatePlayerPartner.request(data);
+        this.partnerService.authenticatePlayerPartner.once(callback);
     };
 
     proto.updatePassword = function (callback, requestData) {
@@ -169,6 +169,24 @@
         this.partnerService.getPartnerPlayerRegistrationStats.once(callback);
     };
 
+    proto.getSMSCode = function (callback, requestData) {
+        let data = requestData || {
+                phoneNumber: 97787654
+            };
+        this.partnerService.getSMSCode.request(data);
+        this.partnerService.getSMSCode.once(function (data) {
+            smsCode = data.data;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.updatePhoneNumberWithSMS = function (callback, requestData) {
+        let data = requestData || {};
+        this.partnerService.updatePhoneNumberWithSMS.request(data);
+        this.partnerService.updatePhoneNumberWithSMS.once(callback);
+    };
 
     if (isNode) {
         module.exports = ClientPartnerAPITest;

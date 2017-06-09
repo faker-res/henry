@@ -1,9 +1,3 @@
-/******************************************************************
- *        Fantasy Player Management System
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 "use strict";
 
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
@@ -20,6 +14,9 @@ var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 var SMSSender = require('../../modules/SMSSender');
 var queryPhoneLocation = require('query-mobile-phone-area');
 
+let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
+let dbPlayerPartner = require('./../../db_modules/dbPlayerPartner');
+
 var PartnerServiceImplement = function () {
     PartnerService.call(this);
     var self = this;
@@ -28,7 +25,11 @@ var PartnerServiceImplement = function () {
     this.register.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
         if (conn.captchaCode && (conn.captchaCode == data.captcha)) {
-            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+            var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+            if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
             data.loginIps = [data.lastLoginIp];
             var uaString = conn.upgradeReq.headers['user-agent'];
             var ua = uaParser(uaString);
@@ -96,7 +97,11 @@ var PartnerServiceImplement = function () {
     this.authenticate.expectsData = 'partnerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.partnerId && data.token);
-        var partnerIp = conn.upgradeReq.connection.remoteAddress;
+        var partnerIp = conn.upgradeReq.connection.remoteAddress || '';
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            partnerIp = forwardedIp[0].trim();
+        }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.authenticate, [data.partnerId, data.token, partnerIp, conn], true, false, false, true);
     };
 
@@ -105,7 +110,11 @@ var PartnerServiceImplement = function () {
     this.login.onRequest = function (wsFunc, conn, data) {
 
         var isValidData = Boolean(data && data.name && data.password);
-        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress;
+        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            data.lastLoginIp = forwardedIp[0].trim();
+        }
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.partnerLoginAPI, [data, ua], isValidData, true, true, true).then(
@@ -269,7 +278,7 @@ var PartnerServiceImplement = function () {
 
     this.applyBonus.expectsData = 'bonusId: Number|String, amount: Number|String, honoreeDetail: String';
     this.applyBonus.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.partnerId && data && data.bonusId && data.amount);
+        var isValidData = Boolean(conn.partnerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.applyBonus, [conn.partnerId, data.bonusId, data.amount, data.honoreeDetail], isValidData);
     };
 
@@ -313,7 +322,7 @@ var PartnerServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayerPaymentReport, [conn.partnerId, data.startTime, data.endTime, data.startIndex, data.requestCount, !data.sort], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayerPaymentReport, [conn.partnerId, new Date(data.startTime), new Date(data.endTime), data.startIndex, data.requestCount, !data.sort], isValidData);
     };
 
     this.getPartnerCommission.onRequest = function (wsFunc, conn, data) {
@@ -337,6 +346,28 @@ var PartnerServiceImplement = function () {
         data.startTime = data.startTime || new Date(0);
         data.endTime = data.endTime || new Date();
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerPlayerRegistrationStats, [conn.partnerId, new Date(data.startTime), new Date(data.endTime)], isValidData);
+    };
+
+    this.getSMSCode.expectsData = 'phoneNumber: String';
+    this.getSMSCode.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.phoneNumber && data.platformId);
+        let randomCode = parseInt(Math.random() * 9000 + 1000);
+        conn.phoneNumber = data.phoneNumber;
+        conn.smsCode = randomCode;
+        // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId], isValidData, false, false, true);
+    };
+
+    this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';
+    this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.partnerId && (data.partnerId == conn.partnerId) && data.phoneNumber && data.smsCode);
+        let queryRes = queryPhoneLocation(data.phoneNumber);
+        if (queryRes) {
+            data.phoneProvince = queryRes.province;
+            data.phoneCity = queryRes.city;
+            data.phoneType = queryRes.type;
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.partnerId, data.newPhoneNumber, data.smsCode, 1], isValidData);
     };
 
 };

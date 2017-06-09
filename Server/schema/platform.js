@@ -12,6 +12,8 @@ var platformSchema = new Schema({
     code: {type: String, unique: true, required: true, dropDups: true, index: true},
     //platform prefix
     prefix: {type: String, default: ""},
+    //platform partner prefix
+    partnerPrefix: {type: String, default: ""},
     //platform description
     description: String,
     //platform url
@@ -55,9 +57,26 @@ var platformSchema = new Schema({
     playerInvitationUrl: {type: String},
     //invitatio url for partner from partner
     partnerInvitationUrl: {type: String},
-
     //min top up amount
-    minTopUpAmount: {type: Number, default: 0}
+    minTopUpAmount: {type: Number, default: 0},
+    //percentage charges of apply bonus
+    bonusPercentageCharges: {type: Number, default: 0},
+    //numbers of times apply bonus without charges
+    bonusCharges: {type:Number},
+    //allow same real name to register? for frontEnd only, they still can register via office
+    allowSameRealNameToRegister: {type: Boolean, default: true},
+    // Platform-wide SMS Verification Setting
+    requireSMSVerification: {type: Boolean, default: false},
+    //allow same phone number to register
+    allowSamePhoneNumberToRegister: {type: Boolean, default: true},
+    //auto approve related
+    enableAutoApplyBonus: {type: Boolean, default: false},
+    autoApproveWhenSingleBonusApplyLessThan: {type: Number, default: 0},
+    autoApproveWhenSingleDayTotalBonusApplyLessThan: {type: Number, default: 0},
+    autoApproveRepeatCount: {type: Number, default: 0},
+    autoApproveRepeatDelay: {type: Number, default: 0},
+    //can apply multiple reward
+    canMultiReward: {type: Boolean, default: false}
 });
 
 //add platform id before save

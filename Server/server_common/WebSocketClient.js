@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
     var Q, WebSocket;
@@ -204,7 +198,7 @@
                 if (wsFunc.isSync) {
                     //append request id if needed
                     data = wsFunc.appendSyncKey(data, this.getRequestId());
-                    //console.log("callAPIOnce:", data);
+                    // console.log("callAPIOnce:", data);
                     wsFunc.request(data);
                     var key = wsFunc.generateSyncKey(data);
                     wsFunc.onceSync(key, function (res) {
@@ -224,7 +218,7 @@
                     });
                 }
                 else {
-                    //console.log("callAPIOnce:", data);
+                    // console.log("callAPIOnce:", data);
                     wsFunc.request(data);
                     wsFunc.once(function (res) {
                         if (res && res.status == 200) {

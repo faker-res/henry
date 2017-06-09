@@ -12,19 +12,14 @@ var captchapng = require('captchapng');
 var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
+let rsaCrypto = require("../modules/rsaCrypto");
+
+let env = require('../config/env').config();
 
 var counterManager = require('./../modules/counterManager');
 var dbUtility = require('./../modules/dbutility');
 var dbconfig = require('./../modules/dbproperties');
-var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
-var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
-var dbRewardTask = require('./../db_modules/dbRewardTask');
 var proposalExecutor = require('./../modules/proposalExecutor');
-
-var dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
-var dbProposal = require('./../db_modules/dbProposal');
-var dbProposalType = require('./../db_modules/dbProposalType');
-var dbRewardEvent = require('./../db_modules/dbRewardEvent');
 // var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbLogger = require("./../modules/dbLogger");
 // var constProposalType = require("./../const/constProposalType");
@@ -40,12 +35,10 @@ var constShardKeys = require('../const/constShardKeys');
 var constPlayerTopUpType = require('../const/constPlayerTopUpType');
 var constProposalMainType = require('../const/constProposalMainType');
 var constGameStatus = require("./../const/constGameStatus");
-var constProviderStatus = require("./../const/constProviderStatus");
 var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
-var dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 
 var moment = require('moment-timezone');
 var rewardUtility = require("../modules/rewardUtility");
@@ -53,24 +46,42 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
-var rsaCrypto = require("../modules/rsaCrypto");
+
 var queryPhoneLocation = require('query-mobile-phone-area');
 var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
 var errorUtils = require("../modules/errorUtils.js");
+var SMSSender = require('../modules/SMSSender');
+var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 
-var PLATFORM_PREFIX_SEPARATOR = '';
+// constants
+const constProviderStatus = require("./../const/constProviderStatus");
 
-var dbPlayerInfo = {
+// db_modules
+let dbGeoIp = require('./../db_modules/dbGeoIp');
+let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
+let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
+let dbPlayerReward = require('../db_modules/dbPlayerReward');
+let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
+let dbProposal = require('./../db_modules/dbProposal');
+let dbProposalType = require('./../db_modules/dbProposalType');
+let dbRewardEvent = require('./../db_modules/dbRewardEvent');
+let dbRewardTask = require('./../db_modules/dbRewardTask');
+
+let PLATFORM_PREFIX_SEPARATOR = '';
+
+let dbPlayerInfo = {
 
     /**
      * Create a new player user
-     * @param {json} data - The data of the player user. Refer to playerInfo schema.
+     * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData) {
-        var platformObjId = null;
-        var platformPrefix = "";
+        let platformObjId = null;
+        let platformPrefix = "";
+        let platformObj = null;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -78,11 +89,49 @@ var dbPlayerInfo = {
             return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
                 platformData => {
                     if (platformData) {
+                        platformObj = platformData;
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
-                        return dbPlayerInfo.isPlayerNameValidToRegister({
+                        let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             name: inputData.name,
                             platform: platformData._id
+                        });
+                        let realNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
+                            realName: inputData.realName,
+                            platform: platformData._id
+                        });
+                        if (!("allowSameRealNameToRegister" in platformData)) {
+                            platformData.allowSameRealNameToRegister = true;
+                        }
+                        if (platformData.allowSameRealNameToRegister) {
+                            return playerNameChecker;
+                        }
+
+                        return Q.all([playerNameChecker, realNameChecker]).then(data => {
+                            if (data && data.length == 2 && data[0] && data[1]) {
+                                if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
+                                    // console.log();
+                                    return {"isPlayerNameValid": true};
+                                }
+                                else {
+                                    if (!data[0].isPlayerNameValid) {
+                                        return Q.reject({
+                                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                                            name: "DBError",
+                                            message: "Player name already exists"
+                                        });
+                                    } else {
+                                        return Q.reject({
+                                            status: constServerCode.USERNAME_ALREADY_EXIST,
+                                            name: "DBError",
+                                            message: "Realname already exists"
+                                        });
+                                    }
+                                }
+                            }
+                            else {
+                                return {"isPlayerNameValid": false};
+                            }
                         });
                     }
                     else {
@@ -92,46 +141,13 @@ var dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
-                        inputData.platform = platformObjId;
-                        inputData.name = inputData.name.toLowerCase();
-                        delete inputData.platformId;
-                        //find player referrer if there is any
-                        if (inputData.referral) {
-                            var referralName = platformPrefix + inputData.referral;
-                            return dbconfig.collection_players.findOne({
-                                name: referralName,
+                        if (platformObj.allowSamePhoneNumberToRegister === true) {
+                            return {isPhoneNumberValid: true}
+                        } else {
+                            return dbPlayerInfo.isPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
                                 platform: platformObjId
-                            }).then(
-                                data => {
-                                    if (data) {
-                                        inputData.referral = data._id;
-                                        return inputData;
-                                    }
-                                    else {
-                                        delete inputData.referral;
-                                        return inputData;
-                                    }
-                                }
-                            );
-                        }
-                        //check if player's domain matches any partner
-                        else if (inputData.domain) {
-                            delete inputData.referral;
-                            return dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
-                                data => {
-                                    if (data) {
-                                        inputData.partner = data._id;
-                                        return inputData;
-                                    }
-                                    else {
-                                        return inputData;
-                                    }
-                                }
-                            );
-                        }
-                        else {
-                            delete inputData.referral;
-                            return inputData;
+                            });
                         }
                     } else {
                         return Q.reject({
@@ -143,14 +159,99 @@ var dbPlayerInfo = {
                 }
             ).then(
                 data => {
+                    if (data.isPhoneNumberValid) {
+                        inputData.platform = platformObjId;
+                        inputData.name = inputData.name.toLowerCase();
+                        delete inputData.platformId;
+                        //find player referrer if there is any
+                        let proms = [];
+                        if (inputData.referral) {
+                            let referralName = platformPrefix + inputData.referral;
+                            let referrralProm = dbconfig.collection_players.findOne({
+                                name: referralName,
+                                platform: platformObjId
+                            }).then(
+                                data => {
+                                    if (data) {
+                                        inputData.referral = data._id;
+                                        return inputData;
+                                    }
+                                    else {
+                                        // If user key in invalid referral during register, we will not proceed
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_REFERRAL,
+                                            name: "DataError",
+                                            message: "Invalid referral"
+                                        });
+                                    }
+                                }
+                            );
+                            proms.push(referrralProm);
+                        }
+                        if (inputData.partnerName) {
+                            let partnerProm = dbconfig.collection_partner.findOne({
+                                partnerName: inputData.partnerName,
+                                platform: platformObjId
+                            }).then(
+                                data => {
+                                    if (data) {
+                                        inputData.partner = data._id;
+                                        delete inputData.referral;
+                                        return inputData;
+                                    }
+                                    else {
+                                        delete inputData.partnerName;
+                                        delete inputData.referral;
+                                        return inputData;
+                                    }
+                                }
+                            );
+                            proms.push(partnerProm);
+                        }
+                        //check if player's domain matches any partner
+                        if (inputData.domain) {
+                            delete inputData.referral;
+                            let filteredDomain = dbUtility.getDomainName(inputData.domain);
+                            while (filteredDomain.indexOf("/") != -1) {
+                                filteredDomain = filteredDomain.replace("/", "");
+                            }
+                            inputData.domain = filteredDomain;
+                            let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
+                                data => {
+                                    if (data) {
+                                        inputData.partner = data._id;
+                                        delete inputData.referral;
+                                        return inputData;
+                                    }
+                                    else {
+                                        delete inputData.referral;
+                                        return inputData;
+                                    }
+                                }
+                            );
+                            proms.push(domainProm);
+                        }
+                        return Q.all(proms);
+                    } else {
+                        return Q.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            name: "DBError",
+                            message: "Phone number already exists"
+                        });
+                    }
+                }
+            ).then(
+                data => {
                     return dbPlayerInfo.createPlayerInfo(inputData);
                 }
             ).then(
                 data => {
                     if (data) {
                         dbPlayerInfo.createPlayerLoginRecord(data);
+                        //todo::temp disable similar player untill ip is correct
                         dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
-                        return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber);
+                        dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
+                        return data;
                     }
                     else {
                         return data;
@@ -212,6 +313,7 @@ var dbPlayerInfo = {
     },
 
     findAndUpdateSimilarPlayerInfo: function (data, phoneNumber) {
+        //todo: in future, this function could be replaced bt the func 'findAndUpdateSimilarPlayerInfoByField' below
         var playerData = data;
         var newPlayerObjId = data._id;
         var platformObjId = data.platform;
@@ -220,14 +322,14 @@ var dbPlayerInfo = {
             phoneNumber: data.phoneNumber,
             platform: platformObjId,
             _id: {$ne: newPlayerObjId}
-        });
+        }).lean();
         proms.push(prom_findByPhNo);
 
         var prom_findByIp = dbconfig.collection_players.find({
-            lastLoginIp: data.lastLoginIp,
+            loginIps: data.lastLoginIp,
             platform: platformObjId,
             _id: {$ne: newPlayerObjId}
-        });
+        }).lean();
         proms.push(prom_findByIp);
 
         if (data.realName) {
@@ -235,7 +337,7 @@ var dbPlayerInfo = {
                 realName: data.realName,
                 platform: platformObjId,
                 _id: {$ne: newPlayerObjId}
-            });
+            }).lean();
             proms.push(prom_findByName);
         }
 
@@ -244,7 +346,7 @@ var dbPlayerInfo = {
                 bankAccount: data.bankAccount,
                 platform: platformObjId,
                 _id: {$ne: newPlayerObjId}
-            }));
+            }).lean());
         }
 
         return Q.all(proms).then(
@@ -279,8 +381,8 @@ var dbPlayerInfo = {
                         }
                     }
                     if (data[0] && data[0].length > 0 && phoneNumber) {
-                        var startIndex = Math.max(Math.floor((phoneNumber.length - 4) / 2), 0);
-                        var pNumber = phoneNumber.substr(0, startIndex) + "****" + phoneNumber.substr(startIndex + 4);
+                        // var startIndex = Math.max(Math.floor((phoneNumber.length - 4) / 2), 0);
+                        var pNumber = dbUtility.encodePhoneNum(phoneNumber);
                         for (var j = 0; j < data[0].length; j++) {
                             var similarPlayerData = {
                                 playerObjId: data[0][j]._id,
@@ -333,7 +435,7 @@ var dbPlayerInfo = {
                             var similarPlayerData = {
                                 playerObjId: data[3][q]._id,
                                 field: "bankAccount",
-                                content: data[3][q].bankAccount
+                                content: dbUtility.encodeBankAcc(data[3][q].bankAccount)
                             };
                             similarPlayersArray.push(similarPlayerData);
                             prom.push(
@@ -344,12 +446,12 @@ var dbPlayerInfo = {
                                             similarPlayers: {
                                                 playerObjId: newPlayerObjId,
                                                 field: "bankAccount",
-                                                content: playerData.bankAccount
+                                                content: dbUtility.encodeBankAcc(playerData.bankAccount)
                                             }
                                         }
                                     }
                                 )
-                            );
+                            )
                         }
                     }
                     prom.push(
@@ -374,26 +476,140 @@ var dbPlayerInfo = {
         );
     },
 
+    findAndUpdateSimilarPlayerInfoByField: function (playerData, fieldName, val) {
+        let newPlayerObjId = playerData._id;
+        let platformObjId = playerData.platform;
+        let searchVal = val || playerData[fieldName];
+        let prom1 = Q.resolve(true);
+        let query = {
+            platform: platformObjId,
+            _id: {$ne: newPlayerObjId}
+        };
+        let searchFieldName = (fieldName == 'lastLoginIp')
+            ? 'loginIps'
+            : fieldName;
+        query[searchFieldName] = searchVal;
+        prom1 = dbconfig.collection_players.find(query).lean();
+        let func = (fieldName == 'phoneNumber')
+            ? dbUtility.encodePhoneNum
+            : ((fieldName == 'bankAccount')
+                ? dbUtility.encodeBankAcc
+                : null);
+        return Q.resolve(prom1).then(results => {
+            let prom = [];
+            let similarPlayersArray = [];
+            if (results && results.length > 0) {
+                for (let i = 0; i < results.length; i++) {
+                    let similarPlayerDataContent;
+                    if (fieldName == 'lastLoginIp') {
+                        similarPlayerDataContent = searchVal;
+                    } else {
+                        similarPlayerDataContent = func ? func(result[i][fieldName]) : result[i][fieldName];
+                    }
+                    let similarPlayerData = {
+                        playerObjId: results[i]._id,
+                        field: fieldName,
+                        content: similarPlayerDataContent
+                    };
+                    similarPlayersArray.push(similarPlayerData);
+                    prom.push(
+                        dbconfig.collection_players.findOneAndUpdate(
+                            {_id: results[i]._id, platform: platformObjId},
+                            {
+                                $push: {
+                                    similarPlayers: {
+                                        playerObjId: newPlayerObjId,
+                                        field: fieldName,
+                                        content: func ? func(searchVal) : searchVal
+                                    }
+                                }
+                            }
+                        )
+                    );
+                }
+                prom.push(
+                    dbconfig.collection_players.findOneAndUpdate(
+                        {_id: newPlayerObjId, platform: platformObjId},
+                        {
+                            $push: {
+                                similarPlayers: {
+                                    $each: similarPlayersArray
+                                }
+                            }
+                        }
+                    )
+                );
+                return Q.all(prom);
+            } else {
+                return true;
+            }
+        })
+    },
+
     createPlayerInfo: function (playerdata, skipReferrals, skipPrefix) {
-        var deferred = Q.defer();
-        var playerData = null;
+        let deferred = Q.defer();
+        let playerData = null;
+        let platformData = null;
 
         playerdata.name = playerdata.name.toLowerCase();
+
+        // Player name and password should be alphanumeric and between 6 to 20 characters
+        let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
+        let chineseRegex = /^[\u4E00-\u9FA5]{0,}$/;
+
+        if (env.mode !== "local" && env.mode !== "qa") {
+            // ignore for unit test
+            if (playerdata.name.length < 6 || playerdata.name.length > 20 || !playerdata.name.match(alphaNumRegex)) {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Username should be alphanumeric and within 20 characters"
+                });
+
+            }
+
+            if (playerdata.password.length < 6 || playerdata.password.length > 20 || !playerdata.password.match(alphaNumRegex)) {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Password should be alphanumeric and within 20 characters"
+                });
+            }
+
+
+            // if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
+            //     return Q.reject({
+            //         status: constServerCode.PLAYER_NAME_INVALID,
+            //         name: "DBError",
+            //         message: "Realname should be chinese character"
+            //     });
+            // }
+
+            if ((playerdata.realName && playerdata.realName.match(/\d+/g) != null)) {
+                return Q.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Realname should not include digit"
+                });
+            }
+        }
 
         dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(
             function (platform) {
                 if (platform) {
-                    var delimitedPrefix = platform.prefix + PLATFORM_PREFIX_SEPARATOR;
-                    //if (playerdata.name.substring(0, delimitedPrefix.length) === delimitedPrefix) {
+                    platformData = platform;
+                    // if (playerdata.name.substring(0, delimitedPrefix.length) === delimitedPrefix) {
                     //    // Player name already contains expected platform prefix
-                    //}
-                    if (!skipPrefix) {
-                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    // }
+
+                    if (platformData.allowSamePhoneNumberToRegister === true) {
+                        return {isPhoneNumberValid: true};
+                    } else {
+                        return dbPlayerInfo.isPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
+                            platform: playerdata.platform
+                        });
                     }
-                    return dbPlayerInfo.isPlayerNameValidToRegister({
-                        name: playerdata.name,
-                        platform: playerdata.platform
-                    });
                 } else {
                     deferred.reject({name: "DBError", message: "No such platform"});
                 }
@@ -402,6 +618,31 @@ var dbPlayerInfo = {
                 deferred.reject({
                     name: "DBError",
                     message: "Error when finding platform",
+                    error: error
+                });
+            }
+        ).then(
+            //make sure phone number is unique
+            function (data) {
+                if (data.isPhoneNumberValid) {
+                    var delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
+
+                    if (!skipPrefix) {
+                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    }
+
+                    return dbPlayerInfo.isPlayerNameValidToRegister({
+                        name: playerdata.name,
+                        platform: playerdata.platform
+                    });
+                } else {
+                    deferred.reject({name: "DBError", message: "Phone number already exists"});
+                }
+            },
+            function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Phone number already exists",
                     error: error
                 });
             }
@@ -462,7 +703,11 @@ var dbPlayerInfo = {
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm]);
+                    var wechatGroupProm = dbconfig.collection_platformWechatPayGroup.findOne({
+                        platform: playerdata.platform,
+                        bDefault: true
+                    });
+                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm]);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't create new player."});
@@ -495,6 +740,9 @@ var dbPlayerInfo = {
                     }
                     if (data[4]) {
                         playerUpdateData.alipayGroup = data[4]._id;
+                    }
+                    if (data[5]) {
+                        playerUpdateData.wechatPayGroup = data[5]._id;
                     }
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
@@ -607,8 +855,11 @@ var dbPlayerInfo = {
             }
         ).then(
             zoneData => {
+                apiData.bankAccountProvinceId = apiData.bankAccountProvince;
                 apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
+                apiData.bankAccountCityId = apiData.bankAccountCity;
                 apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
+                apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
                 apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
                 apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                 deferred.resolve(apiData);
@@ -777,11 +1028,13 @@ var dbPlayerInfo = {
 
     /**
      * Reset player password
-     * @param {String}  query - The query string
-     * @param {string} updateData - The update data string
+     * @param {String}  playerId - The query string
+     * @param {string} newPassword - The update data string
+     * @param {objectId} platform - player's platform
+     * @param {boolean} resetPartnerPassword - reset partner password also if true
      */
-    resetPlayerPassword: function (playerId, newPassword) {
-        var deferred = Q.defer();
+    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword) {
+        let deferred = Q.defer();
 
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
@@ -799,12 +1052,32 @@ var dbPlayerInfo = {
                     {password: hash},
                     constShardKeys.collection_players
                 ).then(
-                    function (data) {
+                    data => {
+                        // update partner password if selected
+                        if (resetPartnerPassword) {
+                            return dbUtility.findOneAndUpdateForShard(
+                                dbconfig.collection_partner,
+                                {
+                                    platform: platform,
+                                    player: playerId
+                                },
+                                {password: hash},
+                                constShardKeys.collection_partner
+                            );
+                        }
+
                         deferred.resolve(newPassword);
                     },
-                    function (error) {
+                    error => {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
                     }
+                ).then(
+                    data => deferred.resolve(newPassword),
+                    error => deferred.reject({
+                        name: "DBError",
+                        message: "Error updating player password.",
+                        error: error
+                    })
                 );
             });
         });
@@ -813,12 +1086,10 @@ var dbPlayerInfo = {
     },
     /**
      *  Update password
-     * @param {String} playerId:xxxx, oldPassword:xxxx, newPassword:xxxx
-     *
      */
-    updatePassword: function (playerId, currPassword, newPassword) {
-        var db_password = null;
-        var playerObj = null;
+    updatePassword: function (playerId, currPassword, newPassword, smsCode) {
+        let db_password = null;
+        let playerObj = null;
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
             return Q.reject({name: "DataError", message: "Password is too short"});
         }
@@ -828,6 +1099,64 @@ var dbPlayerInfo = {
                 if (data) {
                     playerObj = data;
                     db_password = String(data.password);
+
+                    return dbconfig.collection_platform.findOne({
+                        _id: playerObj.platform
+                    }).lean();
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    });
+                }
+            }
+        ).then(
+            platformData => {
+                if (platformData) {
+                    // Check if platform sms verification is required
+                    if (!platformData.requireSMSVerification) {
+                        // SMS verification not required
+                        return Q.resolve(true);
+                    } else {
+                        // Check verification SMS match
+                        return dbconfig.collection_smsVerificationLog.findOne({
+                            platformObjId: playerObj.platform,
+                            tel: playerObj.phoneNumber
+                        }).sort({createTime: -1}).then(
+                            verificationSMS => {
+                                // Check verification SMS code
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                                    verificationSMS = verificationSMS || {};
+                                    return dbconfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(
+                                        () => {
+                                            return Q.resolve(true);
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_INVALID,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
                     if (dbUtility.isMd5(db_password)) {
                         if (md5(currPassword) == db_password) {
                             return Q.resolve(true);
@@ -837,7 +1166,7 @@ var dbPlayerInfo = {
                         }
                     }
                     else {
-                        var passDefer = Q.defer();
+                        let passDefer = Q.defer();
                         bcrypt.compare(String(currPassword), db_password, function (err, isMatch) {
                             if (err) {
                                 passDefer.reject({
@@ -850,12 +1179,6 @@ var dbPlayerInfo = {
                         });
                         return passDefer.promise;
                     }
-                }
-                else {
-                    return Q.reject({
-                        name: "DataError",
-                        message: "Can not find player"
-                    });
                 }
             }
         ).then(
@@ -878,14 +1201,82 @@ var dbPlayerInfo = {
     /**
      * Update player payment info
      * @param {String}  query - The query string
-     * @param {string} updateData - The update data string
+     * @param {Object} updateData - The update data string
      */
     updatePlayerPayment: function (query, updateData) {
-        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
+        let playerObj = null;
+        // Get platform
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+
+                    return dbconfig.collection_platform.findOne({
+                        _id: playerData.platform
+                    })
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    })
+                }
+            }
+        ).then(
+            platformData => {
+                if (platformData) {
+                    // Check if platform sms verification is required
+                    if (!platformData.requireSMSVerification) {
+                        // SMS verification not required
+                        return Q.resolve(true);
+                    } else {
+                        // Check verification SMS match
+                        return dbconfig.collection_smsVerificationLog.findOne({
+                            platformObjId: playerObj.platform,
+                            tel: playerObj.phoneNumber
+                        }).sort({createTime: -1}).then(
+                            verificationSMS => {
+                                // Check verification SMS code
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == updateData.smsCode) {
+                                    verificationSMS = verificationSMS || {};
+                                    return dbconfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(
+                                        () => {
+                                            return Q.resolve(true);
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_INVALID,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
+                            }
+                        )
+                    }
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    })
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
+                }
+            }
+        )
     },
 
     updatePlayerPaymentInfoCreateProposal: function (updateData) {
-
         var proposalData = updateData;
         if (updateData) {
             delete updateData.password;
@@ -1021,6 +1412,9 @@ var dbPlayerInfo = {
         if (query.providerId) {
             queryObject.providerId = ObjectId(query.providerId);
         }
+        if (query.dirty != null) {
+            queryObject.bDirty = query.dirty;
+        }
         var a = dbconfig.collection_playerConsumptionRecord
             .find(queryObject).sort(sortCol).skip(index).limit(limit)
             .populate({
@@ -1076,10 +1470,29 @@ var dbPlayerInfo = {
             queryObject.createTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
         }
         var a = dbconfig.collection_playerTopUpRecord.find(queryObject).count();
-        var b = dbconfig.collection_playerTopUpRecord.find(queryObject).sort(sortCol).skip(index).limit(limit);
-        return Q.all([a, b]).then(
+        var b = dbconfig.collection_playerTopUpRecord.find(queryObject).sort(sortCol).skip(index).limit(limit)
+        var c = dbconfig.collection_playerTopUpRecord.aggregate(
+            {
+                $match: {
+                    playerId: ObjectId(query.playerId),
+                    createTime: {
+                        $gte: query.startTime,
+                        $lt: query.endTime
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$playerId",
+                    amountSum: {$sum: "$amount"},
+                    validAmountSum: {$sum: "$validAmount"},
+                    bonusAmountSum: {$sum: "$bonusAmount"}
+                }
+            })
+
+        return Q.all([a, b, c]).then(
             data => {
-                return {total: data[0], data: data[1]};
+                return {data: data[1], total: data[0], summary: data[2] ? data[2][0] : {}};
             }
         )
     },
@@ -1168,14 +1581,15 @@ var dbPlayerInfo = {
                         platformId: data.platform,
                         amount: amount,
                         topUpType: topUpType,
+                        createTime: proposalData ? proposalData.createTime : new Date(),
                         bDirty: false
                     };
                     var logData = null;
                     if (proposalData && proposalData.data) {
-                        if (topUpType == constPlayerTopUpType.ONLINE) {
+                        if (topUpType == constPlayerTopUpType.MANUAL) {
                             recordData.bankCardType = proposalData.data.bankCardType;
                         }
-                        else if (topUpType == constPlayerTopUpType.MANUAL) {
+                        else if (topUpType == constPlayerTopUpType.ONLINE) {
                             recordData.merchantTopUpType = proposalData.data.topupType;
                         }
                         logData = proposalData.data;
@@ -1325,10 +1739,14 @@ var dbPlayerInfo = {
                 // TODO  - proposal status check below
                 return dbconfig.collection_proposal.find({
                     "data.platformId": data.platform,
-                    "data.playerId": data._id,
-                    "data.periodType": 0,
-                    type: proposalType
-                });
+                    "data.playerId": data.playerId,
+                    "data.periodType": '0',
+                    type: proposalType,
+                    $or: [
+                        {status: constProposalStatus.SUCCESS},
+                        {status: constProposalStatus.APPROVED}
+                    ]
+                })
 
             }, function (error) {
                 deferred.reject({name: "DataError", message: "Can't find player data", error: error});
@@ -1369,7 +1787,7 @@ var dbPlayerInfo = {
                         if (playerData.bFirstTopUpReward) {
                             deferred.reject({
                                 name: "RegistrationTimeTooRecent",
-                                message: "Player hasn't been rewarded for first time top up event!"
+                                message: "Player has been rewarded for first time top up event!"
                             });
                             return;
                         }
@@ -1453,30 +1871,44 @@ var dbPlayerInfo = {
      * @param {Boolean} checkConsumption
      */
     applyForFirstTopUpRewardProposal: function (playerObjId, playerId, topUpRecordIds, code, ifAdmin) {
-        var deferred = Q.defer();
-        var platformId = null;
-        var player = {};
-        var records = [];
-        var recordAmount = 0;
-        var eventData = {};
-        var playerLvlData;
-        var deductionAmount = 0;
-        var bDoneDeduction = false;
-        var adminInfo = ifAdmin;
+        let deferred = Q.defer();
+        let platformId = null;
+        let player = {};
+        let records = [];
+        let recordAmount = 0;
+        let eventData = {};
+        let playerLvlData;
+        let deductionAmount = 0;
+        let bDoneDeduction = false;
+        let adminInfo = ifAdmin;
+        let startTime = dbUtility.getCurrentWeekSGTime().startTime;
+        let endTime = dbUtility.getCurrentWeekSGTime().endTime;
+        let weekFirstRecordId = null;
 
-        var query = playerObjId ? {_id: playerObjId} : {playerId: playerId};
-        var recordProm = dbconfig.collection_playerTopUpRecord.find({_id: {$in: topUpRecordIds}});
-        var playerProm = dbconfig.collection_players.findOne(query).populate({
+        let query = playerObjId ? {_id: playerObjId} : {playerId: playerId};
+        let recordProm = dbconfig.collection_playerTopUpRecord.find({_id: {$in: topUpRecordIds}});
+        let playerProm = dbconfig.collection_players.findOne(query).populate({
             path: "playerLevel",
             model: dbconfig.collection_playerLevel
         });
+
         Q.all([playerProm, recordProm]).then(
-            function (data) {
+            data => {
                 player = data[0];
                 records = data[1];
 
+                let queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
+
+                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: 1}).limit(1).exec();
+            }
+        ).then(
+            firstRecordData => {
+                if (firstRecordData && firstRecordData[0]) {
+                    weekFirstRecordId = String(firstRecordData[0]._id);
+                }
+
                 //check all top up records
-                var bValid = true;
+                let bValid = true;
                 if (records.length > 0) {
                     records.forEach(
                         rec => {
@@ -1513,6 +1945,15 @@ var dbPlayerInfo = {
         ).then(
             function (eData) {
                 eventData = eData;
+                if (eventData.param.periodType == 1 && weekFirstRecordId &&
+                    topUpRecordIds.indexOf(weekFirstRecordId) < 0) {
+                    deferred.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Top up record is not the first top up of this week"
+                    });
+                    return;
+                }
                 //get player data
                 if (eventData) {
                     if (eventData.param.periodType == 0) {
@@ -1584,6 +2025,7 @@ var dbPlayerInfo = {
         ).then(
             function () {
                 bDoneDeduction = true;
+                var rewardAmount = Math.min((recordAmount * playerLvlData.rewardPercentage), playerLvlData.maxRewardAmount);
                 var proposalData = {
                     type: eventData.executeProposal,
                     creator: adminInfo ? adminInfo :
@@ -1600,15 +2042,16 @@ var dbPlayerInfo = {
                         periodType: eventData.param.periodType,
                         topUpRecordIds: topUpRecordIds,
                         applyAmount: deductionAmount,
-                        rewardAmount: Math.min(Math.floor(recordAmount * playerLvlData.rewardPercentage), playerLvlData.maxRewardAmount),
+                        rewardAmount: rewardAmount,
                         providers: eventData.param.providers,
                         targetEnable: eventData.param.targetEnable,
                         games: eventData.param.games,
-                        spendingAmount: Math.floor(recordAmount * playerLvlData.spendingTimes),
+                        spendingAmount: Math.floor((rewardAmount + recordAmount) * playerLvlData.spendingTimes),
                         minTopUpAmount: eventData.param.minTopUpAmount,
                         eventId: eventData._id,
                         eventName: eventData.name,
-                        eventCode: eventData.code
+                        eventCode: eventData.code,
+                        eventDescription: eventData.description
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
@@ -1800,14 +2243,15 @@ var dbPlayerInfo = {
                                 playerId: data[0].playerId,
                                 playerName: data[0].name,
                                 applyAmount: amount,
-                                rewardAmount: Math.floor(data[1].param.rewardPercentage * amount),
+                                rewardAmount: data[1].param.rewardPercentage * amount,
                                 spendingAmount: Math.floor(data[1].param.spendingPercentage * amount),
                                 provider: data[1].param.provider,
                                 platformId: data[0].platform,
                                 games: data[1].param.games,
                                 eventId: data[1]._id,
                                 eventName: data[1].name,
-                                eventCode: data[1].code
+                                eventCode: data[1].code,
+                                eventDescription: data[1].description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -1872,7 +2316,8 @@ var dbPlayerInfo = {
                         type: data.executeProposal,
                         data: {
                             playerId: playerId,
-                            rewardAmount: data.param.rewardAmount
+                            rewardAmount: data.param.rewardAmount,
+                            eventDescription: data.description
                         }
                     };
                     dbProposal.createProposalWithTypeId(data.executeProposal, proposalData).then(
@@ -1897,20 +2342,47 @@ var dbPlayerInfo = {
      * @param-data {Json} can include  one or more of the following fields
      */
     applyForPlatformTransactionReward: function (platformId, playerId, topupAmount, playerLevel, bankCardType) {
-        var deferred = Q.defer();
-        var rewardTypeName = constProposalType.PLATFORM_TRANSACTION_REWARD;
-        var proposalProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: rewardTypeName});
-        var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, rewardTypeName);
-        var playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: playerLevel});
-        var playerProm = dbconfig.collection_players.findOne({playerId: playerId});
-        var playerLevelData = {};
-        var rewardParams = [];
-        var playerData = {};
+        let deferred = Q.defer();
+        let todayTime = dbUtility.getTodaySGTime();
+        let curRewardAmount = 0;
+        let rewardTypeName = constProposalType.PLATFORM_TRANSACTION_REWARD;
+        let proposalProm = dbconfig.collection_proposalType.findOne({
+            platformId: platformId,
+            name: rewardTypeName
+        }).lean().then(
+            proposalType => {
+                return dbconfig.collection_proposal.aggregate(
+                    {
+                        $match: {
+                            type: proposalType._id,
+                            "data.playerId": playerId,
+                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$type",
+                            totalAmount: {$sum: "$rewardAmount"}
+                        }
+                    }
+                );
+            }
+        );
+        let eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, rewardTypeName);
+        let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: playerLevel}).lean();
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
+        let playerLevelData = {};
+        let rewardParams = [];
+        let playerData = {};
         Q.all([eventProm, proposalProm, playerLevelProm, playerProm]).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] && data[3]) {
                     if (!data[3].permission || !data[3].permission.transactionReward) {
                         deferred.resolve("No permission!");
+                    }
+                    if (data[1] && data[1][0]) {
+                        curRewardAmount = data[1][0].totalAmount;
                     }
                     var eventLevelProm = [];
                     rewardParams = data[0];
@@ -1935,21 +2407,25 @@ var dbPlayerInfo = {
         ).then(
             function (levels) {
                 if (levels) { // && levels[0].value >= levels[1].value) {
-                    var levelProm = [];
+                    let levelProm = [];
                     for (var i = 0; i < levels.length; i++) {
-                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0) {
-
-                            var proposalData = {
+                        if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay && (!rewardParams[i].param.bankCardType ||
+                            (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
+                            let rewardAmount = Math.min((rewardParams[i].param.maxRewardAmountPerDay - curRewardAmount), rewardParams[i].param.rewardPercentage * topupAmount);
+                            let proposalData = {
                                 type: rewardParams[i].executeProposal,
                                 data: {
                                     playerId: playerId,
                                     playerObjId: playerData._id,
                                     platformId: platformId,
                                     playerName: playerData.name,
-                                    rewardAmount: Math.floor(rewardParams[i].param.rewardPercentage * topupAmount)
+                                    rewardAmount: rewardAmount,
+                                    eventDescription: rewardParams[i].description,
+                                    curRewardAmount: curRewardAmount,
+                                    maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay
                                 }
                             };
-                            var temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
+                            let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
                             levelProm.push(temp);
                         }
                     }
@@ -2002,12 +2478,46 @@ var dbPlayerInfo = {
         lean().exec();
     },
 
+    getPaymentPlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
+        var resultData = {};
+        return dbPlayerInfo.getPagePlayerByAdvanceQuery(platformId, data, index, limit, sortObj).then(
+            data => {
+                resultData = data;
+                var proms = [];
+                data.data.map(eachPlayer => {//data.data always valid as returned from 'getPagePlayerByAdvanceQuery'
+                    proms.push(dbconfig.collection_players
+                        .findOne({_id: eachPlayer._id}).populate({
+                            path: "playerLevel",
+                            model: dbconfig.collection_playerLevel
+                        }).populate({
+                            path: "bankCardGroup",
+                            model: dbconfig.collection_platformBankCardGroup
+                        }).populate({
+                            path: "merchantGroup",
+                            model: dbconfig.collection_platformMerchantGroup
+                        }).populate({
+                            path: "alipayGroup",
+                            model: dbconfig.collection_platformAlipayGroup
+                        }).populate({
+                            path: "wechatPayGroup",
+                            model: dbconfig.collection_platformWechatPayGroup
+                        }).lean())
+                })
+                return Q.all(proms).then(newPlayer => {
+                    resultData.data = newPlayer;
+                    return resultData;
+                })
+            },
+            err => {
+                return {error: err};
+            })
+    },
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
         //todo encrytion ?
         if (data && data.phoneNumber) {
-            data.phoneNumber = rsaCrypto.encrypt(data.phoneNumber);
+            data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};
         }
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
@@ -2128,11 +2638,21 @@ var dbPlayerInfo = {
                 if (platformData) {
                     platformId = platformData._id;
                     platformPrefix = platformData.prefix;
-                    playerData.name = platformData.prefix + playerData.name;
-                    return dbconfig.collection_players.findOne({
-                        name: playerData.name.toLowerCase(),
-                        platform: platformData._id
-                    }).lean();
+                    playerData.prefixName = platformData.prefix + playerData.name;
+
+                    return dbconfig.collection_players.findOne(
+                        {
+                            $or: [
+                                {
+                                    name: playerData.prefixName.toLowerCase(),
+                                    platform: platformData._id
+                                },
+                                {
+                                    phoneNumber: playerData.name,
+                                    platform: platformData._id
+                                }
+                            ]
+                        }).lean();
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Cannot find platform"});
@@ -2180,6 +2700,14 @@ var dbPlayerInfo = {
         ).then(
             isMatch => {
                 if (isMatch) {
+                    if (playerObj.status == constPlayerStatus.FORBID) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                        return;
+                    }
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
@@ -2201,6 +2729,14 @@ var dbPlayerInfo = {
                     if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp) {
                         bUpdateIp = true;
                     }
+
+                    var updateSimilarIpPlayer = false;
+                    if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
+                        updateSimilarIpPlayer = true;
+                    }
+
+                    // Revert due to IP DB not ready
+
                     var geo = geoip.lookup(playerData.lastLoginIp);
                     var updateData = {
                         isLogin: true,
@@ -2218,7 +2754,7 @@ var dbPlayerInfo = {
                         }
                     }
                     Object.assign(updateData, geoInfo);
-                    if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp) {
+                    if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
                         updateData.$push = {loginIps: playerData.lastLoginIp};
                     }
                     dbconfig.collection_players.findOneAndUpdate({
@@ -2242,11 +2778,16 @@ var dbPlayerInfo = {
                             return record.save().then(
                                 function () {
                                     if (bUpdateIp) {
-                                        return dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                        dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                    }
+
+                                    if (updateSimilarIpPlayer) {
+                                        dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
                                     }
                                 }
-                            ).catch(errorUtils.reportError).then(
+                            ).then(
                                 () => {
+                                    // console.log("check player city!!!");
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
@@ -2258,6 +2799,274 @@ var dbPlayerInfo = {
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
                                             var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+                                            // console.log(a,b,c,creditProm);
+                                            return Q.all([a, b, c, creditProm]);
+                                        }
+                                    ).then(
+                                        zoneData => {
+                                            // console.log("zoneData",zoneData);
+                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                                            retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                                            deferred.resolve(retObj);
+                                        },
+                                        errorZone => {
+                                            //console.error("errorZone", errorZone);
+                                            deferred.resolve(retObj);
+                                        }
+                                    );
+                                }
+                            );
+                        },
+                        error => {
+                            deferred.reject({
+                                name: "DBError",
+                                message: "Error in updating player",
+                                error: error
+                            });
+                        }
+                    );
+
+                    // // ip location lookup
+                    // let updateData = {
+                    //     isLogin: true,
+                    //     lastLoginIp: playerData.lastLoginIp,
+                    //     userAgent: newAgentArray,
+                    //     lastAccessTime: new Date().getTime(),
+                    // };
+                    //
+                    // dbGeoIp.lookup(playerData.lastLoginIp).then(
+                    //     (locData) => {
+                    //         let geoInfo = {};
+                    //
+                    //         if (locData) {
+                    //             geoInfo = {
+                    //                 continent: locData.continent,
+                    //                 country: locData.country,
+                    //                 province: locData.province,
+                    //                 city: locData.city,
+                    //                 district: locData.district,
+                    //                 isp: locData.isp,
+                    //                 areaCode: locData.area_code,
+                    //                 longitude: locData.longitude,
+                    //                 latitude: locData.latitude
+                    //             }
+                    //         }
+                    //
+                    //         Object.assign(updateData, geoInfo);
+                    //         if (playerData.lastLoginIp && playerData.lastLoginIp != playerObj.lastLoginIp) {
+                    //             updateData.$push = {loginIps: playerData.lastLoginIp};
+                    //         }
+                    //
+                    //         return geoInfo;
+                    //     }
+                    // ).then(
+                    //     (geoInfo) => {
+                    //         dbconfig.collection_players.findOneAndUpdate({
+                    //             _id: playerObj._id,
+                    //             platform: playerObj.platform
+                    //         }, updateData).populate({
+                    //             path: "playerLevel",
+                    //             model: dbconfig.collection_playerLevel
+                    //         }).then(
+                    //             data => {
+                    //                 //add player login record
+                    //                 var recordData = {
+                    //                     player: data._id,
+                    //                     platform: platformId,
+                    //                     loginIP: playerData.lastLoginIp,
+                    //                     clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
+                    //                     userAgent: uaObj
+                    //                 };
+                    //                 Object.assign(recordData, geoInfo);
+                    //                 var record = new dbconfig.collection_playerLoginRecord(recordData);
+                    //                 return record.save().then(
+                    //                     function () {
+                    //                         if (bUpdateIp) {
+                    //                             return dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                    //                         }
+                    //                     }
+                    //                 ).catch(errorUtils.reportError).then(
+                    //                     () => {
+                    //                         dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                    //                             path: "playerLevel",
+                    //                             model: dbconfig.collection_playerLevel
+                    //                         }).lean().then(
+                    //                             res => {
+                    //                                 res.name = res.name.replace(platformPrefix, "");
+                    //                                 retObj = res;
+                    //                                 var a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                    //                                 var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                    //                                 var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                    //                                 var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+                    //                                 return Q.all([a, b, c, creditProm]);
+                    //                             }
+                    //                         ).then(
+                    //                             zoneData => {
+                    //                                 retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                    //                                 retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                    //                                 retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                    //                                 retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                    //                                 deferred.resolve(retObj);
+                    //                             }, errorZone => {
+                    //                                 deferred.resolve(retObj);
+                    //                             });
+                    //                     }
+                    //                 );
+                    //             },
+                    //             error => {
+                    //                 deferred.reject({
+                    //                     name: "DBError",
+                    //                     message: "Error in updating player",
+                    //                     error: error
+                    //                 });
+                    //             }
+                    //         );
+                    //     });
+
+
+                } else {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "User name and password don't match",
+                        code: constServerCode.INVALID_USER_PASSWORD
+                    });
+                }
+            },
+            error => {
+                deferred.reject({name: "DBError", message: "Error in getting player data", error: error});
+            }
+        );
+        return deferred.promise;
+    },
+
+    playerLoginWithSMS: function (loginData, userAgent, isSMSVerified) {
+        let deferred = Q.defer();
+        let newAgentArray = [];
+        let platformId = null;
+        let uaObj = null;
+        let playerObj = null;
+        let retObj = {};
+        let platformPrefix = "";
+
+        dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    platformId = platformData._id;
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
+
+                    return dbconfig.collection_players.findOne(
+                        {
+                            $or: [
+                                {phoneNumber: encryptedPhoneNumber},
+                                {phoneNumber: loginData.phoneNumber}
+                            ],
+                            platform: platformData._id
+                        }
+                    ).lean();
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                deferred.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
+            data => {
+                if (data) {
+                    playerObj = data;
+
+                    if (playerObj.status == constPlayerStatus.FORBID) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                        return;
+                    }
+                    newAgentArray = playerObj.userAgent || [];
+                    uaObj = {
+                        browser: userAgent.browser.name || '',
+                        device: userAgent.device.name || '',
+                        os: userAgent.os.name || '',
+                    };
+                    let bExit = false;
+                    newAgentArray.forEach(
+                        agent => {
+                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                bExit = true;
+                            }
+                        }
+                    );
+                    if (!bExit) {
+                        newAgentArray.push(uaObj);
+                    }
+
+                    let bUpdateIp = false;
+                    if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
+                        bUpdateIp = true;
+                    }
+
+                    let geo = geoip.lookup(loginData.lastLoginIp);
+                    let updateData = {
+                        isLogin: true,
+                        lastLoginIp: loginData.lastLoginIp,
+                        userAgent: newAgentArray,
+                        lastAccessTime: new Date().getTime(),
+                    };
+                    let geoInfo = {};
+                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                        geoInfo = {
+                            country: geo ? geo.country : null,
+                            city: geo ? geo.city : null,
+                            longitude: geo && geo.ll ? geo.ll[1] : null,
+                            latitude: geo && geo.ll ? geo.ll[0] : null
+                        }
+                    }
+                    Object.assign(updateData, geoInfo);
+                    if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
+                        updateData.$push = {loginIps: loginData.lastLoginIp};
+                    }
+                    dbconfig.collection_players.findOneAndUpdate({
+                        _id: playerObj._id,
+                        platform: playerObj.platform
+                    }, updateData).populate({
+                        path: "playerLevel",
+                        model: dbconfig.collection_playerLevel
+                    }).then(
+                        data => {
+                            //add player login record
+                            let recordData = {
+                                player: data._id,
+                                platform: platformId,
+                                loginIP: loginData.lastLoginIp,
+                                clientDomain: loginData.clientDomain ? loginData.clientDomain : "",
+                                userAgent: uaObj
+                            };
+                            Object.assign(recordData, geoInfo);
+                            let record = new dbconfig.collection_playerLoginRecord(recordData);
+                            return record.save().then(
+                                function () {
+                                    if (bUpdateIp) {
+                                        dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                    }
+                                }
+                            ).then(
+                                () => {
+                                    dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                        path: "playerLevel",
+                                        model: dbconfig.collection_playerLevel
+                                    }).lean().then(
+                                        res => {
+                                            res.name = res.name.replace(platformPrefix, "");
+                                            retObj = res;
+                                            let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                            let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                            let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                                            let creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
@@ -2267,9 +3076,11 @@ var dbPlayerInfo = {
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                                             deferred.resolve(retObj);
-                                        }, errorZone => {
+                                        },
+                                        errorZone => {
                                             deferred.resolve(retObj);
-                                        });
+                                        }
+                                    );
                                 }
                             );
                         },
@@ -2284,7 +3095,7 @@ var dbPlayerInfo = {
                 } else {
                     deferred.reject({
                         name: "DataError",
-                        message: "User name and password don't match",
+                        message: "Cannot find player",
                         code: constServerCode.INVALID_USER_PASSWORD
                     });
                 }
@@ -2315,9 +3126,8 @@ var dbPlayerInfo = {
      *  TODO - may add more fields to update the playerInfo
      */
     playerLogout: function (playerData) {
-
-        var time_now = new Date().getTime();
-        var updateData = {isLogin: false, lastAccessTime: time_now};
+        let time_now = new Date().getTime();
+        let updateData = {isLogin: false, lastAccessTime: time_now};
 
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerData.playerId}, updateData, constShardKeys.collection_players);
     },
@@ -2386,7 +3196,15 @@ var dbPlayerInfo = {
     },
 
     getLoggedInPlayersCount: function (platform) {
-        return dbconfig.collection_players.find({platform: platform, isLogin: true}).count();
+        platform = Array.isArray(platform) ?platform :[platform];
+        return dbconfig.collection_players.find(
+            {
+                platform: {
+                    $in: platform
+                },
+                isLogin: true
+            }
+        ).count();
     },
 
     getPlayerPermissionLog: function (platform, id, createTime) {
@@ -2500,23 +3318,23 @@ var dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
-        var deferred = Q.defer();
-        var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        });
-        var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
-        var playerData = null;
-        var providerData = null;
+        let deferred = Q.defer();
+        let prom0 = forSync
+            ? dbconfig.collection_players.findOne({name: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform})
+            : dbconfig.collection_players.findOne({playerId: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform});
+        let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
+        let playerData = null;
+        let providerData = null;
+
         Q.all([prom0, prom1]).then(
             function (data) {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
-                    if ((data[0].validCredit + data[0].lockedCredit) < 1 || amount == 0 || data[0].validCredit < amount) {
+                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1
+                        || amount == 0) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -2524,20 +3342,26 @@ var dbPlayerInfo = {
                         });
                         return;
                     }
-                    return dbPlayerInfo.getPlayerPendingProposalByType(playerData._id, playerData.platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
-                        hasPendingProposal => {
-                            if (hasPendingProposal) {
-                                deferred.reject({
-                                    status: constServerCode.PLAYER_PENDING_PROPOSAL,
-                                    name: "DataError",
-                                    message: "Player has pending proposal to update credit"
-                                });
-                            }
-                            else {
-                                return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                            }
-                        }
-                    );
+                    //return dbPlayerInfo.getPlayerPendingProposalByType(playerData._id, playerData.platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
+                    //hasPendingProposal => {
+                    // if (hasPendingProposal) {
+                    //     deferred.reject({
+                    //         status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                    //         name: "DataError",
+                    //         message: "Player has pending proposal to update credit"
+                    //     });
+                    // }
+                    // else {
+
+                    // Enough credit to proceed
+                    let platformId = playerData.platform ? playerData.platform.platformId : null;
+                    // First log before processing
+                    dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
+                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
+                    return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                    //}
+                    // }
+                    //);
                 } else {
                     deferred.reject({name: "DataError", message: "Cannot find player or provider"});
                 }
@@ -2554,6 +3378,13 @@ var dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
+                if (!err || !err.hasLog) {
+                    let platformId = playerData.platform ? playerData.platform.platformId : null;
+                    let platformObjId = playerData.platform ? playerData.platform._id : null;
+                    // Second log - failed processing before calling cpmsAPI
+                    dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
+                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
+                }
                 deferred.reject(err);
             }
         );
@@ -2568,25 +3399,28 @@ var dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditToProviderbyPlayerObjId: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
-        var deferred = Q.defer();
-        var gameAmount = 0;
-        var rewardAmount = 0;
-        var providerAmount = 0;
-        var playerCredit = 0;
-        var rewardTaskAmount = 0;
-        var rewardDataObj = null;
-        var playerData = null;
-        var notEnoughtCredit = false;
-        var rewardData = null;
-        var bUpdateReward = false;
-        var transferAmount = 0;
-        var bTransfered = false;
-        var transferId = new Date().getTime();
+        let deferred = Q.defer();
+        let gameAmount = 0;
+        let rewardAmount = 0;
+        let providerAmount = 0;
+        let playerCredit = 0;
+        let rewardTaskAmount = 0;
+        let rewardDataObj = null;
+        let playerData = null;
+        let notEnoughtCredit = false;
+        let rewardData = null;
+        let bUpdateReward = false;
+        let transferAmount = 0;
+        let bTransfered = false;
+        let transferId = new Date().getTime();
+
         return dbconfig.collection_players.findOne({_id: playerObjId}).then(
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
-                    if ((playerData1.validCredit + playerData1.lockedCredit) < 1 || amount == 0 || playerData1.validCredit < amount) {
+                    // Check player have enough credit
+                    if ((parseFloat(playerData1.validCredit.toFixed(2)) + playerData1.lockedCredit) < 1
+                        || amount == 0) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "NumError",
@@ -2595,6 +3429,7 @@ var dbPlayerInfo = {
                         notEnoughtCredit = true;
                         return;
                     }
+                    // Check player current reward task
                     return dbRewardTask.getPlayerCurRewardTask(playerObjId)
                 } else {
                     return Q.reject({name: "DataError", message: "Can't find player information."});
@@ -2607,24 +3442,27 @@ var dbPlayerInfo = {
             function (taskData) {
                 rewardData = taskData;
                 if (!notEnoughtCredit) {
+                    // Player has enough credit
                     //if amount is less than 0, means transfer all
-                    amount = amount > 0 ? amount : playerData.validCredit;
+                    amount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
                     if (!rewardData) {
                         amount = Math.floor(amount);
+                        // Player has no reward ongoing
                         gameAmount = amount;
                         rewardData = true;
                         //return true;
                     }
                     else {
+                        // Player has ongoing reward
                         rewardDataObj = rewardData;
                         if ((!rewardData.targetProviders || rewardData.targetProviders.length <= 0 ) // target all providers
                             || (rewardData.targetEnable && rewardData.targetProviders.indexOf(providerId) >= 0)//target this provider
                             || (!rewardData.targetEnable && rewardData.targetProviders.indexOf(providerId) < 0)//banded provider
                         ) {
                             if (rewardData.inProvider == true) {//already in provider
-                                if (String(playerData.lastPlayedProvider) != String(providerId)) {
-                                    return Q.reject({name: "DataError", message: "Player is playing a different game"});
-                                }
+                                // if (String(playerData.lastPlayedProvider) != String(providerId)) {
+                                //     return Q.reject({name: "DataError", message: "Player is playing a different game"});
+                                // }
                                 if (rewardData.requiredBonusAmount > 0) {
                                     amount = 0;
                                     gameAmount = amount;
@@ -2681,7 +3519,11 @@ var dbPlayerInfo = {
                             errorMessage: "Player does not have enough credit."
                         });
                     }
-                    var updateObj = {
+
+                    // Deduct amount from player validCredit before transfer
+                    // Amount is already floored
+                    // let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
+                    let updateObj = {
                         lastPlayedProvider: providerId,
                         $inc: {validCredit: -amount}
                     };
@@ -2707,15 +3549,15 @@ var dbPlayerInfo = {
             }
         ).then(
             //check if player's credit is enough to transfer
+            // to prevent concurrent deduction
             function (updateData) {
                 if (updateData) {
                     //console.log("Before transfer credit:", playerData.validCredit);
-                    if (updateData.validCredit < 0) {
-                        //console.log("Transfer invalid credit", playerData.validCredit);
+                    if (updateData.validCredit < -0.02) {
                         //reset player credit to 0
                         return dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerObjId, platform: platform},
-                            {validCredit: 0},
+                            {$inc: {validCredit: amount}},
                             {new: true}
                         ).catch(errorUtils.reportError).then(
                             () => Q.reject({
@@ -2727,7 +3569,18 @@ var dbPlayerInfo = {
                     }
                     else {
                         playerCredit = updateData.validCredit;
-                        return true;
+                        //fix float number problem after update
+                        if (updateData.validCredit > -0.02 && updateData.validCredit < 0) {
+                            playerCredit = 0;
+                            return dbconfig.collection_players.findOneAndUpdate(
+                                {_id: playerObjId, platform: platform},
+                                {validCredit: 0},
+                                {new: true}
+                            );
+                        }
+                        else {
+                            return true;
+                        }
                     }
                 }
                 else {
@@ -2745,6 +3598,10 @@ var dbPlayerInfo = {
                     return counterManager.incrementAndGetCounter("transferId").then(
                         function (id) {
                             transferId = id;
+                            let lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
+                            // Second log before call cpmsAPI
+                            dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
+                                id, providerShortId, transferAmount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return cpmsAPI.player_transferIn(
                                 {
                                     username: userName,
@@ -2756,9 +3613,12 @@ var dbPlayerInfo = {
                             ).then(
                                 res => res,
                                 error => {
-                                    var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
+                                    // var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
+                                    let status = (error.error && error.error.errorMessage && error.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
+                                    // Third log - transfer in failed
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
-                                        transferId, providerShortId, transferAmount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                        id, providerShortId, transferAmount, lockedAmount, adminName, error, status);
+                                    error.hasLog = true;
                                     return Q.reject(error);
                                 }
                             );
@@ -2777,10 +3637,16 @@ var dbPlayerInfo = {
             function (data) {
                 if (data) {
                     if (bUpdateReward) {
-                        return dbRewardTask.updateRewardTask({
-                            _id: rewardData._id,
-                            platformId: rewardData.platformId
-                        }, rewardData);
+                        return dbRewardTask.updateRewardTask(
+                            {
+                                _id: rewardData._id,
+                                platformId: rewardData.platformId
+                            }, {
+                                inProvider: rewardData.inProvider,
+                                _inputCredit: rewardData._inputCredit,
+                                currentAmount: rewardData.currentAmount
+                            }
+                        );
                     }
                     else {
                         return (rewardData);
@@ -2791,6 +3657,7 @@ var dbPlayerInfo = {
                     function () {
                         //change player credit back if transfer failed
                         if (bTransfered) {
+                            console.error(err);
                             if (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) {
                             } else {
                                 return dbconfig.collection_players.findOneAndUpdate(
@@ -2809,6 +3676,7 @@ var dbPlayerInfo = {
             function (res) {
                 if (res) {
                     //playerCredit = res.validCredit;
+                    // Log credit change when transfer success
                     dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -amount, constPlayerCreditChangeType.TRANSFER_IN, playerCredit, 0, -rewardAmount, null, {
                         providerId: providerShortId,
                         providerName: cpName,
@@ -2848,31 +3716,33 @@ var dbPlayerInfo = {
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
         var deferred = Q.defer();
-        var prom0 = forSync ? dbconfig.collection_players.findOne({name: playerId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        }) : dbconfig.collection_players.findOne({playerId: playerId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        });
+        var playerObj = {};
+        var prom0 = forSync
+            ? dbconfig.collection_players.findOne({name: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform})
+            : dbconfig.collection_players.findOne({playerId: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform});
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
                 if (data && data[0] && data[1]) {
-                    return dbPlayerInfo.getPlayerPendingProposalByType(data[0]._id, data[0].platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
-                        hasPendingProposal => {
-                            if (hasPendingProposal) {
-                                deferred.reject({
-                                    status: constServerCode.PLAYER_PENDING_PROPOSAL,
-                                    name: "DataError",
-                                    message: "Player has pending proposal to update credit"
-                                });
-                            }
-                            else {
-                                return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                            }
-                        }
-                    );
+                    playerObj = data[0];
+                    // return dbPlayerInfo.getPlayerPendingProposalByType(data[0]._id, data[0].platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
+                    //     hasPendingProposal => {
+                    //         if (hasPendingProposal) {
+                    //             deferred.reject({
+                    //                 status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                    //                 name: "DataError",
+                    //                 message: "Player has pending proposal to update credit"
+                    //             });
+                    //         }
+                    //         else {
+                    dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
+                        providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
+                    return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    // }
+                    //     }
+                    // );
                 } else {
                     deferred.reject({name: "DataError", message: "Cant find player or provider"});
                 }
@@ -2885,6 +3755,12 @@ var dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
+                if (!err || !err.hasLog) {
+                    var platformId = playerObj.platform ? playerObj.platform.platformId : null;
+                    var platformObjId = playerObj.platform ? playerObj.platform._id : null;
+                    dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
+                        providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
+                }
                 deferred.reject(err);
             }
         );
@@ -2977,7 +3853,7 @@ var dbPlayerInfo = {
                                 //console.log("transferPlayerCreditFromProviderbyPlayerObjId:", rewardTask);
                                 //amount = Math.min(amount, rewardTask.requiredBonusAmount);
                                 rewardTask.currentAmount = amount;
-                                validCreditToAdd = Math.min(amount, rewardTask.requiredBonusAmount);
+                                validCreditToAdd = 0;
                                 rewardTask.inProvider = false;
                                 rewardTaskCredit = rewardTask.currentAmount;
                             }
@@ -3016,6 +3892,9 @@ var dbPlayerInfo = {
                         function (id) {
                             transferId = id;
                             // console.log("player_transferOut:", userName, providerShortId, amount);
+                            let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
+                            dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
+                                providerShortId, amount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return cpmsAPI.player_transferOut(
                                 {
                                     username: userName,
@@ -3027,9 +3906,10 @@ var dbPlayerInfo = {
                             ).then(
                                 res => res,
                                 error => {
-                                    var lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
-                                    dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", transferId,
+                                    // var lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
+                                    dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
                                         providerShortId, amount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                    error.hasLog = true;
                                     return Q.reject(error);
                                 }
                             );
@@ -3049,7 +3929,11 @@ var dbPlayerInfo = {
                     if (bUpdateTask) {
                         return dbconfig.collection_rewardTask.findOneAndUpdate(
                             {_id: rewardTask._id, platformId: rewardTask.platformId},
-                            rewardTask,
+                            {
+                                currentAmount: rewardTask.currentAmount,
+                                inProvider: rewardTask.inProvider,
+                                _inputCredit: rewardTask._inputCredit
+                            },
                             {new: true}
                         ).exec();
                     }
@@ -3213,7 +4097,7 @@ var dbPlayerInfo = {
                             ],
                             status: constProposalStatus.PENDING,
                             mainType: "Reward"
-                        }).lean().then(
+                        }).populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
                             proposals => {
                                 var sumAmount = 0;
                                 for (var key in proposals) {
@@ -3221,7 +4105,12 @@ var dbPlayerInfo = {
                                         var applyAmount = proposals[key].data.applyAmount || 0;
                                         var rewardAmount = proposals[key].data.rewardAmount || 0;
                                         var currentAmount = proposals[key].data.currentAmount || 0;
-                                        sumAmount = sumAmount + Number(applyAmount) + Number(rewardAmount) + Number(currentAmount);
+                                        if (proposals[key].type && proposals[key].type.name == constProposalType.PLAYER_CONSUMPTION_RETURN) {
+                                            sumAmount = sumAmount + Number(rewardAmount);
+                                        }
+                                        else {
+                                            sumAmount = sumAmount + Number(applyAmount) + Number(rewardAmount) + Number(currentAmount);
+                                        }
                                     }
                                 }
                                 returnObj.pendingRewardAmount = sumAmount;
@@ -3383,7 +4272,9 @@ var dbPlayerInfo = {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
                         rewardEventItem.platformId = platformId;
-                        rewardEventArray.push(rewardEventItem);
+                        if (rewardEventItem.canApplyFromClient) {
+                            rewardEventArray.push(rewardEventItem);
+                        }
                     }
                     return rewardEventArray;
                 }
@@ -3495,46 +4386,27 @@ var dbPlayerInfo = {
     },
 
     isPlayerNameValidToRegister: function (query) {
-        var playerData = null;
-        var deferred = Q.defer();
-        dbconfig.collection_players.findOne(query).then(
-            function (data) {
-                if (data) {
-                    deferred.resolve({isPlayerNameValid: false});
+        return dbconfig.collection_players.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    return {isPlayerNameValid: false};
                 } else {
-                    return dbconfig.collection_partner.findOne({partnerName: query.name, platform: query.platform});
+                    return {isPlayerNameValid: true};
                 }
-            }, function (error) {
-                deferred.reject({name: "DBError", message: "Error in getting player data", error: error});
-            }
-        ).then(
-            function (data) {
-                if (data) {
-                    // name exists in Parnter
-                    deferred.resolve({isPlayerNameValid: false});
-                } else {
-                    dbconfig.collection_playerName.findOne(query).then(
-                        function (nameData) {
-                            if (nameData) {
-                                deferred.resolve({isPlayerNameValid: false});
-                            } else {
-                                deferred.resolve({isPlayerNameValid: true});
-                            }
-                        },
-                        function (error) {
-                            deferred.reject({
-                                name: "DBError",
-                                message: "Error in getting player name data",
-                                error: error
-                            });
-                        }
-                    );
-                }
-            }, function (error) {
-                deferred.reject({name: "DBError", message: "Error in getting partner data", error: error});
             }
         );
-        return deferred.promise;
+    },
+
+    isPhoneNumberValidToRegister: function (query) {
+        return dbconfig.collection_players.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
+                }
+            }
+        );
     },
 
     getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count) {
@@ -3711,6 +4583,9 @@ var dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkPlayerLevelUp: function (playerObjId, platformObjId) {
+        //todo::temp disable player auto level up
+        return Q.resolve(true);
+
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -4089,6 +4964,30 @@ var dbPlayerInfo = {
                 }
             );
     },
+
+    // report
+    getPlayerDomainReport: function (platform, para, index, limit, sortCol) {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {'registrationTime': -1};
+        let query = {platform: platform};
+        para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
+        (para.endTime && !query.registrationTime) ? (query.registrationTime = {$lt: new Date(para.endTime)}) : null;
+        (para.endTime && query.registrationTime) ? (query.registrationTime['$lt'] = new Date(para.endTime)) : null;
+        para.name ? query.name = para.name : null;
+        para.realName ? query.realName = para.realName : null;
+        para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
+        para.domain ? query.domain = para.domain : null; //{$regex: (".*" + para.domain + "*.")} : null;
+        let count = dbconfig.collection_players.find(query).count();
+        let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
+            .populate({path: 'partner', model: dbconfig.collection_partner});
+        return Q.all([count, detail]).then(
+            data => {
+                return {data: data[1], size: data[0]}
+            }
+        )
+    },
+
     getNewAccountReportData: function (platform, startTime, endTime) {
         var retData = {};
         var timeQuery = {
@@ -4660,18 +5559,24 @@ var dbPlayerInfo = {
      * Get active player count 
      */
     countActivePlayerbyPlatform: function (platformId, startDate, endDate) {
-        var options = {};
-        options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
-
-        return dbconfig.collection_platformDaySummary.aggregate(
+        // var options = {};
+        // options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
+        //
+        // return dbconfig.collection_platformDaySummary.aggregate(
+        //     {
+        //         $match: {
+        //             platformId: platformId,
+        //             date: {$gte: startDate, $lt: endDate}
+        //         }
+        //     },
+        //     {
+        //         $group: {_id: options, number: {$sum: "$activePlayers"}}
+        //     }
+        // ).exec();
+        return dbconfig.collection_platformDaySummary.find(
             {
-                $match: {
-                    platformId: platformId,
-                    date: {$gte: startDate, $lt: endDate}
-                }
-            },
-            {
-                $group: {_id: options, number: {$sum: "$activePlayers"}}
+                platformId: platformId,
+                date: {$gte: startDate, $lt: endDate}
             }
         ).exec();
     },
@@ -4737,20 +5642,25 @@ var dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce) {
+    applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
         if (amount < 100) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
-        var player = null;
-        var bonusDetail = null;
-        var bUpdateCredit = false;
-        var resetCredit = function (playerObjId, platformObjId, credit, error) {
+        let player = null;
+        let bonusDetail = null;
+        let bUpdateCredit = false;
+        let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
-            return dbconfig.collection_players.findOneAndUpdate({
-                _id: playerObjId,
-                platform: platformObjId
-            }, {$inc: {validCredit: credit}}).then(
+            return dbconfig.collection_players.findOneAndUpdate(
+                {
+                    _id: playerObjId,
+                    platform: platformObjId
+                },
+                {$inc: {validCredit: credit}},
+                {new: true}
+            ).then(
                 resetPlayer => {
+                    dbLogger.createCreditChangeLog(playerObjId, platformObjId, credit, "PlayerBonus:resetCredit", resetPlayer.validCredit, null, error);
                     if (error) {
                         return Q.reject(error);
                     }
@@ -4852,7 +5762,8 @@ var dbPlayerInfo = {
                             errorMessage: "Player does not have this permission"
                         });
                     }
-                    if (playerData.bankName == null || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber || !playerData.email) {
+                    if (playerData.bankName == null || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
+                        || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
                         return Q.reject({
                             status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                             name: "DataError",
@@ -4862,82 +5773,117 @@ var dbPlayerInfo = {
 
                     //check if player has enough credit
                     player = playerData;
-                    if ((playerData.validCredit < bonusDetail.credit * amount) && !bForce) {
+                    if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
                             errorMessage: "Player does not have enough credit."
                         });
                     }
-                    //check if player credit balance.
-                    if ((playerData.creditBalance > 0) && !bForce) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_CREDIT_BALANCE_NOT_ENOUGH,
-                            name: "DataError",
-                            errorMessage: "Player does not have enough Expenses.",
-                            creditBalance: playerData.creditBalance
-                        });
-                    }
 
-                    var changeCredit = -amount * bonusDetail.credit;
-                    if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
-                        changeCredit = 0;
-                    }
-                    return dbconfig.collection_players.findOneAndUpdate(
+                    let todayTime = dbUtility.getTodaySGTime();
+                    return dbconfig.collection_proposal.find(
                         {
-                            _id: player._id,
-                            platform: player.platform._id
-                        },
-                        {$inc: {validCredit: changeCredit}},
-                        {new: true}
-                    ).then(
-                        newPlayerData => {
-                            if (newPlayerData) {
-                                bUpdateCredit = true;
-                                if (bForce && (playerData.validCredit < bonusDetail.credit * amount)) {
-                                    bUpdateCredit = false;
-                                }
-
-                                if (newPlayerData.validCredit < 0) {
-                                    //credit will be reset below
-                                    return Q.reject({
-                                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                        name: "DataError",
-                                        errorMessage: "Player does not have enough credit.",
-                                        data: '(detected after withdrawl)'
-                                    });
-                                }
-
-                                player.validCredit = newPlayerData.validCredit;
-                                //create proposal
-                                var proposalData = {
-                                    creator: {
-                                        type: 'player',
-                                        name: player.name,
-                                        id: playerId
-                                    },
-                                    playerId: playerId,
-                                    playerObjId: player._id,
-                                    playerName: player.name,
-                                    bonusId: bonusId,
-                                    platformId: player.platform._id,
-                                    platform: player.platform.platformId,
-                                    bankTypeId: player.bankName,
-                                    amount: amount,
-                                    bonusCredit: bonusDetail.credit,
-                                    curAmount: player.validCredit,
-                                    requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
-                                };
-                                var newProposal = {
-                                    creator: proposalData.creator,
-                                    data: proposalData,
-                                    entryType: constProposalEntryType.CLIENT,
-                                    userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                };
-                                return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
+                            mainType: "PlayerBonus",
+                            createTime: {
+                                $gte: todayTime.startTime,
+                                $lt: todayTime.endTime
+                            },
+                            "data.playerId": playerId,
+                            status: {
+                                $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
                             }
                         }
-                    );
+                    ).lean().then(
+                        todayBonusApply => {
+
+                            let changeCredit = -amount;
+                            let finalAmount = amount;
+                            let creditCharge = 0;
+                            let amountAfterUpdate = player.validCredit - amount;
+
+                            if (todayBonusApply.length >= playerData.platform.bonusCharges && playerData.platform.bonusPercentageCharges > 0) {
+                                creditCharge = (finalAmount * playerData.platform.bonusPercentageCharges) * 0.01;
+                                finalAmount = finalAmount - creditCharge;
+                            }
+
+                            return dbconfig.collection_players.findOneAndUpdate(
+                                {
+                                    _id: player._id,
+                                    platform: player.platform._id
+                                },
+                                {$inc: {validCredit: changeCredit}},
+                                {new: true}
+                            ).then(
+                                //check if player's credit is correct after update
+                                updateRes => dbconfig.collection_players.findOne({_id: player._id})
+                            ).then(
+                                newPlayerData => {
+                                    if (newPlayerData) {
+                                        bUpdateCredit = true;
+                                        //to fix float problem...
+                                        if (newPlayerData.validCredit < -0.02) {
+                                            //credit will be reset below
+                                            return Q.reject({
+                                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                                name: "DataError",
+                                                errorMessage: "Player does not have enough credit.",
+                                                data: '(detected after withdrawl)'
+                                            });
+                                        }
+                                        //check if player's credit is correct after update
+                                        if (amountAfterUpdate != newPlayerData.validCredit) {
+                                            console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
+                                            return Q.reject({
+                                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                                name: "DataError",
+                                                errorMessage: "Update player credit failed",
+                                                data: '(detected after withdrawl)'
+                                            });
+                                        }
+                                        //fix player negative credit
+                                        if (newPlayerData.validCredit < 0 && newPlayerData.validCredit > -0.02) {
+                                            newPlayerData.validCredit = 0;
+                                            dbconfig.collection_players.findOneAndUpdate(
+                                                {_id: newPlayerData._id, platform: newPlayerData.platform},
+                                                {validCredit: 0}
+                                            ).then();
+                                        }
+                                        player.validCredit = newPlayerData.validCredit;
+                                        //create proposal
+                                        var proposalData = {
+                                            creator: adminInfo || {
+                                                type: 'player',
+                                                name: player.name,
+                                                id: playerId
+                                            },
+                                            playerId: playerId,
+                                            playerObjId: player._id,
+                                            playerName: player.name,
+                                            bonusId: bonusId,
+                                            platformId: player.platform._id,
+                                            platform: player.platform.platformId,
+                                            bankTypeId: player.bankName,
+                                            amount: finalAmount,
+                                            bonusCredit: bonusDetail.credit,
+                                            curAmount: player.validCredit,
+                                            remark: player.remark,
+                                            lastSettleTime: new Date(),
+                                            honoreeDetail: honoreeDetail,
+                                            creditCharge: creditCharge,
+                                            isAutoApproval: player.platform.enableAutoApplyBonus
+                                            //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
+                                        };
+                                        var newProposal = {
+                                            creator: proposalData.creator,
+                                            data: proposalData,
+                                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                            userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                        };
+                                        return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
+                                    }
+                                });
+                        });
                 } else {
                     return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
                 }
@@ -5060,22 +6006,38 @@ var dbPlayerInfo = {
     /*
      * update applied bonus proposal
      */
-    updatePlayerBonusProposal: function (proposalId, bSuccess) {
+    updatePlayerBonusProposal: function (proposalId, bSuccess, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: "type",
             model: dbconfig.collection_proposalType
-        }).then(
+        }).lean().then(
             data => {
                 if (data) {
-                    data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                    // data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                    // data.data.lastSettleTime = new Date();
+                    // data.data.remark = remark;
                     if (!bSuccess) {
                         return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                            () => data.save()
+                            () => dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: data._id, createTime: data.createTime},
+                                {
+                                    status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
+                                    "data.lastSettleTime": new Date(),
+                                    "data.remark": remark
+                                }
+                            )
                         );
                     }
                     else {
                         SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
-                        return data.save();
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: data._id, createTime: data.createTime},
+                            {
+                                status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
+                                "data.lastSettleTime": new Date(),
+                                "data.remark": remark
+                            }
+                        );
                     }
                 }
                 else {
@@ -5092,19 +6054,35 @@ var dbPlayerInfo = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}).then(
                 data => {
-                    if (data && data.type) {
-                        if (data.noSteps) {
-                            data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                            return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                                () => data.save()
-                            );
-                        }
-                        else {
-                            return true;
-                        }
+                    if (data && data.type && data.status != constProposalStatus.SUCCESS
+                        && data.status != constProposalStatus.FAIL) {
+                        var status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                        var lastSettleTime = new Date();
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: data._id, createTime: data.createTime},
+                            {
+                                status: status,
+                                "data.lastSettleTime": lastSettleTime
+                            }
+                        ).then(
+                            updateProposal => {
+                                if (updateProposal && updateProposal.status != constProposalStatus.SUCCESS
+                                    && updateProposal.status != constProposalStatus.FAIL) {
+                                    return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
+                                        () => dbconfig.collection_proposal.findOneAndUpdate(
+                                            {_id: data._id, createTime: data.createTime},
+                                            {
+                                                status: status,
+                                                "data.lastSettleTime": lastSettleTime
+                                            }
+                                        )
+                                    );
+                                }
+                            }
+                        );
                     }
                     else {
-                        return Q.reject({name: "DataError", message: "Invalid proposal id"});
+                        return Q.reject({name: "DataError", message: "Invalid proposal id or status"});
                     }
                 }
             );
@@ -5334,7 +6312,7 @@ var dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
         var platformData = null;
         var providerData = null;
         var playerData = null;
@@ -5385,6 +6363,15 @@ var dbPlayerInfo = {
                             gameStatus: gameData.status
                         });
                     }
+
+                    let providerEnabled = true;
+                    let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
+
+                    if (providerInfo) {
+                        providerEnabled = providerInfo.isEnabled;
+                    }
+
+                    // Added checking for platform level disable game provider
                     if (gameData.provider.status != constProviderStatus.NORMAL) {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
@@ -5393,6 +6380,7 @@ var dbPlayerInfo = {
                             providerStatus: gameData.provider.status
                         });
                     }
+
                     return dbconfig.collection_platformGameStatus.findOne({
                         platform: playerData.platform._id,
                         game: gameData._id
@@ -5407,7 +6395,7 @@ var dbPlayerInfo = {
                                         gameStatus: gameData.status
                                     });
                                 }
-                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
                                 }
                                 else {
@@ -5463,6 +6451,9 @@ var dbPlayerInfo = {
             }
         ).then(
             data => {
+                if (ip == "undefined") {
+                    ip = "127.0.0.1";
+                }
                 var sendData = {
                     username: playerData.name,
                     platformId: playerData.platform.platformId,
@@ -5470,7 +6461,8 @@ var dbPlayerInfo = {
                     gameId: gameId,
                     clientDomainName: clientDomainName || "Can not find domain",
                     lang: lang || localization.lang.ch_SP,
-                    ip: ip
+                    ip: ip,
+                    clientType: clientType || 1
                 };
                 return cpmsAPI.player_getLoginURL(sendData);
             }
@@ -5479,7 +6471,7 @@ var dbPlayerInfo = {
         );
     },
 
-    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName) {
+    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
 
         var platformData = null;
         var providerData = null;
@@ -5491,7 +6483,7 @@ var dbPlayerInfo = {
                     if (data) {
                         playerData = data;
                         platformData = data.platform;
-                        if (playerData.status != constPlayerStatus.NORMAL) {
+                        if (playerData.status != constPlayerStatus.NORMAL && playerData.status != constPlayerStatus.ATTENTION) {
                             return Q.reject({
                                 name: "DataError",
                                 message: "Player is not enable",
@@ -5509,6 +6501,9 @@ var dbPlayerInfo = {
             ).then(gameData => {
                 if (gameData) {
                     providerData = gameData.provider.toObject();
+                    if (ip == "undefined") {
+                        ip = "127.0.0.1";
+                    }
                     var sendData = {
                         username: playerData.name,
                         platformId: platformData.platformId,
@@ -5516,7 +6511,8 @@ var dbPlayerInfo = {
                         gameId: gameId,
                         clientDomainName: clientDomainName || "Can not find domain",
                         lang: lang || localization.lang.ch_SP,
-                        ip: ip
+                        ip: ip,
+                        clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     return cpmsAPI.player_getTestLoginURL(sendData);
@@ -5529,8 +6525,58 @@ var dbPlayerInfo = {
             );
     },
 
+    getTestLoginURLWithoutUser: function (platformId, gameId, ip, lang, clientDomainName, clientType) {
+
+        var providerData = null;
+        var platformData = null;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+            data => {
+                if (data) {
+                    platformData = data;
+                    return dbconfig.collection_game.findOne({gameId: gameId}).populate({
+                        path: "provider",
+                        model: dbconfig.collection_gameProvider
+                    }).exec();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            gameData => {
+                if (gameData) {
+                    providerData = gameData.provider.toObject();
+                    if (ip == "undefined") {
+                        ip = "127.0.0.1";
+                    }
+                    var sendData = {
+                        platformId: platformData.platformId,
+                        providerId: providerData.providerId,
+                        gameId: gameId,
+                        clientDomainName: clientDomainName || "Can not find domain",
+                        lang: lang || localization.lang.ch_SP,
+                        ip: ip,
+                        clientType: clientType || 1
+                    };
+                    //var isHttp = providerData.interfaceType == 1 ? true : false;
+                    return cpmsAPI.player_getTestLoginURLWithOutUser(sendData);
+                } else {
+                    return Q.reject({name: "DataError", message: "Cannot find game"});
+                }
+            }
+        ).then(
+            loginData => ({gameURL: loginData.gameURL}),
+            error => Q.reject({
+                status: constServerCode.TEST_GAME_REQUIRE_LOGIN,
+                name: "DataError",
+                message: "Please login and try again"
+            })
+        );
+    },
+
     getGameUserInfo: function (playerId, platformId, providerId) {
-        return dbconfig.collection_players.findOne({playerId: playerId})
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean()
             .then(
                 data => {
                     if (data) {
@@ -5540,7 +6586,7 @@ var dbPlayerInfo = {
                             platformId: platformId,
                             providerId: providerId
                         };
-                        return cpmsAPI.player_getGameUserInfo(sendData);
+                        return cpmsAPI.player_getGamePassword(sendData);
                     } else {
                         return Q.reject({name: "DataError", message: "Cannot find player"})
                     }
@@ -5616,12 +6662,12 @@ var dbPlayerInfo = {
                                         resData.forEach(type => {
                                             if (type.type == paymentData.merchants[i].topupType) {
                                                 bValidType = false;
-                                                if (status == 1) {
+                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED") {
                                                     type.status = status;
                                                 }
                                             }
                                         });
-                                        if (bValidType && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                        if (bValidType && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             resData.push({type: paymentData.merchants[i].topupType, status: status});
                                         }
                                     }
@@ -5648,7 +6694,11 @@ var dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType) {
-                                            resData.push({type: paymentData.data[i].bankTypeId, status: status});
+                                            resData.push({
+                                                type: paymentData.data[i].bankTypeId,
+                                                status: status,
+                                                accountNumber: paymentData.data[i].accountNumber
+                                            });
                                         }
                                     }
                                 }
@@ -5672,7 +6722,7 @@ var dbPlayerInfo = {
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.bonusId) {
-                        if( proposalData.status != constProposalStatus.PENDING ){
+                        if (proposalData.status != constProposalStatus.PENDING) {
                             return Q.reject({
                                 status: constServerCode.DATA_INVALID,
                                 name: "DBError",
@@ -5746,6 +6796,41 @@ var dbPlayerInfo = {
                     return dbconfig.collection_proposalType.findOne({
                         platformId: platformObjectId,
                         name: constProposalType.PLAYER_ALIPAY_TOP_UP
+                    });
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                }
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    var queryObject = {
+                        "data.playerId": playerId,
+                        type: proposalTypeData._id,
+                        status: constProposalStatus.PENDING
+                    };
+                    return dbconfig.collection_proposal.findOne(queryObject).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+            }
+        );
+    },
+
+    getWechatTopupRequestList: function (playerId) {
+        var platformObjectId = null;
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).lean().then(
+            playerData => {
+                if (playerData && playerData.platform) {
+                    platformObjectId = playerData.platform._id;
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: platformObjectId,
+                        name: constProposalType.PLAYER_WECHAT_TOP_UP
                     });
                 }
                 else {
@@ -5877,7 +6962,7 @@ var dbPlayerInfo = {
                 }
 
                 // All requirements are met.  Let's proceed.
-                rewardAmount = Math.min(Math.floor(record.amount * rewardParam.rewardPercentage), rewardParam.maxRewardAmount);
+                rewardAmount = Math.min((record.amount * rewardParam.rewardPercentage), rewardParam.maxRewardAmount);
                 deductionAmount = record.amount;
 
                 return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record).then(
@@ -5904,19 +6989,20 @@ var dbPlayerInfo = {
                                 providers: eventData.param.providers,
                                 targetEnable: eventData.param.targetEnable,
                                 games: eventData.param.games,
-                                spendingAmount: Math.floor((record.amount + rewardAmount) * rewardParam.spendingTimes),
+                                spendingAmount: (record.amount + rewardAmount) * rewardParam.spendingTimes,
                                 minTopUpAmount: rewardParam.minTopUpAmount,
                                 useConsumption: eventData.param.useConsumption,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
                         };
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: false},
-                            {bDirty: true, usedType: constRewardType.PARTNER_TOP_UP_RETURN},
+                            {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
                             {new: true}
                         ).then(
                             data => {
@@ -5968,16 +7054,17 @@ var dbPlayerInfo = {
      * @param {String} code
      */
     applyConsumptionIncentive: function (playerId, code, ifAdmin) {
-        var platformId = null;
-        var player = {};
-        var eventParam = {};
+        let platformId = null;
+        let player = {};
+        let eventParam = {};
+        let eventParams = [];
         //get yesterday time frame
-        var yerTime = dbUtility.getYesterdaySGTime();
-        var playerTopUpAmount = 0;
-        var event = {};
-        var adminInfo = ifAdmin;
+        let yerTime = dbUtility.getYesterdaySGTime();
+        let playerTopUpAmount = 0;
+        let event = {};
+        let adminInfo = ifAdmin;
 
-        var playerProm = dbconfig.collection_players.findOne({playerId: playerId})
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
         return playerProm.then(
             data => {
@@ -5985,14 +7072,14 @@ var dbPlayerInfo = {
                 if (data && data.playerLevel) {
                     player = data;
                     platformId = player.platform;
-                    var taskProm = dbRewardTask.getRewardTask(
+                    let taskProm = dbRewardTask.getRewardTask(
                         {
                             playerId: player._id,
                             status: constRewardTaskStatus.STARTED
                         }
                     );
                     //get reward event data
-                    var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSUMPTION_INCENTIVE, code);
+                    let eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSUMPTION_INCENTIVE, code);
                     return Q.all([eventProm, taskProm]);
                 }
                 else {
@@ -6002,8 +7089,8 @@ var dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
-                    var eventData = data[0];
-                    var taskData = data[1];
+                    let eventData = data[0];
+                    let taskData = data[1];
                     if (taskData) {
                         return Q.reject({
                             status: constServerCode.PLAYER_HAS_REWARD_TASK,
@@ -6011,17 +7098,37 @@ var dbPlayerInfo = {
                             message: "The player has not unlocked the previous reward task. Not valid for new reward"
                         });
                     }
-                    if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSUMPTION_INCENTIVE, eventData) && eventData.param.needApply) {
+                    if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSUMPTION_INCENTIVE, eventData) && eventData.needApply) {
                         event = eventData;
-                        eventParam = eventData.param.reward[player.playerLevel.value];
-                        if (eventParam && (player.validCredit + player.lockedCredit) <= eventParam.maxPlayerCredit) {
+                        let minTopUpRecordAmount = 0;
+
+                        // Filter event param based on player level
+                        eventParams = eventData.param.reward.filter(reward => {
+                            if (reward.minPlayerLevel == player.playerLevel.value) {
+                                return reward;
+                            }
+                        });
+
+                        // Loose filter if no matched param for player level
+                        if (eventParams.length == 0) {
+                            eventParams = eventData.param.reward.filter(reward => {
+                                if (reward.minPlayerLevel <= player.playerLevel.value) {
+                                    if (reward.minTopUpRecordAmount > minTopUpRecordAmount) {
+                                        minTopUpRecordAmount = reward.minTopUpRecordAmount;
+                                    }
+                                    return reward;
+                                }
+                            });
+                        }
+
+                        if (eventParams && eventParams.length > 0) {
                             //get yesterday top up amount
                             return dbconfig.collection_playerTopUpRecord.aggregate(
                                 {
                                     $match: {
                                         playerId: player._id,
                                         platformId: player.platform,
-                                        amount: {$gte: eventParam.minTopUpRecordAmount},
+                                        amount: {$gte: minTopUpRecordAmount},
                                         createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
                                         $or: [{bDirty: false}, {
                                             bDirty: true,
@@ -6065,8 +7172,9 @@ var dbPlayerInfo = {
             topUpData => {
                 if (topUpData && topUpData[0] && topUpData[0].amount > 0) {
                     playerTopUpAmount = topUpData[0].amount;
+
                     //get yesterday bonus credit
-                    var bonusProm = dbconfig.collection_proposalType.findOne({
+                    let bonusProm = dbconfig.collection_proposalType.findOne({
                         platformId: player.platform,
                         name: constProposalType.PLAYER_BONUS
                     }).then(
@@ -6091,11 +7199,11 @@ var dbPlayerInfo = {
                         }
                     ).then(
                         bonusData => {
-                            if (bonusData && bonusData > 0) {
-                                var bonusCredit = 0;
+                            if (bonusData && bonusData.length > 0) {
+                                let bonusCredit = 0;
                                 bonusData.forEach(
                                     data => {
-                                        bonusCredit += data.data.amount * data.data.bonusCredit
+                                        bonusCredit += data.data.amount
                                     }
                                 );
                                 return bonusCredit;
@@ -6105,41 +7213,24 @@ var dbPlayerInfo = {
                             }
                         }
                     );
-                    //get all game credit
-                    var providerCreditProm = dbconfig.collection_platform.findById(player.platform)
-                        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
-                            platformData => {
-                                if (platformData && platformData.gameProviders && platformData.gameProviders.length > 0) {
-                                    var proms = [];
-                                    for (var i = 0; i < platformData.gameProviders.length; i++) {
-                                        proms.push(cpmsAPI.player_queryCredit(
-                                            {
-                                                username: player.name,
-                                                platformId: platformData.platformId,
-                                                providerId: platformData.gameProviders[i].providerId,
-                                            }
-                                        ));
-                                    }
-                                    return Q.all(proms);
-                                }
+                    //get game credit from log
+                    let providerCreditProm = dbconfig.collection_playerCreditsDailyLog.findOne({
+                        platformObjId: player.platform,
+                        playerObjId: player._id,
+                        createTime: {$gt: yerTime.startTime, $lte: yerTime.endTime}
+                    }).lean().then(
+                        creditLogData => {
+                            if (creditLogData) {
+                                return creditLogData.validCredit + creditLogData.lockedCredit + creditLogData.gameCredit;
+                            } else {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                    name: "DataError",
+                                    message: "Error in getting player balance credit"
+                                });
                             }
-                        ).then(
-                            providerCredit => {
-                                if (providerCredit && providerCredit.length > 0) {
-                                    var credit = 0;
-                                    for (var i = 0; i < providerCredit.length; i++) {
-                                        if (providerCredit[i].credit === undefined) {
-                                            throw Error(`No credit in response [${i}]: ${JSON.stringify(providerCredit[i])}`);
-                                        }
-                                        credit += parseFloat(providerCredit[i].credit);
-                                    }
-                                    return credit;
-                                }
-                                else {
-                                    return 0;
-                                }
-                            }
-                        );
+                        }
+                    );
                     return Q.all([bonusProm, providerCreditProm]);
                 }
                 else {
@@ -6153,31 +7244,70 @@ var dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
-                    var validCredit = playerTopUpAmount - data[0] - data[1];
-                    if ((validCredit * eventParam.rewardPercentage) >= eventParam.minRewardAmount && (player.validCredit + player.lockedCredit + data[1]) <= eventParam.maxPlayerCredit) {
-                        var rewardAmount = Math.min(Math.floor(validCredit * eventParam.rewardPercentage), eventParam.maxRewardAmount);
-                        var proposalData = {
-                            type: event.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: player.name,
-                                    id: playerId
-                                },
-                            data: {
-                                playerObjId: player._id,
-                                playerId: player.playerId,
-                                playerName: player.name,
-                                platformId: platformId,
-                                rewardAmount: rewardAmount,
-                                spendingAmount: validCredit * eventParam.spendingTimes,
-                                eventId: event._id,
-                                eventName: event.name,
-                                eventCode: event.code
+                    let curParam = null;
+                    let deficitAmount = playerTopUpAmount - data[0] - data[1];
+
+                    // Filter event param by deficit amount
+                    eventParams.map(param => {
+                        if (deficitAmount >= param.minDeficitAmount) {
+                            if (!curParam) {
+                                curParam = param;
+                            } else {
+                                if (param.minDeficitAmount > curParam.minDeficitAmount) {
+                                    curParam = param;
+                                }
+                            }
+                        }
+                    });
+
+                    if (!curParam) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                            name: "DataError",
+                            message: "Not enough reward amount"
+                        });
+                    }
+                    else {
+                        eventParam = curParam;
+                    }
+
+                    let proposalData = {
+                        type: event.executeProposal,
+                        creator: adminInfo ? adminInfo :
+                            {
+                                type: 'player',
+                                name: player.name,
+                                id: playerId
                             },
-                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                            userType: constProposalUserType.PLAYERS,
-                        };
+                        data: {
+                            playerObjId: player._id,
+                            playerId: player.playerId,
+                            playerName: player.name,
+                            platformId: platformId,
+                            deficitAmount: deficitAmount,
+                            curAmount: player.validCredit,
+                            providerCreditAmount: data[1],
+                            eventId: event._id,
+                            eventName: event.name,
+                            eventCode: event.code,
+                            eventDescription: event.description
+                        },
+                        entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                        userType: constProposalUserType.PLAYERS,
+                    };
+
+                    // Set percentage to 100% if not available
+                    if (eventParam.rewardAmount && !eventParam.rewardPercentage) {
+                        // Incentive by fixed amount
+                        proposalData.data.rewardAmount = eventParam.rewardAmount;
+
+                        return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                    }
+                    else if ((deficitAmount * eventParam.rewardPercentage) >= eventParam.minRewardAmount) {
+                        // Incentive by percentage
+                        proposalData.data.rewardAmount = Math.min((deficitAmount * eventParam.rewardPercentage), eventParam.maxRewardAmount);
+                        proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventParam.spendingTimes;
+
                         return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
                     }
                     else {
@@ -6362,13 +7492,14 @@ var dbPlayerInfo = {
                                 topUpRecordId: topUpRecordId,
                                 applyAmount: deductionAmount,
                                 rewardAmount: rewardAmount,
-                                spendingAmount: Math.floor((record.amount + rewardAmount) * rewardParam.unlockTimes),
+                                spendingAmount: (record.amount + rewardAmount) * rewardParam.unlockTimes,
                                 minTopUpAmount: rewardParam.minTopUpAmount,
                                 maxRewardAmount: rewardParam.maxRewardAmount,
                                 useConsumption: true,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -6423,7 +7554,8 @@ var dbPlayerInfo = {
     },
 
     applyRewardEvent: function (playerId, code, data, adminId, adminName) {
-        var adminInfo = '';
+        let playerInfo = null;
+        let adminInfo = '';
         if (adminId && adminName) {
             adminInfo = {
                 name: adminName,
@@ -6435,8 +7567,21 @@ var dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
                 if (playerData) {
-                    return dbconfig.collection_rewardEvent.findOne({platform: playerData.platform, code: code})
-                        .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                    playerInfo = playerData;
+                    if (playerData.permission && playerData.permission.banReward) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: "Player do not have permission for reward"
+                        });
+                    }
+                    //check if player's reward task is no credit now
+                    return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
+                        taskStatus => {
+                            return dbconfig.collection_rewardEvent.findOne({platform: playerData.platform, code: code})
+                                .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                        }
+                    );
                 }
                 else {
                     return Q.reject({
@@ -6449,7 +7594,7 @@ var dbPlayerInfo = {
             rewardEvent => {
                 if (rewardEvent && rewardEvent.type) {
                     //check valid time for reward event
-                    var curTime = new Date();
+                    let curTime = new Date();
                     if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
                         (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime())) {
                         return Q.reject({
@@ -6458,63 +7603,124 @@ var dbPlayerInfo = {
                             message: "This reward event is not valid anymore"
                         });
                     }
-                    switch (rewardEvent.type.name) {
-                        //first top up
-                        case constRewardType.FIRST_TOP_UP:
-                            if (data.topUpRecordIds == null) {
+
+                    //  the following behavior can generate reward task
+                    let rewardTaskWithProposalList = [
+                        constRewardType.FIRST_TOP_UP,
+                        constRewardType.PLAYER_TOP_UP_RETURN,
+                        constRewardType.PLAYER_CONSUMPTION_INCENTIVE,
+                        constRewardType.PLAYER_LEVEL_UP,
+                        constRewardType.PLAYER_TOP_UP_REWARD,
+                        constRewardType.PLAYER_REGISTRATION_REWARD,
+                        constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
+                        constRewardType.FULL_ATTENDANCE,
+                        constRewardType.GAME_PROVIDER_REWARD,
+                        constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD
+                    ];
+                    // Check any consumption after topup upon apply reward
+                    let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
+                    let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
+                    let pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                        mainType: 'Reward',
+                        "data.playerObjId": playerInfo._id,
+                        status: 'Pending'
+                    }, rewardTaskWithProposalList);
+                    return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
+                        timeCheckData => {
+                            if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
                                 return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
-                                    name: "Missing top up record ids",
-                                    message: "Invalid Data"
-                                });
-                            }
-                            return dbPlayerInfo.applyForFirstTopUpRewardProposal(null, playerId, data.topUpRecordIds, code, adminInfo);
-                            break;
-                        //provider reward
-                        case constRewardType.GAME_PROVIDER_REWARD:
-                            if (data.amount == null) {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "Invalid Data"
+                                    message: "There is consumption after top up"
                                 });
                             }
-                            return dbPlayerInfo.applyForGameProviderRewardAPI(playerId, code, data.amount, adminInfo);
-                            break;
-                        //request consumption rebate
-                        case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                            return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true);
-                            break;
-                        case constRewardType.PLAYER_TOP_UP_RETURN:
-                            if (data.topUpRecordId == null) {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_DATA,
-                                    name: "DataError",
-                                    message: "Invalid Data"
-                                });
+
+                            // if that's one reward pending , then you cannot apply other reward
+                            if (timeCheckData[2] && timeCheckData[2] > 0) {
+                                if (rewardTaskWithProposalList.indexOf(rewardEvent.type.name) != -1) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_PENDING_REWARD_PROPOSAL,
+                                        name: "DataError",
+                                        message: "Player or partner already has a pending reward proposal for this type"
+                                    });
+                                }
                             }
-                            return dbPlayerInfo.applyTopUpReturn(playerId, data.topUpRecordId, code, adminInfo);
-                            break;
-                        case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
-                            return dbPlayerInfo.applyConsumptionIncentive(playerId, code, adminInfo);
-                            break;
-                        case constRewardType.PLAYER_TOP_UP_REWARD:
-                            return dbPlayerInfo.applyPlayerTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
-                            break;
-                        case constRewardType.PLAYER_REFERRAL_REWARD:
-                            return dbPlayerInfo.applyPlayerReferralReward(playerId, code, data.referralId, adminInfo);
-                            break;
-                        case constRewardType.PLAYER_REGISTRATION_REWARD:
-                            return dbPlayerInfo.applyPlayerRegistrationReward(playerId, code, adminInfo);
-                            break;
-                        default:
-                            return Q.reject({
-                                status: constServerCode.INVALID_DATA,
-                                name: "DataError",
-                                message: "Can not find reward event type"
-                            });
-                            break;
-                    }
+
+                            switch (rewardEvent.type.name) {
+                                //first top up
+                                case constRewardType.FIRST_TOP_UP:
+                                    if (data.topUpRecordId && !data.topUpRecordIds) {
+                                        data.topUpRecordIds = [data.topUpRecordId];
+                                    }
+                                    if (data.topUpRecordIds == null) {
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_DATA,
+                                            name: "Missing top up record ids",
+                                            message: "Invalid Data"
+                                        });
+                                    }
+                                    return dbPlayerInfo.applyForFirstTopUpRewardProposal(null, playerId, data.topUpRecordIds, code, adminInfo);
+                                    break;
+                                //provider reward
+                                case constRewardType.GAME_PROVIDER_REWARD:
+                                    if (data.amount == null) {
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_DATA,
+                                            name: "DataError",
+                                            message: "Invalid Data"
+                                        });
+                                    }
+                                    return dbPlayerInfo.applyForGameProviderRewardAPI(playerId, code, data.amount, adminInfo);
+                                    break;
+                                //request consumption rebate
+                                case constRewardType.PLAYER_CONSUMPTION_RETURN:
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true);
+                                    break;
+                                case constRewardType.PLAYER_TOP_UP_RETURN:
+                                    if (data.topUpRecordId == null) {
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_DATA,
+                                            name: "DataError",
+                                            message: "Invalid Data"
+                                        });
+                                    }
+                                    return dbPlayerInfo.applyTopUpReturn(playerId, data.topUpRecordId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
+                                    return dbPlayerInfo.applyConsumptionIncentive(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_TOP_UP_REWARD:
+                                    return dbPlayerInfo.applyPlayerTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_REFERRAL_REWARD:
+                                    return dbPlayerInfo.applyPlayerReferralReward(playerId, code, data.referralName, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_REGISTRATION_REWARD:
+                                    return dbPlayerInfo.applyPlayerRegistrationReward(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD:
+                                    if (data.topUpRecordId == null) {
+                                        return Q.reject({
+                                            status: constServerCode.INVALID_DATA,
+                                            name: "DataError",
+                                            message: "Invalid Data"
+                                        });
+                                    }
+                                    return dbPlayerInfo.applyPlayerDoubleTopUpReward(playerId, code, data.topUpRecordId, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD:
+                                    return dbPlayerReward.applyConsecutiveLoginReward(playerId, code, adminInfo);
+                                    break;
+                                default:
+                                    return Q.reject({
+                                        status: constServerCode.INVALID_DATA,
+                                        name: "DataError",
+                                        message: "Can not find reward event type"
+                                    });
+                                    break;
+                            }
+                        }
+                    )
                 }
                 else {
                     return Q.reject({
@@ -6692,11 +7898,12 @@ var dbPlayerInfo = {
         );
     },
 
-    applyPlayerReferralReward: function (playerId, code, referralId, ifAdmin) {
+    applyPlayerReferralReward: function (playerId, code, referralName, ifAdmin) {
         var playerObj = null;
         var referralObj = null;
         var rewardEvent = null;
         var adminInfo = ifAdmin;
+        var topUpAmount = 0;
 
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
@@ -6721,7 +7928,7 @@ var dbPlayerInfo = {
                         });
                     }
                     return dbconfig.collection_players.findOne({
-                        playerId: referralId,
+                        name: referralName,
                         platform: playerObj.platform
                     }).lean();
                 }
@@ -6786,13 +7993,14 @@ var dbPlayerInfo = {
                     ).then(
                         data => {
                             if (data && data[0] && data[0].amount >= rewardEvent.param.reward.validTopUpAmount) {
+                                topUpAmount = data[0].amount;
                                 return Math.min(data[0].amount * rewardEvent.param.reward.rewardPercentage, rewardEvent.param.reward.maxRewardAmount);
                             }
                             else {
                                 return Q.reject({
                                     status: constServerCode.REWARD_EVENT_INVALID,
                                     name: "DataError",
-                                    message: "Invalid reward amount"
+                                    message: "Referral does not have enough topup amount"
                                 });
                             }
                         }
@@ -6821,13 +8029,16 @@ var dbPlayerInfo = {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
                             playerName: playerObj.name,
+                            realName: playerObj.realName,
                             platformObjId: playerObj.platform,
                             rewardAmount: rewardAmount,
                             eventId: rewardEvent._id,
                             eventName: rewardEvent.name,
                             eventCode: rewardEvent.code,
-                            referralId: referralId,
-                            referralName: referralObj.name
+                            referralName: referralName,
+                            referralId: referralObj.playerId,
+                            referralTopUpAmount: topUpAmount,
+                            eventDescription: rewardEvent.description
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -6926,7 +8137,8 @@ var dbPlayerInfo = {
                             unlockBonusAmount: rewardEvent.param.unlockBonusAmount,
                             eventId: rewardEvent._id,
                             eventName: rewardEvent.name,
-                            eventCode: rewardEvent.code
+                            eventCode: rewardEvent.code,
+                            eventDescription: rewardEvent.description
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -6941,6 +8153,229 @@ var dbPlayerInfo = {
                     });
                 }
             }
+        );
+    },
+
+    applyPlayerDoubleTopUpReward: function (playerId, code, topUpRecordId, adminInfo) {
+        var platformId = null;
+        var player = {};
+        var record = {};
+        var deductionAmount;
+        var bDoneDeduction = false;
+
+        var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
+        var playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "playerLevel", model: dbconfig.collection_playerLevel}
+        ).lean();
+        return Q.all([playerProm, recordProm]).then(
+            data => {
+                //get player's platform reward event data
+                if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
+                    player = data[0];
+                    record = data[1];
+                    platformId = player.platform;
+                    var taskProm = dbRewardTask.getRewardTask(
+                        {
+                            playerId: player._id,
+                            status: constRewardTaskStatus.STARTED
+                        }
+                    );
+                    //get reward event data
+                    var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, code);
+                    //get today's double top up reward
+                    var rewardProm = dbconfig.collection_proposalType.findOne({
+                        name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD,
+                        platformId: player.platform
+                    }).lean().then(
+                        type => {
+                            if (type) {
+                                let todayTime = dbUtility.getTodaySGTime();
+                                return dbconfig.collection_proposal.find(
+                                    {
+                                        type: type._id,
+                                        "data.playerObjId": player._id,
+                                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]},
+                                        createTime: {
+                                            $gte: todayTime.startTime,
+                                            $lt: todayTime.endTime
+                                        }
+                                    }
+                                ).count();
+                            }
+                            else {
+                                return Q.reject({
+                                    name: "DataError",
+                                    message: "Can not find player double top up reward proposal type"
+                                });
+                            }
+                        }
+                    );
+                    return Q.all([eventProm, taskProm, rewardProm]);
+                }
+                else {
+                    if (data[1] && data[1].bDirty) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: "This top up record has been used"
+                        });
+                    }
+                    else {
+                        return Q.reject({
+                            status: constServerCode.INVALID_DATA,
+                            name: "DataError",
+                            message: "Invalid data"
+                        });
+                    }
+                }
+            }
+        ).then(
+            function (data) {
+                if (!data) {
+                    return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "Cannot find player double top up reward event data for platform"
+                    });
+                }
+
+                var eventData = data[0];
+                var taskData = data[1];
+                if (taskData) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_HAS_REWARD_TASK,
+                        name: "DataError",
+                        message: "The player has not unlocked the previous reward task. Not valid for new reward"
+                    });
+                }
+
+                if (!rewardUtility.isValidRewardEvent(constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, eventData)) {
+                    return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "Invalid player top up reward event data for platform"
+                    });
+                }
+
+                let rewardParam = eventData.param.reward;
+                if (!rewardParam) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player is not valid for this reward"
+                    });
+                }
+
+                if (eventData.param && eventData.param.maxRewardTimes != null && data[2] >= eventData.param.maxRewardTimes) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player has applied for max reward times"
+                    });
+                }
+
+                //find player reward amount
+                var rewardAmount = 0;
+                var maxRewardAmount = 0;
+                var consumptionTimes = 0;
+                eventData.param.reward.forEach(
+                    rewardRow => {
+                        if (player.playerLevel.value >= rewardRow.minPlayerLevel && record.amount >= rewardRow.topUpAmount && rewardRow.rewardAmount > rewardAmount) {
+                            rewardAmount = rewardRow.rewardAmount;
+                            maxRewardAmount = rewardRow.maxRewardAmount;
+                            consumptionTimes = rewardRow.consumptionTimes;
+                        }
+                    }
+                );
+
+                if (!rewardAmount || rewardAmount <= 0) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Topup amount is less than minimum topup requirement"
+                    });
+                }
+
+                // All conditions have been satisfied.
+                deductionAmount = record.amount;
+                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerDoubleTopUpReward:Deduction", record).then(
+                    function () {
+                        bDoneDeduction = true;
+                        var proposalData = {
+                            type: eventData.executeProposal,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: player.name,
+                                    id: playerId
+                                },
+                            data: {
+                                playerObjId: player._id,
+                                playerId: player.playerId,
+                                playerName: player.name,
+                                platformId: platformId,
+                                topUpRecordId: topUpRecordId,
+                                applyAmount: deductionAmount,
+                                rewardAmount: rewardAmount,
+                                spendingAmount: (record.amount + rewardAmount) * consumptionTimes,
+                                maxRewardAmount: maxRewardAmount,
+                                useConsumption: true,
+                                eventId: eventData._id,
+                                eventName: eventData.name,
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description,
+                                providers: eventData.param.providers,
+                                targetEnable: eventData.param.targetEnable
+                            },
+                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                            userType: constProposalUserType.PLAYERS,
+                        };
+                        return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
+                            {_id: record._id, createTime: record.createTime, bDirty: false},
+                            {bDirty: true},
+                            {new: true}
+                        ).then(
+                            data => {
+                                if (data && data.bDirty) {
+                                    return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
+                                        data => data,
+                                        error => {
+                                            //clean top up record if create proposal failed
+                                            console.error({
+                                                name: "DBError",
+                                                message: "Create player double top up reward proposal failed",
+                                                data: proposalData,
+                                                error: error
+                                            });
+                                            return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
+                                                {
+                                                    _id: record._id,
+                                                    createTime: record.createTime
+                                                }, {bDirty: false}
+                                            ).catch(errorUtils.reportError).then(
+                                                () => Q.reject(error)
+                                            );
+                                        }
+                                    );
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "This top up record has been used"
+                                    });
+                                }
+                            }
+                        );
+                    }
+                );
+            }
+        ).catch(
+            error => Q.resolve().then(
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyPlayerTopUpReward:ProposalFailedRefund", error)
+            ).then(
+                () => Q.reject(error)
+            )
         );
     },
 
@@ -7039,6 +8474,31 @@ var dbPlayerInfo = {
         return dbPlayerInfo.changePlayerCredit(playerObjId, platformObjId, refundAmount, reasonType, data);
     },
 
+    /**
+     * Get Player credit on specific days
+     * @param {String} query - The query String.
+     */
+    getPlayerCreditsDaily: function (playerId, from, to, index, limit, sortCol) {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {'createTime': -1};
+        var queryObj = {
+            playerObjId: playerId,
+            createTime: {
+                $gte: new Date(from),
+                $lt: new Date(to)
+            }
+        }
+        var a = dbconfig.collection_playerCreditsDailyLog.find(queryObj).count();
+        var b = dbconfig.collection_playerCreditsDailyLog.find(queryObj).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Q.all([a, b]).then(
+            data => {
+                return {size: data[0], data: data[1]}
+            }
+        )
+    },
+
     //todo::send sms to player with content ???
     sendSMStoPlayer: function (playerObjId, type, content) {
         dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
@@ -7049,6 +8509,9 @@ var dbPlayerInfo = {
             }
         );
     }
+
+
+
 };
 
 var proto = dbPlayerInfoFunc.prototype;

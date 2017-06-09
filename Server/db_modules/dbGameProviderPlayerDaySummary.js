@@ -1,18 +1,12 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
-var dbconfig = require('./../modules/dbproperties');
-var dbUtil = require('../modules/dbutility');
-var SettlementBalancer = require('../settlementModule/settlementBalancer');
-var constSystemParam = require('../const/constSystemParam');
-var constServerCode = require('./../const/constServerCode');
-var constShardKeys = require('../const/constShardKeys');
-var Q = require("q");
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
+const dbconfig = require('./../modules/dbproperties');
+const dbUtil = require('../modules/dbutility');
+const SettlementBalancer = require('../settlementModule/settlementBalancer');
+const constSystemParam = require('../const/constSystemParam');
+const constServerCode = require('./../const/constServerCode');
+const constShardKeys = require('../const/constShardKeys');
+const Q = require("q");
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbGameProviderPlayerDaySummary = {
 
@@ -49,17 +43,35 @@ var dbGameProviderPlayerDaySummary = {
      * @param {Date} endTime - The end time
      * @param {ObjectId} providerId - The provider id
      */
-    streamPlayersWithConsumptionInTimeFrame: function (startTime, endTime, providerId) {
+    streamPlayersWithConsumptionInTimeFrame: function (startTime, endTime, providerId, platformId) {
+        if (platformId) {
+            platformId = Array.isArray(platformId) ? platformId.map(id => ObjectId(id)) : [ObjectId(platformId)];
+        }
+        let matchObj = {
+            providerId: providerId,
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+            $or: [
+                {isDuplicate: {$exists: false}},
+                {
+                    $and: [
+                        {isDuplicate: {$exists: true}},
+                        {isDuplicate: false}
+                    ]
+                }
+            ]
+        };
+        if (platformId) {
+            matchObj.platformId = {
+                $in: platformId
+            };
+        }
         return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
-                    $match: {
-                        providerId: providerId,
-                        createTime: {
-                            $gte: startTime,
-                            $lt: endTime
-                        }
-                    }
+                    $match: matchObj
                 },
                 {
                     $group: {
@@ -76,13 +88,11 @@ var dbGameProviderPlayerDaySummary = {
      * @param {Date} endTime - The end time
      * @param {ObjectId} providerId - The provider id
      */
-    calculateProviderPlayerDaySummaryForTimeFrame: function (startTime, endTime, providerId) {
-
-        var balancer = new SettlementBalancer();
+    calculateProviderPlayerDaySummaryForTimeFrame: function (startTime, endTime, providerId, platformId) {
+        let balancer = new SettlementBalancer();
 
         return balancer.initConns().then(function () {
-
-            var stream = dbGameProviderPlayerDaySummary.streamPlayersWithConsumptionInTimeFrame(startTime, endTime, providerId);
+            let stream = dbGameProviderPlayerDaySummary.streamPlayersWithConsumptionInTimeFrame(startTime, endTime, providerId, platformId);
 
             return Q(
                 balancer.processStream({
@@ -123,7 +133,16 @@ var dbGameProviderPlayerDaySummary = {
                         createTime: {
                             $gte: startTime,
                             $lt: endTime
-                        }
+                        },
+                        $or: [
+                            {isDuplicate: {$exists: false}},
+                            {
+                                $and: [
+                                    {isDuplicate: {$exists: true}},
+                                    {isDuplicate: false}
+                                ]
+                            }
+                        ]
                     }
                 },
                 {
@@ -147,7 +166,7 @@ var dbGameProviderPlayerDaySummary = {
                 if (data && data.length > 0) {
                     var prom = [];
                     for (var i = 0; i < data.length; i++) {
-                        var summary = {
+                        let summary = {
                             playerId: data[i]._id.playerId,
                             platformId: data[i]._id.platformId,
                             providerId: data[i]._id.providerId,
@@ -159,7 +178,22 @@ var dbGameProviderPlayerDaySummary = {
                             bonusAmount: data[i].bonusAmount,
                             consumptionTimes: data[i].times
                         };
-                        prom.push(dbGameProviderPlayerDaySummary.upsert(summary));
+                        prom.push(
+                            dbconfig.collection_providerPlayerDaySummary.remove(
+                                {
+                                    playerId: summary.playerId,
+                                    platformId: summary.platformId,
+                                    providerId: summary.providerId,
+                                    gameId: summary.gameId,
+                                    gameType: summary.gameType,
+                                    date: {
+                                        $gte: startTime, $lt: endTime
+                                    }
+                                }
+                            ).then(
+                                data => dbGameProviderPlayerDaySummary.upsert(summary)
+                            )
+                        );
                     }
                     return Q.all(prom);
                 } else {

@@ -8,6 +8,22 @@ define(['js/app'], function (myApp) {
         var $translate = $filter('translate');
         var vm = this;
 
+        // declare constants
+        vm.topUpTypeList = {
+            1: 'TOPUPMANUAL',
+            2: 'TOPUPONLINE',
+            3: 'TOPUPALIPAY',
+            4: 'TOPUPWECHAT'
+        };
+        vm.allPlayersStatusString = {
+            NORMAL: 1,
+            FORBID_GAME: 2,
+            FORBID: 3,
+            BALCKLIST: 4,
+            ATTENTION: 5
+        };
+        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION'];
+
         ////////////////Mark::Platform functions//////////////////
         vm.updatePageTile = function () {
             window.document.title = $translate("payment") + "->" + $translate(vm.paymentPageName);
@@ -93,10 +109,16 @@ define(['js/app'], function (myApp) {
                 case "alipayGroup":
                     vm.loadAlipayGroupData();
                     break;
+                case "wechatPayGroup":
+                    vm.loadWechatPayGroupData();
+                    break;
             }
+
+            // Initial Loading
             vm.loadBankCardGroupData();
             vm.loadMerchantGroupData();
             vm.loadAlipayGroupData();
+            vm.loadWechatPayGroupData();
             vm.getAllPlayerLevels();
             $scope.safeApply();
         };
@@ -391,10 +413,26 @@ define(['js/app'], function (myApp) {
         //getPlayersByPlatform
         vm.preparePlayerToGroupDialog = function (which, id) {
             vm.curPlayerTableId = id;
-            vm.playerToGroupFilterObj = {which: which, filter: {}};
-            vm.playerToGroupFilter(which, id);
-        }
-        vm.playerToGroupFilter = function (which, id) {
+            vm.playerToGroupFilterObj = {
+                which: which,
+                filter: {
+                    playerLevel: 'all',
+                    merchantGroup: 'all',
+                    bankCardGroup: 'all',
+                }
+            };
+            utilService.actionAfterLoaded(id + "Page", function () {
+                vm.playerToGroupFilterObj.pageObj = utilService.createPageForPagingTable(id + "Page", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "playerToGroupFilterObj", vm.playerToGroupFilter)
+                });
+                vm.playerToGroupFilter(true, which, id);
+            })
+        };
+
+        vm.playerToGroupFilter = function (newSearch, which, id) {
+            if (!which) {
+                which = vm.playerToGroupFilterObj.which;
+            }
             vm.loadingPlayerTable = true;
             var query = {};
             if (vm.playerToGroupFilterObj.filter.name) {
@@ -422,18 +460,21 @@ define(['js/app'], function (myApp) {
             var apiQuery = {
                 platformId: vm.selectedPlatform.id,
                 query: query,
+                index: newSearch ? 0 : vm.playerToGroupFilterObj.index,
+                limit: newSearch ? 10 : (vm.playerToGroupFilterObj.limit || 10),
+                sortCol: vm.playerToGroupFilterObj.sortCol || {}
             };
             socketService.$socket($scope.AppSocket, 'getPlayerForAttachGroup', apiQuery, function (data) {
-                vm.allPlayer = data.data;
-                vm.drawPlayerAttachTable(vm.allPlayer, which, id);
+                vm.allPlayer = data.data.data;
+                vm.playerToGroupFilterObj.totalCount = data.data.size;
                 vm.loadingPlayerTable = false;
-                $scope.safeApply();
+                vm.drawPlayerAttachTable(newSearch, vm.allPlayer, vm.playerToGroupFilterObj.totalCount);
             });
-        }
-        vm.drawPlayerAttachTable = function (data, which, id) {
-            var tableOptions = {
+        };
+
+        vm.drawPlayerAttachTable = function (newSearch, data, size) {
+            let tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
                 data: data,
-                "aaSorting": [],
                 columnDefs: [
                     {
                         targets: [0],
@@ -526,35 +567,25 @@ define(['js/app'], function (myApp) {
                         title: "<div>" + $translate('Alipay Group') + "</div>",
                         "data": $translate('alipayGroup.name') || '',
                         "sClass": "alignCenter"
+                    },
+                    {
+                        title: "<div>" + $translate('WechatPay Group') + "</div>",
+                        "data": $translate('wechatPayGroup.name') || '',
+                        "sClass": "alignCenter"
                     }
                 ],
-                //"autoWidth": false,
-                "scrollX": true,
-                // "scrollY": "455px",
-                "scrollCollapse": true,
+                sScrollY: false,
                 "destroy": true,
-                "paging": true,
-                //"dom": '<"top">rt<"bottom"il><"clear">',
-                "language": {
-                    "info": "Total _MAX_ players",
-                    "emptyTable": $translate("No data available in table"),
-                    "sInfoFiltered": '',
-                },
-                dom: 'Zrtip',
-                fnRowCallback: preselectPlayerRowforBankcard,
-                fnDrawCallback: function (oSettings) {
-                    var container = oSettings.nTable;
-
-                    $(vm.curPlayerTableId).resize();
-                    $(vm.curPlayerTableId).resize();
-                }
-            }
-            if (which == 'bankcard') {
+                "paging": false,
+            });
+            if (vm.playerToGroupFilterObj.which == 'bankcard') {
                 tableOptions.fnRowCallback = preselectPlayerRowforBankcard
-            } else if (which == 'merchant') {
+            } else if (vm.playerToGroupFilterObj.which == 'merchant') {
                 tableOptions.fnRowCallback = preselectPlayerRowforMerchant
             }
             vm.attachPlayerTable = $(vm.curPlayerTableId).DataTable(tableOptions);
+            vm.playerToGroupFilterObj.pageObj.init({maxCount: size}, newSearch);
+
             vm.attachPlayerTable.columns.adjust().draw();
             $(vm.curPlayerTableId).resize();
             $(vm.curPlayerTableId).resize();
@@ -577,6 +608,7 @@ define(['js/app'], function (myApp) {
                 numRecipient: 0
             };
 
+            $scope.safeApply();
             function updateNumReceipient() {
                 vm.selectMultiPlayer.numRecipient = $(id + ' tbody input:checked[type="checkbox"]').length;
                 vm.selectMultiPlayer.numReceived = 0;
@@ -589,11 +621,11 @@ define(['js/app'], function (myApp) {
                 console.log("checkAll event listened");
                 vm.selectMultiPlayer.checkAllRow = !vm.selectMultiPlayer.checkAllRow;
                 if (vm.selectMultiPlayer.checkAllRow) {
-                    $(id + ' tbody tr').addClass('selected');
-                    $(id + ' tbody input[type="checkbox"]').prop("checked", vm.selectMultiPlayer.checkAllRow);
+                    $(vm.curPlayerTableId + ' tbody tr').addClass('selected');
+                    $(vm.curPlayerTableId + ' tbody input[type="checkbox"]').prop("checked", vm.selectMultiPlayer.checkAllRow);
                 } else {
-                    $(id + ' tbody tr').removeClass('selected');
-                    $(id + ' tbody input[type="checkbox"]').prop("checked", vm.selectMultiPlayer.checkAllRow);
+                    $(vm.curPlayerTableId + ' tbody tr').removeClass('selected');
+                    $(vm.curPlayerTableId + ' tbody input[type="checkbox"]').prop("checked", vm.selectMultiPlayer.checkAllRow);
                 }
                 updateNumReceipient();
             });
@@ -1030,34 +1062,256 @@ define(['js/app'], function (myApp) {
 
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
+        /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
+        vm.loadWechatPayGroupData = function () {
+            //init gametab start===============================
+            vm.showWechatPayCate = "include";
+            vm.curGame = null;
+            //init gameTab end==================================
+            if (!vm.selectedPlatform) {
+                return
+            }
+            socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                //provider list init
+                vm.platformWechatPayGroupList = data.data;
+                vm.platformWechatPayGroupListCheck = {};
+                $.each(vm.platformWechatPayGroupList, function (i, v) {
+                    vm.platformWechatPayGroupListCheck[v._id] = true;
+                });
+                $scope.safeApply();
+            })
+        };
+
+        vm.addWechatPayGroup = function (data) {
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                name: vm.newWechatPayGroup.name,
+                code: vm.newWechatPayGroup.code,
+                displayName: vm.newWechatPayGroup.displayName
+            };
+
+            console.log('Add WechatPay Group sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'addPlatformWechatPayGroup', sendData, function (data) {
+                    console.log('Add WechatPay Group', data);
+                    vm.loadWechatPayGroupData();
+                    $scope.safeApply();
+                },
+                error => {
+                    console.log('Add WechatPay Group error', error);
+                })
+        };
+
+        vm.wechatPayGroupClicked = function (i, wechatPayGroup) {
+            vm.SelectedWechatPayGroupNode = wechatPayGroup;
+            vm.includedWechatPays = null;
+            vm.excludedWechatPays = null;
+
+            let query = {
+                platform: vm.selectedPlatform.data.platformId,
+                alipayGroup: wechatPayGroup._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getIncludedWechatsByWechatPayGroup', query, function (data2) {
+                if (data2 && data2.data) {
+                    vm.includedWechatPays = [];
+                    $.each(data2.data, function (i, v) {
+                        if (vm.filterWechatPayTitle && v.name.indexOf(vm.filterWechatPayTitle) === -1) {
+
+                        } else if (vm.filterWechatPayAcc && v.accountNumber.indexOf(vm.filterWechatPayAcc) === -1) {
+
+                        } else {
+                            vm.includedWechatPays.push(v);
+                        }
+                    });
+
+                } else {
+                    vm.includedWechatPays = [];
+                }
+                $scope.safeApply();
+            });
+
+            socketService.$socket($scope.AppSocket, 'getExcludedWechatsByWechatPayGroup', query, function (data2) {
+                if (data2 && data2.data) {
+                    vm.excludedWechatPays = data2.data;
+                } else {
+                    vm.excludedWechatPays = [];
+                }
+                $scope.safeApply();
+            })
+        };
+
+        vm.removeWechatPayGroup = function (node) {
+            socketService.$socket($scope.AppSocket, 'deleteWechatPayGroup', {_id: node._id}, function (data) {
+                vm.loadWechatPayGroupData();
+                $scope.safeApply();
+            })
+        };
+
+        vm.initRenameWechatPayGroup = function () {
+            vm.newWechatPayGroup = {};
+            vm.newWechatPayGroup.name = vm.SelectedWechatPayGroupNode.name;
+            vm.newWechatPayGroup.displayName = vm.SelectedWechatPayGroupNode.displayName;
+            vm.newWechatPayGroup.code = vm.SelectedWechatPayGroupNode.code;
+        };
+
+        vm.renameWechatPayGroup = function () {
+            let sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    name: vm.SelectedWechatPayGroupNode.groupId
+                },
+                update: {
+                    name: vm.newWechatPayGroup.name,
+                    displayName: vm.newWechatPayGroup.displayName,
+                    code: vm.newWechatPayGroup.code
+                }
+            };
+
+            socketService.$socket($scope.AppSocket, 'renamePlatformWechatPayGroup', sendData, function (data) {
+                vm.loadWechatPayGroupData();
+                $scope.safeApply();
+            })
+        };
+
+        vm.submitDefaultWechatPayGroup = function () {
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                default: vm.defaultWechatPayGroup
+            };
+
+            socketService.$socket($scope.AppSocket, 'setPlatformDefaultWechatPayGroup', sendData, () => {
+                vm.loadWechatPayGroupData();
+            });
+        };
+
+        vm.wechatPayClicked = function (i, v, which) {
+            vm.highlightWechatPay = {};
+            vm.highlightWechatPay[v.WechatPayNo] = 'bg-pale';
+            vm.curWechatPay = v;
+        };
+
+        vm.wechatPaytoWechatPayGroup = function (type) {
+            let sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    _id: vm.SelectedWechatPayGroupNode._id
+                }
+            };
+
+            if (type === 'attach') {
+                sendData.update = {
+                    "$push": {
+                        wechats: vm.curWechatPay.accountNumber
+                    }
+                }
+            } else if (type === 'detach') {
+                sendData.update = {
+                    "$pull": {
+                        wechats: vm.curWechatPay.accountNumber
+                    }
+                }
+            }
+
+            socketService.$socket($scope.AppSocket, 'updatePlatformWechatPayGroup', sendData, success);
+            function success(data) {
+                vm.curWechatPay = null;
+                vm.wechatPayGroupClicked(0, vm.SelectedWechatPayGroupNode);
+                $scope.safeApply();
+            }
+        };
+
+        vm.submitAddPlayersToWechatPayGroup = function () {
+            let playerArr = [], data = vm.attachPlayerTable.rows('.selected').data();
+
+            data.each(a => {
+                playerArr.push(a._id);
+            });
+
+            let sendData = {
+                weChatGroupObjId: vm.SelectedWechatPayGroupNode._id,
+                playerObjIds: playerArr
+            };
+
+            socketService.$socket($scope.AppSocket, 'addPlayersToWechatPayGroup', sendData, function (data) {
+                $scope.safeApply();
+            });
+        };
+        vm.submitAddAllPlayersToWechatPayGroup = function () {
+            let sendData = {
+                weChatGroupObjId: vm.SelectedWechatPayGroupNode._id,
+                platformObjId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'addAllPlayersToWechatPayGroup', sendData, function (data) {
+                if (data.data) {
+                    if (data.data.wechatPayGroup == vm.SelectedWechatPayGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
+                        vm.addAllPlayerToWechatResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
+                    } else {
+                        vm.addAllPlayerToWechatResult = JSON.stringify(data.data.error);
+                    }
+                    $scope.safeApply();
+                }
+            });
+        }
+        /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
+
         ///////////////////////////////// common functions
         vm.dateReformat = function (data) {
             if (!data) return '';
             return utilService.getFormatTime(data);
         };
-
+        vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+            var isChange = false;
+            if (pageSize != vm[objKey].limit) {
+                isChange = true;
+                vm[objKey].limit = pageSize;
+            }
+            if ((curP - 1) * pageSize != vm[objKey].index) {
+                isChange = true;
+                vm[objKey].index = (curP - 1) * pageSize;
+            }
+            if (isChange) return searchFunc.call(this);
+        }
+        vm.commonSortChangeHandler = function (a, objName, searchFunc) {
+            if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
+            var sortCol = a.aaSorting[0][0];
+            var sortDire = a.aaSorting[0][1];
+            var temp = a.aoColumns[sortCol];
+            var sortKey = temp ? temp.sortCol : '';
+            // console.log(a, sortCol, sortKey);
+            vm[objName].aaSorting = a.aaSorting;
+            if (sortKey) {
+                vm[objName].sortCol = vm[objName].sortCol || {};
+                var preVal = vm[objName].sortCol[sortKey];
+                vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                if (vm[objName].sortCol[sortKey] != preVal) {
+                    vm[objName].sortCol = {};
+                    vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                    searchFunc.call(this);
+                }
+            }
+        }
         //////////////////////////initial socket actions//////////////////////////////////
-        vm.getPlayerStatusList = function () {
-            return $scope.$socketPromise('getPlayerStatusList')
-                .then(function (data) {
-                    vm.allPlayersStatusString = data.data;
-                    var allStatus = data.data;
-                    var keys = [];
-                    for (var key in allStatus) {
-                        if (allStatus.hasOwnProperty(key)) { //to be safe
-                            keys.push(key);
-                        }
-                    }
-                    vm.allPlayersStatusKeys = keys;
-                });
-
-        };
+        // vm.getPlayerStatusList = function () {
+        //     return $scope.$socketPromise('getPlayerStatusList')
+        //         .then(function (data) {
+        //             vm.allPlayersStatusString = data.data;
+        //             var allStatus = data.data;
+        //             var keys = [];
+        //             for (var key in allStatus) {
+        //                 if (allStatus.hasOwnProperty(key)) { //to be safe
+        //                     keys.push(key);
+        //                 }
+        //             }
+        //             vm.allPlayersStatusKeys = keys;
+        //         });
+        //
+        // };
         ////////////////Mark::$viewContentLoaded function//////////////////
         //##Mark content loaded function
         $scope.$on('$viewContentLoaded', function () {
 
             setTimeout(
-                function(){
+                function () {
                     vm.queryPara = {};
 
                     vm.showPlatformList = true;
@@ -1075,7 +1329,7 @@ define(['js/app'], function (myApp) {
                             //console.info("init data", data);
 
                             vm.loadPlatformData();
-                            vm.getPlayerStatusList();
+                            // vm.getPlayerStatusList();
 
                             window.document.title = $translate("payment") + "->" + $translate(vm.paymentPageName);
                             var showLeft = $cookies.get("paymentShowLeft");
@@ -1088,18 +1342,18 @@ define(['js/app'], function (myApp) {
                         }
                     ).done();
 
-                    socketService.$socket($scope.AppSocket, 'getAllTopUpType', {}, function (data) {
-                        vm.topUpTypeList = {};
-                        if (data.data) {
-                            $.each(data.data, function (i, v) {
-                                vm.topUpTypeList[v] = 'TOPUP' + i;
-                            })
-                        }
-                        console.log("getAllTopUpType", vm.topUpTypeList);
-                        $scope.safeApply();
-                    }, function (err) {
-                        console.log("cannot get topup type", err);
-                    });
+                    // socketService.$socket($scope.AppSocket, 'getAllTopUpType', {}, function (data) {
+                    //     vm.topUpTypeList = {};
+                    //     if (data.data) {
+                    //         $.each(data.data, function (i, v) {
+                    //             vm.topUpTypeList[v] = 'TOPUP' + i;
+                    //         })
+                    //     }
+                    //     console.log("getAllTopUpType", vm.topUpTypeList);
+                    //     $scope.safeApply();
+                    // }, function (err) {
+                    //     console.log("cannot get topup type", err);
+                    // });
 
                     socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                         if (data && data.data && data.data.data) {
@@ -1112,7 +1366,7 @@ define(['js/app'], function (myApp) {
                             })
                         }
                         $scope.safeApply();
-                    })
+                    });
 
                     vm.generalDataTableOptions = {
                         "paging": true,

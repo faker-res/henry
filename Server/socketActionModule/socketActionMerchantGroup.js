@@ -1,8 +1,3 @@
-/******************************************************************
- *        Project
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var dbPlatformMerchantGroup = require('./../db_modules/dbPlatformMerchantGroup');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -107,6 +102,14 @@ function socketActionMerchantGroup(socketIO, socket) {
         getMerchantTypeList: function getMerchantTypeList(data) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, pmsAPI.merchant_getMerchantTypeList, [{queryId: serverInstance.getQueryId()}], actionName, true);
+        },
+
+        getMerchantList: function getMerchantList(data) {
+            var actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, pmsAPI.merchant_getMerchantList, [{
+                platformId: data.platformId,
+                queryId: serverInstance.getQueryId()
+            }], actionName, true);
         },
 
         /**

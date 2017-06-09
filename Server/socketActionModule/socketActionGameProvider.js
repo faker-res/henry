@@ -130,7 +130,7 @@ function socketActionGame(socketIO, socket) {
         manualDailyProviderSettlement: function manualDailyProviderSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.providerId && data.settlementDay);
-            socketUtil.emitter(self.socket, dailyProviderSettlement.manualDailyProviderSettlement, [ObjectId(data.providerId), new Date(data.settlementDay)], actionName, isValidData);
+            socketUtil.emitter(self.socket, dailyProviderSettlement.manualDailyProviderSettlement, [ObjectId(data.providerId), new Date(data.settlementDay), data.selectedPlatformID], actionName, isValidData);
         },
 
         /**
@@ -142,8 +142,13 @@ function socketActionGame(socketIO, socket) {
             var cpAPIClient = serverInstance.getCPAPIClient();
             var status = cpAPIClient ? cpAPIClient.isOpen() : false;
             self.socket.emit("_" + actionName, {success: true, data: status});
-        }
+        },
 
+        getConsumptionIntervalByProvider: function getConsumptionIntervalByProvider(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.providerIds);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionIntervalByProvider, [data.providerIds], actionName, isValidData);
+        }
     };
     socketActionGame.actions = this.actions;
 };

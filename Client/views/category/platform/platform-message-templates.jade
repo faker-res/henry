@@ -10,7 +10,7 @@
             .panel-body
                 ul.list-group.treeview(style="height: 430px; overflow-y: auto;")
                     li.list-group-item(ng-repeat='(i,v) in vm.messageTemplatesForPlatform', ng-class='{active: vm.selectedMessageTemplate === v}', ng-click='vm.selectedMessageTemplate = v; vm.resetToViewMessageTemplate();')
-                        text {{v.type}} ({{v.format}})
+                        text {{v.type | translate }} ({{v.format}})
 
                 .btn-group.text-center(style="border-radius:9px",role="group")
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'MessageTemplate', 'Create')", ng-disabled='vm.editingMessageTemplate' ng-click='vm.startCreateMessageTemplate()')
@@ -54,6 +54,8 @@
                                         option(ng-repeat="(i, p) in vm.messageTemplateAllParams", value="{{p[0]}}") {{p[0] + ' (' + p[1] + ')'}}
                                 .clearfix
                             textarea#messageTemplateEditBox.form-control(style="max-height: 185px; overflow: auto; margin-bottom: 12px;", rows="15", ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.content", ng-change="vm.previewMessageTemplate()", required, placeholder="Example: Congratulations {{'{'+'{player.name}'+'}'}}, your top up for {{'{'+'{topUpRecord.currency}'+'}'}} {{'{'+'{topUpRecord.value}'+'}'}} has been confirmed.")
+                            .full-width-input-block(ng-if="vm.displayedMessageTemplate.type == 'smsVerificationCode'")
+                                text {{"VERIFICATION_TEMPLATE_NOTE" | translate}}
                             label {{"PREVIEW" | translate}}
                             //- We have two different preview elements, one for displaying HTML content, the other for displaying plain text content.
                             //- We only show one at a time.  They are ng-non-bindable because they are managed by jQuery.

@@ -1,9 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 /*
  * Calculate player weekly consumption return event
  */
@@ -28,7 +22,7 @@ var consumptionReturnEvent = {
                 //todo::add rate range check here later
                 if (eventData && eventData.param && eventData.param.ratio && eventData.executeProposal) {
                     //get all the players has top up for more than min amount yesterday
-                    return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, eventData, eventData.executeProposal);
+                    return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, eventData, eventData.executeProposal, eventData.settlementPeriod);
                 }
                 else {
                     //platform doesn't have this reward event

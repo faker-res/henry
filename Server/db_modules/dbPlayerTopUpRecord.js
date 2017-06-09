@@ -2,28 +2,31 @@ var dbPlayerTopUpRecordFunc = function () {
 };
 module.exports = new dbPlayerTopUpRecordFunc();
 
-var Q = require('q');
-var dbconfig = require('./../modules/dbproperties');
-var dataUtility = require('./../modules/encrypt');
-var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
-var dbProposal = require('./../db_modules/dbProposal');
-var constProposalStatus = require('./../const/constProposalStatus');
-var constSystemParam = require('./../const/constSystemParam');
-var constProposalType = require('./../const/constProposalType');
-var constPlayerTopUpType = require('./../const/constPlayerTopUpType');
-var pmsAPI = require("../externalAPI/pmsAPI.js");
-var counterManager = require("../modules/counterManager.js");
+const Q = require('q');
+const dbconfig = require('./../modules/dbproperties');
+const dataUtility = require('./../modules/encrypt');
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const dbProposal = require('./../db_modules/dbProposal');
+const dbProposalType = require('./../db_modules/dbProposalType');
+const constProposalStatus = require('./../const/constProposalStatus');
+const constSystemParam = require('./../const/constSystemParam');
+const constProposalType = require('./../const/constProposalType');
+const constPlayerTopUpType = require('./../const/constPlayerTopUpType');
+const constProposalMainType = require('../const/constProposalMainType');
+const pmsAPI = require("../externalAPI/pmsAPI.js");
+const counterManager = require("../modules/counterManager.js");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
 const constServerCode = require("../const/constServerCode");
-var dbUtility = require("../modules/dbutility");
+const dbUtility = require("../modules/dbutility");
 const constProposalEntryType = require("../const/constProposalEntryType");
 const constProposalUserType = require('../const/constProposalUserType');
-var constShardKeys = require('../const/constShardKeys');
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
+const constShardKeys = require('../const/constShardKeys');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+const moment = require('moment-timezone');
+const serverInstance = require("../modules/serverInstance");
 
 var dbPlayerTopUpRecord = {
-
     /**
      * Get top up record in a certain period of time
      * @param {Json} data
@@ -80,48 +83,145 @@ var dbPlayerTopUpRecord = {
      * Get total top up amount in a certain period of time
      * @param {Date} startTime,endTime - The date info
      */
-    topupReport: function (query, index, count, sortObj) {
-        var matchObj = {
+    topupReport: function (query, index, limit, sortObj) {
+        // console.log('query', query);
+        var queryObj = {
             createTime: {
                 $gte: query.startTime ? new Date(query.startTime) : new Date(0),
                 $lt: query.endTime ? new Date(query.endTime) : new Date()
-            },
-            platformId: ObjectId(query.platformId)
-        };
-        sortObj = sortObj || {};
-        index = index || 0;
-        count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM);
-        if (query.type && query.type != 'all') {
-            matchObj.topUpType = query.type;
-        }
-        if (query.paymentChannel && query.paymentChannel != 'all') {
-            matchObj.paymentId = query.paymentChannel;
-        }
-        var a = dbconfig.collection_playerTopUpRecord.find(matchObj).populate({
-            path: "playerId",
-            model: dbconfig.collection_players
-        }).count();
-        var b = dbconfig.collection_playerTopUpRecord.find(matchObj).populate({
-            path: "playerId",
-            model: dbconfig.collection_players
-        }).sort(sortObj).skip(index).limit(count);
-
-        var c = dbconfig.collection_playerTopUpRecord.aggregate(
-            {
-                $match: matchObj
-            },
-            {
-                $group: {
-                    _id: null,
-                    totalAmount: {$sum: "$amount"},
-                }
             }
-        ).exec();
-        return Q.all([a, b, c]).then(
+        }
+        if (query.status && query.status.length > 0) {
+            queryObj.status = {$in: query.status};
+        }
+        return Q.resolve().then(
+            () => {
+                var str = '';
+                if (query && query.mainTopupType == constPlayerTopUpType.ONLINE) {
+                    str = constProposalType.PLAYER_TOP_UP;
+                    query.topupType ? queryObj['data'] = {'topupType': query.topupType} : '';
+                } else if (query && query.mainTopupType == constPlayerTopUpType.ALIPAY) {
+                    str = constProposalType.PLAYER_ALIPAY_TOP_UP
+                } else if (query && query.mainTopupType == constPlayerTopUpType.MANUAL) {
+                    str = constProposalType.PLAYER_MANUAL_TOP_UP;
+                    query.depositMethod ? queryObj['data'] = {'depositMethod': query.depositMethod} : '';
+                } else if (query && query.mainTopupType == constPlayerTopUpType.WECHAT) {
+                    str = constProposalType.PLAYER_WECHAT_TOP_UP
+                } else {
+                    str = {
+                        $in: [constProposalType.PLAYER_TOP_UP,
+                            constProposalType.PLAYER_ALIPAY_TOP_UP,
+                            constProposalType.PLAYER_MANUAL_TOP_UP]
+                    };
+                    queryObj['$or'] = [];
+                    query.topupType ? queryObj['$or'].push({
+                        'data.topupType': query.topupType
+                    }) : queryObj['$or'].push({
+                        'data.topupType': {$exists: true}
+                    });
+                    query.depositMethod ? queryObj['$or'].push({
+                        'data.depositMethod': query.depositMethod
+                    }) : queryObj['$or'].push({
+                        'data.depositMethod': {$exists: true}
+                    });
+                    queryObj['$or'].push({
+                        $and: [
+                            {'data.topupType': {$exists: false}},
+                            {'data.depositMethod': {$exists: false}}
+                        ]
+                    })
+                }
+
+                if (query.merchantNo && !query.merchantGroup) {
+                    queryObj['data.merchantNo'] = query.merchantNo;
+                }
+                if (!query.merchantNo && query.merchantGroup) {
+                    queryObj['data.merchantNo'] = {$in: query.merchantGroup};
+                }
+                if (query.merchantNo && query.merchantGroup) {
+                    queryObj['$and'] = [
+                        {'data.merchantNo': {$in: [query.merchantNo]}},
+                        {'data.merchantNo': {$in: query.merchantGroup}}
+                    ]
+                }
+                if (query.dingdanID) {
+                    queryObj['data.requestId'] = query.dingdanID
+                }
+                if (query.playerName) {
+                    queryObj['data.playerName'] = query.playerName
+                }
+                if (query.proposalNo) {
+                    queryObj['proposalId'] = query.proposalNo
+                }
+                return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
+            }
+        ).then(
+            proposalType => {
+                var typeIds = proposalType.map(type => {
+                    return type._id;
+                });
+                queryObj.type = {$in: typeIds};
+                // console.log('queryObj', JSON.stringify(queryObj, null, 4));
+                var a = dbconfig.collection_proposal.find(queryObj).count();
+                var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
+                    .populate({path: 'type', model: dbconfig.collection_proposalType})
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players});
+                var c = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
+                    $group: {
+                        _id: null,
+                        totalAmount: {$sum: "$data.amount"},
+                    }
+                });
+                return Q.all([a, b, c])
+            }
+        ).then(
             data => {
                 return {data: data[1], size: data[0], total: data[2][0] ? data[2][0].totalAmount : 0};
             }
         )
+
+        // dbProposalType.getProposalTypeByPlatformId(query.platformId).then(data => {
+        //     console.log('data', data);
+        // });
+
+        // var matchObj = {
+        //     createTime: {
+        //         $gte: query.startTime ? new Date(query.startTime) : new Date(0),
+        //         $lt: query.endTime ? new Date(query.endTime) : new Date()
+        //     },
+        //     platformId: ObjectId(query.platformId)
+        // };
+        // sortObj = sortObj || {};
+        // index = index || 0;
+        // count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM);
+        // if (query.type && query.type != 'all') {
+        //     matchObj.topUpType = query.type;
+        // }
+        // if (query.paymentChannel && query.paymentChannel != 'all') {
+        //     matchObj.paymentId = query.paymentChannel;
+        // }
+        // var a = dbconfig.collection_playerTopUpRecord.find(matchObj).count();
+        // var b = dbconfig.collection_playerTopUpRecord.find(matchObj).populate({
+        //     path: "playerId",
+        //     model: dbconfig.collection_players
+        // }).sort(sortObj).skip(index).limit(count);
+        //
+        // var c = dbconfig.collection_playerTopUpRecord.aggregate(
+        //     {
+        //         $match: matchObj
+        //     },
+        //     {
+        //         $group: {
+        //             _id: null,
+        //             totalAmount: {$sum: "$amount"},
+        //         }
+        //     }
+        // ).exec();
+        // return Q.all([a, b, c]).then(
+        //     data => {
+        //         return {data: data[1], size: data[0], total: data[2][0] ? data[2][0].totalAmount : 0};
+        //     }
+        // )
     },
 
     /**
@@ -465,12 +565,16 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
-                            errorMessage: "Player does not have this permission"
+                            errorMessage: "Player does not have online topup permission"
                         });
                     }
                     //check player foridb topup type list
                     if (player.forbidTopUpType && player.forbidTopUpType.indexOf(topupRequest.topupType) >= 0) {
                         return Q.reject({name: "DataError", message: "Top up type is forbidden for this player"});
+                    }
+                    //check player merchant group
+                    if (!player.merchantGroup || !player.merchantGroup.merchants) {
+                        return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
                     }
                     var proposalData = Object.assign({}, topupRequest);
                     proposalData.playerId = playerId;
@@ -516,7 +620,7 @@ var dbPlayerTopUpRecord = {
                         merchantUseType: merchantUseType,
                         clientType: clientType
                     };
-                    //console.log("requestData:", requestData);
+                    // console.log("requestData:", requestData);
                     return pmsAPI.payment_requestOnlineMerchant(requestData);
                     //     .catch(
                     //     err => Q.reject({name: "DataError", message: "Failure with requestOnlineMerchant", error: err, requestData: requestData})
@@ -534,13 +638,15 @@ var dbPlayerTopUpRecord = {
         ).then(
             merchantResponseData => {
                 if (merchantResponseData) {
+                    // console.log("merchantResponseData", merchantResponseData);
                     merchantResponse = merchantResponseData;
                     //add request data to proposal and update proposal status to pending
                     var updateData = {
                         status: constProposalStatus.PENDING
                     };
                     updateData.data = Object.assign({}, proposal.data);
-                    updateData.data.requestId = merchantResponseData.result.requestId;
+                    updateData.data.requestId = merchantResponseData.result ? merchantResponseData.result.requestId : "";
+                    updateData.data.merchantNo = merchantResponseData.result ? merchantResponseData.result.merchantNo : "";
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
                         updateData,
@@ -564,7 +670,7 @@ var dbPlayerTopUpRecord = {
                     amount: topupRequest.amount,
                     createTime: proposalData.createTime,
                     status: proposalData.status,
-                    topupDetail: merchantResponse.result,
+                    topupDetail: merchantResponse.result
                     //requestId: merchantResponse.result.requestId,
                     //result: merchantResponse.result,
                 };
@@ -615,7 +721,7 @@ var dbPlayerTopUpRecord = {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
-                            errorMessage: "Player does not have this permission"
+                            errorMessage: "Player does not have manual topup permission"
                         });
                     }
                     var proposalData = Object.assign({}, inputData);
@@ -628,15 +734,17 @@ var dbPlayerTopUpRecord = {
                     proposalData.playerName = playerData.name;
                     proposalData.depositMethod = inputData.depositMethod;
                     proposalData.realName = inputData.realName;
+                    proposalData.remark = inputData.remark || "";
+                    proposalData.lastBankcardNo = inputData.lastBankcardNo;
                     proposalData.creator = entryType == "ADMIN" ? {
-                            type: 'admin',
-                            name: adminName,
-                            id: adminId
-                        } : {
-                            type: 'player',
-                            name: playerData.name,
-                            id: playerId
-                        };
+                        type: 'admin',
+                        name: adminName,
+                        id: adminId
+                    } : {
+                        type: 'player',
+                        name: playerData.name,
+                        id: playerId
+                    };
                     var newProposal = {
                         creator: proposalData.creator,
                         data: proposalData,
@@ -649,7 +757,7 @@ var dbPlayerTopUpRecord = {
                     return Q.reject({
                         status: constServerCode.INVALID_DATA,
                         name: "DataError",
-                        errorMessage: "Invalid player data"
+                        errorMessage: "Invalid player bankcard group data"
                     });
                 }
             }
@@ -667,9 +775,13 @@ var dbPlayerTopUpRecord = {
                         case "2":
                             depositMethod = "ATM";
                             break;
-                        case 2:
-                        case "2":
+                        case 3:
+                        case "3":
                             depositMethod = "柜台存款";
+                            break;
+                        case 4:
+                        case "4":
+                            depositMethod = "其他";
                             break;
                         default:
                             break;
@@ -683,13 +795,13 @@ var dbPlayerTopUpRecord = {
                         ip: player.lastLoginIp,
                         depositMethod: depositMethod,
                         bankTypeId: inputData.bankTypeId,
-                        bankCardNo: inputData.lastBankcardNo,
+                        bankCardNo: inputData.lastBankcardNo || "",
                         provinceId: inputData.provinceId,
                         cityId: inputData.cityId,
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : []
                     };
-                    //console.log("requestData", requestData);
+                    // console.log("requestData", requestData);
                     return pmsAPI.payment_requestManualBankCard(requestData);
                 }
                 else {
@@ -800,6 +912,33 @@ var dbPlayerTopUpRecord = {
         );
     },
 
+    cancelWechatTopup: function (playerId, proposalId) {
+        var proposal = null;
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+            proposalData => {
+                if (proposalData) {
+                    if (proposalData.data && proposalData.data.playerId == playerId) {
+                        proposal = proposalData;
+
+                        return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
+                    }
+                    else {
+                        return Q.reject({name: "DBError", message: 'Invalid proposal'});
+                    }
+                }
+                else {
+                    return Q.reject({name: "DBError", message: 'Cannot find proposal'});
+                }
+            }
+        ).then(
+            request => {
+                return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            }
+        ).then(
+            data => ({proposalId: proposalId})
+        );
+    },
+
     delayManualTopupRequest: function (playerId, proposalId, delayTime) {
         var proposal = null;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
@@ -865,8 +1004,9 @@ var dbPlayerTopUpRecord = {
             modifyData => {
                 var updateData = {};
                 delete data.proposalId;
+                // delete data.requestId;
                 for (var property in data) {
-                    if (data.hasOwnProperty(property)) {
+                    if (data.hasOwnProperty(property) && property != "requestId") {
                         if (data[property] != proposal.data[property]) {
                             updateData["data." + property] = data[property];
                         }
@@ -947,13 +1087,19 @@ var dbPlayerTopUpRecord = {
                             case constPlayerTopUpType.MANUAL:
                                 queryObj.name = constProposalType.PLAYER_MANUAL_TOP_UP;
                                 break;
+                            case constPlayerTopUpType.WECHAT:
+                                queryObj.name = constProposalType.PLAYER_WECHAT_TOP_UP;
+                                break;
                             default:
                                 queryObj.name = constProposalType.PLAYER_TOP_UP;
                                 break;
                         }
                     }
                     else {
-                        queryObj.name = {$in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_TOP_UP, constProposalType.PLAYER_ALIPAY_TOP_UP]}
+                        queryObj.name = {
+                            $in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_TOP_UP,
+                                constProposalType.PLAYER_ALIPAY_TOP_UP, constProposalType.PLAYER_WECHAT_TOP_UP]
+                        }
                     }
                     return dbconfig.collection_proposalType.find(queryObj).lean();
                 }
@@ -969,9 +1115,15 @@ var dbPlayerTopUpRecord = {
                 if (proposalTypes && proposalTypes.length > 0) {
                     var queryObj = {
                         "data.playerObjId": playerData._id,
-                        type: {$in: proposalTypes.map(type => type._id)},
-                        status: status || constProposalStatus.SUCCESS
+                        type: {$in: proposalTypes.map(type => type._id)}
+                        //status: status || constProposalStatus.SUCCESS
                     };
+                    if (status) {
+                        queryObj.status = status;
+                    }
+                    else {
+                        queryObj.status = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    }
                     if (startTime || endTime) {
                         queryObj.createTime = {};
                     }
@@ -1000,7 +1152,21 @@ var dbPlayerTopUpRecord = {
                 if (data && data[0] && data[0].length > 0) {
                     for (var i = 0; i < data[0].length; i++) {
                         var record = data[0][i];
-                        record.type = record.type.name == constProposalType.PLAYER_MANUAL_TOP_UP ? 1 : 2;
+                        switch (record.type.name) {
+                            case constProposalType.PLAYER_MANUAL_TOP_UP:
+                                record.type = 1;
+                                break;
+                            case constProposalType.PLAYER_TOP_UP:
+                                record.type = 2;
+                                break;
+                            case constProposalType.PLAYER_ALIPAY_TOP_UP:
+                                record.type = 3;
+                                break;
+                            case constProposalType.PLAYER_WECHAT_TOP_UP:
+                                record.type = 4;
+                                break;
+                        }
+                        //record.type = record.type.name == constProposalType.PLAYER_MANUAL_TOP_UP ? 1 : 2;
                         totalAmount += data[0][i].data ? Number(data[0][i].data.amount) : 0;
                     }
                 }
@@ -1078,14 +1244,19 @@ var dbPlayerTopUpRecord = {
     },
 
     /**
-     * add manual topup records of the player
-     * @param playerID
-     * @param inputData
+     * add alipay topup records of the player
+     * @param playerId
+     * @param amount
+     * @param alipayName
+     * @param alipayAccount
+     * @param entryType
+     * @param adminId
+     * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount) {
-        var player = null;
-        var proposal = null;
-        var request = null;
+    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+        let player = null;
+        let proposal = null;
+        let request = null;
 
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
@@ -1093,7 +1264,7 @@ var dbPlayerTopUpRecord = {
                 playerData => {
                     if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
                         player = playerData;
-                        var minTopUpAmount = playerData.platform.minTopUpAmount || 0;
+                        let minTopUpAmount = playerData.platform.minTopUpAmount || 0;
                         if (amount < minTopUpAmount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_TOP_UP_FAIL,
@@ -1108,7 +1279,7 @@ var dbPlayerTopUpRecord = {
                                 errorMessage: "Player does not have this permission"
                             });
                         }
-                        var proposalData = {};
+                        let proposalData = {};
                         proposalData.playerId = playerId;
                         proposalData.playerObjId = playerData._id;
                         proposalData.platformId = playerData.platform._id;
@@ -1116,15 +1287,26 @@ var dbPlayerTopUpRecord = {
                         proposalData.platform = playerData.platform.platformId;
                         proposalData.playerName = playerData.name;
                         proposalData.amount = Number(amount);
-                        proposalData.creator = {
+                        proposalData.alipayName = alipayName;
+                        proposalData.alipayAccount = alipayAccount;
+                        proposalData.remark = remark;
+                        if (createTime) {
+                            proposalData.depositeTime = new Date(createTime);
+                        }
+                        proposalData.creator = entryType === "ADMIN" ? {
+                            type: 'admin',
+                            name: adminName,
+                            id: adminId
+                        } : {
                             type: 'player',
                             name: playerData.name,
                             id: playerId
                         };
-                        var newProposal = {
+                        let newProposal = {
                             creator: proposalData.creator,
                             data: proposalData,
-                            entryType: constProposalEntryType.CLIENT,
+                            entryType: constProposalEntryType[entryType],
+                            //createTime: createTime ? new Date(createTime) : new Date(),
                             userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                         };
                         return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
@@ -1137,14 +1319,23 @@ var dbPlayerTopUpRecord = {
                 proposalData => {
                     if (proposalData) {
                         proposal = proposalData;
-                        var requestData = {
+                        let cTime = createTime ? new Date(createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                        let requestData = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: player.realName || "",
+                            realName: alipayName,//player.realName || "",
+                            aliPayAccount: 1,
                             amount: amount,
-                            groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : []
+                            groupAlipayList: player.alipayGroup ? player.alipayGroup.alipays : [],
+                            remark: remark,
+                            createTime: cTimeString,
+                            operateType: entryType == "ADMIN" ? 1 : 0
                         };
+                        if (alipayAccount) {
+                            requestData.groupAlipayList = [alipayAccount];
+                        }
                         //console.log("requestData", requestData);
                         return pmsAPI.payment_requestAlipayAccount(requestData);
                     }
@@ -1165,8 +1356,12 @@ var dbPlayerTopUpRecord = {
                         updateData.data.requestId = requestData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.alipayAccount = requestData.result.alipayAccount;
-                        updateData.data.alipayQRCode = requestData.result.alipayQRCode;
-
+                        requestData.result.alipayQRCode = requestData.result.alipayQRCode || "";
+                        updateData.data.alipayQRCode = requestData.result.alipayQRCode
+                        if (requestData.result.validTime) {
+                            updateData.data.validTime = new Date(requestData.result.validTime);
+                        }
+                        requestData.result.alipayName = alipayName;
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,
@@ -1187,7 +1382,199 @@ var dbPlayerTopUpRecord = {
                     };
                 }
             );
-    }
+    },
+
+    getValidTopUpRecordList: function (rewardInfo, playerId, playerObjId) {
+        var rewardType = (rewardInfo && rewardInfo.type) ? rewardInfo.type.name : null;
+        var period = (rewardInfo && rewardInfo.param) ? parseInt(rewardInfo.param.periodType) : 0;
+        if (rewardType == "FirstTopUp") {
+            return dbPlayerTopUpRecord.getValidFirstTopUpRecordList(playerId, period + 1, 0, constSystemParam.REPORT_MAX_RECORD_NUM, -1).then(data => {
+                return data.records;
+            })
+        } else {
+            return dbPlayerInfo.getPlayerTopUpRecords({playerId: playerObjId}, true)
+        }
+    },
+
+    getPlayerWechatPayStatus: playerId => {
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
+                playerData => {
+                    if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
+                        return pmsAPI.weChat_getWechatList({
+                            platformId: playerData.platform.platformId,
+                            queryId: serverInstance.getQueryId()
+                        }).then(
+                            wechats => {
+                                let bValid = false;
+                                if (wechats.data && wechats.data.length > 0) {
+                                    wechats.data.forEach(
+                                        wechat => {
+                                            playerData.wechatPayGroup.wechats.forEach(
+                                                pWechat => {
+                                                    if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
+                                                        bValid = true;
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    );
+                                }
+                                return bValid;
+                            }
+                        );
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            )
+    },
+
+    /**
+     * add wechat topup records of the player
+     * @param playerId
+     * @param amount
+     * @param alipayName
+     * @param alipayAccount
+     * @param entryType
+     * @param adminId
+     * @param adminName
+     */
+    requestWechatTopup: function (playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+        let player = null;
+        let proposal = null;
+        let request = null;
+
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
+                playerData => {
+                    if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
+                        player = playerData;
+                        let minTopUpAmount = playerData.platform.minTopUpAmount || 0;
+                        if (amount < minTopUpAmount) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_TOP_UP_FAIL,
+                                name: "DataError",
+                                errorMessage: "Top up amount is not enough"
+                            });
+                        }
+
+                        // Check player permission
+                        if (!playerData.permission || playerData.permission.disableWechatPay) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NO_PERMISSION,
+                                name: "DataError",
+                                errorMessage: "Player does not have this permission"
+                            });
+                        }
+
+                        let proposalData = {};
+                        proposalData.playerId = playerId;
+                        proposalData.playerObjId = playerData._id;
+                        proposalData.platformId = playerData.platform._id;
+                        proposalData.playerLevel = playerData.playerLevel;
+                        proposalData.platform = playerData.platform.platformId;
+                        proposalData.playerName = playerData.name;
+                        proposalData.amount = Number(amount);
+                        proposalData.wechatName = wechatName;
+                        proposalData.wechatAccount = wechatAccount;
+                        proposalData.remark = remark;
+                        if (createTime) {
+                            proposalData.depositeTime = new Date(createTime);
+                        }
+                        proposalData.creator = entryType === "ADMIN" ? {
+                            type: 'admin',
+                            name: adminName,
+                            id: adminId
+                        } : {
+                            type: 'player',
+                            name: playerData.name,
+                            id: playerId
+                        };
+                        let newProposal = {
+                            creator: proposalData.creator,
+                            data: proposalData,
+                            entryType: constProposalEntryType[entryType],
+                            //createTime: createTime ? new Date(createTime) : new Date(),
+                            userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                        };
+                        return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
+                    }
+                    else {
+                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                    }
+                }
+            ).then(
+                proposalData => {
+                    if (proposalData) {
+                        proposal = proposalData;
+                        let cTime = createTime ? new Date(createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                        let requestData = {
+                            proposalId: proposalData.proposalId,
+                            platformId: player.platform.platformId,
+                            userName: player.name,
+                            // realName: wechatName,//player.realName || "",
+                            aliPayAccount: 1,
+                            amount: amount,
+                            groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
+                            // remark: remark || player.name,
+                            createTime: cTimeString,
+                        };
+                        if (remark) {
+                            requestData.remark = remark;
+                        }
+                        if (wechatAccount) {
+                            requestData.groupWechatList = [wechatAccount];
+                        }
+                        //console.log("requestData", requestData);
+                        return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                    }
+                    else {
+                        return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
+                    }
+                }
+            ).then(
+                requestData => {
+                    //console.log("request response", requestData);
+                    if (requestData && requestData.result) {
+                        request = requestData;
+                        //add request data to proposal and update proposal status to pending
+                        var updateData = {
+                            status: constProposalStatus.PENDING
+                        };
+                        updateData.data = Object.assign({}, proposal.data);
+                        updateData.data.requestId = requestData.result.requestId;
+                        updateData.data.proposalId = proposal.proposalId;
+                        updateData.data.weChatAccount = requestData.result.weChatAccount;
+                        updateData.data.weChatQRCode = requestData.result.weChatQRCode;
+                        if (requestData.result.validTime) {
+                            updateData.data.validTime = new Date(requestData.result.validTime);
+                        }
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposal._id, createTime: proposal.createTime},
+                            updateData,
+                            {new: true}
+                        );
+                    }
+                    else {
+                        return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
+                    }
+                }
+            ).then(
+                data => {
+                    return {
+                        proposalId: data.proposalId,
+                        requestId: request.result.requestId,
+                        status: data.status,
+                        result: request.result
+                    };
+                }
+            );
+    },
 
 };
 

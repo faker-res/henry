@@ -1,11 +1,3 @@
-/******************************************************************
- *  Fantasy Player Management Tool
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
-
-
 var winston = require('winston');
 var MongoDB = require('winston-mongodb').MongoDB;
 var env = require('./../config/env').config();

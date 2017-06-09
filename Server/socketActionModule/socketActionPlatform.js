@@ -1,11 +1,17 @@
-var encrypt = require('./../modules/encrypt');
-var dbPlatform = require('./../db_modules/dbPlatform');
-var socketUtil = require('./../modules/socketutility');
-var dailyPlatformSettlement = require('./../scheduleTask/dailyPlatformSettlement');
-var weeklyPlatformSettlement = require('./../scheduleTask/weeklyPlatformSettlement');
-var dbPaymentChannel = require('./../db_modules/dbPaymentChannel');
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
+let encrypt = require('./../modules/encrypt');
+let dbPlatform = require('./../db_modules/dbPlatform');
+let socketUtil = require('./../modules/socketutility');
+let dailyPlatformSettlement = require('./../scheduleTask/dailyPlatformSettlement');
+let weeklyPlatformSettlement = require('./../scheduleTask/weeklyPlatformSettlement');
+let dbPaymentChannel = require('./../db_modules/dbPaymentChannel');
+let mongoose = require('mongoose');
+let ObjectId = mongoose.Types.ObjectId;
+
+let constPlayerCreditTransferStatus = require('./../const/constPlayerCreditTransferStatus');
+let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommissionSettlementMode');
+
+let dbAutoProposal = require('./../db_modules/dbAutoProposal');
+let dbRewardEvent = require('./../db_modules/dbRewardEvent');
 
 function socketActionPlatform(socketIO, socket) {
 
@@ -197,8 +203,35 @@ function socketActionPlatform(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.platformId && data.period);
             socketUtil.emitter(self.socket, dbPlatform.getPlatformConsumptionReturnDetail, [ObjectId(data.platformId), data.period], actionName, isDataValid);
-        }
+        },
 
+        getAllPlayerCreditTransferStatus: function getAllPlayerCreditTransferStatus(data) {
+            let actionName = arguments.callee.name;
+            self.socket.emit("_" + actionName, {success: true, data: constPlayerCreditTransferStatus});
+        },
+
+        getPartnerCommissionSettlementModeConst: function getPartnerCommissionSettlementModeConst(data) {
+            let actionName = arguments.callee.name;
+            self.socket.emit("_" + actionName, {success: true, data: constPartnerCommissionSettlementMode});
+        },
+
+        triggerAutoProposal: function triggerAutoProposal(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbAutoProposal.applyBonus, [data.platformObjId], actionName, isDataValid);
+        },
+
+        triggerSavePlayersCredit: function triggerSavePlayersCredit(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbRewardEvent.startSavePlayersCredit, [data.platformObjId], actionName, isDataValid);
+        },
+
+        updateAutoApprovalConfig: function updateAutoApprovalConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updateAutoApprovalConfig, [data.query, data.updateData], actionName, isValidData);
+        }
     };
     socketActionPlatform.actions = this.actions;
 };

@@ -2,11 +2,27 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'utilService', 'socketService', 'Upload', 'CONFIG'];
+    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'utilService', 'socketService', 'CONFIG'];
 
-    var providerController = function ($scope, $filter, $location, $log, $timeout, authService, utilService, socketService, Upload, CONFIG) {
+    var providerController = function ($scope, $filter, $location, $log, $timeout, authService, utilService, socketService, CONFIG) {
+        var Upload = {};
         var $translate = $filter('translate');
         var vm = this;
+
+        // declare constants
+        vm.allProviderStatusString = {
+            NORMAL: 1,
+            MAINTENANCE: 2,
+            HALT: 3
+        };
+        vm.allProviderStatusKeys = ['NORMAL', 'MAINTENANCE', 'HALT'];
+        vm.allGameStatusString = {
+            ENABLE: 1, // "Enable",
+            MAINTENANCE: 2, //"Maintenance" //
+            DISABLE: 3, //"Disable", //2
+            DELETED: 4
+        };
+        vm.allGameStatusKeys = ['ENABLE', 'MAINTENANCE', 'DISABLE', 'DELETED'];
 
         //vm.getAllGameType = function () {
         //    socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
@@ -99,12 +115,20 @@ define(['js/app'], function (myApp) {
                 callback();
             }
         };
+
+        var providerStatusColorObj = {
+            1: 'colorLimegreen',
+            2: 'colorYellow',
+            3: 'colorRed'
+        }
         vm.createProviderNode = function (v) {
+            var colorClass = (v && v.status) ? providerStatusColorObj[v.status] : '';
             var obj = {
                 text: v.name,
                 id: v._id,
                 selectable: true,
                 data: v,
+                icon: 'fa fa-circle ' + colorClass,
             };
             return obj;
         };
@@ -352,13 +376,13 @@ define(['js/app'], function (myApp) {
                 console.log('expenserecords', data);
                 vm.gameExpenseQuery.loading = false;
                 var tableData = data.data.data ? data.data.data.map(item => {
-                    item.createTime$ = vm.dateReformat(item.createTime);
-                    item.validAmount$ = item.validAmount.toFixed(2);
-                    item.amount$ = item.amount.toFixed(2);
-                    item.bonusAmount$ = item.bonusAmount.toFixed(2);
-                    item.commissionAmount$ = item.commissionAmount.toFixed(2);
-                    return item;
-                }) : [];
+                        item.createTime$ = vm.dateReformat(item.createTime);
+                        item.validAmount$ = item.validAmount.toFixed(2);
+                        item.amount$ = item.amount.toFixed(2);
+                        item.bonusAmount$ = item.bonusAmount.toFixed(2);
+                        item.commissionAmount$ = item.commissionAmount.toFixed(2);
+                        return item;
+                    }) : [];
                 vm.gameExpenseQuery.totalCount = data.data.count || 0;
                 var summary = data.data.summary || {};
                 var tableOptions = {
@@ -436,7 +460,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded('#modalProviderExpenses.in #providerExpenseQuery', function () {
                 vm.expenseQuery.startTime = utilService.createDatePicker('#providerExpenseQuery .startTime');
                 vm.expenseQuery.endTime = utilService.createDatePicker('#providerExpenseQuery .endTime');
-                vm.expenseQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.expenseQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.expenseQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 utilService.actionAfterLoaded('#modalProviderExpenses.in #providerExpenseTablePage', function () {
                     vm.expenseQuery.pageObj = utilService.createPageForPagingTable("#providerExpenseTablePage", {}, $translate, function (curP, pageSize) {
@@ -462,13 +486,13 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPagedGameProviderConsumptionRecord', queryData, function (data) {
                 vm.providerExpenseTableLoading = false;
                 var tableData = data.data.data ? data.data.data.map(item => {
-                    item.createTime$ = vm.dateReformat(item.createTime);
-                    item.validAmount$ = item.validAmount.toFixed(2);
-                    item.amount$ = item.amount.toFixed(2);
-                    item.bonusAmount$ = item.bonusAmount.toFixed(2);
-                    item.commissionAmount$ = item.commissionAmount.toFixed(2);
-                    return item;
-                }) : [];
+                        item.createTime$ = vm.dateReformat(item.createTime);
+                        item.validAmount$ = item.validAmount.toFixed(2);
+                        item.amount$ = item.amount.toFixed(2);
+                        item.bonusAmount$ = item.bonusAmount.toFixed(2);
+                        item.commissionAmount$ = item.commissionAmount.toFixed(2);
+                        return item;
+                    }) : [];
                 vm.expenseQuery.totalCount = data.data.count || 0;
                 var summary = data.data.summary || {};
                 var tableOptions = {
@@ -585,15 +609,28 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
             $('#modalSettlementAction').modal().show();
         }
+
         vm.doSettlement = function () {
             vm.settlementAction.result = '';
             $scope.safeApply();
-
             if (!vm.SelectedProvider) return;
-            socketService.$socket($scope.AppSocket, 'manualDailyProviderSettlement', {
+            let sendData = {
                 providerId: vm.SelectedProvider._id,
                 settlementDay: vm.settlementAction.date
-            }, function (data) {
+            };
+
+            sendData.selectedPlatformID = (vm.selectedPlatformID === "_allPlatform") ? vm.allPlatformId : vm.selectedPlatformID;
+
+            // if(vm.selectedPlatformID !== "_allPlatform") {
+            //     sendData.selectedPlatformID = vm.selectedPlatformID;
+            // }
+            // else{
+            //     sendData.selectedPlatformID = vm.allPlatformId;
+            // }
+
+            console.log(sendData);
+
+            socketService.$socket($scope.AppSocket, 'manualDailyProviderSettlement', sendData, function (data) {
                 console.log("Settlement done:", data);
                 vm.getAllProvider(function () {
                     var selectedTree = $('#providerTree').treeview('search', [vm.SelectedProvider.name, {
@@ -665,6 +702,88 @@ define(['js/app'], function (myApp) {
             obj.endTime = new Date();
             return obj;
         }
+        /////////////////////provier monit////////////////////////
+        vm.showProviderMonit = function () {
+            const interval = 60000
+            $('#modalProviderConsumptionMonit').modal().show();
+            vm.providerConsumptionMonit = {};
+            utilService.actionAfterLoaded('#providerMonitGraph', function () {
+                const width = $('#providerMonitGraph').width();
+                $('#providerMonitGraph').height(width / 2);
+            })
+            vm.getProviderMonit(true);
+            function drawGraph() {
+                if ($('#modalProviderConsumptionMonit.in').length > 0) {
+                    vm.getProviderMonit();
+                    return setTimeout(drawGraph, interval);
+                }
+            };
+            setTimeout(drawGraph, interval);
+        }
+
+        vm.getProviderMonit = function (newSearch) {
+            socketService.$socket($scope.AppSocket, 'getConsumptionIntervalByProvider', {
+                providerIds: vm.allGameProvider.filter(item => {
+                    return item.status == 1
+                }).map(item => {
+                    return item._id;
+                }),
+            }, function (data) {
+                console.log('providers data', data);
+                var graphData = data.data.map(item => {
+                    let provObj = vm.allGameProvider.filter(prov => {
+                        return prov._id == item.providerId
+                    })
+                    var dataObj = {
+                        label: provObj && provObj[0] ? provObj[0].name : item.providerId,
+                        data: item.data.map(dot => {
+                            return [new Date(dot.time0), dot.count, new Date(dot.time1)]
+                        })
+                    }
+                    return dataObj;
+                })
+                vm.drawProviderMonitor('#providerMonitGraph', graphData, newSearch);
+            });
+        }
+        vm.drawProviderMonitor = function (dom, data, newSearch) {
+            if (newSearch) {
+                var newOptions = {};
+                newOptions.yaxes = [{
+                    position: 'left',
+                    axisLabel: $translate('CREDIT'),
+                }];
+                newOptions.xaxes = [{
+                    position: 'bottom',
+                    axisLabel: $translate('TIME')
+                }];
+                newOptions.xaxis = {
+                    tickLength: 0,
+                    mode: "time",
+                    minTickSize: [1, "minute"],
+                    timezone: "browser"
+                }
+                vm.providerConsumptionMonit.graphObj = socketService.$plotLine(dom, data, newOptions);
+                vm.bindHover(dom, function (obj) {
+                    var x = obj.datapoint[0],
+                        y = obj.datapoint[1].toFixed(0);
+                    var t0 = obj.series.data[obj.dataIndex][0];
+                    var t1 = obj.series.data[obj.dataIndex][2];
+                    var showText = $translate('provider') + ' : ' + obj.series.label + '<br>'
+                        + $translate('from') + ' : ' + utilService.getFormatTime(t0) + '<br>'
+                        + $translate('to') + ' : ' + utilService.getFormatTime(t1) + '<br>'
+                        + $translate('CREDIT') + ' : ' + y;
+                    $("#tooltip").show();
+                    $("#tooltip").html(showText)
+                        .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                        .fadeIn(200);
+                })
+            } else {
+                vm.providerConsumptionMonit.graphObj.setData(data);
+                vm.providerConsumptionMonit.graphObj.setupGrid();
+                vm.providerConsumptionMonit.graphObj.draw();
+            }
+        }
+        /////////////////////provier monit////////////////////////
 
         ///////////////////////common function//////////////////////////////
         vm.dateReformat = function (data) {
@@ -725,7 +844,23 @@ define(['js/app'], function (myApp) {
                 }
             }
         }
-
+        vm.bindHover = function (placeholder, callback) {
+            $(placeholder).bind("plothover", function (event, pos, obj) {
+                var previousPoint;
+                if (!obj) {
+                    $("#tooltip").hide();
+                    previousPoint = null;
+                    return;
+                } else {
+                    if (previousPoint != obj.dataIndex) {
+                        previousPoint = obj.dataIndex;
+                        if (callback) {
+                            callback(obj);
+                        }
+                    }
+                }
+            });
+        }
         vm.generalDataTableOptions = {
             "paging": true,
             dom: 'tpl',
@@ -795,39 +930,43 @@ define(['js/app'], function (myApp) {
                     vm.filterPlayGameType = 'all';
 
                     vm.selectedPenalClass = 'panel-default';
-                    socketService.$socket($scope.AppSocket, 'getAllGameStatus', '', function (data) {
-                        console.log("all game status", data.data);
-                        vm.allGameStatusString = data.data;
-
-                        var allStatus = data.data;
-                        var keys = [];
-                        for (var key in allStatus) {
-                            if (allStatus.hasOwnProperty(key)) { //to be safe
-                                keys.push(key);
-                            }
-                        }
-                        vm.allGameStatusKeys = keys;
-                        $scope.safeApply();
-                    })
-                    socketService.$socket($scope.AppSocket, 'getAllProviderStatus', '', function (data) {
-                        console.log("all provider status", data.data);
-                        vm.allProviderStatusString = data.data;
-
-                        var allStatus = data.data;
-                        var keys = [];
-                        for (var key in allStatus) {
-                            if (allStatus.hasOwnProperty(key)) { //to be safe
-                                keys.push(key);
-                            }
-                        }
-                        vm.allProviderStatusKeys = keys;
-                        console.log('vm.allProviderStatusKeys', vm.allProviderStatusKeys);
-                        $scope.safeApply();
-                    })
+                    // socketService.$socket($scope.AppSocket, 'getAllGameStatus', '', function (data) {
+                    //     console.log("all game status", data.data);
+                    //     vm.allGameStatusString = data.data;
+                    //
+                    //     var allStatus = data.data;
+                    //     var keys = [];
+                    //     for (var key in allStatus) {
+                    //         if (allStatus.hasOwnProperty(key)) { //to be safe
+                    //             keys.push(key);
+                    //         }
+                    //     }
+                    //     vm.allGameStatusKeys = keys;
+                    //     $scope.safeApply();
+                    // })
+                    // socketService.$socket($scope.AppSocket, 'getAllProviderStatus', '', function (data) {
+                    //     console.log("all provider status", data.data);
+                    //     vm.allProviderStatusString = data.data;
+                    //
+                    //     var allStatus = data.data;
+                    //     var keys = [];
+                    //     for (var key in allStatus) {
+                    //         if (allStatus.hasOwnProperty(key)) { //to be safe
+                    //             keys.push(key);
+                    //         }
+                    //     }
+                    //     vm.allProviderStatusKeys = keys;
+                    //     console.log('vm.allProviderStatusKeys', vm.allProviderStatusKeys);
+                    //     $scope.safeApply();
+                    // })
 
                     socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                         if (data.data) {
                             vm.platformList = data.data;
+                            vm.allPlatformId = vm.platformList.reduce((temp, platform) => {
+                                temp.push(platform._id);
+                                return temp;
+                            }, []);
                             if (vm.platformList.length == 0) {
                                 return;
                             } else {

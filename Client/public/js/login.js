@@ -1,9 +1,8 @@
 'use strict';
 
-define(['js/services/authService', 'js/login'], function () {
-    var myLoginApp = angular.module('myApp');
+define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
+    let myLoginApp = angular.module('myApp');
     myLoginApp.requires.push('pascalprecht.translate', 'ngCookies', 'LocalStorageModule', 'authService');
-
     myLoginApp.config(function ($translateProvider) {
         $translateProvider.useStaticFilesLoader({
             prefix: 'languages/',
@@ -46,16 +45,39 @@ define(['js/services/authService', 'js/login'], function () {
             $("#loginContainer").show();
         }, 200);
 
+        let fastestServer = '', lowestLatency = 9999;
+
+        // FPMS Server List
+        WSCONFIG.Default = CONFIG[CONFIG.NODE_ENV];
+        $scope.mgntServerList = WSCONFIG;
+
+        for (let server in WSCONFIG) {
+            if (server === 'Default') {
+                pingHTTPServer(CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL, server);
+            } else {
+                pingHTTPServer(WSCONFIG[server].socketURL, server);
+            }
+        }
+
         /* login user button handler */
         $scope.login = function () {
-            var formData = {};
-            var userName = $('#username').val();
-            var password = $('#password').val();
+            let formData = {};
+            let userName = $('#username').val();
+            let password = $('#password').val();
+            let selectedServer = $('#mgntServer').val();
 
             formData['username'] = userName;
             formData['password'] = password;
 
             $scope.showError = false;
+
+            selectedServer = selectedServer === '' ? fastestServer : selectedServer;
+            $cookies.put('curFPMSServer', selectedServer);
+            let url = 'http://' + WSCONFIG[selectedServer].socketURL;
+
+            if (selectedServer === 'Default') {
+                url = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
+            }
 
             function gotoPage(page) {
                 if (page) {
@@ -66,12 +88,12 @@ define(['js/services/authService', 'js/login'], function () {
                 }
             }
 
-            var url = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
             $.ajax(
                 {
                     type: 'post',
                     data: formData,
-                    url: url + '/login'
+                    url: url + '/login',
+                    timeout: 5000
                 }
             )
                 .done(function (data) {
@@ -172,6 +194,40 @@ define(['js/services/authService', 'js/login'], function () {
                         showError('Service is not available, please try again later.');
                     }
                 });
+        }
+
+        // internal function to ping server
+        function pingHTTPServer(serverURL, server) {
+            let sendTime, receiveTime, latency;
+
+            if (!serverURL.startsWith("http")) {
+                serverURL = "http://" + serverURL;
+            }
+
+            $.ajax({
+                type: "HEAD",
+                url: serverURL,
+                timeout: 3000,
+                beforeSend: () => {
+                    sendTime = (new Date()).getTime();
+                },
+                success: function(){
+                    receiveTime = (new Date()).getTime();
+                    latency = receiveTime - sendTime;
+                    WSCONFIG[server].latency = latency;
+
+                    if (latency < lowestLatency) {
+                        lowestLatency = latency;
+                        fastestServer = server;
+                    }
+
+                    WSCONFIG[server].isAvailable = true;
+                    $scope.$apply();
+                },
+                error: function(data) {
+                    WSCONFIG[server].isAvailable = false;
+                }
+            });
         }
     });
 });

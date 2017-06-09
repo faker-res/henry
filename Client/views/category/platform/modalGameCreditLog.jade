@@ -1,0 +1,51 @@
+#modalGameCreditLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width: 80%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"GAME_CREDIT_LOG" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                #gameCreditLogQuery.block-query.well
+                    div
+                        label {{"PROVIDER_ID" | translate}}
+                        select.form-control(ng-model='vm.gameCreditLog.query.status')
+                            option(value='41') {{"MG" | translate}}
+                    div
+                        label {{"TYPE" | translate}}
+                        select.form-control(ng-model='vm.gameCreditLog.query.type')
+                            option(value='') {{"any" | translate}}
+                            option(value='0001') {{"TRANSFER_IN" | translate}}
+                            option(value='0002') {{"TRANSFER_OUT" | translate}}
+                            option(value='0004') {{"BET" | translate}}
+                            option(value='0005') {{"PAYOUT" | translate}}
+                    div
+                        label {{"Start date" | translate}}
+                        .startTime
+                        //-(ng-model='vm.gameCreditLog.query.startTime')
+                    div
+                        label {{"End date" | translate}}
+                        .endTime
+                        //-(ng-model='vm.gameCreditLog.query.endTime')
+                    button.btn.btn-primary.common-button(ng-click='vm.getGameCreditLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                    label {{"Total" | translate}} {{vm.gameCreditLog.totalCount}} {{"records" | translate}}
+                    table.simple-table.display(style='min-width: 100%; width: 100%')
+                        thead
+                            tr
+                                th {{"ID" | translate}}
+                                th {{"CREATE_TIME" | translate}}
+                                th {{"TYPE" | translate}}
+                                th {{'Before Amount' | translate}}
+                                th {{'CHANGE_AMOUNT' | translate}}
+                                th {{'CUR_AMOUNT' | translate}}
+                        tbody
+                            tr(ng-repeat='(i,gameCreditLog) in vm.gameCreditLog.searchResults')
+                                td {{gameCreditLog.id}}
+                                td {{gameCreditLog.date}}
+                                td {{gameCreditLog.typeText}}
+                                td {{gameCreditLog.previousCredit}}
+                                td {{gameCreditLog.remit}}
+                                td {{gameCreditLog.newCredit}}
+                    #gameCreditLogTablePage
+            .modal-footer
+                button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}

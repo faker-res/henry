@@ -1,9 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 /*
  * Daily platform settlement
  */
@@ -115,7 +109,7 @@ var weeklyPlatformSettlement = {
                     //check if platform is doing settlement now, if platform has done settlement for last week and if it is the first day of the month
                     if (platformData.settlementStatus == checkStatus &&
                         (!platformData.lastWeeklySettlementTime || platformData.lastWeeklySettlementTime.toDateString() !== curTime.toDateString())) {
-                        return dbPlatform.updatePlatform({platformObjId}, {settlementStatus: constPlatformStatus.WEEKLY_SETTLEMENT});
+                        return dbPlatform.updatePlatform({_id: platformObjId}, {settlementStatus: constPlatformStatus.WEEKLY_SETTLEMENT});
                     }
                     else {
                         bUpdateStatus = false;

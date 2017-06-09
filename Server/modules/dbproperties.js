@@ -1,8 +1,5 @@
-/******************************************************************
- *  Fantasy Player Management Tool
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
+'use strict';
+
 var dbPropertiesFunc = function () {
 };
 module.exports = new dbPropertiesFunc();
@@ -125,8 +122,14 @@ var platformMerchantGroupModel = db_admin.model('platformMerchantGroup', platfor
 var platformAlipayGroupSchema = require('./../schema/platformAlipayGroup');
 var platformAlipayGroupModel = db_admin.model('platformAlipayGroup', platformAlipayGroupSchema, 'platformAlipayGroup');
 
+var platformWechatPayGroupSchema = require('./../schema/platformWechatPayGroup');
+var platformWechatPayGroupModel = db_admin.model('platformWechatPayGroup', platformWechatPayGroupSchema, 'platformWechatPayGroup');
+
 var partnerCommissionConfigSchema = require('./../schema/partnerCommissionConfig');
 var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', partnerCommissionConfigSchema, 'partnerCommissionConfig');
+
+let geoIpSchema = require('./../schema/geoip');
+let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
@@ -147,6 +150,9 @@ var systemLogModel = dbLogs.model('systemLog', systemLogSchema, 'systemLog');
 
 var creditChangeLogSchema = require('./../schema/logs/creditChangeLog');
 var creditChangeLogModel = dbLogs.model('creditChangeLog', creditChangeLogSchema, 'creditChangeLog');
+
+var partnerCreditChangeLogSchema = require('./../schema/logs/partnerCreditChangeLog');
+var partnerCreditChangeLogModel = dbLogs.model('partnerCreditChangeLog', partnerCreditChangeLogSchema, 'partnerCreditChangeLog');
 
 var rewardLogSchema = require('./../schema/logs/rewardLog');
 var rewardLogModel = dbLogs.model('rewardLog', rewardLogSchema, 'rewardLog');
@@ -203,6 +209,9 @@ var partnerRewardRecordModel = dbLogs.model('partnerRewardRecord', partnerReward
 var playerStatusChangeLogSchema = require('./../schema/logs/playerStatusChangeLog');
 var playerStatusChangeLogModal = dbLogs.model('playerStatusChangeLog', playerStatusChangeLogSchema, 'playerStatusChangeLog');
 
+var partnerStatusChangeLogSchema = require('./../schema/logs/partnerStatusChangeLog');
+var partnerStatusChangeLogModal = dbLogs.model('partnerStatusChangeLog', partnerStatusChangeLogSchema, 'partnerStatusChangeLog');
+
 var gameProviderDaySummarySchema = require('./../schema/gameProviderDaySummary');
 var gameProviderDaySummaryModel = dbLogs.model('gameProviderDaySummary', gameProviderDaySummarySchema, 'gameProviderDaySummary');
 
@@ -211,6 +220,9 @@ var gameProviderPlayerDaySummaryModel = dbLogs.model('gameProviderPlayerDaySumma
 
 var playerPermissionLogSchema = require('./../schema/logs/playerPermissionLog');
 var playerPermissionLogModel = dbLogs.model('playerPermissionLog', playerPermissionLogSchema, 'playerPermissionLog');
+
+let partnerPermissionLogSchema = require('./../schema/logs/partnerPermissionLog');
+let partnerPermissionLogModel = dbLogs.model('partnerPermissionLog', partnerPermissionLogSchema, 'partnerPermissionLog');
 
 var playerCreditTransferLogSchema = require('./../schema/logs/playerCreditTransferLog');
 var playerCreditTransferLogModel = dbLogs.model('playerCreditTransferLog', playerCreditTransferLogSchema, 'playerCreditTransferLog');
@@ -221,8 +233,12 @@ var playerClientSourceLogModel = dbLogs.model('playerClientSourceLog', playerCli
 var partnerLoginRecordSchema = require('./../schema/partnerLoginRecord');
 var partnerLoginRecordModel = dbLogs.model('partnerLoginRecord', partnerLoginRecordSchema, 'partnerLoginRecord');
 
-var smsLogSchema = require('./../schema/logs/smsLog');
-var smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
+let smsLogSchema = require('./../schema/logs/smsLog');
+let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
+let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
+let smsVerificationLogModel = dbLogs.model('smsVerificationLog', smsVerificationLogSchema, 'smsVerificationLog');
+let playerCreditsDailyLogSchema = require('./../schema/logs/playerCreditsDailyLog');
+let playerCreditsDailyLogModel = dbLogs.model('playerCreditsDailyLog', playerCreditsDailyLogSchema, 'playerCreditsDailyLog');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -295,7 +311,7 @@ var dbProperties = {
     collection_platformBankCardGroup: platformBankCardGroupModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
     collection_platformAlipayGroup: platformAlipayGroupModel,
-
+    collection_platformWechatPayGroup: platformWechatPayGroupModel,
 
     collection_gameType: gameTypeModel,
     collection_game: gameModel,
@@ -309,6 +325,8 @@ var dbProperties = {
     collection_messageTemplate: messageTemplateModel,
     collection_platformAnnouncement: platformAnnouncementModel,
     collection_partnerCommissionConfig: partnerCommissionConfigModel,
+
+    collection_geoIp: geoIpModel,
 
     //logs
     collection_playerMail: playerMailModel,
@@ -338,16 +356,21 @@ var dbProperties = {
 
     collection_systemLog: systemLogModel,
     collection_creditChangeLog: creditChangeLogModel,
+    collection_partnerCreditChangeLog: partnerCreditChangeLogModel,
     collection_rewardLog: rewardLogModel,
     collection_playerStatusChangeLog: playerStatusChangeLogModal,
     collection_playerPermissionLog: playerPermissionLogModel,
+    collection_playerCreditsDailyLog: playerCreditsDailyLogModel,
     collection_playerCreditTransferLog: playerCreditTransferLogModel,
     collection_playerClientSourceLog: playerClientSourceLogModel,
     collection_partnerLoginRecord: partnerLoginRecordModel,
     collection_smsLog: smsLogModel,
+    collection_smsVerificationLog: smsVerificationLogModel,
     collection_partnerCommissionRecord: partnerCommissionRecordModel,
     collection_paymentAPILog: paymentAPILogModel,
     collection_syncDataLog: syncDataLogModel,
+    collection_partnerPermissionLog: partnerPermissionLogModel,
+    collection_partnerStatusChangeLog: partnerStatusChangeLogModal,
 
     //unique
     collection_playerName: playerNameModal,

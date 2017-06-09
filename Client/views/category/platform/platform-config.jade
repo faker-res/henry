@@ -20,8 +20,13 @@
                         span {{"Partner Commission" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "platformBasic"}', ng-click='vm.configTabClicked("platformBasic")')
                         span {{"Platform Basic" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "bonusBasic"}', ng-click='vm.configTabClicked("bonusBasic")')
+                        span {{"Bonus Basic" | translate}}
                     //li.list-group-item(ng-class='{active: vm.selectedConfigTab === "announcement"}', ng-click='vm.configTabClicked("announcement")')
                         span {{"ANNOUNCEMENTS" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "autoApproval"}', ng-click='vm.configTabClicked("autoApproval")')
+                        span {{"Auto Approval Setting" | translate}}
+
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -302,6 +307,7 @@
                                     tr
                                         th {{'MIN_REQUIREMENT' | translate}}
                                         th {{'TOP_UP_TIMES' | translate}}
+                                        th {{'TOP_UP_AMOUNT' | translate}}
                                         th {{'CONSUMPTION' | translate}}
                                 tbody
                                     tr
@@ -310,6 +316,9 @@
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerTopUpTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerTopUpTimes')
                                         td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerTopUpAmount')
+                                        td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerConsumptionTimes')
                                     tr
@@ -317,6 +326,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerTopUpTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerTopUpAmount')
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerConsumptionTimes')
@@ -328,122 +340,141 @@
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-disabled="formValidActivePlayer.$invalid", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"CONFIRM" | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="partnerCommission"')
-                    .col-md-12(ng-if='vm.partnerCommission.showConfig')
-                        h4 {{"Foundation Config" | translate}}
-                        table.common-table.paddingTbl(style='width:100%')
-                            thead
-                                tr
-                                    th(rowspan=2) {{'platformFeeRate' | translate}}
-                                    th(rowspan=2) {{'serviceFeeRate' | translate}}
-                                    th(rowspan=2) {{'Settlement Period' | translate}}
-                                    th(colspan=2) {{'Historical Bonus' | translate}}
-                                tr
-                                    th {{'CommissionHistoryTimes' | translate}}
-                                    th {{'RATIO' | translate}}
-                            tbody
-                                tr(ng-if='vm.partnerCommission.isEditing')
-                                    td
-                                        span.percentage
-                                            input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.platformFeeRate')
-                                    td
-                                        span.percentage
-                                            input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.serviceFeeRate')
-                                    td
-                                        select.form-control(ng-model='vm.partnerCommission.showConfig.commissionPeriod', required)
-                                            option(value='day') {{'day' | translate}}
-                                            option(value='week') {{'week' | translate}}
-                                            option(value='month') {{'month' | translate}}
-                                    td
-                                        input.form-control(type='number', ng-model='vm.partnerCommission.showConfig.bonusCommissionHistoryTimes')
-                                    td
-                                        span.percentage
-                                            input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.bonusRate')
-                                tr(ng-if='!vm.partnerCommission.isEditing')
-                                    td
-                                        span.percentage
-                                            input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.platformFeeRate')
-                                    td
-                                        span.percentage
-                                            input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.serviceFeeRate')
-                                    td
-                                        label.form-control {{vm.partnerCommission.showConfig.commissionPeriod | translate}}
-                                    td
-                                        label.form-control {{vm.partnerCommission.showConfig.bonusCommissionHistoryTimes}}
-                                    td
-                                        span.percentage
-                                            input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.bonusRate')
-                    .col-md-12(ng-if='vm.partnerCommission.showConfig')
-                        h4 {{'commissionLevelConfig' | translate}}
-                        table.common-table.paddingTbl.border-cell
-                            thead
-                                tr
-                                    th(rowspan=2) {{'VALUE' | translate}}
-                                    th(colspan=2) {{'Profit Amount' | translate}}
-                                    th(rowspan=2) {{'Min Active Player' | translate}}
-                                    th(rowspan=2) {{'Commission Rate' | translate}}
-                                    th(rowspan=2, ng-if='vm.partnerCommission.isEditing') {{'Delete' | translate}}
-                                tr
-                                    th {{'Qty_Min' | translate}}
-                                    th {{'Qty_Max' | translate}}
-                            thead
-                                tr(ng-if='!vm.partnerCommission.isEditing', ng-repeat='(i,v) in vm.partnerCommission.showConfig.commissionLevelConfig')
-                                    td {{v.value}}
-                                    td {{v.minProfitAmount}}
-                                    td {{v.maxProfitAmount}}
-                                    td {{v.minActivePlayer}}
-                                    td
-                                        .percentage
-                                            input.form-control.inlineBlk(percentage, disabled, ng-model='v.commissionRate')
-                                tr(ng-if='vm.partnerCommission.isEditing', ng-repeat='(i,v) in vm.partnerCommission.showConfig.commissionLevelConfig')
-                                    td {{vm.setValue(v,'value',i+1)}}
-                                    td
-                                        input.form-control(type='number', min=0, ng-model='v.minProfitAmount')
-                                    td
-                                        input.form-control(type='number', min=0, ng-model='v.maxProfitAmount')
-                                    td
-                                        input.form-control(type='number', min=0, ng-model='v.minActivePlayer')
-                                    td
-                                        .percentage
-                                            input.form-control.inlineBlk(type='number', percentage, min=0, ng-model='v.commissionRate')
-                                    td
-                                        a.fa.fa-times-circle.text-danger(ng-click='vm.removePartnerCommissionLevel("commissionLevelConfig","value",v)')
-                        button.btn.btn-info.margin-top-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.addCommissionLevel("commissionLevelConfig")') {{'ADD_LEVEL' | translate}}
-                    .col-md-12(ng-if='vm.partnerCommission.showConfig')
-                        h4 {{'childrenCommissionRate' | translate}}
-                        table.common-table.paddingTbl.border-cell
-                            tbody
-                                tr
-                                    td(style='max-width:80px') {{"LEVEL" | translate}}
-                                    td(ng-if='vm.partnerCommission.showConfig.childrenCommissionRate.length==0') {{'NULL' | translate}}
-                                    td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
-                                        text {{vm.setValue(v,'level',i+1)}}
-                                tr(ng-if='!vm.partnerCommission.isEditing')
-                                    td(style='max-width:80px') {{"RATIO" | translate}}
-                                    td(ng-if='vm.partnerCommission.showConfig.childrenCommissionRate.length==0') {{'NULL' | translate}}
-                                    td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
-                                        span.percentage
-                                            input.inlineBlk.form-control(type='number', disabled, percentage, style='max-width:60px', ng-model='v.rate')
-                                tr(ng-if='vm.partnerCommission.isEditing')
-                                    td(style='max-width:80px') {{"RATIO" | translate}}
-                                    td(ng-if='vm.partnerCommission.showConfig.childrenCommissionRate.length==0') {{'NULL' | translate}}
-                                    td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
-                                        span.percentage.form-control-sm
-                                            input.inlineBlk.form-control(type='number', percentage, style='max-width:60px', ng-model='v.rate')
-                                tr(ng-if='vm.partnerCommission.isEditing && vm.partnerCommission.showConfig.childrenCommissionRate.length>0')
-                                    td {{'Delete' | translate}}
-                                    td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
-                                        a.fa.fa-times-circle.text-danger(ng-click='vm.removePartnerCommissionLevel("childrenCommissionRate","level",v)')
-                        button.btn.btn-info.margin-top-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.addCommissionLevel("childrenCommissionRate")') {{'ADD_LEVEL' | translate}}
-                    .col-md-12.margin-top-10(ng-if='vm.partnerCommission.showConfig')
-                        .pull-right
-                            button.btn.btn-primary.margin-right-5(ng-if='!vm.partnerCommission.isEditing', ng-click='vm.partnerCommission.isEditing=true') {{'Edit' | translate}}
-                            button.btn.btn-info.margin-right-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.submitUpdatePartnerCommision()') {{'SUBMIT' | translate}}
-                            button.btn.btn-warning.margin-right-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.partnerCommission.isEditing=false;vm.partnerCommission.showConfig=vm.partnerCommission.srcConfig') {{'CANCEL' | translate}}
-                    .col-md-12(ng-if='vm.partnerCommission.showConfig===false')
-                        h4 {{'This platform has no commission config. Create one?' | translate}}
-                        button.btn.btn-success.margin-left-5(ng-click='vm.addPartnerCommissionConfig()') {{'Create' | translate}}
-                    .col-md-12(ng-if='vm.partnerCommission.loading')
-                        h4.blink {{'Loading' | translate}}...
+                    form(name="formPartnerCommission", novalidate)
+                        .col-md-12(ng-if='vm.partnerCommission.showConfig')
+                            h4 {{"Foundation Config" | translate}}
+                            table.common-table.paddingTbl(style='width:100%')
+                                thead
+                                    tr
+                                        th(rowspan=2) {{'platformFeeRate' | translate}}
+                                        th(rowspan=2) {{'serviceFeeRate' | translate}}
+                                        th(rowspan=2) {{'rewardRate' | translate}}
+                                        th(rowspan=2) {{'Settlement Period' | translate}}
+                                        th(rowspan=2) {{'minCommissionAmount' | translate}}
+                                        th(rowspan=2) {{'resetPeriod' | translate}}
+                                        th(colspan=2) {{'Historical Bonus' | translate}}
+                                    tr
+                                        th {{'CommissionHistoryTimes' | translate}}
+                                        th {{'RATIO' | translate}}
+                                tbody
+                                    tr(ng-if='vm.partnerCommission.isEditing')
+                                        td
+                                            span.percentage
+                                                input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.platformFeeRate')
+                                        td
+                                            span.percentage
+                                                input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.serviceFeeRate')
+                                        td
+                                            span.percentage
+                                                input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.rewardRate')
+                                        td
+                                            select.form-control(ng-model='vm.partnerCommission.showConfig.commissionPeriod', required， ng-options='a as a | translate for (a,b) in vm.partnerCommissionPeriodConst')
+                                        td
+                                            input.form-control(type='number', ng-model='vm.partnerCommission.showConfig.minCommissionAmount')
+                                        td
+                                            input.form-control(type='number', min="0" step="1", ng-model='vm.partnerCommission.showConfig.resetPeriod',ng-pattern="/^[0-9]+$/")
+                                        td
+                                            input.form-control(type='number', ng-model='vm.partnerCommission.showConfig.bonusCommissionHistoryTimes')
+                                        td
+                                            span.percentage
+                                                input.form-control(percentage, style='min-width:80px;display:inline-block', ng-model='vm.partnerCommission.showConfig.bonusRate')
+                                    tr(ng-if='!vm.partnerCommission.isEditing')
+                                        td
+                                            span.percentage
+                                                input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.platformFeeRate')
+                                        td
+                                            span.percentage
+                                                input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.serviceFeeRate')
+                                        td
+                                            span.percentage
+                                                input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.rewardRate')
+                                        td
+                                            label.form-control(disabled) {{vm.partnerCommission.showConfig.commissionPeriod | translate}}
+                                        td
+                                            label.form-control(disabled) {{vm.partnerCommission.showConfig.minCommissionAmount}}
+                                        td
+                                            label.form-control(disabled) {{vm.partnerCommission.showConfig.resetPeriod}}
+                                        td
+                                            label.form-control(disabled) {{vm.partnerCommission.showConfig.bonusCommissionHistoryTimes}}
+                                        td
+                                            span.percentage
+                                                input.form-control(disabled, style='min-width:80px;display:inline-block', percentage, ng-model='vm.partnerCommission.showConfig.bonusRate')
+                        .col-md-12(ng-if='vm.partnerCommission.showConfig')
+                            h4 {{'commissionLevelConfig' | translate}}
+                            table.common-table.paddingTbl.border-cell
+                                thead
+                                    tr
+                                        th(rowspan=2) {{'VALUE' | translate}}
+                                        th(colspan=2) {{'Profit Amount' | translate}}
+                                        th(rowspan=2) {{'Min Active Player' | translate}}
+                                        th(rowspan=2) {{'Commission Rate' | translate}}
+                                        th(rowspan=2, ng-if='vm.partnerCommission.isEditing') {{'Delete' | translate}}
+                                    tr
+                                        th {{'Qty_Min' | translate}}
+                                        th {{'Qty_Max' | translate}}
+                                thead
+                                    tr(ng-if='!vm.partnerCommission.isEditing', ng-repeat='(i,v) in vm.partnerCommission.showConfig.commissionLevelConfig')
+                                        td {{v.value}}
+                                        td {{v.minProfitAmount}}
+                                        td {{v.maxProfitAmount}}
+                                        td {{v.minActivePlayer}}
+                                        td
+                                            .percentage
+                                                input.form-control.inlineBlk(percentage, disabled, ng-model='v.commissionRate')
+                                    tr(ng-if='vm.partnerCommission.isEditing', ng-repeat='(i,v) in vm.partnerCommission.showConfig.commissionLevelConfig')
+                                        td {{vm.setValue(v,'value',i+1)}}
+                                        td
+                                            input.form-control(type='number', min=0, ng-model='v.minProfitAmount')
+                                        td
+                                            input.form-control(type='number', min=0, ng-model='v.maxProfitAmount')
+                                        td
+                                            input.form-control(type='number', min=0, ng-model='v.minActivePlayer')
+                                        td
+                                            .percentage
+                                                input.form-control.inlineBlk(type='number', percentage, min=0, ng-model='v.commissionRate')
+                                        td
+                                            a.fa.fa-times-circle.text-danger(ng-click='vm.removePartnerCommissionLevel("commissionLevelConfig","value",v)')
+                            button.btn.btn-info.margin-top-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.addCommissionLevel("commissionLevelConfig")') {{'ADD_LEVEL' | translate}}
+                        .col-md-12(ng-if='vm.partnerCommission.showConfig')
+                            h4 {{'childrenCommissionRate' | translate}}
+                            table.common-table.paddingTbl.border-cell
+                                tbody
+                                    tr
+                                        td(style='max-width:80px') {{"LEVEL" | translate}}
+                                        td(ng-if='vm.partnerCommission.showConfig.childrenCommissionRate.length==0') {{'NULL' | translate}}
+                                        td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
+                                            text {{vm.setValue(v,'level',i+1)}}
+                                    tr(ng-if='!vm.partnerCommission.isEditing')
+                                        td(style='max-width:80px') {{"RATIO" | translate}}
+                                        td(ng-if='vm.partnerCommission.showConfig.childrenCommissionRate.length==0') {{'NULL' | translate}}
+                                        td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
+                                            span.percentage
+                                                input.inlineBlk.form-control(type='number', disabled, percentage, style='max-width:60px', ng-model='v.rate')
+                                    tr(ng-if='vm.partnerCommission.isEditing')
+                                        td(style='max-width:80px') {{"RATIO" | translate}}
+                                        td(ng-if='vm.partnerCommission.showConfig.childrenCommissionRate.length==0') {{'NULL' | translate}}
+                                        td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
+                                            span.percentage.form-control-sm
+                                                input.inlineBlk.form-control(type='number', percentage, style='max-width:60px', ng-model='v.rate')
+                                    tr(ng-if='vm.partnerCommission.isEditing && vm.partnerCommission.showConfig.childrenCommissionRate.length>0')
+                                        td {{'Delete' | translate}}
+                                        td(ng-repeat='(i,v) in vm.partnerCommission.showConfig.childrenCommissionRate')
+                                            a.fa.fa-times-circle.text-danger(ng-click='vm.removePartnerCommissionLevel("childrenCommissionRate","level",v)')
+                            button.btn.btn-info.margin-top-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.addCommissionLevel("childrenCommissionRate")') {{'ADD_LEVEL' | translate}}
+                        .col-md-12(ng-if='vm.partnerCommission.showConfig')
+                            h4 {{'PARTNER_COMMISSION_SETTLEMENT_MODE' | translate}}
+                            label.form-control(ng-if='!vm.partnerCommission.isEditing', disabled) {{vm.partnerCommissionSettlementModeConst[vm.partnerCommission.showConfig.settlementMode] | translate}}
+                            select.form-control(ng-if='vm.partnerCommission.isEditing', ng-model='vm.partnerCommission.showConfig.settlementMode', ng-options='i as v | translate for (i,v) in vm.partnerCommissionSettlementModeConst', required)
+                        .col-md-12.margin-top-10(ng-if='vm.partnerCommission.showConfig')
+                            .pull-right
+                                button.btn.btn-primary.margin-right-5(ng-if='!vm.partnerCommission.isEditing', ng-click='vm.partnerCommission.isEditing=true') {{'Edit' | translate}}
+                                button.btn.btn-info.margin-right-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.submitUpdatePartnerCommision()', ng-disabled="formPartnerCommission.$invalid") {{'SUBMIT' | translate}}
+                                button.btn.btn-warning.margin-right-5(ng-if='vm.partnerCommission.isEditing', ng-click='vm.partnerCommission.isEditing=false;vm.partnerCommission.showConfig=vm.partnerCommission.srcConfig') {{'CANCEL' | translate}}
+                        .col-md-12(ng-if='vm.partnerCommission.showConfig===false')
+                            h4 {{'This platform has no commission config. Create one?' | translate}}
+                            button.btn.btn-success.margin-left-5(ng-click='vm.addPartnerCommissionConfig()') {{'Create' | translate}}
+                        .col-md-12(ng-if='vm.partnerCommission.loading')
+                            h4.blink {{'Loading' | translate}}...
 
                 div(ng-if='vm.selectedConfigTab=="platformBasic"')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
@@ -457,11 +488,84 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
+                            tr
+                                td {{'allowSameRealNameToRegister' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.platformBasic.showAllowSameRealNameToRegister', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'allowSamePhoneNumberToRegister' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
+                    br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("platformBasic")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("platformBasic")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="bonusBasic"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'Percentage Charge' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.bonusBasic.bonusPercentageCharges}}%
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.bonusBasic.bonusPercentageCharges')
+                            tr
+                                td {{'Apply without charge' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.bonusBasic.bonusCharges}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.bonusBasic.bonusCharges')
+                    br
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'bonusBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bonusBasic")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bonusBasic")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="autoApproval"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'Player Bonus Auto Approval' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.enableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Single Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan')
+                            tr
+                                td {{'Single Day Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
+                            tr
+                                td {{'Auto Approval Retry Count' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatCount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveRepeatCount')
+                            tr
+                                td {{'Auto Approval Interval' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatDelay}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveRepeatDelay')
+                    br
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("autoApproval")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("autoApproval")') {{"CONFIRM" | translate}}
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
@@ -521,6 +625,3 @@
                     label {{"PREVIEW" | translate}}
                     .well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
                         .announcementPreview.html(style="max-height: 185px; overflow: auto; background-color: white")
-
-
-

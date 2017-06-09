@@ -4,6 +4,7 @@
 const constProposalType = {
     UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
     UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
+    FIX_PLAYER_CREDIT_TRANSFER: "FixPlayerCreditTransfer",
     UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
     UPDATE_PLAYER_PHONE: "UpdatePlayerPhone",
     UPDATE_PLAYER_BANK_INFO: "UpdatePlayerBankInfo",
@@ -22,6 +23,7 @@ const constProposalType = {
     PLATFORM_TRANSACTION_REWARD: "PlatformTransactionReward",
     PLAYER_MANUAL_TOP_UP: "ManualPlayerTopUp",
     PLAYER_ALIPAY_TOP_UP: "PlayerAlipayTopUp",
+    PLAYER_WECHAT_TOP_UP: "PlayerWechatTopUp",
     PLAYER_TOP_UP: "PlayerTopUp",
     PLAYER_BONUS: "PlayerBonus",
     PLAYER_TOP_UP_RETURN: "PlayerTopUpReturn",
@@ -32,7 +34,12 @@ const constProposalType = {
     PLAYER_REFERRAL_REWARD: "PlayerReferralReward",
     PARTNER_BONUS: "PartnerBonus",
     PLAYER_CONSUMPTION_RETURN_FIX: "PlayerConsumptionReturnFix",
-    PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward"
+    PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward",
+    PARTNER_COMMISSION: "PartnerCommission",
+    MANUAL_UNLOCK_PLAYER_REWARD: "ManualUnlockPlayerReward",
+    PLAYER_DOUBLE_TOP_UP_REWARD: "PlayerDoubleTopUpReward",
+    UPDATE_PARTNER_CREDIT:"UpdatePartnerCredit",
+    PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward"
 };
 
 module.exports = constProposalType;

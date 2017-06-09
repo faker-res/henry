@@ -1,9 +1,3 @@
-/******************************************************************
- *  PlayerAPIServer
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var env = require("./config/env").config();
 var WebSocketController = require("./server_common/WebSocketController");
 var WebSocketClient = require("./server_common/WebSocketClient");
@@ -32,10 +26,12 @@ var constMessageClientTypes = require("./const/constMessageClientTypes");
 
 env.messageClient = constMessageClientTypes.CLIENT;
 
+
 var ClientAPIServer = serviceUtils.buildWSServer(
     [PlayerServiceImplement, PlatformServiceImplement, RegistrationIntentionServiceImplement,
         TopUpIntentionServiceImplement, PlayerLevelServiceImplement, ConnectionServiceImplement,
-        RewardServiceImplement, GameServiceImplement, ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement]
+        RewardServiceImplement, GameServiceImplement, ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement],
+    process.env.USE_SSL
 );
 
 var server = new ClientAPIServer(process.env.PORT || 9280);

@@ -37,7 +37,7 @@ function socketActionProposal(socketIO, socket) {
          */
         createUpdatePlayerInfoProposal: function createUpdatePlayerInfoProposal(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.data);
+            var isValidData = Boolean(data && data.platformId && data.data && (!data.data.realName || data.data.realName.match(/\d+/g) === null));
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_INFO, data], actionName, isValidData);
         },
 
@@ -52,8 +52,19 @@ function socketActionProposal(socketIO, socket) {
                 data.data.playerObjId && data.data.hasOwnProperty("updateAmount") &&
                 data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
             );
-            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_CREDIT, data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.checkUpdateCreditProposal, [data.platformId, constProposalType.UPDATE_PLAYER_CREDIT, data], actionName, isValidData);
         },
+
+        createFixPlayerCreditTransferProposal: function createFixPlayerCreditTransferProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.playerObjId && data.data.hasOwnProperty("updateAmount") &&
+                data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, data], actionName, isValidData);
+        },
+
         createReturnFixProposal: function createReturnFixProposal(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(
@@ -147,6 +158,20 @@ function socketActionProposal(socketIO, socket) {
                 data.data.curData.hasOwnProperty("email") && data.data.updateData.email
             );
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_EMAIL, data], actionName, isValidData);
+        },
+
+        /**
+         * Create new Proposal to update partner credit
+         * @param {json} data - proposal data
+         */
+        createUpdatePartnerCreditProposal: function createUpdatePartnerCreditProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.partnerObjId && data.data.hasOwnProperty("updateAmount") &&
+                data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
+            );
+            socketUtil.emitter(self.socket, dbProposal.checkUpdateCreditProposal, [data.platformId, constProposalType.UPDATE_PARTNER_CREDIT, data], actionName, isValidData);
         },
 
         /**
@@ -329,6 +354,12 @@ function socketActionProposal(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.proposalId);
             socketUtil.emitter(self.socket, dbProposal.unlockProposalById, [data.proposalId, getAdminId()], actionName, isValidData);
+        },
+
+        setBonusProposalStatus: function setBonusProposalStatus(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.proposalId && data.orderStatus);
+            socketUtil.emitter(self.socket, dbProposal.setBonusProposalStatus, [data.proposalId, data.orderStatus, data.remark], actionName, isValidData);
         },
 
     };

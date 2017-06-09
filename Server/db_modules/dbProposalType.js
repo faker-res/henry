@@ -62,11 +62,25 @@ var proposalType = {
     },
 
     /**
+     * Get one proposal type expiration duration
+     * @param {String} query - The query string
+     */
+    getProposalTypeExpirationDuration: function (query) {
+        return dbconfig.collection_proposalType.findOne(query).exec();
+    },
+
+    /**
      * Get proposal types for platform
      * @param {objectId} platformId - The platform Id
      */
     getProposalTypeByPlatformId: function (platformId) {
-        return dbconfig.collection_proposalType.find({platformId: platformId}).exec();
+        return dbconfig.collection_proposalType.find(
+            {
+                platformId: {
+                    $in: platformId
+                }
+            }
+        ).exec();
     },
 
     /**
@@ -82,6 +96,39 @@ var proposalType = {
      */
     removeProposalTypes: function (ids) {
         return dbconfig.collection_proposalType.remove({_id: {$in: ids}}).exec();
+    },
+
+    /**
+     * Update proposal type expiry duration
+     * @param {ObjectId} processId - ObjId of ProposalType
+     * @param {string} expiryDuration
+     */
+    updateProposalTypeExpiryDuration: function (query, expiryDuration) {
+        //update expiry date
+        return dbconfig.collection_proposalType.findOne(query).then(
+            function (data) {
+                if (data) {
+                    return dbconfig.collection_proposalType.findOneAndUpdate(
+                        query,
+                        {$set: { expirationDuration: expiryDuration }},
+                        {new: true}
+                    ).then(
+                        function (data) {
+                            return Promise.resolve(); 
+                        },
+                        function (error) {
+                            return Promise.reject({name: "DBError", message: "Can't update proposal type's expiry duration"});  
+                        }
+                    )
+                }
+                else {
+                    return Promise.reject({name: "DBError", message: "Can't find proposal type"});
+                }
+            },
+            function (error) {
+                return Promise.reject({name: "DBError", message: "Error finding proposal type", error: error});
+            }
+        )
     },
 
 }

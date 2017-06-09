@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -110,6 +104,29 @@
         this._service.transferOut.request(data);
         var self = this;
         this._service.transferOut.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.addMissingConsumption = function (callback, requestData) {
+        var data = requestData ||
+            {
+                name: !isNode && playerName,
+                providerId: !isNode && window.testProviderId,
+                gameId: !isNode && window.testGameId,
+                amount: 10,
+                validAmount: 5,
+                createTime: Date.now(),
+                detail: 'detail'
+            };
+        // We need to get the latest values for testProviderId and testGameId above, because this module's vars might
+        // have been empty the first time it loaded, and if requirejs caches the module, they will never be set!
+        this._service.addMissingConsumption.request(data);
+        var self = this;
+        this._service.addMissingConsumption.once(function (data) {
+            //self.testRecordId = data.data._id;
             if (callback && typeof callback === "function") {
                 callback(data);
             }

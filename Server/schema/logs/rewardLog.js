@@ -1,19 +1,13 @@
-/******************************************************************
- *  Fantasy Player Management Tool
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 // This collection records all rewards that were awarded to players / partners
 var rewardLogSchema = new Schema ({
     // Platform Id
-    platform: {type: Schema.ObjectId, ref: 'platform', required: true},
+    platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
 
     // Player Id
-    player: {type: Schema.ObjectId, ref: 'player', required: false},
+    player: {type: Schema.ObjectId, ref: 'player', required: false, index: true},
     playerId: {type: String, required: false},
 
     // Partner Id   (We may log partner rewards in future)
@@ -41,7 +35,7 @@ var rewardLogSchema = new Schema ({
     //level: {type: String, required: true},
 
     // Date of reward
-    createTime: {type: Date, required: true},
+    createTime: {type: Date, required: true, index: true}
 });
 
 module.exports = rewardLogSchema;

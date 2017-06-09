@@ -1,13 +1,9 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
 
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+let constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
 
-var partnerCommissionConfigSchema = new Schema({
+let partnerCommissionConfigSchema = new Schema({
     //platform
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true, unique: true},
     //commission param
@@ -36,8 +32,15 @@ var partnerCommissionConfigSchema = new Schema({
     //bonus commission times
     bonusCommissionHistoryTimes: Number,
     //bonus commission rate
-    bonusRate: Number
-
+    bonusRate: Number,
+    //minimum commission amount
+    minCommissionAmount: {type: Number, default: 0},
+    //reset period，number of days to clear negative value
+    resetPeriod: {type: Number, default: 0},
+    // settlement mode
+    settlementMode: {type: String, default: constPartnerCommissionSettlementMode.OPSR},
+    // reward rate
+    rewardRate: {type: Number, default: 1}
 });
 
 module.exports = partnerCommissionConfigSchema;

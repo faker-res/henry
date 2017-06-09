@@ -691,6 +691,56 @@
     </div>
 </div>
 
+<h3>Update Player Level(更新玩家等级)</h3>
+<div class="test-container">
+    <div>
+        <label>playerName
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>levelName
+            <input name="levelName">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="updatePlayerLevel">Update</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Update Player(更新玩家)</h3>
+<div class="test-container">
+    <div>
+        <label>playerName
+            <input name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>platform Id
+            <input name="platform">
+        </label>
+    </div>
+    <div>
+        <label>updateData
+            <input name="updateData">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="updatePlayer">Update</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/migration/MigrationServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/migrationAPITest/PlayerAPITest', 'testAPI/migrationAPITest/ConnectionAPITest'],
         function (MigrationServices, WebSocketClient, TestHelper, PlayerAPITest, connectionAPITest) {

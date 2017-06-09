@@ -1,8 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 'use strict'
 
 var Q = require('q');
@@ -69,7 +64,7 @@ ProviderAPIServer.prototype.callClientAPIOnce = function(serviceName, funcName, 
 };
 
 var server = new ProviderAPIServer(process.env.PORT || 9380);
-server._needAuth = true;
+// server._needAuth = true;
 server.run();
 console.log("Provider API Server is running...");
 

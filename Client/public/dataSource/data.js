@@ -1,8 +1,3 @@
-/******************************************************************
- *        Project
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 latlong = {};
 latlong["AD"] = {"latitude": 42.5, "longitude": 1.5};
 latlong["AE"] = {"latitude": 24, "longitude": 54};
@@ -246,22 +241,33 @@ latlong["ZM"] = {"latitude": -15, "longitude": 30};
 latlong["ZW"] = {"latitude": -20, "longitude": 30};
 
 var creditChangeTypeStrings = [
+    "FixPlayerCreditTransfer",
     "PlayerTopUp",
     "PlayerBonus",
+    "AlipayTopUp",
+    "OnlineTopUp",
+    "ManualTopUp",
     "PlayerTopUpReturn",
     "PlayerConsumptionIncentive",
     "PlayerLevelUp",
+    "PlayerTopUpReward",
     "PlayerAlipayTopUp",
-    "transferIn",
-    "transferOut",
+    "TransferIn",
+    "TransferOut",
+    "RewardTask",
+    "AddPlayerRewardTask",
     "UpdatePlayerCredit",
     "FullAttendance",
     "PlayerConsumptionReturn",
     "FirstTopUp",
+    "PlayerConsumptionReturnFix",
+    "PlayerReferralReward",
     "GameProviderReward",
     "PartnerConsumptionReturn",
     "PartnerIncentiveReward",
     "PartnerReferralReward",
     "PlatformTransactionReward",
-    "ManualPlayerTopUp"
+    "PlayerRegistrationReward",
+    "PlayerConsecutiveLoginReward",
+    "ManualPlayerTopUp",
 ]

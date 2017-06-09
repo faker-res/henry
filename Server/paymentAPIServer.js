@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-    
 var env = require("./config/env").config();
 var WebSocketController = require("./server_common/WebSocketController");
 var WebSocketServer = require("./server_common/WebSocketServer");
@@ -37,7 +31,7 @@ TopUpAPIServer.prototype = Object.create(WebSocketServer.prototype);
 TopUpAPIServer.prototype.constructor = TopUpAPIServer;
 
 var server = new TopUpAPIServer(process.env.PORT || 9480);
-server._needAuth = true;
+// server._needAuth = true;
 server.run();
 console.log("Payment API Server is running...");
 

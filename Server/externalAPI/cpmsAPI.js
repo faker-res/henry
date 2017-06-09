@@ -1,10 +1,4 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
-'user strict'
+'use strict';
 
 const Q = require("q");
 const env = require("../config/env").config();
@@ -24,8 +18,20 @@ function callCPMSAPI(service, functionName, data) {
     //         errMessage: "Invalid WebSocket client connection!  (No CPMSAPI stored for this instance.)"
     //     });
     // }
-    return clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+    let bOpen = false;
+    var deferred = Q.defer();
+    //if can't connect in 30 seconds, treat as timeout
+    setTimeout(function () {
+        if (!bOpen) {
+            return deferred.reject({
+                status: constServerCode.CP_NOT_AVAILABLE,
+                message: "Game is not available"
+            });
+        }
+    }, 30 * 1000);
+    clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
         wsClient => {
+            bOpen = true;
             var reqTime = new Date().getTime();
             var resFunction = function (res) {
                 var resTime = new Date().getTime();
@@ -44,7 +50,7 @@ function callCPMSAPI(service, functionName, data) {
                     if (wsClient && typeof wsClient.disconnect == "function") {
                         wsClient.disconnect();
                     }
-                    if(error.status){
+                    if (error.status) {
                         return Q.reject(error);
                     }
                     else {
@@ -58,9 +64,10 @@ function callCPMSAPI(service, functionName, data) {
             );
         },
         error => {
-            return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error:error});
+            return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error: error});
         }
-    );
+    ).then(deferred.resolve, deferred.reject);
+    return deferred.promise;
 };
 
 function httpGet(url) {
@@ -98,6 +105,10 @@ const cpmsAPI = {
         return callCPMSAPI("player", "getTestLoginURL", data);
     },
 
+    player_getTestLoginURLWithOutUser: function (data) {
+        return callCPMSAPI("player", "getTestLoginURLWithOutUser", data);
+    },
+
     player_getGameUserInfo: function (data) {
         return callCPMSAPI("player", "getGameUserInfo", data);
     },
@@ -132,6 +143,14 @@ const cpmsAPI = {
 
     player_checkExist: function (data) {
         return callCPMSAPI("player", "player_checkExist", data);
+    },
+
+    player_getCreditLog: function (data) {
+        return callCPMSAPI("player", "getCreditLog", data);
+    },
+
+    player_getGamePassword: function (data) {
+        return callCPMSAPI("player", "getGamePassword", data);
     }
 
 };

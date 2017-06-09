@@ -1,16 +1,13 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 const dbconfig = require('./../modules/dbproperties');
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
+const constMessageType = require("../const/constMessageType.js");
 const constSystemParam = require("../const/constSystemParam.js");
 const Q = require("q");
 var smsAPI = require('../externalAPI/smsAPI');
 var dbLogger = require('./../modules/dbLogger');
+
+const moment = require('moment-timezone');
 
 const dbPlayerMail = {
 
@@ -115,35 +112,84 @@ const dbPlayerMail = {
             }
         );
     },
-    sendVerificationCodeToNumber: function (telNum, code) {
-        var a = smsAPI.channel_getChannelList({}).then(data => {
+
+    sendVerificationCodeToNumber: function (telNum, code, platformId) {
+        let lastMin = moment().subtract(1, 'minutes');
+        let channel = null;
+        let platformObjId = null;
+        let template = null;
+        let lastMinuteHistory = null;
+
+        let a = smsAPI.channel_getChannelList({}).then(data => {
             return data
         });
-        var b = dbconfig.collection_platform.find().limit(1).then(data => {
-            return data ? data[0] : null;
-        });
-        return Q.all([a, b]).then(data => {
-            var channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : null;
-            var platformId = data[1] && data[1].platformId ? data[1].platformId : null;
-            if (channel == null || platformId == null) {
-                return Q.reject({message: "cannot find platform or sms channel."});
-            }
-            var sendObj = {
-                tel: telNum,
-                channel: channel,
-                platformId: platformId,
-                message: "verification code： " + code,
-                delay: data.delay || 0
-            }
-            return smsAPI.sending_sendMessage(sendObj).then(
-                retData => {
-                    return true;
-                },
-                retErr => {
-                    return Q.reject({message: retErr, data: data});
+        let b = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+        let c = dbconfig.collection_smsVerificationLog.findOne({tel: telNum, createTime: {$gt: lastMin}});
+
+        return Q.all([a, b, c]).then(data => {
+            channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
+            platformId = data[1] && data[1].platformId ? data[1].platformId : null;
+            platformObjId = data[1] && data[1]._id ? data[1]._id : null;
+            lastMinuteHistory = data[2];
+
+            return dbconfig.collection_messageTemplate.findOne({
+                platform: platformObjId,
+                type: constMessageType.SMS_VERIFICATION,
+                format: "sms"
+            }).lean();
+        }).then(
+            templateData => {
+                if (templateData) {
+                    template = templateData;
+
+                    // Change template code to real code
+                    template.content = template.content.replace('smsCode', code);
+
+                    if (channel == null || platformId == null) {
+                        return Q.reject({message: "cannot find platform or sms channel."});
+                    }
+
+                    // Check whether verification sms sent in last minute
+                    if (lastMinuteHistory && lastMinuteHistory.tel) {
+                        return Q.reject({message: "Verification SMS already sent within last minute"});
+                    }
+
+                    let saveObj = {
+                        tel: telNum,
+                        channel: channel,
+                        platformObjId: platformObjId,
+                        platformId: platformId,
+                        code: code,
+                        delay: 0
+                    };
+
+                    let sendObj = {
+                        tel: telNum,
+                        channel: channel,
+                        platformId: platformId,
+                        message: template.content,
+                        delay: 0
+                    };
+
+                    // Log the verification SMS before send
+                    new dbconfig.collection_smsVerificationLog(saveObj).save();
+
+                    smsAPI.sending_sendMessage(sendObj).then(
+                        retData => {
+                            console.log('[smsAPI] Sent verification code to: ', telNum);
+                            return true;
+                        },
+                        retErr => {
+                            return Q.reject({message: retErr, data: data});
+                        }
+                    );
                 }
-            );
-        })
+                else {
+                    return Q.reject({message: 'Template not set for current platform', data: data});
+                }
+
+            }
+        )
     }
 };
 

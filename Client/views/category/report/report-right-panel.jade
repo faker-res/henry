@@ -9,10 +9,54 @@
         div(ng-if='vm.showPageName=="TOPUP_REPORT"')
             #topUpReportQuery.block-query.col-md-12.well
                 div
-                    label {{'TYPE' | translate}}
-                    select.form-control(ng-model='vm.queryTopup.type', ng-init='vm.queryTopup.type="all"', required)
-                        option(value='all') {{"all" | translate}}
+                    label &nbsp;
+                    button.btn.btn-primary(ng-click='vm.resetTopupRecord()') {{'Reset' | translate}}
+                div
+                    label {{'STATUS' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList')
+                        option(value='') {{'any' | translate}}
+                div(style='max-width:125px')
+                    label {{'Proposal No' | translate}}
+                    input.form-control(type='text', ng-model='vm.queryTopup.proposalID')
+                div
+                    label {{'topupType' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.mainTopupType', required)
+                        option(value='') {{"any" | translate}}
                         option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
+                    label {{'Online Topup Type' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.topupType')
+                        option(value='') {{'any' | translate}}
+                        option(value='1') 网银支付(NetPay)
+                        option(value='2') 微信扫码(WechatQR)
+                        option(value='3') 支付宝扫码(AlipayQR)
+                        option(value='4') 微信App支付(WechatApp)
+                        option(value='5') 支付宝App支付(AlipayApp)
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
+                    label {{'Merchant Group' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupObj')
+                        option(value='') {{'any' | translate}}
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
+                    label {{'Merchant No' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.merchantNo',ng-options='mer.merchantNo as mer.name for mer in vm.merchantNoList')
+                        option(value='') {{'any' | translate}}
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
+                    label {{'DINGDAN_ID' | translate}}
+                    input.form-control(type='text', ng-model='vm.queryTopup.dingdanID')
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="1"',style='max-width:125px')
+                    label {{'depositMethod' | translate}}
+                    select.form-control(ng-model='vm.queryTopup.depositMethod')
+                        option(value='') {{'any' | translate}}
+                        option(value='1') 网银转账(OnlineTransfer)
+                        option(value='2') 自动取款机(ATM)
+                        option(value='3') 柜台存款(Counter)
+                //div(style='max-width:100px')
+                //    label {{'Merchant' | translate}}
+                //    select.form-control(ng-model='vm.queryTopup.merchant', ng-options='a.merchantTypeId as a.showStr for a in vm.allMerchantsArr')
+                //        option(value='') {{'any' | translate}}
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
+                    label {{'PLAYER_NAME' | translate}}
+                    input.form-control(type='text', ng-model='vm.queryTopup.playerName')
                 div
                     label.control-label {{'Start date' | translate}}
                     .startTime
@@ -31,8 +75,10 @@
         div(ng-if='vm.showPageName=="PROPOSAL_REPORT"')
             #proposalReportQuery.block-query.col-md-12.well
                 div
-                    label {{"Proposal Type"|translate}}
-                    select.form-control(ng-model='vm.proposalQuery.proposalTypeId', style='max-width:300px', required)
+                    label(style='width:250px;') {{"Proposal Type"|translate}}
+                    select.form-control#selectProposalType(multiple="multiple", ng-options='i._id as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='abc')
+
+                    //select.form-control(ng-model='vm.proposalQuery.proposalTypeId', style='max-width:300px', required)
                         option(value='all') {{"all" | translate}}
                         option(ng-repeat='(i,v) in vm.allProposalType', value='{{v._id}}', ng-selected='vm.selectedProposalType==v._id') {{v.name | translate}}
                 div
@@ -98,7 +144,7 @@
                         td {{vm.operationSummaryData.validAmount | number : 2}}
                         td {{vm.operationSummaryData.total_consumption}}
                         td {{vm.operationSummaryData.bonusAmount | number : 2}}
-                        td {{(vm.operationSummaryData.total_earning/vm.operationSummaryData.validAmount*100 || 0) | number : 2 }}%
+                        td {{(vm.operationSummaryData.bonusAmount/vm.operationSummaryData.validAmount*100 || 0) | number : 2 }}%
 
         div(ng-if='vm.showPageName=="PLAYER_EXPENSE_REPORT"')
             #playerExpenseReportQuery.block-query.col-md-12.well
@@ -209,6 +255,12 @@
                     .col-md-6(style='padding-top:10px')
                         table#newPlayerPartnerTable.common-table.display(style='width:100%')
             .clearfix
+            .penal.panel-info(ng-show="vm.detailPartnerPlayer.partnerObjectId")
+                .panel-heading {{'PLAYER_DOMAIN' | translate}} : {{vm.detailDomainPlayer.domainName}}
+                .penal_body
+                    table#detailPartnerPlayerTable.common-table.display(style='min-width:100%')
+                    #detailPartnerPlayerTablePage
+            .clearfix
             .penal.panel-info
                 .panel-heading {{'PLAYER_DOMAIN' | translate}}
                 .penal_body
@@ -224,7 +276,6 @@
                     #detailDomainPlayerTablePage
 
         div(ng-if='vm.showPageName=="PLAYERPARTNER_REPORT"')
-            //提供商报表
             #playerPartnerReportQuery.block-query.col-md-12.well
                 div
                     label {{"PARTNER_NAME"|translate}}
@@ -266,6 +317,36 @@
                         td {{v.total_players}}
                         td {{v.total_topup_times}}
                         td {{v.total_consumption_times}}
+        div(ng-if='vm.showPageName=="PLAYERDOMAIN_REPORT"')
+            #playerDomainReportQuery.block-query.col-md-12.well
+                div
+                    label {{"REGISTRATION_TIME_START"|translate}}
+                    .startTime
+                div
+                    label {{"REGISTRATION_TIME_END"|translate}}
+                    .endTime
+                div
+                    label {{"PLAYER_NAME"|translate}}
+                    input.form-control(type="text", ng-model="vm.playerDomain.name")
+                div
+                    label {{"realName"|translate}}
+                    input.form-control(type="text", ng-model="vm.playerDomain.realName")
+                div
+                    label {{"TOP_UP_TIMES"|translate}}
+                    select.form-control(ng-model="vm.playerDomain.topUpTimes", ng-options='item as item.label for item in vm.playerDomain.topUpTimesOptionArr')
+                        option(value=null) {{'any' | translate}}
+                div
+                    label {{"Domain Name"|translate}}
+                    input.form-control(type="text", ng-model="vm.playerDomain.domain")
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPlayerDomainRepport(true)') {{'SEARCH' | translate}}
+                    span#playerDomainReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.playerDomain.totalCount}} {{"records" | translate}}
+            table#playerDomainReportTable.common-table.display(style="width:100%")
+            #playerDomainReportTablePage
 
         div(ng-if='vm.showPageName=="PARTNERPLAYERBOUNS_REPORT"')
             #partnerPlayerBonusQuery.block-query.col-md-12.well

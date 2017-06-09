@@ -5,16 +5,19 @@ form(name="form_new_player", novalidate)
 			input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.newPlayer.name", ng-change='vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player)', required)
 			span.help-block(style='color: #b94a48', ng-show='vm.duplicateNameFound') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
 		.form-group.col-md-6
-			label.control-label {{"EMAIL" | translate}}
-			input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.newPlayer.email", required)
+			label.control-label *{{"EMAIL" | translate}}
+			input.form-control(type="email", name="email", placeholder='{{"winner@qq.com"}}', ng-model="vm.newPlayer.email", required)
 			span.help-block(ng-show="form_new_player.email.$dirty && form_new_player.email.$error.email") {{"EMAIL_INVALID" | translate}}
 	.row.margin-left-5.margin-right-5
-		.form-group.col-md-6
-			label.control-label {{"PASSWORD" | translate}}
+		.form-group.col-md-5
+			label.control-label *{{"PASSWORD" | translate}}
 			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password1", ng-model="vm.newPlayer.password", required,match="vm.playerPswverify")
 			span.help-block(style='color: #b94a48', ng-show="form_new_player.password1.$dirty && vm.passwordLengthCheck(vm.newPlayer.password)") {{'Minimum Password length is' | translate}}&nbsp; 6.
+		.form-group.col-md-1
+			label.control-label {{'DEFAULT_PASSWORD' | translate}}
+			button.common-button.btn.btn-warning(ng-click="vm.newPlayer.password='88888888';vm.playerPswverify='88888888'") 88888888
 		.form-group.col-md-6
-			label.control-label {{"PASSWORD_RETYPE" | translate}}
+			label.control-label *{{"PASSWORD_RETYPE" | translate}}
 			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password2", ng-model="vm.playerPswverify", required,match="vm.newPlayer.password")
 			span.help-block(ng-show="form_new_player.password2.$dirty && form_new_player.password2.$error.match && !form_new_player.password2.$error.required") {{"PASSWORD_NOT_MATCH" | translate}}
 	.row.margin-left-5.margin-right-5
@@ -38,8 +41,8 @@ form(name="form_new_player", novalidate)
 				option(value='{{null}}', ng-selected='null==vm.newPlayer.partner') {{'NULL' | translate}}
 				option(ng-repeat='(i,v) in vm.partnerIdObj', value='{{i}}', ng-selected='i==vm.newPlayer.partner') {{v.partnerName}}
 		.form-group.col-md-6
-			label.control-label {{"TELEPHONE" | translate}}
-			input.form-control(type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}',ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber")
+			label.control-label *{{"TELEPHONE" | translate}}
+			input.form-control(type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}',ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber", required)
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-6
 			label.control-label {{"REFERRAL" | translate}}
@@ -47,7 +50,11 @@ form(name="form_new_player", novalidate)
 			i.referralValidFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
 			i.referralValidTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
 		.form-group.col-md-6
-			label.control-label {{"RECEIVE_SMS" | translate}}
+			label.control-label {{"Registration Domain" | translate}}
+			label.form-control {{vm.newPlayer.domain}}
+	.row.margin-left-5.margin-right-5
+		.form-group.col-md-6
+			label.control-label.margin-right-5 {{"RECEIVE_SMS" | translate}}
 				input.pull-left.margin-right-5(type="checkbox", name="telephone", ng-model="vm.newPlayer.receiveSMS")
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-12

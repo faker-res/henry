@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -130,6 +124,19 @@
         });
     };
 
+    proto.requestWechatTopup = function (callback, requestData) {
+        var data = requestData || {
+                playerId: testPlayerId,
+                amount: 100
+            };
+        this._service.requestWechatTopup.request(data);
+        this._service.requestWechatTopup.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback (data);
+            }
+        });
+    };
+
     proto.getBonusList = function (callback, requestData) {
         var data = requestData || {};
         this._service.getBonusList.request(data);
@@ -172,6 +179,12 @@
         var data = requestData || {};
         this._service.cancelAlipayTopup.request(data);
         this._service.cancelAlipayTopup.once(callback);
+    };
+
+    proto.cancelWechatTopup = function (callback, requestData) {
+        var data = requestData || {};
+        this._service.cancelWechatTopup.request(data);
+        this._service.cancelWechatTopup.once(callback);
     };
 
     proto.delayManualTopupRequest = function (callback, requestData) {
@@ -264,6 +277,12 @@
         var data = requestData || {};
         this._service.getValidTopUpRewardRecordList.request(data);
         this._service.getValidTopUpRewardRecordList.once(callback);
+    };
+
+    proto.getPlayerWechatPayStatus = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.getPlayerWechatPayStatus.request(data);
+        this._service.getPlayerWechatPayStatus.once(callback);
     };
 
     if (isNode) {

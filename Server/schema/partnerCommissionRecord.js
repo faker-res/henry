@@ -1,10 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
-
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
@@ -25,6 +18,8 @@ var partnerCommissionRecordSchema = new Schema({
     platformFee: {type: Number},
     //profit
     profitAmount: {type: Number},
+    //operation amount
+    operationAmount: {type: Number},
     //commission level
     commissionLevel: {type: Number},
     //commission rate
@@ -33,14 +28,20 @@ var partnerCommissionRecordSchema = new Schema({
     bonusCommissionRate: {type: Number},
     //player total valid consumption amount //运营费：totalValidAmount - totalBonusAmount
     totalValidAmount: {type: Number},
-    //player total bonus consumption amount
+    //player total bonus amount
     totalBonusAmount: {type: Number},
+    //player total bonus amount
+    totalPlayerBonusAmount: {type: Number},
+    //player total top up amount
+    totalTopUpAmount: {type: Number},
     //partner commission amount
     commissionAmount: {type: Number},
     //sum of all the commissionAmounts of this partner's children
     totalCommissionOfChildren: {type: Number},
     //commission amount awarded to this partner based on its children's performance
-    commissionAmountFromChildren: {type: Number}
+    commissionAmountFromChildren: {type: Number},
+    // negative profit amount
+    negativeProfitAmount: {type: Number}
 });
 
 module.exports = partnerCommissionRecordSchema;

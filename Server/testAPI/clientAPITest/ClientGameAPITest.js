@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -165,6 +159,12 @@
         this.gameService.getTestLoginURL.once(callback);
     };
 
+    proto.getTestLoginURLWithOutUser = function (callback, requestData) {
+        var data = requestData || {playerId: testPlayerId, gameId: providerId};
+        this.gameService.getTestLoginURLWithOutUser.request(data);
+        this.gameService.getTestLoginURLWithOutUser.once(callback);
+    };
+
     proto.getGameUserInfo = function (callback, requestData) {
         var data = requestData || {playerId: testPlayerId, gameId: providerId};
         this.gameService.getGameUserInfo.request(data);
@@ -211,6 +211,18 @@
         var data = requestData || {platformId: 4, groups: [3, 4, 5]};
         this.gameService.searchGameByGroup.request(data);
         this.gameService.searchGameByGroup.once(callback);
+    };
+
+    proto.getGamePassword = function (callback, requestData) {
+        var data = requestData || {platformId: 1};
+        this.gameService.getGamePassword.request(data);
+        this.gameService.getGamePassword.once(callback);
+    };
+
+    proto.modifyGamePassword = function (callback, requestData) {
+        var data = requestData || {platformId: 1};
+        this.gameService.modifyGamePassword.request(data);
+        this.gameService.modifyGamePassword.once(callback);
     };
 
     if (isNode) {

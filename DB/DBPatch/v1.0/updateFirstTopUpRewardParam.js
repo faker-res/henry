@@ -1,8 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 
 var db = db.getSiblingDB("admindb");
 
@@ -24,6 +19,19 @@ db.rewardParam.update({"name": type5}, {
                 },
                 des: "Reward parameter for each level"
             },
+        }
+    }
+});
+
+var type6 = "PlatformTransactionReward";
+
+db.rewardParam.update({"name": type6}, {
+    $set: {
+        params: {
+            rewardPercentage: {type: "Percentage", des: "Reward percentage"},
+            playerLevel: {type: "DBString", action: "getPlayerLevelByPlatformId", field: "name", des: "Base Player Level"},
+            bankCardType: {type: "Array", des: "Bank Card Type"},
+            maxRewardAmountPerDay: {type: "Number", des: "Max reward amount per day"}
         }
     }
 });
@@ -57,26 +65,29 @@ db.rewardParam.update({"name": type10}, {$set: { params:{
 var type11= "PlayerConsumptionIncentive";
 db.rewardParam.update({"name": type11}, {$set: {params:{
     needApply: {type: "Boolean", des: "If this reward requires player application"},
-    //useConsumption: {type: "Boolean", des: "If use consumption record"},
+    useConsumption: {type: "Boolean", des: "If use consumption record"},
     reward: {
         type: "Table",
         data:{
+            minPlayerLevel: {type: "Number", des: "PlayerLevel"},
+            minDeficitAmount: {type: "Number", des: "Minimum deficit amount"},
+            rewardAmount: {type: "Number", des: "REWARDAMOUNT"},
             rewardPercentage: {type: "Percentage", des: "Reward percentage"},
             spendingTimes: {type: "Number", des: "Consumption amount times"},
             minRewardAmount: {type: "Number", des: "Minimal reward amount"},
             maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
             //minConsumptionAmount: {type: "Number", des: "Minimal total consumption amount"},
-            minTopUpRecordAmount: {type: "Number", des: "Minimal top up amount each time"},
-            maxPlayerCredit: {type: "Number", des: "Maximum player credit"}
+            minTopUpRecordAmount: {type: "Number", des: "Minimum top up amount"},
+            //maxPlayerCredit: {type: "Number", des: "Maximum player credit"}
         },
         des: "Reward parameter for each level"
     }
 }}});
 
-// var param11Cursor = db.rewardParam.find({"name": type11});
-// var param11 = param11Cursor.next();
-//
-// db.rewardType.insert({"name": type11, params: param11._id, des: "Player Consumption Incentive"});
+var param11Cursor = db.rewardParam.find({"name": type11});
+var param11 = param11Cursor.next();
+
+db.rewardType.insert({"name": type11, params: param11._id, des: "Player Consumption Incentive"});
 
 //Partner top up return reward
 var type12 = "PartnerTopUpReturn";
@@ -146,3 +157,56 @@ var param16Cursor = db.rewardParam.find({"name": type16});
 var param16 = param16Cursor.next();
 
 db.rewardType.insert({"name": type16, params: param16._id, des: "Player Registration Reward"});
+
+//Player double top up reward
+var type17 = "PlayerDoubleTopUpReward";
+db.rewardParam.insert({
+    "name": type17, params: {
+        maxRewardTimes: {type: "Number", des: "Max Reward Times"},
+        targetEnable: {type: "Boolean", des: "If target is enabled"},
+        providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
+        reward: {
+            type: "Table",
+            data: {
+                minPlayerLevel: {type: "Number", des: "PlayerLevel"},
+                topUpAmount: {type: "Number", des: "Topup Amount"},
+                rewardAmount: {type: "Number", des: "Reward amount"},
+                consumptionTimes: {type: "Number", des: "Consumption Times"},
+                maxRewardAmount: {type: "Number", des: "Maximum reward amount"}
+            },
+            des: "Reward parameter for each level"
+        }
+    }
+});
+
+var param17Cursor = db.rewardParam.find({"name": type17});
+var param17 = param17Cursor.next();
+
+db.rewardType.insert({"name": type17, params: param17._id, des: "Player Double Top Up Reward"});
+
+//Player consecutive login reward
+var type18 = "PlayerConsecutiveLoginReward";
+db.rewardParam.insert({
+    "name": type18, params: {
+        targetEnable: {type: "Boolean", des: "If target is enabled"},
+        providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
+        bonusAmount: {type: "Number", des: "Bonus amount"},
+        bonusRequiredTimes: {type: "Number", des: "Bonus amount required times"},
+        dailyTopUpAmount: {type: "Number", des: "Minimum daily top up amount"},
+        dailyConsumptionAmount: {type: "Number", des: "Minimum daily consumption amount"},
+        reward: {
+            type: "Table",
+            data: {
+                dayIndex: {type: "Number", des: "Day Index"},
+                rewardAmount: {type: "Number", des: "Reward amount"},
+                consumptionTimes: {type: "Number", des: "Consumption Times"}
+            },
+            des: "Reward parameter for each day"
+        }
+    }
+});
+
+var param18Cursor = db.rewardParam.find({"name": type18});
+var param18 = param18Cursor.next();
+
+db.rewardType.insert({"name": type18, params: param18._id, des: "Player Consecutive Login Reward"});

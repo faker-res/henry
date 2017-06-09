@@ -1,0 +1,256 @@
+.col-sm-12(ng-if='!vm.curPlatformText')
+    .text-center
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.row(ng-if='vm.curPlatformText')
+    .col-md-3
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"WechatPay Group" | translate}}
+            .panel-body
+                div(ng-if='!vm.platformWechatPayGroupList || vm.platformWechatPayGroupList.length==0', style="height: 50px; overflow-y: auto;")
+                    label.text-danger {{"NO_WECHATPAY_GROUP_MESSAGE" | translate}}
+                ul.list-group(ng-if='vm.platformWechatPayGroupList.length > 0', style="height: 430px; overflow-y: auto;")
+                    li.list-group-item(ng-repeat='(i,wechatPayGroup) in vm.platformWechatPayGroupList', ng-click='vm.wechatPayGroupClicked(i,wechatPayGroup)', ng-class='{active: vm.SelectedWechatPayGroupNode === wechatPayGroup}')
+                        text {{wechatPayGroup.name}}
+                        i.fa.fa-star.pull-right.margin-right-5(ng-show='wechatPayGroup.bDefault')
+                .btn-group.text-center(style="border-radius:9px", role="group")
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Create')", data-toggle="modal", ng-click='vm.newWechatPayGroup={};', data-target='#modalAddWechatPayGroup')
+                        text {{"ADD" | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Delete')", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalRemoveWechatPayGroup', ng-click='')
+                        text {{"DELETE" | translate}}
+                        img.img-delete
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalRenameWechatPayGroup', ng-click='vm.initRenameWechatPayGroup()')
+                        text {{"EDIT" | translate}}
+                        img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformWechatPayGroupList.length>0)", data-toggle="modal", data-target='#modalSetWechatPayGroupDefault')
+                        text {{"Default" | translate}}
+                        img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'AddPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalAddPlayersToWechatPayGroup', ng-click='vm.preparePlayerToGroupDialog("WechatPayGroup","#playertoWechatPayGroupDataTable")')
+                        text {{"ADD_PLAYER" | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'AddAllPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedWechatPayGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToWechatPayGroup', ng-click='vm.addAllPlayerToWechatResult=""')
+                        text {{"ADD_ALL_PLAYER" | translate}}
+                        img.img-create
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"WechatPay Group" | translate}} : {{vm.SelectedWechatPayGroupNode.name}} ({{vm.SelectedWechatPayGroupNode.displayName}})
+            .panel-body
+                .text-center(ng-if='!vm.SelectedWechatPayGroupNode')
+                    label.text-danger {{"NO_WECHATPAY_GROUP_MESSAGE" | translate}}
+                .well
+                    .inlineBlk.margin-right-5
+                        .control-label {{"TITLE" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterWechatPayTitle')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"ACCOUNT" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterWechatPayAcc')
+                    .inlineBlk
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.wechatPayGroupClicked(1,vm.SelectedWechatPayGroupNode)") {{"FILTER" | translate}}
+                #WechatPayList.panel-group(ng-if='vm.SelectedWechatPayGroupNode')
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#WechatPayList", href='#includedWechatPays', ng-click='vm.showWechatPayCate="include";vm.toggleBankType()')
+                            h4.panel-title
+                                text {{'Included WechatPays' | translate}}
+                                span(ng-if='vm.includedWechatPays') &nbsp;:&nbsp;({{vm.includedWechatPays.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.includedWechatPays') {{'Loading WechatPays' | translate}}...
+                        #includedWechatPays.panel-collapse.collapse.in
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedWechatPays', class='{{vm.highlightWechatPay[v.accountNumber]}}', ng-click='vm.wechatPayClicked(i,v,"in")')
+                                    table.bg-pale
+                                        tr
+                                            td.text-center(rowspan="5")
+                                                i.fa.fa-money.text-danger
+                                            td {{'TITLE' | translate}}
+                                            td.text-success {{v.name}}
+                                        tr
+                                            td {{'ACCOUNT' | translate}}
+                                            td.text-success {{v.accountNumber}}
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#WechatPayList", href='#excludedWechatPays', ng-click='vm.showWechatPayCate="exclude";vm.toggleBankType()')
+                            h4.panel-title
+                                text {{'Excluded WechatPays' | translate}}
+                                span(ng-if='vm.excludedWechatPays') &nbsp;:&nbsp;({{vm.excludedWechatPays.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.excludedWechatPays') {{'Loading WechatPays' | translate}}...
+                        #excludedWechatPays.panel-collapse.collapse
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedWechatPays', class='{{vm.highlightWechatPay[v.accountNumber]}}', ng-click='vm.wechatPayClicked(i,v,"ex")')
+                                    table.bg-pale
+                                        tr
+                                            td.text-center(rowspan="5")
+                                                i.fa.fa-money.text-danger
+                                            td {{'TITLE' | translate}}
+                                            td.text-success {{v.name}}
+                                        tr
+                                            td {{'ACCOUNT' | translate}}
+                                            td.text-success {{v.accountNumber}}
+                .panel.panel-info(ng-if='vm.curWechatPay')
+                    .panel-heading.panel-heading-sm
+                        h4.panel-title(style='display:inline-block') {{'WechatPay' | translate}} : {{vm.curWechatPay.name}}
+                    .panel-body(style='padding:5px')
+                        .wechatPayPropFlex
+                            .wechatPayPropdiv
+                                text {{'wechatPayAccount' | translate}}
+                                label.text-success {{vm.curWechatPay.accountNumber}}
+                            .wechatPayPropdiv
+                                text {{'TITLE' | translate}}
+                                label.text-success {{vm.curWechatPay.name}}
+                div(ng-if='vm.curWechatPay')
+                    div(ng-if='vm.showWechatPayCate=="include"')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update')", ng-click='vm.wechatPaytoWechatPayGroup("detach")')
+                            i.fa.fa-minus-square
+                            text {{"EXCLUDE" | translate}}
+                    div(ng-if='vm.showWechatPayCate=="exclude"')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Update')", ng-click='vm.wechatPaytoWechatPayGroup("attach")')
+                            i.fa.fa-plus-square
+                            text {{"INCLUDE" | translate}}
+
+// Modal - add wechat pay group
+#modalAddWechatPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add WechatPay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"WechatPay Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newWechatPayGroup.name')
+                            .form-group
+                                .control-label {{"WechatPay Group Display Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newWechatPayGroup.displayName')
+                            .form-group
+                                .control-label {{"WechatPay Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newWechatPayGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.addWechatPayGroup(vm.newWechatPayGroup)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+// Modal - Remove wechat pay group
+#modalRemoveWechatPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Remove WechatPay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"WechatPay Group Name" | translate}}
+                                label {{vm.SelectedWechatPayGroupNode.name}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.removeWechatPayGroup(vm.SelectedWechatPayGroupNode)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+// Modal - Rename wechat pay group
+#modalRenameWechatPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Rename WechatPay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"WechatPay Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newWechatPayGroup.name')
+                            .form-group
+                                .control-label {{"WechatPay Group Display Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newWechatPayGroup.displayName')
+                            .form-group
+                                .control-label {{"WechatPay Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newWechatPayGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.renameWechatPayGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+// Modal - Set default wechat pay group
+#modalSetWechatPayGroupDefault.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"WechatPay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                label.control-label {{"Please choose default WechatPay group" | translate}}
+                                div(ng-repeat='(i,v) in vm.platformWechatPayGroupList')
+                                    label {{v.name}} ({{v.displayName}})
+                                        input.pull-left.margin-right-5(type='radio', name='defaultWechatPayGroup', ng-model='vm.defaultWechatPayGroup', ng-value='v._id')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitDefaultWechatPayGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+// Modal - Add players to wechat pay group
+#modalAddPlayersToWechatPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        label {{"Add Player to WechatPay group"|translate}}&nbsp;:&nbsp;{{vm.SelectedWechatPayGroupNode.name}}
+                        br
+                        .well
+                            .inlineBlk.margin-right-5
+                                label {{'WechatPayGroup' | translate}}
+                                select.form-control(ng-model='vm.playerToGroupFilterObj.filter.wechatPayGroup')
+                                    option(value='all') {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.platformWechatPayGroupList', value='{{v._id}}') {{v.name}}({{v.displayName}})
+                            .inlineBlk.margin-right-5
+                                label {{'PLAYER_LEVEL' | translate}}
+                                select.form-control(ng-model='vm.playerToGroupFilterObj.filter.playerLevel')
+                                    option(value='all') {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                            .inlineBlk.margin-right-5
+                                label {{'USER_NAME' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerToGroupFilterObj.filter.name')
+                            .inlineBlk.margin-right-5
+                                label {{'MIN_TOPUP_TIMES' | translate}}
+                                input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.topUpTimes')
+                            .inlineBlk.margin-right-5
+                                label {{'CREDIT' | translate}}
+                                input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.validCredit')
+                            .inlineBlk
+                                button.btn.btn-primary.common-button(ng-click='vm.playerToGroupFilter(true,"alipay")') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-show='vm.loadingPlayerTable')
+                                label.blink.text-danger {{'Loading' | translate}}
+                        text.text-danger(ng-show='vm.players.length==0') {{"No player is found."|translate}}
+                        label {{"Total" | translate}} {{vm.playerToGroupFilterObj.totalCount}} {{"records" | translate}}
+                        table#playertoWechatPayGroupDataTable.display(style="width:100%")
+                            thead
+                        #playertoWechatPayGroupDataTablePage
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitAddPlayersToWechatPayGroup()") {{"ADD" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalAddAllPlayersToWechatPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            label {{"Add All Player to WechatPay group"|translate}}&nbsp;:&nbsp;{{vm.SelectedWechatPayGroupNode.name}}
+                            br
+                            label {{"Please confirm your action." | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(ng-show='!vm.addAllPlayerToWechatResult' ng-click="vm.submitAddAllPlayersToWechatPayGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(ng-show='!vm.addAllPlayerToWechatResult' data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-success.common-button(ng-show='vm.addAllPlayerToWechatResult' data-dismiss='modal') {{"CONFIRM" | translate}}
+                label(ng-show='vm.addAllPlayerToWechatResult') {{vm.addAllPlayerToWechatResult}}

@@ -78,6 +78,70 @@
     <textarea id="playerRegConsole"></textarea>
 </div>
 
+<h3>TEST PLAYER WITH PARTNER REGISTRATION (玩家+推广渠道开户)</h3>
+<div class="test-container">
+    <div>
+        <label id="playerPartnerName">Player name
+            <input type=text name="name">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerRealName">Real name
+            <input type=text name="realName">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerPassword">Password
+            <input type=text name="password">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerPlatformId">Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerReferral">Referral Name
+            <input type=text name="referral">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerDomain">Domain Name
+            <input type=text name="domain">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerPhone">Telephone
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerEmail">Email
+            <input type=text name="email">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerCode">Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <div>
+        <button id="getplayerPartnerRegCaptcha">Get Captcha Code</button>
+        <img id="playerPartnerRegCaptchaImg"/>
+    </div>
+    <p></p>
+    <div>
+        <label id="playerPartnerCaptchaCode">Captcha Code
+            <input id="playerPartnerCaptchaCodeInput" type=text name="captcha">
+        </label>
+    </div>
+
+    <div>
+        <button id="playerPartnerReg" data-api-name="createPlayerPartner">Register</button>
+    </div>
+    <textarea id="playerPartnerRegConsole"></textarea>
+</div>
+
 <h3>TEST PLAYER LOGIN (登录)</h3>
 
 <div class="test-container">
@@ -118,6 +182,69 @@
     </div>
 </div>
 
+<h3>TEST PLAYER PARTNER LOGIN (玩家+推广渠道登录)</h3>
+
+<div class="test-container">
+
+    <label id="playerPartnerPlatformIdLogin">Platform Id
+        <input id="playerPartnerPlatformIdLoginInput" type=text name="platformId">
+    </label>
+    <div></div>
+    <label id="playerPartnerNameLogin">Username
+        <input id="playerPartnerNameLoginInput" type=text name="name">
+    </label>
+    <div>
+        <label id="playerPartnerLoginPassword">Password
+            <input id="playerPartnerLoginPasswordInput" type=text name="password">
+        </label>
+    </div>
+    <div>
+        <label id="playerPartnerLoginClientDomain">Client Domain
+            <input id="playerPartnerLoginClientDomainInput" type=text name="clientDomain">
+        </label>
+    </div>
+    <div class="playerCaptcha">
+        <button id="getLoginCaptcha1">Get Captcha Code</button>
+        <img id="playerLoginCaptchaImg"/>
+    </div>
+    <div class="playerCaptcha">
+        <label id="captchaCode1">Captcha Code
+            <input id="captchaCodeInput1" type=text name="captcha">
+        </label>
+    </div>
+    <div>
+        <button id="playerPartnerLogin" data-api-name="loginPlayerPartner">Login</button>
+    </div>
+    <div>
+        <textarea id="playerPartnerLoginConsole"></textarea>
+    </div>
+</div>
+
+<h3>TEST PLAYER PARTNER LOGIN WITH SMS (玩家+推广渠道电话号码登录)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get Verification Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+
+    <div>
+        <button data-api-name="loginPlayerPartnerWithSMS">Login With SMS</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
 
 <h3>TEST PLAYER LOGOUT (注销)</h3>
 <div class="test-container">
@@ -132,6 +259,26 @@
     </div>
     <div>
         <textarea id="playerLogoutOutput"></textarea>
+    </div>
+</div>
+
+<h3>TEST PLAYER PARTNER LOGOUT (玩家+推广渠道注销)</h3>
+<div class="test-container">
+    <div>
+        <label>Player ID
+            <input type=text name="playerId">
+        </label>
+    </div>
+        <label>Partner ID
+            <input type=text name="partnerId">
+        </label>
+    <div>
+    </div>
+    <div>
+        <button id="playerPartnerLogoutSuccess" data-api-name="logoutPlayerPartner">Logout</button>
+    </div>
+    <div>
+        <textarea id="playerPartnerLogoutOutput"></textarea>
     </div>
 </div>
 
@@ -152,6 +299,11 @@
 
 <h3>TEST GET VERIFICATION CODE (获取手机验证码)</h3>
 <div class="test-container">
+    <div>
+        <label id="platformId">platformId
+            <input id="platformId" type=text name="platformId">
+        </label>
+    </div>
     <div>
         <label id="phone">Enter Phone Number
             <input id="phoneinput" type=text name="phoneNumber">
@@ -182,6 +334,24 @@
     </label>
     <div>
         <button data-api-name="get">Get Player Information</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>GET PLAYER PARTNER INFORMATION(获取玩家+推广渠道基本信息)</h3>
+<div class='test-container'>
+    <label>Player ID
+        <input name="playerId" type=text>
+    </label>
+    <div>
+        <label>Partner ID
+            <input name="partnerId" type=text>
+        </label>
+    </div>
+    <div>
+        <button data-api-name="getPlayerPartner">Get Player Partner Information</button>
     </div>
     <div>
         <textarea></textarea>
@@ -231,6 +401,11 @@
             <input id="bankAddressInput" type=text name="bankAddress">
         </label>
     </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
     <p></p>
 
     <div>
@@ -238,6 +413,65 @@
         <button id="ModifyPlayerPayment" data-api-name="updatePaymentInfo">Update Player Payment Information</button>
         <div>
             <textarea id="ModifyPlayerPaymentOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>MODIFY PLAYER PARTNER PAYMENT INFORMATION (修改玩家+推广渠道的支付信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label name="playerId">Player Id
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Bank Name
+            <input type=text name="bankName">
+        </label>
+    </div>
+    <div>
+        <label>Bank Account
+            <input type=text name="bankAccount">
+        </label>
+    </div>
+    <div>
+        <label>Account Name
+            <input type=text name="bankAccountName">
+        </label>
+    </div>
+    <div>
+        <label>Account Type
+            <input type=text name="bankAccountType">
+        </label>
+    </div>
+    <div>
+        <label>Account City
+            <input type=text name="bankAccountCity">
+        </label>
+    </div>
+    <div>
+        <label>Bank Branch
+            <input type=text name="bankBranch">
+        </label>
+    </div>
+    <div>
+        <label>Bank Address
+            <input type=text name="bankAddress">
+        </label>
+    </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <!--For testing Modify the player payment information API (8)-->
+        <button data-api-name="updatePlayerPartnerPaymentInfo">Update</button>
+        <div>
+            <textarea></textarea>
         </div>
     </div>
 </div>
@@ -260,12 +494,55 @@
             <input id="playerNewPasswordInput" name="newPassword" type=text>
         </label>
     </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
     <p>
     <div>
         <!--For testing Modify the player login password API (9)-->
         <button id="modifyPassword" data-api-name="updatePassword">Update Player Password</button>
         <div>
             <textarea id="modifyPasswordOutput">Show Output</textarea>
+        </div>
+    </div>
+</div>
+
+<h3>MODIFY PLAYER + PARTNER PASSWORD INFORMATION (修改玩家+推广渠道登录密码)</h3>
+<div class="test-container">
+    <div>
+        <label>Player ID
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Partner ID
+            <input name="partnerId" type="text">
+        </label>
+    </div>
+    <div>
+        <label>Old Password
+            <input name="oldPassword" type=text>
+        </label>
+    </div>
+
+    <div>
+        <label>New Password
+            <input name="newPassword" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <p>
+    <div>
+        <!--For testing Modify the player login password API (9)-->
+        <button data-api-name="updatePasswordPlayerPartner">Update Player Password</button>
+        <div>
+            <textarea>Show Output</textarea>
         </div>
     </div>
 </div>
@@ -365,6 +642,32 @@
     </div>
     <div>
         <button data-api-name="authenticate">Authenticate Token</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Verify the player and partner authentication by token when Connection Lost after login (玩家+推广渠道链接验证) </h3>
+<div class='test-container'>
+    <!--For testing Get player information API (7)-->
+    <div>
+        <label>Player Id
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input name="partnerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Token
+            <input name="token" type=text>
+        </label>
+    </div>
+    <div>
+        <button data-api-name="authenticatePlayerPartner">Authenticate Token</button>
     </div>
     <div>
         <textarea></textarea>
@@ -643,6 +946,78 @@
         <button id="ModifyPlayerName" data-api-name="update">Update Player Information</button>
         <div>
             <textarea id="ModifyPlayerInfoOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>UPDATE PLAYER PHONE NUMBER WITH SMS (通过短信验证码修改玩家手机号码)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Player Id
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Old Number
+            <input type=number name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>New Number
+            <input type=number name="newPhoneNumber">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get Verification Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+
+    <div>
+        <button data-api-name="updatePhoneNumberWithSMS">Update</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>UPDATE PLAYER PARTNER PHONE NUMBER WITH SMS (通过短信验证码修改玩家+推广渠道手机号码)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Player Id
+            <input name="playerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Old Number
+            <input type=number name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>New Number
+            <input type=number name="newPhoneNumber">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get Verification Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+
+    <div>
+        <button data-api-name="updatePlayerPartnerPhoneNumberWithSMS">Update</button>
+        <div>
+            <textarea></textarea>
         </div>
     </div>
 </div>

@@ -117,6 +117,7 @@ define(['js/app'], function (myApp) {
                     tickLength: 0,
                     mode: "time",
                     minTickSize: [1, "day"],
+                    timezone: "browser"
                 },
                 axisLabels: {
                     show: false
@@ -347,6 +348,10 @@ define(['js/app'], function (myApp) {
                         } else {
                             var storedPlatform = $cookies.get("platform");
                             if (storedPlatform) {
+                                if(storedPlatform === '_allPlatform') {
+                                    storedPlatform = vm.platformList[0].name;
+                                }
+
                                 vm.platformList.forEach(
                                     platform => {
                                         if (platform.name == storedPlatform) {
@@ -420,7 +425,7 @@ define(['js/app'], function (myApp) {
 
                             //common
                             $('.day .which').prepend($translate('Today') + ' ');
-                            $('.week .which').prepend($translate('This Week') + ' ');
+                            $('.week .which').prepend($translate('7 Days') + ' ');
                             $('.dashboardDiv .statement').html($translate('View Details'));
 
                             $('.dashboardDiv a.href').click(function () {

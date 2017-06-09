@@ -920,6 +920,9 @@ ul.roleList {
     width: 30% !important;
 }
 
+.width10Per {
+    width: 10%;
+}
 .width30Per {
     width: 30%;
 }
@@ -1546,6 +1549,10 @@ table.stronger-bottom, tr.stronger-bottom > td, td.stronger-bottom {
 
 .inlineBlk button.ms-choice {
     background: transparent;
+}
+
+.form-control button.ms-choice {
+    border: 0;
 }
 
 #proposalRight #proposalDataTableDiv #search .ms-parent
@@ -2318,7 +2325,8 @@ tr.sn-selected, td.sn-selected {
     border: 1px solid #fdd;
     padding: 2px;
     background-color: #fee;
-    opacity: 0.80
+    opacity: 0.80;
+    z-index: 2000;
 }
 
 .modal-body .panel-body:last-child {

@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 db = db.getSiblingDB("playerdb");
 db.dropDatabase();
 
@@ -33,6 +27,7 @@ sh.shardCollection("logsdb.playerConsumptionSummary", {
     platformId: 1,
     playerId: 1,
     gameType: 1,
+    summaryDay: 1,
     bDirty: 1
 }, {unique: true});
 sh.shardCollection("logsdb.playerConsumptionWeekSummary", {date: 1, _id: 1});
@@ -54,7 +49,7 @@ sh.shardCollection("logsdb.playerPermissionLog", {createTime: 1, _id: 1});
 sh.shardCollection("logsdb.playerCreditTransferLog", {createTime: 1, _id: 1});
 sh.shardCollection("logsdb.playerClientSourceLog", {createTime: 1, _id: 1});
 sh.shardCollection("logsdb.playerStatusChangeLog", {createTime: 1, _id: 1});
-sh.shardCollection("logsdb.rewardLog", {operationTime: 1, _id: 1});
+sh.shardCollection("logsdb.rewardLog", {createTime: 1, _id: 1});
 sh.shardCollection("logsdb.settlementLog", {createTime: 1, _id: 1});
 sh.shardCollection("logsdb.partnerCommissionRecord", {createTime: 1, _id: 1});
 sh.shardCollection("logsdb.paymentAPILog", {createTime: 1, _id: 1});

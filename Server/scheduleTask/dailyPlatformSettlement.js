@@ -1,9 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 /*
  * Daily platform settlement
  */
@@ -221,24 +215,24 @@ var dailyPlatformSettlement = {
                     error: error
                 })
             )
-        ).then(
-            //settlement for partner commission
-            () => dbPartner.startPlatformPartnerCommissionSettlement(platformId, true).catch(
-                error => Q.reject({
-                    name: "DBError",
-                    message: "Error performing platform partner commission settlement!",
-                    error: error
-                })
-            )
-        ).then(
-            //settlement for partner children commission
-            () => dbPartner.startPlatformPartnerChildrenCommissionSettlement(platformId, true).catch(
-                error => Q.reject({
-                    name: "DBError",
-                    message: "Error performing platform partner children commission settlement!",
-                    error: error
-                })
-            )
+        // ).then(
+        //     //settlement for partner commission
+        //     () => dbPartner.startPlatformPartnerCommissionSettlement(platformId, true).catch(
+        //         error => Q.reject({
+        //             name: "DBError",
+        //             message: "Error performing platform partner commission settlement!",
+        //             error: error
+        //         })
+        //     )
+        // ).then(
+        //     //settlement for partner children commission
+        //     () => dbPartner.startPlatformPartnerChildrenCommissionSettlement(platformId, true).catch(
+        //         error => Q.reject({
+        //             name: "DBError",
+        //             message: "Error performing platform partner children commission settlement!",
+        //             error: error
+        //         })
+        //     )
         ).then(
             // We want to do this before the player level data is reset below
             () => dbPlatform.checkPlayerLevelDownForPlatform(platformId).catch(
@@ -265,20 +259,23 @@ var dailyPlatformSettlement = {
      * re-calculated again later at the usual settlement time.  This is used to prepare data for the report.
      *
      * @param platformObjId
+     * @param bUpdate
+     * @param isToday
      */
-    manualPlatformPartnerCommissionSettlement: function (platformObjId, isToday) {
+    manualPlatformPartnerCommissionSettlement: function (platformObjId, bUpdate, isToday) {
         return Q.resolve().then(
             //settlement for partner commission
-            () => dbPartner.startPlatformPartnerCommissionSettlement(platformObjId, false, isToday).catch(
+            () => dbPartner.startPlatformPartnerCommissionSettlement(platformObjId, bUpdate, isToday).catch(
                 error => Q.reject({
                     name: "DBError",
                     message: "Error performing manual platform partner commission settlement!",
                     error: error
                 })
             )
-        ).then(
+        )
+        .then(
             //settlement for partner children commission
-            () => dbPartner.startPlatformPartnerChildrenCommissionSettlement(platformObjId, false, isToday).catch(
+            () => dbPartner.startPlatformPartnerChildrenCommissionSettlement(platformObjId, bUpdate, isToday).catch(
                 error => Q.reject({
                     name: "DBError",
                     message: "Error performing manual platform partner children commission settlement!",

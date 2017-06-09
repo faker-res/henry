@@ -30,6 +30,9 @@
                 .full-width-input-block(ng-if='vm.rewardAttrConst.canApply.indexOf(vm.showRewardTypeData.name)>-1')
                     label {{"REWARD_NEED_APPLY" | translate}}
                     input.form-control(type='checkbox', ng-model='vm.showReward.needApply', ng-disabled='vm.platformRewardShowEdit()')
+                .full-width-input-block
+                    label {{"REWARD_CLIENT_APPLY" | translate}}
+                    input.form-control(type='checkbox', ng-model='vm.showReward.canApplyFromClient', ng-disabled='vm.platformRewardShowEdit()')
                 .full-width-input-block(ng-if='vm.rewardAttrConst.canSettle.indexOf(vm.showRewardTypeData.name)>-1')
                     label {{"REWARD_NEED_SETTLEMENT" | translate}}
                     input.form-control(type='checkbox', ng-model='vm.showReward.needSettlement', ng-disabled='vm.platformRewardShowEdit()')
@@ -67,6 +70,8 @@
                     include ./reward-event-type/PlayerConsumptionReturn
                 div(ng-if='vm.showRewardTypeData.name=="PlayerConsumptionIncentive"')
                     include ./reward-event-type/PlayerConsumptionIncentive
+                div(ng-if='vm.showRewardTypeData.name=="PlayerDoubleTopUpReward"')
+                    include ./reward-event-type/PlayerDoubleTopUpReward
                 div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpReturn"')
                     include ./reward-event-type/PlayerTopUpReturn
                 div(ng-if='vm.showRewardTypeData.name=="GameProviderReward"')
@@ -89,6 +94,8 @@
                     include ./reward-event-type/PlayerReferralReward
                 div(ng-if='vm.showRewardTypeData.name=="PlayerRegistrationReward"')
                     include ./reward-event-type/PlayerRegistrationReward
+                div(ng-if='vm.showRewardTypeData.name=="PlayerConsecutiveLoginReward"')
+                    include ./reward-event-type/PlayerConsecutiveLoginReward
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.

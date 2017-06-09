@@ -42,7 +42,7 @@
         //    text(ng-if="vm.selectedSinglePlayer.status != 1 ") {{"ENABLE" | translate}}
         //    img.img-delete
         //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalEditPlayer')
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.playerNewPassword=""', data-target='#modalPlayerPasswordReset')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset')
             text {{"RESET_PASSWORD" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ForbidTopupTypes')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerForbidTopUpType()' data-target='#modalPlayerForbidTopupTypes')
@@ -60,7 +60,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()')
             text {{"Payment Info History" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerFeedback')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalAddPlayerFeedback')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'AddFeedback')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalAddPlayerFeedback')
             text {{"ADD_FEEDBACK" | translate}}
             i.fa.fa-retweet
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'referrals')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerReferral()')
@@ -69,55 +69,70 @@
 .col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerTopUp')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerManualTopUp', ng-click='vm.initPlayerManualTopUp();')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyManualTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerManualTopUp', ng-click='vm.initPlayerManualTopUp();')
             text {{"APPLY_MANUAL_TOPUP" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerBonus')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerBonus();', data-target='#modalPlayerBonus')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyAlipayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerAlipayTopUp', ng-click='vm.initPlayerAlipayTopUp();')
+            text {{"APPLY_ALIPAY_TOPUP" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyWechatPayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerWechatPayTopUp', ng-click='vm.initPlayerWechatPayTopUp();')
+            text {{"APPLY_WECHATPAY_TOPUP" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'applyBonus')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerBonus();', data-target='#modalPlayerBonus')
             text {{"APPLY_BONUS" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerReward')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerApplyReward();')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'applyReward')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerApplyReward();')
             text {{"APPLY_REWARD" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'AddRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerAddRewardTask();')
             text {{"Add Reward Task" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.initManualUnlockRewardTask();')
+            text {{"Manual Unlock Reward Task" | translate}}
+            img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'RepairPayment')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowRepairPayment("#modalRepairPayment")')
             text {{"Repair Payment" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerCredit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerCredit()' data-target='#modalPlayerCredit')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'RepairTransaction')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerCredit()' data-target='#modalPlayerCredit')
             text {{"Repair Transaction" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerCredit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerCreditAdjustment("adjust")' data-target='#modalPlayerCreditAdjustment')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditAdjustment')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerCreditAdjustment("adjust")' data-target='#modalPlayerCreditAdjustment')
             text {{"CREDIT_ADJUSTMENT" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ConsumptionReturnFix')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerCreditAdjustment("returnFix")' data-target='#modalPlayerCreditAdjustment')
             text {{"ConsumptionReturnFix" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ModifyGamePassword')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareModifyPlayerGamePassword()' data-target='#modalModifyGamePassword')
+            text {{"ModifyGamePassword" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ClearProposalLimit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearProposalLimit', ng-click='vm.prepareClearPlayerProposalLimit()')
+            text {{"ClearProposalLimit" | translate}}
+            img.img-edit
 .col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerTopUp')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowPagePlayerTopup()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'TopupRecord')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowPagePlayerTopup()')
             text {{"Topup Record" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerBonus')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerBonusHistory();', data-target='#modalPlayerBonusHistory')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'BonusHistory')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerBonusHistory();', data-target='#modalPlayerBonusHistory')
             text {{"Bonus History" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerReward')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerRewardHistory();', data-target='#modalPlayerRewardHistory')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'RewardHistory')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerRewardHistory();', data-target='#modalPlayerRewardHistory')
             text {{"Reward History" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerExpenses')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowPlayerExpense()')
             text {{"PLAYER_EXPENSES" | translate}}
             i.fa.fa-table
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerCredit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.showPagedPlayerCreditChangeLog()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.showPagedPlayerCreditChangeLog()')
             text {{"Credit Change Log" | translate}}
             img.img-edit
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'SimilarPlayer')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowSimilarPlayers()')
         //    text {{"Similar Players" | translate}}
         //    img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerFeedback')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowFeedbackRecord()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'FeedbackHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowFeedbackRecord()')
             text {{"Feedback History" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Permission')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
             text {{"Permission History" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'mailLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initMailLog()', data-target='#modalMailLog')
@@ -132,7 +147,31 @@
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ModifyCredit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerMerchant()' data-target='#modalPlayerMerchant')
             text {{"MERCHANT_GROUP" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'rewardTaskLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initRewardTaskLog()', data-target='#modalRewardTaskLog')
+            text {{"RewardTask Log" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initGameCreditLog()', data-target='#modalGameCreditLog')
+            text {{"GAME_CREDIT_LOG" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerCreditLog()', data-target='#modalPlayerCreditLog')
+            text {{"Player Credit Log" | translate}}
+            img.img-edit
 
+// All Players Query
+.col-md-12.playerBtn
+    hr.margin-top-bottom-small
+    .btn-group.margin-small
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
+            text {{"Platform Credit Transfer Log" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'TriggerAutoProposal')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.triggerAutoProposal()')
+            text {{"Trigger Auto Approval" | translate}}
+            img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'TriggerSavePlayersCredit')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.triggerSavePlayersCredit()')
+            text {{"Trigger Save Players Credit" | translate}}
+            img.img-edit
+
+// Sub-views
 #modalCreatePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
@@ -146,9 +185,9 @@
                             .row
                                 include player-create-form
             .modal-footer
-                button.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_new_player.$invalid || vm.passwordLengthCheck(vm.newPlayer.password)', ng-click="vm.createNewPlayer();") {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(ng-disabled='form_new_player.$invalid || vm.passwordLengthCheck(vm.newPlayer.password)', ng-click="vm.createNewPlayer();") {{"CREATE" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
-
+include modalGameCreditLog
 #modalDeletePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content
@@ -183,7 +222,7 @@
                         include player-edit-form
         .dialog-footer
             button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-            button.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+            button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
 #modalEditPlayerPayment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
         .modal-content
@@ -194,7 +233,7 @@
                 form(name='form_playerPaymentInfo').well
                     .form-group-col-md-6
                         label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
-                        input.form-control(ng-model='vm.playerPayment.bankAccountName', disabled)
+                        input.form-control(ng-model='vm.playerPayment.bankAccountName', ng-disabled='!vm.isEditingPlayerPayment')
                     .form-group-col-md-6
                         label.control-label(style='width:100%') *{{'BANK_NAME' | translate}}
                         select.form-control(ng-model='vm.playerPayment.bankName', ng-show='!vm.isEditingPlayerPayment', disabled)
@@ -225,8 +264,12 @@
                     .form-group-col-md-6
                         label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
                         select.form-control(ng-model='vm.playerPayment.bankAccountType', ng-disabled='!vm.isEditingPlayerPayment')
-                            option(value='2') {{'Debit Card'|translate}}
-                            option(value='1') {{'Credit Card'|translate}}
+                            option(value='2') {{'Debit Card '|translate}} 
+                            option(value='1') {{'Credit Card '|translate}}
+                            option(value='3') {{'储存卡'|translate}} 
+                            option(value='4') {{'储蓄卡'|translate}} 
+                            option(value='5') {{'商务理财卡'|translate}}
+                            option(value='6') {{'工商银行一卡通'|translate}} 
                     .form-group-col-md-6
                         .col-md-4(style='padding-left:0')
                             label.control-label {{"PHONE_PROVINCE" | translate}}
@@ -296,7 +339,7 @@
                             .col-md-12.textareaDetail
                                 textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
             .modal-footer
-                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.updatePlayerCredit();") {{"UPDATE" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.repairTransaction();") {{"UPDATE" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 #modalPlayerCreditAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
@@ -329,6 +372,29 @@
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.creditChange.updateAmount || vm.creditChange.finalValidAmount<0', ng-click="vm.updatePlayerCredit();") {{"UPDATE" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalModifyGamePassword.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ModifyGamePassword" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        form(name='form_modifyGamePassword').well
+                            .form-group
+                                label.control-label {{'PROVIDER' | translate}}
+                                select.form-control(ng-model='vm.playerModifyGamePassword.provider', required)
+                                    option(ng-repeat='provider in vm.platformProviderList', value='{{provider.providerId}}') {{provider.name}}
+                            .form-group
+                                label.control-label {{'NEW_PASSWORD' | translate}}
+                                input.form-control(ng-model='vm.playerModifyGamePassword.newPassword', required)
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_modifyGamePassword.$invalid', ng-click="vm.modifyGamePassword();") {{"UPDATE" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                label.inlineBlk.margin-right-5(ng-if='vm.playerBonus.resMsg') {{vm.playerModifyGamePassword.resMsg}}
+
 #modalAddPlayerFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         .modal-content
@@ -356,6 +422,7 @@
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePlayerFeedback();") {{"ADD" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
 #modalPlayerPasswordReset.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         .modal-content
@@ -371,6 +438,9 @@
                                 //input.form-control(ng-model='vm.PlayerPassword.PlayerName')
                                 text.text-success(ng-repeat="(i,v) in vm.selectedPlayers") &nbsp;{{v.name}}
                                 span &nbsp;{{"will be reset. Are you sure?"|translate}}
+                            .form-group
+                                input(type='checkbox', ng-model='vm.resetPartnerNewPassword')
+                                text {{"RESET_PARTNER_PASSWORD"|translate}}
                         .well(ng-if='vm.playerNewPassword')
                             .form-group
                                 text The new password for&nbsp;
@@ -383,7 +453,7 @@
                 button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.playerNewPassword', data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog(style='width:95%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -409,6 +479,12 @@
                                     option 100
                                     option 200
                                     option(value='-1') {{'Unlimited' | translate}}
+                            .inlineBlk
+                                label {{'Occupy' | translate}}
+                                select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
+                                    option(value='') {{'any' | translate}}
+                                    option(value='Y') {{'Yes' | translate}}
+                                    option(value='N') {{'No' | translate}}
                             .inlineBlk
                                 button.btn.btn-primary(ng-click='vm.getPlayerExpenseByFilter(true)') {{'SEARCH' | translate}}
                         .well
@@ -710,11 +786,13 @@
                                     th(style='min-width:90px;') {{'TIME' | translate}}
                                     th {{'RESULT' | translate}}
                                     th {{'CONTENT' | translate}}
-                            tbody(ng-if='vm.playerFeedbackData.length>0')
-                                tr(ng-repeat='(i,v) in vm.playerFeedbackData')
+                                    th {{'adminName' | translate}}
+                            tbody(ng-if='vm.playerFeedbackData.data.length>0')
+                                tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
                                     td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
                                     td {{v.result | translate}}
                                     td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
+                                    td {{v.adminId.adminName}}
 
 #playerFeedbackPopover.hide(style="width: 600px")
     label {{"Feedback History"| translate}}
@@ -737,9 +815,11 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")')
-                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | number : 2}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.creditTransfer.showRewardAmount || 0 | number : 2}} )
+                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | number : 3}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.selectedSinglePlayer.lockedCredit || 0 | number : 3}} )
             .modal-body
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.fixPlayerRewardAmount.rewardInfo.length > 0 || vm.fixPlayerRewardAmount.isProcessing', ng-click='vm.sendFixPlayerRewardAmount()') {{'Fix Player RewardAmount' | translate}}
+                label#fixedRewardAmountResult.margin-left-5
                 label.pull-right.blink(ng-show='vm.creditTransfer.needClose') {{'Please close the dialog to refresh the data.' | translate}}
                 table.simple-table
                     thead
@@ -872,10 +952,16 @@
                                             label {{'Test Player' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.isTestPlayer ? 'Yes' : 'No' | translate}}
                                         .inlineBlk
+                                            label {{'Partner' | translate}}
+                                            text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
+                                        .inlineBlk
+                                            label {{'REFERRAL' | translate}}
+                                            text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
+                                        .inlineBlk
                                             label {{'REMARK' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
                                         .inlineBlk
-                                            button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRAL" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRER" | translate}}
                                 tr
                                     td
                                         div {{'PLAYER_CREDIT' | translate}}
@@ -892,7 +978,7 @@
                                     td
                                         .inlineBlk
                                             label {{"TELEPHONE" | translate}}
-                                            text {{vm.selectedSinglePlayer.phoneNumber || 'Unknown' | translate}}
+                                            text {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'PHONE_CITY' | translate}}
                                             text {{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}}
@@ -935,8 +1021,12 @@
                                             text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_TYPE' | translate}}
-                                            text(ng-if='vm.playerPayment.bankAccountType==2') {{'Debit Card' | translate}}
-                                            text(ng-if='vm.playerPayment.bankAccountType==1') {{'Credit Card' | translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card '|translate}} 
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card '|translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==3 || vm.selectedSinglePlayer.bankAccountType=="3"') {{'储存卡'|translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==4 || vm.selectedSinglePlayer.bankAccountType=="4"') {{'储蓄卡'|translate}} 
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==5 || vm.selectedSinglePlayer.bankAccountType=="5"') {{'商务理财卡'|translate}} 
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}} 
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_PROVINCE' | translate}}
                                             text {{vm.showProvinceStr}}
@@ -1092,6 +1182,27 @@
                 label {{"Total" | translate}} {{vm.playerBonusHistory.totalCount}} {{"records" | translate}}
                 table#playerBonusHistoryTbl.common-table(style='min-width:100%')
                 #playerBonusHistoryTblPage.height30
+
+#modalPlayerCreditLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:90%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Player Credit Log" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                #playerCreditLogQuery.well
+                    .inlineBlk
+                        label {{"Start date" | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{"End date" | translate}}
+                        .endTime
+                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerCreditLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                div
+                    label {{"Total" | translate}} {{vm.playerCreditLog.totalCount}} {{"records" | translate}}
+                    table#playerCreditLogTbl.common-table.display(style='min-width:100%')
+                    #playerCreditLogTblPage.height30
+
 #modalPlayerManualTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
         .modal-content
@@ -1170,6 +1281,105 @@
                             td {{vm.playerManualTopUp.responseData.result.cardOwner}}
                             td {{vm.playerManualTopUp.responseData.result.validTime}}
                 label.inlineBlk.wordWrap(ng-if='vm.playerManualTopUp.submitted && vm.playerManualTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerManualTopUp.responseMsg}}
+
+// Modal - Player apply Alipay Topup
+#modalPlayerAlipayTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"APPLY_ALIPAY_TOPUP" | translate}}
+            .modal-body
+                .row
+                    .col-md-12
+                        .well.margin-bottom-5(ng-if='vm.existingAlipayTopup===null')
+                            label.blink {{"Searching existing Alipay topup request..." | translate}}
+                        .well.margin-bottom-5(ng-if='vm.existingAlipayTopup')
+                            .lineThrough(ng-if='vm.existingAlipayTopup.isCanceled')
+                                button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.createTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAlipayTopup.data.amount}}
+                            div(ng-if='!vm.existingAlipayTopup.isCanceled')
+                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+                                label.margin-right-5 {{"Player has pending Alipay topup request already." | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.createTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAlipayTopup.data.amount}}
+                                button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAlipayTopUp()') {{'CANCEL' | translate}}
+                .row(ng-show='vm.existingAlipayTopup===false || vm.existingAlipayTopup.isCanceled')
+                    .col-md-12
+                        form(name='form_alipay_topup').well
+                            .form-group-col-md-6
+                                .control-label
+                                    label {{'CREDIT' | translate}}
+                                    text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
+                                input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerAlipayTopUp.amount', required)
+                                .control-label
+                                    label {{'alipayName' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
+                                .control-label
+                                    label {{'alipayAccount' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
+                                .control-label
+                                    label {{'REMARK' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.remark')
+                                .inlineBlk
+                                    label {{'DEPOSITE_TIME' | translate}}
+                                    .createTime
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerAlipayTopUp.submitted') {{'Submitted' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_alipay_topup.$invalid || form_alipay_topup.$pristine || (vm.existingAlipayTopup && !vm.existingAlipayTopup.isCanceled)', ng-show='!vm.playerAlipayTopUp.submitted', ng-click='vm.applyPlayerAlipayTopUp()') {{'APPLY' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.playerAlipayTopUp.submitted && vm.playerAlipayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerAlipayTopUp.responseMsg}}
+
+// Modal - Player apply WechatPay Topup
+#modalPlayerWechatPayTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"APPLY_WECHATPAY_TOPUP" | translate}}
+            .modal-body
+                .row
+                    .col-md-12
+                        .well.margin-bottom-5(ng-if='vm.existingWechatPayTopup===null')
+                            label.blink {{"Searching existing WechatPay topup request..." | translate}}
+                        .well.margin-bottom-5(ng-if='vm.existingWechatPayTopup')
+                            .lineThrough(ng-if='vm.existingWechatPayTopup.isCanceled')
+                                button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.createTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
+                            div(ng-if='!vm.existingWechatPayTopup.isCanceled')
+                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+                                label.margin-right-5 {{"Player has pending Alipay topup request already." | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.createTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
+                                button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerWechatPayTopUp()') {{'CANCEL' | translate}}
+                .row(ng-show='vm.existingWechatPayTopup===false || vm.existingWechatPayTopup.isCanceled')
+                    .col-md-12
+                        form(name='form_wechatPay_topup').well
+                            .form-group-col-md-6
+                                .control-label
+                                    label {{'CREDIT' | translate}}
+                                    text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
+                                input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerWechatPayTopUp.amount', required)
+                                //.control-label
+                                //    label {{'wechatPayName' | translate}}
+                                //input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
+                                .control-label
+                                    label {{'wechatPayAccount' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayAccount', required)
+                                .control-label
+                                    label {{'REMARK' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.remark')
+                                .inlineBlk
+                                    label {{'DEPOSITE_TIME' | translate}}
+                                    .createTime
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerWechatPayTopUp.submitted') {{'Submitted' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_wechatPay_topup.$invalid || form_wechatPay_topup.$pristine || (vm.existingWechatPayTopup && !vm.existingWechatPayTopup.isCanceled)', ng-show='!vm.playerWechatPayTopUp.submitted', ng-click='vm.applyPlayerWechatPayTopUp()') {{'APPLY' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.playerWechatPayTopUp.submitted && vm.playerWechatPayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerWechatPayTopUp.responseMsg}}
+
 #modalPlayerBonus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
         .modal-content
@@ -1195,6 +1405,21 @@
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                 label.inlineBlk.margin-right-5(ng-if='vm.playerBonus.resMsg') {{vm.playerBonus.resMsg}}
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.playerBonus.showSubmit && !vm.playerBonus.resMsg')
+
+#modalClearProposalLimit.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ClearProposalLimit" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                label {{'ClearProposalLimit' | translate}}
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.clearPlayerProposalLimit.showSubmit', ng-click='vm.requestClearProposalLimit()') {{'APPLY' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+                label.inlineBlk.margin-right-5(ng-if='vm.clearPlayerProposalLimit.resMsg') {{vm.clearPlayerProposalLimit.resMsg}}
+                i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.clearPlayerProposalLimit.showSubmit && !vm.clearPlayerProposalLimit.resMsg')
+
 #modalPlayerApplyReward.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
         .modal-content
@@ -1213,17 +1438,17 @@
                         .clearfix
                         label.control-label(ng-show='!vm.playerAllTopupRecords') {{'Loading' | translate}}
                             i.fa.fa-spin.fa-spinner
-                        select.form-control(ng-model='vm.playerApplyRewardPara.topUpRecordId', ng-if='vm.playerAllTopupRecords && vm.playerApplyRewardShow.selectTopupRecordsMulti===false', required)
+                        select.form-control(ng-model='vm.playerApplyRewardPara.topUpRecordId', ng-if='vm.playerApplyRewardShow.selectTopupRecordsMulti===false', required)
                             option(ng-repeat='(i,v) in vm.playerAllTopupRecords', value='{{v._id}}') {{vm.dateReformat(v.createTime)}} --- (${{v.amount}})
-                        .form-control(ng-repeat='(i,v) in vm.playerAllTopupRecords', ng-if='vm.playerAllTopupRecords && vm.playerApplyRewardShow.selectTopupRecordsMulti')
+                        .form-control(ng-repeat='(i,v) in vm.playerAllTopupRecords', ng-if='vm.playerApplyRewardShow.selectTopupRecordsMulti')
                             label {{vm.dateReformat(v.createTime)}} --- (${{v.amount}})
                                 input.margin-right-5.pull-left(type='checkbox', ng-model='vm.playerApplyRewardShow.topUpRecordIds[v._id]')
                     .form-group(ng-if='vm.playerApplyRewardShow.AmountInput')
                         label.control-label {{'CREDIT' | translate}}
                         input.form-control(type='number', ng-model='vm.playerApplyRewardPara.amount', required)
                     .form-group(ng-if='vm.playerApplyRewardShow.showReferral')
-                        label.control-label {{'referralId' | translate}}
-                        input.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='vm.playerApplyRewardPara.referralId', ng-change='vm.checkPlayerExist("playerId",vm.playerApplyRewardPara.referralId)', required)
+                        label.control-label {{'referralName' | translate}}
+                        input.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='vm.playerApplyRewardPara.referralName', ng-change='vm.checkPlayerExist("name",vm.playerApplyRewardPara.referralName)', required)
                         i#playerValidFalse.margin-left-5.fa.fa-times.text-danger.hidden(style='width:10px;')
                         i#playerValidTrue.margin-left-5.fa.fa-check.text-success.hidden(style='width:10px;')
                     .form-group(ng-if='vm.playerApplyRewardShow.showConsumptionReturn')
@@ -1241,14 +1466,14 @@
                                     td {{v.ratio}}
                                     td {{v.consumptionAmount}}
                                     td {{v.returnAmount}}
-
                 .well(ng-show='vm.playerApplyEventResult.success')
                     label.text-success {{'SUCCESS' | translate}}
                 .well(ng-show='vm.playerApplyEventResult && !vm.playerApplyEventResult.success')
                     label.text-danger {{'FAIL' | translate}}
                     label.form-control {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
             .modal-footer
-                button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','PlayerReward') && !vm.playerApplyEventResult",ng-disabled='form_player_reward.$invalid || form_player_reward.$pristine || !vm.playerApplyRewardPara.code || (vm.playerApplyRewardShow.showReferral && !vm.playerApplyRewardPara.referPlayer)', ng-click='vm.applyPlayerReward()') {{'APPLY' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult && vm.playerApplyRewardShow.manualSignConsecutiveLogin", ng-click='vm.applyPreviousConsecutiveLoginReward()') {{"PREVIOUS_CONSECUTIVE_LOGIN" | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult",ng-disabled='form_player_reward.$invalid || form_player_reward.$pristine || !vm.playerApplyRewardPara.code || (vm.playerApplyRewardShow.showReferral && !vm.playerApplyRewardPara.referPlayer)', ng-click='vm.applyPlayerReward()') {{'APPLY' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
 
 #modalRepairPayment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
@@ -1266,6 +1491,7 @@
                             th {{'proposalId' | translate}}
                             th {{'requestId' | translate}}
                             th {{'CREDIT' | translate}}
+                            th {{'Merchant' | translate}}
                             th {{'merchantUseType' | translate}}
                             th {{'topupType' | translate}}
                             th {{'STATUS' | translate}}
@@ -1275,6 +1501,7 @@
                             td {{v.proposalId}}
                             td {{v.data.requestId}}
                             td {{v.data.amount}}
+                            td {{v.data.merchantNo}}
                             td {{v.merchantUseType$ | translate}}
                             td {{v.topupType$ | translate}}
                             td {{v.status | translate}}
@@ -1381,8 +1608,144 @@
                     .form-group
                         label.control-label {{'rewardAmount' | translate}}
                         input.leftALignNumber.form-control(type='number', min=0, ng-model='vm.playerAddRewadTask.currentAmount', required)
+                    .form-group
+                        label.control-label {{'useConsumption' | translate}}
+                        input.leftALignNumber.form-control(type='checkbox', ng-model='vm.playerAddRewadTask.useConsumption')
+                    .form-group
+                        label.control-label {{'remark' | translate}}
+                        textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.playerAddRewadTask.remark")
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_add_rewad_task.$invalid || form_add_rewad_task.$pristine', ng-show='vm.playerAddRewadTask.showSubmit', ng-click="vm.submitAddPlayerRewardTask()") {{'ADD' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                 label.inlineBlktext-danger.margin-right-5(ng-if='vm.playerAddRewadTask.resMsg') {{vm.playerAddRewadTask.resMsg}}
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.playerAddRewadTask.showSubmit && !vm.playerAddRewadTask.resMsg')
+#modalRewardTaskLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:90%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Reward Task Log" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                #rewardTaskLogQuery.well
+                    .inlineBlk
+                        label {{"Start date" | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{"End date" | translate}}
+                        .endTime
+                    button.btn.btn-primary.common-button(ng-click='vm.getRewardTaskLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                div
+                    label {{"Total" | translate}} {{vm.rewardTaskLog.totalCount}} {{"records" | translate}}
+                    table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
+                    #rewardTaskLogTblPage.height30
+#modalManualUnlockRewardTask.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Manual Unlock Reward Task" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                table.simple-table
+                    thead
+                        tr
+                            th {{'PROPERTY' | translate}}
+                            th {{'VALUE' | translate}}
+                    tbody
+                        tr
+                            td {{'TYPE' | translate}}
+                            td {{vm.curRewardTask.type | translate}}
+                        tr
+                            td {{'CREATE_TIME' | translate}}
+                            td {{vm.dateReformat(vm.curRewardTask.createTime)}}
+                        tr
+                            td {{'STATUS' | translate}}
+                            td {{vm.curRewardTask.status | translate}}
+                        tr
+                            td {{'initAMOUNT' | translate}}
+                            td {{vm.curRewardTask.initAmount || 0}}
+                        tr
+                            td {{'currentAMOUNT' | translate}}
+                            td {{vm.curRewardTask.currentAmount || 0}}
+                        tr
+                            td {{'UNLOCKAMOUNT' | translate}}
+                            td {{vm.curRewardTask.unlockedAmount || vm.curRewardTask.unlockedBonusAmount || 0}} / {{vm.curRewardTask.requiredUnlockAmount || vm.curRewardTask.requiredBonusAmount}}
+                        tr
+                            td {{'REWARD_EVENT' | translate}}
+                            td {{vm.curRewardTask.eventId.name}} ({{vm.curRewardTask.eventId.code}})
+                        tr
+                            td(ng-if='vm.curRewardTask.targetEnable') {{'provider' | translate}}
+                            td(ng-if='!vm.curRewardTask.targetEnable') {{'Disabled Providers' | translate}}
+                            td
+                                label(ng-repeat='(i,v) in vm.curRewardTask.targetProviders') {{v.name}}&nbsp;
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.curRewardTask', ng-click="vm.submitManualUnlockRewardTask()") {{'Unlock Reward' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+                label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
+
+// Platform related sub-views
+#modalPlatformCreditTransferLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Platform Credit Transfer Log" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        #platformCreditTransferLog.adminLogQueryDiv
+                            .inlineBlk
+                                label {{ 'START_DATE' | translate }}
+                                .startTime
+                            .inlineBlk
+                                label {{ 'END_DATE' | translate }}
+                                .endTime
+                            .inlineBlk
+                                label {{ 'Type' | translate }}
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferType')
+                                    option(value='') {{'any' | translate}}
+                                    option(value='transferin') {{'TransferIn' | translate}}
+                                    option(value='transferout') {{'TransferOut' | translate}}
+                            .inlineBlk
+                                label {{ 'provider' | translate }}
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferProvider', ng-options='a.providerId as a.name for a in vm.platformProviderList')
+                                    option(value='') {{'any' | translate}}
+
+                            .inlineBlk
+                                label {{ 'STATUS' | translate }}
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferStatus', style='min-width:100px;height:34px;')
+                                    option(value='') {{'all' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allPlayerCreditTransferStatus', value='{{v}}') {{i | translate}}
+                            .inlineBlk
+                                button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true)') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-if='vm.platformCreditTransferLog.loading')
+                                i.fa.fa-spin.fa-spinner
+                        //label {{"Total" | translate}} {{vm.platformCreditTransferLog.totalCount}} {{"records" | translate}}
+                        table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                        #platformCreditTransferLogTablePage
+
+                        .clearfix
+                        button.common-button.margin-right-5.btn.btn-success(ng-click="vm.prepareRepairTransfer()") {{'RepairTransaction' | translate}}
+                        div(ng-show='vm.showPlatformRepair')
+                            table.col-md-10.col-md-offset-1.paddingTbl.text-center.datatable-sm(ng-show='vm.linkedPlayerTransferId')
+                                tbody
+                                    tr
+                                        td(style='width:25%') {{'playerName' | translate}} : {{vm.selectedThisPlayer.name}}
+                                        td {{'LOCKED_CREDIT' | translate}}
+                                        td {{vm.selectedThisPlayer.lockedCredit | number:2}} ({{'curData' | translate}})
+                                        td --->
+                                        td
+                                            label.text-danger {{vm.creditChange.finalLockedAmount}} ({{'updateData' | translate}})
+                                    tr
+                                        td(style='width:25%') {{'transferID' | translate}} : {{vm.linkedPlayerTransferId}}
+                                        td {{'VALID_CREDIT' | translate}}
+                                        td {{vm.selectedThisPlayer.validCredit | number:2}} ({{'curData' | translate}})
+                                        td --->
+                                        td
+                                            label.text-danger {{vm.creditChange.finalValidAmount}} ({{'updateData' | translate}})
+                            .row
+                                .col-md-6
+                                    label.control-label {{'REMARKS' | translate}}
+                                .col-md-12.textareaDetail
+                                    textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
+                            button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
+

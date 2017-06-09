@@ -1,9 +1,3 @@
-/******************************************************************
- *         Fantasy Player Management System
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 //客户端与服务端通信规则:
 // 使用Json对象进行传输,
     // {"service": "aService", "functionName": "get", "status:": "200/404", "data": null}
@@ -66,7 +60,7 @@ var rootObj = {};
         if (!funcName || !this._connection)
             return;
         var packageData = {service: this.name, functionName: funcName, data: data};
-        //console.log("_sendRequest:", packageData);
+        console.log("_sendRequest:", packageData);
         this._connection.send(JSON.stringify(packageData));
     };
 

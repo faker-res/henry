@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var Q = require("q");
 var should = require('should');
 var WebSocketClient = require('../server_common/WebSocketClient');
@@ -19,6 +13,7 @@ var dbConfig = require("../modules/dbproperties");
 var dbMigration = require('../db_modules/dbMigration');
 
 describe("Test Client API - Game Service", function () {
+    return;
 
     it('Should create player', function (done) {
         dbConfig.collection_players.findOne({name: "vince"}).then(

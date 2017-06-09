@@ -1,9 +1,3 @@
-/******************************************************************
- *        Server
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 const constServerCode = {
     //SUCCESS
     SUCCESS: 200,
@@ -28,6 +22,7 @@ const constServerCode = {
     SESSION_EXPIRED: 411,
     PAYMENT_NOT_AVAILABLE: 413,
     PLAYER_NOT_ENOUGH_CREDIT: 415,
+    PARTNER_NOT_ENOUGH_CREDIT: 415,
     PLAYER_CREDIT_BALANCE_NOT_ENOUGH: 416,
     PLAYER_INVALID_PAYMENT_INFO: 417,
     PLAYER_NO_PERMISSION: 418,
@@ -43,6 +38,14 @@ const constServerCode = {
     PLAYER_TRANSFER_IN_ERROR: 429,
     PLAYER_IS_FORBIDDEN: 430,
     DATA_INVALID: 431,
+    PLAYER_NAME_INVALID: 432,
+    PARTNER_NAME_INVALID: 433,
+    VALIDATION_CODE_INVALID: 434,
+    VALIDATION_CODE_EXPIRED: 435,
+    PLAYER_PENDING_REWARD_PROPOSAL: 436,
+    TEST_GAME_REQUIRE_LOGIN: 430,
+    INVALID_REFERRAL: 437,
+    INVALID_PLATFORM: 438,
 
     // Payment API Server code
     INVALID_PAYMENT_SERVICE_GATEWAY: 401,
@@ -55,7 +58,8 @@ const constServerCode = {
 
 
     DOCUMENT_NOT_FOUND: 420,
-    EXTERNAL_API_TIMEOUT: 430
+    EXTERNAL_API_TIMEOUT: 430,
+    PARTNER_IS_FORBIDDEN:430
 
 };
 

@@ -1,8 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 var Q = require("q");
 var env = require('../config/env').config();
 var dbconfig = require('./../modules/dbproperties');
@@ -21,13 +16,14 @@ var dbProposalProcess = require('./../db_modules/dbProposalProcess');
 var dbAdminInfo = require('../db_modules/dbAdminInfo');
 var dbDepartment = require('../db_modules/dbDepartment');
 var dbRole = require('../db_modules/dbRole');
+var dbPartner = require('../db_modules/dbPartner');
 var constProposalStepStatus = require('../const/constProposalStepStatus');
 var clientApiInstances = require("../modules/clientApiInstances.js");
 
 require('./improveMochaReporting')();
 
 // Instantiate mocked client APIs, so tests can use them, and won't complain that they are missing
-if( env.mode == "qa" ){
+if (env.mode == "qa") {
     clientApiInstances.createContentProviderAPIMocked();
     clientApiInstances.createPaymentAPIMocked();
 }
@@ -41,14 +37,14 @@ var commonTestFunc = {
     testGameName: 'testGame',
     testChannelName: 'testChannelName',
     testRewardRuleName: 'testRewardRuleName',
-    testPartner : 'testPartner',
+    testPartnerName: 'testPartner',
 
     testAdminName: "step1admin",
     testRoleName: "step1Role",
     testDepartName: "step1Department",
 
 
-    createTestPlatform: function () {
+    createTestPlatform: function (data) {
         var date = new Date();
         var platformName = commonTestFunc.testPlatformName + date.getTime();
         var platformData = {
@@ -57,6 +53,11 @@ var commonTestFunc = {
             code: new Date().getTime(),
             description: "a platform for testing"
         };
+
+        if (data) {
+            Object.assign(platformData, data);
+        }
+
         return dbPlatform.createPlatform(platformData);
     },
 
@@ -74,7 +75,7 @@ var commonTestFunc = {
                     platform: platformId,
                     password: '123456',
                     validCredit: 300,
-
+                    realName: "Test Player",
                     phoneNumber: '80808080',
                     email: 'testPlayer@sinonet.com.sg',
 
@@ -94,6 +95,22 @@ var commonTestFunc = {
                 return dbPlayerInfo.createPlayerInfo(playerData);
             }
         );
+    },
+
+    createTestPartner: function (platformId) {
+
+        let date = new Date();
+        let partnerName = commonTestFunc.testPartnerName + date.getTime() + commonTestFunc.getRandomInt();
+
+        let partnerData = {
+            "partnerName": partnerName,
+            "email": "testPartner123@gmail.com",
+            "password": "123123",
+            "platform": platformId,
+            "phoneNumber": "123123123"
+        };
+
+        return dbPartner.createPartner(partnerData);
     },
 
     getTestMerchantGroup: function (platformObjId) {
@@ -169,6 +186,10 @@ var commonTestFunc = {
         return dbPlayerTopUpRecord.createPlayerTopUpRecord(topUpData);
     },
 
+    createTestAutoBonusProposal: function (proposalData) {
+        return new dbconfig.collection_proposal(proposalData).save();
+    },
+
     createTestRewardRule: function () {
         var date = new Date().getTime();
         var rewardRuleData = {
@@ -242,72 +263,81 @@ var commonTestFunc = {
 
 
     removeTestData: function (platformObjId, playerObjIds) {
-        var platformNameQuery = ".*" + commonTestFunc.testPlatformName + "*.";
-        var playerNameQuery = ".*" + commonTestFunc.testPlayerName + "*.";
-        var paymentChannelQuery = ".*" + commonTestFunc.testPaymentChannelName + "*.";
-        var providerQuery = ".*" + commonTestFunc.testProviderName + "*.";
-        var gameQuery = ".*" + commonTestFunc.testGameName + "*.";
-        var adminQuery = ".*" + commonTestFunc.testAdminName + "*.";
-        var departmentQuery = ".*" + commonTestFunc.testDepartName + "*.";
-        var roleQuery = ".*" + commonTestFunc.testRoleName + "*.";
+        let platformNameQuery = ".*" + commonTestFunc.testPlatformName + "*.";
+        let playerNameQuery = ".*" + commonTestFunc.testPlayerName + "*.";
+        let paymentChannelQuery = ".*" + commonTestFunc.testPaymentChannelName + "*.";
+        let providerQuery = ".*" + commonTestFunc.testProviderName + "*.";
+        let gameQuery = ".*" + commonTestFunc.testGameName + "*.";
+        let adminQuery = ".*" + commonTestFunc.testAdminName + "*.";
+        let departmentQuery = ".*" + commonTestFunc.testDepartName + "*.";
+        let roleQuery = ".*" + commonTestFunc.testRoleName + "*.";
+        let partnerQuery = ".*" + commonTestFunc.testPartnerName + "*.";
 
-        var pm1 = dbconfig.collection_platform.find({name: {$regex: platformNameQuery}}, {_id: 1}).then(
+        let pm1 = dbconfig.collection_platform.find({name: {$regex: platformNameQuery}}, {_id: 1}).then(
             platforms => {
                 return dbPlatform.deletePlatform(platforms.map(platform => platform._id));
             }
         );
-        var pm2 = dbconfig.collection_players.remove({name: {$regex: playerNameQuery}});
-        var pm3 = dbconfig.collection_paymentChannel.remove({name: {$regex: paymentChannelQuery}});
-        var pm4 = dbconfig.collection_gameProvider.remove({name: {$regex: providerQuery}});
-        var pm5 = dbconfig.collection_game.remove({name: {$regex: gameQuery}});
-        var pm6 = dbconfig.collection_rewardEvent.remove({platform: platformObjId});
-        var pm7 = dbconfig.collection_role.remove({roleName: {$regex: roleQuery} });
-        var pm8 = dbconfig.collection_admin.remove({adminName: {$regex: adminQuery}});
-        var pm9 = dbconfig.collection_department.remove({departmentName: {$regex: departmentQuery}});
-        var pmA = dbconfig.collection_platformMerchantGroup.remove({name: 'TestMerchantGroup.*'});
-        var pmB = dbconfig.collection_platformBankCardGroup.remove({name: 'TestBankCardGroup.*'});
+        let pm2 = dbconfig.collection_players.remove({name: {$regex: playerNameQuery}});
+        let pm3 = dbconfig.collection_paymentChannel.remove({name: {$regex: paymentChannelQuery}});
+        let pm4 = dbconfig.collection_gameProvider.remove({name: {$regex: providerQuery}});
+        let pm5 = dbconfig.collection_game.remove({name: {$regex: gameQuery}});
+        let pm6 = dbconfig.collection_rewardEvent.remove({platform: platformObjId});
+        let pm7 = dbconfig.collection_role.remove({roleName: {$regex: roleQuery}});
+        let pm8 = dbconfig.collection_admin.remove({adminName: {$regex: adminQuery}});
+        let pm9 = dbconfig.collection_department.remove({departmentName: {$regex: departmentQuery}});
+        let pm10 = dbconfig.collection_partner.remove({name: {$regex: partnerQuery}});
 
-        var pmC = dbconfig.collection_playerConsumptionRecord.remove({platformId: platformObjId});
-        var pmC1 = dbconfig.collection_playerConsumptionRecord.remove({playerId: {$in:playerObjIds}});
+        let pmA = dbconfig.collection_platformMerchantGroup.remove({name: 'TestMerchantGroup.*'});
+        let pmB = dbconfig.collection_platformBankCardGroup.remove({name: 'TestBankCardGroup.*'});
 
-        var pmD = dbconfig.collection_playerTopUpRecord.remove({platformId: platformObjId});
-        var pmD1 = dbconfig.collection_playerTopUpRecord.remove({playerId: {$in:playerObjIds}});
+        let pmC = dbconfig.collection_playerConsumptionRecord.remove({platformId: platformObjId});
+        let pmC1 = dbconfig.collection_playerConsumptionRecord.remove({playerId: {$in: playerObjIds}});
 
-        var pmE = dbconfig.collection_playerConsumptionWeekSummary.remove({platformId: platformObjId});
-        var pmE1 = dbconfig.collection_playerConsumptionWeekSummary.remove({playerId: {$in:playerObjIds}});
+        let pmD = dbconfig.collection_playerTopUpRecord.remove({platformId: platformObjId});
+        let pmD1 = dbconfig.collection_playerTopUpRecord.remove({playerId: {$in: playerObjIds}});
 
-        var pmF = dbconfig.collection_playerConsumptionDaySummary.remove({platformId: platformObjId});
-        var pmF1 = dbconfig.collection_playerConsumptionDaySummary.remove({playerId: {$in: playerObjIds}});
+        let pmE = dbconfig.collection_playerConsumptionWeekSummary.remove({platformId: platformObjId});
+        let pmE1 = dbconfig.collection_playerConsumptionWeekSummary.remove({playerId: {$in: playerObjIds}});
 
-        var pmG = dbconfig.collection_playerConsumptionSummary.remove({platformId: platformObjId});
-        var pmG1 = dbconfig.collection_playerConsumptionSummary.remove({playerId: {$in: playerObjIds}});
+        let pmF = dbconfig.collection_playerConsumptionDaySummary.remove({platformId: platformObjId});
+        let pmF1 = dbconfig.collection_playerConsumptionDaySummary.remove({playerId: {$in: playerObjIds}});
 
-        var pmH = dbconfig.collection_playerTopUpDaySummary.remove({platformId:platformObjId});
-        var pmH1 = dbconfig.collection_playerTopUpDaySummary.remove({playerId: {$in: playerObjIds}});
+        let pmG = dbconfig.collection_playerConsumptionSummary.remove({platformId: platformObjId});
+        let pmG1 = dbconfig.collection_playerConsumptionSummary.remove({playerId: {$in: playerObjIds}});
 
-        var pmI =  dbconfig.collection_playerTopUpWeekSummary.remove({platformId:platformObjId});
+        let pmH = dbconfig.collection_playerTopUpDaySummary.remove({platformId: platformObjId});
+        let pmH1 = dbconfig.collection_playerTopUpDaySummary.remove({playerId: {$in: playerObjIds}});
 
-        var pmJ = dbconfig.collection_providerDaySummary.remove({platformId:platformObjId});
-        var pmK = dbconfig.collection_providerPlayerDaySummary.remove({platformId:platformObjId});
+        let pmI = dbconfig.collection_playerTopUpWeekSummary.remove({platformId: platformObjId});
 
-        var pmL = dbconfig.collection_platformDaySummary.remove({platformId:platformObjId});
-        var pmM = dbconfig.collection_playerRegistrationIntentRecord.remove({platformId:platformObjId});
-        var pmN = dbconfig.collection_playerTopUpIntentRecord.remove({playerId: {$in:playerObjIds}});
+        let pmJ = dbconfig.collection_providerDaySummary.remove({platformId: platformObjId});
+        let pmK = dbconfig.collection_providerPlayerDaySummary.remove({platformId: platformObjId});
+
+        let pmL = dbconfig.collection_platformDaySummary.remove({platformId: platformObjId});
+        let pmM = dbconfig.collection_playerRegistrationIntentRecord.remove({platformId: platformObjId});
+        let pmN = dbconfig.collection_playerTopUpIntentRecord.remove({playerId: {$in: playerObjIds}});
+
+        let pmO = dbconfig.collection_rewardTask.remove({platformId: platformObjId});
+        let pmO1 = dbconfig.collection_rewardTask.remove({playerId: {$in: playerObjIds}});
+
+        let pmP = dbconfig.collection_partnerCommissionRecord.remove({platform: platformObjId});
+        let pmQ = dbconfig.collection_partnerCommissionConfig.remove({platform: platformObjId});
 
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
-            pmE,  pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ,pmK], pmL ,pmM, pmN);
+            pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmP, pmQ]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {
 
-        var proposalQuery =  ".*" +'test'+ "*.";
+        var proposalQuery = ".*" + 'test' + "*.";
         var pm_P_ProcessStep = dbconfig.collection_proposalTypeProcessStep.remove({"role": {$in: adminRoleObjIds}});
-        var pm_P_Process = dbconfig.collection_proposalProcess.remove({"type": {$in: proposalTypeObjIds }});
+        var pm_P_Process = dbconfig.collection_proposalProcess.remove({"type": {$in: proposalTypeObjIds}});
         var pm_P_Type = dbconfig.collection_proposalType.remove({"platformId": platformObjId});
 
         var pm_P = dbconfig.collection_proposal.remove({"data.platformId": platformObjId});
         var pm_P1 = dbconfig.collection_proposal.remove({"proposalId": {$regex: proposalQuery}});
-        var pm_P2= dbconfig.collection_proposal.remove({"playerId": playerObjId});
+        var pm_P2 = dbconfig.collection_proposal.remove({"playerId": playerObjId});
 
         return Q.all([pm_P_ProcessStep, pm_P_Process, pm_P_Type, pm_P, pm_P1, pm_P2]);
     },
@@ -324,7 +354,7 @@ var commonTestFunc = {
     removeAllTestData: function () {
 
         var proms = [];
-        var skipCollections = ['collection_admin', 'collection_department', 'collection_role', 'collection_apiUser', 'collection_players','collection_gameType','collection_rewardType', 'collection_rewardParam', 'collection_rewardCondition'];
+        var skipCollections = ['collection_admin', 'collection_department', 'collection_role', 'collection_apiUser', 'collection_players', 'collection_gameType', 'collection_rewardType', 'collection_rewardParam', 'collection_rewardCondition'];
 
         for (var collection in dbconfig) {
 
@@ -351,7 +381,7 @@ var commonTestFunc = {
 
     getRandomInt: function () {
         //return Math.floor(Math.random() * 1000000);
-        return new Date().getTime()+Math.floor(Math.random() * 1000000);
+        return new Date().getTime() + Math.floor(Math.random() * 1000000);
     },
 };
 

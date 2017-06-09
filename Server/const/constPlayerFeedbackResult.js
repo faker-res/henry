@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 /*
  * All Platform task status
  */
@@ -13,7 +7,8 @@ const constPlayerFeedbackResult = {
     //player missed a call
     MISSED_CALL: "MissedCall",
     //player is busy
-    PLAYER_BUSY: "PlayerBusy"
+    PLAYER_BUSY: "PlayerBusy",
+    OTHER: "Other"
 };
 
 module.exports = constPlayerFeedbackResult;

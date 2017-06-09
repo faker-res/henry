@@ -102,6 +102,15 @@ function socketActionProposalType(socketIO, socket) {
         },
 
         /**
+         * Get all Proposal type expiration duration
+         */
+        getProposalTypeExpirationDuration: function getProposalTypeExpirationDuration(data) {
+            var isValidData = Boolean(data && data.query);
+            var actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbProposalType.getProposalTypeExpirationDuration, [data.query], actionName, isValidData);
+        },
+
+        /**
          * Create new ProposalTypeProcess by ProposalTypeProcess data
          * @param {json} data - ProposalTypeProcess data. It has to contain correct data format
          */
@@ -129,6 +138,16 @@ function socketActionProposalType(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.processId && data.steps && data.links);
             socketUtil.emitter(self.socket, dbProposalTypeProcess.updateProcessSteps, [data.processId, data.steps, data.links], actionName, isValidData);
+        },
+
+        /**
+         * Update proposal type
+         * @param {json} data -It has to contain processId, steps data and links data
+         */
+        updateProposalTypeExpiryDuration: function updateProposalTypeExpiryDuration(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && (data.expiryDuration || data.expiryDuration == 0));
+            socketUtil.emitter(self.socket, dbProposalType.updateProposalTypeExpiryDuration, [data.query, data.expiryDuration], actionName, isValidData);
         },
 
         /**

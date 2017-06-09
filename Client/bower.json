@@ -1,0 +1,26 @@
+{
+  "name": "fpmsClient",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.5.11",
+    "angular-cookies": "~1.5.11",
+    "angular-local-storage": "~0.6.0",
+    "angular-route": "~1.5.11",
+    "angular-translate": "~2.15.1",
+    "angular-translate-loader-static-files": "~2.15.1",
+    "angular-translate-loader-url": "~2.15.1",
+    "jquery": "~2.2.4",
+    "angular-bootstrap": "~1.1.2",
+    "angular-datepicker": "~1.0.20",
+    "Flot": "jquery-flot#^0.8.3",
+    "bootstrap-treeview": "^1.2.0",
+    "datatables.net-bs": "~1.10.15"
+  }
+}

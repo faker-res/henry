@@ -1,17 +1,11 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var gameProviderPlayerDaySummarySchema = new Schema({
     //player id
-    playerId: {type: Schema.ObjectId, required: true},
+    playerId: {type: Schema.ObjectId, required: true, index: true},
     //platform id
-    platformId: {type: Schema.ObjectId, required: true},
+    platformId: {type: Schema.ObjectId, required: true, index: true},
     //provider id
     providerId: {type: Schema.ObjectId, required: true},
     // game Id
@@ -19,7 +13,7 @@ var gameProviderPlayerDaySummarySchema = new Schema({
     // game type
     gameType: {type: String, required: true},
     // time
-    date: {type: Date, required: true},
+    date: {type: Date, required: true, index: true},
     //total amount
     amount: {type: Number, default: 0},
     //total valid amount

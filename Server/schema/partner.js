@@ -1,10 +1,13 @@
 var bcrypt = require('bcrypt');
 var mongoose = require('mongoose');
 var constSystemParam = require('../const/constSystemParam');
+var constPartnerStatus = require('../const/constPartnerStatus');
 var counterManager = require("../modules/counterManager.js");
 var ensureFieldsAreUnique = require("../db_modules/middleware/ensureFieldsAreUnique.js");
 var dbUtil = require("../modules/dbutility");
 var Schema = mongoose.Schema;
+
+let rsaCrypto = require("../modules/rsaCrypto");
 
 const A_LONG_TIME_AGO = 0;   // 1970
 
@@ -14,7 +17,7 @@ var partnerSchema = new Schema({
     //partner name
     partnerName: {type: String, required: true, index: true},
     //display name
-    realName: String,
+    realName: {type: String, index: true},
     //partner password
     password: String,
     //email
@@ -108,6 +111,8 @@ var partnerSchema = new Schema({
     phoneCity: String,
     //type
     phoneType: String,
+    //domain
+    domain: String,
     //partner domain name
     ownDomain: [{type: String}],
     //if this partner has player account
@@ -116,10 +121,22 @@ var partnerSchema = new Schema({
     commissionHistory: [],
     //negative profit amount
     negativeProfitAmount: {type: Number, default: 0},
+    //negative profit amount start since which date
+    negativeProfitStartTime: {type: Date},
     //last commission settlement time
     lastCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO},
     //last children commission settlement time
-    lastChildrenCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO}
+    lastChildrenCommissionSettleTime: {type: Date, default: A_LONG_TIME_AGO},
+    // Commission Amount From Children
+    commissionAmountFromChildren: {type: Number, default: 0},
+    // Partner permission
+    permission: {
+        _id: false,
+        disableCommSettlement: {type: Boolean, default: false}
+    },
+    // partner status normal or forbid
+    status: {type: Number, default: constPartnerStatus.NORMAL, index: true}
+
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));
@@ -168,8 +185,29 @@ partnerSchema.post('find', function(result) {
         for( var i = 0; i < result.length; i++ ){
             //hide middle 4 digits for phone number
             if(result[i].phoneNumber && result[i].phoneNumber.length > 0){
-                var startIndex = Math.max(Math.floor((result[i].phoneNumber.length - 4)/2), 0);
-                result[i].phoneNumber = result[i].phoneNumber.substr(0, startIndex) + "****" + result[i].phoneNumber.substr(startIndex+4);
+                if (result[i].phoneNumber.length > 20) {
+                    result[i].phoneNumber = rsaCrypto.decrypt(result[i].phoneNumber);
+                }
+                result[i].phoneNumber = dbUtil.encodePhoneNum(result[i].phoneNumber);
+                // let startIndex = Math.max(Math.floor((result[i].phoneNumber.length - 4)/2), 0);
+                // result[i].phoneNumber = result[i].phoneNumber.substr(0, startIndex) + "****" + result[i].phoneNumber.substr(startIndex+4);
+            }
+
+            // hide part of the e-mail
+            if(result[i].email && result[i].email.length > 0){
+                let partnerEmail = result[i].email;
+                let emailParts = partnerEmail.split("@");
+                let emailLocal = emailParts[0];
+                let emailLocalChar = emailLocal.split('');
+                for(let i in emailLocalChar) {
+                    if(i < 3) {
+                        continue;
+                    }
+                    emailLocalChar[i] = '*';
+                }
+                let hiddenEmailLocal = emailLocalChar.join('');
+                emailParts[0] = hiddenEmailLocal;
+                result[i].email = emailParts.join('@');
             }
         }
         return result;
@@ -177,4 +215,3 @@ partnerSchema.post('find', function(result) {
 });
 
 module.exports = partnerSchema;
-

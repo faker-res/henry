@@ -10,7 +10,7 @@ div
         label {{vm.selectedProposal.type.name || 'none'|translate}}
     .label-value
         label {{'STATUS' | translate}}&nbsp;:&nbsp;
-        label {{vm.selectedProposal.process.status || vm.selectedProposal.status || 'none' | translate}}
+        label {{vm.selectedProposal.status || vm.selectedProposal.process.status || 'none' | translate}}
     .label-value
         label {{'PROPOSAL_NO' | translate}}&nbsp;:&nbsp;
         label {{vm.selectedProposal.proposalId || 'none' | translate}}
@@ -55,6 +55,14 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
             i.margin-left-5.margin-right-5.fa.fa-spinner.fa-spin(ng-show='vm.repairPaymentStage==1')
             text.text-success(ng-show='vm.repairPaymentStage==2') {{'Success' | translate}}
             text.text-danger(ng-show='vm.repairPaymentStage==3') {{'Fail' | translate}}
+        .col-md-12(ng-show='(vm.selectedProposal.type.name=="PlayerBonus") && checkViewPermission("Operation","Proposal","updatePlayerBonusStatus")')
+            label.margin-right-5 {{'updatePlayerBonusStatus' | translate}}
+            input.margin-right-5(type='text', ng-model='playerBonusRemark', placeholder="{{'REMARK' | translate}}")
+            button.btn.common-btn.btn-primary.margin-right-5(ng-disabled='vm.submitPlayerBonusProcess==1', ng-click='vm.submitPlayerBonusStatus(vm.selectedProposal,"1",playerBonusRemark)') {{'Pending' | translate}}
+            button.btn.common-btn.btn-primary.margin-right-5(ng-disabled='vm.submitPlayerBonusProcess==1', ng-click='vm.submitPlayerBonusStatus(vm.selectedProposal,"2",playerBonusRemark)') {{'Approved' | translate}}
+            i.margin-left-5.margin-right-5.fa.fa-spinner.fa-spin(ng-show='vm.submitPlayerBonusProcess==1')
+            text.text-success(ng-show='vm.submitPlayerBonusProcess==2') {{'Success' | translate}}
+            text.text-danger(ng-show='vm.submitPlayerBonusProcess==3') {{'Fail' | translate}}
         table.table(style='width:100%')
             tr(ng-repeat='(i,v) in vm.selectedProposalDetailForDisplay')
                 td {{ i | translate}}

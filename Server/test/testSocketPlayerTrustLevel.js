@@ -1,9 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var should = require('should');
 var socketConnection = require('../test_modules/socketConnection');
 var commonTestFunc = require('../test_modules/commonTestFunc');
@@ -115,6 +109,8 @@ describe("Test player trust level", function () {
 
     /* Test 4 - get all playerTrustLevel */
     it('Should get all player trust level', function (done) {
+        this.timeout(20000);
+
         socketConnection.createConnection().then(function (socket) {
             socket.connected.should.equal(true);
 

@@ -10,6 +10,9 @@ var utility = require('./../modules/encrypt');
 var Chance = require('chance');
 var chance = new Chance();
 var constSystemParam = require('../const/constSystemParam');
+var constPartnerCommissionPeriod = require('./../const/constPartnerCommissionPeriod');
+var constPartnerStatus = require('./../const/constPartnerStatus');
+
 
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -20,7 +23,16 @@ function socketActionPartner(socketIO, socket) {
     this.socketIO = socketIO;
     this.socket = socket;
 
-    var self = this;
+    let self = this;
+
+    function getAdminId() {
+        return self.socket.decoded_token && self.socket.decoded_token._id;
+    }
+
+    function getAdminName() {
+        return self.socket.decoded_token && self.socket.decoded_token.adminName;
+    }
+
     this.actions = {
 
         /**
@@ -72,6 +84,39 @@ function socketActionPartner(socketIO, socket) {
         },
 
         /**
+         * Get all partner status options
+         */
+        getPartnerStatusList: function getPartnerStatusList() {
+            var actionName = arguments.callee.name;
+            self.socket.emit("_" + actionName, {success: true, data: constPartnerStatus});
+        },
+
+        /**
+         * Get player status change log
+         * @param {json} data - data contains _id
+         */
+        getPartnerStatusChangeLog: function getPartnerStatusChangeLog(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerStatusChangeLog, [data._id], actionName, isValidData);
+        },
+
+        /**
+         * Update partner status
+         * @param {json} data - It has to contain _id, status and reason
+         */
+        updatePartnerStatus: function updatePartnerStatus(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data._id && data.status && data.reason);
+
+            // if (data.status == constPartnerStatus.NORMAL) {
+            //     data.forbidProviders = [];
+            // }
+
+            socketUtil.emitter(self.socket, dbPartner.updatePartnerStatus, [data._id, data.status, data.reason, data.adminName], actionName, isValidData);
+        },
+
+        /**
          * Update partner info by query with partnerName or _id and updateData
          * @param {json} data - It has to contain query string and updateData
          */
@@ -109,6 +154,7 @@ function socketActionPartner(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.query);
             var query = utility.buildPartnerQueryString(data.query);
+
             socketUtil.emitter(self.socket, dbPartner.getPartnersByAdvancedQuery, [data.platformId, query], actionName, isValidData);
         },
 
@@ -185,6 +231,11 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.partnerObjId);
             socketUtil.emitter(self.socket, dbPartner.getPartnerReferralPlayers, [data.partnerObjId], actionName, isValidData);
         },
+        getPagePartnerReferralPlayers: function getPagePartnerReferralPlayers(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.query.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartner.getPagePartnerReferralPlayers, [data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
 
         /**
          * get all active player for partner for past week
@@ -225,11 +276,11 @@ function socketActionPartner(socketIO, socket) {
          * Create player phone number by object id
          * @param {json} data - It has to contain _id
          */
-        // getPartnerPhoneNumber: function getPartnerPhoneNumber(data) {
-        //     var actionName = arguments.callee.name;
-        //     var isValidData = Boolean(data && data.partnerObjId);
-        //     socketUtil.emitter(self.socket, dbPartner.getPartnerPhoneNumber, [data.partnerObjId], actionName, isValidData);
-        // },
+        getPartnerPhoneNumber: function getPartnerPhoneNumber(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerPhoneNumber, [data.partnerObjId], actionName, isValidData);
+        },
 
         updatePartnerLevelConfig: function updatePartnerLevelConfig(data) {
             var actionName = arguments.callee.name;
@@ -256,6 +307,10 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.platform && platform_id);
             socketUtil.emitter(self.socket, dbPartner.createPartnerCommissionConfig, [platform_id], actionName, isValidData);
         },
+        getPartnerCommissionPeriodConst: function getPartnerCommissionPeriodConst() {
+            var actionName = arguments.callee.name;
+            self.socket.emit("_" + actionName, {success: true, data: constPartnerCommissionPeriod});
+        },
 
         updatePartnerCommissionLevel: function updatePartnerCommissionLevel(data) {
             var actionName = arguments.callee.name;
@@ -278,11 +333,37 @@ function socketActionPartner(socketIO, socket) {
         manualPlatformPartnerCommissionSettlement: function manualPlatformPartnerCommissionSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
+            //todo:: for temp testing, change the flag here later
+            socketUtil.emitter(self.socket, dailyPlatformSettlement.manualPlatformPartnerCommissionSettlement, [ObjectId(data.platformId), false, true], actionName, isValidData);
+        },
+        startPlatformPartnerCommissionSettlement: function startPlatformPartnerCommissionSettlement(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dailyPlatformSettlement.manualPlatformPartnerCommissionSettlement, [ObjectId(data.platformId), true], actionName, isValidData);
-        }
+        },
+        /**
+         *  Apply partner bonus
+         */
+        applyPartnerBonusRequest: function applyPartnerBonusRequest(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerId && data.bonusId && data.amount);
+            socketUtil.emitter(self.socket, dbPartner.applyBonus, [data.partnerId, data.bonusId, data.amount, data.honoreeDetail, data.bForce, {
+                type: "admin",
+                name: getAdminName(),
+                id: getAdminId()
+            }], actionName, isValidData);
+        },
+        /**
+         *  Update partner permission
+         */
+        updatePartnerPermission: function updatePartnerPermission(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.query.platform && data.query._id && data.admin && data.permission && data.remark);
+            socketUtil.emitter(self.socket, dbPartner.updatePartnerPermission, [data.query, data.admin, data.permission, data.remark], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;
-};
+}
 
 module.exports = socketActionPartner;

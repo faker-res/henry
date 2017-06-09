@@ -15,35 +15,77 @@ var constProposalType = require('../const/constProposalType');
 var jwt = require('jsonwebtoken');
 var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
+var dbLogger = require("./../modules/dbLogger");
+var constProposalMainType = require('../const/constProposalMainType');
+let rsaCrypto = require("../modules/rsaCrypto");
+
+let env = require('../config/env').config();
+
+let SettlementBalancer = require('../settlementModule/settlementBalancer');
+
+const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
+const constPartnerCommissionPeriod = require('../const/constPartnerCommissionPeriod');
 const constProposalStatus = require('../const/constProposalStatus');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
-var SettlementBalancer = require('../settlementModule/settlementBalancer');
-const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
+const constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
+const constPartnerStatus = require('../const/constPartnerStatus');
 
-var dbPartner = {
+
+let dbPartner = {
 
     createPartnerAPI: function (partnerData) {
         return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
             platformData => {
                 if (platformData) {
                     partnerData.platform = platformData._id;
-                    if (partnerData.parent) {
-                        return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
-                            parentData => {
-                                if (parentData) {
-                                    partnerData.parent = parentData._id;
-                                    return dbPartner.createPartnerWithParent(partnerData);
+
+                    // attach platform prefix to player name if available
+                    // if (platformData.partnerPrefix) {
+                    //     partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
+                    // }
+
+                    return dbPartner.isPhoneNumberValidToRegister({
+                        phoneNumber: partnerData.phoneNumber,
+                        platform: platformData._id
+                    }).then(
+                        function (data) {
+                            if (("allowSamePhoneNumberToRegister" in platformData) && !platformData.allowSamePhoneNumberToRegister && !data.isPhoneNumberValid) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    message: "Phone number already exists"
+                                });
+                            }
+                            else {
+                                if (partnerData.parent) {
+                                    return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
+                                        parentData => {
+                                            if (parentData) {
+                                                partnerData.parent = parentData._id;
+                                                return dbPartner.createPartnerWithParent(partnerData);
+                                            }
+                                            else {
+                                                return Q.reject({
+                                                    name: "DataError",
+                                                    message: "Cannot find parent partner"
+                                                });
+                                            }
+                                        }
+                                    );
                                 }
                                 else {
-                                    return Q.reject({name: "DataError", message: "Cannot find parent partner"});
+                                    return dbPartner.createPartner(partnerData);
                                 }
                             }
-                        );
-                    }
-                    else {
-                        return dbPartner.createPartner(partnerData);
-                    }
+                        },
+                        function (error) {
+                            deferred.reject({
+                                name: "DBError",
+                                message: "Error when finding phone number",
+                                error: error
+                            });
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
@@ -54,11 +96,14 @@ var dbPartner = {
 
     /**
      * Create a new partner
-     * @param {json} data - The data of the partner user. Refer to Partner schema.
+     * @param {json} partnerdata - The data of the partner user. Refer to Partner schema.
      */
     createPartner: function (partnerdata) {
-        var deferred = Q.defer();
-        if (partnerdata.parent == '') {
+        let deferred = Q.defer();
+        // let partnerName = partnerdata.partnerName;
+        let platformData = null;
+
+        if (partnerdata.parent === '') {
             partnerdata.parent = null;
         }
         if (!partnerdata.platform) {
@@ -67,24 +112,89 @@ var dbPartner = {
                 message: "You did not provide the 'platform' (ObjectId) field for the new partner"
             });
         }
-        dbPlayerInfo.isPlayerNameValidToRegister({name: partnerdata.partnerName}).then(
+
+        // Player name should be alphanumeric and max 15 characters
+        let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
+        if (partnerdata.partnerName.length > 15 || !partnerdata.partnerName.match(alphaNumRegex)) {
+            // ignore for unit test
+            if (env.mode !== "local" && env.mode !== "qa") {
+                return Q.reject({
+                    status: constServerCode.PARTNER_NAME_INVALID,
+                    name: "DBError",
+                    message: "Username should be alphanumeric and within 15 characters"
+                });
+            }
+        }
+
+        dbconfig.collection_platform.findOne({_id: partnerdata.platform}).then(
+            function (platform) {
+                if (platform) {
+                    platformData = platform;
+
+                    // attach platform prefix to player name if available
+                    if (platform.partnerPrefix) {
+                        partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
+                    }
+
+                    if (platformData.allowSamePhoneNumberToRegister === true) {
+                        return {isPhoneNumberValid: true};
+                    } else {
+                        return dbPartner.isPhoneNumberValidToRegister({
+                            phoneNumber: partnerdata.phoneNumber,
+                            platform: partnerdata.platform
+                        });
+                    }
+                } else {
+                    deferred.reject({
+                        name: "DBError",
+                        message: "No such platform"
+                    });
+                }
+            },
+            function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Error when finding platform",
+                    error: error
+                });
+            }
+        ).then(
             function (data) {
-                if (data.isPlayerNameValid) {
+                if (data.isPhoneNumberValid) {
+                    return dbPartner.isPartnerNameValidToRegister({
+                        partnerName: partnerdata.partnerName,
+                        platform: partnerdata.platform
+                    });
+                } else {
+                    deferred.reject({
+                        name: "DBError",
+                        message: "Phone number already exists"
+                    });
+                }
+            },
+            function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Phone number already exists",
+                    error: error
+                });
+            }
+        ).then(
+            function (data) {
+                if (data.isPartnerNameValid) {
                     // If level was provided then use that, otherwise select the first level on the platform
-                    const levelProm = partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
+                    return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
                         platform: partnerdata.platform,
                         value: partnerdata.level || 0
                     });
-                    return levelProm;
-
                 } else {
                     deferred.reject({
                         name: "DataError",
                         message: "Username already exists"
                     });
                 }
-            }, function (error) {
-
+            },
+            function (error) {
                 deferred.reject({
                     name: "DataError",
                     message: "Error in checking partner name validity",
@@ -95,12 +205,12 @@ var dbPartner = {
             function (level) {
                 return dbPartner.createPartnerDomain(partnerdata).then(
                     () => {
-                        var partner = new dbconfig.collection_partner(partnerdata);
+                        let partner = new dbconfig.collection_partner(partnerdata);
                         partner.level = level;
-                        partner.partnerName = partner.partnerName.toLowerCase();
+                        partner.partnerName = partnerdata.partnerName.toLowerCase();
                         return partner.save();
                     },
-                    error => {
+                    function (error) {
                         deferred.reject({
                             name: "DataError",
                             message: "Partner domain have been used",
@@ -133,7 +243,7 @@ var dbPartner = {
         return deferred.promise;
     },
 
-    isValidPartnerName: function(inputData){
+    isValidPartnerName: function (inputData) {
         var platformData = null;
         return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
             platform => {
@@ -147,13 +257,14 @@ var dbPartner = {
             }
         ).then(
             partner => {
-                if( partner ){
+                if (partner) {
                     return {isPlayerNameValid: false};
                 }
-                else{
-                    inputData.name = platformData.prefix + inputData.name;
-                    inputData.name = inputData.name.toLowerCase();
-                    return dbPlayerInfo.isPlayerNameValidToRegister({name: inputData.name, platform: platformData._id});
+                else {
+                    return {isPlayerNameValid: true};
+                    // inputData.name = platformData.prefix + inputData.name;
+                    // inputData.name = inputData.name.toLowerCase();
+                    // return dbPlayerInfo.isPlayerNameValidToRegister({name: inputData.name, platform: platformData._id});
                 }
             }
         );
@@ -176,7 +287,7 @@ var dbPartner = {
         return Q.resolve().then(
             () => {
                 if (partnerData && partnerData.ownDomain && Array.isArray(partnerData.ownDomain) && partnerData.ownDomain.length > 0) {
-                    var proms = partnerData.ownDomain.map(
+                    let proms = partnerData.ownDomain.map(
                         domain => new dbconfig.collection_partnerOwnDomain({name: domain}).save()
                     );
                     return Q.all(proms);
@@ -247,9 +358,9 @@ var dbPartner = {
             });
             return;
         }
-        dbPlayerInfo.isPlayerNameValidToRegister({name: partnerdata.partnerName}).then(
+        dbconfig.collection_partner.findOne({partnerName: partnerdata.partnerName.toLowerCase()}).then(
             function (data) {
-                if (data.isPlayerNameValid) {
+                if (!data) {
                     return dbconfig.collection_partner.findOne({_id: partnerdata.parent});
                 } else {
                     deferred.reject({
@@ -266,22 +377,23 @@ var dbPartner = {
             }
         ).then(
             function (parentObj) {
-                return dbPartner.createPartnerDomain(partnerdata).then(
-                    () => {
-                        partnerdata.depthInTree = parentObj.depthInTree + 1;
-                        // Create the new partner (the child)
-                        partnerdata.partnerName = partnerdata.partnerName.toLowerCase();
-                        return dbPartner.createPartner(partnerdata);
-                    },
-                    error => {
-                        deferred.reject({
-                            name: "DataError",
-                            message: "Partner domain have been used",
-                            error: error
-                        });
-                    }
-                );
-
+                if (parentObj) {
+                    return dbPartner.createPartnerDomain(partnerdata).then(
+                        () => {
+                            partnerdata.depthInTree = parentObj.depthInTree + 1;
+                            // Create the new partner (the child)
+                            partnerdata.partnerName = partnerdata.partnerName.toLowerCase();
+                            return dbPartner.createPartner(partnerdata);
+                        },
+                        error => {
+                            deferred.reject({
+                                name: "DataError",
+                                message: "Partner domain have been used",
+                                error: error
+                            });
+                        }
+                    );
+                }
             }
         ).then(
             function (data) {
@@ -451,6 +563,48 @@ var dbPartner = {
         return dbconfig.collection_players.find({partner: partnerObjId}).sort({registrationTime: -1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
     },
 
+    getPagePartnerReferralPlayers: function (query, index, limit, sortCol) {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {};
+        var queryObj = {
+            partner: query.partnerObjId
+        }
+        if (query.name) {
+            queryObj.name = query.name;
+        }
+        if (query.domain != null) {
+            queryObj.domain = query.domain;
+        }
+        if (query.regStart != null) {
+            queryObj.registrationTime = {'$gte': query.regStart};
+        }
+        if (query.regEnd != null) {
+            queryObj.registrationTime = queryObj.registrationTime || {}
+            queryObj.registrationTime['$lt'] = query.regEnd;
+        }
+        if (query.loginStart != null) {
+            queryObj.lastAccessTime = {'$gte': query.loginStart};
+        }
+        if (query.loginEnd != null) {
+            queryObj.lastAccessTime = queryObj.lastAccessTime || {};
+            queryObj.lastAccessTime['$lt'] = query.loginEnd;
+        }
+        if (query.minTopupTimes != null) {
+            queryObj.topUpTimes = {'$gte': query.minTopupTimes};
+        }
+        if (query.maxTopupTimes != null) {
+            queryObj.topUpTimes = queryObj.topUpTimes || {};
+            queryObj.topUpTimes['$lt'] = query.maxTopupTimes;
+        }
+
+
+        var count = dbconfig.collection_players.find(queryObj).count();
+        var detail = dbconfig.collection_players.find(queryObj).sort(sortCol).skip(index).limit(limit);
+        return Q.all([count, detail]).then(data => {
+            return {size: data[0], data: data[1]}
+        })
+    },
     /**
      * Get all the active players for partner past week
      * @param {objectId}  partner objectId
@@ -617,22 +771,28 @@ var dbPartner = {
     /**
      * Get partners player info
      * @param {objectId}  platformObjId
-     * @param {[objectId]}  partnersObjId
+     * @param {[objectId]}  partnerObjId
+     * @param bActive
+     * @param queryTime
      */
     getPartnerActiveValidPlayers: function (platformObjId, partnerObjId, bActive, queryTime) {
-        var times = {};
-        var partnerLevelConfig = {};
-        var configProm = dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId});
+        let times = {};
+        let partnerLevelConfig = {};
+        let partnerCommissionConfig = {};
+        let configProm = dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId});
         //var timeProm = dbUtil.getWeeklySettlementTimeForPlatformId(platformObjId);
-        var timeProm = dbUtil.getLastWeekSGTimeProm();
-        return Q.all([timeProm, configProm]).then(
-            function (data) {
-                if (data && data[0] && data[1]) {
+        let timeProm = dbUtil.getLastWeekSGTimeProm();
+        let commConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({platform: platformObjId});
+
+        return Q.all([timeProm, configProm, commConfigProm]).then(
+            data => {
+                if (data && data[0] && data[1] && data[2]) {
                     times = data[0];
                     if (queryTime) {
                         times = queryTime;
                     }
                     partnerLevelConfig = data[1];
+                    partnerCommissionConfig = data[2];
                     return dbconfig.collection_players.find(
                         {
                             platform: platformObjId,
@@ -642,11 +802,11 @@ var dbPartner = {
                 }
             }
         ).then(
-            function (partnerData) {
-                if (partnerData.length > 0) {
-                    var playerIds = partnerData.map(player => player._id);
-                    var partnerDataMap = {};
-                    for (var i = 0; i < partnerData.length; i++) {
+            partnerData => {
+                if (partnerData && partnerData.length > 0) {
+                    let playerIds = partnerData.map(player => player._id);
+                    let partnerDataMap = {};
+                    for (let i = 0; i < partnerData.length; i++) {
                         partnerDataMap[partnerData[i]._id] = partnerData[i];
                     }
 
@@ -658,28 +818,80 @@ var dbPartner = {
                             $lt: times.endTime
                         }
                     };
-                    const consumptionSummariesProm = dbconfig.collection_playerConsumptionWeekSummary.find(matchPlayerSummaries);
-                    const topUpSummariesProm = dbconfig.collection_playerTopUpWeekSummary.find(matchPlayerSummaries);
 
+                    const matchRecordSummaries = {
+                        platformId: platformObjId,
+                        playerId: {$in: playerIds},
+                        createTime: {
+                            $gte: times.startTime,
+                            $lt: times.endTime
+                        }
+                    };
+
+                    let consumptionSummariesProm = {};
+                    let topUpSummariesProm = {};
+                    if (times.startTime.getTime() >= dbUtil.getTodaySGTime().startTime.getTime()) {
+                        consumptionSummariesProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+                            {$match: matchRecordSummaries},
+                            {
+                                $group: {
+                                    _id: "$playerId",
+                                    // playerId: "$playerId",
+                                    times: {$sum: 1},
+                                    amount: {$sum: "$validAmount"}
+                                }
+                            }
+                        );
+                        topUpSummariesProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                            {$match: matchRecordSummaries},
+                            {
+                                $group: {
+                                    _id: "$playerId",
+                                    // playerId: "$playerId",
+                                    times: {$sum: 1},
+                                    amount: {$sum: "$amount"}
+                                }
+                            }
+                        );
+                    }
+                    else {
+                        consumptionSummariesProm = dbconfig.collection_playerConsumptionDaySummary.find(matchPlayerSummaries);
+                        topUpSummariesProm = dbconfig.collection_playerTopUpDaySummary.find(matchPlayerSummaries);
+                    }
                     return Q.all([consumptionSummariesProm, topUpSummariesProm]).then(
-                        function (data) {
-                            var playersObj = [];
-
+                        data => {
+                            let playersObj = [];
                             const consumptionSummaries = data[0];
                             const topUpSummaries = data[1];
-                            const consumptionSummariesByPlayerId = dataUtils.byKey(consumptionSummaries, 'playerId');
-                            const topUpSummariesByPlayerId = dataUtils.byKey(topUpSummaries, 'playerId');
+                            let consumptionSummariesByPlayerId = [];
+                            let topUpSummariesByPlayerId = [];
+
+                            if (times.startTime.getTime() >= dbUtil.getTodaySGTime().startTime.getTime()) {
+                                consumptionSummariesByPlayerId = dataUtils.byKey(consumptionSummaries, '_id');
+                                topUpSummariesByPlayerId = dataUtils.byKey(topUpSummaries, '_id');
+                            }
+                            else {
+                                consumptionSummariesByPlayerId = dataUtils.byKey(consumptionSummaries, 'playerId');
+                                topUpSummariesByPlayerId = dataUtils.byKey(topUpSummaries, 'playerId');
+                            }
+
 
                             playerIds.forEach(
-                                function (playerId) {
+                                playerId => {
                                     const consumptionSummary = consumptionSummariesByPlayerId[playerId];
                                     const topUpSummary = topUpSummariesByPlayerId[playerId];
-                                    if (consumptionSummary && topUpSummary) {
-                                        var playerIsValid = consumptionSummary.times >= partnerLevelConfig.validPlayerConsumptionTimes
-                                            && topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes;
 
-                                        var playerIsActive = consumptionSummary.times >= partnerLevelConfig.activePlayerConsumptionTimes
-                                            && topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes;
+                                    if (topUpSummary && (consumptionSummary || partnerCommissionConfig.settlementMode === 'TB')) {
+                                        let playerIsValid, playerIsActive;
+
+                                        if (consumptionSummary) {
+                                            playerIsValid = consumptionSummary.times >= partnerLevelConfig.validPlayerConsumptionTimes && topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes;
+                                            playerIsActive = consumptionSummary.times >= partnerLevelConfig.activePlayerConsumptionTimes && topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes;
+                                        }
+                                        else {
+                                            playerIsValid = topUpSummary.times >= partnerLevelConfig.validPlayerTopUpTimes && topUpSummary.amount >= partnerLevelConfig.validPlayerTopUpAmount;
+                                            playerIsActive = topUpSummary.times >= partnerLevelConfig.activePlayerTopUpTimes && topUpSummary.amount >= partnerLevelConfig.activePlayerTopUpAmount;
+                                        }
 
                                         if (bActive && playerIsActive) {
                                             playersObj.push(partnerDataMap[playerId]);
@@ -702,7 +914,22 @@ var dbPartner = {
     partnerLoginAPI: function (partnerData, userAgent) {
         var platformObjId = null;
         var partnerObj = null;
-        return dbconfig.collection_partner.findOne({partnerName: partnerData.name.toLowerCase()}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    platformObjId = platformData._id;
+                    partnerData.prefixName = platformData.partnerPrefix + partnerData.name;
+
+                    return dbconfig.collection_partner.findOne({partnerName: partnerData.prefixName.toLowerCase()}).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
             partner => {
                 if (partner) {
                     platformObjId = partner.platform;
@@ -738,6 +965,13 @@ var dbPartner = {
         ).then(
             isMatch => {
                 if (isMatch) {
+                    if (partnerObj.status == constPartnerStatus.FORBID) {
+                        return Q.reject({
+                            name: "DataError",
+                            message: "Partner is not enable",
+                            code: constServerCode.PARTNER_IS_FORBIDDEN
+                        });
+                    }
                     var newAgentArray = partnerObj.userAgent || [];
                     var uaObj = {
                         browser: userAgent.browser.name || '',
@@ -816,6 +1050,115 @@ var dbPartner = {
         );
     },
 
+    partnerLoginWithSMSAPI: function (partnerData, userAgent, isSMSVerified) {
+        let platformObjId = null;
+        let partnerObj = null;
+
+        return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_partner.findOne({
+                        $or: [
+                            {phoneNumber: partnerData.phoneNumber},
+                            {phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber)}
+                        ],
+                        platform: platformData._id
+                    }).lean()
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error in getting player platform data", error: error});
+            }
+        ).then(
+            partner => {
+                if (partner && isSMSVerified) {
+                    platformObjId = partner.platform;
+                    partnerObj = partner;
+
+                    if (partnerObj.status == constPartnerStatus.FORBID) {
+                        return Q.reject({
+                            name: "DataError",
+                            message: "Partner is not enable",
+                            code: constServerCode.PARTNER_IS_FORBIDDEN
+                        });
+                    }
+                    let newAgentArray = partnerObj.userAgent || [];
+                    let uaObj = {
+                        browser: userAgent.browser.name || '',
+                        device: userAgent.device.name || '',
+                        os: userAgent.os.name || '',
+                    };
+                    let bExit = false;
+                    newAgentArray.forEach(
+                        agent => {
+                            if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                bExit = true;
+                            }
+                        }
+                    );
+                    if (!bExit) {
+                        newAgentArray.push(uaObj);
+                    }
+                    let geo = geoip.lookup(partnerData.lastLoginIp);
+                    let updateData = {
+                        isLogin: true,
+                        lastLoginIp: partnerData.lastLoginIp,
+                        userAgent: newAgentArray,
+                        lastAccessTime: new Date().getTime(),
+                    };
+                    let geoInfo = {};
+                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                        geoInfo = {
+                            country: geo ? geo.country : null,
+                            city: geo ? geo.city : null,
+                            longitude: geo && geo.ll ? geo.ll[1] : null,
+                            latitude: geo && geo.ll ? geo.ll[0] : null
+                        }
+                    }
+                    Object.assign(updateData, geoInfo);
+                    return dbconfig.collection_partner.findOneAndUpdate({
+                        _id: partnerObj._id,
+                        platform: platformObjId
+                    }, updateData).populate({
+                        path: "level",
+                        model: dbconfig.collection_partnerLevel
+                    }).populate({
+                        path: "player",
+                        model: dbconfig.collection_players
+                    }).lean().then(
+                        data => {
+                            //add player login record
+                            let recordData = {
+                                partner: data._id,
+                                platform: platformObjId,
+                                loginIP: partnerData.lastLoginIp,
+                                clientDomain: partnerData.clientDomain ? partnerData.clientDomain : "",
+                                userAgent: uaObj
+                            };
+                            Object.assign(recordData, geoInfo);
+                            let record = new dbconfig.collection_partnerLoginRecord(recordData);
+                            return record.save().then(
+                                () => data
+                            );
+                        },
+                        error => {
+                            return Q.reject({
+                                name: "DBError",
+                                message: "Error in updating player",
+                                error: error
+                            });
+                        }
+                    );
+                } else {
+                    return Q.reject({name: "DataError", message: "Cannot find partner"});
+                }
+            }
+        );
+    },
+
     authenticate: function (partnerId, token, partnerIp, conn) {
         var deferred = Q.defer();
         jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
@@ -857,18 +1200,74 @@ var dbPartner = {
 
     /**
      *  Update password
-     * @param {String} partnerId:xxxx, oldPassword:xxxx, newPassword:xxxx
-     *
      */
-    updatePassword: function (partnerId, currPassword, newPassword) {
-        var db_password = null;
-        var partnerObj = null;
+    updatePassword: function (partnerId, currPassword, newPassword, smsCode) {
+        let db_password = null;
+        let partnerObj = null;
         // compare the user entered old password and password from db
         return dbconfig.collection_partner.findOne({partnerId: partnerId}).then(
             data => {
                 if (data) {
                     partnerObj = data;
                     db_password = String(data.password);
+
+                    return dbconfig.collection_platform.findOne({
+                        _id: partnerObj.platform
+                    }).lean();
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Can not find partner"
+                    });
+                }
+            }
+        ).then(
+            platformData => {
+                if (platformData) {
+                    // Check if platform sms verification is required
+                    if (!platformData.requireSMSVerification) {
+                        // SMS verification not required
+                        return Q.resolve(true);
+                    } else {
+                        // Check verification SMS match
+                        return dbconfig.collection_smsVerificationLog.findOne({
+                            platformObjId: partnerObj.platform,
+                            tel: partnerObj.phoneNumber
+                        }).sort({createTime: -1}).then(
+                            verificationSMS => {
+                                // Check verification SMS code
+                                if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
+                                    verificationSMS = verificationSMS || {};
+                                    return dbconfig.collection_smsVerificationLog.remove(
+                                        {_id: verificationSMS._id}
+                                    ).then(
+                                        () => {
+                                            return Q.resolve(true);
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({
+                                        status: constServerCode.VALIDATION_CODE_INVALID,
+                                        name: "ValidationError",
+                                        message: "Invalid SMS Validation Code"
+                                    });
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
                     if (dbUtil.isMd5(db_password)) {
                         if (md5(currPassword) == db_password) {
                             return Q.resolve(true);
@@ -878,7 +1277,7 @@ var dbPartner = {
                         }
                     }
                     else {
-                        var passDefer = Q.defer();
+                        let passDefer = Q.defer();
                         bcrypt.compare(String(currPassword), db_password, function (err, isMatch) {
                             if (err) {
                                 passDefer.reject({
@@ -891,12 +1290,6 @@ var dbPartner = {
                         });
                         return passDefer.promise;
                     }
-                }
-                else {
-                    return Q.reject({
-                        name: "DataError",
-                        message: "Can not find partner"
-                    });
                 }
             }
         ).then(
@@ -1084,13 +1477,17 @@ var dbPartner = {
                             $match: {
                                 type: bonusProposalType._id,
                                 status: constProposalStatus.SUCCESS,
-                                "data.playerObjId": {$in: playerObjIds}
+                                "data.playerObjId": {$in: playerObjIds},
+                                createTime: {
+                                    $gte: queryTime.startTime,
+                                    $lt: queryTime.endTime
+                                }
                             }
                         },
                         {
                             $group: {
                                 _id: "$type",
-                                totalAmount: {$sum: {$multiply: ["$data.amount", "$data.bonusCredit"]}},
+                                totalAmount: {$sum: "$data.amount"},
                             }
                         }
                     );
@@ -1231,11 +1628,11 @@ var dbPartner = {
     /*
      * Apply bonus
      */
-    applyBonus: function (partnerId, bonusId, amount, honoreeDetail) {
-        var partner = null;
-        var bonusDetail = null;
-        var bUpdateCredit = false;
-        var resetCredit = function (partnerObjId, platformObjId, credit, error) {
+    applyBonus: function (partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
+        let partner = null;
+        let bonusDetail = null;
+        let bUpdateCredit = false;
+        let resetCredit = function (partnerObjId, platformObjId, credit, error) {
             //reset partner credit if credit is incorrect
             return dbconfig.collection_partner.findOneAndUpdate({
                 _id: partnerObjId,
@@ -1256,7 +1653,7 @@ var dbPartner = {
         return pmsAPI.bonus_getBonusList({}).then(
             bonusData => {
                 if (bonusData && bonusData.bonuses && bonusData.bonuses.length > 0) {
-                    var bValid = false;
+                    let bValid = false;
                     bonusData.bonuses.forEach(
                         bonus => {
                             if (bonus.bonus_id == bonusId) {
@@ -1294,7 +1691,7 @@ var dbPartner = {
                                         ).then(
                                             proposals => {
                                                 if (proposals && proposals.length > 0) {
-                                                    var bExist = false;
+                                                    let bExist = false;
                                                     proposals.forEach(
                                                         proposal => {
                                                             if (proposal.status == constProposalStatus.PENDING ||
@@ -1303,7 +1700,7 @@ var dbPartner = {
                                                             }
                                                         }
                                                     );
-                                                    if (!bExist) {
+                                                    if (!bExist || bForce) {
                                                         return partnerData;
                                                     }
                                                     else {
@@ -1348,7 +1745,8 @@ var dbPartner = {
                     //         errorMessage: "Player does not have this permission"
                     //     });
                     // }
-                    if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity || !partnerData.bankAccount || !partnerData.bankAddress || !partnerData.phoneNumber || !partnerData.email) {
+                    if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
+                        || !partnerData.bankAccount || !partnerData.bankAddress) {
                         return Q.reject({
                             status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                             name: "DataError",
@@ -1397,10 +1795,10 @@ var dbPartner = {
 
                                 partner.validCredit = newPartnerData.validCredit;
                                 //create proposal
-                                var proposalData = {
-                                    creator: {
+                                let proposalData = {
+                                    creator: adminInfo || {
                                         type: 'partner',
-                                        name: partner.name,
+                                        name: partner.partnerName,
                                         id: partnerId
                                     },
                                     partnerId: partnerId,
@@ -1414,10 +1812,10 @@ var dbPartner = {
                                     curAmount: partner.credits,
                                     requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                 };
-                                var newProposal = {
+                                let newProposal = {
                                     creator: proposalData.creator,
                                     data: proposalData,
-                                    entryType: constProposalEntryType.CLIENT,
+                                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: constProposalUserType.PARTNERS,
                                 };
                                 return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
@@ -1695,7 +2093,8 @@ var dbPartner = {
                 return {
                     stats: {
                         startIndex: startIndex,
-                        totalCount: count
+                        totalCount: count,
+                        requestCount: requestCount
                     },
                     players: players
                 };
@@ -2005,8 +2404,8 @@ var dbPartner = {
     getPlayerPaymentSummary: function (playerObj, startTime, endTime, bonusProposalType) {
         var bonusProposalProm = dbconfig.collection_proposal.find({
             type: bonusProposalType._id,
-            status: constProposalStatus.SUCCESS,
-            "data.playerId": { $in: [playerObj.playerId, String(playerObj._id), playerObj._id]}
+            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]},
+            "data.playerObjId": playerObj._id
         }).sort({createTime: -1}).lean();
 
         var topUpRecordProm = dbconfig.collection_playerTopUpRecord.aggregate(
@@ -2057,15 +2456,11 @@ var dbPartner = {
 
                 bonusProposals.forEach(
                     proposal => {
-                        var bonusCredit = proposal.data.amount * proposal.data.bonusCredit;
-                        //for migration data
-                        if( !bonusCredit ){
-                            bonusCredit = proposal.data.amount || 0;
-                        }
+                        var bonusCredit = proposal.data.amount || 0;
                         totalBonusAmount += bonusCredit;
                         if (proposal.createTime.getTime() < endTime.getTime() && proposal.createTime.getTime() >= startTime.getTime()) {
                             bonusTimes++;
-                            bonusAmount += bonusCredit;
+                            bonusAmount += Number(bonusCredit);
                         }
                     }
                 );
@@ -2092,8 +2487,8 @@ var dbPartner = {
         //最近充值时间，最近兑奖时间，充值总次数，兑奖总次数，总充值额，总兑奖额，充值次数（查询其间），兑奖次数，充值额，兑奖额
         var bonusProposalProm = dbconfig.collection_proposal.find({
             type: bonusProposalType._id,
-            status: constProposalStatus.SUCCESS,
-            "data.playerId": { $in: [playerObj.playerId, String(playerObj._id), playerObj._id]}
+            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]},
+            "data.playerObjId": playerObj._id
         }).sort({createTime: -1}).lean();
         var latestTopUpRecordProm = dbconfig.collection_playerTopUpRecord.find({
             platformId: playerObj.platform,
@@ -2149,11 +2544,7 @@ var dbPartner = {
 
                     bonusProposals.forEach(
                         proposal => {
-                            var bonusCredit = proposal.data.amount * proposal.data.bonusCredit;
-                            //for migration data
-                            if( !bonusCredit ){
-                                bonusCredit = proposal.data.amount || 0;
-                            }
+                            var bonusCredit = proposal.data.amount || 0;
                             totalBonusAmount += bonusCredit;
                             if (proposal.createTime.getTime() < endTime.getTime() && proposal.createTime.getTime() >= startTime.getTime()) {
                                 bonusTimes++;
@@ -2206,53 +2597,88 @@ var dbPartner = {
     startPlatformPartnerCommissionSettlement: function (platformObjId, bUpdateSettlementTime, isToday) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: platformObjId}).lean().then(
             configData => {
+                // check if config exist
                 if (!configData) {
                     console.warn("Cannot do partner commission settlement: There is no configData for this platform! platformObjId=%s", platformObjId);
                 }
 
                 if (configData) {
                     //check config data period
-                    var settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
-                    var bMatchPeriod = true;
+                    let settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
+                    let bMatchPeriod = true;
+
+                    // set settle time
                     switch (configData.commissionPeriod) {
-                        case constPlayerLevelPeriod.WEEK:
+                        case constPartnerCommissionPeriod.WEEK:
                             if (dbUtil.isFirstDayOfWeekSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentWeekSGTime() : dbUtil.getLastWeekSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentWeekSGTime();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
-                        case constPlayerLevelPeriod.MONTH:
+                        case constPartnerCommissionPeriod.HALF_MONTH:
+                            if (dbUtil.isHalfMonthDaySG()) {
+                                settleTime = isToday ? dbUtil.getCurrentHalfMonthPeriodSG() : dbUtil.getPastHalfMonthPeriodSG();
+                            }
+                            else {
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentHalfMonthPeriodSG();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
+                            }
+                            break;
+                        case constPartnerCommissionPeriod.MONTH:
                             if (dbUtil.isFirstDayOfMonthSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentMonthSGTIme() : dbUtil.getLastMonthSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentMonthSGTIme();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
                     }
+
                     //if period does not match, no need to settle
                     if (!bMatchPeriod) {
-                        return;
+                        return; //Q.reject({name: "DataError", message: "It's not settlement day"});
                     }
 
                     //if there is commission config, start settlement
-                    var stream = dbconfig.collection_partner.find(
+                    let stream = dbconfig.collection_partner.find(
                         {
                             platform: platformObjId,
                             totalReferrals: {$gt: 0},
-                            $or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]
+                            $and: [
+                                {$or: [{lastCommissionSettleTime: {$lt: settleTime.startTime}}, {lastCommissionSettleTime: {$exists: false}}]},
+                                {
+                                    $or: [
+                                        {permission: {$exists: false}},
+                                        {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                                    ]
+                                }
+                            ]
                         }
-                    ).cursor({batchSize: 10});
+                    ).cursor({batchSize: 100});
 
-                    var balancer = new SettlementBalancer();
+                    let balancer = new SettlementBalancer();
                     return balancer.initConns().then(function () {
                         return Q(
                             balancer.processStream(
                                 {
                                     stream: stream,
-                                    batchSize: constSystemParam.BATCH_SIZE,
+                                    batchSize: 10,
                                     makeRequest: function (partnerIdObjs, request) {
                                         request("player", "calculatePartnersCommission", {
                                             partnerObjIds: partnerIdObjs.map(partnerIdObj => partnerIdObj._id),
@@ -2273,7 +2699,7 @@ var dbPartner = {
     },
 
     calculatePartnersCommission: function (platformObjId, configData, partnerObjIds, startTime, endTime, settlementTimeToSave) {
-        var proms = [];
+        let proms = [];
         partnerObjIds.forEach(
             objId => {
                 proms.push(dbPartner.calculatePartnerCommission(platformObjId, configData, objId, startTime, endTime, settlementTimeToSave));
@@ -2283,27 +2709,33 @@ var dbPartner = {
     },
 
     calculatePartnerCommission: function (platformObjId, configData, partnerObjId, startTime, endTime, settlementTimeToSave) {
-        var totalRewardAmount = 0;
-        var serviceFee = 0;
-        var platformFee = 0;
-        var profitAmount = 0;
-        var commissionLevel = 0;
-        var commissionRate = 0;
-        var bonusCommissionRate = 0;
-        var totalValidAmount = 0;
-        var totalBonusAmount = 0;
-        var maxCommissionLevel = 0;
+        let totalRewardAmount = 0;
+        let serviceFee = 0;
+        let platformFee = 0;
+        let profitAmount = 0;
+        let commissionLevel = 0;
+        let commissionRate = 0;
+        let bonusCommissionRate = 0;
+        let totalValidAmount = 0;
+        let totalBonusAmount = 0;
+        let maxCommissionLevel = 0;
+        let totalTopUpAmount = 0;
+        let operationAmount = 0;
+        let totalPlayerBonusAmount = 0;
+
         //get all partner players consumption data
         return dbconfig.collection_players.find({platform: platformObjId, partner: partnerObjId}).lean().then(
             players => {
                 if (players && players.length > 0) {
-                    var playerObjIds = players.map(player => player._id);
-                    var consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+                    let playerObjIds = players.map(player => player._id);
+
+                    // promise all referrals consumption
+                    let consumptionProm = dbconfig.collection_providerPlayerDaySummary.aggregate(
                         {
                             $match: {
                                 platformId: platformObjId,
                                 playerId: {$in: playerObjIds},
-                                createTime: {
+                                date: {
                                     $gte: startTime,
                                     $lt: endTime
                                 }
@@ -2311,14 +2743,15 @@ var dbPartner = {
                         },
                         {
                             $group: {
-                                _id: "$platformId",
+                                _id: "$playerId",
                                 totalValidAmount: {$sum: "$validAmount"},
                                 totalBonusAmount: {$sum: "$bonusAmount"}
                             }
                         }
                     );
 
-                    var rewardProm = dbconfig.collection_rewardLog.aggregate(
+                    // promise all referrals reward
+                    let rewardProm = dbconfig.collection_rewardLog.aggregate(
                         {
                             $match: {
                                 platform: platformObjId,
@@ -2337,30 +2770,106 @@ var dbPartner = {
                         }
                     );
 
-                    return Q.all([consumptionProm, rewardProm]);
+                    // promise all referrals topup
+                    let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                        {
+                            $match: {
+                                platformId: platformObjId,
+                                playerId: {$in: playerObjIds},
+                                createTime: {
+                                    $gte: startTime,
+                                    $lt: endTime
+                                }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$platformId",
+                                totalTopUpAmount: {$sum: "$amount"}
+                            }
+                        }
+                    );
+
+                    // promise all referrals bonus
+                    let bonusProm = dbconfig.collection_proposalType.findOne({
+                        platformId: platformObjId,
+                        name: constProposalType.PLAYER_BONUS
+                    }).then(
+                        bonusType => {
+                            if (bonusType) {
+                                return dbconfig.collection_proposal.aggregate(
+                                    {
+                                        $match: {
+                                            // platform: platformObjId,
+                                            type: bonusType._id,
+                                            "data.playerObjId": {$in: playerObjIds},
+                                            createTime: {
+                                                $gte: startTime,
+                                                $lt: endTime
+                                            },
+                                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]}
+                                        }
+                                    },
+                                    {
+                                        $group: {
+                                            _id: "$platform",
+                                            totalBonusAmount: {$sum: "$data.amount"}
+                                        }
+                                    }
+                                );
+                            }
+                        }
+                    );
+
+                    return Q.all([consumptionProm, rewardProm, topUpProm, bonusProm]);
                 }
             }
         ).then(
             data => {
                 if (data) {
-                    //calculate profit amount
-                    var consumptionInfo = data[0];
-                    var rewardInfo = data[1];
-                    var operationAmount = 0;
-                    if (consumptionInfo && consumptionInfo[0]) {
-                        totalValidAmount = consumptionInfo[0].totalValidAmount;
-                        totalBonusAmount = consumptionInfo[0].totalBonusAmount;
-                        operationAmount = consumptionInfo[0].totalValidAmount - consumptionInfo[0].totalBonusAmount;
+                    // calculate profit amount
+                    let consumptionInfo = data[0];
+                    let rewardInfo = data[1];
+                    let topUpInfo = data[2];
+                    let bonusInfo = data[3];
+                    // var operationAmount = 0;
+                    let platformFeeAmount = 0;
+                    totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
+                    totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
+
+                    if (consumptionInfo && consumptionInfo.length > 0) {
+                        consumptionInfo.forEach(
+                            conInfo => {
+                                totalValidAmount += conInfo.totalValidAmount;
+                                totalBonusAmount += conInfo.totalBonusAmount;
+                                platformFeeAmount += Math.abs(conInfo.totalBonusAmount);
+                            }
+                        );
+
+                        if (configData && configData.platformFeeRate > 0) {
+                            platformFee = Math.max(0, platformFeeAmount * configData.platformFeeRate);
+                        }
                     }
-                    if (rewardInfo && rewardInfo[0]) {
-                        totalRewardAmount = rewardInfo[0].totalRewardAmount;
-                    }
+
                     if (configData && configData.serviceFeeRate > 0) {
-                        serviceFee = operationAmount * configData.serviceFeeRate;
+                        serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                     }
-                    if (configData && configData.platformFeeRate > 0) {
-                        platformFee = operationAmount * configData.platformFeeRate;
+
+                    if (rewardInfo && rewardInfo[0] && configData && configData.rewardRate) {
+                        totalRewardAmount = rewardInfo[0].totalRewardAmount * configData.rewardRate;
                     }
+
+                    switch (configData.settlementMode) {
+                        case 'TB':
+                            operationAmount = totalTopUpAmount - totalPlayerBonusAmount;
+                            break;
+                        case 'OPSR':
+                        default:
+                            operationAmount = -totalBonusAmount;//consumptionInfo[0].totalValidAmount + consumptionInfo[0].totalBonusAmount;
+
+                            break;
+                    }
+
                     profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
 
                     //get partner active player number
@@ -2372,7 +2881,7 @@ var dbPartner = {
             }
         ).then(
             validPlayers => {
-                var validPlayerCount = validPlayers ? validPlayers.length : 0;
+                let validPlayerCount = validPlayers ? validPlayers.length : 0;
                 //check partner commission level
                 if (configData && configData.commissionLevelConfig && configData.commissionLevelConfig.length > 0) {
                     configData.commissionLevelConfig.forEach(
@@ -2396,19 +2905,12 @@ var dbPartner = {
             partnerData => {
                 if (partnerData) {
                     partnerData.commissionHistory.push(commissionLevel);
-                    if (settlementTimeToSave) {
-                        profitAmount += partnerData.negativeProfitAmount;
-                        if (profitAmount >= 0) {
-                            partnerData.negativeProfitAmount = 0;
-                        }
-                        else {
-                            partnerData.negativeProfitAmount = profitAmount;
-                        }
-                    }
                     //check past commission history
-                    if (configData && configData.bonusCommissionHistoryTimes > 0 && configData.bonusRate > 0 && commissionLevel == maxCommissionLevel) {
-                        var bValid = true;
-                        for (var i = partnerData.commissionHistory.length - 1; i >= 0; i--) {
+                    if (configData && configData.bonusCommissionHistoryTimes && configData.bonusCommissionHistoryTimes > 0
+                        && configData.bonusRate && configData.bonusRate > 0 && commissionLevel == maxCommissionLevel) {
+                        let bValid = true;
+                        let times = Math.max(0, (partnerData.commissionHistory.length - configData.bonusCommissionHistoryTimes));
+                        for (let i = partnerData.commissionHistory.length - 1; i >= times; i--) {
                             if (partnerData.commissionHistory[i] != maxCommissionLevel) {
                                 bValid = false;
                             }
@@ -2417,16 +2919,55 @@ var dbPartner = {
                             bonusCommissionRate = configData.bonusRate;
                         }
                     }
-                    var commissionAmount = profitAmount * (commissionRate + bonusCommissionRate);
-                    var partnerProm = partnerData;
+                    let negativeProfitAmount = partnerData.negativeProfitAmount;
+                    profitAmount += partnerData.negativeProfitAmount;
+                    let commissionAmount = profitAmount * (commissionRate + bonusCommissionRate);
+                    let partnerProm = partnerData;
                     if (settlementTimeToSave) {
-                        partnerData.lastCommissionSettleTime = settlementTimeToSave;
-                        partnerData.credits += commissionAmount;
-                        //update partner data
-                        partnerProm = partnerData.save();
+                        if (partnerData.negativeProfitAmount >= 0 && profitAmount < 0) {
+                            partnerData.negativeProfitStartTime = endTime;
+                        }
+                        if (profitAmount >= 0) {
+                            partnerData.negativeProfitStartTime = null;
+                        }
+                        if (commissionAmount > configData.minCommissionAmount) {
+                            negativeProfitAmount = 0;
+                        }
+                        else {
+                            negativeProfitAmount = profitAmount;
+                        }
+
+                        //partnerData.lastCommissionSettleTime = settlementTimeToSave;
+                        //partnerData.credits += commissionAmount;
+                        //create proposal for partner commission
+                        if (commissionAmount < configData.minCommissionAmount) {
+                            commissionAmount = 0;
+                        }
+                        if (commissionAmount != 0 || negativeProfitAmount != 0) {
+                            var proposalData = {
+                                entryType: constProposalEntryType.SYSTEM,
+                                userType: constProposalUserType.PARTNERS,
+                                data: {
+                                    partnerObjId: partnerData._id,
+                                    platformObjId: partnerData.platform,
+                                    partnerName: partnerData.partnerName,
+                                    lastCommissionSettleTime: settlementTimeToSave,
+                                    commissionAmount: commissionAmount,
+                                    negativeProfitAmount: negativeProfitAmount,
+                                    commissionLevel: commissionLevel,
+                                    negativeProfitStartTime: partnerData.negativeProfitStartTime,
+                                    preNegativeProfitAmount: partnerData.negativeProfitAmount,
+                                    commissionAmountFromChildren: 0
+                                }
+                            };
+                            partnerProm = dbProposal.createProposalWithTypeName(partnerData.platform, constProposalType.PARTNER_COMMISSION, proposalData);
+                        }
+                    }
+                    if (commissionAmount < configData.minCommissionAmount) {
+                        commissionAmount = 0;
                     }
                     //log this commission record
-                    var recordProm = dbUtil.upsertForShard(
+                    let recordProm = dbUtil.upsertForShard(
                         dbconfig.collection_partnerCommissionRecord,
                         {
                             partner: partnerObjId,
@@ -2441,8 +2982,11 @@ var dbPartner = {
                             commissionLevel: commissionLevel,
                             commissionRate: commissionRate,
                             bonusCommissionRate: bonusCommissionRate,
+                            negativeProfitAmount: negativeProfitAmount,
                             totalValidAmount: totalValidAmount,
                             totalBonusAmount: totalBonusAmount,
+                            totalPlayerBonusAmount: totalPlayerBonusAmount,
+                            totalTopUpAmount: totalTopUpAmount,
                             commissionAmount: commissionAmount,
                             lastCommissionSettleTime: startTime
                         },
@@ -2460,7 +3004,7 @@ var dbPartner = {
             configData => {
                 if (configData && configData.childrenCommissionRate && configData.childrenCommissionRate.length > 0) {
                     //check children commision rate
-                    var childrenCommissionRate = 0;
+                    let childrenCommissionRate = 0;
                     configData.childrenCommissionRate.forEach(
                         rateInfo => {
                             if (rateInfo.level == 1) {
@@ -2472,24 +3016,47 @@ var dbPartner = {
                         return;
                     }
                     //check config data period
-                    var settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
-                    var bMatchPeriod = true;
+                    let settleTime = isToday ? dbUtil.getTodaySGTime() : dbUtil.getYesterdaySGTime();
+                    let bMatchPeriod = true;
 
                     switch (configData.commissionPeriod) {
-                        case constPlayerLevelPeriod.WEEK:
+                        case constPartnerCommissionPeriod.WEEK:
                             if (dbUtil.isFirstDayOfWeekSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentWeekSGTime() : dbUtil.getLastWeekSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentWeekSGTime();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
-                        case constPlayerLevelPeriod.MONTH:
+                        case constPartnerCommissionPeriod.HALF_MONTH:
+                            if (dbUtil.isHalfMonthDaySG()) {
+                                settleTime = isToday ? dbUtil.getCurrentHalfMonthPeriodSG() : dbUtil.getPastHalfMonthPeriodSG();
+                            }
+                            else {
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentHalfMonthPeriodSG();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
+                            }
+                            break;
+                        case constPartnerCommissionPeriod.MONTH:
                             if (dbUtil.isFirstDayOfMonthSG()) {
                                 settleTime = isToday ? dbUtil.getCurrentMonthSGTIme() : dbUtil.getLastMonthSGTime();
                             }
                             else {
-                                bMatchPeriod = false;
+                                if (isToday) {
+                                    settleTime = dbUtil.getCurrentMonthSGTIme();
+                                }
+                                else {
+                                    bMatchPeriod = false;
+                                }
                             }
                             break;
                     }
@@ -2500,14 +3067,18 @@ var dbPartner = {
                     }
 
                     //if there is commission config, start settlement
-                    var stream = dbconfig.collection_partner.find(
+                    let stream = dbconfig.collection_partner.find(
                         {
                             platform: platformObjId,
-                            lastChildrenCommissionSettleTime: {$lt: settleTime.startTime}
+                            lastChildrenCommissionSettleTime: {$lt: settleTime.startTime},
+                            $or: [
+                                {permission: {$exists: false}},
+                                {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                            ]
                         }
                     ).cursor({batchSize: 10});
 
-                    var balancer = new SettlementBalancer();
+                    let balancer = new SettlementBalancer();
                     return balancer.initConns().then(function () {
                         return Q(
                             balancer.processStream(
@@ -2534,7 +3105,7 @@ var dbPartner = {
     },
 
     calculatePartnersChildrenCommission: function (platformObjId, childrenCommissionRate, partnerObjIds, startTime, endTime, settlementTimeToSave) {
-        var proms = [];
+        let proms = [];
         partnerObjIds.forEach(
             objId => {
                 proms.push(dbPartner.calculatePartnerChildrenCommission(platformObjId, childrenCommissionRate, objId, startTime, endTime, settlementTimeToSave));
@@ -2545,12 +3116,15 @@ var dbPartner = {
 
     calculatePartnerChildrenCommission: function (platformObjId, childrenCommissionRate, partnerObjId, startTime, endTime, settlementTimeToSave) {
         //find all children
-        var commissionAmountFromChildren = 0;
+        let commissionAmountFromChildren = 0;
+        let updatedCommissionRecordToReturn = null;
+        let _partnerData = null;
+
         return dbconfig.collection_partner.find({parent: partnerObjId, platform: platformObjId}).lean().then(
             childrenPartners => {
                 if (childrenPartners && childrenPartners.length > 0) {
                     //find all children partner commission report
-                    var partnerObjIds = childrenPartners.map(child => child._id);
+                    let partnerObjIds = childrenPartners.map(child => child._id);
                     return dbconfig.collection_partnerCommissionRecord.aggregate(
                         {
                             $match: {
@@ -2587,23 +3161,72 @@ var dbPartner = {
                         }
                     ).then(
                         updatedCommissionRecord => {
+                            updatedCommissionRecordToReturn = updatedCommissionRecord;
+
                             return Q.resolve().then(
                                 () => {
+                                    // Check if data update is required
                                     if (settlementTimeToSave) {
-                                        return dbconfig.collection_partner.findOneAndUpdate(
-                                            {_id: partnerObjId, platform: platformObjId},
-                                            {
-                                                lastChildrenCommissionSettleTime: settlementTimeToSave,
-                                                credits: {$inc: commissionAmountFromChildren}
-                                            }
-                                        );
+                                        // find the data for parent partner
+                                        return dbconfig.collection_partner.findOne({
+                                            _id: partnerObjId
+                                        });
+                                    } else {
+                                        return updatedCommissionRecord;
                                     }
                                 }
-                            ).then(
-                                () => updatedCommissionRecord
-                            );
+                            )
                         }
-                    )
+                    ).then(
+                        partnerData => {
+                            if (partnerData) {
+                                _partnerData = partnerData;
+
+                                // find any previous created proposal for this partner
+                                return dbconfig.collection_proposal.findOne({
+                                    "data.platformObjId": platformObjId,
+                                    "data.partnerName": partnerData.partnerName,
+                                    "data.lastCommissionSettleTime": settlementTimeToSave
+                                });
+                            }
+                        }
+                    ).then(
+                        proposalData => {
+                            if (proposalData) {
+                                // Update parent commission to include children commission
+                                return dbconfig.collection_proposal.findOneAndUpdate({
+                                    _id: proposalData._id
+                                }, {
+                                    "data.commissionAmountFromChildren": commissionAmountFromChildren
+                                });
+                            } else if (!proposalData && settlementTimeToSave && commissionAmountFromChildren > 0) {
+                                // Create a new proposal for child commission if parent commission not found
+                                let proposalData = {
+                                    entryType: constProposalEntryType.SYSTEM,
+                                    userType: constProposalUserType.PARTNERS,
+                                    data: {
+                                        partnerObjId: partnerObjId,
+                                        platformObjId: platformObjId,
+                                        partnerName: _partnerData.partnerName,
+                                        lastCommissionSettleTime: settlementTimeToSave,
+                                        commissionAmountFromChildren: commissionAmountFromChildren,
+                                        commissionAmount: 0,
+                                        negativeProfitAmount: 0,
+                                        preNegativeProfitAmount: _partnerData.negativeProfitAmount,
+                                        commissionLevel: []
+                                    }
+                                };
+
+                                if (_partnerData.negativeProfitStartTime) {
+                                    proposalData.data.negativeProfitStartTime = _partnerData.negativeProfitStartTime;
+                                }
+
+                                return dbProposal.createProposalWithTypeName(platformObjId, constProposalType.PARTNER_COMMISSION, proposalData);
+                            }
+                        }
+                    ).then(
+                        () => updatedCommissionRecordToReturn
+                    );
                 }
             }
         );
@@ -2619,7 +3242,7 @@ var dbPartner = {
                 $lt: endTime
             }
         };
-        var partId = matchObj;
+        let partId = matchObj;
         if (partnerName) {
             partId = dbconfig.collection_partner.findOne({partnerName: partnerName}).then(
                 partner => {
@@ -2630,85 +3253,130 @@ var dbPartner = {
                     }
                     return matchObj;
                 })
-        }
-        return Q.resolve(partId).then(matchObj => {
-            if (matchObj == "noPartner") {
-                return {data: [], size: 0, summary: {}, message: "Cannot find partner"}
-            }
-            return dbconfig.collection_partnerCommissionRecord.aggregate([{
-                $match: matchObj
-            }, {
-                $group: {
-                    _id: {
-                        partner: "$partner"
-                    },
-                    serviceFee: {$sum: "$serviceFee"},
-                    platformFee: {$sum: "$platformFee"},
-                    profitAmount: {$sum: "$profitAmount"},
-                    totalRewardAmount: {$sum: "$totalRewardAmount"},
-                    totalValidAmount: {$sum: "$totalValidAmount"},
-                    totalBonusAmount: {$sum: "$totalBonusAmount"}
-                }
-            }, {
-                $project: {
-                    _id: 1,
-                    serviceFee: 1,
-                    platformFee: 1,
-                    profitAmount: 1,
-                    operationFee: {$subtract: ["$totalValidAmount", "$totalBonusAmount"]},
-                    marketCost: {$add: ["$totalRewardAmount", "$platformFee", "$serviceFee"]}
-                }
-            }]).then(data => {
-                var result = [];
-                data.map(
-                    eachRecord => {
-                        var a = dbconfig.collection_partner.findOne({_id: eachRecord._id.partner}).then(
-                            partner => {
-                                eachRecord._id.partnerName = partner.partnerName;
-                                return dbPartner.getPartnerPlayerPaymentReport(partner.partnerId, startTime, endTime, 0, 0, {}).then(
-                                    reportData => {
-                                        eachRecord.totalTopUpAmount = reportData.summary.totalTopUpAmount;
-                                        eachRecord.totalBonusAmount = reportData.summary.totalBonusAmount;
-                                        return eachRecord;
-                                    },
-                                    err => {
-                                        console.log(err);
-                                    }
-                                )
-                            })
-                        result.push(a);
-                        return eachRecord;
-                    })
-                return Q.all(result).then(
-                    result => {
-                        if (sortKey) {
-                            result = result.sort((a, b) => {
-                                return (a[sortKey] - b[sortKey]) * sortVal;
-                            })
-                        }
-                        var summary = {
-                            marketCost: 0,
-                            operationFee: 0,
-                            platformFee: 0,
-                            profitAmount: 0,
-                            serviceFee: 0,
-                            totalBonusAmount: 0,
-                            totalTopUpAmount: 0,
-                        }
-                        result.map(item => {
-                            summary.marketCost += item.marketCost;
-                            summary.operationFee += item.operationFee;
-                            summary.platformFee += item.platformFee;
-                            summary.profitAmount += item.profitAmount;
-                            summary.serviceFee += item.serviceFee;
-                            summary.totalBonusAmount += item.totalBonusAmount;
-                            summary.totalTopUpAmount += item.totalTopUpAmount;
-                        })
-                        return {data: result.slice(index, index + limit), size: result.length, summary: summary};
+        } else {
+            // Instead of searching all partners, look for only partners with permission on
+            partId = dbconfig.collection_partner.find({
+                $or: [
+                    {permission: {$exists: false}},
+                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                ]
+            }).then(
+                partners => {
+                    if (partners && partners.length > 0) {
+                        let partnerIds = partners.map(partner => partner._id);
+                        matchObj.partner = {$in: partnerIds};
+                    } else {
+                        matchObj = "noPartner";
                     }
-                )
-            })
-        });
+                    return matchObj;
+                }
+            )
+        }
+
+        return Q.resolve(partId).then(
+            matchObj => {
+                if (matchObj == "noPartner") {
+                    return {data: [], size: 0, summary: {}, message: "Cannot find partner"}
+                }
+                return dbconfig.collection_partnerCommissionRecord.aggregate(
+                    [
+                        {
+                            $match: matchObj
+                        },
+                        {
+                            $group: {
+                                _id: {
+                                    partner: "$partner"
+                                },
+                                serviceFee: {$sum: "$serviceFee"},
+                                platformFee: {$sum: "$platformFee"},
+                                profitAmount: {$sum: "$profitAmount"},
+                                totalRewardAmount: {$sum: "$totalRewardAmount"},
+                                totalValidAmount: {$sum: "$totalValidAmount"},
+                                totalBonusAmount: {$sum: "$totalBonusAmount"},
+                                totalTopUpAmount: {$sum: "$totalTopUpAmount"},
+                                totalPlayerBonusAmount: {$sum: "$totalPlayerBonusAmount"},
+                                totalCommissionAmount: {$sum: "$commissionAmount"},
+                                totalCommissionOfChildren: {$sum: "$totalCommissionOfChildren"}
+                            }
+                        }
+                    ]
+                ).then(
+                    data => {
+                        var result = [];
+                        data.forEach(
+                            eachRecord => {
+                                if (eachRecord) {
+                                    eachRecord.operationFee = eachRecord.totalTopUpAmount - eachRecord.totalPlayerBonusAmount;
+                                    eachRecord.marketCost = eachRecord.totalRewardAmount + eachRecord.platformFee + eachRecord.serviceFee;
+                                    // eachRecord.totalTopUpAmount = 0;
+                                    // eachRecord.totalBonusAmount = 0;
+                                    var a = dbconfig.collection_partner.findOne({_id: eachRecord._id.partner}).then(
+                                        partner => {
+                                            eachRecord._id.partnerName = partner.partnerName;
+                                            //todo::refactor the code here for partner player payment summary
+                                            // return dbPartner.getPartnerPlayerPaymentReport(partner.partnerId, startTime, endTime, 0, 0, {}).then(
+                                            //     reportData => {
+                                            //         if(reportData){
+                                            //             eachRecord.totalTopUpAmount = reportData.summary.totalTopUpAmount;
+                                            //             eachRecord.totalBonusAmount = reportData.summary.totalBonusAmount;
+                                            //         }
+                                            //         return eachRecord;
+                                            //     },
+                                            //     err => {
+                                            //         console.log(err);
+                                            //     }
+                                            // );
+                                            // eachRecord.totalTopUpAmount = 0;
+                                            // eachRecord.totalBonusAmount = 0;
+                                            return eachRecord;
+                                        });
+                                    result.push(a);
+                                }
+                            });
+                        return Q.all(result).then(
+                            result => {
+                                if (sortKey) {
+                                    result = result.sort((a, b) => {
+                                        return (a[sortKey] - b[sortKey]) * sortVal;
+                                    })
+                                }
+                                var summary = {
+                                    marketCost: 0,
+                                    operationFee: 0,
+                                    platformFee: 0,
+                                    totalRewardAmount: 0,
+                                    profitAmount: 0,
+                                    serviceFee: 0,
+                                    totalBonusAmount: 0,
+                                    totalTopUpAmount: 0,
+                                    totalCommissionAmount: 0,
+                                    totalCommissionOfChildren: 0
+                                }
+                                result.forEach(item => {
+                                    if (item) {
+                                        summary.marketCost += item.marketCost;
+                                        summary.operationFee += item.operationFee;
+                                        summary.platformFee += item.platformFee;
+                                        summary.totalRewardAmount += item.totalRewardAmount;
+                                        summary.profitAmount += item.profitAmount;
+                                        summary.serviceFee += item.serviceFee;
+                                        summary.totalBonusAmount += item.totalBonusAmount;
+                                        summary.totalPlayerBonusAmount += item.totalPlayerBonusAmount;
+                                        summary.totalTopUpAmount += item.totalTopUpAmount;
+                                        summary.totalCommissionAmount += item.totalCommissionAmount;
+                                        summary.totalCommissionOfChildren += item.totalCommissionOfChildren;
+                                    }
+                                });
+                                return {
+                                    data: result.slice(index, index + limit),
+                                    size: result.length,
+                                    summary: summary
+                                };
+                            }
+                        )
+                    })
+            });
     },
 
     getPartnerCommission: function (partnerId, startTime, endTime, startIndex, requestCount) {
@@ -2725,28 +3393,84 @@ var dbPartner = {
                     return Q.reject({name: "DataError", message: "Cannot find partner data"});
                 }
             }
+            // ).then(
+            //     configData => {
+            //         if (configData) {
+            //             configObj = configData;
+            //             return dbconfig.collection_players.find({partner: partnerObj._id}).lean();
+            //         }
+            //         else {
+            //             return Q.reject({name: "DataError", message: "Cannot find partner commission config data"});
+            //         }
+            //     }
+            // ).then(
+            //     players => {
+            //         if (players && players.length > 0) {
+            //             var proms = players.map(player => dbPartner.getPartnerPlayerCommissionInfo(player.platform, player._id, player.name, configObj, startTime, endTime));
+            //             return Q.all(proms);
+            //         }
+            //         else {
+            //             return [];
+            //         }
+            //     }
         ).then(
             configData => {
                 if (configData) {
                     configObj = configData;
-                    return dbconfig.collection_players.find({partner: partnerObj._id}).lean();
+                    // return dbconfig.collection_players.find({partner: partnerObj._id}).lean();
+                    var query = dbconfig.collection_players.aggregate(
+                        [
+                            {
+                                $match: {
+                                    partner: partnerObj._id,
+                                    platform: partnerObj.platform
+                                }
+                            },
+                            {
+                                $group: {_id: '$_id'}
+                            }
+                        ]
+                    );
+
+                    var stream = query.cursor({batchSize: 100}).allowDiskUse(true).exec();
+                    var balancer = new SettlementBalancer();
+                    var res = [];
+                    return balancer.initConns().then(function () {
+                        return Q(
+                            balancer.processStream(
+                                {
+                                    stream: stream,
+                                    batchSize: 1000,
+                                    makeRequest: function (playerIdObjs, request) {
+                                        request("player", "getPartnerPlayersCommissionInfo", {
+                                            platformObjId: partnerObj.platform,
+                                            configData: configObj,
+                                            startTime: startTime,
+                                            endTime: endTime,
+                                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                                return playerIdObj._id;
+                                            })
+                                        });
+                                    },
+                                    processResponse: function (record) {
+                                        res = res.concat(record.data);
+                                    }
+                                }
+                            )
+                        );
+                    }).then(
+                        data => {
+                            return res;
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find partner commission config data"});
                 }
             }
         ).then(
-            players => {
-                if (players && players.length > 0) {
-                    var proms = players.map(player => dbPartner.getPartnerPlayerCommissionInfo(player.platform, player._id, player.name, configObj, startTime, endTime));
-                    return Q.all(proms);
-                }
-                else {
-                    return [];
-                }
-            }
-        ).then(
             playerCommissions => {
+                playerCommissions = playerCommissions.filter(commission => commission);
                 var total = {
                     totalValidAmount: 0,
                     totalBonusAmount: 0,
@@ -2754,38 +3478,118 @@ var dbPartner = {
                     totalRewardAmount: 0,
                     serviceFee: 0,
                     platformFee: 0,
-                    profitAmount: 0
+                    profitAmount: 0,
+                    totalTopUpAmount: 0,
+                    totalPlayerBonusAmount: 0,
+                    operationCost: 0
                 };
                 playerCommissions.forEach(
                     commission => {
-                        total.totalValidAmount += commission.totalValidAmount;
-                        total.totalBonusAmount += commission.totalBonusAmount;
-                        total.operationAmount += commission.operationAmount;
-                        total.totalRewardAmount += commission.totalRewardAmount;
-                        total.serviceFee += commission.serviceFee;
-                        total.platformFee += commission.platformFee;
-                        total.profitAmount += commission.profitAmount;
+                        if (commission) {
+                            total.totalValidAmount += commission.totalValidAmount;
+                            total.totalBonusAmount += commission.totalBonusAmount;
+                            total.operationAmount += commission.operationAmount;
+                            total.totalRewardAmount += commission.totalRewardAmount;
+                            total.serviceFee += commission.serviceFee;
+                            total.platformFee += commission.platformFee;
+                            total.profitAmount += commission.profitAmount;
+                            total.totalTopUpAmount += commission.totalTopUpAmount;
+                            total.totalPlayerBonusAmount += commission.totalPlayerBonusAmount;
+                            total.operationCost += commission.operationCost;
+                        }
                     }
                 );
-                return {
-                    stats: {
-                        startIndex: startIndex,
-                        totalCount: playerCommissions.length
-                    },
-                    total: total,
-                    playerCommissions: playerCommissions.slice(startIndex, startIndex + requestCount)
-                };
+                let profitAmount = total.profitAmount;
+                let maxCommissionLevel = 0;
+                let commissionLevel = 0;
+                let commissionRate = 0;
+                if (configObj && configObj.commissionLevelConfig && configObj.commissionLevelConfig.length > 0) {
+                    configObj.commissionLevelConfig.forEach(
+                        level => {
+                            if (level.value >= maxCommissionLevel) {
+                                maxCommissionLevel = level.value;
+                            }
+                            //todo:: add valid player count here
+                            if (level.minProfitAmount <= profitAmount && profitAmount <= level.maxProfitAmount /*&& validPlayerCount >= level.minActivePlayer*/) {
+                                if (level.value >= commissionLevel) {
+                                    commissionLevel = level.value;
+                                    commissionRate = level.commissionRate;
+                                }
+                            }
+                        }
+                    );
+                }
+                total.commissionAmount = profitAmount * commissionRate;
+                total.preNegativeProfitAmount = partnerObj.negativeProfitAmount;
+                return dbconfig.collection_proposalType.findOne({
+                    platform: partnerObj.platform,
+                    name: constProposalType.PARTNER_COMMISSION
+                }).then(
+                    typeData => {
+                        if (typeData) {
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match: {
+                                        type: typeData._id,
+                                        createTime: {
+                                            $gte: startTime,
+                                            $lt: endTime
+                                        },
+                                        "data.partnerName": partner.partnerName
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$type",
+                                        totalNegative: {$sum: "$preNegativeProfitAmount"}
+                                    }
+                                }
+                            );
+                        }
+                    }
+                ).then(
+                    proposal => {
+                        if (proposal && proposal[0] && proposal[0].totalNegative) {
+                            total.preNegativeProfitAmount = proposal[0].totalNegative;
+                        }
+                        return {
+                            stats: {
+                                startIndex: startIndex,
+                                totalCount: playerCommissions.length,
+                                requestCount: requestCount
+                            },
+                            total: total,
+                            playerCommissions: playerCommissions.slice(startIndex, startIndex + requestCount)
+                        };
+                    }
+                );
+
             }
         );
     },
 
+    getPartnerPlayersCommissionInfo: function (platformObjId, configData, playerObjIds, startTime, endTime) {
+        var proms = playerObjIds.map(
+            playerObjId => {
+                return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+                    playerData => {
+                        if (playerData) {
+                            return dbPartner.getPartnerPlayerCommissionInfo(platformObjId, playerObjId, playerData.name, configData, startTime, endTime);
+                        }
+                    }
+                );
+            }
+        );
+        return Q.all(proms);
+    },
+
     getPartnerPlayerCommissionInfo: function (platformObjId, playerObjId, playerName, configData, startTime, endTime) {
-        var consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+        var consumptionProm = dbconfig.collection_providerPlayerDaySummary.aggregate(
             {
                 $match: {
                     platformId: platformObjId,
                     playerId: playerObjId,
-                    createTime: {
+                    date: {
                         $gte: startTime,
                         $lt: endTime
                     }
@@ -2819,7 +3623,56 @@ var dbPartner = {
             }
         );
 
-        return Q.all([consumptionProm, rewardProm]).then(
+        var topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
+            {
+                $match: {
+                    platformId: platformObjId,
+                    playerId: playerObjId,
+                    createTime: {
+                        $gte: startTime,
+                        $lt: endTime
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$platformId",
+                    totalTopUpAmount: {$sum: "$amount"}
+                }
+            }
+        );
+
+        var bonusProm = dbconfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: constProposalType.PLAYER_BONUS
+        }).then(
+            bonusType => {
+                if (bonusType) {
+                    return dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                // platform: platformObjId,
+                                type: bonusType._id,
+                                "data.playerObjId": playerObjId,
+                                createTime: {
+                                    $gte: startTime,
+                                    $lt: endTime
+                                },
+                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.PENDING]}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$platform",
+                                totalBonusAmount: {$sum: "$data.amount"}
+                            }
+                        }
+                    );
+                }
+            }
+        );
+
+        return Q.all([consumptionProm, rewardProm, topUpProm, bonusProm]).then(
             data => {
                 //calculate profit amount
                 var totalValidAmount = 0;
@@ -2832,33 +3685,45 @@ var dbPartner = {
 
                 var consumptionInfo = data[0];
                 var rewardInfo = data[1];
-                var operationAmount = 0;
+                var topUpInfo = data[2];
+                var bonusInfo = data[3];
+                var totalTopUpAmount = topUpInfo && topUpInfo[0] ? topUpInfo[0].totalTopUpAmount : 0;
+                var totalPlayerBonusAmount = bonusInfo && bonusInfo[0] ? bonusInfo[0].totalBonusAmount : 0;
+                var operationAmount = totalTopUpAmount - totalPlayerBonusAmount;
+                var platformFeeAmount = 0;
                 if (consumptionInfo && consumptionInfo[0]) {
                     totalValidAmount = consumptionInfo[0].totalValidAmount;
-                    totalBonusAmount = consumptionInfo[0].totalBonusAmount;
-                    operationAmount = consumptionInfo[0].totalValidAmount - consumptionInfo[0].totalBonusAmount;
+                    totalBonusAmount = -consumptionInfo[0].totalBonusAmount;
+                    // operationAmount = totalBonusAmount;
+                    platformFeeAmount = Math.abs(totalBonusAmount);
                 }
-                if (rewardInfo && rewardInfo[0]) {
-                    totalRewardAmount = rewardInfo[0].totalRewardAmount;
+                if (rewardInfo && rewardInfo[0] && configData && configData.rewardRate) {
+                    totalRewardAmount = rewardInfo[0].totalRewardAmount * configData.rewardRate;
                 }
                 if (configData && configData.serviceFeeRate > 0) {
-                    serviceFee = operationAmount * configData.serviceFeeRate;
+                    serviceFee = (totalTopUpAmount + totalPlayerBonusAmount) * configData.serviceFeeRate;
                 }
                 if (configData && configData.platformFeeRate > 0) {
-                    platformFee = operationAmount * configData.platformFeeRate;
+                    platformFee = platformFeeAmount * configData.platformFeeRate;
                 }
                 profitAmount = operationAmount - platformFee - serviceFee - totalRewardAmount;
+                var operationCost = platformFee + serviceFee + totalRewardAmount;
 
-                return {
-                    playerName: playerName,
-                    totalValidAmount: totalValidAmount,
-                    totalBonusAmount: totalBonusAmount,
-                    operationAmount: operationAmount,
-                    totalRewardAmount: totalRewardAmount,
-                    serviceFee: serviceFee,
-                    platformFee: platformFee,
-                    profitAmount: profitAmount
-                };
+                if (profitAmount) {
+                    return {
+                        playerName: playerName,
+                        totalValidAmount: totalValidAmount,
+                        totalBonusAmount: totalBonusAmount,
+                        operationAmount: operationAmount,
+                        totalRewardAmount: totalRewardAmount,
+                        totalTopUpAmount: totalTopUpAmount,
+                        serviceFee: serviceFee,
+                        platformFee: platformFee,
+                        profitAmount: profitAmount,
+                        totalPlayerBonusAmount: totalPlayerBonusAmount,
+                        operationCost: operationCost
+                    };
+                }
             }
         );
     },
@@ -2893,7 +3758,7 @@ var dbPartner = {
                         {
                             $group: {
                                 _id: "$type",
-                                totalAmount: {$sum: {$multiply: ["$data.amount", "$data.bonusCredit"]}},
+                                totalAmount: {$sum: "$data.amount"},
                             }
                         }
                     );
@@ -2951,7 +3816,8 @@ var dbPartner = {
                                         $match: {
                                             platformId: partnerData.platform,
                                             playerId: {$in: playerObjIds},
-                                            createTime: {$gte: startTime, $lt: endTime}
+                                            createTime: {$gte: startTime, $lt: endTime},
+                                            amount: {$gt: 0}
                                         }
                                     },
                                     {
@@ -3016,7 +3882,240 @@ var dbPartner = {
                 }
             }
         );
+    },
+
+    getPartnerPhoneNumber: function (partnerObjId) {
+        return dbconfig.collection_partner.findOne({_id: partnerObjId}).then(
+            partnerData => {
+                if (partnerData) {
+                    if (partnerData.phoneNumber) {
+                        // temp remove the encryption
+                        // if (partnerData.phoneNumber.length > 20) {
+                        //     try {
+                        //         partnerData.phoneNumber = rsaCrypto.decrypt(partnerData.phoneNumber);
+                        //     }
+                        //     catch (err) {
+                        //         console.log(err);
+                        //     }
+                        // }
+                        return partnerData.phoneNumber;
+                    } else {
+                        return Q.reject({name: "DataError", message: "Can not find phoneNumber"});
+                    }
+                } else {
+                    return Q.reject({name: "DataError", message: "Can not find partner"});
+                }
+            }
+        );
+    },
+
+    isPhoneNumberValidToRegister: function (query) {
+        return dbconfig.collection_partner.findOne(query).then(
+            partnerData => {
+                if (partnerData) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
+                }
+            }
+        );
+    },
+
+    isPartnerNameValidToRegister: function (query) {
+        return dbconfig.collection_partner.findOne(query).then(
+            partnerData => {
+                if (partnerData) {
+                    return {isPartnerNameValid: false};
+                } else {
+                    return {isPartnerNameValid: true};
+                }
+            }
+        );
+    },
+
+    updatePartnerPermission: function (query, admin, permission, remark) {
+        let updateObj = {};
+        for (let key in permission) {
+            if (permission.hasOwnProperty(key)) {
+                updateObj["permission." + key] = permission[key];
+            }
+        }
+        return dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, query, updateObj, constShardKeys.collection_partner, false).then(
+            suc => {
+                let oldData = {};
+                for (let i in permission) {
+                    if (permission.hasOwnProperty(i)) {
+                        if (suc.permission[i] != permission[i]) {
+                            oldData[i] = suc.permission[i];
+                        } else {
+                            delete permission[i];
+                        }
+                    }
+                }
+                if (Object.keys(oldData).length !== 0) {
+                    let newLog = new dbconfig.collection_partnerPermissionLog({
+                        admin: admin,
+                        platform: query.platform,
+                        partner: query._id,
+                        remark: remark,
+                        oldData: oldData,
+                        newData: permission,
+                    });
+                    return newLog.save();
+                } else return true;
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error updating partner permission.",
+                    error: error
+                });
+            }
+        ).then(
+            suc => {
+                return true;
+            },
+            error => {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Partner permission updated. Error occurred when creating log.",
+                    error: error
+                });
+            }
+        );
+    },
+
+    /**
+     * Update partner status info and record change reasono
+     * @param {objectId} partnerObjId
+     * @param {String} status
+     * @param {String} reason
+     */
+    updatePartnerStatus: function (partnerObjId, status, reason, adminName) {
+        var updateData = {
+            status: status
+        };
+
+        var partnerProm = dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, {
+            _id: partnerObjId
+        }, updateData, constShardKeys.collection_partner);
+        var newLog = {
+            _partnerId: partnerObjId,
+            status: status,
+            reason: reason,
+            adminName: adminName
+        };
+        var log = new dbconfig.collection_partnerStatusChangeLog(newLog);
+        var logProm = log.save();
+        return Q.all([partnerProm, logProm]);
+    },
+
+    /*
+     * get partner status change log
+     * @param {objectId} partnerObjId
+     */
+    getPartnerStatusChangeLog: function (partnerObjId) {
+        return dbconfig.collection_partnerStatusChangeLog.find({_partnerId: partnerObjId}).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
+    },
+
+    /**
+     * Adds the given amount into the partner's account, and creates a creditChangeLog record.
+     * Can also be used to deduct credits from the account, by providing a negative value.
+     *
+     * @param {ObjectId} partnerObjId
+     * @param {ObjectId} platformObjId
+     * @param {Number} updateAmount
+     * @param {String} reasonType
+     * @param {Object} [data]
+     * @returns {Promise<Partner>}
+     */
+    changePartnerCredit: function changePartnerCredit(partnerObjId, platformObjId, updateAmount, reasonType, data) {
+        return dbconfig.collection_partner.findOneAndUpdate(
+            {_id: partnerObjId, platform: platformObjId},
+            {$inc: {credits: updateAmount}},
+            {new: true}
+        ).then(
+            partner => {
+                if (!partner) {
+                    return Q.reject({name: "DataError", message: "Can't update partner credit: partner not found."});
+                }
+                dbLogger.createPartnerCreditChangeLog(partnerObjId, platformObjId, updateAmount, reasonType, partner.credits, null, data);
+                return partner;
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error updating partner.", error: error});
+            }
+        );
+    },
+
+    /**
+     * Attempts to take the given amount out of the partner's account.
+     * It resolves if the deduction was successful.
+     * If rejects if the deduction failed for any reason.
+     *
+     * @param {ObjectId} partnerObjId
+     * @param {ObjectId} platformObjId
+     * @param {Number} updateAmount - Must be positive
+     * @param {String} reasonType
+     * @param {Object} [data]
+     * @returns {Promise}
+     */
+    tryToDeductCreditFromPartner: function tryToDeductCreditFromPartner(partnerObjId, platformObjId, updateAmount, reasonType, data) {
+        return Q.resolve().then(
+            () => {
+                if (updateAmount < 0) {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "tryToDeductCreditFromPartner expects a positive value to deduct",
+                        updateAmount: updateAmount
+                    });
+                }
+            }
+        ).then(
+            () => dbconfig.collection_partner.findOne({
+                _id: partnerObjId,
+                platform: platformObjId
+            }).select('validCredit')
+        ).then(
+            partner => {
+                if (partner.credits < updateAmount) {
+                    return Q.reject({
+                        status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
+                        name: "DataError",
+                        message: "partner does not have enough credit."
+                    });
+                }
+            }
+        ).then(
+            () => dbPartner.changePartnerCredit(partnerObjId, platformObjId, -updateAmount, reasonType, data)
+        ).then(
+            partner => {
+                if (partner.credits < 0) {
+                    // First reset the deduction, then report the problem
+                    return Q.resolve().then(
+                        () => dbPartner.refundPartnerCredit(partnerObjId, platformObjId, +updateAmount, "deductedBelowZeroRefund", data)
+                    ).then(
+                        () => Q.reject({
+                            status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
+                            name: "DataError",
+                            message: "Partner does not have enough credit.",
+                            data: '(detected after withdrawl)'
+                        })
+                    );
+                }
+            }
+        ).then(
+            () => true
+        );
+    },
+
+    /**
+     * Just a conceptual shortcut for changePartnerCredit, could be tweaked in future.
+     */
+    refundPartnerCredit: function (partnerObjId, platformObjId, refundAmount, reasonType, data) {
+        return dbPartner.changePartnerCredit(partnerObjId, platformObjId, refundAmount, reasonType, data);
     }
+
 
 };
 

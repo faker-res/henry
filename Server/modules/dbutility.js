@@ -1,9 +1,3 @@
-/******************************************************************
- *  Fantasy Player Management Tool
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var dbUtilityFunc = function () {
 };
 module.exports = new dbUtilityFunc();
@@ -178,8 +172,8 @@ var dbUtility = {
     },
 
     getLastMonthSGTime: function () {
-        var startTime = moment().tz('Asia/Singapore').subtract(1,'months').startOf('month').toDate();
-        var endTime = moment().tz('Asia/Singapore').subtract(1,'months').endOf('month').toDate();
+        var startTime = moment().tz('Asia/Singapore').subtract(1, 'months').startOf('month').toDate();
+        var endTime = moment().tz('Asia/Singapore').subtract(1, 'months').endOf('month').toDate();
         return {
             startTime: startTime,
             endTime: endTime
@@ -203,6 +197,13 @@ var dbUtility = {
     },
     getDayEndTime: function (date) {
         return date ? moment(date).tz('Asia/Singapore').startOf('day').add(1, 'days').toDate() : null;
+    },
+
+    getPreviousSGDayOfDate: function (date) {
+        return date ? {
+            startTime: moment(date).tz('Asia/Singapore').subtract(1, 'days').startOf('day').toDate(),
+            endTime: moment(date).tz('Asia/Singapore').subtract(1, 'days').startOf('day').add(1, 'days').toDate()
+        } : null;
     },
 
     /**
@@ -362,6 +363,51 @@ var dbUtility = {
         var day2 = moment(date2).tz('Asia/Singapore').toDate().toDateString();
 
         return day1 === day2;
+    },
+
+    isHalfMonthDaySG: function () {
+        var day = moment().tz('Asia/Singapore').toDate().getDate();
+        return day == 1 || day == 16;
+    },
+
+    getPastHalfMonthPeriodSG: function () {
+        let day = moment().tz('Asia/Singapore').toDate().getDate();
+        if (day >= 1 && day < 16) {
+            let startTime = moment().tz('Asia/Singapore').startOf("month").subtract(1, 'month').add(15, 'day').toDate();
+            let endTime = moment().tz('Asia/Singapore').startOf("month").toDate();
+            return {
+                startTime: startTime,
+                endTime: endTime
+            }
+        }
+        else if (day >= 16) {
+            let startTime = moment().tz('Asia/Singapore').startOf("month").toDate();
+            let endTime = moment().tz('Asia/Singapore').startOf("month").add(15, 'day').toDate();
+            return {
+                startTime: startTime,
+                endTime: endTime
+            }
+        }
+    },
+
+    getCurrentHalfMonthPeriodSG: function () {
+        let day = moment().tz('Asia/Singapore').toDate().getDate();
+        if (day >= 1 && day < 16) {
+            let startTime = moment().tz('Asia/Singapore').startOf("month").toDate();
+            let endTime = moment().tz('Asia/Singapore').startOf("month").add(15, 'day').toDate();
+            return {
+                startTime: startTime,
+                endTime: endTime
+            }
+        }
+        else if (day >= 16) {
+            let startTime = moment().tz('Asia/Singapore').startOf("month").add(15, 'day').toDate();
+            let endTime = moment().tz('Asia/Singapore').endOf("month").toDate();
+            return {
+                startTime: startTime,
+                endTime: endTime
+            }
+        }
     },
 
     /**
@@ -537,6 +583,25 @@ var dbUtility = {
         }
         return res;
     },
+
+    getDomainName: function (src) {
+        src = src || '';
+        return src
+            .replace("https://www.", "")
+            .replace("http://www.", "")
+            .replace("https://", "")
+            .replace("http://", "")
+            .replace("www.", "");
+    },
+
+    encodeBankAcc: function (str) {
+        str = str || '';
+        return str.substring(0, 6) + "******" + str.slice(-4);
+    },
+    encodePhoneNum: function (str) {
+        str = str || '';
+        return str.substring(0, 3) + "******" + str.slice(-4);
+    }
 
 };
 

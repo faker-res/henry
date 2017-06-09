@@ -1,8 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
 'use strict'
 
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
@@ -37,6 +32,12 @@ var ConsumptionServiceImplement = function () {
         var isValidData = Boolean(data && data.userName && data.hasOwnProperty("platformId") && data.hasOwnProperty("providerId") && data.hasOwnProperty("gameId")
             && typeof data.amount === 'number' && data.amount >= 0 && typeof data.validAmount === 'number' && data.validAmount >= 0);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord, [data], isValidData);
+    };
+
+    this.addMissingConsumption.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.userName && data.hasOwnProperty("platformId") && data.hasOwnProperty("providerId") && data.hasOwnProperty("gameId")
+            && typeof data.amount === 'number' && data.amount >= 0 && typeof data.validAmount === 'number' && data.validAmount >= 0);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionRecord.addMissingConsumption, [data], isValidData);
     };
 
     this.updateTransferProgress.expectsData = 'playerId, data';

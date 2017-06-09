@@ -970,7 +970,8 @@ var dbPlayerTopUpDaySummary = {
                                 settlementStartTime: startTime,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
-                                eventCode: eventData.code
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description
                             }
                         };
                         proms.push(

@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var RegistrationIntentionService = require("./../../services/client/ClientServices").RegistrationIntentionService;
 var dbPlayerRegistrationIntentRecord = require('./../../db_modules/dbPlayerRegistrationIntentRecord');
@@ -17,12 +11,16 @@ var RegistrationIntentionServiceImplement = function () {
     this.add.expectsData = 'name: String, mobile: String, platformId: String';
     this.add.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.mobile && data.hasOwnProperty("platformId"));
-        data.ipAddress = conn.upgradeReq.connection.remoteAddress;
+        data.ipAddress = conn.upgradeReq.connection.remoteAddress || '';
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            data.ipAddress = forwardedIp[0].trim();
+        }
         WebSocketUtil.responsePromise(
             conn, wsFunc, data, dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI,
             [data], isValidData, true, false, true
         ).then(
-            function(res){
+            function (res) {
                 wsFunc.response(conn, {status: constServerCode.SUCCESS, data: res}, data);
                 self.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyRegistrationIntentionUpdate", res);
             }

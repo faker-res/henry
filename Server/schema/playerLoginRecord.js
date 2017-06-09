@@ -1,9 +1,3 @@
-/******************************************************************
- *  NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
@@ -21,16 +15,18 @@ var playerLoginRecordSchema = new Schema({
     clientType: String,
     //logout time
     logoutTime: Date,
-    //country
-    country: String,
-    //city
-    city: String,
-    //province
-    province: String,
-    //longitude
-    longitude: String,
-    //latitude
-    latitude: String,
+    // GeoIP info
+    continent: {type: String},
+    country: {type: String},
+    province: {type: String},
+    city: {type: String},
+    district: {type: String},
+    isp: {type: String},
+    area_code: {type: Number},
+    country_english: {type: String},
+    country_code: {type: Number},
+    longitude: {type: Number},
+    latitude: {type: Number},
     //User agent containing 3 sub fields: browser, os, device
     userAgent: {
         browser: {type: String},

@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-new
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function () {
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -159,6 +153,37 @@
         this._service.updatePlayerCredit.request(data);
         var self = this;
         this._service.updatePlayerCredit.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.updatePlayerLevel = function (callback, requestData) {
+        var data = requestData;
+        this._service.updatePlayerLevel.request(data);
+        var self = this;
+        this._service.updatePlayerLevel.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.updatePlayer = function (callback, requestData) {
+        var data = {
+            playerName: "yunvincevince80",
+            platform: 1,
+            updateData: {
+                playerLevelName: "普通会员",
+                partnerName: "",
+                validCredit: 100,
+                realName: "testvince"
+            }
+        };
+        this._service.updatePlayer.request(data);
+        var self = this;
+        this._service.updatePlayer.once(function (data) {
             if (callback && typeof callback === "function") {
                 callback(data);
             }

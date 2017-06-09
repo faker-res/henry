@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 (function(){
     var isNode = (typeof module !== 'undefined' && module.exports);
 
@@ -47,7 +41,11 @@
                 "getPlatformWeeklyConsumptionReturnInfoForPlayers",
                 "calculatePartnersCommission",
                 "calculatePartnersChildrenCommission",
-                "checkPlatformPlayersRewardTask"
+                "checkPlatformPlayersRewardTask",
+                "getPartnerPlayersCommissionInfo",
+                "savePlayerCredit",
+                "markDuplicatedConsumptionRecords",
+                "processAutoProposals"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

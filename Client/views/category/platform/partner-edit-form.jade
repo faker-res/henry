@@ -27,7 +27,7 @@ form(name="form_edit_partner", novalidate)
         label.control-label {{"own domain" | translate}}
         //input.form-control(type="text", ng-disabled="!vm.isEditingPartner", ng-model="vm.newPartner.ownDomain", ng-change='vm.checkPartnerField("ownDomain",vm.newPartner.ownDomain, form_edit_partner)')
         textarea.form-control(type="text", name='ownDomain', ng-disabled="!vm.isEditingPartner", ng-model="vm.newPartner.ownDomain$", ng-change='vm.checkOwnDomain(vm.newPartner.ownDomain$, form_edit_partner);')
-        span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.ownDomainInvalidURL==true') {{vm.partnerValidity.ownDomainInvalidName}}&nbsp;{{'is an invalid url' | translate}}
+        //span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.ownDomainInvalidURL==true') {{vm.partnerValidity.ownDomainInvalidName}}&nbsp;{{'is an invalid url' | translate}}
         span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.ownDomainDuplicate==true') {{vm.partnerValidity.ownDomainName}}&nbsp;{{'existed already' | translate}}
     div.form-group.col-md-6
         label.control-label {{"PARENT" | translate}}

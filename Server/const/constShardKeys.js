@@ -1,9 +1,3 @@
-/******************************************************************
- *        NinjaPandaManagement-WS
- *  Copyright (C) 2015-2016 Sinonet Technology Singapore Pte Ltd.
- *  All rights reserved.
- ******************************************************************/
-
 /*
  * db collections shard keys
  */
@@ -32,18 +26,19 @@ const constShardKeys = {
     collection_playerConsumptionDaySummary: ["date", "_id"],
     collection_playerConsumptionWeekSummary: ["date", "_id"],
     //collection_playerConsumptionSummary: ["_id", "createTime"],
-    collection_playerConsumptionSummary: ["platformId", "playerId", "gameType", "bDirty"],
+    collection_playerConsumptionSummary: ["platformId", "playerId", "gameType", "summaryDay", "bDirty"],
 
     collection_playerLoginRecord: ["_id", "loginTime"],
     collection_playerRegistrationIntentRecord: ["createTime", "_id"],
     collection_playerTopUpIntentRecord: ["createTime", "_id"],
+    collection_playerConsumptionRecord: ["createTime", "_id"],
 
     collection_playerTopUpRecord: ["createTime", "_id"],
     collection_proposal: ["createTime", "_id"],
     collection_settlementLog: ["createTime", "_id"],
 
     collection_systemLog: ["operationTime", "_id"],
-    collection_rewardLog: ["operationTime", "_id"],
+    collection_rewardLog: ["createTime", "_id"],
     collection_playerStatusChangeLog: ["createTime", "_id"],
     collection_playerPermissionLog: ["createTime", "_id"],
     collection_playerCreditTransferLog: ["createTime", "_id"],

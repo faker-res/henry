@@ -58,7 +58,7 @@
                     label {{"Send single message" | translate}}
                     input.margin-left-5(type='text',ng-model='vm.toPhoneNumber', style='width:100px', ng-change="vm.sendMultiMessage.singleBtnText = 'SEND';vm.sendMultiMessage.singleSendResultText = ''")
                     a.fa.fa-times.text-danger.margin-left-5(ng-show="vm.toPhoneNumber", ng-click='vm.toPhoneNumber=null')
-                .pull-right
+                .pull-right(ng-show="checkViewPermission('Platform', 'groupMessage', 'SMSSendLog')")
                     button.btn.btn-primary.btn-sm(data-toggle="modal", ng-click='vm.initSMSLog("multi")', data-target='#modalSMSLog') {{'SMS Send Log' | translate}}
             .tableRow
                 .tableCell
@@ -86,7 +86,7 @@
                     div
                         label {{"Channel" | translate}} :&nbsp;
                         select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in channelList')
-                    div
+                    div(ng-if="checkViewPermission('Platform', 'groupMessage', 'SendGroupMessage')")
                         button.btn.btn-primary.btn-sm(ng-click="vm.sendMessages()", ng-disabled='!vm.sendMultiMessage.messageContent || !vm.sendMultiMessage.numRecipient || vm.sendMultiMessage.sendInitiated || !vm.sendMultiMessage.channel') {{vm.sendMultiMessage.sendBtnText}}
                     div(ng-show='vm.sendMultiMessage.numReceived+vm.sendMultiMessage.numFailed')
                         div
