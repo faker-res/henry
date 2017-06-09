@@ -4,10 +4,6 @@ let errorUtils = require("./../modules/errorUtils");
 let dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 const constSystemParam = require("../const/constSystemParam.js");
 
-
-
-// dbConfig.collection_apiLog
-
 let dbApiLog = {
     createApiLog: function (conn, wsFunc, actionResult) {
         let playerObjId, actionName, ipAddress;
@@ -45,7 +41,6 @@ let dbApiLog = {
         index = index || 0;
         let count = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {operationTime: -1};
-        // let deferred = Promise.defer();
 
         let query = {
             player: playerObjId,
@@ -63,35 +58,6 @@ let dbApiLog = {
         return Promise.all([a, b]).then(data => {
             return({total: data[0], data: data[1]});
         });
-
-        // return new Promise(function(resolve, reject) {
-        //     dbPlayerInfo.getPlayerInfo({playerId: playerId}).then(
-        //         function (playerData) {
-        //             console.log('playerData', playerData);
-        //             let playerObjId = playerData._id;
-        //
-        //             let query = {
-        //                 player: playerObjId,
-        //                 operationTime: {
-        //                     $gte: new Date(startTime),
-        //                     $lt: new Date(endTime)
-        //                 }
-        //             };
-        //             if (action) {
-        //                 query.action = action;
-        //             }
-        //
-        //             let a = dbConfig.collection_apiLog.find(query).count();
-        //             let b = dbConfig.collection_apiLog.find(query).sort(sortCol).skip(index).limit(count).lean();
-        //             return Promise.all([a, b]).then(data => {
-        //                 resolve({total: data[0], data: data[1]});
-        //             });
-        //         },
-        //         function (error) {
-        //             reject({name: "DBError", message: "Error in getting player data", error: error});
-        //         }
-        //     )
-        // });
     }
 };
 
