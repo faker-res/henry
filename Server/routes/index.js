@@ -91,7 +91,16 @@ router.post('/login', function (req, res, next) {
                         var logData = {
                             adminName: doc.adminName,
                             action: "login",
-                            level: constSystemLogLevel.ACTION };
+                            level: constSystemLogLevel.ACTION,
+                            data:{
+                                success: true,
+                                _id: doc._id,
+                                adminName: doc.adminName,
+                                roles: doc.roles,
+                                departments: doc.departments.map(dept => ({_id: dept._id})),
+                                language: doc.language
+                            }
+                        };
                         dblog.createSystemLog(logData);
                         return dbAdminInfo.updateAdminInfo({adminName: username}, {$set: {failedLoginAttempts: 0}});
                     }

@@ -1415,13 +1415,13 @@ var dbPlayerConsumptionRecord = {
     },
 
     getConsumptionTotalAmountForAllPlatform: function (startTime, endTime, platform) {
-        var matchObj = {
-            date: {$gte: startTime, $lt: endTime}
+        let matchObj = {
+            createTime: {$gte: startTime, $lt: endTime}
         };
         if (platform !== 'all') {
             matchObj.platformId = platform
         }
-        return dbconfig.collection_playerConsumptionDaySummary.aggregate(
+        return dbconfig.collection_playerConsumptionRecord.aggregate(
             {
                 $match: matchObj
             },
