@@ -108,7 +108,7 @@ const dbPlayerMail = {
             },
             retErr => {
                 dbLogger.createSMSLog(adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'failure', retErr);
-                return Q.reject({message: retErr, data: data});
+                return Q.reject({message: retErr, error: retErr});
             }
         );
     },
@@ -180,12 +180,12 @@ const dbPlayerMail = {
                             return true;
                         },
                         retErr => {
-                            return Q.reject({message: retErr, data: data});
+                            return Q.reject({message: retErr, error: retErr});
                         }
                     );
                 }
                 else {
-                    return Q.reject({message: 'Template not set for current platform', data: data});
+                    return Q.reject({message: 'Template not set for current platform'});
                 }
 
             }

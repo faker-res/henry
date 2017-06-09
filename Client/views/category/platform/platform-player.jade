@@ -1171,6 +1171,19 @@ include modalGameCreditLog
                     .inlineBlk
                         label {{'END_DATE' | translate}}
                         .endTime
+                    .inlineBlk
+                        label {{'STATUS' | translate}}
+                        select.form-control.status(ng-model='vm.playerBonusHistory.status')
+                            option(value='') {{'ALL' | translate}}
+                            option(value='Success') {{'Success' | translate}}
+                            option(value='Approved') {{'approved' | translate}}
+                            option(value='Fail_or_Rejected') {{'Fail' | translate}}
+                            option(value='Pending') {{'Pending' | translate}}
+                            option(value='Processing') {{'Processing' | translate}}
+                            option(value='PrePending') {{'PrePending' | translate}}
+                            option(value='Cancel') {{'Cancel' | translate}}
+                            option(value='Undetermined') {{'Undetermined' | translate}}
+                            option(value='Expired') {{'Expired' | translate}}
                     //.inlineBlk
                         label {{'Limit' | translate}}
                         select.form-control.limit(ng-model='vm.queryPara.playerBonus.limit')

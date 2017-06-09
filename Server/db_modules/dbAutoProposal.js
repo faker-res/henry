@@ -1,5 +1,8 @@
 'use strict';
 
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+
 const constPlayerLevel = require('../const/constPlayerLevel');
 const constPlayerStatus = require('../const/constPlayerStatus');
 const constProposalStatus = require('../const/constProposalStatus');
@@ -34,10 +37,13 @@ let dbAutoProposal = {
             proposalType => {
                 if (proposalType) {
                     proposalTypeObjId = proposalType._id;
+                    let lastCheckBefore = new Date();
+                    lastCheckBefore.setMinutes(lastCheckBefore.getMinutes() - platformData.autoApproveRepeatDelay);
 
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
-                        status: constProposalStatus.PROCESSING
+                        status: constProposalStatus.PROCESSING,
+                        $or:[{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: new Date()}}]
                     }).cursor({batchSize: 10000});
 
                     let balancer = new SettlementBalancer();
@@ -82,8 +88,8 @@ let dbAutoProposal = {
                                         lastWithdrawDate => {
                                             if (lastWithdrawDate) {
                                                 // Player withdrew before
-                                                let repeatCount = platformData.autoApproveRepeatCount;
-                                                checkPreviousProposals(proposal, lastWithdrawDate, repeatCount);
+                                                let repeatCount = platformObj.autoApproveRepeatCount;
+                                                checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj);
                                             } else {
                                                 // Player first time withdraw
                                                 sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
@@ -131,7 +137,7 @@ function checkSingleWithdrawalLimit(proposals, platformData) {
 }
 
 function checkSingleDayWithdrawalLimit(proposals, platformData, proposalTypeObjId) {
-    let playersToAggregate = proposals.map(proposal => proposal.data.playerObjId);
+    let playersToAggregate = proposals.map(proposal => ObjectId(proposal.data.playerObjId));
 
     return getBonusRecordsOfPlayers(playersToAggregate, proposalTypeObjId).then(
         bonusRecord => {
@@ -164,13 +170,13 @@ function getBonusRecordsOfPlayers(players, proposalTypeObjId) {
     return dbconfig.collection_proposal.aggregate(
         {
             $match: {
-                type: proposalTypeObjId,
+                type: ObjectId(proposalTypeObjId),
                 createTime: {
                     $gte: todayTime.startTime,
                     $lt: todayTime.endTime
                 },
                 'data.playerObjId': {$in: players},
-                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }
         },
         {
@@ -185,22 +191,23 @@ function getBonusRecordsOfPlayers(players, proposalTypeObjId) {
 
 function getPlayerLastProposalDateOfType(playerObjId, type) {
     return dbconfig.collection_proposal.find({
-        'data.playerObjId': playerObjId,
-        type: type,
+        'data.playerObjId': ObjectId(playerObjId),
+        type: ObjectId(type),
         $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}]
-    }).sort({createTime: -1}).limit(1).then(
+    }).sort({createTime: -1}).limit(1).lean().then(
         retData => {
             if (retData && retData[0]) {
                 return retData[0].createTime;
             }
         }
-    ).lean();
+    );
 }
 
-function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
+function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj) {
+    // Find proposals since previous withdrawal
     return dbconfig.collection_proposal.find({
-        'data.platformId': proposal.data.platformId,
-        'data.playerObjId': proposal.data.playerObjId,
+        'data.platformId': ObjectId(proposal.data.platformId),
+        'data.playerObjId': ObjectId(proposal.data.playerObjId),
         createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
         mainType: {$in: ["TopUp", "Reward"]}
@@ -223,7 +230,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
                         proms.push(
                             getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, dateFrom, dateTo).then(
                                 record => {
-                                    if (record[0].validAmount < proposal.data.amount) {
+                                    if ((record && !record[0]) || (record && record[0] && record[0].validAmount < proposal.data.amount)) {
                                         isApprove = false;
                                     }
                                 }
@@ -285,11 +292,14 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
                                 : repeatCount - 1;
 
                         if (proposal.data.autoApproveRepeatCount >= 0) {
+                            let nextCheckTime = new Date();
+                            nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
                             return dbconfig.collection_proposal.findOneAndUpdate({
                                 _id: proposal._id,
                                 createTime: proposal.createTime
                             }, {
-                                'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount
+                                'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
+                                'data.nextCheckTime': nextCheckTime
                             }).exec();
                         }
                         else {
