@@ -94,7 +94,6 @@ router.post('/login', function (req, res, next) {
                             level: constSystemLogLevel.ACTION,
                             data:{
                                 success: true,
-                                token: token,
                                 _id: doc._id,
                                 adminName: doc.adminName,
                                 roles: doc.roles,
