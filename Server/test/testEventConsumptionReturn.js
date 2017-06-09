@@ -182,7 +182,7 @@ describe("Test consumption return reward event", function () {
             for( var j = 0; j < consumeDays; j++ ) {
                 var curDate = new Date();
                 curDate.setHours(0, 0, 0, 0);
-                curDate.setDate( today.getDate() - (j+1) );
+                curDate.setDate( today.getDate() - (j) );
                 for (var i = 0; i < consumeTimes; i++) {
                     curDate = new Date(curDate.getTime() + 1000);
                     proms.push(dbPlayerConsumptionRecord.createPlayerConsumptionRecord(
