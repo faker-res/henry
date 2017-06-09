@@ -6136,7 +6136,6 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerApiLog = function () {
             vm.playerApiLog = {totalCount: 0, limit: 10, index: 0};
-            // TODO :: finish this function until it connect to the actionsocket
             utilService.actionAfterLoaded('#modalPlayerApiLog.in #playerApiLogQuery .endTime', function () {
                 vm.playerApiLog.startDate = utilService.createDatePicker('#playerApiLogQuery .startTime');
                 vm.playerApiLog.endDate = utilService.createDatePicker('#playerApiLogQuery .endTime');
@@ -6166,7 +6165,6 @@ define(['js/app'], function (myApp) {
             if(vm.playerApiLog.apiAction) {
                 sendQuery.action = vm.playerApiLog.apiAction;
             }
-            console.log('a')
             socketService.$socket($scope.AppSocket, 'getPlayerApiLog', sendQuery, function (data) {
                 console.log("getPlayerApiLog", data);
                 let tblData = data && data.data ? data.data.data.map(item => {
@@ -6187,8 +6185,8 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('action'), data: "action$"},
-                    {title: $translate('operation time'), data: "operationTime$"},
+                    {title: $translate('Incident'), data: "action$"},
+                    {title: $translate('Operation Time'), data: "operationTime$"},
                     {title: $translate('IP_ADDRESS'), data: "ipAddress"}
                 ],
                 "paging": false,
