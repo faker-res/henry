@@ -283,7 +283,7 @@ var dbRewardTask = {
                     taskData.bonusAmount += consumptionRecord.bonusAmount;
                     taskData.unlockedBonusAmount += (taskData.requiredBonusAmount > 0 ? consumptionRecord.bonusAmount : 0);
 
-                    var bAchieved = false;
+                    let bAchieved = false;
                     if (taskData.bonusAmount < 1) {
                         taskData.isUnlock = true;
                         taskData.unlockTime = createTime;
@@ -325,7 +325,7 @@ var dbRewardTask = {
                             else {
                                 proms.push(Q.resolve(taskData));
                             }
-                            if (newTaskData.useConsumption && (!newTaskData.isUnlock && bAchieved)) {
+                            if (newTaskData.useConsumption && (bTaskAchieved || !bAchieved)) {
                                 bDirty = true;
                                 proms.push(dbconfig.collection_playerConsumptionRecord.findOneAndUpdate(
                                     {_id: consumptionRecord._id, createTime: consumptionRecord.createTime},
