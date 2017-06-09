@@ -5,8 +5,8 @@ const dbPlatform = require('../db_modules/dbPlatform');
 
 console.log("Auto proposal schedule start");
 
-let every5MinJob = new CronJob(
-    '*/5 * * * *', function () {
+let every1MinJob = new CronJob(
+    '*/1 * * * *', function () {
         let date = new Date();
         console.log("Auto proposal schedule starts at: ", date);
 
