@@ -17,8 +17,8 @@ let dbApiLog = {
             playerObjId = conn.playerObjId;
         }
 
-        if (wsFunc.name === "create") {
-            actionName = "register";
+        if (["create", "update", "add", "delete", "get", "search"].includes(wsFunc.name)) {
+            actionName = wsFunc._service.name + " - " + wsFunc.name;
         } else {
             actionName = wsFunc.name;
         }
