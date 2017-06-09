@@ -696,6 +696,7 @@ var proposal = {
         );
         return deferred.promise;
     },
+
     cancelProposal: function (proposalId, adminId, remark) {
         return dbconfig.collection_proposal.findOne({_id: proposalId})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})

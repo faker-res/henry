@@ -20,6 +20,7 @@ const dbconfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
+const proposalExecutor = require('../modules/proposalExecutor');
 
 let dbAutoProposal = {
     applyBonus: (platformObjId) => {
@@ -43,7 +44,7 @@ let dbAutoProposal = {
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
                         status: constProposalStatus.PROCESSING,
-                        $or:[{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: new Date()}}]
+                        $or: [{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: new Date()}}]
                     }).cursor({batchSize: 10000});
 
                     let balancer = new SettlementBalancer();
@@ -114,13 +115,37 @@ let dbAutoProposal = {
 
 function sendToAudit(proposalObjId, createTime, remark) {
     console.log('Sending to audit', proposalObjId, remark);
-    return dbconfig.collection_proposal.findOneAndUpdate({
-        _id: proposalObjId,
-        createTime: createTime
-    }, {
-        status: constProposalStatus.PENDING,
-        'data.remark': 'Auto Approval Denied: ' + remark
-    }).exec();
+    //check if proposal got process, if there is no process, reject directly
+    dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
+        proposalData => {
+            if (proposalData) {
+                if (!proposalData.noSteps) {
+                    dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObjId,
+                        createTime: createTime
+                    }, {
+                        status: constProposalStatus.PENDING,
+                        'data.remark': 'Auto Approval Denied: ' + remark
+                    }).then();
+                }
+                else {
+                    return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
+                        res => {
+                            return dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: proposalData._id, createTime: proposalData.createTime},
+                                {
+                                    noSteps: true,
+                                    process: null,
+                                    status: constProposalStatus.FAIL,
+                                    'data.remark': 'Auto Approval Denied: ' + remark
+                                },
+                                {new: true}
+                            );
+                        })
+                }
+            }
+        }
+    );
 }
 
 function checkSingleWithdrawalLimit(proposals, platformData) {
