@@ -233,6 +233,6 @@
                         tr(ng-repeat='(i,v) in thisAdminLogData')
                             td {{timeReformat(v.operationTime)}}
                             td {{v.action | translate}}
-                            td.wordWrap {{v.data}}
+                            td(style='max-width: 1000px;word-wrap:break-word;') {{v.data}}
             .modal-footer
                 button.btn.btn-success.common-button(data-dismiss='modal', ng-click='') {{"CLOSE" | translate}}
