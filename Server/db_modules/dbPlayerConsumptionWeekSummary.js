@@ -516,7 +516,10 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {json} eventData
      */
     calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest) {
-        var settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
+        let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
+        if( bRequest ){
+            settleTime = dbutility.getTodaySGTime();
+        }
         return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest);
     },
 
