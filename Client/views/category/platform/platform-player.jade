@@ -156,6 +156,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'playerCreditDailyLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerCreditLog()', data-target='#modalPlayerCreditLog')
             text {{"Player Credit Log" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'playerApiLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerApiLog()', data-target='#modalPlayerApiLog')
+            text {{"Player Api Log" | translate}}
+            img.img-edit
 
 // All Players Query
 .col-md-12.playerBtn
@@ -1202,6 +1205,31 @@ include modalGameCreditLog
                     label {{"Total" | translate}} {{vm.playerCreditLog.totalCount}} {{"records" | translate}}
                     table#playerCreditLogTbl.common-table.display(style='min-width:100%')
                     #playerCreditLogTblPage.height30
+
+#modalPlayerApiLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Player API Log" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                #playerApiLogQuery.well
+                    .inlineBlk
+                        label {{"Start date" | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{"End date" | translate}}
+                        .endTime
+                    .inlineBlk
+                        label {{"API Action" | translate}}
+                        select.form-control.apiAction(ng-model='vm.playerApiLog.apiAction')
+                            option(value='') {{'ALL' | translate}}
+                            //option(value='-1') {{'Unlimited' | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                div
+                    label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
+                    table#playerApiLogTbl.common-table.display(style='min-width:100%')
+                    #playerApiLogTblPage.height30
 
 #modalPlayerManualTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')

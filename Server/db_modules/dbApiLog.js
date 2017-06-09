@@ -1,0 +1,98 @@
+let dbConfig = require('./../modules/dbproperties');
+let constServerCode = require('./../const/constServerCode');
+let errorUtils = require("./../modules/errorUtils");
+let dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
+const constSystemParam = require("../const/constSystemParam.js");
+
+
+
+// dbConfig.collection_apiLog
+
+let dbApiLog = {
+    createApiLog: function (conn, wsFunc, actionResult) {
+        let playerObjId, actionName, ipAddress;
+        if (['login','create'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') {
+            playerObjId = actionResult._id;
+        } else {
+            playerObjId = conn.playerObjId;
+        }
+
+        if (wsFunc.name === "create") {
+            actionName = "register";
+        } else {
+            actionName = wsFunc.name;
+        }
+
+        ipAddress = conn.upgradeReq.connection["remoteAddress"] || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            ipAddress = forwardedIp[0].trim();
+        }
+
+        let logData = {
+            player: playerObjId,
+            action: actionName,
+            operationTime: new Date(),
+            ipAddress: ipAddress
+        };
+
+        let apiLog = new dbConfig.collection_apiLog(logData);
+        apiLog.save().then().catch(errorUtils.reportError);
+        console.log('apiLog', apiLog);
+    },
+
+    getPlayerApiLog: function (playerObjId, startDate, endDate, action, index, limit, sortCol) {
+        index = index || 0;
+        let count = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        sortCol = sortCol || {operationTime: -1};
+        // let deferred = Promise.defer();
+
+        let query = {
+            player: playerObjId,
+            operationTime: {
+                $gte: new Date(startDate),
+                $lt: new Date(endDate)
+            }
+        };
+        if (action) {
+            query.action = action;
+        }
+
+        let a = dbConfig.collection_apiLog.find(query).count();
+        let b = dbConfig.collection_apiLog.find(query).sort(sortCol).skip(index).limit(count).lean();
+        return Promise.all([a, b]).then(data => {
+            return({total: data[0], data: data[1]});
+        });
+
+        // return new Promise(function(resolve, reject) {
+        //     dbPlayerInfo.getPlayerInfo({playerId: playerId}).then(
+        //         function (playerData) {
+        //             console.log('playerData', playerData);
+        //             let playerObjId = playerData._id;
+        //
+        //             let query = {
+        //                 player: playerObjId,
+        //                 operationTime: {
+        //                     $gte: new Date(startTime),
+        //                     $lt: new Date(endTime)
+        //                 }
+        //             };
+        //             if (action) {
+        //                 query.action = action;
+        //             }
+        //
+        //             let a = dbConfig.collection_apiLog.find(query).count();
+        //             let b = dbConfig.collection_apiLog.find(query).sort(sortCol).skip(index).limit(count).lean();
+        //             return Promise.all([a, b]).then(data => {
+        //                 resolve({total: data[0], data: data[1]});
+        //             });
+        //         },
+        //         function (error) {
+        //             reject({name: "DBError", message: "Error in getting player data", error: error});
+        //         }
+        //     )
+        // });
+    }
+};
+
+module.exports = dbApiLog;
