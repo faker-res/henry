@@ -325,7 +325,7 @@ var dbRewardTask = {
                             else {
                                 proms.push(Q.resolve(taskData));
                             }
-                            if (newTaskData.useConsumption && (!newTaskData.isUnlock && bAchieved)) {
+                            if (newTaskData.useConsumption && !bTaskAchieved) {
                                 bDirty = true;
                                 proms.push(dbconfig.collection_playerConsumptionRecord.findOneAndUpdate(
                                     {_id: consumptionRecord._id, createTime: consumptionRecord.createTime},
