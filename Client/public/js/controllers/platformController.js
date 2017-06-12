@@ -6134,6 +6134,75 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
+        vm.initPlayerApiLog = function () {
+            vm.playerApiLog = {totalCount: 0, limit: 10, index: 0};
+            utilService.actionAfterLoaded('#modalPlayerApiLog.in #playerApiLogQuery .endTime', function () {
+                vm.playerApiLog.startDate = utilService.createDatePicker('#playerApiLogQuery .startTime');
+                vm.playerApiLog.endDate = utilService.createDatePicker('#playerApiLogQuery .endTime');
+                vm.playerApiLog.startDate.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.playerApiLog.endDate.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                vm.playerApiLog.pageObj = utilService.createPageForPagingTable("#playerApiLogTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "playerApiLog", vm.getPlayerApiLogData);
+                });
+                vm.getPlayerApiLogData(true);
+            });
+        };
+
+        vm.getPlayerApiLogData = function (newSearch) {
+            if (!authService.checkViewPermission('Platform', 'Player', 'playerApiLog')) {
+                return;
+            }
+
+            let sendQuery = {
+                playerObjId: vm.selectedSinglePlayer._id,
+                startDate: vm.playerApiLog.startDate.data('datetimepicker').getLocalDate(),
+                endDate: vm.playerApiLog.endDate.data('datetimepicker').getLocalDate(),
+                index: newSearch ? 0 : vm.playerApiLog.index,
+                limit: newSearch ? 10 : vm.playerApiLog.limit,
+                sortCol: vm.playerApiLog.sortCol || null
+            };
+
+            if(vm.playerApiLog.apiAction) {
+                sendQuery.action = vm.playerApiLog.apiAction;
+            }
+            socketService.$socket($scope.AppSocket, 'getPlayerApiLog', sendQuery, function (data) {
+                console.log("getPlayerApiLog", data);
+                let tblData = data && data.data ? data.data.data.map(item => {
+                    item.operationTime$ = vm.dateReformat(item.operationTime);
+                    item.action$ = $translate(item.action);
+                    return item;
+                }) : [];
+                let total = data.data ? data.data.total : 0;
+                vm.playerApiLog.totalCount = total;
+                vm.drawPlayerApiLogTable(newSearch, tblData, total);
+            });
+        };
+
+        vm.drawPlayerApiLogTable = function (newSearch, tblData, size) {
+            let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('Incident'), data: "action$"},
+                    {title: $translate('Operation Time'), data: "operationTime$"},
+                    {title: $translate('IP_ADDRESS'), data: "ipAddress"}
+                ],
+                "paging": false,
+            });
+            let aTable = $("#playerApiLogTbl").DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            vm.playerApiLog.pageObj.init({maxCount: size}, newSearch);
+            $('#playerApiLogTbl').resize();
+            $('#playerApiLogTbl').off('order.dt');
+            $('#playerApiLogTbl').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'playerApiLog', vm.getPlayerApiLogData);
+            });
+
+            $scope.safeApply();
+        };
+
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
             vm.provinceList = [];
@@ -8953,6 +9022,7 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
             vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
             vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
+            vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
             $scope.safeApply();
         };
 
@@ -9206,7 +9276,8 @@ define(['js/app'], function (myApp) {
                     autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                     autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
                     autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
-                    autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay
+                    autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
+                    autoApproveLostThreshold: srcData.lostThreshold
                 }
             };
             console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
