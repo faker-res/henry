@@ -74,6 +74,7 @@ var roleChecker = {
         "countLoginPlayerbyPlatformWeek": true,
         "getTopUpTotalAmountForAllPlatform": true,
         "getPlayerConsumptionSumForAllPlatform": true,
+        "getPlayerConsumptionDaySummarySumForAllPlatform": true,
         "countNewPlayers": true,
         "getBankTypeList": true,
         "getAllRewardTypes": true,
