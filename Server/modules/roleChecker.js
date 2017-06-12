@@ -264,7 +264,8 @@ var roleChecker = {
                 ClearProposalLimit: ['requestClearProposalLimit'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
                 TriggerSavePlayersCredit: ['triggerSavePlayersCredit'],
-                playerDailyCreditLog :['playerCreditDailyLog']
+                playerDailyCreditLog :['playerCreditDailyLog'],
+                playerApiLog:['getPlayerApiLog']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],

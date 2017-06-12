@@ -249,6 +249,9 @@ var paymentAPILogModel = dbLogs.model('paymentAPILog', paymentAPILogSchema, 'pay
 var syncDataLogSchema = require('./../schema/logs/syncDataLog');
 var syncDataLogModel = dbLogs.model('syncDataLog', syncDataLogSchema, 'syncDataLog');
 
+let apiLogSchema = require('./../schema/logs/apiLog');
+let apiLogModel = dbLogs.model('apiLog', apiLogSchema, 'apiLog');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -371,6 +374,7 @@ var dbProperties = {
     collection_syncDataLog: syncDataLogModel,
     collection_partnerPermissionLog: partnerPermissionLogModel,
     collection_partnerStatusChangeLog: partnerStatusChangeLogModal,
+    collection_apiLog: apiLogModel,
 
     //unique
     collection_playerName: playerNameModal,

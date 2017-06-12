@@ -6,6 +6,7 @@ var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
+let dbApiLog = require('./../db_modules/dbApiLog');
 var socketUtil = require('./../modules/socketutility');
 var utility = require('./../modules/encrypt');
 var constPlayerStatus = require('./../const/constPlayerStatus');
@@ -721,6 +722,12 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerCreditsDaily, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        getPlayerApiLog: function getPlayerApiLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId && data.startDate && data.endDate);
+            socketUtil.emitter(self.socket, dbApiLog.getPlayerApiLog, [data.playerObjId, data.startDate, data.endDate, data.action, data.index, data.limit, data.sortCol], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;
