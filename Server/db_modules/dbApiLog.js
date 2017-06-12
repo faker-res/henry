@@ -34,7 +34,6 @@ let dbApiLog = {
 
         let apiLog = new dbConfig.collection_apiLog(logData);
         apiLog.save().then().catch(errorUtils.reportError);
-        console.log('apiLog', apiLog);
     },
 
     getPlayerApiLog: function (playerObjId, startDate, endDate, action, index, limit, sortCol) {
