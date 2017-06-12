@@ -255,8 +255,16 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                         proms.push(
                             getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, dateFrom, dateTo).then(
                                 record => {
-                                    if ((record && !record[0]) || (record && record[0] && record[0].validAmount < proposal.data.amount)) {
-                                        isApprove = false;
+                                    if (record) {
+                                        if (record[0]) {
+                                            let validConsumptionAmount = record[0].validAmount + platformObj.autoApproveLostThreshold;
+                                            if (validConsumptionAmount < proposal.data.amount) {
+                                                isApprove = false;
+                                            }
+                                        }
+                                        else {
+                                            isApprove = false;
+                                        }
                                     }
                                 }
                             )
@@ -276,19 +284,22 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                             proms.push(
                                 getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, dateFrom, dateTo).then(
                                     record => {
-                                        let checkPassed = false;
+                                        if (record && record[0]) {
+                                            let checkPassed = false;
+                                            let validConsumptionAmount = record[0].validAmount + platformObj.autoApproveLostThreshold;
 
-                                        if (!getProp.data.spendingAmount) {
-                                            // There is no spending amount specified for reward
-                                            checkPassed = true;
-                                        }
-                                        else if (record && record[0] && record[0].validAmount > getProp.data.spendingAmount) {
-                                            // Consumption Sum exceed required unlock amount
-                                            checkPassed = true;
-                                        }
+                                            if (!getProp.data.spendingAmount) {
+                                                // There is no spending amount specified for reward
+                                                checkPassed = true;
+                                            }
+                                            else if (validConsumptionAmount > getProp.data.spendingAmount) {
+                                                // Consumption Sum exceed required unlock amount
+                                                checkPassed = true;
+                                            }
 
-                                        // If isApprove is false, means a checking is already false and it will not back to true
-                                        isApprove = isApprove ? checkPassed : false;
+                                            // If isApprove is false, means a checking is already false and it will not back to true
+                                            isApprove = isApprove ? checkPassed : false;
+                                        }
                                     }
                                 )
                             );

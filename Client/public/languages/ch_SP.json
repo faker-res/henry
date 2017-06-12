@@ -1849,6 +1849,7 @@
   "PLAYER_REGISTRATION_REWARD_REPORT": "注册彩金奖励报表",
   "Auto Approval Retry Count": "回圈次数",
   "Auto Approval Interval": "回圈等待时间",
+  "Lost Threshold": "流水宽限额",
   "todayTopUpAmount": "当日充值额",
   "todayBonusAmount": "当日投注额",
   "eventDescription": "奖励活动注解",
