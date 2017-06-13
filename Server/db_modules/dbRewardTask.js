@@ -35,7 +35,7 @@ var dbRewardTask = {
                 return dbRewardTask.getPlayerCurRewardTask(rewardData.playerId);
             }
         ).then(data => {
-            if (data) {
+            if (data && !data.platformId.canMultiReward) {
                 return Q.reject({
                     status: constServerCode.PLAYER_HAS_REWARD_TASK,
                     message: "The player has not unlocked the previous reward task. Not valid for new reward"
@@ -155,6 +155,9 @@ var dbRewardTask = {
         return dbconfig.collection_rewardTask.findOne({
             playerId: playerId,
             status: constRewardTaskStatus.STARTED
+        }).populate({
+            path: "platformId",
+            model: dbconfig.collection_platform
         }).exec();
     },
 
@@ -270,6 +273,7 @@ var dbRewardTask = {
     },
 
     /**
+     * // TODO:: For now it's updating most recent reward task, should be oldest && started reward task for multiple rewards
      * check and update player's reward task info when player consume credit
      * @param {ObjectId} playerId - The player id.
      * @param {Object} consumptionRecord - consumptionRecord object
@@ -476,7 +480,9 @@ var dbRewardTask = {
 
     /**
      * apply for manual unlock reward task
-     * @param {Object} taskData - reward task object
+     * @param data
+     * @param adminId
+     * @param adminName
      */
     manualUnlockRewardTask: function (data, adminId, adminName) {
         let taskData = data[0];
@@ -800,6 +806,11 @@ var dbRewardTask = {
         )
     },
 
+    /**
+     * // TODO:: Might need to get oldest reward to update
+     * @param playerObjId
+     * @returns {*}
+     */
     checkPlayerRewardTaskStatus: function (playerObjId) {
         var playerObj = null;
         var taskObj = null;
@@ -891,13 +902,21 @@ var dbRewardTask = {
 
     fixPlayerRewardAmount: function (playerId) {
         let playerObj = null;
-        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}
+            ).lean().then(
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
-                    return dbconfig.collection_rewardTask.findOne(
-                        {playerId: playerData._id, status: constRewardTaskStatus.STARTED}
-                    ).lean();
+
+                    if (!playerObj.platform.canMultiReward) {
+                        return dbconfig.collection_rewardTask.findOne(
+                            {playerId: playerData._id, status: constRewardTaskStatus.STARTED}
+                        ).lean();
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find player"});

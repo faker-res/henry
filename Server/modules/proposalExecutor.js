@@ -272,6 +272,7 @@ var proposalExecutor = {
          */
         executions: {
             /**
+             * TODO:: Might need to check which rewardTask is used
              * execution function for update player credit proposal type
              */
             executeUpdatePlayerCredit: function (proposalData, deferred, bTransfer) {

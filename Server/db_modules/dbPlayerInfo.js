@@ -1708,12 +1708,10 @@ let dbPlayerInfo = {
      * @param {Boolean} checkConsumption
      */
     isValidForFirstTopUpReward: function (playerId, platformId, checkConsumption) {
-
-        var deferred = Q.defer();
-        var rewardEventData = null;
-        var proposalType;
-        var playerData = null;
-        //todo::add reward task check here??? - Done
+        let deferred = Q.defer();
+        let rewardEventData = null;
+        let proposalType;
+        let playerData = null;
         //todo::add check for player's gift redeem record
         //should check player platform first time top up event here???
         dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.FIRST_TOP_UP).then(
@@ -1722,7 +1720,11 @@ let dbPlayerInfo = {
                 if (eventData) {
 
                     proposalType = eventData.executeProposal;
-                    return dbconfig.collection_players.findOne({_id: playerId});
+                    return dbconfig.collection_players.findOne({_id: playerId})
+                        .populate({
+                            path: "platform",
+                            model: dbconfig.collection_platform
+                        }).lean();
                 }
                 else {
                     deferred.reject({
@@ -1764,7 +1766,12 @@ let dbPlayerInfo = {
                     return true;
 
                 } else {
-                    return dbRewardTask.getPlayerCurRewardTask(playerData._id);
+                    if (!playerData.platform.canMultiReward) {
+                        return dbRewardTask.getPlayerCurRewardTask(playerData._id);
+                    }
+                    else {
+                        return false;
+                    }
                 }
 
             }, function (error) {
@@ -3400,7 +3407,8 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    /*
+    /**
+     * TODO:: Need choose which reward task is selected for update player credit
      * Transfer credit to game provider
      * @param {objectId} platform
      * @param {objectId} playerId
@@ -3776,7 +3784,8 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    /*
+    /**
+     * TODO:: Need to choose which reward task to add player credit
      * Transfer credit from game provider
      * @param {objectId} platform
      * @param {objectId} playerId
@@ -3936,6 +3945,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     if (bUpdateTask) {
+                        // TODO:: Need sorting here for multiple reward
                         return dbconfig.collection_rewardTask.findOneAndUpdate(
                             {_id: rewardTask._id, platformId: rewardTask.platformId},
                             {
