@@ -147,11 +147,23 @@ var dbRewardTask = {
         return deferred.promise;
     },
     /**
+     * TODO: (DEPRECATING) To change to getPlayerAllRewardTask after implement multiple player reward tasks
      * Get player's current reward task
      * @param {String} is player Object Id
      */
     getPlayerCurRewardTask: function (playerId) {
         return dbconfig.collection_rewardTask.findOne({
+            playerId: playerId,
+            status: constRewardTaskStatus.STARTED
+        }).exec();
+    },
+
+    /**
+     * Get player's all available reward task
+     * @param {String} playerId player Object Id
+     */
+    getPlayerAllRewardTask: function (playerId) {
+        return dbconfig.collection_rewardTask.find({
             playerId: playerId,
             status: constRewardTaskStatus.STARTED
         }).exec();
@@ -198,6 +210,45 @@ var dbRewardTask = {
                 deferred.reject({name: "DBError", message: "Error in getting reward task", error: error});
             });
         return deferred.promise;
+    },
+
+
+    /**
+     * Created: 20170612
+     * Purpose: Get player reward tasks by player object id
+     * @param query
+     */
+    getPlayerAllRewardTaskDetailByPlayerObjId: (query) => {
+        return dbconfig.collection_players.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    let playerObjId = playerData._id;
+
+                    return dbconfig.collection_rewardTask.find({
+                        playerId: playerObjId,
+                        status: constRewardTaskStatus.STARTED
+                    }).populate({
+                        path: "targetProviders",
+                        model: dbconfig.collection_gameProvider
+                    }).populate({
+                        path: "eventId",
+                        model: dbconfig.collection_rewardEvent
+                    }).lean();
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "No player found matching query"
+                    });
+                }
+
+            },
+            error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
+        ).then(
+            rewardTasks => rewardTasks,
+            error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
+        );
     },
 
     /**

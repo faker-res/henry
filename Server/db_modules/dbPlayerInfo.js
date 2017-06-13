@@ -3188,8 +3188,14 @@ let dbPlayerInfo = {
     },
 
     getLoggedInPlayers: function (noOfPlayers, name, platform) {
+        platform = Array.isArray(platform) ?platform :[platform];
         noOfPlayers = noOfPlayers || 20;
-        var query = {platform: platform, isLogin: true};
+        var query = {
+            platform: {
+                    $in: platform
+            },
+            isLogin: true
+        };
         if (name) {
             query.name = {$regex: ".*" + name + ".*"}
         }

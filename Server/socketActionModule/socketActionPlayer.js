@@ -5,7 +5,9 @@ var encrypt = require('./../modules/encrypt');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+let dbPlayerConsumptionDaySummary = require('./../db_modules/dbPlayerConsumptionDaySummary');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
+let dbApiLog = require('./../db_modules/dbApiLog');
 var socketUtil = require('./../modules/socketutility');
 var utility = require('./../modules/encrypt');
 var constPlayerStatus = require('./../const/constPlayerStatus');
@@ -477,6 +479,15 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionTotalAmountForAllPlatform, [startTime, endTime, platform], actionName, isValidData);
         },
 
+        getPlayersConsumptionSumForAllPlatform: function getPlayersConsumptionSumForAllPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            var platform = data.platform ? ObjectId(data.platform) : 'all';
+            socketUtil.emitter(self.socket, dbPlayerConsumptionDaySummary.getPlayersConsumptionSumForAllPlatform, [startTime, endTime, platform], actionName, isValidData);
+        },
+
         /**
          * Get total player topUp amount for all the platforms within the time frame
          * @param {json} data - data contains start time , end time
@@ -721,6 +732,12 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerCreditsDaily, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        getPlayerApiLog: function getPlayerApiLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId && data.startDate && data.endDate);
+            socketUtil.emitter(self.socket, dbApiLog.getPlayerApiLog, [data.playerObjId, data.startDate, data.endDate, data.action, data.index, data.limit, data.sortCol], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;
