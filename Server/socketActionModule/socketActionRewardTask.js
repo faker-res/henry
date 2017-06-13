@@ -20,6 +20,7 @@ function socketActionRewardTask(socketIO, socket) {
     this.actions = {
 
         /**
+         * TODO: (DEPRECATING) To change to getPlayerAllRewardTask after implement multiple player reward tasks
          * Get player's current reward task
          * @param {json} data - data has to contain _id
          */
@@ -29,6 +30,10 @@ function socketActionRewardTask(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardTask.getPlayerCurRewardTask, [data.playerId], actionName, isValidData);
         },
 
+        /**
+         * TODO: (DEPRECATING) To change to getPlayerAllRewardTask after implement multiple player reward tasks
+         * @param data
+         */
         getPlayerCurRewardTaskDetailByPlayerId: function getPlayerCurRewardTaskDetailByPlayerId(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
@@ -69,7 +74,28 @@ function socketActionRewardTask(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.code);
             socketUtil.emitter(self.socket, dbPlayerReward.applyConsecutiveLoginReward, [data.playerId, data.code, getAdminId(), getAdminName(), true], actionName, isValidData);
-        }
+        },
+
+        /**
+         * Created: 12-06-2017
+         * Get player's current reward task
+         * @param {Object} data - data has to contain _id
+         */
+        getPlayerAllRewardTask: function getPlayerAllRewardTask(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbRewardTask.getPlayerAllRewardTask, [data.playerId], actionName, isValidData);
+        },
+
+        /**
+         *
+         * @param data
+         */
+        getPlayerAllRewardTaskDetailByPlayerObjId: function getPlayerAllRewardTaskDetailByPlayerObjId(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbRewardTask.getPlayerAllRewardTaskDetailByPlayerObjId, [data], actionName, isValidData);
+        },
     };
     socketActionRewardTask.actions = this.actions;
 };

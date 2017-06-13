@@ -4033,32 +4033,39 @@ define(['js/app'], function (myApp) {
             }
         }
 
-        //get player reward task
-        vm.getRewardTask = function (playerId, callback) {
-            console.log('play', playerId);
-            socketService.$socket($scope.AppSocket, 'getPlayerCurRewardTask', {playerId: playerId}, function (data) {
-                console.log('getRewardTask', data);
-                vm.rewardTask = data.data;
-                $scope.safeApply();
-                if (callback) {
-                    callback(vm.rewardTask);
-                }
-            });
-        };
-        vm.getRewardTaskDetail = function (playerId, callback) {
-            var deferred = Q.defer();
+        /**
+         * Get player's all available reward task
+         * @param playerId
+         * @param callback
+         */
+        vm.getRewardTask =
+            (playerId, callback) => {
+                socketService.$socket($scope.AppSocket, 'getPlayerAllRewardTask', {playerId: playerId}, function (data) {
+                    console.log('getRewardTask', data);
+                    vm.rewardTask = data.data;
+                    //$scope.safeApply();
+                    if (callback) {
+                        callback(vm.rewardTask);
+                    }
+                });
+            };
 
-            socketService.$socket($scope.AppSocket, 'getPlayerCurRewardTaskDetailByPlayerId', {_id: playerId}, function (data) {
-                vm.curRewardTask = data.data;
-                $scope.safeApply();
-                if (callback) {
-                    callback(vm.rewardTask);
-                }
-                deferred.resolve(data);
-            });
+        vm.getRewardTaskDetail =
+            (playerId, callback) => {
+                let deferred = Q.defer();
 
-            return deferred.promise;
-        }
+                socketService.$socket($scope.AppSocket, 'getPlayerAllRewardTaskDetailByPlayerObjId', {_id: playerId}, function (data) {
+                    vm.curRewardTask = data.data;
+                    $scope.safeApply();
+                    if (callback) {
+                        callback(vm.curRewardTask);
+                    }
+                    deferred.resolve(data);
+                });
+
+                return deferred.promise;
+            };
+
         vm.prepareShowFeedbackRecord = function () {
             vm.playerFeedbackData = [];
             vm.processDataTableinModal('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable', {'dom': 't'});
@@ -4125,7 +4132,14 @@ define(['js/app'], function (myApp) {
             vm.creditTransfer.needClose = false;
             vm.creditTransfer.transferResult = '';
             vm.getRewardTask(row._id, function (data) {
-                vm.creditTransfer.showRewardAmount = data ? data.currentAmount : 0;
+                // Add up amounts from all available reward tasks
+                let showRewardAmount = 0;
+                if (data) {
+                    for (let i = 0; i < data.length; i++) {
+                        showRewardAmount += data[i].currentAmount;
+                    }
+                }
+                vm.creditTransfer.showRewardAmount = showRewardAmount;
                 vm.creditTransfer.showValidCredit = row.validCredit;
             });
             for (var i in vm.platformProviderList) {
@@ -6004,7 +6018,7 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : vm.playerBonusHistory.index,
                 sortCol: vm.playerBonusHistory.sortCol || undefined
             };
-            if(vm.playerBonusHistory.status){
+            if (vm.playerBonusHistory.status) {
                 sendQuery.status = vm.playerBonusHistory.status;
             }
             vm.playerBonusHistory.isSearching = true;
@@ -6162,7 +6176,7 @@ define(['js/app'], function (myApp) {
                 sortCol: vm.playerApiLog.sortCol || null
             };
 
-            if(vm.playerApiLog.apiAction) {
+            if (vm.playerApiLog.apiAction) {
                 sendQuery.action = vm.playerApiLog.apiAction;
             }
             socketService.$socket($scope.AppSocket, 'getPlayerApiLog', sendQuery, function (data) {
@@ -8140,6 +8154,7 @@ define(['js/app'], function (myApp) {
                     var text = time2 > time1 ? '' : $translate('RewardEndTimeStartTIme');
                     $('#rewardEndTimeValid').text(text);
                 }
+
                 let dateTimeRegex = /\d{4}\/\d{2}\/\d{2}\ \d{2}\:\d{2}\:\d{2}/g;
 
                 utilService.createDatePicker("#rewardValidStartTime");
@@ -8158,7 +8173,7 @@ define(['js/app'], function (myApp) {
                 $("#rewardValidStartTime").on('changeDate change keyup', function (data) {
                     if (vm.showReward) {
                         let inputFieldValue = $("#rewardValidStartTime > div > input").val();
-                        if( dateTimeRegex.test(inputFieldValue)) {
+                        if (dateTimeRegex.test(inputFieldValue)) {
                             $("#rewardValidStartTime").datetimepicker('update');
                         }
                         vm.showReward.validStartTime = $("#rewardValidStartTime").data('datetimepicker').getLocalDate();
@@ -8168,7 +8183,7 @@ define(['js/app'], function (myApp) {
                 $("#rewardValidEndTime").on('changeDate change keyup', function (data) {
                     if (vm.showReward) {
                         let inputFieldValue = $("#rewardValidEndTime > div > input").val();
-                        if( dateTimeRegex.test(inputFieldValue)) {
+                        if (dateTimeRegex.test(inputFieldValue)) {
                             $("#rewardValidEndTime").datetimepicker('update');
                         }
                         vm.showReward.validEndTime = $("#rewardValidEndTime").data('datetimepicker').getLocalDate();
@@ -8566,7 +8581,7 @@ define(['js/app'], function (myApp) {
             if (!provider) {
                 return;
             }
-            if(!vm.rewardParams.hasOwnProperty('providers')){
+            if (!vm.rewardParams.hasOwnProperty('providers')) {
                 vm.rewardParams.providers = [];
             }
             if (checked && vm.rewardParams.providers.indexOf(provider) == -1) {
