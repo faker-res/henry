@@ -5,6 +5,7 @@ var encrypt = require('./../modules/encrypt');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+let dbPlayerConsumptionDaySummary = require('./../db_modules/dbPlayerConsumptionDaySummary');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 let dbApiLog = require('./../db_modules/dbApiLog');
 var socketUtil = require('./../modules/socketutility');
@@ -476,6 +477,15 @@ function socketActionPlayer(socketIO, socket) {
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
             var platform = data.platform ? ObjectId(data.platform) : 'all';
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionTotalAmountForAllPlatform, [startTime, endTime, platform], actionName, isValidData);
+        },
+
+        getPlayersConsumptionSumForAllPlatform: function getPlayersConsumptionSumForAllPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            var platform = data.platform ? ObjectId(data.platform) : 'all';
+            socketUtil.emitter(self.socket, dbPlayerConsumptionDaySummary.getPlayersConsumptionSumForAllPlatform, [startTime, endTime, platform], actionName, isValidData);
         },
 
         /**
