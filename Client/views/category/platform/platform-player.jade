@@ -733,35 +733,27 @@ include modalGameCreditLog
             table.simple-table
                 thead
                     tr
-                        th {{'PROPERTY' | translate}}
-                        th {{'VALUE' | translate}}
-                tbody
+                        th {{'TYPE' | translate}}
+                        th {{'CREATE_TIME' | translate}}
+                        th {{'STATUS' | translate}}
+                        th {{'initAMOUNT' | translate}}
+                        th {{'currentAMOUNT' | translate}}
+                        th {{'UNLOCKAMOUNT' | translate}}
+                        th {{'REWARD_EVENT' | translate}}
+                        th(ng-if='rewardTask.targetEnable') {{'provider' | translate}}
+                        th(ng-if='!rewardTask.targetEnable') {{'Disabled Providers' | translate}}
+
+                tbody(ng-repeat='rewardTask in vm.curRewardTask')
                     tr
-                        td {{'TYPE' | translate}}
-                        td {{vm.curRewardTask.type | translate}}
-                    tr
-                        td {{'CREATE_TIME' | translate}}
-                        td {{vm.dateReformat(vm.curRewardTask.createTime)}}
-                    tr
-                        td {{'STATUS' | translate}}
-                        td {{vm.curRewardTask.status | translate}}
-                    tr
-                        td {{'initAMOUNT' | translate}}
-                        td {{vm.curRewardTask.initAmount || 0}}
-                    tr
-                        td {{'currentAMOUNT' | translate}}
-                        td {{vm.curRewardTask.currentAmount || 0}}
-                    tr
-                        td {{'UNLOCKAMOUNT' | translate}}
-                        td {{vm.curRewardTask.unlockedAmount || vm.curRewardTask.unlockedBonusAmount || 0}} / {{vm.curRewardTask.requiredUnlockAmount || vm.curRewardTask.requiredBonusAmount}}
-                    tr
-                        td {{'REWARD_EVENT' | translate}}
-                        td {{vm.curRewardTask.eventId.name}} ({{vm.curRewardTask.eventId.code}})
-                    tr
-                        td(ng-if='vm.curRewardTask.targetEnable') {{'provider' | translate}}
-                        td(ng-if='!vm.curRewardTask.targetEnable') {{'Disabled Providers' | translate}}
-                        td
-                            label(ng-repeat='(i,v) in vm.curRewardTask.targetProviders') {{v.name}}&nbsp;
+                        td {{rewardTask.type | translate}}
+                        td {{vm.dateReformat(rewardTask.createTime)}}
+                        td {{rewardTask.status | translate}}
+                        td {{rewardTask.initAmount || 0}}
+                        td {{rewardTask.currentAmount || 0}}
+                        td {{rewardTask.unlockedAmount || rewardTask.unlockedBonusAmount || 0}} / {{rewardTask.requiredUnlockAmount || rewardTask.requiredBonusAmount}}
+                        td {{rewardTask.eventId.name}} ({{rewardTask.eventId.code}})
+                        td(ng-if='rewardTask.targetEnable', ng-repeat='(i,v) in rewardTask.targetProviders') {{v.name}} &nbsp;
+                        td(ng-if='!rewardTask.targetEnable') &nbsp;
 
 #modalPlayerFeedbackRecord.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
