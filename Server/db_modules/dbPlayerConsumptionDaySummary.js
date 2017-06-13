@@ -208,13 +208,15 @@ var dbPlayerConsumptionDaySummary = {
     },
 
     getPlayersConsumptionSumForAllPlatform: function (startTime, endTime, platform) {
-
+        let matchObj = {
+            date: {$gte: startTime, $lt: endTime}
+        };
+        if (platform !== 'all') {
+            matchObj.platform = platform
+        }
         return dbconfig.collection_playerConsumptionDaySummary.aggregate(
             {
-                $match: {
-                    date: {$gte: startTime, $lt: endTime},
-                    platformId: platform
-                }
+                $match: matchObj
             },
             {
                 $group: {
