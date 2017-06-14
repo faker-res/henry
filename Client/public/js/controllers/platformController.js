@@ -9019,6 +9019,7 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
+            vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
             $scope.safeApply();
         }
 
@@ -9252,12 +9253,13 @@ define(['js/app'], function (myApp) {
         }
 
         function updatePlatformBasic(srcData) {
-            var sendData = {
+            let sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
                     minTopUpAmount: srcData.showMinTopupAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
-                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister
+                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                    canMultiReward: srcData.canMultiReward
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
