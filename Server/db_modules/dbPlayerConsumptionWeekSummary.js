@@ -552,7 +552,7 @@ var dbPlayerConsumptionWeekSummary = {
                     if (eventsData && eventsData.length > 0) {
                         var proms = [];
                         for (let eventData of eventsData) {
-                            proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id));
+                            proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id, false, true));
                         }
                         return Q.all(proms);
                     }
