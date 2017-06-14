@@ -2089,7 +2089,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         {path: "platformId", model: dbconfig.collection_platform}
     ).lean().then(
         curTask => {
-            if (!curTask || (curTask && curTask.platform && curTask.platform.canMultiReward)) {
+            if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
                 return;
             }
             else {
