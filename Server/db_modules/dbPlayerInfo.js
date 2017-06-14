@@ -6426,7 +6426,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                bTransferIn = (data && ((data.playerCredit + parseFloat(data.rewardCredit)) >= 1)) ? true : false;
+                bTransferIn = (data && ((parseFloat(data.playerCredit) + parseFloat(data.rewardCredit)) >= 1)) ? true : false;
                 //console.log("bTransferIn:", bTransferIn, data);
                 if (data && gameData && gameData.provider) {
                     providerData = gameData.provider;
