@@ -4134,7 +4134,7 @@ define(['js/app'], function (myApp) {
             vm.getRewardTask(row._id, function (data) {
                 // Add up amounts from all available reward tasks
                 let showRewardAmount = 0;
-                if (data) {
+                if (data && data.length > 0) {
                     for (let i = 0; i < data.length; i++) {
                         showRewardAmount += data[i].currentAmount;
                     }

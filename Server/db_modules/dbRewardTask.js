@@ -54,30 +54,35 @@ var dbRewardTask = {
         })
     },
 
-    createRewardTask: function (rewardData) {
-        var deferred = Q.defer();
-
-        rewardData.initAmount = rewardData.initAmount;
-        rewardData.currentAmount = rewardData.currentAmount;
+    /**
+     *
+     * @param rewardData
+     */
+    createRewardTask: (rewardData) => {
+        let deferred = Q.defer();
         rewardData.bonusAmount = rewardData.initAmount;
-        var rewardTask = new dbconfig.collection_rewardTask(rewardData);
-        var taskProm = rewardTask.save();
-        var playerProm = dbconfig.collection_players.findOneAndUpdate(
+        let rewardTask = new dbconfig.collection_rewardTask(rewardData);
+        let taskProm = rewardTask.save();
+
+        // Player's locked credit will increase from current lockedAmount
+        let playerProm = dbconfig.collection_players.findOneAndUpdate(
             {_id: rewardData.playerId, platform: rewardData.platformId},
-            {lockedCredit: rewardData.initAmount}
+            {$inc: {lockedCredit: rewardData.initAmount}}
         ).exec();
 
         Q.all([taskProm, playerProm]).then(
-            function (data) {
+            data => {
                 if (data && data[0] && data[1]) {
-                    dbLogger.createCreditChangeLogWithLockedCredit(rewardData.playerId, rewardData.platformId, 0, rewardData.rewardType, data[1].validCredit, rewardData.currentAmount, rewardData.currentAmount, null, data[0])
+                    dbLogger.createCreditChangeLogWithLockedCredit(
+                        rewardData.playerId, rewardData.platformId, 0, rewardData.rewardType,
+                        data[1].validCredit, rewardData.currentAmount, rewardData.currentAmount, null, data[0]);
                     deferred.resolve(data[0]);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Cannot create reward task"});
                 }
             },
-            function (error) {
+            error => {
                 deferred.reject({name: "DBError", message: "Error creating reward task", error: error});
             }
         );

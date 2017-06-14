@@ -740,8 +740,7 @@ include modalGameCreditLog
                         th {{'currentAMOUNT' | translate}}
                         th {{'UNLOCKAMOUNT' | translate}}
                         th {{'REWARD_EVENT' | translate}}
-                        th(ng-if='rewardTask.targetEnable') {{'provider' | translate}}
-                        th(ng-if='!rewardTask.targetEnable') {{'Disabled Providers' | translate}}
+                        th {{'provider' | translate}}
 
                 tbody(ng-repeat='rewardTask in vm.curRewardTask')
                     tr
@@ -752,8 +751,8 @@ include modalGameCreditLog
                         td {{rewardTask.currentAmount || 0}}
                         td {{rewardTask.unlockedAmount || rewardTask.unlockedBonusAmount || 0}} / {{rewardTask.requiredUnlockAmount || rewardTask.requiredBonusAmount}}
                         td {{rewardTask.eventId.name}} ({{rewardTask.eventId.code}})
-                        td(ng-if='rewardTask.targetEnable', ng-repeat='(i,v) in rewardTask.targetProviders') {{v.name}} &nbsp;
-                        td(ng-if='!rewardTask.targetEnable') &nbsp;
+                        td
+                            text(ng-repeat='(i,v) in rewardTask.targetProviders') &nbsp;{{v.name}}
 
 #modalPlayerFeedbackRecord.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
