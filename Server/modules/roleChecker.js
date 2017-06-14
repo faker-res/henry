@@ -74,6 +74,7 @@ var roleChecker = {
         "countLoginPlayerbyPlatformWeek": true,
         "getTopUpTotalAmountForAllPlatform": true,
         "getPlayerConsumptionSumForAllPlatform": true,
+        "getPlayerConsumptionDaySummarySumForAllPlatform": true,
         "countNewPlayers": true,
         "getBankTypeList": true,
         "getAllRewardTypes": true,
@@ -316,7 +317,7 @@ var roleChecker = {
             //     DetachChannel: ['removePaymentFromPlatformById']
             // },
             "Reward": {
-                Read: ['getRewardRuleById', 'getPlayerCurRewardTask', 'getRewardEventsForPlatform', 'getRewardEventById', 'getAllRewardRule'],
+                Read: ['getRewardRuleById', 'getPlayerCurRewardTask', 'getRewardEventsForPlatform', 'getRewardEventById', 'getAllRewardRule', 'getPlayerAllRewardTask', 'getPlayerAllRewardTaskDetailByPlayerObjId'],
                 Add: ['createRewardRuleWithType', 'createRewardCondition', 'createRewardEvent'],
                 Delete: ['deleteRewardRuleByIds', 'deleteRewardEventByIds'],
                 Update: ['updateRewardRule', 'updateRewardTask', 'updateRewardEvent'],
