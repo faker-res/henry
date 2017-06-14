@@ -8830,9 +8830,11 @@ define(['js/app'], function (myApp) {
 
         vm.getAllPlayerLevels = function () {
             vm.playerIDArr = [];
+            vm.autoCheckPlayerLevelUp = null;
             return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                 .then(function (data) {
                     vm.allPlayerLvl = data.data;
+                    vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
                     vm.allPlayerLvlReordered = false;
                     vm.sortPlayerLevels();
                     console.log("vm.allPlayerLvl", data.data);
@@ -9122,6 +9124,7 @@ define(['js/app'], function (myApp) {
             switch (choice) {
                 case 'player':
                     console.log('vm.playerLvlData', vm.playerLvlData);
+                    updatePlatformBasic({autoCheckPlayerLevelUp:vm.autoCheckPlayerLevelUp});
                     if (vm.allPlayerLvlReordered) {
                         // Number the levels correctly.  (This should only really be needed if something went wrong on a previous attempt.)
                         vm.ensurePlayerLevelOrder();
@@ -9255,9 +9258,10 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
-                    minTopUpAmount: srcData.showMinTopupAmount,
-                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
-                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister
+                    minTopUpAmount: srcData.showMinTopupAmount || vm.selectedPlatform.data.minTopUpAmount,
+                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister || vm.selectedPlatform.data.allowSameRealNameToRegister,
+                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister || vm.selectedPlatform.data.allowSamePhoneNumberToRegister,
+                    autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp || vm.selectedPlatform.data.autoCheckPlayerLevelUp
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -9266,7 +9270,6 @@ define(['js/app'], function (myApp) {
         }
 
         function updateBonusBasic(srcData) {
-            console.log('\n\n\nupdateBonusBasic', JSON.stringify(srcData));
             var sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
@@ -9274,7 +9277,6 @@ define(['js/app'], function (myApp) {
                     bonusCharges: srcData.bonusCharges
                 }
             };
-            console.log('\n\n\nupdateBonusBasic sendData', JSON.stringify(sendData));
 
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                 console.log('update bonus socket', JSON.stringify(data));
@@ -9283,7 +9285,6 @@ define(['js/app'], function (myApp) {
         }
 
         function updateAutoApprovalConfig(srcData) {
-            console.log('\n\n\nupdateAutoApprovalConfig', JSON.stringify(srcData));
             let sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
