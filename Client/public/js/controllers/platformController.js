@@ -4990,23 +4990,31 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
-            let numberOfRewardUnlocked = 0;
+            let updateStatus = function updateStatus() {
+                vm.manualUnlockRewardTask.resMsg =
+                    taskCount == vm.manualUnlockRewardTaskIndexList.length ?
+                        numberOfRewardUnlocked == vm.manualUnlockRewardTaskIndexList.length ?
+                            $translate('Submitted proposal for approval') :
+                            $translate('FAIL')
+                        : "";
+
+                $scope.safeApply();
+            };
+            let numberOfRewardUnlocked = 0, taskCount = 0;
             vm.manualUnlockRewardTaskIndexList.forEach(function(index){
+                taskCount++;
                 socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', [vm.curRewardTask[index], vm.selectedSinglePlayer], function (data) {
                     console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " is submitted for approval.");
+                    numberOfRewardUnlocked++;
+                    updateStatus();
                 }, function (err) {
                     if (err.error.message) {
                         console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit, error: " + err.error.message);
-                        numberOfRewardUnlocked++;
                     } else {
                         console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit.");
                     }
+                    updateStatus();
                 });
-                if (numberOfRewardUnlocked === vm.manualUnlockRewardTaskIndexList.length) {
-                    vm.manualUnlockRewardTask.resMsg = $translate('Submitted proposal for approval');
-                } else {
-                    vm.manualUnlockRewardTask.resMsg = $translate('FAIL');
-                }
             });
         };
 
