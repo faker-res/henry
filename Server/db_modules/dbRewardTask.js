@@ -94,7 +94,9 @@ var dbRewardTask = {
      * @param {String} query - The query String.
      */
     getRewardTask: function (query) {
-        return dbconfig.collection_rewardTask.findOne(query).exec();
+        return dbconfig.collection_rewardTask
+            .findOne(query)
+            .exec();
     },
 
     getPlayerRewardTask: function (playerId, from, to, index, limit, sortCol) {
@@ -289,45 +291,24 @@ var dbRewardTask = {
         let bTaskAchieved = false;
         let createTime = new Date(consumptionRecord.createTime);
 
-        //get the most recent task and check it
+        // Starting from multiple reward, the oldest reward task will be taken to use
         dbconfig.collection_rewardTask.find(
             {
                 playerId: consumptionRecord.playerId,
                 status: constRewardTaskStatus.STARTED,
                 createTime: {$lt: createTime},
-                // $or: [{targetProviders: consumptionRecord.providerId}, {targetProviders: []}],
+                $or: [
+                    {$and: [{targetEnable: true}, {$or: [{targetProviders: consumptionRecord.providerId}, {targetProviders: []}]}]},
+                    {$and: [{targetEnable: false}, {targetProviders: {$elemMatch: {$ne: consumptionRecord.providerId}}}]}
+                ],
+                // $
                 // $or: [{targetGames: consumptionRecord.gameId}, {targetGames: []}],
                 isUnlock: false
             }
-        ).sort({createTime: -1}).limit(1).lean().then(
+        ).sort({createTime: 1}).limit(1).lean().then(
             tasks => {
                 let taskData = tasks ? tasks[0] : null;
-                let isTaskValid = true;
-                if (taskData) {
-                    let isTargetProvider = false;
-                    if (taskData.targetProviders && taskData.targetProviders.length > 0) {
-                        taskData.targetProviders.forEach(
-                            provider => {
-                                if (String(provider) == String(consumptionRecord.providerId)) {
-                                    isTargetProvider = true;
-                                }
-                            }
-                        );
-                    }
-                    if (taskData.targetEnable) {
-                        if (taskData.targetProviders && taskData.targetProviders.length > 0) {
-                            isTaskValid = isTargetProvider;
-                        }
-                    } else {
-                        if (taskData.targetProviders && taskData.targetProviders.length > 0) {
-                            isTaskValid = !isTargetProvider;
-                        }
-                    }
-                    // if (taskData.targetGames && taskData.targetGames.indexOf(consumptionRecord.gameId) == -1) {
-                    //     isTaskValid = false;
-                    // }
-                }
-                return (isTaskValid && taskData) ? taskData : false;
+                return taskData ? taskData : false;
             },
             error => {
                 deferred.reject({
@@ -544,10 +525,11 @@ var dbRewardTask = {
                 {status: constRewardTaskStatus.COMPLETED}
             );
 
+            // Changed from update lockedCredit from 0 to -rewardAmount
             let updateData = {
-                $inc: {validCredit: rewardAmount},
-                lockedCredit: 0
+                $inc: {validCredit: rewardAmount, lockedCredit: -rewardAmount},
             };
+
             //if reward task is for first top up, mark player
             if (taskData.type == constRewardType.FIRST_TOP_UP) {
                 updateData.bFirstTopUpReward = true;
