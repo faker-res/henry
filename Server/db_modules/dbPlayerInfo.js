@@ -2214,7 +2214,7 @@ let dbPlayerInfo = {
         //check if playerId and eventId is valid
         dbconfig.collection_players.findOne({playerId: playerId}).populate({
             path: "platform",
-            model: dbconfig.collection_playerLevel
+            model: dbconfig.collection_platform
         }).then(
             playerData => {
                 if (playerData) {
@@ -2237,7 +2237,7 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        taskProm = Q.reject();
+                        taskProm = Q.resolve(false);
                     }
 
                     return Q.all([playerProm, eventProm, taskProm]);
@@ -2279,7 +2279,7 @@ let dbPlayerInfo = {
                         };
                         var proposalProm = dbProposal.createProposalWithTypeId(data[1].executeProposal, proposalData);
                         var playerProm = dbconfig.collection_players.findOneAndUpdate(
-                            {_id: data[0]._id, platform: data[0].platform},
+                            {_id: data[0]._id, platform: data[0].platform._id},
                             {$inc: {validCredit: -amount}},
                             {new: true}
                         );
@@ -6922,7 +6922,7 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        taskProm = Q.reject();
+                        taskProm = Q.resolve(false);
                     }
 
                     //get reward event data
@@ -7111,7 +7111,7 @@ let dbPlayerInfo = {
                 //get player's platform reward event data
                 if (data && data.playerLevel) {
                     player = data;
-                    platformId = player.platform;
+                    platformId = player.platform._id;
 
                     let taskProm;
                     if (!player.platform.canMultiReward) {
@@ -7123,7 +7123,7 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        taskProm = Q.reject();
+                        taskProm = Q.resolve(false);
                     }
 
                     //get reward event data
@@ -7175,7 +7175,7 @@ let dbPlayerInfo = {
                                 {
                                     $match: {
                                         playerId: player._id,
-                                        platformId: player.platform,
+                                        platformId: player.platform._id,
                                         amount: {$gte: minTopUpRecordAmount},
                                         createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
                                         $or: [{bDirty: false}, {
@@ -7223,7 +7223,7 @@ let dbPlayerInfo = {
 
                     //get yesterday bonus credit
                     let bonusProm = dbconfig.collection_proposalType.findOne({
-                        platformId: player.platform,
+                        platformId: player.platform._id,
                         name: constProposalType.PLAYER_BONUS
                     }).then(
                         typeData => {
@@ -7232,7 +7232,7 @@ let dbPlayerInfo = {
                                     {
                                         type: typeData._id,
                                         "data.playerObjId": player._id,
-                                        "data.platformId": player.platform,
+                                        "data.platformId": player.platform._id,
                                         status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                                         createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime}
                                     }
@@ -7263,7 +7263,7 @@ let dbPlayerInfo = {
                     );
                     //get game credit from log
                     let providerCreditProm = dbconfig.collection_playerCreditsDailyLog.findOne({
-                        platformObjId: player.platform,
+                        platformObjId: player.platform._id,
                         playerObjId: player._id,
                         createTime: {$gt: yerTime.startTime, $lte: yerTime.endTime}
                     }).lean().then(
@@ -7458,7 +7458,7 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        taskProm = Q.reject();
+                        taskProm = Q.resolve(false);
                     }
 
                     //get reward event data
