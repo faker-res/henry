@@ -4056,6 +4056,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlayerAllRewardTaskDetailByPlayerObjId', {_id: playerId}, function (data) {
                     vm.curRewardTask = data.data;
+                    console.log('vm.curRewardTask', vm.curRewardTask);
                     $scope.safeApply();
                     if (callback) {
                         callback(vm.curRewardTask);
@@ -4134,7 +4135,7 @@ define(['js/app'], function (myApp) {
             vm.getRewardTask(row._id, function (data) {
                 // Add up amounts from all available reward tasks
                 let showRewardAmount = 0;
-                if (data) {
+                if (data && data.length > 0) {
                     for (let i = 0; i < data.length; i++) {
                         showRewardAmount += data[i].currentAmount;
                     }
@@ -4964,6 +4965,7 @@ define(['js/app'], function (myApp) {
             vm.manualUnlockRewardTask = {
                 resMsg: $translate("Reward task is not available")
             };
+            vm.manualUnlockRewardTaskIndexList = [];
             vm.getRewardTaskDetail(vm.selectedSinglePlayer._id).then(function (data) {
                 if (data) {
                     vm.manualUnlockRewardTask.resMsg = "";
@@ -4973,15 +4975,47 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
+        vm.updateManualUnlockRewardTaskIndexList = function (index, checked) {
+            if (checked) {
+                vm.manualUnlockRewardTaskIndexList.push(index);
+            } else {
+                vm.manualUnlockRewardTaskIndexList.splice(vm.manualUnlockRewardTaskIndexList.indexOf(index), 1);
+            }
+        };
+
         vm.submitManualUnlockRewardTask = function () {
-            socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', [vm.curRewardTask, vm.selectedSinglePlayer], function (data) {
-                    vm.manualUnlockRewardTask.resMsg = $translate('Submitted proposal for approval');
-                    $scope.safeApply();
-                },
-                function (err) {
-                    vm.manualUnlockRewardTask.resMsg = err.error.message || $translate('FAIL');
-                    $scope.safeApply();
+            if (!vm.manualUnlockRewardTaskIndexList) {
+                vm.manualUnlockRewardTask.resMsg = "No reward tasks are selected to unlock.";
+                $scope.safeApply();
+                return;
+            }
+
+            let updateStatus = function updateStatus() {
+                vm.manualUnlockRewardTask.resMsg =
+                    taskCount == vm.manualUnlockRewardTaskIndexList.length ?
+                        numberOfRewardUnlocked == vm.manualUnlockRewardTaskIndexList.length ?
+                            $translate('Submitted proposal for approval') :
+                            $translate('FAIL')
+                        : "";
+
+                $scope.safeApply();
+            };
+            let numberOfRewardUnlocked = 0, taskCount = 0;
+            vm.manualUnlockRewardTaskIndexList.forEach(function(index){
+                taskCount++;
+                socketService.$socket($scope.AppSocket, 'manualUnlockRewardTask', [vm.curRewardTask[index], vm.selectedSinglePlayer], function (data) {
+                    console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " is submitted for approval.");
+                    numberOfRewardUnlocked++;
+                    updateStatus();
+                }, function (err) {
+                    if (err.error.message) {
+                        console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit, error: " + err.error.message);
+                    } else {
+                        console.log("Proposal to unlock reward " + vm.curRewardTask[index]._id + " failed to submit.");
+                    }
+                    updateStatus();
                 });
+            });
         };
 
         vm.prepareShowPlayerExpense = function () {
@@ -9019,6 +9053,7 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
+            vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
             $scope.safeApply();
         }
 
@@ -9252,12 +9287,13 @@ define(['js/app'], function (myApp) {
         }
 
         function updatePlatformBasic(srcData) {
-            var sendData = {
+            let sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
                     minTopUpAmount: srcData.showMinTopupAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
-                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister
+                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                    canMultiReward: srcData.canMultiReward
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -9476,7 +9512,7 @@ define(['js/app'], function (myApp) {
         // right panel required functions
         vm.loadAlldepartment = function () {
 
-            if (!authService.checkViewPermission('Platform', 'Platform', 'Create')) {
+            if (!authService.checkViewPermission('Platform', 'Proposal', 'Create') && !authService.checkViewPermission('Platform', 'Proposal', 'Update')) {
                 return;
             }
             socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
