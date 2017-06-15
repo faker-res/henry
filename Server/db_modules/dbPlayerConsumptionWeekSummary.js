@@ -552,7 +552,7 @@ var dbPlayerConsumptionWeekSummary = {
                     if (eventsData && eventsData.length > 0) {
                         var proms = [];
                         for (let eventData of eventsData) {
-                            proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id));
+                            proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id, false, true));
                         }
                         return Q.all(proms);
                     }
@@ -616,8 +616,8 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {ObjectId} playerId
      * @param {Boolean} bDetail, if contain detailed player info
      */
-    getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail) {
-        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getTodaySGTime() : dbutility.getLastWeekSGTime();
+    getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest) {
+        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? (bRequest ? dbutility.getTodaySGTime() : dbutility.getYesterdaySGTime() ) : dbutility.getLastWeekSGTime();
         var eventData = event.param;
         var summaryDay = {$gte: settleTime.startTime};
         //if preview for settlement, only calculate for settlement time

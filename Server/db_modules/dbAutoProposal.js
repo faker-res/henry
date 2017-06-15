@@ -356,24 +356,28 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
 }
 
 function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
+    let matchObj = {
+        platformId: ObjectId(platformId),
+        createTime: {
+            $gte: new Date(dateFrom),
+            $lt:  new Date(dateTo)
+        },
+        playerId: ObjectId(playerId)
+    };
+
+    let groupObj = {
+        _id: {playerId: "$playerId", platformId: "$platformId"},
+        validAmount: {$sum: "$validAmount"}
+    };
+
     return dbconfig.collection_playerConsumptionRecord.aggregate(
         {
-            $match: {
-                platformId: platformId,
-                createTime: {
-                    $gte: dateFrom,
-                    $lt: dateTo
-                },
-                playerId: playerId
-            }
+            $match: matchObj
         },
         {
-            $group: {
-                _id: {playerId: "$playerId", platformId: "$platformId"},
-                validAmount: {$sum: "$validAmount"}
-            }
+            $group: groupObj
         }
-    )
+    );
 }
 
 module.exports = dbAutoProposal;
