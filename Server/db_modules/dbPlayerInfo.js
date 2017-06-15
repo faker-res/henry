@@ -1708,12 +1708,10 @@ let dbPlayerInfo = {
      * @param {Boolean} checkConsumption
      */
     isValidForFirstTopUpReward: function (playerId, platformId, checkConsumption) {
-
-        var deferred = Q.defer();
-        var rewardEventData = null;
-        var proposalType;
-        var playerData = null;
-        //todo::add reward task check here??? - Done
+        let deferred = Q.defer();
+        let rewardEventData = null;
+        let proposalType;
+        let playerData = null;
         //todo::add check for player's gift redeem record
         //should check player platform first time top up event here???
         dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.FIRST_TOP_UP).then(
@@ -1722,7 +1720,11 @@ let dbPlayerInfo = {
                 if (eventData) {
 
                     proposalType = eventData.executeProposal;
-                    return dbconfig.collection_players.findOne({_id: playerId});
+                    return dbconfig.collection_players.findOne({_id: playerId})
+                        .populate({
+                            path: "platform",
+                            model: dbconfig.collection_platform
+                        }).lean();
                 }
                 else {
                     deferred.reject({
@@ -1764,7 +1766,12 @@ let dbPlayerInfo = {
                     return true;
 
                 } else {
-                    return dbRewardTask.getPlayerCurRewardTask(playerData._id);
+                    if (!playerData.platform.canMultiReward) {
+                        return dbRewardTask.getPlayerCurRewardTask(playerData._id);
+                    }
+                    else {
+                        return false;
+                    }
                 }
 
             }, function (error) {
@@ -2205,23 +2212,34 @@ let dbPlayerInfo = {
         var deferred = Q.defer();
         var adminInfo = ifAdmin;
         //check if playerId and eventId is valid
-        dbconfig.collection_players.findOne({playerId: playerId}).then(
+        dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_playerLevel
+        }).then(
             playerData => {
                 if (playerData) {
-                    var playerProm = Q.resolve(playerData);
-                    var eventProm = dbconfig.collection_rewardEvent.findOne({
+                    let taskProm;
+                    let playerProm = Q.resolve(playerData);
+                    let eventProm = dbconfig.collection_rewardEvent.findOne({
                         code: code,
                         platform: playerData.platform
                     }).populate({
                         path: "type",
                         model: dbconfig.collection_rewardType
                     });
-                    var taskProm = dbRewardTask.getRewardTask(
-                        {
-                            playerId: playerData._id,
-                            status: constRewardTaskStatus.STARTED
-                        }
-                    );
+
+                    if (!playerData.platform.canMultiReward) {
+                        taskProm = dbRewardTask.getRewardTask(
+                            {
+                                playerId: playerData._id,
+                                status: constRewardTaskStatus.STARTED
+                            }
+                        );
+                    }
+                    else {
+                        taskProm = Q.reject();
+                    }
+
                     return Q.all([playerProm, eventProm, taskProm]);
                 }
                 else {
@@ -3400,7 +3418,8 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    /*
+    /**
+     * TODO:: Need choose which reward task is selected for update player credit
      * Transfer credit to game provider
      * @param {objectId} platform
      * @param {objectId} playerId
@@ -3776,7 +3795,8 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    /*
+    /**
+     * TODO:: Need to choose which reward task to add player credit
      * Transfer credit from game provider
      * @param {objectId} platform
      * @param {objectId} playerId
@@ -3936,6 +3956,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     if (bUpdateTask) {
+                        // TODO:: Need sorting here for multiple reward
                         return dbconfig.collection_rewardTask.findOneAndUpdate(
                             {_id: rewardTask._id, platformId: rewardTask.platformId},
                             {
@@ -6881,7 +6902,8 @@ let dbPlayerInfo = {
 
         var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
         var playerProm = dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean();
         return Q.all([playerProm, recordProm]).then(
             function (data) {
                 //get player's platform reward event data
@@ -6889,12 +6911,20 @@ let dbPlayerInfo = {
                     player = data[0];
                     record = data[1];
                     platformId = player.platform;
-                    var taskProm = dbRewardTask.getRewardTask(
-                        {
-                            playerId: player._id,
-                            status: constRewardTaskStatus.STARTED
-                        }
-                    );
+
+                    let taskProm;
+                    if (!player.platform.canMultiReward) {
+                        taskProm = dbRewardTask.getRewardTask(
+                            {
+                                playerId: player._id,
+                                status: constRewardTaskStatus.STARTED
+                            }
+                        );
+                    }
+                    else {
+                        taskProm = Q.reject();
+                    }
+
                     //get reward event data
                     var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_TOP_UP_RETURN, code);
                     return Q.all([eventProm, taskProm]);
@@ -7074,19 +7104,28 @@ let dbPlayerInfo = {
         let adminInfo = ifAdmin;
 
         let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean();
         return playerProm.then(
             data => {
                 //get player's platform reward event data
                 if (data && data.playerLevel) {
                     player = data;
                     platformId = player.platform;
-                    let taskProm = dbRewardTask.getRewardTask(
-                        {
-                            playerId: player._id,
-                            status: constRewardTaskStatus.STARTED
-                        }
-                    );
+
+                    let taskProm;
+                    if (!player.platform.canMultiReward) {
+                        taskProm = dbRewardTask.getRewardTask(
+                            {
+                                playerId: player._id,
+                                status: constRewardTaskStatus.STARTED
+                            }
+                        );
+                    }
+                    else {
+                        taskProm = Q.reject();
+                    }
+
                     //get reward event data
                     let eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSUMPTION_INCENTIVE, code);
                     return Q.all([eventProm, taskProm]);
@@ -7398,7 +7437,9 @@ let dbPlayerInfo = {
         var adminInfo = ifAdmin;
 
         var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
-        var playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
+        let playerProm = dbconfig.collection_players.findOne(
+            {playerId: playerId}
+        ).populate({path: "platform", model: dbconfig.collection_platform}).lean();
         return Q.all([playerProm, recordProm]).then(
             data => {
                 //get player's platform reward event data
@@ -7406,12 +7447,20 @@ let dbPlayerInfo = {
                     player = data[0];
                     record = data[1];
                     platformId = player.platform;
-                    var taskProm = dbRewardTask.getRewardTask(
-                        {
-                            playerId: player._id,
-                            status: constRewardTaskStatus.STARTED
-                        }
-                    );
+
+                    let taskProm;
+                    if (!player.platform.canMultiReward) {
+                        taskProm = dbRewardTask.getRewardTask(
+                            {
+                                playerId: player._id,
+                                status: constRewardTaskStatus.STARTED
+                            }
+                        );
+                    }
+                    else {
+                        taskProm = Q.reject();
+                    }
+
                     //get reward event data
                     var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_TOP_UP_REWARD, code);
                     return Q.all([eventProm, taskProm]);
@@ -8173,8 +8222,10 @@ let dbPlayerInfo = {
         var bDoneDeduction = false;
 
         var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
-        var playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "playerLevel", model: dbconfig.collection_playerLevel}
+        ).populate(
+            {path: "platform", model: dbconfig.collection_platform}
         ).lean();
         return Q.all([playerProm, recordProm]).then(
             data => {
@@ -8183,12 +8234,20 @@ let dbPlayerInfo = {
                     player = data[0];
                     record = data[1];
                     platformId = player.platform;
-                    var taskProm = dbRewardTask.getRewardTask(
-                        {
-                            playerId: player._id,
-                            status: constRewardTaskStatus.STARTED
-                        }
-                    );
+
+                    let taskProm;
+                    if (!player.platform.canMultiReward) {
+                        taskProm = dbRewardTask.getRewardTask(
+                            {
+                                playerId: player._id,
+                                status: constRewardTaskStatus.STARTED
+                            }
+                        );
+                    }
+                    else {
+                        taskProm = Q.resolve(false);
+                    }
+
                     //get reward event data
                     var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, code);
                     //get today's double top up reward

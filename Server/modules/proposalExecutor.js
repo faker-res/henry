@@ -272,6 +272,7 @@ var proposalExecutor = {
          */
         executions: {
             /**
+             * TODO:: Might need to check which rewardTask is used
              * execution function for update player credit proposal type
              */
             executeUpdatePlayerCredit: function (proposalData, deferred, bTransfer) {
@@ -2088,7 +2089,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         {path: "platformId", model: dbconfig.collection_platform}
     ).lean().then(
         curTask => {
-            if (!curTask || (curTask && curTask.platform && curTask.platform.canMultiReward)) {
+            if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
                 return;
             }
             else {
