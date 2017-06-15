@@ -48,7 +48,7 @@ var dbPlayerTopUpWeekSummary = {
             return Q(
                 balancer.processStream({
                     stream: stream,
-                    batchSize: constSystemParam.BATCH_SIZE,
+                    batchSize: 300,
                     makeRequest: function (playerIdObjs, request) {
                         request("player", "playerTopUpWeekSummary_calculatePlatformWeekSummaryForPlayers", {
                             startTime: startTime,
