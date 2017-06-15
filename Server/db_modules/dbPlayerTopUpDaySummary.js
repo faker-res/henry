@@ -113,6 +113,8 @@ var dbPlayerTopUpDaySummary = {
     },
 
     calculatePlatformActiveValidPlayerDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
+        //todo: refactor this to settlement server later
+        return;
         var matchObj = {
             platformId: platformId,
             date: {
