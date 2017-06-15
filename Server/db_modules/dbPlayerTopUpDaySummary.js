@@ -133,7 +133,7 @@ var dbPlayerTopUpDaySummary = {
                     times: {$sum: "$times"}
                 }
             }
-        ).exec();
+        ).allowDiskUse(true).exec();
 
         var topUpProm = dbconfig.collection_playerTopUpDaySummary.aggregate(
             {
@@ -146,7 +146,7 @@ var dbPlayerTopUpDaySummary = {
                     times: {$sum: "$times"}
                 }
             }
-        ).exec();
+        ).allowDiskUse(true).exec();
 
         return Q.all([consumptionProm, topUpProm]).then(
             function (data) {
