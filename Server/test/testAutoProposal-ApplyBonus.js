@@ -21,6 +21,10 @@ let commonTestFunc = require('../test_modules/commonTestFunc');
  *  4:  First time withdrawal
  */
 describe("Test Auto Proposal - Apply Bonus", function () {
+
+    // DISABLED FOR CSTEST
+    return true;
+
     let proposalTypeId = null;
     let testPlayerId = null;
     let testPlatformId = null;
