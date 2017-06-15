@@ -9258,10 +9258,10 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {
-                    minTopUpAmount: srcData.showMinTopupAmount || vm.selectedPlatform.data.minTopUpAmount,
-                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister || vm.selectedPlatform.data.allowSameRealNameToRegister,
-                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister || vm.selectedPlatform.data.allowSamePhoneNumberToRegister,
-                    autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp || vm.selectedPlatform.data.autoCheckPlayerLevelUp,
+                    minTopUpAmount: srcData.showMinTopupAmount,
+                    allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
+                    allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                    autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
                     bonusCharges: srcData.bonusCharges
                 }
