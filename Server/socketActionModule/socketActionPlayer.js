@@ -725,7 +725,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.username);
             let username = data.username || '';
-            socketUtil.emitter(self.socket, pmsAPI.payment_requestClearProposalLimits, [username], actionName, isValidData);
+            socketUtil.emitter(self.socket, pmsAPI.payment_requestClearProposalLimits, [{username:username}], actionName, isValidData);
         },
 
         getPlayerCreditsDaily: function getPlayerCreditsDaily(data) {
