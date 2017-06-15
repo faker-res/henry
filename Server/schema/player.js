@@ -101,7 +101,8 @@ var playerSchema = new Schema({
         topupManual: {type: Boolean, default: true},
         alipayTransaction: {type: Boolean, default: true},
         banReward: {type: Boolean, default: false},
-        disableWechatPay: {type: Boolean, default: false}
+        disableWechatPay: {type: Boolean, default: false},
+        forbidPlayerConsumptionReturn: {type: Boolean, default: false}
     },
 
     //country
