@@ -2222,7 +2222,7 @@ let dbPlayerInfo = {
                     let playerProm = Q.resolve(playerData);
                     let eventProm = dbconfig.collection_rewardEvent.findOne({
                         code: code,
-                        platform: playerData.platform
+                        platform: playerData.platform._id
                     }).populate({
                         path: "type",
                         model: dbconfig.collection_rewardType
@@ -2249,7 +2249,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && !data[2]) {
-                    if (String(data[0].platform) == String(data[1].platform) && data[1].type.name == constRewardType.GAME_PROVIDER_REWARD
+                    if (String(data[0].platform._id) == String(data[1].platform) && data[1].type.name == constRewardType.GAME_PROVIDER_REWARD
                         && data[0].validCredit > 0 && amount > 0 && amount <= data[0].validCredit && rewardUtility.isValidRewardEvent(constRewardType.GAME_PROVIDER_REWARD, data[1])) {
                         proposalData = {
                             type: data[1].executeProposal,
@@ -2267,7 +2267,7 @@ let dbPlayerInfo = {
                                 rewardAmount: data[1].param.rewardPercentage * amount,
                                 spendingAmount: Math.floor(data[1].param.spendingPercentage * amount),
                                 provider: data[1].param.provider,
-                                platformId: data[0].platform,
+                                platformId: data[0].platform._id,
                                 games: data[1].param.games,
                                 eventId: data[1]._id,
                                 eventName: data[1].name,
