@@ -233,6 +233,9 @@ var dbRewardTask = {
                     }).populate({
                         path: "eventId",
                         model: dbconfig.collection_rewardEvent
+                    }).populate({
+                        path: "platformId",
+                        model: dbconfig.collection_platform
                     }).lean();
                 }
                 else {
@@ -246,7 +249,13 @@ var dbRewardTask = {
             },
             error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
         ).then(
-            rewardTasks => rewardTasks,
+            rewardTasks => {
+                if (rewardTasks && rewardTasks[0] && !rewardTasks[0].platformId.canMultiReward) {
+                    return rewardTasks[0];
+                } else {
+                    return rewardTasks;
+                }
+            },
             error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
         );
     },
