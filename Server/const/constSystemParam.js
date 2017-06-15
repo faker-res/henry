@@ -13,7 +13,7 @@ const constSystemParam = {
     API_AUTH_SECRET_KEY : "$ap1U5eR$", // JWT Secret,
     NO_OF_LOGIN_ATTEMPT: 3 , // minimum no of login attempts failed per connection
 
-    BATCH_SIZE: 1000,
+    BATCH_SIZE: 500,
 
     //CONST STRING
     PROPOSAL_NO_STEP: "PROPOSAL_NO_STEP",
