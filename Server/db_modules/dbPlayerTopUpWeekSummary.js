@@ -38,6 +38,8 @@ var dbPlayerTopUpWeekSummary = {
      * @param {Date} endTime - The end time
      */
     calculatePlatformWeekSummaryForTimeFrame: function (startTime, endTime, platformId) {
+        //todo: refactor this code later
+        return;
 
         var balancer = new SettlementBalancer();
 
