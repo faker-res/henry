@@ -280,7 +280,6 @@ var dbRewardTask = {
     },
 
     /**
-     * // TODO:: For now it's updating most recent reward task, should be oldest && started reward task for multiple rewards
      * check and update player's reward task info when player consume credit
      * @param {ObjectId} playerId - The player id.
      * @param {Object} consumptionRecord - consumptionRecord object
@@ -299,7 +298,7 @@ var dbRewardTask = {
                 createTime: {$lt: createTime},
                 $or: [
                     {$and: [{targetEnable: true}, {$or: [{targetProviders: consumptionRecord.providerId}, {targetProviders: []}]}]},
-                    {$and: [{targetEnable: false}, {targetProviders: {$elemMatch: {$ne: consumptionRecord.providerId}}}]}
+                    {$and: [{targetEnable: false}, {targetProviders: {$not: {$elemMatch: {$eq: consumptionRecord.providerId}}}}]}
                 ],
                 // $
                 // $or: [{targetGames: consumptionRecord.gameId}, {targetGames: []}],
