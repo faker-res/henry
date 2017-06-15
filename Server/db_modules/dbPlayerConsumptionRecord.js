@@ -1373,7 +1373,7 @@ var dbPlayerConsumptionRecord = {
                     }
                 }
             ]
-        ).cursor({batchSize: 5000}).allowDiskUse(true).exec().toArray();
+        ).cursor({batchSize: 100}).allowDiskUse(true).exec().toArray();
     },
 
     /**
