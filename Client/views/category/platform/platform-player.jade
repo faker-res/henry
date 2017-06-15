@@ -1795,7 +1795,8 @@ include modalGameCreditLog
                     tbody(ng-repeat='rewardTask in vm.curRewardTask')
                         tr
                             td
-                                input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)")
+                                input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)", ng-init="rewardTask.checked=true", ng-if="$index === 0")
+                                input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)", ng-if="$index !== 0")
                             td {{rewardTask.type | translate}}
                             td {{vm.dateReformat(rewardTask.createTime)}}
                             td {{rewardTask.status | translate}}
