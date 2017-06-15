@@ -126,25 +126,25 @@ function sendToAudit(proposalObjId, createTime, remark) {
                         _id: proposalObjId,
                         createTime: createTime
                     }, {
-                        status: constProposalStatus.PENDING,
+                        //status: constProposalStatus.PENDING,
                         'data.remark': 'Auto Approval ' + remark
                     }).then();
                 }
-                else {
-                    return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
-                        res => {
-                            return dbconfig.collection_proposal.findOneAndUpdate(
-                                {_id: proposalData._id, createTime: proposalData.createTime},
-                                {
-                                    noSteps: true,
-                                    process: null,
-                                    status: constProposalStatus.FAIL,
-                                    'data.remark': 'Auto Approval Denied: ' + remark
-                                },
-                                {new: true}
-                            );
-                        })
-                }
+                // else {
+                //     return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
+                //         res => {
+                //             return dbconfig.collection_proposal.findOneAndUpdate(
+                //                 {_id: proposalData._id, createTime: proposalData.createTime},
+                //                 {
+                //                     noSteps: true,
+                //                     process: null,
+                //                     status: constProposalStatus.FAIL,
+                //                     'data.remark': 'Auto Approval Denied: ' + remark
+                //                 },
+                //                 {new: true}
+                //             );
+                //         })
+                // }
             }
         }
     );
