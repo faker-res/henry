@@ -1112,7 +1112,6 @@ var dbPlayerTopUpDaySummary = {
         return dbconfig.collection_playerTopUpDaySummary.aggregate(
             [
                 {
-                    //todo::add dirty record check here to avoid reuse same record
                     $match: {
                         platformId: platformId,
                         date: {
@@ -1130,7 +1129,7 @@ var dbPlayerTopUpDaySummary = {
                     }
                 }
             ]
-        ).exec();
+        ).allowDiskUse(true).exec();
     }
 
 };
