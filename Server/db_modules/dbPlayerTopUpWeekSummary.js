@@ -39,7 +39,7 @@ var dbPlayerTopUpWeekSummary = {
      */
     calculatePlatformWeekSummaryForTimeFrame: function (startTime, endTime, platformId) {
         //todo: refactor this code later
-        return;
+        return Q.resolve(true);
 
         var balancer = new SettlementBalancer();
 
