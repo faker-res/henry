@@ -4593,25 +4593,37 @@ let dbPlayerInfo = {
      */
     checkPlayerLevelUp: function (playerObjId, platformObjId) {
         //todo::temp disable player auto level up
-        return Q.resolve(true);
 
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
-        const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
-            path: "playerLevel",
-            model: dbconfig.collection_playerLevel
-        }).lean().exec();
+        else{
+            return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
+                (platformData) => {
+                    if(platformData.autoCheckPlayerLevelUp){
+                        const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+                            path: "playerLevel",
+                            model: dbconfig.collection_playerLevel
+                        }).lean().exec();
 
-        const levelsProm = dbconfig.collection_playerLevel.find({
-            platform: platformObjId
-        }).sort({value: 1}).lean().exec();
+                        const levelsProm = dbconfig.collection_playerLevel.find({
+                            platform: platformObjId
+                        }).sort({value: 1}).lean().exec();
 
-        return Q.all([playerProm, levelsProm]).spread(
-            function (player, playerLevels) {
-                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
-            }
-        );
+                        return Q.all([playerProm, levelsProm]).spread(
+                            function (player, playerLevels) {
+                                return dbPlayerInfo.checkPlayerLevelMigration(player, playerLevels, true, false);
+                            }
+                        );
+                    }
+                    else{
+                        return Q.resolve(true);
+                    }
+                },(error)=>{
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            );
+        }
     },
 
     /**
