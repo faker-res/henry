@@ -9145,7 +9145,7 @@ define(['js/app'], function (myApp) {
                     updatePlatformBasic(vm.platformBasic);
                     break;
                 case 'bonusBasic':
-                    updateBonusBasic(vm.bonusBasic);
+                    updatePlatformBasic(vm.bonusBasic);
                     break;
                 case 'autoApproval':
                     updateAutoApprovalConfig(vm.autoApprovalBasic);
@@ -9261,22 +9261,15 @@ define(['js/app'], function (myApp) {
                     minTopUpAmount: srcData.showMinTopupAmount || vm.selectedPlatform.data.minTopUpAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister || vm.selectedPlatform.data.allowSameRealNameToRegister,
                     allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister || vm.selectedPlatform.data.allowSamePhoneNumberToRegister,
-                    autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp || vm.selectedPlatform.data.autoCheckPlayerLevelUp
+                    autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp || vm.selectedPlatform.data.autoCheckPlayerLevelUp,
+                    bonusPercentageCharges: srcData.bonusPercentageCharges,
+                    bonusCharges: srcData.bonusCharges
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                 vm.loadPlatformData({loadAll: false});
             });
         }
-
-        function updateBonusBasic(srcData) {
-            var sendData = {
-                query: {_id: vm.selectedPlatform.id},
-                updateData: {
-                    bonusPercentageCharges: srcData.bonusPercentageCharges,
-                    bonusCharges: srcData.bonusCharges
-                }
-            };
 
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                 console.log('update bonus socket', JSON.stringify(data));
