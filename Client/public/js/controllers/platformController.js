@@ -9271,12 +9271,6 @@ define(['js/app'], function (myApp) {
             });
         }
 
-            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                console.log('update bonus socket', JSON.stringify(data));
-                vm.loadPlatformData({loadAll: false});
-            });
-        }
-
         function updateAutoApprovalConfig(srcData) {
             let sendData = {
                 query: {_id: vm.selectedPlatform.id},
