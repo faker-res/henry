@@ -1962,5 +1962,8 @@
   "requestWechatTopup": "微信充值",
   "cancelWechatTopup": "取消微信充值",
   "getPlayerWechatPayStatus": "微信充值状态",
-  "API Action": "事件"
+  "API Action": "事件",
+  "PLAYER_MULTIPLE_REWARD": "玩家多次奖励任务",
+  "Allow:": "允许:",
+  "Disable:": "禁用:"
 }

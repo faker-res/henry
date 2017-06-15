@@ -38,6 +38,8 @@ var dbPlayerTopUpWeekSummary = {
      * @param {Date} endTime - The end time
      */
     calculatePlatformWeekSummaryForTimeFrame: function (startTime, endTime, platformId) {
+        //todo: refactor this code later
+        return Q.resolve(true);
 
         var balancer = new SettlementBalancer();
 
@@ -48,7 +50,7 @@ var dbPlayerTopUpWeekSummary = {
             return Q(
                 balancer.processStream({
                     stream: stream,
-                    batchSize: constSystemParam.BATCH_SIZE,
+                    batchSize: 300,
                     makeRequest: function (playerIdObjs, request) {
                         request("player", "playerTopUpWeekSummary_calculatePlatformWeekSummaryForPlayers", {
                             startTime: startTime,

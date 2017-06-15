@@ -113,6 +113,8 @@ var dbPlayerTopUpDaySummary = {
     },
 
     calculatePlatformActiveValidPlayerDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
+        //todo: refactor this to settlement server later
+        return;
         var matchObj = {
             platformId: platformId,
             date: {
@@ -133,7 +135,7 @@ var dbPlayerTopUpDaySummary = {
                     times: {$sum: "$times"}
                 }
             }
-        ).exec();
+        ).allowDiskUse(true).exec();
 
         var topUpProm = dbconfig.collection_playerTopUpDaySummary.aggregate(
             {
@@ -146,7 +148,7 @@ var dbPlayerTopUpDaySummary = {
                     times: {$sum: "$times"}
                 }
             }
-        ).exec();
+        ).allowDiskUse(true).exec();
 
         return Q.all([consumptionProm, topUpProm]).then(
             function (data) {
@@ -1112,7 +1114,6 @@ var dbPlayerTopUpDaySummary = {
         return dbconfig.collection_playerTopUpDaySummary.aggregate(
             [
                 {
-                    //todo::add dirty record check here to avoid reuse same record
                     $match: {
                         platformId: platformId,
                         date: {
@@ -1130,7 +1131,7 @@ var dbPlayerTopUpDaySummary = {
                     }
                 }
             ]
-        ).exec();
+        ).allowDiskUse(true).exec();
     }
 
 };
