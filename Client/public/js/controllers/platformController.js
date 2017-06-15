@@ -4965,7 +4965,7 @@ define(['js/app'], function (myApp) {
             vm.manualUnlockRewardTask = {
                 resMsg: $translate("Reward task is not available")
             };
-            vm.manualUnlockRewardTaskIndexList = [];
+            vm.manualUnlockRewardTaskIndexList = [0];
             vm.getRewardTaskDetail(vm.selectedSinglePlayer._id).then(function (data) {
                 if (data) {
                     vm.manualUnlockRewardTask.resMsg = "";
