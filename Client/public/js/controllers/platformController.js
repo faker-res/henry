@@ -6636,16 +6636,27 @@ define(['js/app'], function (myApp) {
         };
 
         //get all platform partners data from server
-        vm.getPlatformPartnersData = function () {
+        vm.getPlatformPartnersData = function (index, limit) {
             if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
                 return;
             }
             $('#partnerRefreshIcon').addClass('fa-spin');
-            socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', {platform: vm.selectedPlatform.id}, success);
+
+            vm.partnerTable = vm.partnerTable || {index: 0, limit: 10};
+            var sendData ={
+                    "platform": {
+                        platformId:vm.selectedPlatform.id,
+                        index:0,
+                        limit:10
+                    }
+            }
+
+            socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', sendData,success);
+
             function success(data) {
                 vm.partnerIdObj = {};
                 var partnersObjId = [];
-                $.each(data.data, function (i, v) {
+                $.each(data.data.data, function (i, v) {
                     vm.partnerIdObj[v._id] = v;
                     vm.partnerIdObj[v.partnerName] = v;
                     partnersObjId.push(v._id);
@@ -6660,7 +6671,9 @@ define(['js/app'], function (myApp) {
                         vm.partnerPlayerObj[v.partnerId] = v;
                     });
                     vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
+                    // vm.partnerTable.pageObj.init({maxCount: data.size}, 0);
                     vm.drawPartnerTable(data.data);
+
                 });
                 $('#partnerRefreshIcon').removeClass('fa-spin');
 
@@ -6701,7 +6714,7 @@ define(['js/app'], function (myApp) {
         //draw partner table based on data
         vm.drawPartnerTable = function (data) {
             //convert decimal to 2 digits
-            data.forEach((partner) => {
+            data.data.forEach((partner) => {
                 if (partner.credits) {
                     partner.credits = partner.credits.toFixed(2);
                 }
@@ -6712,13 +6725,13 @@ define(['js/app'], function (myApp) {
                     partner.lastAccessTime = utilService.getFormatTime(partner.lastAccessTime)
                 }
             });
-            vm.partners = data;
+            vm.partners = data.data;
             vm.selectedPartnerCount = 0;
             //vm.partnerTable = $('#partnerDataTable').DataTable({data:[]});
             var emptyString = (vm.curPlatformText) ? ('No partner found in ' + vm.curPlatformText) : 'Please select platform';
             var tableOptions = {
-                data: data,
-                aaSoring: [],
+                data: data.data,
+                aaSorting: [],
                 columns: [
                     //{
                     //    title: '#', "data": "select",
@@ -7240,6 +7253,14 @@ define(['js/app'], function (myApp) {
             vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
             // vm.partnerTable = utilService.createDatatableWithFooter('#partnerDataTable', tableOptions);
             utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
+
+            // utilService.actionAfterLoaded("#partnerDataTable", function () {
+            //     vm.partnerTable.pageObj = utilService.createPageForPagingTable("#partnerDataTable", vm.partnerTable, $translate, function (curP, pageSize) {
+            //         vm.commonPageChangeHandler(curP, data.size, "partnerTable", vm.getPlatformPartnersData)
+            //     });
+            //     vm.partnerTable.pageObj.init({maxCount: data.size}, {});
+
+            // })
 
             createAdvancedSearchFilters({
                 tableOptions: tableOptions,

@@ -498,10 +498,29 @@ let dbPartner = {
      * Get Partners by objectId of platform schema
      *
      */
-    getPartnersByPlatform: function (platformObjId) {
-        return dbconfig.collection_partner.find({platform: platformObjId})
+
+    // getPartnersByPlatform: function (platformObjId, uindex, ulimit) {
+    getPartnersByPlatform: function (data) {
+        console.log('******');
+        console.log(data.platformId);
+        console.log(data.limit);
+        // return dbconfig.collection_partner.find({platform: data.platformId})
+        //     .populate({path: "parent", model: dbconfig.collection_partner})
+        //     .populate({path: "level", model: dbconfig.collection_partnerLevel}).skip(data.index).limit(data.limit).exec();
+        var count = dbconfig.collection_partner.find({platform: data.platformId}).count();
+        var detail = dbconfig.collection_partner.find({platform: data.platformId})
             .populate({path: "parent", model: dbconfig.collection_partner})
-            .populate({path: "level", model: dbconfig.collection_partnerLevel}).exec();
+            .populate({path: "level", model: dbconfig.collection_partnerLevel}).skip(data.index).limit(data.limit);
+        console.log(data);
+        return Q.all([count, detail]).then( function(data){
+            return {size:data[0],data:data[1]}
+        })
+
+        // var count = dbconfig.collection_players.find(queryObj).count();
+        // var detail = dbconfig.collection_players.find(queryObj).sort(sortCol).skip(index).limit(limit);
+        // return Q.all([count, detail]).then(data => {
+        //     return {size: data[0], data: data[1]}
+        // })
     },
 
 
