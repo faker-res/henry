@@ -191,6 +191,7 @@ let dbPlayerInfo = {
                             proms.push(referrralProm);
                         }
                         if (inputData.partnerName) {
+                            delete inputData.referral;
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerName: inputData.partnerName,
                                 platform: platformObjId
@@ -198,12 +199,10 @@ let dbPlayerInfo = {
                                 data => {
                                     if (data) {
                                         inputData.partner = data._id;
-                                        delete inputData.referral;
                                         return inputData;
                                     }
                                     else {
                                         delete inputData.partnerName;
-                                        delete inputData.referral;
                                         return inputData;
                                     }
                                 }
@@ -222,11 +221,9 @@ let dbPlayerInfo = {
                                 data => {
                                     if (data) {
                                         inputData.partner = data._id;
-                                        delete inputData.referral;
                                         return inputData;
                                     }
                                     else {
-                                        delete inputData.referral;
                                         return inputData;
                                     }
                                 }
