@@ -1965,5 +1965,9 @@
   "API Action": "事件",
   "PLAYER_MULTIPLE_REWARD": "玩家多次奖励任务",
   "Allow:": "允许:",
-  "Disable:": "禁用:"
+  "Disable:": "禁用:",
+  "UNLOCK": "解锁",
+  "isAutoApproval": "自动审核",
+  "nextCheckTime": "自动审核：下次审核时间",
+  "repeatMsg": "自动审核：回圈信息"
 }
