@@ -761,7 +761,7 @@ var dbGameProviderPlayerDaySummary = {
             dbconfig.collection_players.findOne(searchQuery).then(
                 function (data) {
                     // check if this player is in the platform selected in the query form
-                    if (String(data.platform) == String(platformId)) {
+                    if (data && data.platform && String(data.platform) == String(platformId)) {
                         matchObj.playerId = data._id;
                         playerDeferred.resolve(matchObj);
                     } else {
@@ -881,9 +881,12 @@ var dbGameProviderPlayerDaySummary = {
                     }
                 ).catch(
                     function (error) {
-                        deferred.reject({name: "DBError", message: "Error in getPlayersByProvider", error: error});
+                        deferred.reject({name: "DBError", message: "Error in getPlayersByProvider. " + error.message, error: error});
                     }
                 );
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error in getPlayersByProvider. " + error.message, error: error});
             }
         );
         return deferred.promise;
