@@ -2427,7 +2427,7 @@ define(['js/app'], function (myApp) {
                                 'class': 'fa fa-folder-open margin-right-5 ' + (perm.topupManual === true ? "text-primary" : "text-danger"),
                             }));
                             link.append($('<i>', {
-                                'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === true ? "text-primary" : "text-danger"),
+                                'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === true ? "text-danger" : "text-primary"),
                             }));
                             link.append($('<img>', {
                                 'class': 'margin-right-5',
