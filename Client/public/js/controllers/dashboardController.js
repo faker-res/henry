@@ -71,8 +71,8 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             } else if (numDays == 7) {
-                socketService.$socket($scope.AppSocket, 'getPlayersConsumptionSumForAllPlatform', sendData, function success(data) {
-                    console.log('getPlayersConsumptionSumForAllPlatform', data);
+                socketService.$socket($scope.AppSocket, 'getPlayersConsumptionDaySumForAllPlatform', sendData, function success(data) {
+                    console.log('getPlayersConsumptionDaySumForAllPlatform', data);
                     let totalConsumption = 0;
                     data.data.forEach(a => {
                         totalConsumption += a.totalAmount;
