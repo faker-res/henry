@@ -1373,7 +1373,7 @@ var dbPlayerConsumptionRecord = {
                     }
                 }
             ]
-        ).cursor({batchSize: 5000}).allowDiskUse(true).exec().toArray();
+        ).cursor({batchSize: 100}).allowDiskUse(true).exec().toArray();
     },
 
     /**
@@ -1495,7 +1495,7 @@ var dbPlayerConsumptionRecord = {
             ]
         );
 
-        return query.cursor({batchSize: 10000}).allowDiskUse(true).exec();
+        return query.cursor({batchSize: 1000}).allowDiskUse(true).exec();
     },
 
     streamPlayerRecordsInTimeFrame: function streamPlayerRecordsInTimeFrame(collection, dateField, startTime, endTime, platformId) {

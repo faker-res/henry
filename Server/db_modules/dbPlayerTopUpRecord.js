@@ -76,7 +76,7 @@ var dbPlayerTopUpRecord = {
                     }
                 }
             ]
-        ).exec();
+        ).allowDiskUse(true).exec();
     },
 
     /**

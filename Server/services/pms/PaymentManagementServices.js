@@ -104,10 +104,14 @@
                 "requestAlipayAccount",
                 "requestCancellationPayOrder",
                 "requestWeChatAccount",
-                "requestWeChatQRAccount",
-                "requestClearProposalLimits"
+                "requestWeChatQRAccount"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames1, ["proposalId"]);
+
+            var functionNames1 = [
+                "requestClearProposalLimits"
+            ];
+            addServiceSyncFunctions(sinonet, this, functionNames1, ["username"]);
 
             // Quick fix until we decide how to handle unique persistent requestIds for this particular API call.
             // They want us to send a unique ID each time, even after our server has restarted.

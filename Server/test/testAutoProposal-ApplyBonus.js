@@ -8,6 +8,7 @@ const constProposalType = require('./../const/constProposalType');
 
 const dbAutoProposal = require('../db_modules/dbAutoProposal');
 const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
+const dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 
 const dbConfig = require('../modules/dbproperties');
 
@@ -20,6 +21,10 @@ let commonTestFunc = require('../test_modules/commonTestFunc');
  *  4:  First time withdrawal
  */
 describe("Test Auto Proposal - Apply Bonus", function () {
+
+    // DISABLED FOR CSTEST
+    return true;
+
     let proposalTypeId = null;
     let testPlayerId = null;
     let testPlatformId = null;
@@ -370,16 +375,217 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         );
     });
 
+    let testGame, curBonusProposal;
+    it("Case 6: Situation B: Consumption amount < required consumption for reward", function (done) {
+        // Create test player
+        commonTestFunc.createTestPlayer(testPlatformObj._id).then(
+            data => {
+                testPlayerObj = data;
+
+                let threeDaysAgo = new Date();
+                threeDaysAgo.setDate(threeDaysAgo.getDate()-3);
+
+                // Create succeeded bonus proposal
+                let proposalData = {
+                    type: playerBonusProposalTypeObjId,
+                    status: constProposalStatus.SUCCESS,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 100,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    },
+                    createTime: threeDaysAgo
+                };
+
+                return commonTestFunc.createTestProposal(proposalData);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            () => {
+                let twoDaysAgo = new Date();
+                twoDaysAgo.setDate(twoDaysAgo.getDate()-2);
+                let oneWeekLater = new Date();
+                oneWeekLater.setDate(oneWeekLater.getDate()+7);
+
+                // Create Reward Proposal
+                let proposalData = {
+                    "mainType" : "Reward",
+                    "status" : "Approved",
+                    "expirationTime" : oneWeekLater,
+                    "noSteps" : true,
+                    "userType" : "2",
+                    "entryType" : "1",
+                    "priority" : "0",
+                    
+                    "data" : {
+                        "proposalPlayerLevel" : "Normal",
+                        "playerStatus" : 1,
+                        "useConsumption" : false,
+                        "initAmount" : 250,
+                        "amount" : 250,
+                        "currentAmount" : 150,
+                        // "requiredUnlockAmount" : 250,
+                        "spendingAmount": 250,
+                        "playerName" : testPlayerObj.name,
+                        "playerObjId" : testPlayerObj._id,
+                        "playerId" : testPlayerObj.playerId,
+                        "platformId" : testPlatformObj._id,
+                        "rewardType" : "we",    
+                        "type" : "we",
+                        "targetProviders" : []
+                    },
+                    "createTime" : twoDaysAgo,
+                    "creator" : {
+                        "id" : "593607d7147220d426552637",
+                        "name" : "admin",
+                        "type" : "admin"
+                    },
+                    "__v" : 0
+                };
+                return commonTestFunc.createTestProposal(proposalData);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            () => {
+                // Create Consumption Record
+                return commonTestFunc.createGame();
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            game => {
+                testGame = game;
+
+                let yesterday = new Date();
+                yesterday.setDate(yesterday.getDate()-1);
+
+                // Create Consumption Record
+                let consumptionRecordData = {
+                    "playerId" : testPlayerObj._id,
+                    "platformId" : testPlatformObj._id,
+                    "gameId": testGame._id,
+                    "insertTime": yesterday,
+                    "gameType": testGame.type,
+                    "amount": 150,
+                    "validAmount": 150,
+                    "createTime": yesterday,
+                    "orderNo": yesterday.getTime()+Math.random()
+                };
+
+                return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(consumptionRecordData);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            data => {
+                // Create bonus proposal
+                let proposalData = {
+                    type: playerBonusProposalTypeObjId,
+                    status: constProposalStatus.PROCESSING,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 110,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    },
+                    createTime: new Date()
+                };
+
+                return commonTestFunc.createTestProposal(proposalData);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            data => {
+                curBonusProposal = data;
+                // auto screening proposal
+                return dbAutoProposal.applyBonus(testPlatformObj._id);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            () => {
+                setTimeout(() => {
+                    // checking result
+                    return dbConfig.collection_proposal.findOne({
+                        _id: curBonusProposal._id
+                    }).then(
+                        proposal => {
+                            proposal.status.should.equal("Processing");
+                            proposal.data.autoApproveRepeatCount.should.equal(2);
+                            done();
+                        }
+                    ).catch(
+                        err => {
+                            done(err)
+                        }
+                    );
+                }, 200);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).catch(
+            error => {
+                done(error);
+            }
+        );
+    });
+
     it('Should remove test Data', function (done) {
         commonTestFunc.removeTestData(testPlatformId, [testPlayerId]).then(function (data) {
             done();
         })
     });
-
+    
     it('Should remove all test Data', function (done) {
         commonTestFunc.removeTestProposalData([step1RoleId], testPlatformId, [proposalTypeId], [testPlayerId]).then(function (data) {
             done();
         })
     });
-
 });

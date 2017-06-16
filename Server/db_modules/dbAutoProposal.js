@@ -41,9 +41,10 @@ let dbAutoProposal = {
                     let lastCheckBefore = new Date();
                     lastCheckBefore.setMinutes(lastCheckBefore.getMinutes() - platformData.autoApproveRepeatDelay);
 
+                    // CS TEST - Include pending proposal as well
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
-                        status: constProposalStatus.PROCESSING,
+                        status: {$in: [constProposalStatus.PROCESSING, constProposalStatus.PENDING]},
                         $or: [{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: new Date()}}]
                     }).cursor({batchSize: 10000});
 
@@ -81,7 +82,7 @@ let dbAutoProposal = {
                         proposals.map(proposal => {
                             // 3. Check player status
                             if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
-                                sendToAudit(proposal._id, proposal.createTime, "Player not allowed for auto proposal");
+                                sendToAudit(proposal._id, proposal.createTime, "Denied: Player not allowed for auto proposal");
                             } else {
                                 // 4. Check player last bonus
                                 prom.push(
@@ -93,7 +94,7 @@ let dbAutoProposal = {
                                                 checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj);
                                             } else {
                                                 // Player first time withdraw
-                                                sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
+                                                sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal");
                                             }
                                         }
                                     )
@@ -114,7 +115,8 @@ let dbAutoProposal = {
 };
 
 function sendToAudit(proposalObjId, createTime, remark) {
-    console.log('Sending to audit', proposalObjId, remark);
+    // temporary disabled system log since success will also send to audit
+    // console.log('Sending to audit', proposalObjId, remark);
     //check if proposal got process, if there is no process, reject directly
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
         proposalData => {
@@ -124,25 +126,25 @@ function sendToAudit(proposalObjId, createTime, remark) {
                         _id: proposalObjId,
                         createTime: createTime
                     }, {
-                        status: constProposalStatus.PENDING,
-                        'data.remark': 'Auto Approval Denied: ' + remark
+                        //status: constProposalStatus.PENDING,
+                        'data.remark': 'Auto Approval ' + remark
                     }).then();
                 }
-                else {
-                    return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
-                        res => {
-                            return dbconfig.collection_proposal.findOneAndUpdate(
-                                {_id: proposalData._id, createTime: proposalData.createTime},
-                                {
-                                    noSteps: true,
-                                    process: null,
-                                    status: constProposalStatus.FAIL,
-                                    'data.remark': 'Auto Approval Denied: ' + remark
-                                },
-                                {new: true}
-                            );
-                        })
-                }
+                // else {
+                //     return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
+                //         res => {
+                //             return dbconfig.collection_proposal.findOneAndUpdate(
+                //                 {_id: proposalData._id, createTime: proposalData.createTime},
+                //                 {
+                //                     noSteps: true,
+                //                     process: null,
+                //                     status: constProposalStatus.FAIL,
+                //                     'data.remark': 'Auto Approval Denied: ' + remark
+                //                 },
+                //                 {new: true}
+                //             );
+                //         })
+                // }
             }
         }
     );
@@ -152,7 +154,7 @@ function checkSingleWithdrawalLimit(proposals, platformData) {
     let passedProposal = [];
     proposals.map(proposal => {
         if (proposal.data.amount >= platformData.autoApproveWhenSingleBonusApplyLessThan) {
-            sendToAudit(proposal._id, proposal.createTime, "Amount exceed single bonus limit");
+            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single bonus limit");
         } else {
             passedProposal.push(proposal);
         }
@@ -175,7 +177,7 @@ function checkSingleDayWithdrawalLimit(proposals, platformData, proposalTypeObjI
                     if (playersToFilter.indexOf(String(record._id) != -1)) {
                         proposals.map(proposal => {
                             if (String(proposal.data.playerObjId) == String(record._id)) {
-                                sendToAudit(proposal._id, proposal.createTime, "Amount exceed single day bonus limit");
+                                sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single day bonus limit");
                                 let removeIndex = proposals.indexOf(proposal);
                                 proposals.splice(removeIndex, 1);
                             }
@@ -317,8 +319,11 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
             Promise.all(proms).then(
                 () => {
                     if (isApprove || isTypeEApproval) {
-                        // Proposal approved
-                        dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
+                        // Proposal approved - DISABLED FOR CSTEST
+                        // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
+
+                        sendToAudit(proposal._id, proposal.createTime, "Success")
+
                     }
                     else {
                         // Proposal not approved; Throw back to loop pool or cancel this proposal - Passed
@@ -341,10 +346,12 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                         else {
                             // Check if player is VIP - Passed
                             if (proposal.data.proposalPlayerLevel == constPlayerLevel.NORMAL) {
-                                dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.FAIL, proposal.data.bonusId, "Exceed Auto Approval Repeat Limit");
+                                // DISABLED FOR CSTEST
+                                // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.FAIL, proposal.data.bonusId, "Exceed Auto Approval Repeat Limit");
+                                sendToAudit(proposal._id, proposal.createTime, "Success")
                             }
                             else {
-                                sendToAudit(proposal._id, proposal.createTime, "VIP: Exceed Auto Approval Repeat Limit");
+                                sendToAudit(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit");
                             }
                         }
                     }
@@ -356,24 +363,28 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
 }
 
 function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
+    let matchObj = {
+        platformId: ObjectId(platformId),
+        createTime: {
+            $gte: new Date(dateFrom),
+            $lt:  new Date(dateTo)
+        },
+        playerId: ObjectId(playerId)
+    };
+
+    let groupObj = {
+        _id: {playerId: "$playerId", platformId: "$platformId"},
+        validAmount: {$sum: "$validAmount"}
+    };
+
     return dbconfig.collection_playerConsumptionRecord.aggregate(
         {
-            $match: {
-                platformId: platformId,
-                createTime: {
-                    $gte: dateFrom,
-                    $lt: dateTo
-                },
-                playerId: playerId
-            }
+            $match: matchObj
         },
         {
-            $group: {
-                _id: {playerId: "$playerId", platformId: "$platformId"},
-                validAmount: {$sum: "$validAmount"}
-            }
+            $group: groupObj
         }
-    )
+    );
 }
 
 module.exports = dbAutoProposal;

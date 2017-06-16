@@ -1062,6 +1062,7 @@ var dbPlatform = {
         let playerTopUpAmount = 0;
         let event = {};
         let playerProm = dbconfig.collection_players.findOne({_id: playerObjId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
 
         return playerProm.then(
@@ -1263,18 +1264,23 @@ var dbPlatform = {
                         proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventParam.spendingTimes;
 
                         // Check whether player has existing reward task
-                        return dbconfig.collection_rewardTask.findOne({
-                            platformId: platformId,
-                            playerId: player._id,
-                            eventId: event._id,
-                            status: constRewardTaskStatus.STARTED
-                        }).lean().then(
-                            data => {
-                                if (!data) {
-                                    return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                        if (!player.platform.canMultiReward) {
+                            return dbconfig.collection_rewardTask.findOne({
+                                platformId: platformId,
+                                playerId: player._id,
+                                eventId: event._id,
+                                status: constRewardTaskStatus.STARTED
+                            }).lean().then(
+                                data => {
+                                    if (!data) {
+                                        return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
+                        else {
+                            return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                        }
                     }
                     else {
                         if ((player.validCredit + player.lockedCredit + data[1]) > eventParam.maxPlayerCredit) {
