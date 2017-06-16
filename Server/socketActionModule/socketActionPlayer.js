@@ -479,7 +479,7 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionTotalAmountForAllPlatform, [startTime, endTime, platform], actionName, isValidData);
         },
 
-        getPlayersConsumptionSumForAllPlatform: function getPlayersConsumptionSumForAllPlatform(data) {
+        getPlayersConsumptionDaySumForAllPlatform: function getPlayersConsumptionDaySumForAllPlatform(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.startDate && data.endDate);
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
