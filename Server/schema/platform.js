@@ -82,7 +82,9 @@ var platformSchema = new Schema({
     // Auto approve deficit offset
     autoApproveLostThreshold: {type: Number, default: 0},
     //can apply multiple reward
-    canMultiReward: {type: Boolean, default: false}
+    canMultiReward: {type: Boolean, default: false},
+    // Auto check player level up
+    autoCheckPlayerLevelUp: {type: Boolean, default: false}
 });
 
 //add platform id before save

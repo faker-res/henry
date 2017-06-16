@@ -807,6 +807,7 @@
   "LAST_WEEKLY_SETTLEMENT_TIME": "Last Weekly Settlement Time",
   "deficitAmount": "Deficit Amount",
   "disableWechatPay": "Disable WechatPay",
+  "forbidPlayerConsumptionReturn": "Forbid Player Consumption Return",
   "DEFAULT_PASSWORD": "Default",
   "LOGIN_IP": "Login IP",
   "ModifyGamePassword": "Modify Game Password",
