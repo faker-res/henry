@@ -151,7 +151,7 @@ let PlayerServiceImplement = function () {
             }
             conn.captchaCode = null;
             data.isOnline = true;
-            data.partnerName = data.name;
+            // data.partnerName = data.name;
 
             // Promise create player and partner
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.createPlayerPartnerAPI, [data], isValidData, true, false, true).then(
