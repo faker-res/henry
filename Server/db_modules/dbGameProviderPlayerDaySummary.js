@@ -730,7 +730,7 @@ var dbGameProviderPlayerDaySummary = {
      * @param {Date} endTime - The end time
      * @param {ObjectId} providerId - The provider id
      */
-    getPlayersByProvider: function (platformId, playerId, providerId, startTime, endTime, index, count, sortCol) {
+    getPlayersByProvider: function (platformId, playerId, playerName, providerId, startTime, endTime, index, count, sortCol) {
         index = index || 0;
         count = count || constSystemParam.MAX_RECORD_NUM;
         sortCol = sortCol || {};
@@ -748,12 +748,20 @@ var dbGameProviderPlayerDaySummary = {
         if (providerId) {
             matchObj.providerId = providerId;
         }
-        if (playerId) {
+        if (playerId || playerName) {
+            let searchQuery = {};
+            if (playerId) {
+                searchQuery.playerId = playerId;
+            }
+            if (playerName) {
+                searchQuery.name = playerName;
+            }
+
             // Converting the playerId from request data to player _id for upcoming search purpose
-            dbconfig.collection_players.findOne({playerId: playerId}).then(
+            dbconfig.collection_players.findOne(searchQuery).then(
                 function (data) {
                     // check if this player is in the platform selected in the query form
-                    if (String(data.platform) == String(platformId)) {
+                    if (data && data.platform && String(data.platform) == String(platformId)) {
                         matchObj.playerId = data._id;
                         playerDeferred.resolve(matchObj);
                     } else {
@@ -873,9 +881,12 @@ var dbGameProviderPlayerDaySummary = {
                     }
                 ).catch(
                     function (error) {
-                        deferred.reject({name: "DBError", message: "Error in getPlayersByProvider", error: error});
+                        deferred.reject({name: "DBError", message: "Error in getPlayersByProvider. " + error.message, error: error});
                     }
                 );
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error in getPlayersByProvider. " + error.message, error: error});
             }
         );
         return deferred.promise;

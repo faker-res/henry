@@ -152,6 +152,9 @@
                     label {{"Player ID"|translate}}
                     input.form-control.span.input-sm(type="text", ng-model="vm.playerExpenseQuery.playerId")
                 div
+                    label {{"Player Name"|translate}}
+                    input.form-control.span.input-sm(type="text", ng-model="vm.playerExpenseQuery.playerName")
+                div
                     label {{"Provider"|translate}}
                     select.form-control(ng-model='vm.playerExpenseQuery.providerId', style='max-width:300px', required)
                         option(value='all') {{'all' | translate}}
