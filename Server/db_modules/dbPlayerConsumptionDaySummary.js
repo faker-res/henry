@@ -209,10 +209,13 @@ var dbPlayerConsumptionDaySummary = {
 
     getPlayersConsumptionSumForAllPlatform: function (startTime, endTime, platform) {
         let matchObj = {
-            date: {$gte: startTime, $lt: endTime}
+            date: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
         };
         if (platform !== 'all') {
-            matchObj.platform = platform
+            matchObj.platformId = platform
         }
         return dbconfig.collection_playerConsumptionDaySummary.aggregate(
             {
@@ -224,7 +227,7 @@ var dbPlayerConsumptionDaySummary = {
                     totalAmount: {$sum: "$amount"}
                 }
             }
-        ).exec().then(
+        ).then(
             function (data) {
                 return dbconfig.collection_platform.populate(data, {path: '_id', model: dbconfig.collection_platform})
             }
