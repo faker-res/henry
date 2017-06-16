@@ -1468,11 +1468,13 @@ define(['js/app'], function (myApp) {
                         endTime: endTime,
                         platformId: vm.curPlatformId,
                         playerId: vm.newPlayerExpenseQuery.playerId,
+                        playerName: vm.newPlayerExpenseQuery.playerName,
                         providerId: vm.newPlayerExpenseQuery.providerId,
                         index: newSearch ? 0 : vm.newPlayerExpenseQuery.index,
                         limit: vm.newPlayerExpenseQuery.limit || 10,
                         sortCol: vm.newPlayerExpenseQuery.sortCol || {}
-                    }
+                    };
+                    console.log('sendData', sendData);
 
                     socketService.$socket($scope.AppSocket, 'getPlayerProviderReport', sendData, function (data) {
                         vm.operationReportLoadingStatus = settlementResult.failureReportMessage;
