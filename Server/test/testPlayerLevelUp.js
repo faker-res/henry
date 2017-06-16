@@ -10,6 +10,7 @@ var dbPlayerConsumptionRecord = require("../db_modules/dbPlayerConsumptionRecord
 var dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbPlayerLevel = require("../db_modules/dbPlayerLevel.js");
+let dbPlatform = require("../db_modules/dbPlatform.js");
 
 describe("Test player level update", function () {
 
@@ -21,6 +22,12 @@ describe("Test player level update", function () {
 
     it('creates test player, platform, games', function () {
         return dataGenerator.createTestPlayerPlatformAndGames(generatedData);
+    });
+
+    it('set platform attribute - autoCheckPlayerLevelUp = true', function () {
+        let query = {_id: generatedData.testPlatformId};
+        let updateData = {autoCheckPlayerLevelUp: true};
+        return dbPlatform.updatePlatform(query, updateData);
     });
 
     it('check player level before', function () {
