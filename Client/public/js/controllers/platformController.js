@@ -2441,6 +2441,9 @@ define(['js/app'], function (myApp) {
                             link.append($('<i>', {
                                 'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
                             }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === true ? "text-danger" : "text-primary"),
+                            }));
                             return link.prop('outerHTML');
                         },
                         "sClass": "alignLeft"
@@ -2740,7 +2743,8 @@ define(['js/app'], function (myApp) {
                                 banReward: {imgType: 'i', iconClass: "fa fa-ban"},
                                 alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
                                 disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"},
-                                forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"}
+                                forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
+                                forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"}
                             };
                             $("#playerPermissionTable td").removeClass('hide');
                             $.each(vm.playerPermissionTypes, function (key, v) {
