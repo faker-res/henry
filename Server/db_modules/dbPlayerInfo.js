@@ -7195,7 +7195,7 @@ let dbPlayerInfo = {
                                 },
                                 {
                                     $group: {
-                                        _id: {playerId: "$playerId", platformId: "$platformId"},
+                                        _id: {playerId: "$playerId"},
                                         amount: {$sum: "$amount"}
                                     }
                                 }
