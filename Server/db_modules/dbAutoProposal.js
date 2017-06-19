@@ -269,13 +269,13 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                             topUpRecord => {
                                 // Only check consumption if the topup record is clean
                                 if (!topUpRecord.bDirty) {
+                                    spendingAmount += getProp.data.amount;
                                     proms.push(
                                         getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
                                             record => {
                                                 if (record) {
                                                     if (record[0] && getProp.data.amount) {
                                                         validConsumptionAmount += record[0].validAmount;
-                                                        spendingAmount += getProp.data.amount;
                                                     }
                                                 }
                                             }
@@ -296,13 +296,13 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                             }
                         }
                         else {
+                            spendingAmount += getProp.data.spendingAmount;
                             proms.push(
                                 getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo)).then(
                                     record => {
                                         if (record && record[0]) {
                                             if (getProp.data.spendingAmount) {
                                                 validConsumptionAmount += record[0].validAmount;
-                                                spendingAmount += getProp.data.spendingAmount;
                                             }
                                         }
                                     }
@@ -322,7 +322,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
             Promise.all(proms).then(
                 () => {
                     validConsumptionAmount += lostThreshold;
-                    isApprove = (validConsumptionAmount) >= spendingAmount;
+                    isApprove = validConsumptionAmount >= spendingAmount;
 
                     if (isApprove || isTypeEApproval) {
                         // Proposal approved - DISABLED FOR CSTEST
@@ -332,7 +332,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
 
                     }
                     else {
-                        // Proposal not approved; Throw back to loop pool or cancel this proposal - Passed
+                        // Proposal not approved; Throw back to loop pool or deny this proposal
                         proposal.data.autoApproveRepeatCount =
                             proposal.data.autoApproveRepeatCount || proposal.data.autoApproveRepeatCount == 0 ?
                                 proposal.data.autoApproveRepeatCount - 1
