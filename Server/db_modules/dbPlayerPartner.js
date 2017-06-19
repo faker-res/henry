@@ -123,6 +123,16 @@ let dbPlayerPartner = {
         )
     },
 
+    createPlayerPartner: function(registerData) {
+        let pRegisterData = Object.assign({}, registerData);
+        pRegisterData.partnerName = registerData.name;
+
+        let plyProm = dbPlayerInfo.createPlayerInfo(registerData);
+        let partnerProm = dbPartner.createPartner(pRegisterData);
+
+        return Promise.all([plyProm, partnerProm]);
+    },
+
     loginPlayerPartnerAPI: (loginData, ua) => {
         let plyProm = dbPlayerInfo.playerLogin(loginData, ua);
         let partnerProm = dbPartner.partnerLoginAPI(loginData, ua);

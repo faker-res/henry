@@ -56,6 +56,9 @@ form(name="form_new_player", novalidate)
 		.form-group.col-md-6
 			label.control-label.margin-right-5 {{"RECEIVE_SMS" | translate}}
 				input.pull-left.margin-right-5(type="checkbox", name="telephone", ng-model="vm.newPlayer.receiveSMS")
+		.form-group.col-md-6
+			label.control-label.margin-right-5 {{"createPartner" | translate}}
+				input.pull-left.margin-right-5(type="checkbox", name="createPartner", ng-model="vm.newPlayer.createPartner")
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-12
 			label.control-label {{"REMARKS" | translate}}

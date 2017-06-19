@@ -3,6 +3,7 @@
  */
 var encrypt = require('./../modules/encrypt');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+let dbPlayerPartner = require('./../db_modules/dbPlayerPartner');
 var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionDaySummary = require('./../db_modules/dbPlayerConsumptionDaySummary');
@@ -58,6 +59,24 @@ function socketActionPlayer(socketIO, socket) {
                 }
             }
             socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfo, [data], actionName, isValidData);
+        },
+
+        /**
+         * Create new player and partner by player data
+         * @param {json} data - Player data. It has to contain correct data format
+         */
+        createPlayerPartner: function createPlayerPartner(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.name && data.password && data.password.length >= constSystemParam.PASSWORD_LENGTH && (!data.realName || data.realName.match(/\d+/g) === null));
+            if (data.phoneNumber) {
+                var queryRes = queryPhoneLocation(data.phoneNumber);
+                if (queryRes) {
+                    data.phoneProvince = queryRes.province;
+                    data.phoneCity = queryRes.city;
+                    data.phoneType = queryRes.type;
+                }
+            }
+            socketUtil.emitter(self.socket, dbPlayerPartner.createPlayerPartner, [data], actionName, isValidData);
         },
 
         /**
