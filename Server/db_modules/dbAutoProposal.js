@@ -121,7 +121,7 @@ function sendToAudit(proposalObjId, createTime, remark) {
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
         proposalData => {
             if (proposalData) {
-                if (!proposalData.noSteps) {
+                // if (!proposalData.noSteps) {
                     dbconfig.collection_proposal.findOneAndUpdate({
                         _id: proposalObjId,
                         createTime: createTime
@@ -129,7 +129,7 @@ function sendToAudit(proposalObjId, createTime, remark) {
                         //status: constProposalStatus.PENDING,
                         'data.remark': 'Auto Approval ' + remark
                     }).then();
-                }
+                // }
                 // else {
                 //     return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
                 //         res => {
