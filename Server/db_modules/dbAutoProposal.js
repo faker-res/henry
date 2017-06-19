@@ -265,12 +265,12 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                 switch (getProp.mainType) {
                     case "TopUp":
                         // Check if this top up has used for apply reward
-                        dbconfig.collection_playerTopUpRecord.findOne({proposalId: getProp.proposalId}).then(
-                            topUpRecord => {
-                                // Only check consumption if the topup record is clean
-                                if (!topUpRecord.bDirty) {
-                                    spendingAmount += getProp.data.amount;
-                                    proms.push(
+                        proms.push(
+                            dbconfig.collection_playerTopUpRecord.findOne({proposalId: getProp.proposalId}).then(
+                                topUpRecord => {
+                                    // Only check consumption if the topup record is clean
+                                    if (!topUpRecord.bDirty) {
+                                        spendingAmount += getProp.data.amount;
                                         getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
                                             record => {
                                                 if (record) {
@@ -280,9 +280,9 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                                                 }
                                             }
                                         )
-                                    );
+                                    }
                                 }
-                            }
+                            )
                         );
                         break;
                     case "Reward":
@@ -322,7 +322,11 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
             Promise.all(proms).then(
                 () => {
                     validConsumptionAmount += lostThreshold;
-                    isApprove = validConsumptionAmount >= spendingAmount;
+
+                    if (validConsumptionAmount < spendingAmount) {
+                        isApprove = false;
+                        repeatMsg = "Insufficient consumption: Consumption " + validConsumptionAmount + ", Required Bet Amount " + spendingAmount;
+                    }
 
                     if (isApprove || isTypeEApproval) {
                         // Proposal approved - DISABLED FOR CSTEST
