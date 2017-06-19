@@ -248,6 +248,8 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
     }).sort({createTime: -1}).lean().then(
         proposals => {
             let isApprove = true, proms = [], repeatMsg = "";
+            let validConsumptionAmount = 0, spendingAmount = 0;
+            let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
             let dateTo = proposal.createTime;
@@ -271,19 +273,9 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                                         getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
                                             record => {
                                                 if (record) {
-                                                    if (record[0]) {
-                                                        let validConsumptionAmount = record[0].validAmount + platformObj.autoApproveLostThreshold;
-                                                        if (validConsumptionAmount < getProp.data.amount) {
-                                                            isApprove = false;
-                                                            repeatMsg = "Valid Consumption: " + validConsumptionAmount + " is less than required spendingAmount "
-                                                                + getProp.data.amount + " after topup";
-                                                        }
-                                                    }
-                                                    else {
-                                                        isApprove = false;
-                                                        repeatMsg = "No consumption data from "
-                                                            + dbUtility.getLocalTimeString(new Date(queryDateFrom))
-                                                            + " to " + dbUtility.getLocalTimeString(new Date(queryDateTo))
+                                                    if (record[0] && getProp.data.amount) {
+                                                        validConsumptionAmount += record[0].validAmount;
+                                                        spendingAmount += getProp.data.amount;
                                                     }
                                                 }
                                             }
@@ -308,23 +300,10 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                                 getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo)).then(
                                     record => {
                                         if (record && record[0]) {
-                                            let checkPassed = false;
-                                            let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
-                                            let validConsumptionAmount = record[0].validAmount + lostThreshold;
-
-                                            if (!getProp.data.spendingAmount) {
-                                                // There is no spending amount specified for reward
-                                                checkPassed = true;
+                                            if (getProp.data.spendingAmount) {
+                                                validConsumptionAmount += record[0].validAmount;
+                                                spendingAmount += getProp.data.spendingAmount;
                                             }
-                                            else if (validConsumptionAmount > getProp.data.spendingAmount) {
-                                                // Consumption Sum exceed required unlock amount
-                                                checkPassed = true;
-                                            }
-
-                                            // If isApprove is false, means a checking is already false and it will not back to true
-                                            isApprove = isApprove ? checkPassed : false;
-                                            repeatMsg = "Valid Consumption: " + validConsumptionAmount + " is less than required spendingAmount "
-                                                + getProp.data.spendingAmount + " after topup";
                                         }
                                     }
                                 )
@@ -342,11 +321,14 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
 
             Promise.all(proms).then(
                 () => {
+                    validConsumptionAmount += lostThreshold;
+                    isApprove = (validConsumptionAmount) >= spendingAmount;
+
                     if (isApprove || isTypeEApproval) {
                         // Proposal approved - DISABLED FOR CSTEST
                         // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
 
-                        sendToAudit(proposal._id, proposal.createTime, "Success")
+                        sendToAudit(proposal._id, proposal.createTime, "Success: Consumption " + validConsumptionAmount + ", Required Bet Amount " + spendingAmount);
 
                     }
                     else {
@@ -373,7 +355,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                             if (proposal.data.proposalPlayerLevel == constPlayerLevel.NORMAL) {
                                 // DISABLED FOR CSTEST
                                 // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.FAIL, proposal.data.bonusId, "Exceed Auto Approval Repeat Limit");
-                                sendToAudit(proposal._id, proposal.createTime, "Success")
+                                sendToAudit(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit");
                             }
                             else {
                                 sendToAudit(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit");
