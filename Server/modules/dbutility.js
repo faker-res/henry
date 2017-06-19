@@ -188,6 +188,7 @@ var dbUtility = {
                 returnedStr = date.format().substring(0, 10);
                 break;
             default:
+                returnedStr = date.format().substring(0, 10) + " " + date.format().substring(11, 19)
         }
         return returnedStr;
     },

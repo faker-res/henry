@@ -229,7 +229,14 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
         }
     );
 }
-
+/**
+ *
+ * @param proposal - The withdrawal proposal
+ * @param lastWithdrawDate
+ * @param repeatCount
+ * @param platformObj
+ * @returns {Promise}
+ */
 function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj) {
     // Find proposals since previous withdrawal
     return dbconfig.collection_proposal.find({
@@ -240,7 +247,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
         mainType: {$in: ["TopUp", "Reward"]}
     }).sort({createTime: -1}).lean().then(
         proposals => {
-            let isApprove = true, proms = [];
+            let isApprove = true, proms = [], repeatMsg = "";
             let countProposals = 0;
             let isTypeEApproval = false;
             let dateTo = proposal.createTime;
@@ -250,26 +257,40 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                 let getProp = proposals.shift();
 
                 // Set query date from checking proposal -> current proposal
-                let dateFrom = getProp.createTime;
+                let queryDateFrom = new Date(getProp.createTime);
+                let queryDateTo = new Date(dateTo);
 
                 switch (getProp.mainType) {
                     case "TopUp":
-                        proms.push(
-                            getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, dateFrom, dateTo).then(
-                                record => {
-                                    if (record) {
-                                        if (record[0]) {
-                                            let validConsumptionAmount = record[0].validAmount + platformObj.autoApproveLostThreshold;
-                                            if (validConsumptionAmount < proposal.data.amount) {
-                                                isApprove = false;
+                        // Check if this top up has used for apply reward
+                        dbconfig.collection_playerTopUpRecord.findOne({proposalId: getProp.proposalId}).then(
+                            topUpRecord => {
+                                // Only check consumption if the topup record is clean
+                                if (!topUpRecord.bDirty) {
+                                    proms.push(
+                                        getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
+                                            record => {
+                                                if (record) {
+                                                    if (record[0]) {
+                                                        let validConsumptionAmount = record[0].validAmount + platformObj.autoApproveLostThreshold;
+                                                        if (validConsumptionAmount < getProp.data.amount) {
+                                                            isApprove = false;
+                                                            repeatMsg = "Valid Consumption: " + validConsumptionAmount + " is less than required spendingAmount "
+                                                                + getProp.data.amount + " after topup";
+                                                        }
+                                                    }
+                                                    else {
+                                                        isApprove = false;
+                                                        repeatMsg = "No consumption data from "
+                                                            + dbUtility.getLocalTimeString(new Date(queryDateFrom))
+                                                            + " to " + dbUtility.getLocalTimeString(new Date(queryDateTo))
+                                                    }
+                                                }
                                             }
-                                        }
-                                        else {
-                                            isApprove = false;
-                                        }
-                                    }
+                                        )
+                                    );
                                 }
-                            )
+                            }
                         );
                         break;
                     case "Reward":
@@ -284,11 +305,12 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                         }
                         else {
                             proms.push(
-                                getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, dateFrom, dateTo).then(
+                                getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo)).then(
                                     record => {
                                         if (record && record[0]) {
                                             let checkPassed = false;
-                                            let validConsumptionAmount = record[0].validAmount + platformObj.autoApproveLostThreshold;
+                                            let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
+                                            let validConsumptionAmount = record[0].validAmount + lostThreshold;
 
                                             if (!getProp.data.spendingAmount) {
                                                 // There is no spending amount specified for reward
@@ -301,6 +323,8 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
 
                                             // If isApprove is false, means a checking is already false and it will not back to true
                                             isApprove = isApprove ? checkPassed : false;
+                                            repeatMsg = "Valid Consumption: " + validConsumptionAmount + " is less than required spendingAmount "
+                                                + getProp.data.spendingAmount + " after topup";
                                         }
                                     }
                                 )
@@ -311,7 +335,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                 }
 
                 // After push the action promise, set next dateTo to this checking proposal createTime
-                dateTo = dateFrom;
+                dateTo = queryDateFrom;
 
                 countProposals++;
             }
@@ -340,7 +364,8 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                                 createTime: proposal.createTime
                             }, {
                                 'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
-                                'data.nextCheckTime': nextCheckTime
+                                'data.nextCheckTime': nextCheckTime,
+                                'data.repeatMsg': repeatMsg
                             }).exec();
                         }
                         else {
