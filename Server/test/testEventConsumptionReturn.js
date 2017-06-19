@@ -109,25 +109,6 @@ describe("Test consumption return reward event", function () {
         );
     });
 
-    it('update player levels canApplyConsumptionReturn to True', function (done) {
-        let proms = [];
-        let updateData = {canApplyConsumptionReturn:true};
-
-        testPlayerLevels.forEach((testPlayerLevel)=>{
-            let query = {_id:ObjectId(testPlayerLevel)};
-            proms.push(dbPlayerLevel.updatePlayerLevel(query,updateData));
-        });
-
-        Q.all(proms).then(
-            (data)=>{
-                done();
-            },
-            (error) => {
-                console.log(error);
-            }
-        );
-    });
-
     it('create test player', function (done) {
         var proms = [];
         var date = new Date();
