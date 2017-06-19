@@ -358,7 +358,7 @@ describe("Test consumption return reward event", function () {
     it('test player consumption return', function () {
         return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(testPlayersPlayerId[1]).then(
             function (data) {
-                //console.log(data);
+            //    console.log("\n\n\n\n\n finally",data);
             },
             function (error){
             }
