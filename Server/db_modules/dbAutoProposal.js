@@ -322,7 +322,6 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
             Promise.all(proms).then(
                 () => {
                     validConsumptionAmount += lostThreshold;
-                    isApprove = validConsumptionAmount >= spendingAmount;
 
                     if (validConsumptionAmount < spendingAmount) {
                         isApprove = false;
