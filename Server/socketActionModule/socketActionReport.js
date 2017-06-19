@@ -108,13 +108,14 @@ function socketActionReport(socketIO, socket) {
             var endTime = data.endTime ? new Date(data.endTime) : time.endTime;
             var providerId = data.providerId ? ObjectId(data.providerId) : '';
             var playerId = data.playerId ? data.playerId : '';
+            var playerName = data.playerName ? data.playerName : '';
             var platformId = data.platformId ? ObjectId(data.platformId) : '';
 
             var limit = data.limit || 10;
             var index = data.index || 0;
 
             if (isValidData) {
-                args = [platformId, playerId, providerId, new Date(startTime), new Date(endTime), index, limit, data.sortCol]
+                args = [platformId, playerId, playerName, providerId, new Date(startTime), new Date(endTime), index, limit, data.sortCol]
             }
             socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getPlayersByProvider, args, actionName, isValidData);
         },

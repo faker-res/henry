@@ -2427,7 +2427,7 @@ define(['js/app'], function (myApp) {
                                 'class': 'fa fa-folder-open margin-right-5 ' + (perm.topupManual === true ? "text-primary" : "text-danger"),
                             }));
                             link.append($('<i>', {
-                                'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === true ? "text-primary" : "text-danger"),
+                                'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === true ? "text-danger" : "text-primary"),
                             }));
                             link.append($('<img>', {
                                 'class': 'margin-right-5',
@@ -2437,6 +2437,9 @@ define(['js/app'], function (myApp) {
                             }));
                             link.append($('<i>', {
                                 'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
+                            }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
                             }));
                             return link.prop('outerHTML');
                         },
@@ -2736,7 +2739,8 @@ define(['js/app'], function (myApp) {
                                 topupManual: {imgType: 'i', iconClass: "fa fa-folder-open"},
                                 banReward: {imgType: 'i', iconClass: "fa fa-ban"},
                                 alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
-                                disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"}
+                                disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"},
+                                forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"}
                             };
                             $("#playerPermissionTable td").removeClass('hide');
                             $.each(vm.playerPermissionTypes, function (key, v) {
@@ -4965,7 +4969,7 @@ define(['js/app'], function (myApp) {
             vm.manualUnlockRewardTask = {
                 resMsg: $translate("Reward task is not available")
             };
-            vm.manualUnlockRewardTaskIndexList = [];
+            vm.manualUnlockRewardTaskIndexList = [0];
             vm.getRewardTaskDetail(vm.selectedSinglePlayer._id).then(function (data) {
                 if (data) {
                     vm.manualUnlockRewardTask.resMsg = "";
@@ -8864,9 +8868,11 @@ define(['js/app'], function (myApp) {
 
         vm.getAllPlayerLevels = function () {
             vm.playerIDArr = [];
+            vm.autoCheckPlayerLevelUp = null;
             return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                 .then(function (data) {
                     vm.allPlayerLvl = data.data;
+                    vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
                     vm.allPlayerLvlReordered = false;
                     vm.sortPlayerLevels();
                     console.log("vm.allPlayerLvl", data.data);
@@ -9157,6 +9163,7 @@ define(['js/app'], function (myApp) {
             switch (choice) {
                 case 'player':
                     console.log('vm.playerLvlData', vm.playerLvlData);
+                    updatePlatformBasic({autoCheckPlayerLevelUp:vm.autoCheckPlayerLevelUp});
                     if (vm.allPlayerLvlReordered) {
                         // Number the levels correctly.  (This should only really be needed if something went wrong on a previous attempt.)
                         vm.ensurePlayerLevelOrder();
@@ -9177,7 +9184,7 @@ define(['js/app'], function (myApp) {
                     updatePlatformBasic(vm.platformBasic);
                     break;
                 case 'bonusBasic':
-                    updateBonusBasic(vm.bonusBasic);
+                    updatePlatformBasic(vm.bonusBasic);
                     break;
                 case 'autoApproval':
                     updateAutoApprovalConfig(vm.autoApprovalBasic);
@@ -9293,33 +9300,17 @@ define(['js/app'], function (myApp) {
                     minTopUpAmount: srcData.showMinTopupAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                     allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
-                    canMultiReward: srcData.canMultiReward
-                }
-            };
-            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                vm.loadPlatformData({loadAll: false});
-            });
-        }
-
-        function updateBonusBasic(srcData) {
-            console.log('\n\n\nupdateBonusBasic', JSON.stringify(srcData));
-            var sendData = {
-                query: {_id: vm.selectedPlatform.id},
-                updateData: {
+                    autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
                     bonusCharges: srcData.bonusCharges
                 }
             };
-            console.log('\n\n\nupdateBonusBasic sendData', JSON.stringify(sendData));
-
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                console.log('update bonus socket', JSON.stringify(data));
                 vm.loadPlatformData({loadAll: false});
             });
         }
 
         function updateAutoApprovalConfig(srcData) {
-            console.log('\n\n\nupdateAutoApprovalConfig', JSON.stringify(srcData));
             let sendData = {
                 query: {_id: vm.selectedPlatform.id},
                 updateData: {

@@ -260,10 +260,10 @@ var proposal = {
                         }
                     }
 
-                    // SCHEDULED AUTO APPROVAL
-                    if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
-                        proposalData.status = constProposalStatus.PROCESSING;
-                    }
+                    // SCHEDULED AUTO APPROVAL - DISABLED FOR CSTEST
+                    // if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
+                    //     proposalData.status = constProposalStatus.PROCESSING;
+                    // }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
