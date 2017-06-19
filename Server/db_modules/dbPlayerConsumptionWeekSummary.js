@@ -226,7 +226,7 @@ var dbPlayerConsumptionWeekSummary = {
                     var proms = [];
                     players.forEach(
                         function (playerData) {
-                            if(playerData && playerData.playerLevel.canApplyConsumptionReturn){
+                            if(playerData && !(playerData.permission.forbidPlayerConsumptionReturn)){
                                 var returnAmount = 0;
 
                                 // Check all game types and calculate return amount
