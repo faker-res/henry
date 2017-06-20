@@ -3382,6 +3382,7 @@ define(['js/app'], function (myApp) {
             $('.referralValidFalse').hide();
             vm.newPlayer.domain = window.location.hostname;
             vm.getReferralPlayer(vm.newPlayer, "new");
+            vm.playerCreateResult = null;
         }
         vm.editPlayerStatus = function (id) {
             console.log(id);
@@ -3696,22 +3697,26 @@ define(['js/app'], function (myApp) {
         //Create new player
         vm.createNewPlayer = function () {
             vm.newPlayer.platform = vm.selectedPlatform.id;
-            //console.log('newPlayer',vm.newPlayer);
+            console.log('newPlayer',vm.newPlayer);
             if (vm.newPlayer.createPartner) {
                 socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
-                    $('#modalCreatePlayer').modal('toggle');
-                    $('#modalCreatePlayer').on('hidden.bs.modal', function () {
-                        $(this).find('input,textarea,select').val('');
-                    });
+                    vm.playerCreateResult = data;
                     vm.getPlatformPlayersData();
+                    $scope.safeApply;
+                }, function (err) {
+                    vm.playerCreateResult = err;
+                    console.log('createPlayerDataError',err);
+                    $scope.safeApply;
                 });
             } else {
                 socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
-                    $('#modalCreatePlayer').modal('toggle');
-                    $('#modalCreatePlayer').on('hidden.bs.modal', function () {
-                        $(this).find('input,textarea,select').val('');
-                    });
+                    vm.playerCreateResult = data;
                     vm.getPlatformPlayersData();
+                    $scope.safeApply;
+                }, function (err) {
+                    vm.playerCreateResult = err;
+                    console.log('createPlayerDataError',err);
+                    $scope.safeApply;
                 });
             }
         };

@@ -831,7 +831,10 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).lean().then(
             function (data) {
+                data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
+                data.email = dbUtility.encodeEmail(data.email);
                 apiData = data;
+
                 if (data.platform) {
                     return dbconfig.collection_platform.findOne({_id: data.platform});
                 }
