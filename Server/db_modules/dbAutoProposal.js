@@ -342,11 +342,9 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                     }
 
                     // Force withdraw proposal to success if the nearest consumption has been met.
-                    if (isFirstPropApprove) {
-                        if (!isApprove) {
-                            isApprove = isFirstPropApprove;
-                            approveRemark = "Success: Forced success as nearest condition met. Consumption " + validConsumptionAmount + ", Required Bet Amount " + spendingAmount;
-                        }
+                    if (isFirstPropApprove && !isApprove) {
+                        isApprove = isFirstPropApprove;
+                        approveRemark = "Success: Forced success as nearest condition met. Consumption " + validConsumptionAmount + ", Required Bet Amount " + spendingAmount;
                     }
 
                     if (isApprove || isTypeEApproval) {
