@@ -38,9 +38,13 @@ const dbPlayerMail = {
             );
         });
         return Q.all(prom).then((results)=>{
-            results.forEach((result)=> {
-                notifyPlayerOfNewMessage(result);
-            });
+            if(results){
+                let notifyProm = [];
+                results.forEach((result)=> {
+                    notifyProm.push(notifyPlayerOfNewMessage(result));
+                });
+                return Q.all(notifyProm);
+            }
         });
     },
 
