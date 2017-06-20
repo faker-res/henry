@@ -7,12 +7,21 @@ const constSystemParam = require("../const/constSystemParam.js");
 const dbPlayerCreditTransfer = {
 
     /**
-     * Transfer player credit to provider
+     * Transfer player credit from local to provider
      * @param {String} playerId
      * @param {String} providerId
      */
     playerCreditTransferToProvider: (playerId, providerId) => {
-        
+
+    },
+
+    /**
+     * Transfer player credit from provider to local
+     * @param {String} playerId
+     * @param {String} providerId
+     */
+    playerCreditTransferFromProvider: (playerId, providerId) => {
+
     }
 
 };
