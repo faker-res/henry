@@ -875,5 +875,8 @@
   "PLAYER_REGISTRATION_REWARD_REPORT": "Player Registration Reward Report",
   "PREVIOUS_CONSECUTIVE_LOGIN": "Previous Consecutive Login",
   "applyForDate": "Applied for",
-  "PLAYER_MULTIPLE_REWARD": "Multiple Player Rewards"
+  "PLAYER_MULTIPLE_REWARD": "Multiple Player Rewards",
+  "ONE_WEEK_ABOVE": "One Week Ago",
+  "TWO_WEEK_ABOVE": "Two Week Ago",
+  "ONE_MONTH_ABOVE": "One Month Ago"
 }
