@@ -886,17 +886,22 @@ define(['js/app'], function (myApp) {
                     });
                 });
             } else if (vm.sendMultiMessage.messageType === "mail") {
-                vm.sendMultiMessage.tableObj.rows('.selected').data().each(function (data) {
-                    let sendData = {
-                        playerId: data._id,
-                        adminName: authService.adminName,
-                        platformId: vm.selectedPlatform.id,
-                        title: vm.sendMultiMessage.messageTitle,
-                        content: vm.sendMultiMessage.messageContent
-                    };
-                    // console.log('_sendData', sendData);
-                    $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
-                });
+                let playerIds = vm.sendMultiMessage.tableObj.rows('.selected').data().reduce((tempPlayersId,selectedPlayers) => {
+                    if(selectedPlayers._id){
+                        tempPlayersId.push(selectedPlayers._id);
+                    }
+                    return tempPlayersId;
+                },[]);
+
+                let sendData = {
+                    playerId: playerIds,
+                    adminName: authService.adminName,
+                    platformId: vm.selectedPlatform.id,
+                    title: vm.sendMultiMessage.messageTitle,
+                    content: vm.sendMultiMessage.messageContent
+                };
+                
+                $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
             }
 
             vm.sendMultiMessage.sendInitiated = true;
