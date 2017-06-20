@@ -831,8 +831,8 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).lean().then(
             function (data) {
-                data.phoneNumber = censorPhoneNumber(data.phoneNumber);
-                data.email = censorEmail(data.email);
+                data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
+                data.email = dbUtility.encodeEmail(data.email);
                 apiData = data;
 
                 if (data.platform) {
@@ -8599,21 +8599,3 @@ proto = Object.assign(proto, dbPlayerInfo);
 
 // This make WebStorm navigation work
 module.exports = dbPlayerInfo;
-
-function censorPhoneNumber(phoneNumber) {
-    let phoneNumberDigits = phoneNumber.split('');
-    for(let i = 3; i < phoneNumberDigits.length-4; i++) {
-        phoneNumberDigits[i] = '*';
-    }
-    phoneNumber = phoneNumberDigits.join('');
-    return phoneNumber;
-}
-
-function censorEmail(email) {
-    let emailChars = email.split('');
-    for(let i = 4; i < emailChars.length-5; i++) {
-        emailChars[i] = '*';
-    }
-    email = emailChars.join('');
-    return email;
-}

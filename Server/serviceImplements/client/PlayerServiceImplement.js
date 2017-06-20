@@ -4,6 +4,7 @@ let WebSocketUtil = require("./../../server_common/WebSocketUtil");
 let PlayerService = require("./../../services/client/ClientServices").PlayerService;
 let dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
 let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
+let dbUtility = require('./../../modules/dbutility');
 let constServerCode = require('./../../const/constServerCode');
 let constSystemParam = require('./../../const/constSystemParam');
 let jwt = require('jsonwebtoken');
@@ -75,8 +76,8 @@ let PlayerServiceImplement = function () {
                     var profile = {name: playerData.name, password: playerData.password};
                     var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
-                    playerData.phoneNumber = censorPhoneNumber(playerData.phoneNumber);
-                    playerData.email = censorEmail(playerData.email);
+                    playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                    playerData.email = dbUtility.encodeEmail(playerData.email);
 
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
@@ -305,8 +306,8 @@ let PlayerServiceImplement = function () {
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
-                playerData.phoneNumber = censorPhoneNumber(playerData.phoneNumber);
-                playerData.email = censorEmail(playerData.email);
+                playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                playerData.email = dbUtility.encodeEmail(playerData.email);
 
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -868,21 +869,3 @@ var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.proto
 proto.constructor = PlayerServiceImplement;
 
 module.exports = PlayerServiceImplement;
-
-function censorPhoneNumber(phoneNumber) {
-    let phoneNumberDigits = phoneNumber.split('');
-    for(let i = 3; i < phoneNumberDigits.length-4; i++) {
-        phoneNumberDigits[i] = '*';
-    }
-    phoneNumber = phoneNumberDigits.join('');
-    return phoneNumber;
-}
-
-function censorEmail(email) {
-    let emailChars = email.split('');
-    for(let i = 4; i < emailChars.length-5; i++) {
-        emailChars[i] = '*';
-    }
-    email = emailChars.join('');
-    return email;
-}
