@@ -60,20 +60,26 @@
                     a.fa.fa-times.text-danger.margin-left-5(ng-show="vm.toPhoneNumber", ng-click='vm.toPhoneNumber=null')
                 .pull-right(ng-show="checkViewPermission('Platform', 'groupMessage', 'SMSSendLog')")
                     button.btn.btn-primary.btn-sm(data-toggle="modal", ng-click='vm.initSMSLog("multi")', data-target='#modalSMSLog') {{'SMS Send Log' | translate}}
+            .tableRow(ng-show='vm.sendMultiMessage.messageType==="mail"')
+                .tableCell(style='width:10%;')
+                    label {{"TITLE" | translate}}:
+                .tableCell(style='min-width:60%')
+                    input.form-control(style='width:100%;resize:none', type='text', ng-model='vm.sendMultiMessage.messageTitle')
+                .tableCell(style='width:20%;')
             .tableRow
-                .tableCell
+                .tableCell(style='width:10%;')
                     label {{"CONTENT" | translate}}:
                 .tableCell(style='min-width:60%')
-                    div.inline-block
+                    div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
                         label {{"Word Count" | translate}}:
                         text.text-danger &nbsp;{{vm.sendMultiMessage.wordCount}}
                     | &nbsp;
-                    div.inline-block
+                    div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
                         label {{"total" | translate}}:
                         text.text-danger &nbsp;{{vm.sendMultiMessage.numUsedMessage}}
                         label &nbsp;{{"message(s)" | translate}}
                     | &nbsp;
-                    div.inline-block
+                    div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
                         label {{"Current channel allow" | translate}}:
                         text.text-danger &nbsp;{{vm.sendMultiMessage.channelMaxChar}}
                         label &nbsp;{{"characters/message" | translate}}
@@ -82,8 +88,13 @@
                 .tableCell(style='width:20%;', ng-show='!vm.toPhoneNumber')
                     //label {{"SENDMESSAGENOTE" | translate}}
                     div
-                        label {{'Recipient' | translate}} : {{vm.sendMultiMessage.numRecipient}}
+                        label SMS
+                        input(type="radio" name="messageType" ng-model="vm.sendMultiMessage.messageType" value="sms")
+                        label Mail
+                        input(type="radio" name="messageType" ng-model="vm.sendMultiMessage.messageType" value="mail")
                     div
+                        label {{'Recipient' | translate}} : {{vm.sendMultiMessage.numRecipient}}
+                    div(ng-hide='vm.sendMultiMessage.messageType==="mail"')
                         label {{"Channel" | translate}} :&nbsp;
                         select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in channelList')
                     div(ng-if="checkViewPermission('Platform', 'groupMessage', 'SendGroupMessage')")

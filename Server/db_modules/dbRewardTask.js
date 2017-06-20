@@ -64,7 +64,12 @@ var dbRewardTask = {
         let rewardTask = new dbconfig.collection_rewardTask(rewardData);
         let taskProm = rewardTask.save();
 
-        // TEMP REVERT - Player's locked credit will increase from current lockedAmount
+        // Player's locked credit will increase from current lockedAmount
+        // let playerProm = dbconfig.collection_players.findOneAndUpdate(
+        //     {_id: rewardData.playerId, platform: rewardData.platformId},
+        //     {$inc: {lockedCredit: rewardData.initAmount}}
+        // ).exec();
+
         let playerProm = dbconfig.collection_players.findOneAndUpdate(
             {_id: rewardData.playerId, platform: rewardData.platformId},
             {lockedCredit: rewardData.initAmount}
@@ -524,7 +529,7 @@ var dbRewardTask = {
                 {status: constRewardTaskStatus.COMPLETED}
             );
 
-            // TEMP REVERT - Changed from update lockedCredit from 0 to -rewardAmount
+            // Changed from update lockedCredit from 0 to -rewardAmount
             // let updateData = {
             //     $inc: {validCredit: rewardAmount, lockedCredit: -rewardAmount},
             // };

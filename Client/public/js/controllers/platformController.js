@@ -660,6 +660,7 @@ define(['js/app'], function (myApp) {
                 numReceived: 0,
                 numFailed: 0,
                 numRecipient: 0,
+                messageType: "sms",
                 sendBtnText: $translate("SEND")
             };
             $scope.getChannelList(function () {
@@ -874,19 +875,35 @@ define(['js/app'], function (myApp) {
                 }
                 updateMultiMessageButton();
                 $scope.safeApply();
-            })
-            vm.sendMultiMessage.tableObj.rows('.selected').data().each(function (data) {
-                $scope.AppSocket.emit('sendSMSToPlayer', {
-                    playerId: data.playerId,
-                    platformId: vm.selectedPlatform.data.platformId,
-                    channel: vm.sendMultiMessage.channel,
-                    message: vm.sendMultiMessage.messageContent
-                })
-            })
+            });
+            if (vm.sendMultiMessage.messageType === "sms") {
+                vm.sendMultiMessage.tableObj.rows('.selected').data().each(function (data) {
+                    $scope.AppSocket.emit('sendSMSToPlayer', {
+                        playerId: data.playerId,
+                        platformId: vm.selectedPlatform.data.platformId,
+                        channel: vm.sendMultiMessage.channel,
+                        message: vm.sendMultiMessage.messageContent
+                    });
+                });
+            } else if (vm.sendMultiMessage.messageType === "mail") {
+                vm.sendMultiMessage.tableObj.rows('.selected').data().each(function (data) {
+                    let sendData = {
+                        playerId: data._id,
+                        adminName: authService.adminName,
+                        platformId: vm.selectedPlatform.id,
+                        title: vm.sendMultiMessage.messageTitle,
+                        content: vm.sendMultiMessage.messageContent
+                    };
+                    // console.log('_sendData', sendData);
+                    $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
+                });
+            }
+
             vm.sendMultiMessage.sendInitiated = true;
+            vm.sendMultiMessage.messageTitle = "";
             vm.sendMultiMessage.messageContent = "";
             updateMultiMessageButton();
-        }
+        };
 
         vm.sendSingleMessages = function () {
             vm.sendMultiMessage.singleBtnText = $translate("Sending");
@@ -3302,7 +3319,7 @@ define(['js/app'], function (myApp) {
         vm.playerTableRowClicked = function (rowData) {
             var deferred = Q.defer();
             console.log('player', rowData);
-            var sendData = {_id: rowData._id}
+            var sendData = {_id: rowData._id};
             socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
                 var player = retData.data;
                 console.log('updated info');
@@ -3675,13 +3692,23 @@ define(['js/app'], function (myApp) {
         vm.createNewPlayer = function () {
             vm.newPlayer.platform = vm.selectedPlatform.id;
             //console.log('newPlayer',vm.newPlayer);
-            socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
-                $('#modalCreatePlayer').modal('toggle');
-                $('#modalCreatePlayer').on('hidden.bs.modal', function () {
-                    $(this).find('input,textarea,select').val('');
+            if (vm.newPlayer.createPartner) {
+                socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
+                    $('#modalCreatePlayer').modal('toggle');
+                    $('#modalCreatePlayer').on('hidden.bs.modal', function () {
+                        $(this).find('input,textarea,select').val('');
+                    });
+                    vm.getPlatformPlayersData();
                 });
-                vm.getPlatformPlayersData();
-            });
+            } else {
+                socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
+                    $('#modalCreatePlayer').modal('toggle');
+                    $('#modalCreatePlayer').on('hidden.bs.modal', function () {
+                        $(this).find('input,textarea,select').val('');
+                    });
+                    vm.getPlatformPlayersData();
+                });
+            }
         };
 
         vm.showPartnerSelectModal = function (editingObj) {

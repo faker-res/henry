@@ -247,14 +247,14 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
         mainType: {$in: ["TopUp", "Reward"]}
     }).sort({createTime: -1}).lean().then(
         proposals => {
-            let isApprove = true, proms = [], repeatMsg = "";
+            let isApprove = true, isFirstPropApprove = true, proms = [], repeatMsg = "";
             let validConsumptionAmount = 0, spendingAmount = 0;
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
             let dateTo = proposal.createTime;
 
-            while (isApprove && proposals && proposals.length > 0) {
+            while (proposals && proposals.length > 0) {
                 // FIFO dequeue from nearest date proposal
                 let getProp = proposals.shift();
 
@@ -262,27 +262,34 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                 let queryDateFrom = new Date(getProp.createTime);
                 let queryDateTo = new Date(dateTo);
 
+                let checkingNo = countProposals;
+
                 switch (getProp.mainType) {
                     case "TopUp":
-                        // Check if this top up has used for apply reward
-                        dbconfig.collection_playerTopUpRecord.findOne({proposalId: getProp.proposalId}).then(
-                            topUpRecord => {
-                                // Only check consumption if the topup record is clean
-                                if (!topUpRecord.bDirty) {
-                                    spendingAmount += getProp.data.amount;
-                                    proms.push(
+                        proms.push(
+                            // Check if this top up has used for apply reward
+                            dbconfig.collection_playerTopUpRecord.findOne({proposalId: getProp.proposalId}).then(
+                                topUpRecord => {
+                                    // Only check consumption if the topup record is clean
+                                    if (!topUpRecord.bDirty) {
+                                        spendingAmount += getProp.data.amount;
                                         getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
                                             record => {
                                                 if (record) {
                                                     if (record[0] && getProp.data.amount) {
                                                         validConsumptionAmount += record[0].validAmount;
+
+                                                        // Check if nearest proposal meet consumption requirement
+                                                        if (checkingNo == 0) {
+                                                            isFirstPropApprove = record[0].validAmount >= getProp.data.amount
+                                                        }
                                                     }
                                                 }
                                             }
                                         )
-                                    );
+                                    }
                                 }
-                            }
+                            )
                         );
                         break;
                     case "Reward":
@@ -304,6 +311,11 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                                             if (getProp.data.spendingAmount) {
                                                 validConsumptionAmount += record[0].validAmount;
                                             }
+
+                                            // Check if nearest proposal meet consumption requirement
+                                            if (checkingNo == 0) {
+                                                isFirstPropApprove = record[0].validAmount >= getProp.data.spendingAmount
+                                            }
                                         }
                                     }
                                 )
@@ -321,14 +333,25 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
 
             Promise.all(proms).then(
                 () => {
+                    let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet Amount " + spendingAmount;
                     validConsumptionAmount += lostThreshold;
-                    isApprove = validConsumptionAmount >= spendingAmount;
+
+                    if (validConsumptionAmount < spendingAmount) {
+                        isApprove = false;
+                        repeatMsg = "Insufficient consumption: Consumption " + validConsumptionAmount + ", Required Bet Amount " + spendingAmount;
+                    }
+
+                    // Force withdraw proposal to success if the nearest consumption has been met.
+                    if (isFirstPropApprove && !isApprove) {
+                        isApprove = isFirstPropApprove;
+                        approveRemark = "Success: Forced success as nearest condition met. Consumption " + validConsumptionAmount + ", Required Bet Amount " + spendingAmount;
+                    }
 
                     if (isApprove || isTypeEApproval) {
                         // Proposal approved - DISABLED FOR CSTEST
                         // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
 
-                        sendToAudit(proposal._id, proposal.createTime, "Success: Consumption " + validConsumptionAmount + ", Required Bet Amount " + spendingAmount);
+                        sendToAudit(proposal._id, proposal.createTime, approveRemark);
 
                     }
                     else {
