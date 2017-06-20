@@ -266,6 +266,15 @@ define(['js/app'], function (myApp) {
             vm.showDailySettlement = nowDate != dailyDate;
             vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
             vm.platformSettlement = {};
+            vm.partnerSearch = {limit:10, index:0};
+
+            //load partner
+            utilService.actionAfterLoaded("#partnerTablePage", function () {
+                vm.partnerSearch.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize:10}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "partnerSearch", vm.getPlatformPartnersData( curP ,pageSize))
+                });
+            })
+
             Q.all([vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                 function (data) {
                     // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
@@ -2801,7 +2810,7 @@ define(['js/app'], function (myApp) {
             // $('#playerDataTable').DataTable(tableOptions);
 
             // vm.playerTable.columns.adjust().draw();
-            // utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
+            utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
 
             if (!vm.playersQueryCreated) {
                 createPlayerAdvancedSearchFilters({
@@ -6641,24 +6650,35 @@ define(['js/app'], function (myApp) {
                 return;
             }
             $('#partnerRefreshIcon').addClass('fa-spin');
+            
+            if(curP && limit){
+                var index = (curP - 1) * limit;
+                vm.partnerSearch.index = index;
+                vm.partnerSearch.limit = limit;
+            }
+
+            vm.partnerSearch = vm.partnerSearch || {
+                "platformId": vm.selectedPlatform.id,
+                "index": 0,
+                "limit": 10
+            }
 
             var sendData ={
                 "platform":{
                     "platformId":vm.selectedPlatform.id,
-                    "index":0,
-                    "limit":10
+                    "index":vm.partnerSearch.index || 0,
+                    "limit":vm.partnerSearch.limit || 10
                 }
             }
-            if(curP && limit){
-                var index = (curP - 1) * limit;
-                vm.partnerSearch.platform.index = index;
-                vm.partnerSearch.platform.limit = limit;
-            }
-
-            vm.partnerSearch = vm.partnerSearch || sendData;
 
 
-            socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', vm.partnerSearch ,success);
+
+            // vm.partnerSearch = vm.partnerSearch || sendData;
+
+
+
+
+            socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', sendData ,success);
 
             function success(data) {
                 vm.partnerIdObj = {};
@@ -6961,7 +6981,7 @@ define(['js/app'], function (myApp) {
                 // "scrollY": "480px",
                 "scrollCollapse": true,
                 "destroy": true,
-                "paging": true,
+                "paging": false,
                 "language": {
                     "info": $translate("Total _MAX_ partners"),
                     "emptyTable": $translate("No data available in table"),
@@ -7259,22 +7279,14 @@ define(['js/app'], function (myApp) {
             });
             vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
             // vm.partnerTable = utilService.createDatatableWithFooter('#partnerDataTable', tableOptions);
-
-            utilService.actionAfterLoaded("#partnerDataTable", function () {
-                vm.partnerTable.pageObj = utilService.createPageForPagingTable("#partnerDataTable", {pageSize:10}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "partnerSearch", vm.getPlatformPartnersData( curP ,pageSize))
-                });
-                vm.partnerTable.pageObj.init({maxCount: data.size});
-
-            })
-            // utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
+            utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
 
             createAdvancedSearchFilters({
                 tableOptions: tableOptions,
                 filtersElement: '#partnerTable-search-filters',
                 queryFunction: getPartnersByAdvancedQueryDebounced
             });
-
+            vm.partnerSearch.pageObj.init({maxCount: data.size});
             $scope.safeApply();
         };
         vm.sendSMSToPartner = function () {
@@ -10408,6 +10420,7 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     })
+
 
                     Q.all([]).then(
                         function (data) {
