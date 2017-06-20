@@ -75,6 +75,9 @@ let PlayerServiceImplement = function () {
                     var profile = {name: playerData.name, password: playerData.password};
                     var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
+                    playerData.phoneNumber = censorPhoneNumber(playerData.phoneNumber);
+                    playerData.email = censorEmail(playerData.email);
+
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
                         data: playerData,
@@ -301,6 +304,10 @@ let PlayerServiceImplement = function () {
                 };
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                playerData.phoneNumber = censorPhoneNumber(playerData.phoneNumber);
+                playerData.email = censorEmail(playerData.email);
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
@@ -862,3 +869,20 @@ proto.constructor = PlayerServiceImplement;
 
 module.exports = PlayerServiceImplement;
 
+function censorPhoneNumber(phoneNumber) {
+    let phoneNumberDigits = phoneNumber.split('');
+    for(let i = 3; i < phoneNumberDigits.length-4; i++) {
+        phoneNumberDigits[i] = '*';
+    }
+    phoneNumber = phoneNumberDigits.join('');
+    return phoneNumber;
+}
+
+function censorEmail(email) {
+    let emailChars = email.split('');
+    for(let i = 4; i < emailChars.length-5; i++) {
+        emailChars[i] = '*';
+    }
+    email = emailChars.join('');
+    return email;
+}
