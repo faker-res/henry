@@ -108,6 +108,7 @@ var simplifiedChinese = {
     "Player is not valid for this reward": "玩家不符合该奖励条件",
     "Invalid player consumption incentive event data for platform": "奖励活动数据无效",
     "Cannot find player consumption incentive event data for platform": "无法找到奖励活动数据",
+    "Player is forbidded for consumption incentive event":"玩家无此奖励权限",
     "Can not find player bonus proposal type": "无法找到相关数据",
     "Player does not have enough top up amount": "自身充值额度不够",
     "Player has too much credit": "玩家额度过多",

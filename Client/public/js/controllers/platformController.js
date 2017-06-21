@@ -886,17 +886,22 @@ define(['js/app'], function (myApp) {
                     });
                 });
             } else if (vm.sendMultiMessage.messageType === "mail") {
-                vm.sendMultiMessage.tableObj.rows('.selected').data().each(function (data) {
-                    let sendData = {
-                        playerId: data._id,
-                        adminName: authService.adminName,
-                        platformId: vm.selectedPlatform.id,
-                        title: vm.sendMultiMessage.messageTitle,
-                        content: vm.sendMultiMessage.messageContent
-                    };
-                    // console.log('_sendData', sendData);
-                    $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
-                });
+                let playerIds = vm.sendMultiMessage.tableObj.rows('.selected').data().reduce((tempPlayersId,selectedPlayers) => {
+                    if(selectedPlayers._id){
+                        tempPlayersId.push(selectedPlayers._id);
+                    }
+                    return tempPlayersId;
+                },[]);
+
+                let sendData = {
+                    playerId: playerIds,
+                    adminName: authService.adminName,
+                    platformId: vm.selectedPlatform.id,
+                    title: vm.sendMultiMessage.messageTitle,
+                    content: vm.sendMultiMessage.messageContent
+                };
+                
+                $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
             }
 
             vm.sendMultiMessage.sendInitiated = true;
@@ -2458,6 +2463,9 @@ define(['js/app'], function (myApp) {
                             link.append($('<i>', {
                                 'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
                             }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === true ? "text-danger" : "text-primary"),
+                            }));
                             return link.prop('outerHTML');
                         },
                         "sClass": "alignLeft"
@@ -2757,7 +2765,8 @@ define(['js/app'], function (myApp) {
                                 banReward: {imgType: 'i', iconClass: "fa fa-ban"},
                                 alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
                                 disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"},
-                                forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"}
+                                forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
+                                forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"}
                             };
                             $("#playerPermissionTable td").removeClass('hide');
                             $.each(vm.playerPermissionTypes, function (key, v) {
