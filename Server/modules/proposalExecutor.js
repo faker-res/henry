@@ -1382,35 +1382,51 @@ var proposalExecutor = {
             },
 
             executeAddPlayerRewardTask: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.platformId) {
-                    dbRewardTask.getRewardTask(
-                        {
-                            playerId: proposalData.data.playerId,
-                            status: constRewardTaskStatus.STARTED
-                        }
-                    ).then(
-                        function (curData) {
-                            if (!curData) {
-                                dbRewardTask.createRewardTask(proposalData.data).then(
-                                    deferred.resolve, deferred.reject
-                                );
-                            }
-                            else {
-                                deferred.reject({name: "DataError", message: "Player already has reward task"});
-                            }
-                        },
-                        function (error) {
+                // for some buggy reason, if I put it on the top of this script, dbPlatform will return {}
+                let dbPlatform = require('./../db_modules/dbPlatform');
+                if (!(proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.platformId)) {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Incorrect add player reward task proposal data"
+                    });
+                }
+
+                let prom1 = dbRewardTask.getRewardTask({
+                    playerId: proposalData.data.playerId,
+                    status: constRewardTaskStatus.STARTED
+                });
+
+                let prom2 = dbPlatform.getPlatform({_id: proposalData.data.platformId});
+
+                Promise.all([prom1, prom2]).then(
+                    function (data) {
+                        let curData, platformData;
+                        if(data && data[0] !== undefined && data[1] !== undefined){
+                            curData = data[0];
+                            platformData = data[1];
+                        } else {
                             deferred.reject({
                                 name: "DBError",
-                                message: "Error finding reward task for player top up reward",
-                                error: error
+                                message: "Failed to get platform or reward task data."
                             });
                         }
-                    );
-                }
-                else {
-                    deferred.reject({name: "DataError", message: "Incorrect add player reward task proposal data"});
-                }
+
+                        if (!curData || platformData.canMultiReward) {
+                            dbRewardTask.createRewardTask(proposalData.data).then(
+                                deferred.resolve, deferred.reject
+                            );
+                        } else {
+                            deferred.reject({name: "DataError", message: "Player already has reward task"});
+                        }
+                    },
+                    function (error) {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Error finding reward task for player top up reward",
+                            error: error
+                        });
+                    }
+                );
             },
 
             executePlayerRegistrationReward: function (proposalData, deferred) {
