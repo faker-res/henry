@@ -6723,6 +6723,8 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
                 setPartnerTableData(reply.data);
+                vm.searchPartnerCount = reply.data.length;
+                $scope.safeApply();
             });
         });
 
@@ -6753,7 +6755,9 @@ define(['js/app'], function (myApp) {
                 }
             });
             vm.partners = data.data;
+            vm.platformPartnerCount = data.size
             vm.selectedPartnerCount = 0;
+            vm.searchPartnerCount = 0;
             //vm.partnerTable = $('#partnerDataTable').DataTable({data:[]});
             var emptyString = (vm.curPlatformText) ? ('No partner found in ' + vm.curPlatformText) : 'Please select platform';
             var tableOptions = {
@@ -6983,7 +6987,7 @@ define(['js/app'], function (myApp) {
                 "destroy": true,
                 "paging": false,
                 "language": {
-                    "info": $translate("Total _MAX_ partners"),
+                    "info": "",
                     "emptyTable": $translate("No data available in table"),
                 },
                 "dom": 'Zirtlp',

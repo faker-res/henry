@@ -12,7 +12,9 @@
     .pull-right.margin-top-5
         text.margin-right-5 {{"Refresh" | translate}}
         a#partnerRefreshIcon.fa.fa-refresh(ng-click='vm.getPlatformPartnersData()')
-
+.col-md-12
+    label(ng-show='vm.platformPlayerCount') {{'Total Partner' | translate}} : {{vm.platformPartnerCount}} ({{"Search Result" | translate}} : {{vm.searchPartnerCount}})
+ 
 p
 .col-md-12(style="min-height:150px;")
     table.common-table#partnerDataTable.display(style="width:100% ;overflow-x: scroll")
