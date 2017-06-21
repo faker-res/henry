@@ -886,17 +886,22 @@ define(['js/app'], function (myApp) {
                     });
                 });
             } else if (vm.sendMultiMessage.messageType === "mail") {
-                vm.sendMultiMessage.tableObj.rows('.selected').data().each(function (data) {
-                    let sendData = {
-                        playerId: data._id,
-                        adminName: authService.adminName,
-                        platformId: vm.selectedPlatform.id,
-                        title: vm.sendMultiMessage.messageTitle,
-                        content: vm.sendMultiMessage.messageContent
-                    };
-                    // console.log('_sendData', sendData);
-                    $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
-                });
+                let playerIds = vm.sendMultiMessage.tableObj.rows('.selected').data().reduce((tempPlayersId,selectedPlayers) => {
+                    if(selectedPlayers._id){
+                        tempPlayersId.push(selectedPlayers._id);
+                    }
+                    return tempPlayersId;
+                },[]);
+
+                let sendData = {
+                    playerId: playerIds,
+                    adminName: authService.adminName,
+                    platformId: vm.selectedPlatform.id,
+                    title: vm.sendMultiMessage.messageTitle,
+                    content: vm.sendMultiMessage.messageContent
+                };
+                
+                $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
             }
 
             vm.sendMultiMessage.sendInitiated = true;
@@ -2458,6 +2463,9 @@ define(['js/app'], function (myApp) {
                             link.append($('<i>', {
                                 'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
                             }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === true ? "text-danger" : "text-primary"),
+                            }));
                             return link.prop('outerHTML');
                         },
                         "sClass": "alignLeft"
@@ -2757,7 +2765,8 @@ define(['js/app'], function (myApp) {
                                 banReward: {imgType: 'i', iconClass: "fa fa-ban"},
                                 alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
                                 disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"},
-                                forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"}
+                                forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
+                                forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"}
                             };
                             $("#playerPermissionTable td").removeClass('hide');
                             $.each(vm.playerPermissionTypes, function (key, v) {
@@ -6498,7 +6507,7 @@ define(['js/app'], function (myApp) {
                     lastLogin: "0",
                     lastFeedback: "0",
                     topUpTimes: "-1"
-                }
+                };
             vm.feedbackPlayersPara = {numPerPage: '1'};
             vm.feedbackPlayersPara.index = 1;
             utilService.actionAfterLoaded('#lastFeedbackTime2', function () {
@@ -6511,9 +6520,30 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-            })
+            });
+            vm.playerLastLoginRange = '';
             $scope.safeApply();
-        }
+        };
+
+        vm.setLastAccessTimeRange = function () {
+            switch(vm.playerLastLoginRange) {
+                case '1_week':
+                    vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(new Date(1970,1,1));
+                    vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), 6)));
+                    break;
+                case '2_week':
+                    vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(new Date(1970,1,1));
+                    vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), 13)));
+                    break;
+                case '1_month':
+                    vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(new Date(1970,1,1));
+                    vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), 29)));
+                    break;
+                default:
+            }
+            $scope.safeApply();
+        };
+
         vm.submitPlayerFeedbackQuery = function (index) {
             if (!vm.selectedPlatform)return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
@@ -9332,6 +9362,7 @@ define(['js/app'], function (myApp) {
                     minTopUpAmount: srcData.showMinTopupAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                     allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                    canMultiReward: srcData.canMultiReward,
                     autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
                     bonusCharges: srcData.bonusCharges
