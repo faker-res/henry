@@ -266,6 +266,15 @@ define(['js/app'], function (myApp) {
             vm.showDailySettlement = nowDate != dailyDate;
             vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
             vm.platformSettlement = {};
+            vm.partnerSearch = {limit:10, index:0};
+
+            //load partner
+            utilService.actionAfterLoaded("#partnerTablePage", function () {
+                vm.partnerSearch.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize:10}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "partnerSearch", vm.getPlatformPartnersData( curP ,pageSize))
+                });
+            })
+
             Q.all([vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                 function (data) {
                     // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
@@ -2831,7 +2840,7 @@ define(['js/app'], function (myApp) {
             // $('#playerDataTable').DataTable(tableOptions);
 
             // vm.playerTable.columns.adjust().draw();
-            // utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
+            utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
 
             if (!vm.playersQueryCreated) {
                 createPlayerAdvancedSearchFilters({
@@ -6507,7 +6516,7 @@ define(['js/app'], function (myApp) {
                     lastLogin: "0",
                     lastFeedback: "0",
                     topUpTimes: "-1"
-                }
+                };
             vm.feedbackPlayersPara = {numPerPage: '1'};
             vm.feedbackPlayersPara.index = 1;
             utilService.actionAfterLoaded('#lastFeedbackTime2', function () {
@@ -6520,9 +6529,30 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-            })
+            });
+            vm.playerLastLoginRange = '';
             $scope.safeApply();
-        }
+        };
+
+        vm.setLastAccessTimeRange = function () {
+            switch(vm.playerLastLoginRange) {
+                case '1_week':
+                    vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(new Date(1970,1,1));
+                    vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), 6)));
+                    break;
+                case '2_week':
+                    vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(new Date(1970,1,1));
+                    vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), 13)));
+                    break;
+                case '1_month':
+                    vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(new Date(1970,1,1));
+                    vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), 29)));
+                    break;
+                default:
+            }
+            $scope.safeApply();
+        };
+
         vm.submitPlayerFeedbackQuery = function (index) {
             if (!vm.selectedPlatform)return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
@@ -6798,16 +6828,38 @@ define(['js/app'], function (myApp) {
         };
 
         //get all platform partners data from server
-        vm.getPlatformPartnersData = function () {
+        vm.getPlatformPartnersData = function (curP, limit) {
             if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
                 return;
             }
             $('#partnerRefreshIcon').addClass('fa-spin');
-            socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', {platform: vm.selectedPlatform.id}, success);
+            
+            if(curP && limit){
+                var index = (curP - 1) * limit;
+                vm.partnerSearch.index = index;
+                vm.partnerSearch.limit = limit;
+            }
+
+            vm.partnerSearch = vm.partnerSearch || {
+                "platformId": vm.selectedPlatform.id,
+                "index": 0,
+                "limit": 10
+            }
+
+            var sendData ={
+                "platform":{
+                    "platformId":vm.selectedPlatform.id,
+                    "index":vm.partnerSearch.index,
+                    "limit":vm.partnerSearch.limit
+                }
+            }
+
+            socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', sendData ,success);
+
             function success(data) {
                 vm.partnerIdObj = {};
                 var partnersObjId = [];
-                $.each(data.data, function (i, v) {
+                $.each(data.data.data, function (i, v) {
                     vm.partnerIdObj[v._id] = v;
                     vm.partnerIdObj[v.partnerName] = v;
                     partnersObjId.push(v._id);
@@ -6823,6 +6875,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
                     vm.drawPartnerTable(data.data);
+
                 });
                 $('#partnerRefreshIcon').removeClass('fa-spin');
 
@@ -6845,6 +6898,8 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
                 setPartnerTableData(reply.data);
+                vm.searchPartnerCount = reply.data.length;
+                $scope.safeApply();
             });
         });
 
@@ -6863,7 +6918,7 @@ define(['js/app'], function (myApp) {
         //draw partner table based on data
         vm.drawPartnerTable = function (data) {
             //convert decimal to 2 digits
-            data.forEach((partner) => {
+            data.data.forEach((partner) => {
                 if (partner.credits) {
                     partner.credits = partner.credits.toFixed(2);
                 }
@@ -6874,13 +6929,14 @@ define(['js/app'], function (myApp) {
                     partner.lastAccessTime = utilService.getFormatTime(partner.lastAccessTime)
                 }
             });
-            vm.partners = data;
+            vm.partners = data.data;
+            vm.platformPartnerCount = data.size;
             vm.selectedPartnerCount = 0;
-            //vm.partnerTable = $('#partnerDataTable').DataTable({data:[]});
+            vm.searchPartnerCount = data.size;
             var emptyString = (vm.curPlatformText) ? ('No partner found in ' + vm.curPlatformText) : 'Please select platform';
             var tableOptions = {
-                data: data,
-                aaSoring: [],
+                data: data.data,
+                aaSorting: [],
                 columns: [
                     //{
                     //    title: '#', "data": "select",
@@ -7103,9 +7159,9 @@ define(['js/app'], function (myApp) {
                 // "scrollY": "480px",
                 "scrollCollapse": true,
                 "destroy": true,
-                "paging": true,
+                "paging": false,
                 "language": {
-                    "info": $translate("Total _MAX_ partners"),
+                    "info": "",
                     "emptyTable": $translate("No data available in table"),
                 },
                 "dom": 'Zirtlp',
@@ -7400,7 +7456,6 @@ define(['js/app'], function (myApp) {
                 v.defaultContent = "";
             });
             vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
-            // vm.partnerTable = utilService.createDatatableWithFooter('#partnerDataTable', tableOptions);
             utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
 
             createAdvancedSearchFilters({
@@ -7408,7 +7463,7 @@ define(['js/app'], function (myApp) {
                 filtersElement: '#partnerTable-search-filters',
                 queryFunction: getPartnersByAdvancedQueryDebounced
             });
-
+            vm.partnerSearch.pageObj.init({maxCount: data.size});
             $scope.safeApply();
         };
         vm.sendSMSToPartner = function () {
@@ -9341,6 +9396,7 @@ define(['js/app'], function (myApp) {
                     minTopUpAmount: srcData.showMinTopupAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                     allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                    canMultiReward: srcData.canMultiReward,
                     autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
                     bonusCharges: srcData.bonusCharges
@@ -10534,6 +10590,7 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     })
+
 
                     Q.all([]).then(
                         function (data) {

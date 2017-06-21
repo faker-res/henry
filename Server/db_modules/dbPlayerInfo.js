@@ -8232,6 +8232,7 @@ let dbPlayerInfo = {
         var record = {};
         var deductionAmount;
         var bDoneDeduction = false;
+        let eventData = {};
 
         var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
         let playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
@@ -8262,35 +8263,45 @@ let dbPlayerInfo = {
 
                     //get reward event data
                     var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD, code);
-                    //get today's double top up reward
-                    var rewardProm = dbconfig.collection_proposalType.findOne({
-                        name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD,
-                        platformId: player.platform
-                    }).lean().then(
-                        type => {
-                            if (type) {
-                                let todayTime = dbUtility.getTodaySGTime();
-                                return dbconfig.collection_proposal.find(
-                                    {
-                                        type: type._id,
-                                        "data.playerObjId": player._id,
-                                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]},
-                                        createTime: {
-                                            $gte: todayTime.startTime,
-                                            $lt: todayTime.endTime
+                    return eventProm.then(
+                        eData => {
+                            eventData = eData;
+                            //get today's double top up reward
+                            let rewardProm = dbconfig.collection_proposalType.findOne({
+                                name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD,
+                                platformId: player.platform
+                            }).lean().then(
+                                type => {
+                                    if (type) {
+                                        let proposalQuery = {
+                                            type: type._id,
+                                            "data.playerObjId": player._id,
+                                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]}
+                                        };
+                                        let todayTime = dbUtility.getTodaySGTime();
+                                        if( eventData.param.maxRewardTimes == 0 ){
+                                            proposalQuery["data.eventCode"] = eventData.code;
                                         }
+                                        else{
+                                            proposalQuery["createTime"] = {
+                                                $gte: todayTime.startTime,
+                                                $lt: todayTime.endTime
+                                            };
+                                        }
+                                        return dbconfig.collection_proposal.find(proposalQuery).count();
                                     }
-                                ).count();
-                            }
-                            else {
-                                return Q.reject({
-                                    name: "DataError",
-                                    message: "Can not find player double top up reward proposal type"
-                                });
-                            }
+                                    else {
+                                        return Q.reject({
+                                            name: "DataError",
+                                            message: "Can not find player double top up reward proposal type"
+                                        });
+                                    }
+                                }
+                            );
+
+                            return Q.all([taskProm, rewardProm]);
                         }
                     );
-                    return Q.all([eventProm, taskProm, rewardProm]);
                 }
                 else {
                     if (data[1] && data[1].bDirty) {
@@ -8319,8 +8330,7 @@ let dbPlayerInfo = {
                     });
                 }
 
-                var eventData = data[0];
-                var taskData = data[1];
+                var taskData = data[0];
                 if (taskData) {
                     return Q.reject({
                         status: constServerCode.PLAYER_HAS_REWARD_TASK,
@@ -8345,8 +8355,10 @@ let dbPlayerInfo = {
                         message: "Player is not valid for this reward"
                     });
                 }
-
-                if (eventData.param && eventData.param.maxRewardTimes != null && data[2] >= eventData.param.maxRewardTimes) {
+                
+                if (eventData.param && eventData.param.maxRewardTimes != null &&
+                    ((eventData.param.maxRewardTimes > 0 && data[1] >= eventData.param.maxRewardTimes) ||
+                    (eventData.param.maxRewardTimes == 0 && data[1] > 0)) ) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
