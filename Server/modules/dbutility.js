@@ -595,6 +595,16 @@ var dbUtility = {
             .replace("www.", "");
     },
 
+    encodeEmail: function(email) {
+        email = email || '';
+        let emailChars = email.split('');
+        for(let i = 4; i < emailChars.length-5; i++) {
+            emailChars[i] = '*';
+        }
+        email = emailChars.join('');
+        return email;
+    },
+
     encodeBankAcc: function (str) {
         str = str || '';
         return str.substring(0, 6) + "******" + str.slice(-4);

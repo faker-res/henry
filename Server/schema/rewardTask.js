@@ -56,7 +56,7 @@ var rewardTaskSchema = new Schema({
     //max reward amount
     maxRewardAmount: {type: Number},
     //related proposal id
-    proposalId: {type: String}
+    proposalId: {type: String, index: true}
 });
 
 rewardTaskSchema.index({targetProviders: 1});
