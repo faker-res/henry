@@ -6666,17 +6666,10 @@ define(['js/app'], function (myApp) {
             var sendData ={
                 "platform":{
                     "platformId":vm.selectedPlatform.id,
-                    "index":vm.partnerSearch.index || 0,
-                    "limit":vm.partnerSearch.limit || 10
+                    "index":vm.partnerSearch.index,
+                    "limit":vm.partnerSearch.limit
                 }
             }
-
-
-
-            // vm.partnerSearch = vm.partnerSearch || sendData;
-
-
-
 
             socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', sendData ,success);
 
@@ -6755,10 +6748,9 @@ define(['js/app'], function (myApp) {
                 }
             });
             vm.partners = data.data;
-            vm.platformPartnerCount = data.size
+            vm.platformPartnerCount = data.size;
             vm.selectedPartnerCount = 0;
-            vm.searchPartnerCount = 0;
-            //vm.partnerTable = $('#partnerDataTable').DataTable({data:[]});
+            vm.searchPartnerCount = data.size;
             var emptyString = (vm.curPlatformText) ? ('No partner found in ' + vm.curPlatformText) : 'Please select platform';
             var tableOptions = {
                 data: data.data,
