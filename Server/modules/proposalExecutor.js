@@ -2098,6 +2098,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         return;
     }
 
+    // Add proposalId in reward data
+    taskData.proposalId = proposalData.proposalId;
+
     //check if player has reward task and if player's platform support multi reward
     dbconfig.collection_rewardTask.findOne(
         {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED}
