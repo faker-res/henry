@@ -4,6 +4,7 @@ let WebSocketUtil = require("./../../server_common/WebSocketUtil");
 let PlayerService = require("./../../services/client/ClientServices").PlayerService;
 let dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
 let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
+let dbUtility = require('./../../modules/dbutility');
 let constServerCode = require('./../../const/constServerCode');
 let constSystemParam = require('./../../const/constSystemParam');
 let jwt = require('jsonwebtoken');
@@ -74,6 +75,9 @@ let PlayerServiceImplement = function () {
                     };
                     var profile = {name: playerData.name, password: playerData.password};
                     var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                    playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                    playerData.email = dbUtility.encodeEmail(playerData.email);
 
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
@@ -301,6 +305,10 @@ let PlayerServiceImplement = function () {
                 };
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                playerData.email = dbUtility.encodeEmail(playerData.email);
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
@@ -861,4 +869,3 @@ var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.proto
 proto.constructor = PlayerServiceImplement;
 
 module.exports = PlayerServiceImplement;
-
