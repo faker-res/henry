@@ -1972,5 +1972,6 @@
   "UNLOCK": "解锁",
   "isAutoApproval": "自动审核",
   "nextCheckTime": "自动审核：下次审核时间",
-  "repeatMsg": "自动审核：回圈信息"
+  "repeatMsg": "自动审核：回圈信息",
+  "checkMsg": "自动审核：审核信息"
 }
