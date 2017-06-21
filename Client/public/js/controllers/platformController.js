@@ -9362,6 +9362,7 @@ define(['js/app'], function (myApp) {
                     minTopUpAmount: srcData.showMinTopupAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                     allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                    canMultiReward: srcData.canMultiReward,
                     autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
                     bonusCharges: srcData.bonusCharges
