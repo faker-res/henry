@@ -27,7 +27,9 @@ var dbRewardTask = {
 
     /**
      * Create a new reward
-     * @param {json} rewardData - The data of the reward. Refer to reward schema.
+     * @param {Object} rewardData - The data of the reward. Refer to reward schema.
+     * @param adminId
+     * @param adminName
      */
     manualCreateRewardTask: function (rewardData, adminId, adminName) {
         return dbRewardTask.checkPlayerRewardTaskStatus(rewardData.playerId).then(
