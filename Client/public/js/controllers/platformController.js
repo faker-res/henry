@@ -6507,7 +6507,7 @@ define(['js/app'], function (myApp) {
                     lastLogin: "0",
                     lastFeedback: "0",
                     topUpTimes: "-1"
-                }
+                };
             vm.feedbackPlayersPara = {numPerPage: '1'};
             vm.feedbackPlayersPara.index = 1;
             utilService.actionAfterLoaded('#lastFeedbackTime2', function () {
@@ -6520,9 +6520,30 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.playerFeedbackQuery.lastFeedbackTime1.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-            })
+            });
+            vm.playerLastLoginRange = '';
             $scope.safeApply();
-        }
+        };
+
+        vm.setLastAccessTimeRange = function () {
+            switch(vm.playerLastLoginRange) {
+                case '1_week':
+                    vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(new Date(1970,1,1));
+                    vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), 6)));
+                    break;
+                case '2_week':
+                    vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(new Date(1970,1,1));
+                    vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), 13)));
+                    break;
+                case '1_month':
+                    vm.playerFeedbackQuery.lastAccessTime1.data('datetimepicker').setDate(new Date(1970,1,1));
+                    vm.playerFeedbackQuery.lastAccessTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), 29)));
+                    break;
+                default:
+            }
+            $scope.safeApply();
+        };
+
         vm.submitPlayerFeedbackQuery = function (index) {
             if (!vm.selectedPlatform)return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
@@ -9341,6 +9362,7 @@ define(['js/app'], function (myApp) {
                     minTopUpAmount: srcData.showMinTopupAmount,
                     allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                     allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                    canMultiReward: srcData.canMultiReward,
                     autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
                     bonusCharges: srcData.bonusCharges
