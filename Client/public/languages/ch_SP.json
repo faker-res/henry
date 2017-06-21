@@ -1974,7 +1974,7 @@
   "isAutoApproval": "自动审核",
   "nextCheckTime": "自动审核：下次审核时间",
   "repeatMsg": "自动审核：回圈信息",
-  "checkMsg": "自动审核：审核信息"
+  "checkMsg": "自动审核：审核信息",
   "ONE_WEEK_ABOVE": "一星期前",
   "TWO_WEEK_ABOVE": "两星期前",
   "ONE_MONTH_ABOVE": "一个月前"
