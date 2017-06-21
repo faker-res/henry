@@ -6691,7 +6691,6 @@ define(['js/app'], function (myApp) {
                         vm.partnerPlayerObj[v.partnerId] = v;
                     });
                     vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
-                    // vm.partnerTable.pageObj.init({maxCount: data.size}, 0);
                     vm.drawPartnerTable(data.data);
 
                 });
@@ -7274,7 +7273,6 @@ define(['js/app'], function (myApp) {
                 v.defaultContent = "";
             });
             vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
-            // vm.partnerTable = utilService.createDatatableWithFooter('#partnerDataTable', tableOptions);
             utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
 
             createAdvancedSearchFilters({
