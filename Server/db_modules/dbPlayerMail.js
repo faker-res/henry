@@ -20,17 +20,28 @@ const dbPlayerMail = {
         return playerMail.save();
     },
 
-    sendPlayerMailFromAdminToPlayer: function (platformId, adminId, adminName, playerId, title, content) {
-        return dbPlayerMail.createPlayerMail({
-            platformId: platformId,
-            senderType: 'admin',
-            senderId: adminId,
-            senderName: adminName,
-            recipientType: 'player',
-            recipientId: playerId,
-            title: title,
-            content: content
-        }).then(notifyPlayerOfNewMessage);
+    sendPlayerMailFromAdminToPlayer: function (platformId, adminId, adminName, playerIds, title, content) {
+        playerIds = Array.isArray(playerIds) ?playerIds :[playerIds];
+        let prom = [];
+        playerIds.forEach((playerId) => {
+            prom.push(
+                dbPlayerMail.createPlayerMail({
+                    platformId: platformId,
+                    senderType: 'admin',
+                    senderId: adminId,
+                    senderName: adminName,
+                    recipientType: 'player',
+                    recipientId: playerId,
+                    title: title,
+                    content: content
+                })
+            );
+        });
+        return Q.all(prom).then((results)=>{
+            results.forEach((result)=> {
+                notifyPlayerOfNewMessage(result);
+            });
+        });
     },
 
     sendPlayerMailFromPlayerTo: function (senderPlayer, recipientType, recipientObjId, title, content) {

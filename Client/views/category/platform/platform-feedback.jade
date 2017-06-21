@@ -18,6 +18,13 @@
                     option(value='all') {{'ALL' | translate}}
                     option(ng-repeat='(i,v) in vm.allPlayerTrustLvl', value='{{v.value}}') {{v.name | translate}}
             .inlineBlk
+                label {{"LAST_ACCESS_TIME" | translate}} {{"range" | translate}}
+                select.form-control(ng-model='vm.playerLastLoginRange', ng-change="vm.setLastAccessTimeRange()")
+                    option(value='')
+                    option(value='1_week') {{"ONE_WEEK_ABOVE" | translate}}
+                    option(value='2_week') {{"TWO_WEEK_ABOVE" | translate}}
+                    option(value='1_month') {{"ONE_MONTH_ABOVE" | translate}}
+            .inlineBlk
                 label {{"LAST_ACCESS_TIME" | translate}} {{"from" | translate}}
                     a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#lastAccessTime1")')
                 #lastAccessTime1
