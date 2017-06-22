@@ -5311,7 +5311,12 @@ define(['js/app'], function (myApp) {
         // };
 
         vm.prepareShowPlayerForbidTopUpType = function () {
-            vm.showForbidTopupTypes = vm.isOneSelectedPlayer().forbidTopUpType || [];
+            let sendData = {_id: vm.isOneSelectedPlayer()._id};
+
+            socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, (playerData) => {
+                vm.showForbidTopupTypes = playerData.data.forbidTopUpType || [];
+                $scope.safeApply();
+            });
         }
         vm.playerTopupTypes = function (type, index) {
             if (type == 'add') {
