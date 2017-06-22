@@ -197,6 +197,7 @@ var playerSchema = new Schema({
 
     //social media info
     qq: {type: String},
+    wechat: {type: String},
 
     //similar players
     similarPlayers: [{
