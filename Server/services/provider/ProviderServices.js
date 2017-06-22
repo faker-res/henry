@@ -178,6 +178,9 @@
 
             this.correctConsumptionList = new sinonet.WebSocketAsyncFunction("correctConsumptionList");
             this.addFunction(this.correctConsumptionList);
+
+            this.updateConsumption = new sinonet.WebSocketAsyncFunction("updateConsumption");
+            this.addFunction(this.updateConsumption);
         };
 
         ConsumptionService.prototype = Object.create(sinonet.WebSocketService.prototype);
