@@ -833,6 +833,9 @@ let dbPlayerInfo = {
             function (data) {
                 data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 data.email = dbUtility.encodeEmail(data.email);
+                if(data.bankAccount) {
+                    data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
+                }
                 apiData = data;
 
                 if (data.platform) {
@@ -3337,12 +3340,14 @@ let dbPlayerInfo = {
         );
     },
 
-    /*
+    /**
      * Transfer credit from platform to game provider
      * @param {objectId} platform
      * @param {objectId} playerId
      * @param {objectId} providerId
      * @param {Number} amount
+     * @param adminName
+     * @param forSync
      */
     transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
         let deferred = Q.defer();
@@ -3419,12 +3424,18 @@ let dbPlayerInfo = {
     },
 
     /**
-     * TODO:: Need choose which reward task is selected for update player credit
+     * TODO:: (DEPRECATING) Changing to dbPlayerCreditTransfer.playerCreditTransferToProvider
      * Transfer credit to game provider
+     * @param playerObjId
      * @param {objectId} platform
-     * @param {objectId} playerId
      * @param {objectId} providerId
      * @param {Number} amount
+     * @param providerShortId
+     * @param userName
+     * @param platformId
+     * @param adminName
+     * @param cpName
+     * @param forSync
      */
     transferPlayerCreditToProviderbyPlayerObjId: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
         let deferred = Q.defer();

@@ -293,26 +293,15 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                                         if (record && record[0]) {
                                             curConsumption = record[0].validAmount;
                                             bonusAmount = record[0].bonusAmount;
-
-                                            if (bonusAmount + getProp.data.amount <= 0) {
-                                                isSkip = true;
-                                                checkMsg += getProp.proposalId + " has zero or negative bonus amount, skipped; ";
-                                            }
-                                        }
-                                        else {
-                                            checkMsg += getProp.proposalId + " has no consumption; ";
                                         }
 
-                                        if (!isSkip) {
-                                            checkResult.push({
-                                                sequence: checkingNo,
-                                                proposalId: getProp.proposalId,
-                                                initBonusAmount: getProp.data.amount,
-                                                requiredConsumption: getProp.data.amount,
-                                                curConsumption: curConsumption,
-                                                bonusAmount: bonusAmount
-                                            });
-                                        }
+                                        checkResult.push({
+                                            sequence: checkingNo,
+                                            proposalId: getProp.proposalId,
+                                            requiredConsumption: getProp.data.amount,
+                                            curConsumption: curConsumption,
+                                            bonusAmount: bonusAmount
+                                        });
                                     }
                                 }
                             )
@@ -333,32 +322,23 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                             proms.push(
                                 getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo)).then(
                                     record => {
-                                        let curConsumption = 0, bonusAmount = 0, isSkip = false;
+                                        let curConsumption = 0, bonusAmount = 0;
                                         let initBonusAmount = getProp.data.applyAmount + getProp.data.rewardAmount;
 
                                         if (record && record[0]) {
                                             curConsumption = record[0].validAmount;
                                             bonusAmount = record[0].bonusAmount;
-
-                                            if (bonusAmount + initBonusAmount <= 0) {
-                                                isSkip = true;
-                                                checkMsg += "Reward proposal " + getProp.proposalId + " has zero or negative bonus amount, failed; ";
-                                            }
-                                        }
-                                        else {
-                                            checkMsg += "Reward proposal " + getProp.proposalId + " is not having enough consumption, failed; ";
                                         }
 
-                                        if (!isSkip) {
-                                            checkResult.push({
-                                                sequence: checkingNo,
-                                                proposalId: getProp.proposalId,
-                                                initBonusAmount: initBonusAmount,
-                                                requiredConsumption: getProp.data.spendingAmount,
-                                                curConsumption: curConsumption,
-                                                bonusAmount: bonusAmount
-                                            });
-                                        }
+                                        checkResult.push({
+                                            sequence: checkingNo,
+                                            proposalId: getProp.proposalId,
+                                            initBonusAmount: initBonusAmount,
+                                            requiredConsumption: getProp.data.spendingAmount,
+                                            curConsumption: curConsumption,
+                                            bonusAmount: bonusAmount
+                                        });
+
                                     }
                                 )
                             )
@@ -375,24 +355,39 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
 
             Promise.all(proms).then(
                 () => {
-                    let validConsumptionAmount = 0, spendingAmount = 0;
-                    let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
-                    //validConsumptionAmount += lostThreshold;
+                    let isClearCycle = false;
+                    let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
+
+                    // Make sure the check result is in correct order
+                    checkResult.sort((a, b) => b.sequence - a.sequence);
 
                     // Compare consumption and spendingAmount
                     for (let i = 0; i < checkResult.length; i++) {
-                        // reset the amounts if consumption > spending in previous cycle
-                        if (validConsumptionAmount > spendingAmount) {
+                        // reset the amounts if consumption > spending for next cycle
+                        if (isClearCycle) {
                             validConsumptionAmount = 0;
                             spendingAmount = 0;
+                            bonusAmount = 0;
+                            initBonusAmount = 0;
                         }
 
                         validConsumptionAmount += checkResult[i].curConsumption;
                         spendingAmount += checkResult[i].requiredConsumption;
 
+                        if (checkResult[i].initBonusAmount) {
+                            initBonusAmount += checkResult[i].initBonusAmount;
+                            bonusAmount += checkResult[i].bonusAmount;
+                        }
+
                         if (validConsumptionAmount != 0) {
                             // Check consumption for each cycle
-                            if (validConsumptionAmount < spendingAmount) {
+                            // User lost all bonus amount
+                            if (initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
+                                isApprove = false;
+                                isClearCycle = true;
+                                checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
+                            }
+                            else if (validConsumptionAmount + lostThreshold < spendingAmount) {
                                 isApprove = false;
                                 checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
                             }
@@ -401,6 +396,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                                 // reset from current cycle
                                 checkMsg += "Consumption fulfilled at proposal " + checkResult[i].proposalId + ", Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + ";";
                                 isApprove = true;
+                                isClearCycle = true;
                             }
                         }
                         else {
@@ -420,7 +416,7 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platfor
                     if (isApprove || isTypeEApproval) {
                         // Proposal approved - DISABLED FOR CSTEST
                         // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
-
+                        let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                         sendToAudit(proposal._id, proposal.createTime, approveRemark, checkMsg);
 
                     }
