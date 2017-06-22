@@ -3206,11 +3206,11 @@ let dbPlayerInfo = {
     },
 
     getLoggedInPlayers: function (noOfPlayers, name, platform) {
-        platform = Array.isArray(platform) ?platform :[platform];
+        platform = Array.isArray(platform) ? platform : [platform];
         noOfPlayers = noOfPlayers || 20;
         var query = {
             platform: {
-                    $in: platform
+                $in: platform
             },
             isLogin: true
         };
@@ -3223,7 +3223,7 @@ let dbPlayerInfo = {
     },
 
     getLoggedInPlayersCount: function (platform) {
-        platform = Array.isArray(platform) ?platform :[platform];
+        platform = Array.isArray(platform) ? platform : [platform];
         return dbconfig.collection_players.find(
             {
                 platform: {
@@ -3441,6 +3441,7 @@ let dbPlayerInfo = {
         let transferAmount = 0;
         let bTransfered = false;
         let transferId = new Date().getTime();
+        let changedLockCredit = 0;
 
         return dbconfig.collection_players.findOne({_id: playerObjId}).then(
             function (playerData1) {
@@ -3551,13 +3552,14 @@ let dbPlayerInfo = {
                     // Deduct amount from player validCredit before transfer
                     // Amount is already floored
                     // let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
+                    changedLockCredit = transferAmount - amount;
                     let updateObj = {
                         lastPlayedProvider: providerId,
-                        $inc: {validCredit: -amount}
+                        $inc: {validCredit: -amount, lockedCredit: -changedLockCredit}
                     };
-                    if (bUpdateReward) {
-                        updateObj.lockedCredit = rewardData.currentAmount;
-                    }
+                    // if (bUpdateReward) {
+                    //     updateObj.lockedCredit = rewardData.currentAmount;
+                    // }
                     return dbconfig.collection_players.findOneAndUpdate(
                         {_id: playerObjId, platform: platform},
                         updateObj,
@@ -3581,11 +3583,11 @@ let dbPlayerInfo = {
             function (updateData) {
                 if (updateData) {
                     //console.log("Before transfer credit:", playerData.validCredit);
-                    if (updateData.validCredit < -0.02) {
+                    if (updateData.validCredit < -0.02 || updateData.lockedCredit < -0.02) {
                         //reset player credit to 0
                         return dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerObjId, platform: platform},
-                            {$inc: {validCredit: amount}},
+                            {$inc: {validCredit: amount, lockedCredit: changedLockCredit}},
                             {new: true}
                         ).catch(errorUtils.reportError).then(
                             () => Q.reject({
@@ -3595,21 +3597,28 @@ let dbPlayerInfo = {
                             })
                         );
                     }
-                    else {
-                        playerCredit = updateData.validCredit;
-                        //fix float number problem after update
+
+                    playerCredit = updateData.validCredit;
+                    //fix float number problem after update
+                    if ((updateData.validCredit > -0.02 && updateData.validCredit < 0) || (updateData.lockedCredit > -0.02 && updateData.lockedCredit < 0)) {
+                        let uObj = {};
                         if (updateData.validCredit > -0.02 && updateData.validCredit < 0) {
                             playerCredit = 0;
-                            return dbconfig.collection_players.findOneAndUpdate(
-                                {_id: playerObjId, platform: platform},
-                                {validCredit: 0},
-                                {new: true}
-                            );
+                            uObj.validCredit = 0;
                         }
-                        else {
-                            return true;
+                        if (updateData.lockedCredit > -0.02 && updateData.lockedCredit < 0) {
+                            uObj.lockedCredit = 0;
                         }
+                        return dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerObjId, platform: platform},
+                            uObj,
+                            {new: true}
+                        );
                     }
+                    else {
+                        return true;
+                    }
+
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cant update player credit."});
@@ -4618,10 +4627,10 @@ let dbPlayerInfo = {
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
-        else{
+        else {
             return dbconfig.collection_platform.findOne({"_id": platformObjId}).then(
                 (platformData) => {
-                    if(platformData.autoCheckPlayerLevelUp){
+                    if (platformData.autoCheckPlayerLevelUp) {
                         const playerProm = dbconfig.collection_players.findOne({_id: playerObjId}).populate({
                             path: "playerLevel",
                             model: dbconfig.collection_playerLevel
@@ -4637,10 +4646,10 @@ let dbPlayerInfo = {
                             }
                         );
                     }
-                    else{
+                    else {
                         return Q.resolve(true);
                     }
-                },(error)=>{
+                }, (error) => {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
             );
@@ -8279,10 +8288,10 @@ let dbPlayerInfo = {
                                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]}
                                         };
                                         let todayTime = dbUtility.getTodaySGTime();
-                                        if( eventData.param.maxRewardTimes == 0 ){
+                                        if (eventData.param.maxRewardTimes == 0) {
                                             proposalQuery["data.eventCode"] = eventData.code;
                                         }
-                                        else{
+                                        else {
                                             proposalQuery["createTime"] = {
                                                 $gte: todayTime.startTime,
                                                 $lt: todayTime.endTime
@@ -8355,10 +8364,10 @@ let dbPlayerInfo = {
                         message: "Player is not valid for this reward"
                     });
                 }
-                
+
                 if (eventData.param && eventData.param.maxRewardTimes != null &&
                     ((eventData.param.maxRewardTimes > 0 && data[1] >= eventData.param.maxRewardTimes) ||
-                    (eventData.param.maxRewardTimes == 0 && data[1] > 0)) ) {
+                    (eventData.param.maxRewardTimes == 0 && data[1] > 0))) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
@@ -8601,7 +8610,6 @@ let dbPlayerInfo = {
             }
         );
     }
-
 
 
 };
