@@ -3443,7 +3443,7 @@ let dbPlayerInfo = {
         let transferId = new Date().getTime();
         let changedLockCredit = 0;
 
-        return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+        return dbconfig.collection_players.findOne({_id: playerObjId}).populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean().then(
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
@@ -3459,7 +3459,18 @@ let dbPlayerInfo = {
                         return;
                     }
                     // Check player current reward task
-                    return dbRewardTask.getPlayerCurRewardTask(playerObjId)
+                    let rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
+                    let gameCreditProm = {};
+                    if (playerData.lastPlayedProvider) {
+                        gameCreditProm = cpmsAPI.player_queryCredit(
+                            {
+                                username: userName,
+                                platformId: platformId,
+                                providerId: playerData.lastPlayedProvider.providerId
+                            }
+                        );
+                    }
+                    return Q.all([rewardProm, gameCreditProm]);
                 } else {
                     return Q.reject({name: "DataError", message: "Can't find player information."});
                 }
@@ -3469,7 +3480,8 @@ let dbPlayerInfo = {
             }
         ).then(
             function (taskData) {
-                rewardData = taskData;
+                rewardData = taskData[0];
+                let gameCredit =  (taskData[1] && taskData[1].credit) ? parseFloat(taskData[1].credit) : 0;
                 if (!notEnoughtCredit) {
                     // Player has enough credit
                     //if amount is less than 0, means transfer all
@@ -3499,7 +3511,7 @@ let dbPlayerInfo = {
                                 else {
                                     amount = Math.floor(amount);
                                     gameAmount = amount;
-                                    rewardData._inputCredit += amount;
+                                    rewardData._inputCredit += (amount + gameCredit);
                                     bUpdateReward = true;
                                 }
                             } else {
@@ -3527,7 +3539,7 @@ let dbPlayerInfo = {
                                     }
                                     rewardTaskAmount = rewardData.currentAmount - rewardAmount;
                                     rewardData.inProvider = true;
-                                    rewardData._inputCredit = amount;
+                                    rewardData._inputCredit = amount + gameCredit;
                                     rewardData.currentAmount = rewardTaskAmount;
                                 }
                                 bUpdateReward = true;
