@@ -833,6 +833,9 @@ let dbPlayerInfo = {
             function (data) {
                 data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 data.email = dbUtility.encodeEmail(data.email);
+                if(data.bankAccount) {
+                    data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
+                }
                 apiData = data;
 
                 if (data.platform) {

@@ -78,6 +78,9 @@ let PlayerServiceImplement = function () {
 
                     playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
                     playerData.email = dbUtility.encodeEmail(playerData.email);
+                    if(playerData.bankAccount) {
+                        playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
+                    }
 
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
@@ -308,6 +311,9 @@ let PlayerServiceImplement = function () {
 
                 playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
                 playerData.email = dbUtility.encodeEmail(playerData.email);
+                if(playerData.bankAccount) {
+                    playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
+                }
 
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
