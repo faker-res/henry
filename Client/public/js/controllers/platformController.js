@@ -51,9 +51,10 @@ define(['js/app'], function (myApp) {
             FORBID_GAME: 2,
             FORBID: 3,
             BALCKLIST: 4,
-            ATTENTION: 5
+            ATTENTION: 5,
+            WARINESS: 6
         };
-        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION'];
+        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION','WARINESS'];
         vm.depositMethodList = {
             Online: 1,
             ATM: 2,
@@ -2182,6 +2183,8 @@ define(['js/app'], function (myApp) {
                                 textClass = "text-black";
                             } else if (data == 5) {
                                 textClass = "text-danger";
+                            }else if(data === 6){
+                                textClass = "text-warning";
                             }
 
                             return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
@@ -5311,7 +5314,12 @@ define(['js/app'], function (myApp) {
         // };
 
         vm.prepareShowPlayerForbidTopUpType = function () {
-            vm.showForbidTopupTypes = vm.isOneSelectedPlayer().forbidTopUpType || [];
+            let sendData = {_id: vm.isOneSelectedPlayer()._id};
+
+            socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, (playerData) => {
+                vm.showForbidTopupTypes = playerData.data.forbidTopUpType || [];
+                $scope.safeApply();
+            });
         }
         vm.playerTopupTypes = function (type, index) {
             if (type == 'add') {
