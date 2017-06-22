@@ -47,6 +47,7 @@
   "LAST_ACCESS_TIME_START" : "Last Access Time (Start)",
   "LAST_ACCESS_TIME_END" : "Last Access Time (End)",
   "EMAIL" : "Email",
+  "WECHAT" : "Wechat",
   "STATUS" : "Status",
   "TRUST_LEVEL" : "Trust",
   "GAME_CREDIT" : "Game Credit",
