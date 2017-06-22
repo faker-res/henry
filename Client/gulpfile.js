@@ -3,22 +3,22 @@
 var gulp = require('gulp');
 var gulpNgConfig = require('gulp-ng-config');
 
-var configureSetup  = {
-  createModule: true,
-  constants: {
-    "CONFIG" : {
-      NODE_ENV: process.env.NODE_ENV,
+var configureSetup = {
+    createModule: true,
+    constants: {
+        "CONFIG": {
+            NODE_ENV: process.env.NODE_ENV,
+        }
     }
-  }
 };
 
-gulp.task('config', function() {
-  gulp.src('config.json')
-      .pipe(gulpNgConfig('myApp', configureSetup))
-      .pipe(gulp.dest('public/js'));
+gulp.task('config', function () {
+    gulp.src('config.json')
+        .pipe(gulpNgConfig('myApp', configureSetup))
+        .pipe(gulp.dest('public/js'));
 });
 
-var rimraf = require("rimraf"),
+var rimraf = require("gulp-rimraf"),
     concat = require("gulp-concat"),
     cssmin = require("gulp-cssmin"),
     uglify = require("gulp-uglify"),
@@ -36,73 +36,128 @@ var paths = {
     concatCssDest: webroot + "site.min.css"
 };
 
-gulp.task("clean:js", function (cb) {
-    rimraf(paths.concatJsDest, cb);
+gulp.task("cleanCss", function (cb) {
+    return gulp.src("./public/css/site*.min.css", {
+            read: false
+        })
+        .pipe(rimraf({
+            force: true
+        }));
 });
 
-gulp.task("clean:css", function (cb) {
-    rimraf(paths.concatCssDest, cb);
-});
+gulp.task("clean", ["cleanCss"]);
 
-gulp.task("clean", ["clean:js", "clean:css"]);
+// gulp.task("test", function () {
+//     return gulp.src(["./bower_components/jquery/dist/jquery.min.js",
+//     "./bower_components/**/*.min.js",
+//     "./bower_components/**/dist/*.min.js",
+//     "./bower_components/Flot/jquery.flot.js",
+//     "./bower_components/Flot/jquery.*.js",
+//     "./bower_components/Flot/jquery.*.*.js",
+//     "./bower_components/**/js/*.min.js",
+//     "./bower_components/multiple-select/multiple-select.js",
+//     "!./bower_components/multiple-select/docs/**",
+//     "!./bower_components/multiple-select/demos/**"])
+//         //.pipe(concat("site.min.js"))
+//         // .pipe(uglify())
+//         .on('error', function (err) { gutil.log(gutil.colors.red('[Error]'), err.toString()); })
+//         .pipe(gulp.dest("test"));
+// });
+
+// gulp.task("testMinJs2", function () {
+//     return gulp.src(["./public/sb-admin-2/**/*.min.js",
+//             "./public/sb-admin-2/**/**/*.min.js",
+//             "./public/sb-admin-2/**/**/**/*.min.js"
+//         ], {
+//             base: "."
+//         })
+//         //.pipe(concat("site2.min.js"))
+//         // .pipe(uglify())
+//         .on('error', function (err) {
+//             gutil.log(gutil.colors.red('[Error]'), err.toString());
+//         })
+//         .pipe(gulp.dest("testMinJs2"));
+// });
 
 gulp.task("minJs1", function () {
-    return gulp.src(["./bower_components/jquery/dist/jquery.min.js","./bower_components/**/*.min.js","./bower_components/**/dist/*.min.js","./bower_components/Flot/jquery.flot.js","./bower_components/Flot/jquery.*.js","./bower_components/Flot/jquery.*.*.js","./bower_components/**/js/*.min.js"], { base: "." })
-        .pipe(concat(paths.concatJsDest))
-        // .pipe(uglify())
-        .on('error', function (err) { gutil.log(gutil.colors.red('[Error]'), err.toString()); })
-        .pipe(gulp.dest("."));
+    return gulp.src(["./bower_components/jquery/dist/jquery.min.js",
+            "./bower_components/**/*.min.js",
+            "./bower_components/**/dist/*.min.js",
+            "./bower_components/Flot/jquery.flot.js",
+            "./bower_components/Flot/jquery.*.js",
+            "./bower_components/Flot/jquery.*.*.js",
+            "./bower_components/**/js/*.min.js",
+            "./bower_components/multiple-select/multiple-select.js",
+            "!./bower_components/multiple-select/docs/**",
+            "!./bower_components/multiple-select/demos/**"
+        ], {
+            base: "."
+        })
+        .pipe(concat("site.min.js"))
+        .pipe(uglify())
+        .on('error', function (err) {
+            gutil.log(gutil.colors.red('[Error]'), err.toString());
+        })
+        .pipe(gulp.dest("./"));
 });
 
 gulp.task("minJs2", function () {
-    return gulp.src(["./public/sb-admin-2/**/*.min.js","./public/sb-admin-2/**/**/*.min.js","./public/sb-admin-2/**/**/**/*.min.js"], { base: "." })
+    return gulp.src(["./public/sb-admin-2/**/*.min.js",
+            "./public/sb-admin-2/**/**/*.min.js",
+            "./public/sb-admin-2/**/**/**/*.min.js",
+            "./public/sb-admin-2/**/sb-admin-2.js"
+        ], {
+            base: "."
+        })
         .pipe(concat("site2.min.js"))
         // .pipe(uglify())
-        .on('error', function (err) { gutil.log(gutil.colors.red('[Error]'), err.toString()); })
+        .on('error', function (err) {
+            gutil.log(gutil.colors.red('[Error]'), err.toString());
+        })
         .pipe(gulp.dest("."));
 });
 
-gulp.task("minCss3", function () {
-    return gulp.src(["./bower_components/**/*.min.css","./bower_components/**/dist/*.min.css","./bower_components/**/css/*.min.css","!./bower_components/bootstrap/**"])
-        .pipe(concat(paths.concatCssDest))
+gulp.task("minCss1", function () {
+    return gulp.src(["./bower_components/**/*.min.css", "./bower_components/**/dist/*.min.css", "./bower_components/**/css/*.min.css", "./bower_components/multiple-select/*.css", "!./bower_components/bootstrap/**"])
+        .pipe(concat("site.min.css"))
         // .pipe(cssmin())
         .pipe(gulp.dest("."));
 });
 
 gulp.task("minCss2", function () {
-    return gulp.src(["./public/sb-admin-2/**/*.min.css","./public/sb-admin-2/**/**/*.min.css","./public/sb-admin-2/**/**/**/*.min.css","./public/sb-admin-2/css/sb-admin-2.css","./public/sb-admin-2/css/plugins/*.css","!./public/sb-admin-2/css/plugins/dataTables.bootstrap.css"])
+    return gulp.src(["./public/sb-admin-2/**/*.min.css", "./public/sb-admin-2/**/**/*.min.css", "./public/sb-admin-2/**/**/**/*.min.css", "./public/sb-admin-2/css/sb-admin-2.css", "./public/sb-admin-2/css/plugins/*.css", "!./public/sb-admin-2/css/plugins/dataTables.bootstrap.css"])
         .pipe(concat("site2.min.css"))
         // .pipe(cssmin())
         .pipe(gulp.dest("."));
 });
 
-gulp.task("minCss1", function () {
-    return gulp.src(["./public/css/*.css"])
-    .pipe(concat("site3.min.css"))
-    // .pipe(cssmin())
-    .pipe(gulp.dest("."));
+gulp.task("minCss3", function () {
+    return gulp.src(["./public/css/*.css",
+            "./public/css/analysis.css",
+            "./public/css/bootstrap-slider.css",
+            "./public/css/ng-table.css"
+        ])
+        .pipe(concat("site3.min.css"))
+        // .pipe(cssmin())
+        .pipe(gulp.dest("."));
 });
 
-gulp.task("cleanCss", function (cb) {
-    rimraf("public/css/site.min.js", cb);
-});
-
-gulp.task('default',["minJs1","minJs2", "minCss1","minCss2","minCss3"], function () {
-    gulp.src([paths.concatJsDest])
+gulp.task('default', ["minJs1", "minJs2", "minCss1", "minCss2", "minCss3"], function () {
+    gulp.src(["site.min.js"])
         .pipe(gulp.dest('public/js/lib/'));
 
-        gulp.src(["site2.min.js"])
-            .pipe(gulp.dest('public/js/lib/'));
+    gulp.src(["site2.min.js"])
+        .pipe(gulp.dest('public/js/lib/'));
 
-        gulp.src([paths.concatCssDest])
-            .pipe(gulp.dest('public/css/'));
+    gulp.src(["site.min.css"])
+        .pipe(gulp.dest('public/css/'));
 
-        gulp.src(["site2.min.css"])
-            .pipe(gulp.dest('public/css/'));
+    gulp.src(["site2.min.css"])
+        .pipe(gulp.dest('public/css/'));
 
-        gulp.src(["site3.min.css"])
-            .pipe(gulp.dest('public/css/'));
+    gulp.src(["site3.min.css"])
+        .pipe(gulp.dest('public/css/'));
+
+    gulp.src(["./bower_components/multiple-select/multiple-select.png"])
+        .pipe(gulp.dest('public/css/'));
 });
-
-
-gulp.task("min", ["minJs1", "minCss3"]);

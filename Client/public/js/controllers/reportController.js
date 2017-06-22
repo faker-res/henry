@@ -2,8 +2,8 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'socketService', 'Upload', 'utilService', 'CONFIG', "$cookies"];
-    var reportController = function ($scope, $filter, $location, $log, $timeout, authService, socketService, Upload, utilService, CONFIG, $cookies) {
+    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies"];
+    var reportController = function ($scope, $filter, $location, $log, $timeout, authService, socketService, utilService, CONFIG, $cookies) {
         var $translate = $filter('translate');
         var vm = this;
 
@@ -1060,7 +1060,7 @@ define(['js/app'], function (myApp) {
             var providersToSettle =
                 vm.curQueryOperation.endTime < midnightThisMorningSG ? []
                     : vm.curQueryOperation.providerId ? [getProviderWithObjId(vm.curQueryOperation.providerId)]
-                    : vm.allProviders;
+                        : vm.allProviders;
 
             var settlementDate = vm.curQueryOperation.endTime;
 
@@ -1207,12 +1207,12 @@ define(['js/app'], function (myApp) {
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'getProviderGameReport', sendData, function (data) {
                 var playerData = data.data.data ? data.data.data.map(item => {
-                    item.amount$ = parseFloat(item.amount).toFixed(2);
-                    item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
-                    item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                    item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
-                    return item;
-                }) : [];
+                        item.amount$ = parseFloat(item.amount).toFixed(2);
+                        item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
+                        item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                        item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
+                        return item;
+                    }) : [];
                 vm.drawProviderGameTable(playerData, id, data.data.size, data.data.summary, newSearch);
             });
         }
@@ -1291,11 +1291,11 @@ define(['js/app'], function (myApp) {
 
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             var summaryObj = summary ? {
-                3: summary.times,
-                4: summary.consumption,
-                5: summary.validConsumption,
-                6: summary.bonusAmount
-            } : {}
+                    3: summary.times,
+                    4: summary.consumption,
+                    5: summary.validConsumption,
+                    6: summary.bonusAmount
+                } : {}
             vm.gameTable[id] = utilService.createDatatableWithFooter('#' + id, tableOptions, summaryObj);
             vm[id].pageObj.init({maxCount: size}, newSearch);
 
@@ -1911,19 +1911,19 @@ define(['js/app'], function (myApp) {
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
-                proposalId: newproposalQuery.proposalId,
-                index: 0,
-                limit: 1,
-            } : {
-                startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
-                endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
-                proposalTypeId: newproposalQuery.proposalTypeId,
-                platformId: vm.curPlatformId,
-                status: newproposalQuery.status,
-                index: newSearch ? 0 : (newproposalQuery.index || 0),
-                limit: newproposalQuery.limit,
-                sortCol: newproposalQuery.sortCol
-            }
+                    proposalId: newproposalQuery.proposalId,
+                    index: 0,
+                    limit: 1,
+                } : {
+                    startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
+                    proposalTypeId: newproposalQuery.proposalTypeId,
+                    platformId: vm.curPlatformId,
+                    status: newproposalQuery.status,
+                    index: newSearch ? 0 : (newproposalQuery.index || 0),
+                    limit: newproposalQuery.limit,
+                    sortCol: newproposalQuery.sortCol
+                }
             console.log("newproposalQuery", newproposalQuery);
 
             socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
@@ -2774,15 +2774,15 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
 
             var sumObj = summary ? {
-                4: summary.totalTopUpTimes,
-                5: summary.totalBonusTimes,
-                6: summary.totalTopUpAmount,
-                7: summary.totalBonusAmount,
-                8: summary.topUpTimes,
-                9: summary.bonusTimes,
-                10: summary.topUpAmount,
-                11: summary.bonusAmount,
-            } : {};
+                    4: summary.totalTopUpTimes,
+                    5: summary.totalBonusTimes,
+                    6: summary.totalTopUpAmount,
+                    7: summary.totalBonusAmount,
+                    8: summary.topUpTimes,
+                    9: summary.bonusTimes,
+                    10: summary.topUpAmount,
+                    11: summary.bonusAmount,
+                } : {};
 
             vm.partnerPlayerBonusTable = utilService.createDatatableWithFooter('#partnerPlayerBonusTable', tableOptions, sumObj);
             vm.partnerPlayerBonusQuery.pageObj.init({maxCount: size}, newSearch);
