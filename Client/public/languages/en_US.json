@@ -734,6 +734,7 @@
   "NORMAL":"Normal",
   "FORBID_GAME":"Forbid Game",
   "FORBID":"Forbid",
+  "WARINESS":"Wariness",
   "GAME_EXPENSES":"Game Expenses",
   "PROVIDER_EXPENSES":"Provider Expenses",
   "orderId":"Order ID",

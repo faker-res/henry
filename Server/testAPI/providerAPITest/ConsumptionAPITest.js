@@ -156,6 +156,27 @@
         });
     };
 
+    proto.updateConsumption = function (callback, requestData) {
+        var data = requestData ||
+            {
+                name: !isNode && playerName,
+                providerId: !isNode && window.testProviderId,
+                gameId: !isNode && window.testGameId,
+                amount: 10,
+                validAmount: 5,
+                createTime: Date.now(),
+                detail: 'detail'
+            };
+        this._service.updateConsumption.request(data);
+        var self = this;
+        this._service.updateConsumption.once(function (data) {
+            //self.testRecordId = data.data._id;
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.updateTransferProgress = function (callback, requestData) {
         var data = requestData || {};
         this._service.updateTransferProgress.request(data);
