@@ -1,5 +1,6 @@
 const Q = require("q");
 
+const constPlayerCreditChangeType = require('../const/constPlayerCreditChangeType');
 const constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 const constServerCode = require('./../const/constServerCode');
 const constSystemParam = require("../const/constSystemParam.js");
@@ -20,11 +21,17 @@ const dbPlayerCreditTransfer = {
      * TODO: NOT YET COMPLETE
      * Transfer player credit from local to provider
      * @param playerObjId
+     * @param platform
      * @param {String} providerId
      * @param amount
+     * @param providerShortId
+     * @param userName
+     * @param platformId
+     * @param adminName
+     * @param cpName
      * @param forSync
      */
-    playerCreditTransferToProvider: (playerObjId, providerId, amount, forSync) => {
+    playerCreditTransferToProvider: (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) => {
         let gameAmount = 0;
         let rewardAmount = 0;
         let providerAmount = 0;
@@ -157,7 +164,7 @@ const dbPlayerCreditTransfer = {
                     $inc: {validCredit: -transferAmount}
                 };
                 if (bUpdateReward) {
-                    updateObj.lockedCredit = rewardData.currentAmount;
+                    updateObj.lockedCredit = totalLockedAmount;
                 }
                 return dbConfig.collection_players.findOneAndUpdate(
                     {_id: playerObjId, platform: playerData.platform},
@@ -219,7 +226,7 @@ const dbPlayerCreditTransfer = {
                             transferId = id;
                             //let lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                             // Second log before call cpmsAPI
-                            dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, playerData.platform, platformId, "transferIn",
+                            dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                 id, providerShortId, transferAmount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return cpmsAPI.player_transferIn(
                                 {
