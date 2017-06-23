@@ -270,7 +270,7 @@ var type11 = "PlayerConsumptionIncentive";
 db.rewardParam.insert({
     "name": type11, params: {
         needApply: {type: "Boolean", des: "If this reward requires player application"},
-        //useConsumption: {type: "Boolean", des: "If use consumption record"},
+        useConsumption: {type: "Boolean", des: "If use consumption record"},
         reward: {
             type: "Table",
             data: {

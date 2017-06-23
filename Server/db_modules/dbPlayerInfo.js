@@ -7382,7 +7382,8 @@ let dbPlayerInfo = {
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
-                            eventDescription: event.description
+                            eventDescription: event.description,
+                            useConsumption: Boolean(event.param.useConsumption)
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
