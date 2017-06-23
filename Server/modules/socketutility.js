@@ -73,7 +73,7 @@ var socketUtility = {
                         var shouldLog = !muteLog;
 
                         if (shouldLog) {
-                            console.log(new Date() + " Error while handling socket request '" + event + "' with arguments:", args);
+                            console.log(new Date() + " Error while handling socket request '" + event + "' with arguments:", args, err);
                             errorUtils.reportError(err);
                         }
 
