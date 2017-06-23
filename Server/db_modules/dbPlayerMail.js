@@ -22,9 +22,9 @@ const dbPlayerMail = {
 
     sendPlayerMailFromAdminToPlayer: function (platformId, adminId, adminName, playerIds, title, content) {
         playerIds = Array.isArray(playerIds) ?playerIds :[playerIds];
-        let prom = [];
-        playerIds.forEach((playerId) => {
-            prom.push(
+
+        let proms = playerIds.reduce((tempProms,playerId)=>{
+            tempProms.push(
                 dbPlayerMail.createPlayerMail({
                     platformId: platformId,
                     senderType: 'admin',
@@ -36,11 +36,17 @@ const dbPlayerMail = {
                     content: content
                 })
             );
-        });
-        return Q.all(prom).then((results)=>{
-            results.forEach((result)=> {
-                notifyPlayerOfNewMessage(result);
-            });
+            return tempProms;
+        },[]);
+
+        return Q.all(proms).then((results)=>{
+            if(results){
+                let notifyProm = [];
+                results.forEach((result)=> {
+                    notifyProm.push(notifyPlayerOfNewMessage(result));
+                });
+                return Q.all(notifyProm);
+            }
         });
     },
 

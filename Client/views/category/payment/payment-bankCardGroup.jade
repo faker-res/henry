@@ -87,7 +87,7 @@
                                 a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedBanks', class='{{vm.highlightBank[v.accountNumber]}}', ng-click='vm.bankClicked(i,v,"ex")')
                                     table.bg-pale
                                         tr
-                                            td.text-center(rowspan="3")
+                                            td.text-center(rowspan="4")
                                                 i.fa.fa-credit-card.text-danger
                                             td {{'TITLE' | translate}}
                                             td.text-success {{v.name}}
