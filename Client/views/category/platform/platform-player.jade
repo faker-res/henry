@@ -948,7 +948,13 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
                                         .inlineBlk
                                             label {{"EMAIL" | translate}}
-                                            text {{vm.selectedSinglePlayer.email || 'Unknown' | translate}}
+                                            text {{vm.selectedSinglePlayer.email || vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{"WECHAT" | translate}}
+                                            text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
+                                        .inlineBlk
+                                            label {{"QQ" | translate}}
+                                            text {{vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'Test Player' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.isTestPlayer ? 'Yes' : 'No' | translate}}
