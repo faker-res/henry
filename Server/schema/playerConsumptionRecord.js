@@ -48,5 +48,6 @@ var playerConsumptionRecordSchema = new Schema({
 
 //record is unique by playerId platformId and date
 playerConsumptionRecordSchema.index({playerId: 1, platformId: 1, gameId: 1, createTime: 1});
+playerConsumptionRecordSchema.index({platformId: 1, createTime: 1});
 
 module.exports = playerConsumptionRecordSchema;
