@@ -190,10 +190,10 @@ const dbPlayerCreditTransfer = {
                 // Deduct amount from player validCredit before transfer
                 // Amount is already floored
                 // let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
-                changedLockCredit = lockedTransferAmount - validTransferAmount;
+
                 let updateObj = {
                     lastPlayedProvider: providerId,
-                    $inc: {validCredit: -validTransferAmount, lockedCredit: -changedLockCredit}
+                    $inc: {validCredit: -validTransferAmount, lockedCredit: -lockedTransferAmount}
                 };
                 // if (bUpdateReward) {
                 //     updateObj.lockedCredit = totalLockedAmount;
@@ -219,7 +219,7 @@ const dbPlayerCreditTransfer = {
                         // Player credit is less than expected after deduct, revert the decrement
                         return dbConfig.collection_players.findOneAndUpdate(
                             {_id: playerObjId, platform: playerData.platform},
-                            {$inc: {validCredit: validTransferAmount, lockedCredit: changedLockCredit}},
+                            {$inc: {validCredit: validTransferAmount, lockedCredit: lockedTransferAmount}},
                             {new: true}
                         ).catch(errorUtils.reportError).then(
                             () => Q.reject({
@@ -330,7 +330,7 @@ const dbPlayerCreditTransfer = {
                             } else {
                                 return dbConfig.collection_players.findOneAndUpdate(
                                     {_id: playerObjId, platform: playerData.platform},
-                                    {$inc: {validCredit: amount}, lockedAmount: rewardAmount},
+                                    {$inc: {validCredit: validTransferAmount}, lockedAmount: lockedTransferAmount},
                                     {new: true}
                                 );
                             }
@@ -345,7 +345,7 @@ const dbPlayerCreditTransfer = {
                 if (res) {
                     //playerCredit = res.validCredit;
                     // Log credit change when transfer success
-                    dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -amount, constPlayerCreditChangeType.TRANSFER_IN, playerCredit, 0, -rewardAmount, null, {
+                    dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN, playerCredit, 0, -lockedTransferAmount, null, {
                         providerId: providerShortId,
                         providerName: cpName,
                         transferId: transferId,
@@ -453,9 +453,9 @@ const dbPlayerCreditTransfer = {
                 if (!notEnoughCredit) {
                     amount = amount > 0 ? Math.floor(amount) : Math.floor(providerPlayerObj.gameCredit);
                     let totalAmountLeftToTransfer = amount;
-                    
+
                     if (data) {
-                        if(data[0].requiredBonusAmount > 0) {
+                        if (data[0].requiredBonusAmount > 0) {
                             // handle register bonus separately
                             rewardTask = data[0];
                             rewardTask.currentAmount = amount;
@@ -477,7 +477,7 @@ const dbPlayerCreditTransfer = {
                                 if ((!rewardTask.targetProviders || rewardTask.targetProviders.length <= 0 ) // target all providers
                                     || (rewardTask.targetEnable && rewardTask.targetProviders.indexOf(providerId) >= 0 ) // target this provider
                                     || (!rewardTask.targetEnable && rewardTask.targetProviders.indexOf(providerId) < 0) // banded provider
-                                ){
+                                ) {
                                     relevantRewards.push(rewardTask)
                                 } else {
                                     // since unrelevant provider will not change the currentAmount, their lockedAmount won't change as well
@@ -501,7 +501,7 @@ const dbPlayerCreditTransfer = {
                                     rewardTask.bUpdateTask = true;
 
                                     // if the reward is the last one AND totalAmountLeftToTransfer left is more than _inputCredit
-                                    if(isOldestReward && totalAmountLeftToTransfer > rewardTask._inputCredit) {
+                                    if (isOldestReward && totalAmountLeftToTransfer > rewardTask._inputCredit) {
                                         // add the rest to currentAmount (when win money, add to reward first)
                                         rewardTask.currentAmount += totalAmountLeftToTransfer - rewardTask._inputCredit;
 
@@ -526,7 +526,7 @@ const dbPlayerCreditTransfer = {
                             validCreditToAdd = totalAmountLeftToTransfer > 0 ? totalAmountLeftToTransfer : 0;
                             rewardTaskCredit = lockedAmount;
                         }
-                        
+
                     }
                     if (forSync) {
                         return true;
