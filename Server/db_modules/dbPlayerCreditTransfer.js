@@ -5,6 +5,8 @@ const constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTra
 const constServerCode = require('./../const/constServerCode');
 const constSystemParam = require("../const/constSystemParam.js");
 
+const dbOperations = require('./../db_common/dbOperations');
+
 const dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 const dbRewardTask = require('./../db_modules/dbRewardTask');
 
@@ -63,7 +65,7 @@ const dbPlayerCreditTransfer = {
                         });
                     }
                     // Check player current reward task
-                    let rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
+                    let rewardProm = dbRewardTask.getPlayerAllRewardTask(playerObjId);
                     let gameCreditProm = {};
                     if (playerData.lastPlayedProvider) {
                         gameCreditProm = cpmsAPI.player_queryCredit(
@@ -103,7 +105,7 @@ const dbPlayerCreditTransfer = {
                     // Player has ongoing reward
                     rewardDataObj = rewardData;
 
-                    rewardData = rewardData.forEach(reward => {
+                    rewardData = rewardData.map(reward => {
                         if ((!reward.targetProviders || reward.targetProviders.length <= 0 ) // target all providers
                             || (reward.targetEnable && reward.targetProviders.indexOf(providerId) >= 0)//target this provider
                             || (!reward.targetEnable && reward.targetProviders.indexOf(providerId) < 0)//banded provider
@@ -168,13 +170,17 @@ const dbPlayerCreditTransfer = {
                             // not this provider
                             validTransferAmount = Math.floor(validTransferAmount);
                         }
+
+                        return reward;
                     })
                 }
 
-                transferAmount = validTransferAmount + gameAmount;
                 lockedTransferAmount = isFirstRegistrationReward ? regGameAmount : gameAmount;
+                transferAmount = validTransferAmount + lockedTransferAmount;
 
+                console.log('rewardData', rewardData);
                 console.log('validTransferAmount', validTransferAmount);
+                console.log('regGameAmount', regGameAmount);
                 console.log('gameAmount', gameAmount);
                 console.log('transferAmount', transferAmount);
                 console.log('lockedTransferAmount', lockedTransferAmount);
@@ -215,13 +221,8 @@ const dbPlayerCreditTransfer = {
             updateData => {
                 if (updateData) {
                     if (updateData.validCredit < -0.02 || updateData.lockedCredit < -0.02) {
-                        // TODO Change this to update with retry
                         // Player credit is less than expected after deduct, revert the decrement
-                        return dbConfig.collection_players.findOneAndUpdate(
-                            {_id: playerObjId, platform: playerData.platform},
-                            {$inc: {validCredit: validTransferAmount, lockedCredit: lockedTransferAmount}},
-                            {new: true}
-                        ).catch(errorUtils.reportError).then(
+                        return revertPlayerCreditChange(playerObjId, playerData.platform, validTransferAmount, lockedTransferAmount).then(
                             () => Q.reject({
                                 status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                                 name: "NumError",
@@ -304,16 +305,32 @@ const dbPlayerCreditTransfer = {
             data => {
                 if (data) {
                     if (bUpdateReward) {
-                        return dbRewardTask.updateRewardTask(
-                            {
-                                _id: rewardData._id,
-                                platformId: rewardData.platformId
-                            }, {
-                                inProvider: rewardData.inProvider,
-                                _inputCredit: rewardData._inputCredit,
-                                currentAmount: rewardData.currentAmount
-                            }
-                        );
+                        // return dbRewardTask.updateRewardTask(
+                        //     {
+                        //         _id: rewardData._id,
+                        //         platformId: rewardData.platformId
+                        //     }, {
+                        //         inProvider: rewardData.inProvider,
+                        //         _inputCredit: rewardData._inputCredit,
+                        //         currentAmount: rewardData.currentAmount
+                        //     }
+                        // );
+                        let updProm = [];
+
+                        rewardData.forEach(reward => {
+                            updProm.push(dbRewardTask.updateRewardTask(
+                                {
+                                    _id: reward._id,
+                                    platformId: reward.platformId
+                                }, {
+                                    inProvider: reward.inProvider,
+                                    _inputCredit: reward._inputCredit,
+                                    currentAmount: reward.currentAmount
+                                }
+                            ))
+                        });
+
+                        return Promise.all(updProm);
                     }
                     else {
                         return (rewardData);
@@ -371,7 +388,14 @@ const dbPlayerCreditTransfer = {
                 else {
                     return Q.reject({name: "DataError", message: "Error transfer player credit to provider."});
                 }
-            }
+            },
+            err => revertPlayerCreditChange(playerObjId, playerData.platform, validTransferAmount, lockedTransferAmount).then(
+                () => Q.reject({
+                    status: constServerCode.FAILED_UPDATE_REWARD_TASK,
+                    name: "DBError",
+                    errorMessage: "Failed when updating reward task during transfer in"
+                })
+            )
         );//.catch( error => console.log("transfer error:", error));
     },
 
@@ -730,5 +754,22 @@ const dbPlayerCreditTransfer = {
     }
 
 };
+
+/**
+ *
+ * @param playerObjId
+ * @param platformObjId
+ * @param incValidCredit
+ * @param incLockedCredit
+ * @returns {*}
+ */
+function revertPlayerCreditChange(playerObjId, platformObjId, incValidCredit, incLockedCredit) {
+    return dbOperations.findOneAndUpdateWithRetry(
+        dbConfig.collection_players,
+        {_id: playerObjId, platform: platformObjId},
+        {$inc: {validCredit: incValidCredit, lockedCredit: incLockedCredit}},
+        {new: true}
+    );
+}
 
 module.exports = dbPlayerCreditTransfer;
