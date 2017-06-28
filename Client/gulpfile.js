@@ -47,27 +47,35 @@ gulp.task("cleanCss", function (cb) {
 
 gulp.task("clean", ["cleanCss"]);
 
-// gulp.task("test", function () {
+// gulp.task("testMinJs1", function () {
 //     return gulp.src(["./bower_components/jquery/dist/jquery.min.js",
-//     "./bower_components/**/*.min.js",
-//     "./bower_components/**/dist/*.min.js",
-//     "./bower_components/Flot/jquery.flot.js",
-//     "./bower_components/Flot/jquery.*.js",
-//     "./bower_components/Flot/jquery.*.*.js",
-//     "./bower_components/**/js/*.min.js",
-//     "./bower_components/multiple-select/multiple-select.js",
-//     "!./bower_components/multiple-select/docs/**",
-//     "!./bower_components/multiple-select/demos/**"])
+//             "./bower_components/**/*.min.js",
+//             "./bower_components/**/dist/*.min.js",
+//             "./bower_components/Flot/jquery.flot.js",
+//             "./bower_components/Flot/jquery.*.js",
+//             "./bower_components/Flot/jquery.*.*.js",
+//             "./bower_components/**/js/*.min.js",
+//             "./bower_components/multiple-select/multiple-select.js",
+//             "!./bower_components/multiple-select/docs/**",
+//             "!./bower_components/multiple-select/demos/**",
+//             "!./bower_components/bootstrap/dist/js/*"
+//         ])
 //         //.pipe(concat("site.min.js"))
 //         // .pipe(uglify())
-//         .on('error', function (err) { gutil.log(gutil.colors.red('[Error]'), err.toString()); })
-//         .pipe(gulp.dest("test"));
+//         .on('error', function (err) {
+//             gutil.log(gutil.colors.red('[Error]'), err.toString());
+//         })
+//         .pipe(gulp.dest("testMinJs1"));
 // });
 
 // gulp.task("testMinJs2", function () {
 //     return gulp.src(["./public/sb-admin-2/**/*.min.js",
 //             "./public/sb-admin-2/**/**/*.min.js",
-//             "./public/sb-admin-2/**/**/**/*.min.js"
+//             "./public/sb-admin-2/**/**/**/*.min.js",
+//             "!./public/sb-admin-2/**/sb-admin-2.js",
+//             "!./public/sb-admin-2/**/bootstrap-datetimepicker.min.js",
+//             "!./public/sb-admin-2/**/plugins/flot/*",
+//             "!./public/sb-admin-2/**/plugins/morris/*",
 //         ], {
 //             base: "."
 //         })
@@ -89,7 +97,8 @@ gulp.task("minJs1", function () {
             "./bower_components/**/js/*.min.js",
             "./bower_components/multiple-select/multiple-select.js",
             "!./bower_components/multiple-select/docs/**",
-            "!./bower_components/multiple-select/demos/**"
+            "!./bower_components/multiple-select/demos/**",
+            "!./bower_components/bootstrap/dist/js/*"
         ], {
             base: "."
         })
@@ -105,12 +114,15 @@ gulp.task("minJs2", function () {
     return gulp.src(["./public/sb-admin-2/**/*.min.js",
             "./public/sb-admin-2/**/**/*.min.js",
             "./public/sb-admin-2/**/**/**/*.min.js",
-            "./public/sb-admin-2/**/sb-admin-2.js"
+            "./public/sb-admin-2/**/sb-admin-2.js",
+            "!./public/sb-admin-2/**/bootstrap-datetimepicker.min.js",
+            "!./public/sb-admin-2/**/plugins/flot/*",
+            "!./public/sb-admin-2/**/plugins/morris/*",
         ], {
             base: "."
         })
         .pipe(concat("site2.min.js"))
-        // .pipe(uglify())
+        .pipe(uglify())
         .on('error', function (err) {
             gutil.log(gutil.colors.red('[Error]'), err.toString());
         })
@@ -125,7 +137,13 @@ gulp.task("minCss1", function () {
 });
 
 gulp.task("minCss2", function () {
-    return gulp.src(["./public/sb-admin-2/**/*.min.css", "./public/sb-admin-2/**/**/*.min.css", "./public/sb-admin-2/**/**/**/*.min.css", "./public/sb-admin-2/css/sb-admin-2.css", "./public/sb-admin-2/css/plugins/*.css", "!./public/sb-admin-2/css/plugins/dataTables.bootstrap.css"])
+    return gulp.src(["./public/sb-admin-2/**/*.min.css",
+            "./public/sb-admin-2/**/**/*.min.css",
+            "./public/sb-admin-2/**/**/**/*.min.css",
+            "./public/sb-admin-2/css/sb-admin-2.css",
+            "./public/sb-admin-2/css/plugins/*.css",
+            "!./public/sb-admin-2/css/plugins/dataTables.bootstrap.css"
+        ])
         .pipe(concat("site2.min.css"))
         // .pipe(cssmin())
         .pipe(gulp.dest("."));
@@ -157,6 +175,12 @@ gulp.task('default', ["minJs1", "minJs2", "minCss1", "minCss2", "minCss3"], func
 
     gulp.src(["site3.min.css"])
         .pipe(gulp.dest('public/css/'));
+
+    gulp.src(["./public/sb-admin-2/fonts/*"])
+        .pipe(gulp.dest('./public/fonts/'));
+
+    gulp.src(["./public/sb-admin-2/font-awesome-4.6.3/fonts/*"])
+        .pipe(gulp.dest('./public/fonts/'));
 
     gulp.src(["./bower_components/multiple-select/multiple-select.png"])
         .pipe(gulp.dest('public/css/'));

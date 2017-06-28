@@ -1,0 +1,30 @@
+{
+  "name": "application-name",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "angular-datepicker": "^1.0.5",
+    "angular-translate": "^2.8.1",
+    "body-parser": "^1.14.1",
+    "del": "^2.2.2",
+    "errorhandler": "^1.4.2",
+    "express": "^4.13.3",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^6.1.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-cssmin": "^0.2.0",
+    "gulp-istanbul": "^1.1.1",
+    "gulp-mocha": "^4.3.1",
+    "gulp-ng-config": "^1.2.1",
+    "gulp-rimraf": "^0.2.1",
+    "gulp-task-listing": "^1.0.1",
+    "gulp-uglify": "~2.1.2",
+    "gulp-util": "^3.0.8",
+    "jade": "^1.11.0",
+    "method-override": "^2.3.5",
+    "morgan": "^1.6.1",
+    "multer": "^1.1.0",
+    "pump": "^1.0.2",
+    "rimraf": "^2.6.1"
+  }
+}
