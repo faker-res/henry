@@ -32,6 +32,7 @@ var playerTopUpRecordSchema = new Schema({
 
 //record is unique by playerId platformId and createTime
 playerTopUpRecordSchema.index({ playerId: 1, platformId: 1, createTime: 1 });
+playerTopUpRecordSchema.index({ platformId: 1, createTime: 1 });
 
 module.exports = playerTopUpRecordSchema;
 

@@ -834,7 +834,7 @@ let dbPlayerInfo = {
             function (data) {
                 data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 data.email = dbUtility.encodeEmail(data.email);
-                if(data.bankAccount) {
+                if (data.bankAccount) {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
                 }
                 apiData = data;
@@ -3458,7 +3458,10 @@ let dbPlayerInfo = {
         let transferId = new Date().getTime();
         let changedLockCredit = 0;
 
-        return dbconfig.collection_players.findOne({_id: playerObjId}).populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean().then(
+        return dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+            path: "lastPlayedProvider",
+            model: dbconfig.collection_gameProvider
+        }).lean().then(
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
@@ -3496,7 +3499,7 @@ let dbPlayerInfo = {
         ).then(
             function (taskData) {
                 rewardData = taskData[0];
-                let gameCredit =  (taskData[1] && taskData[1].credit) ? parseFloat(taskData[1].credit) : 0;
+                let gameCredit = (taskData[1] && taskData[1].credit) ? parseFloat(taskData[1].credit) : 0;
                 if (!notEnoughtCredit) {
                     // Player has enough credit
                     //if amount is less than 0, means transfer all
@@ -7386,7 +7389,8 @@ let dbPlayerInfo = {
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
-                            eventDescription: event.description
+                            eventDescription: event.description,
+                            useConsumption: Boolean(event.param.useConsumption)
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -7399,7 +7403,7 @@ let dbPlayerInfo = {
 
                         return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
                     }
-                    else if ((deficitAmount * eventParam.rewardPercentage) >= eventParam.minRewardAmount) {
+                    else if ((deficitAmount * eventParam.rewardPercentage) >= (eventParam.minRewardAmount - 1)) {
                         // Incentive by percentage
                         proposalData.data.rewardAmount = Math.min((deficitAmount * eventParam.rewardPercentage), eventParam.maxRewardAmount);
                         proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventParam.spendingTimes;
