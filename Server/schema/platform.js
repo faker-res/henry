@@ -51,6 +51,12 @@ var platformSchema = new Schema({
     oaWeixin: {type: String},
     //wechat photo
     weixinPhotoUrl: {type: String},
+    //cs skype
+    csSkype: {type: String},
+    //partner cs contac
+    csPartnerQQ: {type: String},
+    csPartnerEmail: {type: String},
+    csPartnerSkype: {type: String},
     //auto settlement
     canAutoSettlement: {type: Boolean, default: false},
     //invitation url for player from partner

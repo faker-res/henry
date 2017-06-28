@@ -1,6 +1,3 @@
-/**
- * Created by hninpwinttin on 29/1/16.
- */
 var dbconfig = require('./../modules/dbproperties');
 
 var dbPlayerTrustLevelInfo = {

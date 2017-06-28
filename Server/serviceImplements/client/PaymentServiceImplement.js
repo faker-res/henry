@@ -1,13 +1,14 @@
-var WebSocketUtil = require("./../../server_common/WebSocketUtil");
-var PaymentService = require("./../../services/client/ClientServices").PaymentService;
-var dbPlayerTopUpIntentRecord = require('./../../db_modules/dbPlayerTopUpIntentRecord');
-var dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
-var constServerCode = require('./../../const/constServerCode');
-var dbPlayerTopUpRecord = require('./../../db_modules/dbPlayerTopUpRecord');
-var constSystemParam = require('../../const/constSystemParam');
-var pmsAPI = require("../../externalAPI/pmsAPI.js");
-var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
-var SMSSender = require('../../modules/SMSSender');
+const WebSocketUtil = require("./../../server_common/WebSocketUtil");
+const PaymentService = require("./../../services/client/ClientServices").PaymentService;
+const dbPlayerTopUpIntentRecord = require('./../../db_modules/dbPlayerTopUpIntentRecord');
+const dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
+const constServerCode = require('./../../const/constServerCode');
+const dbPlayerTopUpRecord = require('./../../db_modules/dbPlayerTopUpRecord');
+const constSystemParam = require('../../const/constSystemParam');
+const pmsAPI = require("../../externalAPI/pmsAPI.js");
+const constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
+const SMSSender = require('../../modules/SMSSender');
+const dbPlayerPayment = require('../../db_modules/dbPlayerPayment');
 
 var PaymentServiceImplement = function () {
     PaymentService.call(this);
@@ -269,6 +270,11 @@ var PaymentServiceImplement = function () {
     this.getPlayerWechatPayStatus.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerWechatPayStatus, [conn.playerId], isValidData);
+    };
+
+    this.getAlipaySingleLimit.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getAlipaySingleLimit, [conn.playerId], isValidData);
     }
 
 };
