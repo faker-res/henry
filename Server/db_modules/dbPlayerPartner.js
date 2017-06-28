@@ -130,7 +130,28 @@ let dbPlayerPartner = {
         let plyProm = dbPlayerInfo.createPlayerInfo(registerData);
         let partnerProm = dbPartner.createPartner(pRegisterData);
 
-        return Promise.all([plyProm, partnerProm]);
+        return Promise.all([plyProm, partnerProm]).then(
+            promsData => {
+                let playerData = promsData[0];
+                let partnerData = promsData[1];
+
+                return dbConfig.collection_partner.findOneAndUpdate(
+                    {_id: partnerData._id, platform: partnerData.platform},
+                    {player: playerData._id},
+                    {new: true}
+                ).lean().then(
+                    partnerData => [promsData[0], partnerData]
+                )
+            }
+        ).catch(
+            error => {
+                return Q.reject({
+                    status: constServerCode.DB_ERROR,
+                    name: "DBError",
+                    message: error.message
+                });
+            }
+        );
     },
 
     loginPlayerPartnerAPI: (loginData, ua) => {

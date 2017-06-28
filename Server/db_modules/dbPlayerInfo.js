@@ -1045,12 +1045,20 @@ let dbPlayerInfo = {
 
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
-                deferred.reject({name: "DBError", message: "Error updating player password", error: err});
+                deferred.reject({
+                    name: "DBError",
+                    message: "Error generate salt when updating player password",
+                    error: err
+                });
                 return;
             }
             bcrypt.hash(newPassword, salt, function (err, hash) {
                 if (err) {
-                    deferred.reject({name: "DBError", message: "Error updating player password.", error: err});
+                    deferred.reject({
+                        name: "DBError",
+                        message: "Error generate hash when updating player password.",
+                        error: err
+                    });
                     return;
                 }
                 dbUtility.findOneAndUpdateForShard(
@@ -1082,7 +1090,7 @@ let dbPlayerInfo = {
                     data => deferred.resolve(newPassword),
                     error => deferred.reject({
                         name: "DBError",
-                        message: "Error updating player password.",
+                        message: "Error updating partner password.",
                         error: error
                     })
                 );
