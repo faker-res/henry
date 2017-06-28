@@ -178,8 +178,12 @@ var dbLogger = {
      * @param {String} platformId
      * @param {String} type
      * @param {String} transferId
-     * @param {String} providerId
+     * @param {objectId} providerId
      * @param {Number} amount
+     * @param lockedAmount
+     * @param adminName
+     * @param apiRes
+     * @param status
      */
     createPlayerCreditTransferStatusLog: function (playerObjId, playerId, playerName, platformObjId, platformId, type, transferId, providerId, amount, lockedAmount, adminName, apiRes, status) {
         var logData = {

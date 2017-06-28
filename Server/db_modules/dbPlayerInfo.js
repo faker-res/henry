@@ -62,6 +62,7 @@ const constProviderStatus = require("./../const/constProviderStatus");
 let dbGeoIp = require('./../db_modules/dbGeoIp');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
+let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
@@ -3363,12 +3364,13 @@ let dbPlayerInfo = {
         let providerData = null;
 
         Q.all([prom0, prom1]).then(
-            function (data) {
+            data => {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
-                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1
-                        || amount == 0) {
+
+                    // Check if player has enough credit to play
+                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1 || amount == 0) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -3392,7 +3394,7 @@ let dbPlayerInfo = {
                     // First log before processing
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-                    return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                    return dbPlayerCreditTransfer.playerCreditTransferToProvider(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
                     //}
                     // }
                     //);
