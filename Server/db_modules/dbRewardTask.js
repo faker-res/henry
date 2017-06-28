@@ -67,15 +67,15 @@ var dbRewardTask = {
         let taskProm = rewardTask.save();
 
         // Player's locked credit will increase from current lockedAmount
-        // let playerProm = dbconfig.collection_players.findOneAndUpdate(
-        //     {_id: rewardData.playerId, platform: rewardData.platformId},
-        //     {$inc: {lockedCredit: rewardData.initAmount}}
-        // ).exec();
-
         let playerProm = dbconfig.collection_players.findOneAndUpdate(
             {_id: rewardData.playerId, platform: rewardData.platformId},
-            {lockedCredit: rewardData.initAmount}
+            {$inc: {lockedCredit: rewardData.initAmount}}
         ).exec();
+
+        // let playerProm = dbconfig.collection_players.findOneAndUpdate(
+        //     {_id: rewardData.playerId, platform: rewardData.platformId},
+        //     {lockedCredit: rewardData.initAmount}
+        // ).exec();
 
         Q.all([taskProm, playerProm]).then(
             data => {
@@ -183,7 +183,7 @@ var dbRewardTask = {
         return dbconfig.collection_rewardTask.find({
             playerId: playerId,
             status: constRewardTaskStatus.STARTED
-        }).exec();
+        }).sort({createdTime:1}).lean().exec();
     },
 
     /**
@@ -532,14 +532,14 @@ var dbRewardTask = {
             );
 
             // Changed from update lockedCredit from 0 to -rewardAmount
-            // let updateData = {
-            //     $inc: {validCredit: rewardAmount, lockedCredit: -rewardAmount},
-            // };
-
             let updateData = {
-                $inc: {validCredit: rewardAmount},
-                lockedCredit: 0
+                $inc: {validCredit: rewardAmount, lockedCredit: -rewardAmount},
             };
+
+            // let updateData = {
+            //     $inc: {validCredit: rewardAmount},
+            //     lockedCredit: 0
+            // };
 
             //if reward task is for first top up, mark player
             if (taskData.type == constRewardType.FIRST_TOP_UP) {
