@@ -2110,9 +2110,11 @@ var proposal = {
     },
 
     setBonusProposalStatus: (proposalId, orderStatus, remark) => {
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+        let proposalObj = {};
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).lean().then(
             proposalData => {
                 if (proposalData && proposalData.data) {
+                    proposalObj = proposalData;
                     return pmsAPI.bonus_setBonusStatus(
                         {
                             proposalId: proposalId,
@@ -2123,6 +2125,12 @@ var proposal = {
                 }
                 else {
                     return Q.reject({name: 'DataError', message: 'Can not find proposal'});
+                }
+            }
+        ).then(
+            data => {
+                if( data && orderStatus == 2 ){
+                    return dbconfig.collection_proposal.findOneAndUpdate( {_id: proposalObj._id, createTime: proposalObj.createTime}, {status: constProposalStatus.APPROVED} )
                 }
             }
         );
