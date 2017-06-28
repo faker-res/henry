@@ -51,6 +51,12 @@ var platformSchema = new Schema({
     oaWeixin: {type: String},
     //wechat photo
     weixinPhotoUrl: {type: String},
+    //cs skype
+    csSkype: {type: String},
+    //partner cs contac
+    csPartnerQQ: {type: String},
+    csPartnerEmail: {type: String},
+    csPartnerSkype: {type: String},
     //auto settlement
     canAutoSettlement: {type: Boolean, default: false},
     //invitation url for player from partner
@@ -69,14 +75,22 @@ var platformSchema = new Schema({
     requireSMSVerification: {type: Boolean, default: false},
     //allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
-    //auto approve related
+    // Auto approve bonus proposal platform switch
     enableAutoApplyBonus: {type: Boolean, default: false},
+    // Auto approve single withdrawal limit
     autoApproveWhenSingleBonusApplyLessThan: {type: Number, default: 0},
+    // Auto approve daily total withdrawal limit
     autoApproveWhenSingleDayTotalBonusApplyLessThan: {type: Number, default: 0},
+    // Auto approve repeat audit count if audit failed
     autoApproveRepeatCount: {type: Number, default: 0},
+    // Auto approve delay in minutes
     autoApproveRepeatDelay: {type: Number, default: 0},
+    // Auto approve deficit offset
+    autoApproveLostThreshold: {type: Number, default: 0},
     //can apply multiple reward
-    canMultiReward: {type: Boolean, default: false}
+    canMultiReward: {type: Boolean, default: false},
+    // Auto check player level up
+    autoCheckPlayerLevelUp: {type: Boolean, default: false}
 });
 
 //add platform id before save

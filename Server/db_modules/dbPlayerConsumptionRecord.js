@@ -310,7 +310,8 @@ var dbPlayerConsumptionRecord = {
                             return dbconfig.collection_proposal.find({
                                 type: pType._id,
                                 "data.playerObjId": record.playerId,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                createTime: {$lt: record.createTime}
                             }).sort({createTime: -1}).limit(1).lean();
                         }
                     );
@@ -558,6 +559,16 @@ var dbPlayerConsumptionRecord = {
             function (error) {
                 console.error("createExternalPlayerConsumptionRecord", error);
                 return resolveError ? Q.resolve(null) : Q.reject(error);
+            }
+        );
+    },
+
+    updateConsumptionRecord: (recordData) => {
+        return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo}).lean().then(
+            data => {
+                if (data) {
+                    return dbPlayerConsumptionRecord.updateExternalPlayerConsumptionRecordData(data, recordData);
+                }
             }
         );
     },
@@ -1372,7 +1383,7 @@ var dbPlayerConsumptionRecord = {
                     }
                 }
             ]
-        ).cursor({batchSize: 5000}).allowDiskUse(true).exec().toArray();
+        ).cursor({batchSize: 100}).allowDiskUse(true).exec().toArray();
     },
 
     /**
@@ -1414,7 +1425,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     getConsumptionTotalAmountForAllPlatform: function (startTime, endTime, platform) {
-        var matchObj = {
+        let matchObj = {
             createTime: {$gte: startTime, $lt: endTime}
         };
         if (platform !== 'all') {
@@ -1430,7 +1441,7 @@ var dbPlayerConsumptionRecord = {
                     totalAmount: {$sum: "$amount"}
                 }
             }
-        ).exec().then(
+        ).allowDiskUse(true).exec().then(
             function (data) {
                 return dbconfig.collection_platform.populate(data, {path: '_id', model: dbconfig.collection_platform})
             }
@@ -1494,7 +1505,7 @@ var dbPlayerConsumptionRecord = {
             ]
         );
 
-        return query.cursor({batchSize: 10000}).allowDiskUse(true).exec();
+        return query.cursor({batchSize: 1000}).allowDiskUse(true).exec();
     },
 
     streamPlayerRecordsInTimeFrame: function streamPlayerRecordsInTimeFrame(collection, dateField, startTime, endTime, platformId) {

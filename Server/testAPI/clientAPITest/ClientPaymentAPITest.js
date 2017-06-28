@@ -285,6 +285,12 @@
         this._service.getPlayerWechatPayStatus.once(callback);
     };
 
+    proto.getAlipaySingleLimit = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.getAlipaySingleLimit.request(data);
+        this._service.getAlipaySingleLimit.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPaymentAPITest;
     } else {

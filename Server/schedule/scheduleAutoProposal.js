@@ -2,19 +2,20 @@ const CronJob = require('cron').CronJob;
 
 const dbAutoProposal = require('../db_modules/dbAutoProposal');
 const dbPlatform = require('../db_modules/dbPlatform');
+var dbconfig = require('./../modules/dbproperties');
 
 console.log("Auto proposal schedule start");
 
-let every5MinJob = new CronJob(
-    '*/5 * * * *', function () {
+let every1MinJob = new CronJob(
+    '*/1 * * * *', function () {
         let date = new Date();
         console.log("Auto proposal schedule starts at: ", date);
 
-        return dbPlatform.getAllPlatforms().then(
+        return dbconfig.collection_platform.find({enableAutoApplyBonus: true}).then(
             platforms => {
                 platforms.forEach(
                     platform => {
-                        console.log('Auto proposal schedule starts for platform:', platform._id);
+                        console.log('Auto proposal schedule starts for platform:', platform._id, platform.name);
                         return dbAutoProposal.applyBonus(platform._id);
                     }
                 )

@@ -498,12 +498,16 @@ let dbPartner = {
      * Get Partners by objectId of platform schema
      *
      */
-    getPartnersByPlatform: function (platformObjId) {
-        return dbconfig.collection_partner.find({platform: platformObjId})
-            .populate({path: "parent", model: dbconfig.collection_partner})
-            .populate({path: "level", model: dbconfig.collection_partnerLevel}).exec();
-    },
 
+    getPartnersByPlatform: function (data) {
+        var count = dbconfig.collection_partner.find({platform: data.platformId}).count();
+        var detail = dbconfig.collection_partner.find({platform: data.platformId})
+            .populate({path: "parent", model: dbconfig.collection_partner})
+            .populate({path: "level", model: dbconfig.collection_partnerLevel}).skip(data.index).limit(data.limit);
+        return Q.all([count, detail]).then( function(data){
+            return {size:data[0],data:data[1]}
+        })
+    },
 
     /*
      * search partners by platformId and advanced query

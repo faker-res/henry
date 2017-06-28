@@ -20,17 +20,34 @@ const dbPlayerMail = {
         return playerMail.save();
     },
 
-    sendPlayerMailFromAdminToPlayer: function (platformId, adminId, adminName, playerId, title, content) {
-        return dbPlayerMail.createPlayerMail({
-            platformId: platformId,
-            senderType: 'admin',
-            senderId: adminId,
-            senderName: adminName,
-            recipientType: 'player',
-            recipientId: playerId,
-            title: title,
-            content: content
-        }).then(notifyPlayerOfNewMessage);
+    sendPlayerMailFromAdminToPlayer: function (platformId, adminId, adminName, playerIds, title, content) {
+        playerIds = Array.isArray(playerIds) ?playerIds :[playerIds];
+
+        let proms = playerIds.reduce((tempProms,playerId)=>{
+            tempProms.push(
+                dbPlayerMail.createPlayerMail({
+                    platformId: platformId,
+                    senderType: 'admin',
+                    senderId: adminId,
+                    senderName: adminName,
+                    recipientType: 'player',
+                    recipientId: playerId,
+                    title: title,
+                    content: content
+                })
+            );
+            return tempProms;
+        },[]);
+
+        return Q.all(proms).then((results)=>{
+            if(results){
+                let notifyProm = [];
+                results.forEach((result)=> {
+                    notifyProm.push(notifyPlayerOfNewMessage(result));
+                });
+                return Q.all(notifyProm);
+            }
+        });
     },
 
     sendPlayerMailFromPlayerTo: function (senderPlayer, recipientType, recipientObjId, title, content) {
@@ -108,7 +125,7 @@ const dbPlayerMail = {
             },
             retErr => {
                 dbLogger.createSMSLog(adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'failure', retErr);
-                return Q.reject({message: retErr, data: data});
+                return Q.reject({message: retErr, error: retErr});
             }
         );
     },
@@ -180,12 +197,12 @@ const dbPlayerMail = {
                             return true;
                         },
                         retErr => {
-                            return Q.reject({message: retErr, data: data});
+                            return Q.reject({message: retErr, error: retErr});
                         }
                     );
                 }
                 else {
-                    return Q.reject({message: 'Template not set for current platform', data: data});
+                    return Q.reject({message: 'Template not set for current platform'});
                 }
 
             }

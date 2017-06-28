@@ -535,7 +535,7 @@ define([], function () {
                 $(id + " .btnPage").on('click', function () {
                     retObj.updateCurPage(event);
                 });
-                $(id).find(".jumpPage").on('keyup', function () {
+                $(id).find(".jumpPage").on('keyup', function (event) {
                     if (event.target.valueAsNumber) {
                         retObj.curPage = event.target.valueAsNumber;
                         retObj.jump();
@@ -543,7 +543,7 @@ define([], function () {
                 });
 
                 $(id).off('focusout', ".pageSize")
-                $(id).on('focusout', ".pageSize", function () {
+                $(id).on('focusout', ".pageSize", function (event) {
                     if (retObj.pageSize != event.target.valueAsNumber && (event.target.valueAsNumber)) {
                         retObj.pageSize = event.target.valueAsNumber;
                         if (retObj.pageSize < 1) {

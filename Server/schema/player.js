@@ -101,7 +101,9 @@ var playerSchema = new Schema({
         topupManual: {type: Boolean, default: true},
         alipayTransaction: {type: Boolean, default: true},
         banReward: {type: Boolean, default: false},
-        disableWechatPay: {type: Boolean, default: false}
+        disableWechatPay: {type: Boolean, default: false},
+        forbidPlayerConsumptionReturn: {type: Boolean, default: false},
+        forbidPlayerConsumptionIncentive: {type: Boolean, default: false}
     },
 
     //country
@@ -195,6 +197,7 @@ var playerSchema = new Schema({
 
     //social media info
     qq: {type: String},
+    wechat: {type: String},
 
     //similar players
     similarPlayers: [{

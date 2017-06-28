@@ -20,9 +20,10 @@ define(['js/app'], function (myApp) {
             FORBID_GAME: 2,
             FORBID: 3,
             BALCKLIST: 4,
-            ATTENTION: 5
+            ATTENTION: 5,
+            WARINESS: 6
         };
-        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION'];
+        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION','WARINESS'];
 
         ////////////////Mark::Platform functions//////////////////
         vm.updatePageTile = function () {

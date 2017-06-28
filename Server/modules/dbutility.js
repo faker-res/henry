@@ -188,6 +188,7 @@ var dbUtility = {
                 returnedStr = date.format().substring(0, 10);
                 break;
             default:
+                returnedStr = date.format().substring(0, 10) + " " + date.format().substring(11, 19)
         }
         return returnedStr;
     },
@@ -592,6 +593,16 @@ var dbUtility = {
             .replace("https://", "")
             .replace("http://", "")
             .replace("www.", "");
+    },
+
+    encodeEmail: function(email) {
+        email = email || '';
+        let emailChars = email.split('');
+        for(let i = 4; i < emailChars.length-5; i++) {
+            emailChars[i] = '*';
+        }
+        email = emailChars.join('');
+        return email;
     },
 
     encodeBankAcc: function (str) {

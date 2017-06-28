@@ -4,13 +4,13 @@ var constRewardTaskStatus = require("./../const/constRewardTaskStatus");
 
 var rewardTaskSchema = new Schema({
     //reward task status
-    status: {type: String, default: constRewardTaskStatus.STARTED},
+    status: {type: String, default: constRewardTaskStatus.STARTED, index: true},
     //target game provider
     targetProviders: [{type: Schema.Types.ObjectId}],
     //target games
     targetGames: [{type: Schema.Types.ObjectId}],
     //if target is enabled
-    targetEnable: {type: Boolean, default: true},
+    targetEnable: {type: Boolean, default: true, index: true},
     //type
     type: {type: String},
     //reward type
@@ -22,7 +22,7 @@ var rewardTaskSchema = new Schema({
     //task data, data structure depend on type
     data: {type: JSON, default: null},
     //creation time
-    createTime: {type: Date, default: Date.now},
+    createTime: {type: Date, default: Date.now, index: true},
     //task unlock time
     unlockTime: {type: Date},
     //indicate whether the reward amount was transfered in provider
@@ -56,8 +56,10 @@ var rewardTaskSchema = new Schema({
     //max reward amount
     maxRewardAmount: {type: Number},
     //related proposal id
-    proposalId: {type: String}
+    proposalId: {type: String, index: true}
 });
+
+rewardTaskSchema.index({targetProviders: 1});
 
 module.exports = rewardTaskSchema;
 

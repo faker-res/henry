@@ -74,6 +74,7 @@ var roleChecker = {
         "countLoginPlayerbyPlatformWeek": true,
         "getTopUpTotalAmountForAllPlatform": true,
         "getPlayerConsumptionSumForAllPlatform": true,
+        "getPlayerConsumptionDaySummarySumForAllPlatform": true,
         "countNewPlayers": true,
         "getBankTypeList": true,
         "getAllRewardTypes": true,
@@ -264,7 +265,8 @@ var roleChecker = {
                 ClearProposalLimit: ['requestClearProposalLimit'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
                 TriggerSavePlayersCredit: ['triggerSavePlayersCredit'],
-                playerDailyCreditLog :['playerCreditDailyLog']
+                playerDailyCreditLog :['playerCreditDailyLog'],
+                playerApiLog:['getPlayerApiLog']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
@@ -315,7 +317,7 @@ var roleChecker = {
             //     DetachChannel: ['removePaymentFromPlatformById']
             // },
             "Reward": {
-                Read: ['getRewardRuleById', 'getPlayerCurRewardTask', 'getRewardEventsForPlatform', 'getRewardEventById', 'getAllRewardRule'],
+                Read: ['getRewardRuleById', 'getPlayerCurRewardTask', 'getRewardEventsForPlatform', 'getRewardEventById', 'getAllRewardRule', 'getPlayerAllRewardTask', 'getPlayerAllRewardTaskDetailByPlayerObjId'],
                 Add: ['createRewardRuleWithType', 'createRewardCondition', 'createRewardEvent'],
                 Delete: ['deleteRewardRuleByIds', 'deleteRewardEventByIds'],
                 Update: ['updateRewardRule', 'updateRewardTask', 'updateRewardEvent'],

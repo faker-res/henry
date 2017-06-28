@@ -226,81 +226,83 @@ var dbPlayerConsumptionWeekSummary = {
                     var proms = [];
                     players.forEach(
                         function (playerData) {
-                            var returnAmount = 0;
+                            if(playerData && !(playerData.permission.forbidPlayerConsumptionReturn)){
+                                var returnAmount = 0;
 
-                            // Check all game types and calculate return amount
-                            var thisPlayersConsumptionSummaries = [];
-                            var returnDetail = {};
-                            var applyAmount = 0;
-                            for (var type in allGameTypes) {
-                                var playerLevel = playerData.playerLevel;
-                                var gameType = allGameTypes[type];
-                                var typeKey = String(playerData._id + ':' + gameType);
-                                var consumptionSummary = consumptionSummariesByKey[typeKey];
-                                var eventRatios = eventData.param.ratio[playerLevel.value];
-                                var ratio = eventRatios && eventRatios[gameType];
+                                // Check all game types and calculate return amount
+                                var thisPlayersConsumptionSummaries = [];
+                                var returnDetail = {};
+                                var applyAmount = 0;
+                                for (var type in allGameTypes) {
+                                    var playerLevel = playerData.playerLevel;
+                                    var gameType = allGameTypes[type];
+                                    var typeKey = String(playerData._id + ':' + gameType);
+                                    var consumptionSummary = consumptionSummariesByKey[typeKey];
+                                    var eventRatios = eventData.param.ratio[playerLevel.value];
+                                    var ratio = eventRatios && eventRatios[gameType];
 
 
-                                if (!eventRatios) {
-                                    var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData.param);
-                                    //deferred.reject(Error(msg));
-                                    console.warn(msg);
-                                    // Do not create a reward for this game type.  Proceed to the next game type.
-                                    ratio = 0;
-                                }
-                                if (typeof ratio !== 'number') {
-                                    var msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData.param);
-                                    //deferred.reject(Error(msg));
-                                    console.warn(msg);
-                                    // Do not create a reward for this game type.  Proceed to the next game type.
-                                    ratio = 0;
-                                }
-
-                                if (consumptionSummary && playerLevel && ratio >= 0) {
-                                    var consumeValidAmount = consumptionSummary.validAmount || 0;
-                                    returnAmount += consumeValidAmount * ratio;
-                                    returnDetail["GameType:" + gameType] = {
-                                        consumeValidAmount: consumeValidAmount,
-                                        ratio: ratio
-                                    };
-                                    applyAmount += consumeValidAmount;
-                                }
-
-                                if (consumptionSummary) {
-                                    thisPlayersConsumptionSummaries.push(consumptionSummary);
-                                }
-                            }
-
-                            // If return reward amount larger than 1, create proposal
-                            var bReturn = Boolean(returnAmount >= 1);
-                            if (bRequest) {
-                                //todo:: move the 100 here to system param
-                                bReturn = Boolean(returnAmount >= 100);
-                            }
-                            if (bReturn) {
-                                var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
-                                var proposalData = {
-                                    type: proposalTypeId,
-                                    entryType: constProposalEntryType.SYSTEM,
-                                    userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                    data: {
-                                        playerObjId: playerData._id,
-                                        platformId: platformId,
-                                        playerName: playerData.name,
-                                        playerId: playerData.playerId,
-                                        eventName: eventData.name,
-                                        eventCode: eventData.code,
-                                        rewardAmount: returnAmount < 1 ? 0 : returnAmount,
-                                        returnDetail: returnDetail,
-                                        summaryIds: summaryIds,
-                                        bConsumptionReturnRequest: bRequest,
-                                        applyAmount: applyAmount,
-                                        eventDescription: eventData.description
+                                    if (!eventRatios) {
+                                        var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData.param);
+                                        //deferred.reject(Error(msg));
+                                        console.warn(msg);
+                                        // Do not create a reward for this game type.  Proceed to the next game type.
+                                        ratio = 0;
                                     }
-                                };
-                                proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));
+                                    if (typeof ratio !== 'number') {
+                                        var msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData.param);
+                                        //deferred.reject(Error(msg));
+                                        console.warn(msg);
+                                        // Do not create a reward for this game type.  Proceed to the next game type.
+                                        ratio = 0;
+                                    }
+
+                                    if (consumptionSummary && playerLevel && ratio >= 0) {
+                                        var consumeValidAmount = consumptionSummary.validAmount || 0;
+                                        returnAmount += consumeValidAmount * ratio;
+                                        returnDetail["GameType:" + gameType] = {
+                                            consumeValidAmount: consumeValidAmount,
+                                            ratio: ratio
+                                        };
+                                        applyAmount += consumeValidAmount;
+                                    }
+
+                                    if (consumptionSummary) {
+                                        thisPlayersConsumptionSummaries.push(consumptionSummary);
+                                    }
+                                }
+
+                                // If return reward amount larger than 1, create proposal
+                                var bReturn = Boolean(returnAmount >= 1);
+                                if (bRequest) {
+                                    //todo:: move the 100 here to system param
+                                    bReturn = Boolean(returnAmount >= 100);
+                                }
+                                if (bReturn) {
+                                    var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
+                                    var proposalData = {
+                                        type: proposalTypeId,
+                                        entryType: constProposalEntryType.SYSTEM,
+                                        userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                        data: {
+                                            playerObjId: playerData._id,
+                                            platformId: platformId,
+                                            playerName: playerData.name,
+                                            playerId: playerData.playerId,
+                                            eventName: eventData.name,
+                                            eventCode: eventData.code,
+                                            rewardAmount: returnAmount < 1 ? 0 : returnAmount,
+                                            returnDetail: returnDetail,
+                                            summaryIds: summaryIds,
+                                            bConsumptionReturnRequest: bRequest,
+                                            applyAmount: applyAmount,
+                                            eventDescription: eventData.description
+                                        }
+                                    };
+                                    proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));
+                                }
+                                processedSummaries = processedSummaries.concat(thisPlayersConsumptionSummaries);
                             }
-                            processedSummaries = processedSummaries.concat(thisPlayersConsumptionSummaries);
                         }
                     );
 
@@ -516,7 +518,10 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {json} eventData
      */
     calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest) {
-        var settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
+        let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
+        if( bRequest ){
+            settleTime = dbutility.getTodaySGTime();
+        }
         return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest);
     },
 
@@ -549,7 +554,7 @@ var dbPlayerConsumptionWeekSummary = {
                     if (eventsData && eventsData.length > 0) {
                         var proms = [];
                         for (let eventData of eventsData) {
-                            proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id));
+                            proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id, false, true));
                         }
                         return Q.all(proms);
                     }
@@ -613,8 +618,8 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {ObjectId} playerId
      * @param {Boolean} bDetail, if contain detailed player info
      */
-    getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail) {
-        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
+    getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest) {
+        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? (bRequest ? dbutility.getTodaySGTime() : dbutility.getYesterdaySGTime() ) : dbutility.getLastWeekSGTime();
         var eventData = event.param;
         var summaryDay = {$gte: settleTime.startTime};
         //if preview for settlement, only calculate for settlement time
