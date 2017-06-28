@@ -104,12 +104,15 @@ const dbPlayerCreditTransfer = {
                 else {
                     // Player has ongoing reward
                     rewardDataObj = rewardData;
-
                     rewardData = rewardData.map(reward => {
+                        console.log('reward', reward);
+                        console.log('providerId', providerId);
+
                         if ((!reward.targetProviders || reward.targetProviders.length <= 0 ) // target all providers
-                            || (reward.targetEnable && reward.targetProviders.indexOf(providerId) >= 0)//target this provider
-                            || (!reward.targetEnable && reward.targetProviders.indexOf(providerId) < 0)//banded provider
+                            || (reward.targetEnable && reward.targetProviders.findIndex(e => String(e) == String(providerId)) >= 0)//target this provider
+                            || (!reward.targetEnable && reward.targetProviders.findIndex(e => String(e) == String(providerId)) < 0)//banded provider
                         ) {
+                            console.log('is provider');
                             if (reward.inProvider == true) {
                                 // Already in provider
                                 // if (String(playerData.lastPlayedProvider) != String(providerId)) {
@@ -148,6 +151,9 @@ const dbPlayerCreditTransfer = {
                                     //process floating point
                                     // Add up the reward tasks current amount
                                     let amountToAdd = Math.floor(reward.currentAmount);
+
+                                    console.log('amountToAdd', amountToAdd);
+
                                     gameAmount += amountToAdd;
                                     // Check whether need to trasnfer validAmount
                                     let remainingAmount = validTransferAmount + reward.currentAmount - amountToAdd;
@@ -171,6 +177,7 @@ const dbPlayerCreditTransfer = {
                             validTransferAmount = Math.floor(validTransferAmount);
                         }
 
+                        console.log('gameAmount', gameAmount);
                         return reward;
                     })
                 }
