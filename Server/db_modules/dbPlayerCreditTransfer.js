@@ -329,17 +329,32 @@ const dbPlayerCreditTransfer = {
 
     /**
      * Transfer credit from game provider
+     * @param {objectId} playerObjId
      * @param {objectId} platform
-     * @param {objectId} playerId
      * @param {objectId} providerId
-     * @param {Number} amount //to fix these params later
+     * @param {Number} amount
+     * @param {String} playerId
+     * @param {String} userName
+     * @param {String} platformId
+     * @param {String} adminName
+     * @param {String} cpName
+     * @param {Boolean} bResolve
+     * @param {Number} maxReward
+     * @param {Boolean} forSync
+     *
+     * note that transferOut will only be a whole number,
+     * and it can only transfer out all the credit for current system
+     *
+     * e.g. if player have 254.88 game credit,
+     *          it will transfer out 254,
+     *          leaving the 0.88 in the game as game credit.
      */
     playerCreditTransferFromProvider: (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) => {
         let deferred = Q.defer();
         let providerPlayerObj = null;
         let rewardTasks = null;
-        // let diffAmount = 0;
         let lockedAmount = 0;
+        let rewardTaskTransferredAmount = 0;
         let validCreditToAdd = 0;
         let gameCredit = 0;
         let playerCredit = 0;
@@ -347,8 +362,7 @@ const dbPlayerCreditTransfer = {
         let notEnoughCredit = false;
         let bUpdateTask = false;
         let transferId = new Date().getTime();
-        //let bNoCredit = false;
-        //dbconfig.collection_providerPlayerCredit.find({playerId: playerObjId, providerId: providerId}).then(
+
         let initFunc;
         if (forSync) {
             initFunc = Q.resolve({credit: amount});
@@ -418,9 +432,6 @@ const dbPlayerCreditTransfer = {
                         } else {
                             rewardTasks = data.reverse(); // to handle reward task decendingly
                             let totalAmountLeftToTransfer = amount;
-                            // QUESTION :: Is it possible to have transfer amount differ from in game credit?
-                            // ASSUMPTION :: No. Since only transfer all in and out is possible, transfer amount should always be the same as in game credit.
-                            // So, amount transfer is used to determine whether the player is winning or losing
 
                             // filter for relevant reward only
                             let relevantRewards = [];
@@ -434,7 +445,7 @@ const dbPlayerCreditTransfer = {
                                 } else {
                                     // since unrelevant provider will not change the currentAmount, their lockedAmount won't change as well
                                     // so add their currentAmount to lockedAmount now
-                                    lockedAmount = rewardTask.currentAmount;
+                                    lockedAmount += rewardTask.currentAmount;
                                 }
                             }
 
@@ -471,6 +482,7 @@ const dbPlayerCreditTransfer = {
 
                                 // add the rewardTask's currentAmount into lockedAmount
                                 lockedAmount += rewardTask.currentAmount;
+                                rewardTaskTransferredAmount += rewardTask.currentAmount;
                                 bUpdateTask = true;
                             }
 
@@ -557,6 +569,7 @@ const dbPlayerCreditTransfer = {
             function (data) {
                 if (data) {
                     rewardTasks = data;
+                    // note:: transferOut only allow integer, so the decimal amount will stay in the game, hence, the remaining game credit
                     gameCredit = providerPlayerObj.gameCredit - validCreditToAdd - rewardTaskCredit;
                     gameCredit = gameCredit >= 0 ? gameCredit : 0;
                     return true;
@@ -580,14 +593,10 @@ const dbPlayerCreditTransfer = {
                 if (data) {
                     let updateObj = {
                         lastPlayedProvider: null,
-                        $inc: {validCredit: validCreditToAdd}
+                        $inc: {validCredit: validCreditToAdd},
+                        lockedCredit: lockedAmount
                     };
-                    // if (bNoCredit) {
-                    //     updateObj.lockedCredit = 0;
-                    // }
-                    // else {
-                    updateObj.lockedCredit = rewardTask.currentAmount;
-                    //}
+
                     //move credit to player
                     return dbconfig.collection_players.findOneAndUpdate(
                         {_id: playerObjId, platform: platform},
@@ -619,13 +628,6 @@ const dbPlayerCreditTransfer = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
                         platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, lockedCredit, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
 
-                    // if (rewardTask && rewardTask.status == constRewardTaskStatus.ACHIEVED && rewardTask.isUnlock) {
-                    //     //check reward task, to see if can unlock
-                    //     //return dbRewardTask.completeRewardTask(rewardTask);
-                    //     return
-                    // }
-                    // else {
-                    let rewardCredit = rewardTask ? rewardTask.currentAmount : 0;
                     deferred.resolve(
                         {
                             playerId: playerId,
@@ -635,11 +637,10 @@ const dbPlayerCreditTransfer = {
                             rewardCredit: parseFloat(rewardTaskCredit).toFixed(2),
                             transferCredit: {
                                 playerCredit: parseFloat(validCreditToAdd).toFixed(2),
-                                rewardCredit: parseFloat(rewardCredit).toFixed(2)
+                                rewardCredit: parseFloat(rewardTaskTransferredAmount).toFixed(2)
                             }
                         }
                     );
-                    // }
                 }
                 else {
                     deferred.reject({name: "DBError", message: "Error in increasing player credit."})
@@ -648,30 +649,35 @@ const dbPlayerCreditTransfer = {
             function (err) {
                 deferred.reject({name: "DBError", message: "Error in increasing player credit.", error: err});
             }
-        ).then(
-            function (data) {
-                if (data) {
-                    //return transferred credit + reward task amount
-                    let rewardCredit = data ? data : 0;
-                    deferred.resolve(
-                        {
-                            playerId: playerId,
-                            providerId: providerShortId,
-                            providerCredit: parseFloat(gameCredit).toFixed(2),
-                            playerCredit: parseFloat(playerCredit).toFixed(2),
-                            rewardCredit: parseFloat(rewardTaskCredit).toFixed(2),
-                            transferCredit: {
-                                playerCredit: parseFloat(validCreditToAdd).toFixed(2),
-                                rewardCredit: parseFloat(rewardCredit).toFixed(2)
-                            }
-                        }
-                    );
-                }
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error completing reward task", error: error});
-            }
         );
+
+        // // no idea what this part does.
+        // // there is no 'return' from previous function, only resolve and reject
+        // // so I assume this part is the unreachable code
+        // .then(
+        //     function (data) {
+        //         if (data) {
+        //             //return transferred credit + reward task amount
+        //             let rewardCredit = data ? data : 0;
+        //             deferred.resolve(
+        //                 {
+        //                     playerId: playerId,
+        //                     providerId: providerShortId,
+        //                     providerCredit: parseFloat(gameCredit).toFixed(2),
+        //                     playerCredit: parseFloat(playerCredit).toFixed(2),
+        //                     rewardCredit: parseFloat(rewardTaskCredit).toFixed(2),
+        //                     transferCredit: {
+        //                         playerCredit: parseFloat(validCreditToAdd).toFixed(2),
+        //                         rewardCredit: parseFloat(rewardCredit).toFixed(2)
+        //                     }
+        //                 }
+        //             );
+        //         }
+        //     },
+        //     function (error) {
+        //         deferred.reject({name: "DBError", message: "Error completing reward task", error: error});
+        //     }
+        // );
         return deferred.promise;
     }
 
