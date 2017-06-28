@@ -32,7 +32,7 @@ const dbPlayerCreditTransfer = {
      * @param forSync
      */
     playerCreditTransferToProvider: (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) => {
-        let gameAmount = 0;
+        let gameAmount = 0, regGameAmount = 0;
         let rewardAmount = 0;
         let providerAmount = 0;
         let playerCredit = 0;
@@ -41,12 +41,15 @@ const dbPlayerCreditTransfer = {
         let playerData = null;
         let rewardData = null;
         let bUpdateReward = false;
-        let transferAmount = 0;
+        let validTransferAmount = 0, lockedTransferAmount = 0;
         let bTransfered = false;
         let transferId = new Date().getTime();
+        let changedLockCredit = 0;
         let totalLockedAmount = 0;
 
-        return dbConfig.collection_players.findOne({_id: playerObjId}).then(
+        return dbConfig.collection_players.findOne({_id: playerObjId}).populate(
+            {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
+        ).lean().then(
             playerData1 => {
                 if (playerData1) {
                     playerData = playerData1;
@@ -59,7 +62,18 @@ const dbPlayerCreditTransfer = {
                         });
                     }
                     // Check player current reward task
-                    return dbRewardTask.getPlayerAllRewardTask(playerObjId)
+                    let rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
+                    let gameCreditProm = {};
+                    if (playerData.lastPlayedProvider) {
+                        gameCreditProm = cpmsAPI.player_queryCredit(
+                            {
+                                username: userName,
+                                platformId: platformId,
+                                providerId: playerData.lastPlayedProvider.providerId
+                            }
+                        );
+                    }
+                    return Q.all([rewardProm, gameCreditProm]);
                 } else {
                     return Q.reject({name: "DataError", message: "Can't find player information."});
                 }
@@ -70,15 +84,18 @@ const dbPlayerCreditTransfer = {
         ).then(
             taskData => {
                 // Player has enough credit
-                rewardData = taskData;
+                rewardData = taskData[0];
+                let gameCredit = (taskData[1] && taskData[1].credit) ? parseFloat(taskData[1].credit) : 0;
+                let isFirstRegistrationReward = false;
+                let transferAmount = 0;
 
                 //if amount is less than 0, means transfer all
-                transferAmount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
+                validTransferAmount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
 
                 if (!rewardData) {
                     // Player has no reward ongoing
-                    transferAmount = Math.floor(transferAmount);
-                    gameAmount = transferAmount;
+                    validTransferAmount = Math.floor(validTransferAmount);
+                    gameAmount = validTransferAmount;
                     rewardData = true;
                 }
                 else {
@@ -98,57 +115,69 @@ const dbPlayerCreditTransfer = {
                                 //     return Q.reject({name: "DataError", message: "Player is playing a different game"});
                                 // }
 
-                                // For non-player registration reward task
                                 if (reward.requiredBonusAmount > 0) {
-                                    transferAmount = 0;
-                                    gameAmount = transferAmount;
+                                    // For player registration reward task
+                                    // Valid Credit is not required to transfer registration reward task
+                                    // Usually won't pass here, the decision to not transfer is decided in getLoginURL
+                                    validTransferAmount = 0;
+                                    regGameAmount = validTransferAmount;
+                                    isFirstRegistrationReward = true;
                                 }
                                 else {
-                                    transferAmount = Math.floor(transferAmount);
-                                    gameAmount = transferAmount;
-                                    reward._inputCredit += transferAmount;
+                                    // For non - player registration reward task
+                                    // Cases that player reload and have more validCredit to play in same provider
+                                    validTransferAmount = Math.floor(validTransferAmount);
+                                    gameAmount = validTransferAmount;
+                                    // inputCredit will add up with previous input credit, if any
+                                    reward._inputCredit += validTransferAmount;
                                     bUpdateReward = true;
                                 }
                             } else {
-                                //not in provider yet
-                                // for player registration reward task
-                                if (rewardData.requiredBonusAmount > 0) {
-                                    transferAmount = 0;
-                                    gameAmount = Math.floor(reward.currentAmount);
+                                // Not in provider yet
+                                if (reward.requiredBonusAmount > 0) {
+                                    // For player registration reward task
+                                    // Valid Credit is not required to transfer registration reward task
+                                    validTransferAmount = 0;
+                                    regGameAmount = Math.floor(reward.currentAmount);
                                     rewardAmount = Math.floor(reward.currentAmount);
-                                    rewardTaskAmount = reward.currentAmount - gameAmount;
+                                    // reward.currentAmount may have value less than 1 that cannot bring to provider
+                                    rewardTaskAmount = reward.currentAmount - regGameAmount;
                                     reward.currentAmount = rewardTaskAmount;
                                     reward.inProvider = true;
+                                    isFirstRegistrationReward = true;
                                 }
                                 else {
                                     //process floating point
-                                    gameAmount = Math.floor(transferAmount + reward.currentAmount);
-                                    let remainingAmount = transferAmount + reward.currentAmount - gameAmount;
+                                    // Add up the reward tasks current amount
+                                    gameAmount += Math.floor(reward.currentAmount);
+                                    let remainingAmount = validTransferAmount + reward.currentAmount - gameAmount;
                                     if (remainingAmount > playerData.validCredit) {
-                                        transferAmount = 0;
+                                        validTransferAmount = 0;
                                         rewardAmount = Math.floor(reward.currentAmount || 0);
                                     }
                                     else {
-                                        amount = gameAmount - rewardData.currentAmount;
+                                        validTransferAmount = gameAmount - rewardData.currentAmount;
                                         rewardAmount = rewardData.currentAmount
                                     }
                                     rewardTaskAmount = rewardData.currentAmount - rewardAmount;
                                     rewardData.inProvider = true;
-                                    rewardData._inputCredit = amount;
+                                    rewardData._inputCredit = validTransferAmount;
                                     rewardData.currentAmount = rewardTaskAmount;
                                 }
                                 bUpdateReward = true;
                             }
                         } else {
                             // not this provider
-                            amount = Math.floor(amount);
-                            gameAmount = amount;
+                            validTransferAmount = Math.floor(validTransferAmount);
+                            gameAmount = validTransferAmount;
                         }
                     })
                 }
 
-                transferAmount = gameAmount;
-                if (transferAmount < 1) {
+                transferAmount = validTransferAmount + gameAmount;
+                lockedTransferAmount = isFirstRegistrationReward ? regGameAmount : gameAmount;
+
+                if (lockedTransferAmount < 1) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                         name: "NumError",
@@ -159,13 +188,16 @@ const dbPlayerCreditTransfer = {
                 // Deduct amount from player validCredit before transfer
                 // Amount is already floored
                 // let decreaseAmount = amount < playerData.validCredit ? amount : playerData.validCredit;
+                changedLockCredit = lockedTransferAmount - validTransferAmount;
                 let updateObj = {
                     lastPlayedProvider: providerId,
-                    $inc: {validCredit: -transferAmount}
+                    $inc: {validCredit: -validTransferAmount, lockedCredit: -changedLockCredit}
                 };
-                if (bUpdateReward) {
-                    updateObj.lockedCredit = totalLockedAmount;
-                }
+                // if (bUpdateReward) {
+                //     updateObj.lockedCredit = totalLockedAmount;
+                // }
+
+                // TODO: Change this to update with retry
                 return dbConfig.collection_players.findOneAndUpdate(
                     {_id: playerObjId, platform: playerData.platform},
                     updateObj,
@@ -180,11 +212,11 @@ const dbPlayerCreditTransfer = {
             // to prevent concurrent deduction
             updateData => {
                 if (updateData) {
-                    if (updateData.validCredit < -0.02) {
+                    if (updateData.validCredit < -0.02 || updateData.lockedCredit < -0.02) {
                         // Player credit is less than expected after deduct, revert the decrement
                         return dbConfig.collection_players.findOneAndUpdate(
                             {_id: playerObjId, platform: playerData.platform},
-                            {$inc: {validCredit: transferAmount}},
+                            {$inc: {validCredit: transferAmount, lockedCredit: changedLockCredit}},
                             {new: true}
                         ).catch(errorUtils.reportError).then(
                             () => Q.reject({
@@ -194,20 +226,26 @@ const dbPlayerCreditTransfer = {
                             })
                         );
                     }
-                    else {
-                        playerCredit = updateData.validCredit;
-                        // Fix float number problem after update
+
+                    playerCredit = updateData.validCredit;
+                    //fix float number problem after update
+                    if ((updateData.validCredit > -0.02 && updateData.validCredit < 0) || (updateData.lockedCredit > -0.02 && updateData.lockedCredit < 0)) {
+                        let uObj = {};
                         if (updateData.validCredit > -0.02 && updateData.validCredit < 0) {
                             playerCredit = 0;
-                            return dbConfig.collection_players.findOneAndUpdate(
-                                {_id: playerObjId, platform: playerData.platform},
-                                {validCredit: 0},
-                                {new: true}
-                            );
+                            uObj.validCredit = 0;
                         }
-                        else {
-                            return true;
+                        if (updateData.lockedCredit > -0.02 && updateData.lockedCredit < 0) {
+                            uObj.lockedCredit = 0;
                         }
+                        return dbConfig.collection_players.findOneAndUpdate(
+                            {_id: playerObjId, platform: platform},
+                            uObj,
+                            {new: true}
+                        );
+                    }
+                    else {
+                        return true;
                     }
                 }
                 else {
