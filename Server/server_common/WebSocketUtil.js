@@ -8,6 +8,7 @@ const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const localization = require("../modules/localization").localization;
 const lang = require("../modules/localization").lang;
 const mongoose = require('mongoose');
+let dbApiLog = require("../db_modules/dbApiLog");
 
 var WebSocketUtility = {
 
@@ -121,6 +122,10 @@ var WebSocketUtility = {
                     //    action: event,data: args,
                     //    level: constSystemLogLevel.ACTION };
                     //dblog.createSystemLog(logData);
+
+                    if (['login','create'].includes(dbCall) &&  wsFunc._service.name === 'player' || conn.playerId) {
+                        dbApiLog.createApiLog(conn, wsFunc, result);
+                    }
                 },
                 function (err) {
                     if (!customErrorHandler) {

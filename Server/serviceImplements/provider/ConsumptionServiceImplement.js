@@ -59,6 +59,12 @@ var ConsumptionServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionRecord.sendExternalUpdatePlayerConsumptionListSettlement, [data], isValidData);
     };
 
+    this.updateConsumption.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.userName && data.hasOwnProperty("platformId") && data.hasOwnProperty("providerId") && data.hasOwnProperty("gameId")
+            && typeof data.amount === 'number' && data.amount >= 0 && typeof data.validAmount === 'number' && data.validAmount >= 0 && data.orderNo);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionRecord.updateConsumptionRecord, [data], isValidData);
+    };
+
 };
 
 var proto = ConsumptionServiceImplement.prototype = Object.create(ConsumptionService.prototype);

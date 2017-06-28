@@ -4,6 +4,7 @@ let WebSocketUtil = require("./../../server_common/WebSocketUtil");
 let PlayerService = require("./../../services/client/ClientServices").PlayerService;
 let dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
 let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
+let dbUtility = require('./../../modules/dbutility');
 let constServerCode = require('./../../const/constServerCode');
 let constSystemParam = require('./../../const/constSystemParam');
 let jwt = require('jsonwebtoken');
@@ -17,6 +18,7 @@ let constProposalEntryType = require('./../../const/constProposalEntryType');
 let constProposalUserType = require('./../../const/constProposalUserType');
 let dbLogger = require('./../../modules/dbLogger');
 let dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
+let dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
 
 let PlayerServiceImplement = function () {
     PlayerService.call(this);
@@ -62,7 +64,8 @@ let PlayerServiceImplement = function () {
             conn.captchaCode = null;
             data.isOnline = true;
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, true, false, true).then(
-                function (playerData) {
+                (playerData) =>{
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData);
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
                     conn.playerObjId = playerData._id;
@@ -72,11 +75,20 @@ let PlayerServiceImplement = function () {
                     };
                     var profile = {name: playerData.name, password: playerData.password};
                     var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                    playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                    playerData.email = dbUtility.encodeEmail(playerData.email);
+                    if(playerData.bankAccount) {
+                        playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
+                    }
+
                     wsFunc.response(conn, {
                         status: constServerCode.SUCCESS,
                         data: playerData,
                         token: token,
                     }, data);
+                },(error) => {
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data);
                 }
             ).catch(WebSocketUtil.errorHandler)
                 .done();
@@ -146,7 +158,7 @@ let PlayerServiceImplement = function () {
             }
             conn.captchaCode = null;
             data.isOnline = true;
-            data.partnerName = data.name;
+            // data.partnerName = data.name;
 
             // Promise create player and partner
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.createPlayerPartnerAPI, [data], isValidData, true, false, true).then(
@@ -260,7 +272,7 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(
             function (playerData) {
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (conn.captchaCode && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                    if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;
@@ -296,6 +308,13 @@ let PlayerServiceImplement = function () {
                 };
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                playerData.email = dbUtility.encodeEmail(playerData.email);
+                if(playerData.bankAccount) {
+                    playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
+                }
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
@@ -856,4 +875,3 @@ var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.proto
 proto.constructor = PlayerServiceImplement;
 
 module.exports = PlayerServiceImplement;
-

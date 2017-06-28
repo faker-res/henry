@@ -62,7 +62,7 @@ var dbPlayerConsumptionDaySummary = {
             return Q(
                 balancer.processStream({
                     stream: stream,
-                    batchSize: constSystemParam.BATCH_SIZE,
+                    batchSize: 100,
                     makeRequest: function (playerIdObjs, request) {
                         request("player", "calculatePlayersDaySummaryForTimeFrame", {
                             playerObjIds: playerIdObjs.map(function (playerIdObj) {
@@ -208,13 +208,18 @@ var dbPlayerConsumptionDaySummary = {
     },
 
     getPlayersConsumptionSumForAllPlatform: function (startTime, endTime, platform) {
-
+        let matchObj = {
+            date: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        };
+        if (platform !== 'all') {
+            matchObj.platformId = platform
+        }
         return dbconfig.collection_playerConsumptionDaySummary.aggregate(
             {
-                $match: {
-                    date: {$gte: startTime, $lt: endTime},
-                    platformId: platform
-                }
+                $match: matchObj
             },
             {
                 $group: {
@@ -222,7 +227,7 @@ var dbPlayerConsumptionDaySummary = {
                     totalAmount: {$sum: "$amount"}
                 }
             }
-        ).exec().then(
+        ).then(
             function (data) {
                 return dbconfig.collection_platform.populate(data, {path: '_id', model: dbconfig.collection_platform})
             }

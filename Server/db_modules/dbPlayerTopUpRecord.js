@@ -76,7 +76,7 @@ var dbPlayerTopUpRecord = {
                     }
                 }
             ]
-        ).exec();
+        ).allowDiskUse(true).exec();
     },
 
     /**
@@ -109,9 +109,12 @@ var dbPlayerTopUpRecord = {
                     str = constProposalType.PLAYER_WECHAT_TOP_UP
                 } else {
                     str = {
-                        $in: [constProposalType.PLAYER_TOP_UP,
-                            constProposalType.PLAYER_ALIPAY_TOP_UP,
-                            constProposalType.PLAYER_MANUAL_TOP_UP]
+                        $in: [
+                                constProposalType.PLAYER_TOP_UP,
+                                constProposalType.PLAYER_ALIPAY_TOP_UP,
+                                constProposalType.PLAYER_MANUAL_TOP_UP,
+                                constProposalType.PLAYER_WECHAT_TOP_UP
+                            ]
                     };
                     queryObj['$or'] = [];
                     query.topupType ? queryObj['$or'].push({
@@ -1048,7 +1051,7 @@ var dbPlayerTopUpRecord = {
                     totalAmount: {$sum: "$amount"}
                 }
             }
-        ).exec().then(
+        ).allowDiskUse(true).exec().then(
             function (data) {
                 return dbconfig.collection_platform.populate(data, {path: '_id'})
             }

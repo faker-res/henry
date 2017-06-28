@@ -48,13 +48,11 @@ let dbPlayerPartner = {
                 if (referralData) {
                     // Referral is valid
                     // Check if platform sms verification is required
+                    let pRegisterData = Object.assign({}, registerData);
+                    pRegisterData.partnerName = registerData.name;
                     if (!platformObj.requireSMSVerification) {
                         // SMS verification not required
                         let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
-                        let pRegisterData = Object.assign({}, registerData);
-                        if (!pRegisterData.partnerName) {
-                            pRegisterData.partnerName = registerData.name;
-                        }
                         let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
                         return Promise.all([plyProm, partnerProm]);
                     }
@@ -74,7 +72,7 @@ let dbPlayerPartner = {
                                     }).then(
                                         retData => {
                                             let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
-                                            let partnerProm = dbPartner.createPartnerAPI(registerData);
+                                            let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
 
                                             return Promise.all([plyProm, partnerProm]);
                                         }
@@ -123,6 +121,16 @@ let dbPlayerPartner = {
                 });
             }
         )
+    },
+
+    createPlayerPartner: function(registerData) {
+        let pRegisterData = Object.assign({}, registerData);
+        pRegisterData.partnerName = registerData.name;
+
+        let plyProm = dbPlayerInfo.createPlayerInfo(registerData);
+        let partnerProm = dbPartner.createPartner(pRegisterData);
+
+        return Promise.all([plyProm, partnerProm]);
     },
 
     loginPlayerPartnerAPI: (loginData, ua) => {

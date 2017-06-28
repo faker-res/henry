@@ -73,6 +73,9 @@
                                         tr
                                             td {{'BANK_TYPE' | translate}}
                                             td.text-success {{v.bankTypeId ? vm.getBankCardTypeTextbyId(v.bankTypeId) : ("VOID" | translate)}}
+                                        tr
+                                            td {{'QUOTA' | translate}}
+                                            td.text-success {{v.quota}}
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#bankList", href='#excludedBanks', ng-click='vm.toggleBankType("exclude")')
                             h4.panel-title
@@ -84,7 +87,7 @@
                                 a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedBanks', class='{{vm.highlightBank[v.accountNumber]}}', ng-click='vm.bankClicked(i,v,"ex")')
                                     table.bg-pale
                                         tr
-                                            td.text-center(rowspan="3")
+                                            td.text-center(rowspan="4")
                                                 i.fa.fa-credit-card.text-danger
                                             td {{'TITLE' | translate}}
                                             td.text-success {{v.name}}
@@ -94,6 +97,9 @@
                                         tr
                                             td {{'BANK_TYPE' | translate}}
                                             td.text-success {{v.bankTypeId ? vm.getBankCardTypeTextbyId(v.bankTypeId) : ("VOID" | translate)}}
+                                        tr
+                                            td {{'QUOTA' | translate}}
+                                            td.text-success {{v.quota}}
                 //.panel.panel-info(ng-if='vm.curBank')
                     .panel-heading.panel-heading-sm
                         h4.panel-title(style='display:inline-block') {{'Bankcard' | translate}} : {{vm.curBank.name}}

@@ -56,22 +56,34 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
 
-            socketService.$socket($scope.AppSocket, 'getPlayerConsumptionSumForAllPlatform', sendData, function success(data) {
-                // console.log('allplayersconsumption', data);
-                var totalTopup = 0;
-                data.data.forEach(a => {
-                    totalTopup += a.totalAmount;
-                })
-                if (numDays == 0) {
-                    $('.day .spendAmount .number').html(totalTopup.toFixed(2));
+            if (numDays == 0) {
+                socketService.$socket($scope.AppSocket, 'getPlayerConsumptionSumForAllPlatform', sendData, function success(data) {
+                    // console.log('allplayersconsumption', data);
+                    let totalConsumption = 0;
+                    data.data.forEach(a => {
+                        totalConsumption += a.totalAmount;
+                    });
+
+                    $('.day .spendAmount .number').html(totalConsumption.toFixed(2));
                     utilService.fitText('.day .spendAmount .number');
-                } else if (numDays == 7) {
-                    $('.week .spendAmount .number').html(totalTopup.toFixed(2));
+
+                    queryDone[2] = true;
+                    $scope.safeApply();
+                });
+            } else if (numDays == 7) {
+                socketService.$socket($scope.AppSocket, 'getPlayersConsumptionDaySumForAllPlatform', sendData, function success(data) {
+                    console.log('getPlayersConsumptionDaySumForAllPlatform', data);
+                    let totalConsumption = 0;
+                    data.data.forEach(a => {
+                        totalConsumption += a.totalAmount;
+                    });
+
+                    $('.week .spendAmount .number').html(totalConsumption.toFixed(2));
                     utilService.fitText('.week .spendAmount .number');
-                }
-                queryDone[2] = true;
-                $scope.safeApply();
-            });
+                    queryDone[2] = true;
+                    $scope.safeApply();
+                });
+            }
 
             socketService.$socket($scope.AppSocket, 'countNewPlayers', sendData, function success(data) {
                 // console.log('allplayers', data);

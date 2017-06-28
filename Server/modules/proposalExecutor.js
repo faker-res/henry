@@ -134,6 +134,7 @@ var proposalExecutor = {
             this.executions.executePlayerDoubleTopUpReward.des = "Player double top up reward";
             this.executions.executePlayerWechatTopUp.des = "Player wechat top up";
             this.executions.executePlayerConsecutiveLoginReward.des = "Player Consecutive Login Reward";
+            this.executions.executePlayerRegistrationIntention.des = "Player Registration Intention";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -172,6 +173,8 @@ var proposalExecutor = {
             this.rejections.rejectPlayerDoubleTopUpReward.des = "Reject Player double top up return";
             this.rejections.rejectPlayerWechatTopUp.des = "Reject Player Top up";
             this.rejections.rejectPlayerConsecutiveLoginReward.des = "Reject Player Consecutive Login Reward";
+            this.rejections.rejectPlayerRegistrationIntention.des = "Reject Player Registration Intention";
+
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -269,6 +272,7 @@ var proposalExecutor = {
          */
         executions: {
             /**
+             * TODO:: Might need to check which rewardTask is used
              * execution function for update player credit proposal type
              */
             executeUpdatePlayerCredit: function (proposalData, deferred, bTransfer) {
@@ -1378,35 +1382,50 @@ var proposalExecutor = {
             },
 
             executeAddPlayerRewardTask: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.platformId) {
-                    dbRewardTask.getRewardTask(
-                        {
-                            playerId: proposalData.data.playerId,
-                            status: constRewardTaskStatus.STARTED
-                        }
-                    ).then(
-                        function (curData) {
-                            if (!curData) {
-                                dbRewardTask.createRewardTask(proposalData.data).then(
-                                    deferred.resolve, deferred.reject
-                                );
-                            }
-                            else {
-                                deferred.reject({name: "DataError", message: "Player already has reward task"});
-                            }
-                        },
-                        function (error) {
-                            deferred.reject({
-                                name: "DBError",
-                                message: "Error finding reward task for player top up reward",
-                                error: error
-                            });
-                        }
-                    );
+                if (!(proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.platformId)) {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Incorrect add player reward task proposal data"
+                    });
                 }
-                else {
-                    deferred.reject({name: "DataError", message: "Incorrect add player reward task proposal data"});
-                }
+
+                dbRewardTask.getRewardTask({
+                    playerId: proposalData.data.playerId,
+                    status: constRewardTaskStatus.STARTED
+                }).then(
+                    function (curData) {
+                        if(curData) {
+                            dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).then(
+                                function(platformData) {
+                                    if(platformData.canMultiReward){
+                                        dbRewardTask.createRewardTask(proposalData.data).then(
+                                            deferred.resolve, deferred.reject
+                                        );
+                                    } else {
+                                        deferred.reject({name: "DataError", message: "Player already has reward task"});
+                                    }
+                                },
+                                function(error) {
+                                    deferred.reject({
+                                        name: "DBError",
+                                        message: "Failed to get reward task data."
+                                    });
+                                }
+                            );
+                        } else {
+                            dbRewardTask.createRewardTask(proposalData.data).then(
+                                deferred.resolve, deferred.reject
+                            );
+                        }
+                    },
+                    function (error) {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Error finding reward task for player top up reward",
+                            error: error
+                        });
+                    }
+                );
             },
 
             executePlayerRegistrationReward: function (proposalData, deferred) {
@@ -1574,6 +1593,13 @@ var proposalExecutor = {
                         message: "Incorrect player consecutive login reward proposal data"
                     });
                 }
+            },
+
+            /**
+             * execution function for player intention proposal
+             */
+            executePlayerRegistrationIntention:function (proposalData, deferred) {
+                 deferred.resolve(proposalData);
             }
         },
 
@@ -2038,6 +2064,13 @@ var proposalExecutor = {
 
             rejectPlayerConsecutiveLoginReward: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject create player intention proposal
+             */
+            rejectPlayerRegistrationIntention: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
             }
         }
     }
@@ -2064,6 +2097,9 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         return;
     }
 
+    // Add proposalId in reward data
+    taskData.proposalId = proposalData.proposalId;
+
     //check if player has reward task and if player's platform support multi reward
     dbconfig.collection_rewardTask.findOne(
         {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED}
@@ -2071,7 +2107,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         {path: "platformId", model: dbconfig.collection_platform}
     ).lean().then(
         curTask => {
-            if (!curTask || (curTask && curTask.platform && curTask.platform.canMultiReward)) {
+            if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
                 return;
             }
             else {

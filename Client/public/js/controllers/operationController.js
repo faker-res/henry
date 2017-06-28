@@ -1315,7 +1315,7 @@ define(['js/app'], function (myApp) {
         ///////players panel///////////////////// start
         vm.getLoggedInPlayer = function (isContinue) {
             var sendData = {
-                platform: vm.selectedPlatform._id,
+                platform: vm.allPlatformId,
                 noOfPlayers: isContinue ? vm.playerCountLimit : 20,
                 name: vm.playerSearchText
             }

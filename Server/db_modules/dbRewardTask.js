@@ -27,7 +27,9 @@ var dbRewardTask = {
 
     /**
      * Create a new reward
-     * @param {json} rewardData - The data of the reward. Refer to reward schema.
+     * @param {Object} rewardData - The data of the reward. Refer to reward schema.
+     * @param adminId
+     * @param adminName
      */
     manualCreateRewardTask: function (rewardData, adminId, adminName) {
         return dbRewardTask.checkPlayerRewardTaskStatus(rewardData.playerId).then(
@@ -35,7 +37,7 @@ var dbRewardTask = {
                 return dbRewardTask.getPlayerCurRewardTask(rewardData.playerId);
             }
         ).then(data => {
-            if (data) {
+            if (data && !data.platformId.canMultiReward) {
                 return Q.reject({
                     status: constServerCode.PLAYER_HAS_REWARD_TASK,
                     message: "The player has not unlocked the previous reward task. Not valid for new reward"
@@ -54,30 +56,40 @@ var dbRewardTask = {
         })
     },
 
-    createRewardTask: function (rewardData) {
-        var deferred = Q.defer();
-
-        rewardData.initAmount = rewardData.initAmount;
-        rewardData.currentAmount = rewardData.currentAmount;
+    /**
+     *
+     * @param rewardData
+     */
+    createRewardTask: (rewardData) => {
+        let deferred = Q.defer();
         rewardData.bonusAmount = rewardData.initAmount;
-        var rewardTask = new dbconfig.collection_rewardTask(rewardData);
-        var taskProm = rewardTask.save();
-        var playerProm = dbconfig.collection_players.findOneAndUpdate(
+        let rewardTask = new dbconfig.collection_rewardTask(rewardData);
+        let taskProm = rewardTask.save();
+
+        // Player's locked credit will increase from current lockedAmount
+        // let playerProm = dbconfig.collection_players.findOneAndUpdate(
+        //     {_id: rewardData.playerId, platform: rewardData.platformId},
+        //     {$inc: {lockedCredit: rewardData.initAmount}}
+        // ).exec();
+
+        let playerProm = dbconfig.collection_players.findOneAndUpdate(
             {_id: rewardData.playerId, platform: rewardData.platformId},
             {lockedCredit: rewardData.initAmount}
         ).exec();
 
         Q.all([taskProm, playerProm]).then(
-            function (data) {
+            data => {
                 if (data && data[0] && data[1]) {
-                    dbLogger.createCreditChangeLogWithLockedCredit(rewardData.playerId, rewardData.platformId, 0, rewardData.rewardType, data[1].validCredit, rewardData.currentAmount, rewardData.currentAmount, null, data[0])
+                    dbLogger.createCreditChangeLogWithLockedCredit(
+                        rewardData.playerId, rewardData.platformId, 0, rewardData.rewardType,
+                        data[1].validCredit, rewardData.currentAmount, rewardData.currentAmount, null, data[0]);
                     deferred.resolve(data[0]);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Cannot create reward task"});
                 }
             },
-            function (error) {
+            error => {
                 deferred.reject({name: "DBError", message: "Error creating reward task", error: error});
             }
         );
@@ -89,7 +101,9 @@ var dbRewardTask = {
      * @param {String} query - The query String.
      */
     getRewardTask: function (query) {
-        return dbconfig.collection_rewardTask.findOne(query).exec();
+        return dbconfig.collection_rewardTask
+            .findOne(query)
+            .exec();
     },
 
     getPlayerRewardTask: function (playerId, from, to, index, limit, sortCol) {
@@ -147,11 +161,26 @@ var dbRewardTask = {
         return deferred.promise;
     },
     /**
+     * TODO: (DEPRECATING) To change to getPlayerAllRewardTask after implement multiple player reward tasks
      * Get player's current reward task
      * @param {String} is player Object Id
      */
     getPlayerCurRewardTask: function (playerId) {
         return dbconfig.collection_rewardTask.findOne({
+            playerId: playerId,
+            status: constRewardTaskStatus.STARTED
+        }).populate({
+            path: "platformId",
+            model: dbconfig.collection_platform
+        }).exec();
+    },
+
+    /**
+     * Get player's all available reward task
+     * @param {String} playerId player Object Id
+     */
+    getPlayerAllRewardTask: function (playerId) {
+        return dbconfig.collection_rewardTask.find({
             playerId: playerId,
             status: constRewardTaskStatus.STARTED
         }).exec();
@@ -200,6 +229,45 @@ var dbRewardTask = {
         return deferred.promise;
     },
 
+
+    /**
+     * Created: 20170612
+     * Purpose: Get player reward tasks by player object id
+     * @param query
+     */
+    getPlayerAllRewardTaskDetailByPlayerObjId: (query) => {
+        return dbconfig.collection_players.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    let playerObjId = playerData._id;
+
+                    return dbconfig.collection_rewardTask.find({
+                        playerId: playerObjId,
+                        status: constRewardTaskStatus.STARTED
+                    }).populate({
+                        path: "targetProviders",
+                        model: dbconfig.collection_gameProvider
+                    }).populate({
+                        path: "eventId",
+                        model: dbconfig.collection_rewardEvent
+                    }).lean();
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "No player found matching query"
+                    });
+                }
+
+            },
+            error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
+        ).then(
+            rewardTasks => rewardTasks,
+            error => Q.reject({name: "DBError", message: "Error in getting reward task", error: error})
+        );
+    },
+
     /**
      * Update reward task
      * @param {String} query - The query String.
@@ -229,45 +297,24 @@ var dbRewardTask = {
         let bTaskAchieved = false;
         let createTime = new Date(consumptionRecord.createTime);
 
-        //get the most recent task and check it
+        // Starting from multiple reward, the oldest reward task will be taken to use
         dbconfig.collection_rewardTask.find(
             {
                 playerId: consumptionRecord.playerId,
                 status: constRewardTaskStatus.STARTED,
                 createTime: {$lt: createTime},
-                // $or: [{targetProviders: consumptionRecord.providerId}, {targetProviders: []}],
+                $or: [
+                    {$and: [{targetEnable: true}, {$or: [{targetProviders: consumptionRecord.providerId}, {targetProviders: []}]}]},
+                    {$and: [{targetEnable: false}, {targetProviders: {$not: {$elemMatch: {$eq: consumptionRecord.providerId}}}}]}
+                ],
+                // $
                 // $or: [{targetGames: consumptionRecord.gameId}, {targetGames: []}],
                 isUnlock: false
             }
-        ).sort({createTime: -1}).limit(1).lean().then(
+        ).sort({createTime: 1}).limit(1).lean().then(
             tasks => {
                 let taskData = tasks ? tasks[0] : null;
-                let isTaskValid = true;
-                if (taskData) {
-                    let isTargetProvider = false;
-                    if (taskData.targetProviders && taskData.targetProviders.length > 0) {
-                        taskData.targetProviders.forEach(
-                            provider => {
-                                if (String(provider) == String(consumptionRecord.providerId)) {
-                                    isTargetProvider = true;
-                                }
-                            }
-                        );
-                    }
-                    if (taskData.targetEnable) {
-                        if (taskData.targetProviders && taskData.targetProviders.length > 0) {
-                            isTaskValid = isTargetProvider;
-                        }
-                    } else {
-                        if (taskData.targetProviders && taskData.targetProviders.length > 0) {
-                            isTaskValid = !isTargetProvider;
-                        }
-                    }
-                    // if (taskData.targetGames && taskData.targetGames.indexOf(consumptionRecord.gameId) == -1) {
-                    //     isTaskValid = false;
-                    // }
-                }
-                return (isTaskValid && taskData) ? taskData : false;
+                return taskData ? taskData : false;
             },
             error => {
                 deferred.reject({
@@ -283,7 +330,7 @@ var dbRewardTask = {
                     taskData.bonusAmount += consumptionRecord.bonusAmount;
                     taskData.unlockedBonusAmount += (taskData.requiredBonusAmount > 0 ? consumptionRecord.bonusAmount : 0);
 
-                    var bAchieved = false;
+                    let bAchieved = false;
                     if (taskData.bonusAmount < 1) {
                         taskData.isUnlock = true;
                         taskData.unlockTime = createTime;
@@ -325,7 +372,7 @@ var dbRewardTask = {
                             else {
                                 proms.push(Q.resolve(taskData));
                             }
-                            if (newTaskData.useConsumption && (!newTaskData.isUnlock && bAchieved)) {
+                            if (newTaskData.useConsumption && (bTaskAchieved || !bAchieved)) {
                                 bDirty = true;
                                 proms.push(dbconfig.collection_playerConsumptionRecord.findOneAndUpdate(
                                     {_id: consumptionRecord._id, createTime: consumptionRecord.createTime},
@@ -425,7 +472,9 @@ var dbRewardTask = {
 
     /**
      * apply for manual unlock reward task
-     * @param {Object} taskData - reward task object
+     * @param data
+     * @param adminId
+     * @param adminName
      */
     manualUnlockRewardTask: function (data, adminId, adminName) {
         let taskData = data[0];
@@ -482,10 +531,16 @@ var dbRewardTask = {
                 {status: constRewardTaskStatus.COMPLETED}
             );
 
+            // Changed from update lockedCredit from 0 to -rewardAmount
+            // let updateData = {
+            //     $inc: {validCredit: rewardAmount, lockedCredit: -rewardAmount},
+            // };
+
             let updateData = {
                 $inc: {validCredit: rewardAmount},
                 lockedCredit: 0
             };
+
             //if reward task is for first top up, mark player
             if (taskData.type == constRewardType.FIRST_TOP_UP) {
                 updateData.bFirstTopUpReward = true;
@@ -749,6 +804,11 @@ var dbRewardTask = {
         )
     },
 
+    /**
+     * // TODO:: Might need to get oldest reward to update
+     * @param playerObjId
+     * @returns {*}
+     */
     checkPlayerRewardTaskStatus: function (playerObjId) {
         var playerObj = null;
         var taskObj = null;
@@ -840,13 +900,21 @@ var dbRewardTask = {
 
     fixPlayerRewardAmount: function (playerId) {
         let playerObj = null;
-        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}
+            ).lean().then(
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
-                    return dbconfig.collection_rewardTask.findOne(
-                        {playerId: playerData._id, status: constRewardTaskStatus.STARTED}
-                    ).lean();
+
+                    if (!playerObj.platform.canMultiReward) {
+                        return dbconfig.collection_rewardTask.findOne(
+                            {playerId: playerData._id, status: constRewardTaskStatus.STARTED}
+                        ).lean();
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find player"});

@@ -47,6 +47,7 @@
   "LAST_ACCESS_TIME_START" : "Last Access Time (Start)",
   "LAST_ACCESS_TIME_END" : "Last Access Time (End)",
   "EMAIL" : "Email",
+  "WECHAT" : "Wechat",
   "STATUS" : "Status",
   "TRUST_LEVEL" : "Trust",
   "GAME_CREDIT" : "Game Credit",
@@ -734,6 +735,7 @@
   "NORMAL":"Normal",
   "FORBID_GAME":"Forbid Game",
   "FORBID":"Forbid",
+  "WARINESS":"Wariness",
   "GAME_EXPENSES":"Game Expenses",
   "PROVIDER_EXPENSES":"Provider Expenses",
   "orderId":"Order ID",
@@ -807,6 +809,8 @@
   "LAST_WEEKLY_SETTLEMENT_TIME": "Last Weekly Settlement Time",
   "deficitAmount": "Deficit Amount",
   "disableWechatPay": "Disable WechatPay",
+  "forbidPlayerConsumptionIncentive":"Disable Player Consumption Incentive",
+  "forbidPlayerConsumptionReturn": "Forbid Player Consumption Return",
   "DEFAULT_PASSWORD": "Default",
   "LOGIN_IP": "Login IP",
   "ModifyGamePassword": "Modify Game Password",
@@ -873,5 +877,9 @@
   "PLAYER_DOUBLE_TOP_UP_REWARD_REPORT": "Player Double Top Up Reward Report",
   "PLAYER_REGISTRATION_REWARD_REPORT": "Player Registration Reward Report",
   "PREVIOUS_CONSECUTIVE_LOGIN": "Previous Consecutive Login",
-  "applyForDate": "Applied for"
+  "applyForDate": "Applied for",
+  "PLAYER_MULTIPLE_REWARD": "Multiple Player Rewards",
+  "ONE_WEEK_ABOVE": "One Week Ago",
+  "TWO_WEEK_ABOVE": "Two Week Ago",
+  "ONE_MONTH_ABOVE": "One Month Ago"
 }

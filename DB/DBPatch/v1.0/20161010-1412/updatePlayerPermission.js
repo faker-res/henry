@@ -9,7 +9,7 @@ db.playerInfo.update(
             transactionReward: true,
             topupOnline: true,
             topupManual: true,
-            alipayTransaction: true,
+            alipayTransaction: true
         }}
     },
     {multi: true}

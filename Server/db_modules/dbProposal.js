@@ -260,10 +260,10 @@ var proposal = {
                         }
                     }
 
-                    // SCHEDULED AUTO APPROVAL
-                    if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
-                        proposalData.status = constProposalStatus.PROCESSING;
-                    }
+                    // SCHEDULED AUTO APPROVAL - DISABLED FOR CSTEST
+                    // if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
+                    //     proposalData.status = constProposalStatus.PROCESSING;
+                    // }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
@@ -696,6 +696,7 @@ var proposal = {
         );
         return deferred.promise;
     },
+
     cancelProposal: function (proposalId, adminId, remark) {
         return dbconfig.collection_proposal.findOne({_id: proposalId})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
@@ -1902,7 +1903,7 @@ var proposal = {
             return {total: data[0], data: data[1]}
         })
     },
-    queryBonusProposal: function (player, startTime, endTime, index, limit, sortCol) {
+    queryBonusProposal: function (player, startTime, endTime, status, index, limit, sortCol) {
         index = index || 0;
         var count = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {createTime: -1}
@@ -1918,6 +1919,14 @@ var proposal = {
                 {"data.playerObjId": player}
             ]
         };
+
+        if(status){
+            if (status === 'Fail_or_Rejected') {
+                query.status = {$in: ['Fail','Rejected']};
+            } else {
+                query.status = status;
+            }
+        }
 
         let a = dbconfig.collection_proposal.find(query).count();
         let b = dbconfig.collection_proposal.find(query).sort(sortCol).skip(index).limit(count)
@@ -2101,9 +2110,11 @@ var proposal = {
     },
 
     setBonusProposalStatus: (proposalId, orderStatus, remark) => {
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+        let proposalObj = {};
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).lean().then(
             proposalData => {
                 if (proposalData && proposalData.data) {
+                    proposalObj = proposalData;
                     return pmsAPI.bonus_setBonusStatus(
                         {
                             proposalId: proposalId,
@@ -2114,6 +2125,12 @@ var proposal = {
                 }
                 else {
                     return Q.reject({name: 'DataError', message: 'Can not find proposal'});
+                }
+            }
+        ).then(
+            data => {
+                if( data && orderStatus == 2 ){
+                    return dbconfig.collection_proposal.findOneAndUpdate( {_id: proposalObj._id, createTime: proposalObj.createTime}, {status: constProposalStatus.APPROVED} )
                 }
             }
         );

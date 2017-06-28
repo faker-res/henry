@@ -19,7 +19,7 @@ var playerRegistrationIntentRecordSchema = new Schema({
     //playerId
     playerId: String,
     //platformId
-    platformId: {type: Schema.ObjectId}
+    platform: {type: Schema.ObjectId}
 
 });
 

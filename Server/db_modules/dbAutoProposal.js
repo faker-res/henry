@@ -1,9 +1,13 @@
 'use strict';
 
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+
 const constPlayerLevel = require('../const/constPlayerLevel');
 const constPlayerStatus = require('../const/constPlayerStatus');
 const constProposalStatus = require('../const/constProposalStatus');
 const constProposalType = require('../const/constProposalType');
+const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
 const constSystemLogLevel = require('./../const/constSystemLogLevel');
 const constSystemParam = require('./../const/constSystemParam');
@@ -17,6 +21,7 @@ const dbconfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
+const proposalExecutor = require('../modules/proposalExecutor');
 
 let dbAutoProposal = {
     applyBonus: (platformObjId) => {
@@ -34,10 +39,14 @@ let dbAutoProposal = {
             proposalType => {
                 if (proposalType) {
                     proposalTypeObjId = proposalType._id;
+                    let lastCheckBefore = new Date();
+                    lastCheckBefore.setMinutes(lastCheckBefore.getMinutes() - platformData.autoApproveRepeatDelay);
 
+                    // CS TEST - Include pending proposal as well
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
-                        status: constProposalStatus.PROCESSING
+                        status: {$in: [constProposalStatus.PROCESSING, constProposalStatus.PENDING]},
+                        $or: [{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: new Date()}}]
                     }).cursor({batchSize: 10000});
 
                     let balancer = new SettlementBalancer();
@@ -74,7 +83,7 @@ let dbAutoProposal = {
                         proposals.map(proposal => {
                             // 3. Check player status
                             if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
-                                sendToAudit(proposal._id, proposal.createTime, "Player not allowed for auto proposal");
+                                sendToAudit(proposal._id, proposal.createTime, "Denied: Player not allowed for auto proposal");
                             } else {
                                 // 4. Check player last bonus
                                 prom.push(
@@ -82,11 +91,11 @@ let dbAutoProposal = {
                                         lastWithdrawDate => {
                                             if (lastWithdrawDate) {
                                                 // Player withdrew before
-                                                let repeatCount = platformData.autoApproveRepeatCount;
-                                                checkPreviousProposals(proposal, lastWithdrawDate, repeatCount);
+                                                let repeatCount = platformObj.autoApproveRepeatCount;
+                                                checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj);
                                             } else {
                                                 // Player first time withdraw
-                                                sendToAudit(proposal._id, proposal.createTime, "Player's first withdrawal");
+                                                sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal");
                                             }
                                         }
                                     )
@@ -106,22 +115,51 @@ let dbAutoProposal = {
     }
 };
 
-function sendToAudit(proposalObjId, createTime, remark) {
-    console.log('Sending to audit', proposalObjId, remark);
-    return dbconfig.collection_proposal.findOneAndUpdate({
-        _id: proposalObjId,
-        createTime: createTime
-    }, {
-        status: constProposalStatus.PENDING,
-        'data.remark': 'Auto Approval Denied: ' + remark
-    }).exec();
+function sendToAudit(proposalObjId, createTime, remark, processRemark) {
+    // temporary disabled system log since success will also send to audit
+    // console.log('Sending to audit', proposalObjId, remark);
+    //check if proposal got process, if there is no process, reject directly
+    dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
+        path: "type",
+        model: dbconfig.collection_proposalType
+    }).lean().then(
+        proposalData => {
+            if (proposalData) {
+                // if (!proposalData.noSteps) {
+                dbconfig.collection_proposal.findOneAndUpdate({
+                    _id: proposalObjId,
+                    createTime: createTime
+                }, {
+                    //status: constProposalStatus.PENDING,
+                    'data.remark': 'Auto Approval ' + remark,
+                    'data.checkMsg': processRemark
+                }).then();
+                // }
+                // else {
+                //     return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
+                //         res => {
+                //             return dbconfig.collection_proposal.findOneAndUpdate(
+                //                 {_id: proposalData._id, createTime: proposalData.createTime},
+                //                 {
+                //                     noSteps: true,
+                //                     process: null,
+                //                     status: constProposalStatus.FAIL,
+                //                     'data.remark': 'Auto Approval Denied: ' + remark
+                //                 },
+                //                 {new: true}
+                //             );
+                //         })
+                // }
+            }
+        }
+    );
 }
 
 function checkSingleWithdrawalLimit(proposals, platformData) {
     let passedProposal = [];
     proposals.map(proposal => {
         if (proposal.data.amount >= platformData.autoApproveWhenSingleBonusApplyLessThan) {
-            sendToAudit(proposal._id, proposal.createTime, "Amount exceed single bonus limit");
+            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single bonus limit");
         } else {
             passedProposal.push(proposal);
         }
@@ -131,7 +169,7 @@ function checkSingleWithdrawalLimit(proposals, platformData) {
 }
 
 function checkSingleDayWithdrawalLimit(proposals, platformData, proposalTypeObjId) {
-    let playersToAggregate = proposals.map(proposal => proposal.data.playerObjId);
+    let playersToAggregate = proposals.map(proposal => ObjectId(proposal.data.playerObjId));
 
     return getBonusRecordsOfPlayers(playersToAggregate, proposalTypeObjId).then(
         bonusRecord => {
@@ -144,7 +182,7 @@ function checkSingleDayWithdrawalLimit(proposals, platformData, proposalTypeObjI
                     if (playersToFilter.indexOf(String(record._id) != -1)) {
                         proposals.map(proposal => {
                             if (String(proposal.data.playerObjId) == String(record._id)) {
-                                sendToAudit(proposal._id, proposal.createTime, "Amount exceed single day bonus limit");
+                                sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single day bonus limit");
                                 let removeIndex = proposals.indexOf(proposal);
                                 proposals.splice(removeIndex, 1);
                             }
@@ -164,13 +202,13 @@ function getBonusRecordsOfPlayers(players, proposalTypeObjId) {
     return dbconfig.collection_proposal.aggregate(
         {
             $match: {
-                type: proposalTypeObjId,
+                type: ObjectId(proposalTypeObjId),
                 createTime: {
                     $gte: todayTime.startTime,
                     $lt: todayTime.endTime
                 },
                 'data.playerObjId': {$in: players},
-                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }
         },
         {
@@ -185,46 +223,85 @@ function getBonusRecordsOfPlayers(players, proposalTypeObjId) {
 
 function getPlayerLastProposalDateOfType(playerObjId, type) {
     return dbconfig.collection_proposal.find({
-        'data.playerObjId': playerObjId,
-        type: type,
+        'data.playerObjId': ObjectId(playerObjId),
+        type: ObjectId(type),
         $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}]
-    }).sort({createTime: -1}).limit(1).then(
+    }).sort({createTime: -1}).limit(1).lean().then(
         retData => {
             if (retData && retData[0]) {
                 return retData[0].createTime;
             }
         }
-    ).lean();
+    );
 }
-
-function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
+/**
+ *
+ * @param proposal - The withdrawal proposal
+ * @param lastWithdrawDate
+ * @param repeatCount
+ * @param platformObj
+ * @returns {Promise}
+ */
+function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount, platformObj) {
+    // Find proposals since previous withdrawal
     return dbconfig.collection_proposal.find({
-        'data.platformId': proposal.data.platformId,
-        'data.playerObjId': proposal.data.playerObjId,
+        'data.platformId': ObjectId(proposal.data.platformId),
+        'data.playerObjId': ObjectId(proposal.data.playerObjId),
         createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
         mainType: {$in: ["TopUp", "Reward"]}
     }).sort({createTime: -1}).lean().then(
         proposals => {
-            let isApprove = true, proms = [];
+            let isApprove = true, proms = [], repeatMsg = "";
+            let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
             let dateTo = proposal.createTime;
 
-            while (isApprove && proposals && proposals.length > 0) {
+            let checkResult = [], checkMsg = "";
+
+            while (proposals && proposals.length > 0) {
                 // FIFO dequeue from nearest date proposal
                 let getProp = proposals.shift();
 
                 // Set query date from checking proposal -> current proposal
-                let dateFrom = getProp.createTime;
+                let queryDateFrom = new Date(getProp.createTime);
+                let queryDateTo = new Date(dateTo);
+
+                let checkingNo = countProposals;
 
                 switch (getProp.mainType) {
                     case "TopUp":
+                        let isSkip = false;
                         proms.push(
-                            getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, dateFrom, dateTo).then(
+                            // Check if this top up has used for apply reward
+                            dbconfig.collection_playerTopUpRecord.findOne({proposalId: getProp.proposalId}).then(
+                                topUpRecord => {
+                                    // Only check consumption if the topup record is clean, else ignore this proposal
+                                    if (!topUpRecord.bDirty) {
+                                        return getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo);
+                                    }
+                                    else {
+                                        isSkip = true;
+                                        checkMsg += "Topup proposal " + getProp.proposalId + " is dirty, skipped; ";
+                                    }
+                                }
+                            ).then(
                                 record => {
-                                    if (record[0].validAmount < proposal.data.amount) {
-                                        isApprove = false;
+                                    if (!isSkip) {
+                                        let curConsumption = 0, bonusAmount = 0;
+                                        if (record && record[0]) {
+                                            curConsumption = record[0].validAmount;
+                                            bonusAmount = record[0].bonusAmount;
+                                        }
+
+                                        checkResult.push({
+                                            sequence: checkingNo,
+                                            proposalId: getProp.proposalId,
+                                            requiredConsumption: getProp.data.amount,
+                                            curConsumption: curConsumption,
+                                            bonusAmount: bonusAmount
+                                        });
                                     }
                                 }
                             )
@@ -241,64 +318,137 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
                             }
                         }
                         else {
+                            // Only check rewards that require consumption
                             proms.push(
-                                getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, dateFrom, dateTo).then(
+                                getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo)).then(
                                     record => {
-                                        let checkPassed = false;
+                                        let curConsumption = 0, bonusAmount = 0;
+                                        let initBonusAmount = getProp.data.applyAmount + getProp.data.rewardAmount;
 
-                                        if (!getProp.data.spendingAmount) {
-                                            // There is no spending amount specified for reward
-                                            checkPassed = true;
-                                        }
-                                        else if (record && record[0] && record[0].validAmount > getProp.data.spendingAmount) {
-                                            // Consumption Sum exceed required unlock amount
-                                            checkPassed = true;
+                                        if (record && record[0]) {
+                                            curConsumption = record[0].validAmount;
+                                            bonusAmount = record[0].bonusAmount;
                                         }
 
-                                        // If isApprove is false, means a checking is already false and it will not back to true
-                                        isApprove = isApprove ? checkPassed : false;
+                                        checkResult.push({
+                                            sequence: checkingNo,
+                                            proposalId: getProp.proposalId,
+                                            initBonusAmount: initBonusAmount,
+                                            requiredConsumption: getProp.data.spendingAmount,
+                                            curConsumption: curConsumption,
+                                            bonusAmount: bonusAmount
+                                        });
+
                                     }
                                 )
-                            );
+                            )
                         }
 
                         break;
                 }
 
                 // After push the action promise, set next dateTo to this checking proposal createTime
-                dateTo = dateFrom;
+                dateTo = queryDateFrom;
 
                 countProposals++;
             }
 
             Promise.all(proms).then(
                 () => {
+                    let isClearCycle = false;
+                    let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
+
+                    // Make sure the check result is in correct order
+                    checkResult.sort((a, b) => b.sequence - a.sequence);
+
+                    // Compare consumption and spendingAmount
+                    for (let i = 0; i < checkResult.length; i++) {
+                        // reset the amounts if consumption > spending for next cycle
+                        if (isClearCycle) {
+                            validConsumptionAmount = 0;
+                            spendingAmount = 0;
+                            bonusAmount = 0;
+                            initBonusAmount = 0;
+                        }
+
+                        validConsumptionAmount += checkResult[i].curConsumption;
+                        spendingAmount += checkResult[i].requiredConsumption;
+
+                        if (checkResult[i].initBonusAmount) {
+                            initBonusAmount += checkResult[i].initBonusAmount;
+                            bonusAmount += checkResult[i].bonusAmount;
+                        }
+
+                        if (validConsumptionAmount != 0) {
+                            // Check consumption for each cycle
+                            // User lost all bonus amount
+                            if (initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
+                                isApprove = false;
+                                isClearCycle = true;
+                                checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
+                            }
+                            else if (validConsumptionAmount + lostThreshold < spendingAmount) {
+                                isApprove = false;
+                                checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                            }
+                            else {
+                                // Check if consumption has fulfilled requirement during this cycle
+                                // reset from current cycle
+                                checkMsg += "Consumption fulfilled at proposal " + checkResult[i].proposalId + ", Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + ";";
+                                isApprove = true;
+                                isClearCycle = true;
+                            }
+                        }
+                        else {
+                            // No consumption at this cycle, not approved
+                            isApprove = false;
+                            checkMsg += "No consumption for proposal " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
+                        }
+                    }
+
+                    // Final check on consumption sum
+                    // Check consumption for each cycle
+                    if ((validConsumptionAmount + lostThreshold) < spendingAmount || validConsumptionAmount == 0) {
+                        isApprove = false;
+                        repeatMsg = "Insufficient overall consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
+                    }
+
                     if (isApprove || isTypeEApproval) {
-                        // Proposal approved
-                        dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
+                        // Proposal approved - DISABLED FOR CSTEST
+                        // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
+                        let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
+                        sendToAudit(proposal._id, proposal.createTime, approveRemark, checkMsg);
+
                     }
                     else {
-                        // Proposal not approved; Throw back to loop pool or cancel this proposal - Passed
+                        // Proposal not approved; Throw back to loop pool or deny this proposal
                         proposal.data.autoApproveRepeatCount =
                             proposal.data.autoApproveRepeatCount || proposal.data.autoApproveRepeatCount == 0 ?
                                 proposal.data.autoApproveRepeatCount - 1
                                 : repeatCount - 1;
 
                         if (proposal.data.autoApproveRepeatCount >= 0) {
+                            let nextCheckTime = new Date();
+                            nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
                             return dbconfig.collection_proposal.findOneAndUpdate({
                                 _id: proposal._id,
                                 createTime: proposal.createTime
                             }, {
-                                'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount
+                                'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
+                                'data.nextCheckTime': nextCheckTime,
+                                'data.repeatMsg': repeatMsg,
+                                'data.checkMsg': checkMsg
                             }).exec();
                         }
                         else {
                             // Check if player is VIP - Passed
                             if (proposal.data.proposalPlayerLevel == constPlayerLevel.NORMAL) {
-                                dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.FAIL, proposal.data.bonusId, "Exceed Auto Approval Repeat Limit");
+                                // DISABLED FOR CSTEST
+                                // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.FAIL, proposal.data.bonusId, "Exceed Auto Approval Repeat Limit");
+                                sendToAudit(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit");
                             }
                             else {
-                                sendToAudit(proposal._id, proposal.createTime, "VIP: Exceed Auto Approval Repeat Limit");
+                                sendToAudit(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit");
                             }
                         }
                     }
@@ -310,24 +460,29 @@ function checkPreviousProposals(proposal, lastWithdrawDate, repeatCount) {
 }
 
 function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
+    let matchObj = {
+        platformId: ObjectId(platformId),
+        createTime: {
+            $gte: new Date(dateFrom),
+            $lt: new Date(dateTo)
+        },
+        playerId: ObjectId(playerId)
+    };
+
+    let groupObj = {
+        _id: {playerId: "$playerId", platformId: "$platformId"},
+        validAmount: {$sum: "$validAmount"},
+        bonusAmount: {$sum: "$bonusAmount"}
+    };
+
     return dbconfig.collection_playerConsumptionRecord.aggregate(
         {
-            $match: {
-                platformId: platformId,
-                createTime: {
-                    $gte: dateFrom,
-                    $lt: dateTo
-                },
-                playerId: playerId
-            }
+            $match: matchObj
         },
         {
-            $group: {
-                _id: {playerId: "$playerId", platformId: "$platformId"},
-                validAmount: {$sum: "$validAmount"}
-            }
+            $group: groupObj
         }
-    )
+    );
 }
 
 module.exports = dbAutoProposal;

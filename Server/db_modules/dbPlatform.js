@@ -936,7 +936,7 @@ var dbPlatform = {
         return dbconfig.collection_players.findOne({_id: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
                 playerData => {
-                    if (playerData && playerData.playerLevel) {
+                    if (playerData && playerData.playerLevel && !playerData.permission.forbidPlayerConsumptionIncentive) {
                         var minAmount = minAmountPerLevel[playerData.playerLevel.value];
                         return dbconfig.collection_playerTopUpRecord.aggregate(
                             {
@@ -1062,72 +1062,82 @@ var dbPlatform = {
         let playerTopUpAmount = 0;
         let event = {};
         let playerProm = dbconfig.collection_players.findOne({_id: playerObjId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
 
         return playerProm.then(
             data => {
-                //get player's platform reward event data
-                if (data && data.playerLevel) {
-                    player = data;
-                    platformId = player.platform;
-                    event = eventData;
-                    let minTopUpRecordAmount = 0;
+                if(!data.permission.forbidPlayerConsumptionIncentive){
+                    //get player's platform reward event data
+                    if (data && data.playerLevel) {
+                        player = data;
+                        platformId = player.platform;
+                        event = eventData;
+                        let minTopUpRecordAmount = 0;
 
-                    // Filter event param based on player level
-                    eventParams = eventData.param.reward.filter(reward => {
-                        if (reward.minPlayerLevel == player.playerLevel.value) {
-                            return reward;
-                        }
-                    });
-
-                    // Loose filter if no matched param for player level
-                    if (eventParams.length == 0) {
+                        // Filter event param based on player level
                         eventParams = eventData.param.reward.filter(reward => {
-                            if (reward.minPlayerLevel <= player.playerLevel.value) {
-                                if (reward.minTopUpRecordAmount > minTopUpRecordAmount) {
-                                    minTopUpRecordAmount = reward.minTopUpRecordAmount;
-                                }
+                            if (reward.minPlayerLevel == player.playerLevel.value) {
                                 return reward;
                             }
                         });
-                    }
 
-                    if (eventParams && eventParams.length > 0) {
-                        //get yesterday top up amount
-                        return dbconfig.collection_playerTopUpRecord.aggregate(
-                            {
-                                $match: {
-                                    playerId: player._id,
-                                    platformId: player.platform,
-                                    amount: {$gte: minTopUpRecordAmount},
-                                    createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                                    $or: [{bDirty: false}, {
-                                        bDirty: true,
-                                        usedType: constRewardType.PLAYER_TOP_UP_RETURN
-                                    }]
+                        // Loose filter if no matched param for player level
+                        if (eventParams.length == 0) {
+                            eventParams = eventData.param.reward.filter(reward => {
+                                if (reward.minPlayerLevel <= player.playerLevel.value) {
+                                    if (reward.minTopUpRecordAmount > minTopUpRecordAmount) {
+                                        minTopUpRecordAmount = reward.minTopUpRecordAmount;
+                                    }
+                                    return reward;
                                 }
-                            },
-                            {
-                                $group: {
-                                    _id: {playerId: "$playerId", platformId: "$platformId"},
-                                    amount: {$sum: "$amount"}
+                            });
+                        }
+
+                        if (eventParams && eventParams.length > 0) {
+                            //get yesterday top up amount
+                            return dbconfig.collection_playerTopUpRecord.aggregate(
+                                {
+                                    $match: {
+                                        playerId: player._id,
+                                        platformId: player.platform,
+                                        amount: {$gte: minTopUpRecordAmount},
+                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
+                                        $or: [{bDirty: false}, {
+                                            bDirty: true,
+                                            usedType: constRewardType.PLAYER_TOP_UP_RETURN
+                                        }]
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: {playerId: "$playerId", platformId: "$platformId"},
+                                        amount: {$sum: "$amount"}
+                                    }
                                 }
-                            }
-                        );
+                            );
+                        }
+                        else {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                                name: "DataError",
+                                message: "Player is not valid for this reward"
+                            });
+                        }
                     }
                     else {
                         return Q.reject({
-                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                            status: constServerCode.REWARD_EVENT_INVALID,
                             name: "DataError",
-                            message: "Player is not valid for this reward"
+                            message: "Cannot find player consumption incentive event data for platform"
                         });
                     }
                 }
-                else {
+                else{
                     return Q.reject({
-                        status: constServerCode.REWARD_EVENT_INVALID,
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
-                        message: "Cannot find player consumption incentive event data for platform"
+                        message: "Player is forbidded for consumption incentive event"
                     });
                 }
             }
@@ -1263,18 +1273,23 @@ var dbPlatform = {
                         proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventParam.spendingTimes;
 
                         // Check whether player has existing reward task
-                        return dbconfig.collection_rewardTask.findOne({
-                            platformId: platformId,
-                            playerId: player._id,
-                            eventId: event._id,
-                            status: constRewardTaskStatus.STARTED
-                        }).lean().then(
-                            data => {
-                                if (!data) {
-                                    return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                        if (!player.platform.canMultiReward) {
+                            return dbconfig.collection_rewardTask.findOne({
+                                platformId: platformId,
+                                playerId: player._id,
+                                eventId: event._id,
+                                status: constRewardTaskStatus.STARTED
+                            }).lean().then(
+                                data => {
+                                    if (!data) {
+                                        return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
+                        else {
+                            return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
+                        }
                     }
                     else {
                         if ((player.validCredit + player.lockedCredit + data[1]) > eventParam.maxPlayerCredit) {
