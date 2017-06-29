@@ -12,8 +12,11 @@ dbconfig.collection_platform.findOne({name: "EU8"}).lean().then(
                 playerData => {
                     if (playerData && playerData.phoneNumber && playerData.phoneNumber.length < 20) {
                         //encrypt player phone number
-                        playerData.phoneNumber = rsaCrypto.encrypt(playerData.phoneNumber);
-                        playerData.save().then();
+                        let enPhoneNumber = rsaCrypto.encrypt(playerData.phoneNumber);
+                        dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerData._id, platform: playerData.platform},
+                            {phoneNumber: enPhoneNumber}
+                        ).then();
                         console.log("index", i);
                         i++;
                     }
