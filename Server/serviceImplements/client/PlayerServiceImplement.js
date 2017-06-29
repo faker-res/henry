@@ -61,10 +61,14 @@ let PlayerServiceImplement = function () {
             if (data.domain) {
                 data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
             }
+            //set email to qq if there is only qq number and no email data
+            if (data.qq && !data.email) {
+                data.email = data.qq + "@qq.com";
+            }
             conn.captchaCode = null;
             data.isOnline = true;
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, true, false, true).then(
-                (playerData) =>{
+                (playerData) => {
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData);
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
@@ -78,7 +82,7 @@ let PlayerServiceImplement = function () {
 
                     playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
                     playerData.email = dbUtility.encodeEmail(playerData.email);
-                    if(playerData.bankAccount) {
+                    if (playerData.bankAccount) {
                         playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
                     }
 
@@ -87,7 +91,7 @@ let PlayerServiceImplement = function () {
                         data: playerData,
                         token: token,
                     }, data);
-                },(error) => {
+                }, (error) => {
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data);
                 }
             ).catch(WebSocketUtil.errorHandler)
@@ -272,7 +276,7 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(
             function (playerData) {
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (conn.captchaCode && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                    if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;
@@ -311,7 +315,7 @@ let PlayerServiceImplement = function () {
 
                 playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
                 playerData.email = dbUtility.encodeEmail(playerData.email);
-                if(playerData.bankAccount) {
+                if (playerData.bankAccount) {
                     playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
                 }
 
@@ -380,7 +384,7 @@ let PlayerServiceImplement = function () {
                 let partnerData = playerPartnerData[1];
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (conn.captchaCode && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                    if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;
@@ -477,7 +481,7 @@ let PlayerServiceImplement = function () {
                 let partnerData = playerPartnerData[1];
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (conn.captchaCode && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                    if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;

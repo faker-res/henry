@@ -8298,8 +8298,10 @@ define(['js/app'], function (myApp) {
                 }
 
                 let dateTimeRegex = /\d{4}\/\d{2}\/\d{2}\ \d{2}\:\d{2}\:\d{2}/g;
-
-                utilService.createDatePicker("#rewardValidStartTime");
+                utilService.createDatePicker("#rewardValidStartTime", {
+                    language: 'en',
+                    format: 'yyyy/MM/dd hh:mm:ss'
+                });
                 utilService.createDatePicker("#rewardValidEndTime", {
                     language: 'en',
                     format: 'yyyy/MM/dd hh:mm:ss'

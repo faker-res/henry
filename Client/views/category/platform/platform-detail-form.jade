@@ -34,6 +34,20 @@ form(name="form_new_platform" ,novalidate)
     div.form-group.col-md-6
         label.control-label {{"CUSTOMER_SERVICE_WEIXIN" | translate}}
         input.form-control(type="text", placeholder="{{'CUSTOMER_WEIXIN' | translate}}", ng-model="vm.showPlatform.csWeixin")
+
+    div.form-group.col-md-6
+        label.control-label {{"CUSTOMER_SERVICE_SKYPE" | translate}}
+        input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_SKYPE' | translate}}", ng-model="vm.showPlatform.csSkype")
+    div.form-group.col-md-6
+        label.control-label {{"CUSTOMER_SERVICE_PARTNER_QQ" | translate}}
+        input.form-control(type="text", placeholder="{{'CUSTOMER_PARTNER_QQ' | translate}}", ng-model="vm.showPlatform.csPartnerQQ")
+    div.form-group.col-md-6
+        label.control-label {{"CUSTOMER_SERVICE_PARTNER_EMAIL" | translate}}
+        input.form-control(type="text", placeholder="{{'CUSTOMER_PARTNER_EMAIL' | translate}}", ng-model="vm.showPlatform.csPartnerEmail")
+    div.form-group.col-md-6
+        label.control-label {{"CUSTOMER_SERVICE_PARTNER_SKYPE" | translate}}
+        input.form-control(type="text", placeholder="{{'CUSTOMER_PARTNER_SKYPE' | translate}}", ng-model="vm.showPlatform.csPartnerSkype")
+
     div.form-group.col-md-6
         label.control-label {{"_WEIXIN" | translate}}
         input.form-control(type="text", placeholder="{{'OFFICIAL_ACCOUNT_WEIXIN' | translate}}", ng-model="vm.showPlatform.oaWeixin")
