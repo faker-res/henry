@@ -488,11 +488,13 @@ const dbPlayerCreditTransfer = {
                             rewardTask.inProvider = false;
                             rewardTaskCredit = rewardTask.currentAmount;
                             rewardTask.bUpdateTask = true;
-                            lockedAmount = rewardTask.currentAmount;
+
+                            for (let i = 0; i < rewardTasks.length; i++) {
+                                lockedAmount += rewardTasks[i].currentAmount;
+                            }
+
                             bUpdateTask = true;
                         } else {
-                            let totalAmountLeftToTransfer = amount;
-
                             // filter for relevant reward only
                             let relevantRewards = [];
                             for (let i = 0; i < rewardTasks.length; i++) {
