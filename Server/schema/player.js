@@ -321,6 +321,7 @@ playerSchema.post('find', function (result) {
         return result;
     }
 });
+
 playerSchema.post('findOne', function (result) {
     playerPostFindUpdate(result, true);
 });
