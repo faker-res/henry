@@ -71,6 +71,8 @@ var platformSchema = new Schema({
     bonusCharges: {type:Number},
     //allow same real name to register? for frontEnd only, they still can register via office
     allowSameRealNameToRegister: {type: Boolean, default: true},
+    // Platform-wide SMS Verification Setting
+    requireSMSVerification: {type: Boolean, default: false},
     // SMS Verification Setting For Password Update
     requireSMSVerificationForPasswordUpdate: {type: Boolean, default: false},
     // SMS Verification Setting For Payment Update
