@@ -461,7 +461,7 @@ const dbPlayerCreditTransfer = {
                     if (providerPlayerObj.gameCredit < 1 || amount == 0 || providerPlayerObj.gameCredit < amount) {
                         notEnoughCredit = true;
                         if (bResolve) {
-                            return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                            return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
                                 playerData => {
                                     deferred.resolve(
                                         {
@@ -536,8 +536,9 @@ const dbPlayerCreditTransfer = {
                                 let rewardTask = relevantRewards[i];
                                 let isOldestReward = (i === oldestRewardIndex);
 
-                                if (totalAmountLeftToTransfer >= rewardTask.currentAmount) {
+                                if (totalAmountLeftToTransfer >= rewardTask.initAmount) {
                                     // reduce the totalAmountLeftToTransfer since it is used to fill the locked credit/reward valid credit
+                                    rewardTask.currentAmount = rewardTask.initAmount;
                                     totalAmountLeftToTransfer -= rewardTask.currentAmount;
                                     rewardTask.inProvider = false;
                                     rewardTask.bUpdateTask = true;
@@ -614,9 +615,10 @@ const dbPlayerCreditTransfer = {
                     if (bUpdateTask) {
                         // QUESTION :: Should input credit reset?
                         // ASSUMPTION :: Yes.
+                        console.log(rewardTasks);
+                        let rewardPromises = [];
                         for (let i = 0; i < rewardTasks.length; i++) {
                             let rewardTask = rewardTasks[i];
-                            let rewardPromises = [];
                             if (rewardTask.bUpdateTask) {
                                 let rewardProm = dbConfig.collection_rewardTask.findOneAndUpdate(
                                     {_id: rewardTask._id, platformId: rewardTask.platformId},
@@ -632,8 +634,8 @@ const dbPlayerCreditTransfer = {
                                 // pushing the object into promise will return the object as usual, with the same array order
                                 rewardPromises.push(rewardTask);
                             }
-                            return Promise.all(rewardPromises);
                         }
+                        return Promise.all(rewardPromises);
                     }
                     else {
                         return rewardTasks;
@@ -677,7 +679,7 @@ const dbPlayerCreditTransfer = {
                     };
 
                     //move credit to player
-                    return dbconfig.collection_players.findOneAndUpdate(
+                    return dbConfig.collection_players.findOneAndUpdate(
                         {_id: playerObjId, platform: platform},
                         updateObj,
                         {new: true}
