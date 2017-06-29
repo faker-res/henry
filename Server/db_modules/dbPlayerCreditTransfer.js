@@ -47,6 +47,7 @@ const dbPlayerCreditTransfer = {
         let transferId = new Date().getTime();
         let transferAmount = 0;
         let gameCredit = 0;
+        let isFirstRegistrationReward = false;
 
         return dbConfig.collection_players.findOne({_id: playerObjId}).populate(
             {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
@@ -87,7 +88,6 @@ const dbPlayerCreditTransfer = {
                 // Player has enough credit
                 rewardData = taskData[0];
                 gameCredit = (taskData[1] && taskData[1].credit) ? parseFloat(taskData[1].credit) : 0;
-                let isFirstRegistrationReward = false;
 
                 //if amount is less than 0, means transfer all
                 validTransferAmount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
@@ -299,16 +299,32 @@ const dbPlayerCreditTransfer = {
                         let updProm = [];
 
                         rewardData.forEach(reward => {
-                            updProm.push(dbRewardTask.updateRewardTask(
-                                {
-                                    _id: reward._id,
-                                    platformId: reward.platformId
-                                }, {
-                                    inProvider: reward.inProvider,
-                                    _inputCredit: reward._inputCredit,
-                                    currentAmount: reward.currentAmount
+                            if (isFirstRegistrationReward) {
+                                if (reward.requiredBonusAmount > 0) {
+                                    updProm.push(dbRewardTask.updateRewardTask(
+                                        {
+                                            _id: reward._id,
+                                            platformId: reward.platformId
+                                        }, {
+                                            inProvider: reward.inProvider,
+                                            _inputCredit: reward._inputCredit,
+                                            currentAmount: reward.currentAmount
+                                        }
+                                    ))
                                 }
-                            ))
+                            }
+                            else {
+                                updProm.push(dbRewardTask.updateRewardTask(
+                                    {
+                                        _id: reward._id,
+                                        platformId: reward.platformId
+                                    }, {
+                                        inProvider: reward.inProvider,
+                                        _inputCredit: reward._inputCredit,
+                                        currentAmount: reward.currentAmount
+                                    }
+                                ))
+                            }
                         });
 
                         return Promise.all(updProm);
