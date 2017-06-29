@@ -36,7 +36,6 @@ const dbPlayerCreditTransfer = {
     playerCreditTransferToProvider: (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) => {
         let gameAmount = 0, regGameAmount = 0;
         let rewardAmount = 0;
-        let providerAmount = 0;
         let playerCredit = 0;
         let rewardTaskAmount = 0;
         let rewardDataObj = null;
@@ -46,8 +45,6 @@ const dbPlayerCreditTransfer = {
         let validTransferAmount = 0, lockedTransferAmount = 0;
         let bTransfered = false;
         let transferId = new Date().getTime();
-        let changedLockCredit = 0;
-        let totalLockedAmount = 0;
         let transferAmount = 0;
         let gameCredit = 0;
 
@@ -329,11 +326,7 @@ const dbPlayerCreditTransfer = {
                             console.error(err);
                             if (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) {
                             } else {
-                                return dbConfig.collection_players.findOneAndUpdate(
-                                    {_id: playerObjId, platform: playerData.platform},
-                                    {$inc: {validCredit: validTransferAmount}, lockedAmount: lockedTransferAmount},
-                                    {new: true}
-                                );
+                                return playerCreditChange(playerObjId, playerData.platform, validTransferAmount, lockedTransferAmount);
                             }
                         }
                     }
@@ -372,14 +365,7 @@ const dbPlayerCreditTransfer = {
                 else {
                     return Q.reject({name: "DataError", message: "Error transfer player credit to provider."});
                 }
-            },
-            err => playerCreditChange(playerObjId, playerData.platform, validTransferAmount, lockedTransferAmount).then(
-                () => Q.reject({
-                    status: constServerCode.FAILED_UPDATE_REWARD_TASK,
-                    name: "DBError",
-                    errorMessage: "Failed when updating reward task during transfer in"
-                })
-            )
+            }
         );//.catch( error => console.log("transfer error:", error));
     },
 
@@ -740,7 +726,7 @@ const dbPlayerCreditTransfer = {
 };
 
 /**
- *
+ * TODO should we put a general log here to log all the credit change action performed?
  * @param playerObjId
  * @param platformObjId
  * @param incValidCredit
