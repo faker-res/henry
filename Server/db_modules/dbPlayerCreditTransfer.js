@@ -465,7 +465,7 @@ const dbPlayerCreditTransfer = {
                     if (data) {
                         if (data[0].requiredBonusAmount > 0) {
                             // handle register bonus separately
-                            rewardTask = data[0];
+                            let rewardTask = data[0];
                             rewardTask.currentAmount = amount;
                             validCreditToAdd = 0;
                             rewardTask.inProvider = false;
@@ -480,8 +480,8 @@ const dbPlayerCreditTransfer = {
                             for (let i = 0; i < rewardTasks.length; i++) {
                                 let rewardTask = rewardTasks[i];
                                 if ((!rewardTask.targetProviders || rewardTask.targetProviders.length <= 0 ) // target all providers
-                                    || (rewardTask.targetEnable && rewardTask.targetProviders.indexOf(providerId) >= 0 ) // target this provider
-                                    || (!rewardTask.targetEnable && rewardTask.targetProviders.indexOf(providerId) < 0) // banded provider
+                                    || (rewardTask.targetEnable && rewardTask.targetProviders.findIndex(e => String(e) == String(providerId)) >= 0) // target this provider
+                                    || (!rewardTask.targetEnable && rewardTask.targetProviders.findIndex(e => String(e) == String(providerId)) < 0) // banded provider
                                 ) {
                                     relevantRewards.push(rewardTask)
                                 } else {
