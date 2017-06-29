@@ -3821,10 +3821,19 @@ let dbPlayerInfo = {
                     //         else {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-                    return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    // return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                     // }
                     //     }
                     // );
+
+                    if (playerObj.platform.canMultiReward) {
+                        // Platform supporting multiple rewards will use new function first
+                        return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    }
+                    else {
+                        return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    }
+
                 } else {
                     deferred.reject({name: "DataError", message: "Cant find player or provider"});
                 }
