@@ -11,7 +11,7 @@ form(name="form_new_platform" ,novalidate)
         input.form-control(type="text", placeholder="{{'PLATFORM_CODE' | translate}}", ng-model="vm.showPlatform.code", required)
     div.form-group.col-md-6
         label.control-label *{{"PLATFORM_PREFIX" | translate}}
-        input.form-control(type="text", placeholder="{{'PLATFORM_PREFIX' | translate}}", ng-model="vm.showPlatform.prefix", required)
+        input.form-control(type="text", placeholder="{{'PLATFORM_PREFIX' | translate}}", ng-model="vm.showPlatform.prefix")
     div.form-group.col-md-6
         label.control-label *{{"PLATFORM_PARTNER_PREFIX" | translate}}
         input.form-control(type="text", placeholder="{{'PLATFORM_PARTNER_PREFIX' | translate}}", ng-model="vm.showPlatform.partnerPrefix")
