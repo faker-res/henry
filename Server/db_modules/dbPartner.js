@@ -1230,7 +1230,7 @@ let dbPartner = {
             platformData => {
                 if (platformData) {
                     // Check if platform sms verification is required
-                    if (!platformData.requireSMSVerification) {
+                    if (!platformData.requireSMSVerificationForPasswordUpdate) {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
