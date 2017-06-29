@@ -62,6 +62,7 @@ const constProviderStatus = require("./../const/constProviderStatus");
 let dbGeoIp = require('./../db_modules/dbGeoIp');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
+let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
@@ -833,7 +834,7 @@ let dbPlayerInfo = {
             function (data) {
                 data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 data.email = dbUtility.encodeEmail(data.email);
-                if(data.bankAccount) {
+                if (data.bankAccount) {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
                 }
                 apiData = data;
@@ -1044,12 +1045,20 @@ let dbPlayerInfo = {
 
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
-                deferred.reject({name: "DBError", message: "Error updating player password", error: err});
+                deferred.reject({
+                    name: "DBError",
+                    message: "Error generate salt when updating player password",
+                    error: err
+                });
                 return;
             }
             bcrypt.hash(newPassword, salt, function (err, hash) {
                 if (err) {
-                    deferred.reject({name: "DBError", message: "Error updating player password.", error: err});
+                    deferred.reject({
+                        name: "DBError",
+                        message: "Error generate hash when updating player password.",
+                        error: err
+                    });
                     return;
                 }
                 dbUtility.findOneAndUpdateForShard(
@@ -1081,7 +1090,7 @@ let dbPlayerInfo = {
                     data => deferred.resolve(newPassword),
                     error => deferred.reject({
                         name: "DBError",
-                        message: "Error updating player password.",
+                        message: "Error updating partner password.",
                         error: error
                     })
                 );
@@ -3342,6 +3351,8 @@ let dbPlayerInfo = {
 
     /**
      * Transfer credit from platform to game provider
+     * 1. Check where is the player's credit
+     *
      * @param {objectId} platform
      * @param {objectId} playerId
      * @param {objectId} providerId
@@ -3361,12 +3372,13 @@ let dbPlayerInfo = {
         let providerData = null;
 
         Q.all([prom0, prom1]).then(
-            function (data) {
+            data => {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
-                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1
-                        || amount == 0) {
+
+                    // Check if player has enough credit to play
+                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1 || amount == 0) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -3390,7 +3402,14 @@ let dbPlayerInfo = {
                     // First log before processing
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-                    return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+
+                    if (playerData.platform.canMultiReward) {
+                        // Platform supporting multiple rewards will use new function first
+                        return dbPlayerCreditTransfer.playerCreditTransferToProvider(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                    }
+                    else {
+                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                    }
                     //}
                     // }
                     //);
@@ -3454,7 +3473,10 @@ let dbPlayerInfo = {
         let transferId = new Date().getTime();
         let changedLockCredit = 0;
 
-        return dbconfig.collection_players.findOne({_id: playerObjId}).populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean().then(
+        return dbconfig.collection_players.findOne({_id: playerObjId}).populate({
+            path: "lastPlayedProvider",
+            model: dbconfig.collection_gameProvider
+        }).lean().then(
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
@@ -3492,7 +3514,7 @@ let dbPlayerInfo = {
         ).then(
             function (taskData) {
                 rewardData = taskData[0];
-                let gameCredit =  (taskData[1] && taskData[1].credit) ? parseFloat(taskData[1].credit) : 0;
+                let gameCredit = (taskData[1] && taskData[1].credit) ? parseFloat(taskData[1].credit) : 0;
                 if (!notEnoughtCredit) {
                     // Player has enough credit
                     //if amount is less than 0, means transfer all
@@ -7382,7 +7404,8 @@ let dbPlayerInfo = {
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
-                            eventDescription: event.description
+                            eventDescription: event.description,
+                            useConsumption: Boolean(event.param.useConsumption)
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -7395,7 +7418,7 @@ let dbPlayerInfo = {
 
                         return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
                     }
-                    else if ((deficitAmount * eventParam.rewardPercentage) >= eventParam.minRewardAmount) {
+                    else if ((deficitAmount * eventParam.rewardPercentage) >= (eventParam.minRewardAmount - 1)) {
                         // Incentive by percentage
                         proposalData.data.rewardAmount = Math.min((deficitAmount * eventParam.rewardPercentage), eventParam.maxRewardAmount);
                         proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventParam.spendingTimes;
