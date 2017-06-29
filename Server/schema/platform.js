@@ -73,6 +73,10 @@ var platformSchema = new Schema({
     allowSameRealNameToRegister: {type: Boolean, default: true},
     // Platform-wide SMS Verification Setting
     requireSMSVerification: {type: Boolean, default: false},
+    // SMS Verification Setting For Password Update
+    requireSMSVerificationForPasswordUpdate: {type: Boolean, default: false},
+    // SMS Verification Setting For Payment Update
+    requireSMSVerificationForPaymentUpdate: {type: Boolean, default: false},
     //allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
     // Auto approve bonus proposal platform switch
