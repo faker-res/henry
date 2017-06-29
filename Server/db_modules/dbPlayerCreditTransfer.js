@@ -477,16 +477,18 @@ const dbPlayerCreditTransfer = {
                     let totalAmountLeftToTransfer = amount;
 
                     if (data) {
-                        if (data[0].requiredBonusAmount > 0) {
+                        rewardTasks = data.reverse(); // to handle reward task decending
+                        if (rewardTasks[rewardTasks.length-1].requiredBonusAmount > 0) {
                             // handle register bonus separately
-                            let rewardTask = data[0];
+                            let rewardTask = rewardTasks[rewardTasks.length-1];
                             rewardTask.currentAmount = amount;
                             validCreditToAdd = 0;
                             rewardTask.inProvider = false;
                             rewardTaskCredit = rewardTask.currentAmount;
                             rewardTask.bUpdateTask = true;
+                            lockedAmount = rewardTask.currentAmount;
+                            bUpdateTask = true;
                         } else {
-                            rewardTasks = data.reverse(); // to handle reward task decendingly
                             let totalAmountLeftToTransfer = amount;
 
                             // filter for relevant reward only
