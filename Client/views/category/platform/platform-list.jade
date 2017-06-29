@@ -54,6 +54,12 @@
                     tr
                         td(colspan=2)
                         td(colspan=2)
+                            span {{'SMS_VERIFICATION' | translate}}&nbsp;:&nbsp;
+                                span(style='vertical-align:baseline',ng-if='vm.selectedPlatform.data.requireSMSVerification') {{'Yes' | translate}}
+                                span(style='vertical-align:baseline',ng-if='!vm.selectedPlatform.data.requireSMSVerification') {{'No' | translate}}
+                    tr
+                        td(colspan=2)
+                        td(colspan=2)
                             span {{'SMS_VERIFICATION_FOR_PASSWORD_UPDATE' | translate}}&nbsp;:&nbsp;
                                 span(style='vertical-align:baseline',ng-if='vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate') {{'Yes' | translate}}
                                 span(style='vertical-align:baseline',ng-if='!vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate') {{'No' | translate}}

@@ -808,6 +808,7 @@
 
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
+  "SMS_VERIFICATION": "SMS Verification",
   "SMS_VERIFICATION_FOR_PASSWORD_UPDATE": "SMS Verification For Password Update",
   "SMS_VERIFICATION_FOR_PAYMENT_UPDATE": "SMS Verification For Payment Update",
   "LAST_DAILY_SETTLEMENT_TIME": "Last Daily Settlement Time",
