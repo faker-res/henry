@@ -515,11 +515,14 @@ let dbPartner = {
      *  {  bankAccount , partnerName, partnerId, level }
      */
     getPartnersByAdvancedQuery: function (platformId, data) {
+        console.log(platformId);
+        console.log(data);
         return dbconfig.collection_partner.find({
-            platform: platformId,
-            $and: [data]
-        }).limit(constSystemParam.MAX_RECORD_NUM)
-            .populate({path: "level", model: dbconfig.collection_partnerLevel}).exec();
+            platform: platformId
+        }).populate({path: "level", model: dbconfig.collection_partnerLevel}).limit(10).lean().exec();
+
+        // }).limit(constSystemParam.MAX_RECORD_NUM)
+        //     .populate({path: "level", model: dbconfig.collection_partnerLevel}).exec();
     },
 
     /**
