@@ -65,19 +65,26 @@ var dbRewardTask = {
         rewardData.bonusAmount = rewardData.initAmount;
         let rewardTask = new dbconfig.collection_rewardTask(rewardData);
         let taskProm = rewardTask.save();
+        let playerProm;
 
-        // Player's locked credit will increase from current lockedAmount
-        // let playerProm = dbconfig.collection_players.findOneAndUpdate(
-        //     {_id: rewardData.playerId, platform: rewardData.platformId},
-        //     {$inc: {lockedCredit: rewardData.initAmount}}
-        // ).exec();
-
-        let playerProm = dbconfig.collection_players.findOneAndUpdate(
-            {_id: rewardData.playerId, platform: rewardData.platformId},
-            {lockedCredit: rewardData.initAmount}
-        ).exec();
-
-        Q.all([taskProm, playerProm]).then(
+        dbconfig.collection_platform.findOne({_id: rewardData.platformId}).lean().then(
+            platformData => {
+                if (platformData.canMultiReward) {
+                    // Player's locked credit will increase from current lockedAmount
+                    playerProm = dbconfig.collection_players.findOneAndUpdate(
+                        {_id: rewardData.playerId, platform: rewardData.platformId},
+                        {$inc: {lockedCredit: rewardData.initAmount}}
+                    ).exec();
+                }
+                else {
+                    playerProm = dbconfig.collection_players.findOneAndUpdate(
+                        {_id: rewardData.playerId, platform: rewardData.platformId},
+                        {lockedCredit: rewardData.initAmount}
+                    ).exec();
+                }
+                return Promise.all([taskProm, playerProm]);
+            }
+        ).then(
             data => {
                 if (data && data[0] && data[1]) {
                     dbLogger.createCreditChangeLogWithLockedCredit(
@@ -183,7 +190,7 @@ var dbRewardTask = {
         return dbconfig.collection_rewardTask.find({
             playerId: playerId,
             status: constRewardTaskStatus.STARTED
-        }).exec();
+        }).sort({createdTime:1}).lean().exec();
     },
 
     /**
@@ -508,6 +515,7 @@ var dbRewardTask = {
      * @param {Object} taskData - reward task object
      */
     completeRewardTask: function (taskData) {
+        let updateData;
         return new Promise((resolve, reject) => {
             // Check that we have the input we need to proceed
             if (!taskData._id) {
@@ -531,20 +539,6 @@ var dbRewardTask = {
                 {status: constRewardTaskStatus.COMPLETED}
             );
 
-            // Changed from update lockedCredit from 0 to -rewardAmount
-            // let updateData = {
-            //     $inc: {validCredit: rewardAmount, lockedCredit: -rewardAmount},
-            // };
-
-            let updateData = {
-                $inc: {validCredit: rewardAmount},
-                lockedCredit: 0
-            };
-
-            //if reward task is for first top up, mark player
-            if (taskData.type == constRewardType.FIRST_TOP_UP) {
-                updateData.bFirstTopUpReward = true;
-            }
             //if reward task if player top up return, increase the daily amount
             // if (taskData.type == constRewardType.PLAYER_TOP_UP_RETURN) {
             //     updateData.$inc.dailyTopUpIncentiveAmount = taskData.currentAmount;
@@ -556,7 +550,29 @@ var dbRewardTask = {
             //     updateData.$inc = {validCredit: taskData.maxRewardAmount};
             // }
 
-            taskProm.then(
+            dbconfig.collection_platform.findOne({_id: taskData.platformId}).lean().then(
+                platformData => {
+                    if (platformData.canMultiReward) {
+                        // Changed from update lockedCredit from 0 to -rewardAmount
+                        updateData = {
+                            $inc: {validCredit: rewardAmount, lockedCredit: -rewardAmount},
+                        };
+                    }
+                    else {
+                        updateData = {
+                            $inc: {validCredit: rewardAmount},
+                            lockedCredit: 0
+                        };
+                    }
+
+                    //if reward task is for first top up, mark player
+                    if (taskData.type == constRewardType.FIRST_TOP_UP) {
+                        updateData.bFirstTopUpReward = true;
+                    }
+
+                    return taskProm;
+                }
+            ).then(
                 rewardTask => {
                     // This is the old document we have replaced. If the old document had already been marked as completed by another process, then we will not proceed.
                     if (rewardTask && rewardTask.status != constRewardTaskStatus.COMPLETED) {
