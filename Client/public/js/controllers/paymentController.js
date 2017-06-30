@@ -1052,7 +1052,7 @@ define(['js/app'], function (myApp) {
                 playerArr.push(a._id);
             })
             var sendData = {
-                bankAlipayGroupObjId: vm.SelectedMerchantGroupNode._id,
+                bankAlipayGroupObjId: vm.SelectedAlipayGroupNode._id,
                 playerObjIds: playerArr
             }
             socketService.$socket($scope.AppSocket, 'addPlayersToAlipayGroup', sendData, function (data) {
