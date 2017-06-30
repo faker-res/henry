@@ -149,6 +149,16 @@ var dbPlatformAlipayGroup = {
         );
     },
 
+    addAllPlayersToAlipayGroup: function (bankAlipayGroupObjId, platformObjId) {
+        return dbconfig.collection_players.update({platform: platformObjId}, {alipayGroup: bankAlipayGroupObjId}, {multi: true}).then(data => {
+            if (data && data.ok) {
+                return {platform: platformObjId, alipayGroup: bankAlipayGroupObjId, nModified: data.nModified, n: data.n}
+            } else {
+                return {platform: platformObjId, alipayGroup: bankAlipayGroupObjId, error: data};
+            }
+        });
+    },
+
     deleteAlipay: function(accountNumber){
         return dbconfig.collection_platformAlipayGroup.update(
             {},

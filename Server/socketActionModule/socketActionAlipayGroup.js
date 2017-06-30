@@ -103,7 +103,17 @@ function socketActionAlipayGroup(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.bankAlipayGroupObjId && data.playerObjIds && data.playerObjIds.length > 0);
             socketUtil.emitter(self.socket, dbPlatformAlipayGroup.addPlayersToAlipayGroup, [data.bankAlipayGroupObjId, data.playerObjIds], actionName, isValidData);
-        }
+        },
+
+        /**
+         * Add all players to AliPay group
+         * @param {json} data
+         */
+        addAllPlayersToAlipayGroup: function addAllPlayersToAlipayGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.bankAlipayGroupObjId && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.addAllPlayersToAlipayGroup, [data.bankAlipayGroupObjId, data.platformObjId], actionName, isValidData);
+        },
 
     };
     socketActionAlipayGroup.actions = this.actions;

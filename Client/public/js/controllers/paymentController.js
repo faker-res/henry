@@ -1060,6 +1060,22 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         }
+        vm.submitAddAllPlayersToAlipayGroup = function () {
+            let sendData = {
+                bankAlipayGroupObjId: vm.SelectedAlipayGroupNode._id,
+                platformObjId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'addAllPlayersToAlipayGroup', sendData, function (data) {
+                if (data.data) {
+                    if (data.data.alipayGroup == vm.SelectedAlipayGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
+                        vm.addAllPlayerToAlipayResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
+                    } else {
+                        vm.addAllPlayerToAlipayResult = JSON.stringify(data.data.error);
+                    }
+                    $scope.safeApply();
+                }
+            });
+        }
 
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
