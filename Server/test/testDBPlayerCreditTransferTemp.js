@@ -8,15 +8,14 @@ let dbConfig = require('../modules/dbproperties');
 let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 let dbPlatform = require('../db_modules/dbPlatform');
 let dbRewardTask = require('../db_modules/dbRewardTask');
-let dbProvider = require('../db_modules/dbProvider');
 let mongoose = require('mongoose');
-let commonTestFunc = require('../test_modules/cc');
+let commonTestFunc = require('../test_modules/commonTestFunc');
 let Q = require('q');
 
 describe('Test player credit transfer', function () {
 
     // todo :: WIP
-    return false;
+    return true;
     
     let testPlatformObj = null;
     let testGameProviderObj = null;
