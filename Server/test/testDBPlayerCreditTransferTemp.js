@@ -1,4 +1,6 @@
-/*  
+"use strict";
+
+/*
  *  After the functions are moved from dbPlayerInfo to dbPlayerCreditTransfer,
  *  TODO :: change the function used to test the correct functions. #dbGameProvider.getPlayerCreditInProvider()
  * 
@@ -6,27 +8,66 @@
  */
 
 let should = require('should');
-let dbConfig = require('../modules/dbproperties');
+// let dbConfig = require('../modules/
+let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 let dbPlatform = require('../db_modules/dbPlatform');
 let dbRewardTask = require('../db_modules/dbRewardTask');
-let dbProvider = require('../db_modules/dbProvider');
+let dbGameProvider = require('../db_modules/dbGameProvider');
 let mongoose = require('mongoose');
-let commonTestFunc = require('../test_modules/cc');
+let commonTestFunc = require('../test_modules/commonTestFunc');
 let Q = require('q');
 const constProposalType = require('./../const/constProposalType');
 const registrationRewardType = constProposalType.PLAYER_REGISTRATION_REWARD;
 
+// to mock cpmsAPI
+let thePlayerCredit = {};
+const mockedDbPlayerCreditTransfer = {
+    // playerCredit: {},
+    getPlayerGameCredit: (obj) => {
+        // console.log(this.playerCredit);
+        if (thePlayerCredit.hasOwnProperty(obj.username)) {
+            console.log('here')
+            return Promise.resolve({credit: 0});
+        } else {
+            console.log('there')
+            return Promise.resolve({credit: thePlayerCredit[obj.username]});
+        }
+    },
+    playerTransferIn: (obj) => {
+        if (thePlayerCredit.hasOwnProperty(obj.username)) {
+            thePlayerCredit[obj.username] = obj.credit;
+        } else {
+            thePlayerCredit[obj.username] += obj.credit;
+        }
+        return Promise.resolve(obj);
+    },
+    playerTransferOut: (obj) => {
+        if (thePlayerCredit.hasOwnProperty(obj.username)) {
+            return Promise.reject(obj);
+        } else {
+            thePlayerCredit[obj.username] -= obj.credit;
+            return Promise.resolve(obj);
+        }
+    }
+};
+
+Object.setPrototypeOf(mockedDbPlayerCreditTransfer, dbPlayerCreditTransfer);
+console.log('mockedDbPlayerCreditTransfer', mockedDbPlayerCreditTransfer)
+
 describe('Test player credit transfer', function () {
 
     // todo :: WIP
-    return false;
-    
+    return true;
+
     let testPlatformObj = null;
     let testGameProviderObj = null;
     let testGameProviderObj2 = null;
+    let testPlayers = [];
+    let originalCpmsAPI = null;
 
     before(function (done) {
+
         // create a test platform
         commonTestFunc.createTestPlatform().then(
             function (data) {
@@ -60,17 +101,19 @@ describe('Test player credit transfer', function () {
         );
     });
 
+
     describe('Scenario that transfer in should fail', function () {
-        
+
         describe('Transfer in with no valid credit and reward credit', function () {
-            
+
             let testPlayerObj = null;
-            
+
             before(function (done) {
                 // create a test player without credit
-                let prom1 = createCustomTestPlayer(testPlatformObj._id, {validCredit: 0}).then(
+                createCustomTestPlayer(testPlatformObj._id, {validCredit: 0}).then(
                     function (data) {
-                        testPlatformObj = data;
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
                         done();
                     },
                     function (error) {
@@ -81,7 +124,8 @@ describe('Test player credit transfer', function () {
             });
 
             it('should fail when trying to transfer 0 credit', function (done) {
-                dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 0, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 0, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 0, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
                         console.error(data);
                         done(new Error("Player successfully transferred 0 credit to the provider, which should not be happened."));
@@ -91,9 +135,10 @@ describe('Test player credit transfer', function () {
                     }
                 )
             });
-            
+
             it('should fail when trying to transfer credit that player does not have enough', function (done) {
-                dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 5, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 5, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 5, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
                         console.error(data);
                         done(new Error("Player successfully transferred 5 credit to the provider, which should not be happened."));
@@ -106,16 +151,17 @@ describe('Test player credit transfer', function () {
         });
 
         describe('Transfer in with non-applicable reward credit only', function () {
-            
+
             let testPlayerObj = null;
             let testRewardObj = null;
-            
+
             before(function (done) {
                 // create a test player without credit
                 createCustomTestPlayer(testPlatformObj._id, {validCredit: 0}).then(
                     function (data) {
-                        testPlatformObj = data;
-                        
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
                         // create a test reward task
                         let rewardTaskData = {
                             playerId: testPlayerObj._id,
@@ -126,7 +172,7 @@ describe('Test player credit transfer', function () {
                             requiredUnlockAmount: 200,
                             initAmount: 100,
                             currentAmount: 100
-                        }
+                        };
 
                         return dbRewardTask.createRewardTask(rewardTaskData);
                     },
@@ -146,7 +192,8 @@ describe('Test player credit transfer', function () {
             });
 
             it('should fail when trying to transfer 0 credit', function (done) {
-                dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 0, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 0, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 0, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
                         console.error(data);
                         done(new Error("Player successfully transferred 0 credit to the provider, which should not be happened."));
@@ -158,7 +205,8 @@ describe('Test player credit transfer', function () {
             });
 
             it('should fail when trying to transfer credit from inapplicable reward', function (done) {
-                dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
                         console.error(data);
                         done(new Error("Player successfully transferred 100 credit to the provider, which should not be happened."));
@@ -171,16 +219,17 @@ describe('Test player credit transfer', function () {
 
         });
     });
-    
+
     describe('Player transfer in and out without winning or losing credits', function () {
         describe('with only valid credit', function () {
 
             let testPlayerObj = null;
-            
+
             before(function (done) {
                 createCustomTestPlayer(testPlatformObj._id).then(
                     function (data) {
                         testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
                         done();
                     },
                     function (error) {
@@ -191,11 +240,13 @@ describe('Test player credit transfer', function () {
             });
 
             it('should be able to transfer in credit to provider', function (done) {
-                dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
                         if (data) {
-                            data.providerCredit.should.be.equal(300);
-                            data.transferCredit.playerCredit.should.be.equal(300);
+                            console.log(data);
+                            data.providerCredit.should.be.equal("300.00");
+                            data.transferCredit.playerCredit.should.be.equal("300.00");
                             done();
                         } else {
                             done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
@@ -205,13 +256,18 @@ describe('Test player credit transfer', function () {
                         console.error(error);
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
 
             it('should be able to transfer in again after topup', function (done) {
                 dbPlayerInfo.playerTopUp(testPlayerObj._id, 200, "testPayment").then(
                     function () {
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 200, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 200, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 200, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         done(error);
@@ -219,22 +275,27 @@ describe('Test player credit transfer', function () {
                 ).then(
                     function (data) {
                         if (data) {
-                            data.providerCredit.should.be.equal(500);
-                            data.transferCredit.playerCredit.should.be.equal(200);
+                            data.providerCredit.should.be.equal("500.00");
+                            data.transferCredit.playerCredit.should.be.equal("200.00");
                             done();
                         } else {
                             done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
                         }
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
 
             it('should be able to transfer out with all the credit back into valid credit', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
-                        data.playerCredit.should.be.equal(500);
-                        data.transferCredit.playerCredit.should.be.equal(500);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("500.00");
+                        data.transferCredit.playerCredit.should.be.equal("500.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -242,18 +303,22 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        data.validCredit.should.be.equal(500);
+                        data.validCredit.should.be.equal("500.00");
                         done();
                     },
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
         });
 
         describe('with only applicable reward credit', function () {
-            
+
             let testPlayerObj = null;
             let testRewardObj = null;
 
@@ -261,8 +326,9 @@ describe('Test player credit transfer', function () {
                 // create a test player without credit
                 createCustomTestPlayer(testPlatformObj._id, {validCredit: 0}).then(
                     function (data) {
-                        testPlatformObj = data;
-                        
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
                         // create a test reward task
                         let rewardTaskData = {
                             playerId: testPlayerObj._id,
@@ -273,7 +339,7 @@ describe('Test player credit transfer', function () {
                             requiredUnlockAmount: 200,
                             initAmount: 100,
                             currentAmount: 100
-                        }
+                        };
 
                         return dbRewardTask.createRewardTask(rewardTaskData);
                     },
@@ -289,32 +355,42 @@ describe('Test player credit transfer', function () {
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
 
             it('should be able to transfer in credit to provider', function (done) {
-                dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
                         if (data) {
-                            data.providerCredit.should.be.equal(100);
-                            data.transferCredit.rewardCredit.should.be.equal(100);
+                            data.providerCredit.should.be.equal("100.00");
+                            data.transferCredit.rewardCredit.should.be.equal("100.00");
                             done();
                         } else {
                             done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
                         }
-                        
+
                     },
                     function (error) {
                         console.error(error);
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
 
             it('should be able to transfer in again after topup', function (done) {
                 dbPlayerInfo.playerTopUp(testPlayerObj._id, 200, "testPayment").then(
                     function () {
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 200, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 200, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 200, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         done(error);
@@ -322,24 +398,29 @@ describe('Test player credit transfer', function () {
                 ).then(
                     function (data) {
                         if (data) {
-                            data.providerCredit.should.be.equal(300);
-                            data.transferCredit.playerCredit.should.be.equal(200);
+                            data.providerCredit.should.be.equal("300.00");
+                            data.transferCredit.playerCredit.should.be.equal("200.00");
                             done();
                         } else {
                             done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
                         }
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
 
             it('should be able to transfer out correct amount to both reward and valid credit', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
-                        data.playerCredit.should.be.equal(200);
-                        data.rewardCredit.should.be.equal(100);
-                        data.transferCredit.playerCredit.should.be.equal(200);
-                        data.transferCredit.rewardCredit.should.be.equal(100);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("200.00");
+                        data.rewardCredit.should.be.equal("100.00");
+                        data.transferCredit.playerCredit.should.be.equal("200.00");
+                        data.transferCredit.rewardCredit.should.be.equal("100.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -347,28 +428,33 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        data.validCredit.should.be.equal(200);
-                        data.lockedCredit.should.be.equal(100);
+                        data.validCredit.should.be.equal("200.00");
+                        data.lockedCredit.should.be.equal("100.00");
                         done();
                     },
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
         });
 
         describe('with non-applicable reward credit and valid credit', function () {
-            
+
             let testPlayerObj = null;
             let testRewardObj = null;
-            
+
             before(function (done) {
                 // create a test player credit
                 createCustomTestPlayer(testPlatformObj._id).then(
                     function (data) {
-                        testPlatformObj = data;
-                        
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
                         // create a test reward task
                         let rewardTaskData = {
                             playerId: testPlayerObj._id,
@@ -395,11 +481,16 @@ describe('Test player credit transfer', function () {
                     function (error) {
                         done(error);
                     }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
                 )
             });
 
             it('should fail when trying to transfer with the reward amount as well', function (done) {
-                dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
                         console.error(data);
                         done(new Error("Player successfully transferred 400 credit to the provider including reward credit, which should not be happened."));
@@ -407,32 +498,42 @@ describe('Test player credit transfer', function () {
                     function (error) {
                         done();
                     }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
                 )
             });
 
             it('should be able to transfer in credit to provider', function (done) {
-                dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
                         if (data) {
-                            data.providerCredit.should.be.equal(300);
-                            data.transferCredit.playerCredit.should.be.equal(300);
+                            data.providerCredit.should.be.equal("300.00");
+                            data.transferCredit.playerCredit.should.be.equal("300.00");
                             done();
                         } else {
                             done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
                         }
-                        
+
                     },
                     function (error) {
                         console.error(error);
                         done(error);
                     }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
                 )
             });
-            
+
             it('should be able to transfer in again after topup', function (done) {
                 dbPlayerInfo.playerTopUp(testPlayerObj._id, 200, "testPayment").then(
                     function () {
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 200, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 200, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 200, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         done(error);
@@ -440,23 +541,28 @@ describe('Test player credit transfer', function () {
                 ).then(
                     function (data) {
                         if (data) {
-                            data.providerCredit.should.be.equal(500);
-                            data.transferCredit.playerCredit.should.be.equal(200);
+                            data.providerCredit.should.be.equal("500.00");
+                            data.transferCredit.playerCredit.should.be.equal("200.00");
                             done();
                         } else {
                             done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
                         }
                     }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
                 )
             });
 
             it('should be able to transfer out with all the credit back into valid credit', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
-                        data.playerCredit.should.be.equal(500);
-                        data.transferCredit.playerCredit.should.be.equal(500);
-                        data.transferCredit.rewardCredit.should.be.equal(0);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("500.00");
+                        data.transferCredit.playerCredit.should.be.equal("500.00");
+                        data.transferCredit.rewardCredit.should.be.equal("0.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -464,9 +570,13 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        data.validCredit.should.be.equal(500);
+                        data.validCredit.should.be.equal("500.00");
                         done();
                     },
+                    function (error) {
+                        done(error);
+                    }
+                ).catch(
                     function (error) {
                         done(error);
                     }
@@ -475,16 +585,17 @@ describe('Test player credit transfer', function () {
         });
 
         describe('with applicable reward credit and valid credit', function () {
-            
+
             let testPlayerObj = null;
             let testRewardObj = null;
-            
+
             before(function (done) {
                 // create a test player
                 createCustomTestPlayer(testPlatformObj._id).then(
                     function (data) {
-                        testPlatformObj = data;
-                        
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
                         // create a test reward task
                         let rewardTaskData = {
                             playerId: testPlayerObj._id,
@@ -515,29 +626,35 @@ describe('Test player credit transfer', function () {
             });
 
             it('should be able to transfer in credit to provider', function (done) {
-                dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
                         if (data) {
-                            data.providerCredit.should.be.equal(400);
-                            data.transferCredit.playerCredit.should.be.equal(300);
-                            data.transferCredit.rewardCredit.should.be.equal(100);
+                            data.providerCredit.should.be.equal("400.00");
+                            data.transferCredit.playerCredit.should.be.equal("300.00");
+                            data.transferCredit.rewardCredit.should.be.equal("100.00");
                             done();
                         } else {
                             done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
                         }
-                        
+
                     },
                     function (error) {
                         console.error(error);
                         done(error);
                     }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
                 )
             });
-            
+
             it('should be able to transfer in again after topup', function (done) {
                 dbPlayerInfo.playerTopUp(testPlayerObj._id, 100, "testPayment").then(
                     function () {
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         done(error);
@@ -545,24 +662,29 @@ describe('Test player credit transfer', function () {
                 ).then(
                     function (data) {
                         if (data) {
-                            data.providerCredit.should.be.equal(500);
-                            data.transferCredit.playerCredit.should.be.equal(100);
+                            data.providerCredit.should.be.equal("500.00");
+                            data.transferCredit.playerCredit.should.be.equal("100.00");
                             done();
                         } else {
                             done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
                         }
                     }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
                 )
             });
 
             it('should be able to transfer out with all the credit back into valid credit', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
-                        data.playerCredit.should.be.equal(400);
-                        data.rewardCredit.should.be.equal(100);
-                        data.transferCredit.playerCredit.should.be.equal(400);
-                        data.transferCredit.rewardCredit.should.be.equal(100);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("400.00");
+                        data.rewardCredit.should.be.equal("100.00");
+                        data.transferCredit.playerCredit.should.be.equal("400.00");
+                        data.transferCredit.rewardCredit.should.be.equal("100.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -570,10 +692,14 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        data.validCredit.should.be.equal(400);
-                        data.lockedCredit.should.be.equal(100);
+                        data.validCredit.should.be.equal("400.00");
+                        data.lockedCredit.should.be.equal("100.00");
                         done();
                     },
+                    function (error) {
+                        done(error);
+                    }
+                ).catch(
                     function (error) {
                         done(error);
                     }
@@ -584,18 +710,20 @@ describe('Test player credit transfer', function () {
 
     describe('Transfer out with winning credits', function () {
         // amount of transfer out will be more than the amount of transfer in to simulate credit earning scenario
-       
+
         describe('with only valid credit', function () {
-            
+
             let testPlayerObj = null;
-            
+
             before(function (done) {
                 // create a test player with credit
                 createCustomTestPlayer(testPlatformObj._id).then(
                     function (data) {
                         testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
                         // transfer in
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         console.error(error);
@@ -617,13 +745,14 @@ describe('Test player credit transfer', function () {
             });
 
             it('should be able to transfer out correctly', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
-                        data.playerCredit.should.be.equal(500);
-                        data.rewardCredit.should.be.equal(0);
-                        data.transferCredit.playerCredit.should.be.equal(500);
-                        data.transferCredit.rewardCredit.should.be.equal(0);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("500.00");
+                        data.rewardCredit.should.be.equal("0.00");
+                        data.transferCredit.playerCredit.should.be.equal("500.00");
+                        data.transferCredit.rewardCredit.should.be.equal("0.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -631,19 +760,23 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        data.validCredit.should.be.equal(500);
-                        data.lockedCredit.should.be.equal(0);
+                        data.validCredit.should.be.equal("500.00");
+                        data.lockedCredit.should.be.equal("0.00");
                         done();
                     },
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
         });
 
         describe('with only applicable reward credit', function () {
-            
+
             let testPlayerObj = null;
             let testRewardObj = null;
 
@@ -651,8 +784,9 @@ describe('Test player credit transfer', function () {
                 // create a test player without credit
                 createCustomTestPlayer(testPlatformObj._id, {validCredit: 0}).then(
                     function (data) {
-                        testPlatformObj = data;
-                        
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
                         // create a test reward task
                         let rewardTaskData = {
                             playerId: testPlayerObj._id,
@@ -675,7 +809,8 @@ describe('Test player credit transfer', function () {
                     function (data) {
                         testRewardObj = data;
                         // transfer in
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         done(error);
@@ -696,13 +831,14 @@ describe('Test player credit transfer', function () {
             });
 
             it('should be able to transfer out correctly', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
-                        data.playerCredit.should.be.equal(0);
-                        data.rewardCredit.should.be.equal(500);
-                        data.transferCredit.playerCredit.should.be.equal(0);
-                        data.transferCredit.rewardCredit.should.be.equal(500);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("0.00");
+                        data.rewardCredit.should.be.equal("500.00");
+                        data.transferCredit.playerCredit.should.be.equal("0.00");
+                        data.transferCredit.rewardCredit.should.be.equal("500.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -710,28 +846,33 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        data.validCredit.should.be.equal(0);
-                        data.lockedCredit.should.be.equal(500);
+                        data.validCredit.should.be.equal("0.00");
+                        data.lockedCredit.should.be.equal("500.00");
                         done();
                     },
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
         });
 
         describe('with non-applicable reward credit and valid credit', function () {
-            
+
             let testPlayerObj = null;
             let testRewardObj = null;
-            
+
             before(function (done) {
                 // create a test player credit
                 createCustomTestPlayer(testPlatformObj._id).then(
                     function (data) {
-                        testPlatformObj = data;
-                        
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
                         // create a test reward task
                         let rewardTaskData = {
                             playerId: testPlayerObj._id,
@@ -754,7 +895,8 @@ describe('Test player credit transfer', function () {
                     function (data) {
                         testRewardObj = data;
                         // transfer in
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         done(error);
@@ -775,13 +917,14 @@ describe('Test player credit transfer', function () {
             });
 
             it('should be able to transfer out correctly', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
-                        data.playerCredit.should.be.equal(500);
-                        data.rewardCredit.should.be.equal(0);
-                        data.transferCredit.playerCredit.should.be.equal(500);
-                        data.transferCredit.rewardCredit.should.be.equal(0);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("500.00");
+                        data.rewardCredit.should.be.equal("0.00");
+                        data.transferCredit.playerCredit.should.be.equal("500.00");
+                        data.transferCredit.rewardCredit.should.be.equal("0.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -789,27 +932,32 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        data.validCredit.should.be.equal(500);
+                        data.validCredit.should.be.equal("500.00");
                         done();
                     },
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
         });
 
         describe('with applicable reward credit and valid credit', function () {
-            
+
             let testPlayerObj = null;
             let testRewardObj = null;
-            
+
             before(function (done) {
                 // create a test player
                 createCustomTestPlayer(testPlatformObj._id).then(
                     function (data) {
-                        testPlatformObj = data;
-                        
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
                         // create a test reward task
                         let rewardTaskData = {
                             playerId: testPlayerObj._id,
@@ -831,7 +979,8 @@ describe('Test player credit transfer', function () {
                 ).then(
                     function (data) {
                         testRewardObj = data;
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         done(error);
@@ -848,17 +997,22 @@ describe('Test player credit transfer', function () {
                         console.error(error);
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
 
             it('should be able to transfer out correctly', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 500, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
-                        data.playerCredit.should.be.equal(300);
-                        data.rewardCredit.should.be.equal(200);
-                        data.transferCredit.playerCredit.should.be.equal(300);
-                        data.transferCredit.rewardCredit.should.be.equal(200);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("300.00");
+                        data.rewardCredit.should.be.equal("200.00");
+                        data.transferCredit.playerCredit.should.be.equal("300.00");
+                        data.transferCredit.rewardCredit.should.be.equal("200.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -866,14 +1020,18 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        data.validCredit.should.be.equal(300);
-                        data.lockedCredit.should.be.equal(200);
+                        data.validCredit.should.be.equal("300.00");
+                        data.lockedCredit.should.be.equal("200.00");
                         done();
                     },
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
         });
     });
@@ -882,16 +1040,18 @@ describe('Test player credit transfer', function () {
 
         // amount of transfer out will be less than the amount of transfer in to simulate credit losing scenario
         describe('with only valid credit', function () {
-            
+
             let testPlayerObj = null;
-            
+
             before(function (done) {
                 // create a test player with credit
                 createCustomTestPlayer(testPlatformObj._id).then(
                     function (data) {
                         testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
                         // transfer in
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         console.error(error);
@@ -913,13 +1073,14 @@ describe('Test player credit transfer', function () {
             });
 
             it('should be able to transfer out correctly', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 250, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 250, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 250, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
+                        data.providerCredit.should.be.equal("0.00");
                         data.playerCredit.should.be.equal(250);
-                        data.rewardCredit.should.be.equal(0);
+                        data.rewardCredit.should.be.equal("0.00");
                         data.transferCredit.playerCredit.should.be.equal(250);
-                        data.transferCredit.rewardCredit.should.be.equal(0);
+                        data.transferCredit.rewardCredit.should.be.equal("0.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -928,13 +1089,17 @@ describe('Test player credit transfer', function () {
                 ).then(
                     function (data) {
                         data.validCredit.should.be.equal(250);
-                        data.lockedCredit.should.be.equal(0);
+                        data.lockedCredit.should.be.equal("0.00");
                         done();
                     },
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
         });
 
@@ -947,8 +1112,9 @@ describe('Test player credit transfer', function () {
                 // create a test player without credit
                 createCustomTestPlayer(testPlatformObj._id, {validCredit: 0}).then(
                     function (data) {
-                        testPlatformObj = data;
-                        
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
                         // create a test reward task
                         let rewardTaskData = {
                             playerId: testPlayerObj._id,
@@ -971,7 +1137,8 @@ describe('Test player credit transfer', function () {
                     function (data) {
                         testRewardObj = data;
                         // transfer in
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 100, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         done(error);
@@ -988,16 +1155,21 @@ describe('Test player credit transfer', function () {
                         console.error(error);
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
 
             it('should be able to transfer out correctly', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 50, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 50, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 50, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
-                        data.playerCredit.should.be.equal(0);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("0.00");
                         data.rewardCredit.should.be.equal(50);
-                        data.transferCredit.playerCredit.should.be.equal(0);
+                        data.transferCredit.playerCredit.should.be.equal("0.00");
                         data.transferCredit.rewardCredit.should.be.equal(50);
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
@@ -1006,14 +1178,18 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        data.validCredit.should.be.equal(0);
+                        data.validCredit.should.be.equal("0.00");
                         data.lockedCredit.should.be.equal(50);
                         done();
                     },
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
         });
 
@@ -1021,13 +1197,14 @@ describe('Test player credit transfer', function () {
             // #13
             let testPlayerObj = null;
             let testRewardObj = null;
-            
+
             before(function (done) {
                 // create a test player credit
                 createCustomTestPlayer(testPlatformObj._id).then(
                     function (data) {
-                        testPlatformObj = data;
-                        
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
                         // create a test reward task
                         let rewardTaskData = {
                             playerId: testPlayerObj._id,
@@ -1050,7 +1227,8 @@ describe('Test player credit transfer', function () {
                     function (data) {
                         testRewardObj = data;
                         // transfer in
-                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                        // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                     },
                     function (error) {
                         done(error);
@@ -1071,13 +1249,14 @@ describe('Test player credit transfer', function () {
             });
 
             it('should be able to transfer out correctly', function (done) {
-                dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 250, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 250, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 250, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                     function (data) {
-                        data.providerCredit.should.be.equal(0);
+                        data.providerCredit.should.be.equal("0.00");
                         data.playerCredit.should.be.equal(250);
-                        data.rewardCredit.should.be.equal(0);
+                        data.rewardCredit.should.be.equal("0.00");
                         data.transferCredit.playerCredit.should.be.equal(250);
-                        data.transferCredit.rewardCredit.should.be.equal(0);
+                        data.transferCredit.rewardCredit.should.be.equal("0.00");
                         return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                     },
                     function (error) {
@@ -1091,23 +1270,28 @@ describe('Test player credit transfer', function () {
                     function (error) {
                         done(error);
                     }
-                );
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
             });
         });
 
         describe('with applicable reward credit and valid credit', function () {
-            
+
             describe('The amount losses is less than the valid credit', function () {
-                
+
                 let testPlayerObj = null;
                 let testRewardObj = null;
-                
+
                 before(function (done) {
                     // create a test player
                     createCustomTestPlayer(testPlatformObj._id).then(
                         function (data) {
-                            testPlatformObj = data;
-                            
+                            testPlayerObj = data;
+                            testPlayers.push(testPlayerObj._id);
+
                             // create a test reward task
                             let rewardTaskData = {
                                 playerId: testPlayerObj._id,
@@ -1129,7 +1313,8 @@ describe('Test player credit transfer', function () {
                     ).then(
                         function (data) {
                             testRewardObj = data;
-                            return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                            return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                            // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                         },
                         function (error) {
                             done(error);
@@ -1150,13 +1335,14 @@ describe('Test player credit transfer', function () {
                 });
 
                 it('should be able to transfer out correctly', function (done) {
-                    dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                        // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 300, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                         function (data) {
-                            data.providerCredit.should.be.equal(0);
-                            data.playerCredit.should.be.equal(200);
-                            data.rewardCredit.should.be.equal(100);
-                            data.transferCredit.playerCredit.should.be.equal(200);
-                            data.transferCredit.rewardCredit.should.be.equal(100);
+                            data.providerCredit.should.be.equal("0.00");
+                            data.playerCredit.should.be.equal("200.00");
+                            data.rewardCredit.should.be.equal("100.00");
+                            data.transferCredit.playerCredit.should.be.equal("200.00");
+                            data.transferCredit.rewardCredit.should.be.equal("100.00");
                             return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                         },
                         function (error) {
@@ -1164,28 +1350,33 @@ describe('Test player credit transfer', function () {
                         }
                     ).then(
                         function (data) {
-                            data.validCredit.should.be.equal(200);
-                            data.lockedCredit.should.be.equal(100);
+                            data.validCredit.should.be.equal("200.00");
+                            data.lockedCredit.should.be.equal("100.00");
                             done();
                         },
                         function (error) {
                             done(error);
                         }
-                    );
+                    ).catch(
+                        function (error) {
+                            done(error);
+                        }
+                    )
                 });
             });
 
             describe('The amount losses is more than the valid credit', function () {
-                
+
                 let testPlayerObj = null;
                 let testRewardObj = null;
-                
+
                 before(function (done) {
                     // create a test player
                     createCustomTestPlayer(testPlatformObj._id).then(
                         function (data) {
-                            testPlatformObj = data;
-                            
+                            testPlayerObj = data;
+                            testPlayers.push(testPlayerObj._id);
+
                             // create a test reward task
                             let rewardTaskData = {
                                 playerId: testPlayerObj._id,
@@ -1196,7 +1387,7 @@ describe('Test player credit transfer', function () {
                                 requiredUnlockAmount: 200,
                                 initAmount: 100,
                                 currentAmount: 100
-                            }
+                            };
 
                             return dbRewardTask.createRewardTask(rewardTaskData);
                         },
@@ -1207,7 +1398,8 @@ describe('Test player credit transfer', function () {
                     ).then(
                         function (data) {
                             testRewardObj = data;
-                            return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                            return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                            // return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
                         },
                         function (error) {
                             done(error);
@@ -1223,17 +1415,19 @@ describe('Test player credit transfer', function () {
                         function (error) {
                             console.error(error);
                             done(error);
-                        }
+                        }        // #16
+
                     );
                 });
 
                 it('should be able to transfer out correctly', function (done) {
-                    dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 50, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 50, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                        // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 50, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                         function (data) {
-                            data.providerCredit.should.be.equal(0);
-                            data.playerCredit.should.be.equal(0);
+                            data.providerCredit.should.be.equal("0.00");
+                            data.playerCredit.should.be.equal("0.00");
                             data.rewardCredit.should.be.equal(50);
-                            data.transferCredit.playerCredit.should.be.equal(0);
+                            data.transferCredit.playerCredit.should.be.equal("0.00");
                             data.transferCredit.rewardCredit.should.be.equal(50);
                             return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                         },
@@ -1242,30 +1436,35 @@ describe('Test player credit transfer', function () {
                         }
                     ).then(
                         function (data) {
-                            data.validCredit.should.be.equal(0);
+                            data.validCredit.should.be.equal("0.00");
                             data.lockedCredit.should.be.equal(50);
                             done();
                         },
                         function (error) {
                             done(error);
                         }
-                    );
+                    ).catch(
+                        function (error) {
+                            done(error);
+                        }
+                    )
                 });
             });
         });
     });
 
     describe('test when the same transfer request can be triggered multiple times', function () {
-        // #16
+
         let testPlayerObj = null;
         let testRewardObj = null;
-        
+
         before(function (done) {
             // create a test player
             createCustomTestPlayer(testPlatformObj._id).then(
                 function (data) {
-                    testPlatformObj = data;
-                    
+                    testPlayerObj = data;
+                    testPlayers.push(testPlayerObj._id);
+
                     // create a test reward task
                     let rewardTaskData = {
                         playerId: testPlayerObj._id,
@@ -1276,7 +1475,7 @@ describe('Test player credit transfer', function () {
                         requiredUnlockAmount: 200,
                         initAmount: 100,
                         currentAmount: 100
-                    }
+                    };
 
                     return dbRewardTask.createRewardTask(rewardTaskData);
                 },
@@ -1296,9 +1495,10 @@ describe('Test player credit transfer', function () {
         });
 
         it('only one promises should be success', function (done) {
-            let prom = dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+            let prom = mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+            // let prom = dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
 
-            let samePromises= [prom, prom, prom, prom, prom, prom, prom, prom, prom, prom]; // 10 same prom
+            let samePromises = [prom, prom, prom, prom, prom, prom, prom, prom, prom, prom]; // 10 same prom
 
             executeAllPromises(samePromises).then(
                 function (data) {
@@ -1307,22 +1507,27 @@ describe('Test player credit transfer', function () {
                     // TODO:: add game credit check before done()
                     done();
                 }
-            );
+            ).catch(
+                function (error) {
+                    done(error);
+                }
+            )
         });
-    })
+    });
 
     // test transfering in and out with register reward is already included in testEvent
     describe('test transfering in and out with register reward', function () {
 
         let testPlayerObj = null;
         let testRewardObj = null;
-        
+
         before(function (done) {
             // create a test player
             createCustomTestPlayer(testPlatformObj._id).then(
                 function (data) {
-                    testPlatformObj = data;
-                    
+                    testPlayerObj = data;
+                    testPlayers.push(testPlayerObj._id);
+
                     // create a test reward task
                     let rewardTaskData = {
                         playerId: testPlayerObj._id,
@@ -1330,9 +1535,9 @@ describe('Test player credit transfer', function () {
                         targetProviders: [testGameProviderObj._id],
                         type: "testTask",
                         rewardType: registrationRewardType,
-                        requiredBonusAmount : 100,
+                        requiredBonusAmount: 100,
                         initAmount: 30,
-                        bonusAmount : 8,
+                        bonusAmount: 8,
                         currentAmount: 30
                     }
 
@@ -1354,12 +1559,13 @@ describe('Test player credit transfer', function () {
         });
 
         it('should be able to transfer in credit to provider', function (done) {
-            dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 30, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+            mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 30, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 30, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                 function (data) {
                     if (data) {
                         data.providerCredit.should.be.equal(30);
                         data.transferCredit.rewardCredit.should.be.equal(30);
-                        data.transferCredit.playerCredit.should.be.equal(0);
+                        data.transferCredit.playerCredit.should.be.equal("0.00");
                         done();
                     } else {
                         done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
@@ -1369,15 +1575,20 @@ describe('Test player credit transfer', function () {
                     console.error(error);
                     done(error);
                 }
-            );
+            ).catch(
+                function (error) {
+                    done(error);
+                }
+            )
         });
 
         it('should be able to transfer out with all the credit back into valid credit', function (done) {
-            dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 50, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+            mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 50, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                // dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 50, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
                 function (data) {
-                    data.providerCredit.should.be.equal(0);
+                    data.providerCredit.should.be.equal("0.00");
                     data.transferCredit.rewardCredit.should.be.equal(50);
-                    data.transferCredit.playerCredit.should.be.equal(0);
+                    data.transferCredit.playerCredit.should.be.equal("0.00");
                     return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
                 },
                 function (error) {
@@ -1391,16 +1602,25 @@ describe('Test player credit transfer', function () {
                 function (error) {
                     done(error);
                 }
-            );
+            ).catch(
+                function (error) {
+                    done(error);
+                }
+            )
         });
 
-
-        // before
-            // create test player with 0 valid credit
-            // create custom reward that have required unlock bonus amount
-            
-        // transfer in should work as intended
-        // transfer out should work as intended
+        after(function (done) {
+            dbPlayerInfo.cpmsAPI = originalCpmsAPI; // to revert the mocking after test
+            commonTestFunc.removeTestData(testPlatformObj._id, testPlayers).then(
+                function (data) {
+                    return commonTestFunc.removeTestProposalData([], testPlatformObj._id, [], testPlayers);
+                }
+            ).then(
+                function () {
+                    done();
+                }
+            );
+        });
     });
 });
 
@@ -1411,10 +1631,10 @@ function createCustomTestPlayer (platformId, data) {
         commonTestFunc.getTestBankCardGroup(platformId),
     ]).spread(
         (merchantGroup, bankCardGroup) => {
-            var date = new Date();
-            var playerName = commonTestFunc.testPlayerName + date.getTime() + commonTestFunc.getRandomInt();
+            let date = new Date();
+            let playerName = commonTestFunc.testPlayerName + date.getTime() + commonTestFunc.getRandomInt();
 
-            var playerData = {
+            let playerData = {
                 name: playerName,
                 platform: platformId,
                 password: '123456',
@@ -1449,9 +1669,9 @@ function createCustomTestPlayer (platformId, data) {
 // This function is used to execute multiple promises, and not stopping the rest of the promises even when one failed
 function executeAllPromises(promises) {
     // Wrap all Promises in a Promise that will always "resolve"
-    var resolvingPromises = promises.map(function (promise) {
+    let resolvingPromises = promises.map(function (promise) {
         return new Promise(function (resolve) {
-            var payload = new Array(2);
+            let payload = new Array(2);
             promise.then(function (result) {
                 payload[0] = result;
             }).catch(function (error) {
@@ -1467,8 +1687,8 @@ function executeAllPromises(promises) {
         });
     });
 
-    var errors = [];
-    var results = [];
+    let errors = [];
+    let results = [];
 
     // Execute all wrapped Promises
     return Promise.all(resolvingPromises).then(function (items) {
