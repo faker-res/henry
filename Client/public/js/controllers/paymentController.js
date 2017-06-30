@@ -668,6 +668,24 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         }
+
+        vm.submitAddAllPlayersToBankCardGroup = function () {
+            let sendData = {
+                bankCardGroupObjId: vm.SelectedBankCardGroupNode._id,
+                platformObjId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'addAllPlayersToBankCardGroup', sendData, function (data) {
+                if (data.data) {
+                    if (data.data.bankCardGroup == vm.SelectedBankCardGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
+                        vm.addAllPlayerToBankCardResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
+                    } else {
+                        vm.addAllPlayerToBankCardResult = JSON.stringify(data.data.error);
+                    }
+                    $scope.safeApply();
+                }
+            });
+        }
+
         vm.getPlatformPlayersData = function () {
             socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: vm.selectedPlatform.id}, function (playerCount) {
                 console.log('playerCount', playerCount);
