@@ -594,6 +594,9 @@ function sendToAudit(proposalObjId, createTime, remark, processRemark) {
     // temporary disabled system log since success will also send to audit
     // console.log('Sending to audit', proposalObjId, remark);
     //check if proposal got process, if there is no process, reject directly
+
+    processRemark = processRemark ? processRemark : "";
+
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
         path: "type",
         model: dbconfig.collection_proposalType
