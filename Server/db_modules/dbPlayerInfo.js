@@ -62,6 +62,7 @@ const constProviderStatus = require("./../const/constProviderStatus");
 let dbGeoIp = require('./../db_modules/dbGeoIp');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
+let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
@@ -1044,12 +1045,20 @@ let dbPlayerInfo = {
 
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
-                deferred.reject({name: "DBError", message: "Error updating player password", error: err});
+                deferred.reject({
+                    name: "DBError",
+                    message: "Error generate salt when updating player password",
+                    error: err
+                });
                 return;
             }
             bcrypt.hash(newPassword, salt, function (err, hash) {
                 if (err) {
-                    deferred.reject({name: "DBError", message: "Error updating player password.", error: err});
+                    deferred.reject({
+                        name: "DBError",
+                        message: "Error generate hash when updating player password.",
+                        error: err
+                    });
                     return;
                 }
                 dbUtility.findOneAndUpdateForShard(
@@ -1081,7 +1090,7 @@ let dbPlayerInfo = {
                     data => deferred.resolve(newPassword),
                     error => deferred.reject({
                         name: "DBError",
-                        message: "Error updating player password.",
+                        message: "Error updating partner password.",
                         error: error
                     })
                 );
@@ -3345,6 +3354,8 @@ let dbPlayerInfo = {
 
     /**
      * Transfer credit from platform to game provider
+     * 1. Check where is the player's credit
+     *
      * @param {objectId} platform
      * @param {objectId} playerId
      * @param {objectId} providerId
@@ -3364,12 +3375,13 @@ let dbPlayerInfo = {
         let providerData = null;
 
         Q.all([prom0, prom1]).then(
-            function (data) {
+            data => {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
-                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1
-                        || amount == 0) {
+
+                    // Check if player has enough credit to play
+                    if ((parseFloat(data[0].validCredit.toFixed(2)) + data[0].lockedCredit) < 1 || amount == 0) {
                         deferred.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
@@ -3393,7 +3405,14 @@ let dbPlayerInfo = {
                     // First log before processing
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-                    return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+
+                    if (playerData.platform.canMultiReward) {
+                        // Platform supporting multiple rewards will use new function first
+                        return dbPlayerCreditTransfer.playerCreditTransferToProvider(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                    }
+                    else {
+                        return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                    }
                     //}
                     // }
                     //);
@@ -3805,10 +3824,19 @@ let dbPlayerInfo = {
                     //         else {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-                    return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    // return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                     // }
                     //     }
                     // );
+
+                    if (playerObj.platform.canMultiReward) {
+                        // Platform supporting multiple rewards will use new function first
+                        return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    }
+                    else {
+                        return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                    }
+
                 } else {
                     deferred.reject({name: "DataError", message: "Cant find player or provider"});
                 }
