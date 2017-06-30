@@ -116,42 +116,55 @@ sudo npm install -g gulp [https://github.com/gulpjs/gulp](https://github.com/gul
 	 	//start data migration server
 	 	NODE_ENV=production forever start -a -l mig.log -o migOut.log -e migErr.log Server/dataMigrationServer.js
 
+    Start all servers via WINDOWS
+        set NODE_ENV=local
+        node Server/messageServer.js
+
+        set NODE_ENV=local
+        node Server/settlementServer.js
+
+        set NODE_ENV=local
+        node Server/app.js
+
+        set NODE_ENV=local
+        node Client/app.js
+
 # Start local develop env
 	Under Project directory
-	
+
 		//start mongodb server (simple)
 		//sudo sh DB/startMongodb.sh
 		//start mongodb server (sharded, preferred)
 		sudo sh DB/startLocalShard.sh
 		//init mongodb data
 		sh DB/initMongodb.sh
-		
+
 		//run client
 		cd Client
 		node app.js
-		
+
 		//debug client
 		From webStorm, right click Client/app.js
 		Debug app.js
-		
+
 		//run server (auto-restart on file changes)
 		cd Server
 		nodemon -i public/js/config.js app.js
-		
+
 		//run clientAPI server
 		cd Server
 		nodemon -d 2 clientAPIServer.js
-		
+
 		//debug server
 		From webStorm, right click Server/app.js
 		Debug app.js
-		
+
 		//run all unit test for server
 		mocha -R spec
 		//run single unit test for server
 		mocha test/<fileName>.js
 		// add -b if you want to bail out on the first error
-		
+
 		//debug mocha
 		From webStorm, right click test/<fileName>.js
 		Debug test/<fileName>.js
@@ -160,43 +173,43 @@ sudo npm install -g gulp [https://github.com/gulpjs/gulp](https://github.com/gul
 
 	Start mongodb servers(Modified the IP in sartShardedCluster.sh to your IP)
 		sudo sh DB/startShardedCluster.sh
-		
+
 	Setup mongodb replica set
 		mongo 192.168.1.2:27020
 		rs.initiate()
 		rs.add("192.168.1.2:27021");
 		rs.add("192.168.1.2:27022");
-		exit 
-		
+		exit
+
 		mongo 192.168.1.2:27030
 		rs.initiate()
 		rs.add("192.168.1.2:27031");
 		rs.add("192.168.1.2:27032");
-		exit 
-		
+		exit
+
 	Setup sharding
 		mongo
 		sh.addShard( "rs0/Sinonets-MacBook-Pro-3.local:27020" )
 		sh.addShard( "rs1/Sinonets-MacBook-Pro-3.local:27030" )
-		
+
 		sh.enableSharding("logsdb")
 		sh.shardCollection("logsdb.accessLog", { "_id": "hashed" } )
-		
+
 	Init mongodb admin data
-		sh DB/initMongodb.sh		
-		
-	Start redis, haproxy and all node servers(change NODE_ENV to local)	
+		sh DB/initMongodb.sh
+
+	Start redis, haproxy and all node servers(change NODE_ENV to local)
 		sh ci_update_dev.sh
-		
+
 	Create test data for statistics
 		mongo Statistics/testData/addTestPlayers.js
 		mongo Statistics/testData/addTestAccessLogs.js
 		mongo Statistics/testData/addTestPaymentLogs.js
 
 ## Directory Layout
-    
+
     Client/           	--> Web front end for FPMS
-    Server/        		--> All node servers 
+    Server/        		--> All node servers
     DB/					--> Mongodb related scripts
     LoadBalancer/		--> Config file for node server loadbalancer
     CodeStyleGuid.md	--> General code style guide
@@ -204,17 +217,51 @@ sudo npm install -g gulp [https://github.com/gulpjs/gulp](https://github.com/gul
     README.md			--> Readme
     ci_test.sh			--> Unit test script for CI
     ci_update_dev.sh	--> Automatic update script for CI
-    redis.conf			--> Config file for redis server	 
-    
+    redis.conf			--> Config file for redis server
+
 ## Documents
 [System requirement and design](https://docs.google.com/document/d/18w4QLPj4i88SKjNTdJ2RvZXhgqntAoWCOeiO3GARSwM/edit)
 
 [System UI designs](https://docs.google.com/presentation/d/1ADzdnXkrxAgTy34lxFFdb7iKtpwrEG6tmCcbYaNXTLE)
 
 [Project development plan](https://docs.google.com/presentation/d/1bOexFWW8Jl0WAvblEZiyZWQiKLqKqpi9eN3jJyamYUc/)
-    
+
 ## [Development Site](http://ec2-54-169-3-146.ap-southeast-1.compute.amazonaws.com:3000)
 
 Login User: admin
 
 Password: Sinonet@2016
+
+//dev test config for env.js
+var localConfig = {
+    mode: "local",
+    socketServerUrl: 'localhost',
+    db: {
+        adminDBUrl: 'adminsinonet:passwordsinonet@101.78.133.210:7979/admindb/',
+        playerDBUrl: 'playersinonet:passwordsinonet@101.78.133.210:7979/playerdb/',
+        logsDBUrl: '101.78.133.210:7979/logsdb'
+    },
+    socketSecret: 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
+    redisUrl: 'localhost',
+    redisPort: '6379',
+    clientAPIServerUrl: "ws://localhost:9280",
+    providerAPIServerUrl: "ws://localhost:9380",
+    paymentAPIServerUrl: "ws://localhost:9480",
+    messageServerUrl: "ws://localhost:9580",
+    cpAPIUrl: "ws://gameapi-server.neweb.me/websocketapi",
+    paymentAPIUrl: "ws://101.78.133.212:8566/acc",
+    smsAPIUrl: "ws://smsapi99.pms8.me:8560/sms",//"ws://203.192.151.12:8560/sms",
+    cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
+    disableCPAPI: false,
+    disablePaymentAPI: false,
+    disableSMSAPI: false
+};
+
+Client front end resources optimization
+用法是，每次更改增加css/js文件后，要在Client目录底下，执行gulp clean，结束后再执行gulp，需要先执行npm install和bower install如果提示少了dependency
+运行网站时可能会报一些undefined的错误，需要在做多一次上面的动作，minify的操作怪怪的，有时候会有问题
+TestPage目录底下比较简单，只需要npm install和执行gulp就行了，会从Server目录复制最新的services目录文件和testAPIl
+所以就没有symbol link了
+
+js文件会分成两个，一个是通过bower install的，一个是sb-admin-2
+css文件会分成三个，一个是通过bower install的，一个是sb-admin-2，还有一个是自己写的css,还有一个例外的是之前的开发改了library里的style
