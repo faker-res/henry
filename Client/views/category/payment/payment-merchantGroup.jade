@@ -27,7 +27,7 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformMerchantGroupList.length>0)", data-toggle="modal", data-target='#modalSetMerchantGroupDefault')
                         text {{"Default" | translate}}
                         img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Create')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddPlayersToMerchantGroup', ng-click='vm.preparePlayerToGroupDialog("merchantGroup","#playertoMerchantGroupDataTable")')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'AddPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddPlayersToMerchantGroup', ng-click='vm.preparePlayerToGroupDialog("merchantGroup","#playertoMerchantGroupDataTable")')
                         text {{"ADD_PLAYER" | translate}}
                         img.img-create
                     //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
