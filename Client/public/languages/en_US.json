@@ -811,6 +811,7 @@
   "SMS_VERIFICATION": "SMS Verification",
   "SMS_VERIFICATION_FOR_PASSWORD_UPDATE": "SMS Verification For Password Update",
   "SMS_VERIFICATION_FOR_PAYMENT_UPDATE": "SMS Verification For Payment Update",
+  "CAPTCHA_VERIFICATION_FOR_LOGIN": "Capttcha Verfication For Login",
   "LAST_DAILY_SETTLEMENT_TIME": "Last Daily Settlement Time",
   "LAST_WEEKLY_SETTLEMENT_TIME": "Last Weekly Settlement Time",
   "deficitAmount": "Deficit Amount",

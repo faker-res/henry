@@ -119,8 +119,8 @@ var PartnerServiceImplement = function () {
         var ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.partnerLoginAPI, [data, ua], isValidData, true, true, true).then(
             function (partnerData) {
-                if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT) {
-                    if (data.captcha && (conn.captchaCode == data.captcha || data.captcha == 'testCaptcha')) {
+                if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || partnerData.platform.requireLogInCaptcha) {
+                    if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
                         conn.isAuth = true;
                     } else {
                         conn.noOfAttempt++;

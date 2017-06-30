@@ -918,11 +918,13 @@ let dbPartner = {
     partnerLoginAPI: function (partnerData, userAgent) {
         var platformObjId = null;
         var partnerObj = null;
+        let requireLogInCaptcha = null;
         return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
             platformData => {
                 if (platformData) {
                     platformObjId = platformData._id;
                     partnerData.prefixName = platformData.partnerPrefix + partnerData.name;
+                    requireLogInCaptcha = platformData.requireLogInCaptcha || false;
 
                     return dbconfig.collection_partner.findOne({partnerName: partnerData.prefixName.toLowerCase()}).lean();
                 }
@@ -1032,7 +1034,10 @@ let dbPartner = {
                             Object.assign(recordData, geoInfo);
                             var record = new dbconfig.collection_partnerLoginRecord(recordData);
                             return record.save().then(
-                                () => data
+                                () => {
+                                    data.platform.requireLogInCaptcha = requireLogInCaptcha;
+                                    return data;
+                                }
                             );
                         },
                         error => {
