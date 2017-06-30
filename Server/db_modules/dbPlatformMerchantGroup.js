@@ -160,6 +160,16 @@ var dbPlatformMerchantGroup = {
         );
     },
 
+    addAllPlayersToMerchantGroup: function (bankMerchantGroupObjId, platformObjId) {
+        return dbconfig.collection_players.update({platform: platformObjId}, {merchantGroup: bankMerchantGroupObjId}, {multi: true}).then(data => {
+            if (data && data.ok) {
+                return {platform: platformObjId, merchantGroup: bankMerchantGroupObjId, nModified: data.nModified, n: data.n}
+            } else {
+                return {platform: platformObjId, merchantGroup: bankMerchantGroupObjId, error: data};
+            }
+        });
+    },
+
     deleteMerchant: function (merchantNo) {
         return dbconfig.collection_platformMerchantGroup.update(
             {},

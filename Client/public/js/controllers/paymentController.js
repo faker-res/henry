@@ -874,6 +874,23 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.submitAddAllPlayersToMerchantGroup = function () {
+            let sendData = {
+                bankMerchantGroupObjId: vm.SelectedMerchantGroupNode._id,
+                platformObjId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'addAllPlayersToMerchantGroup', sendData, function (data) {
+                if (data.data) {
+                    if (data.data.merchantGroup == vm.SelectedMerchantGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
+                        vm.addAllPlayerToMerchantResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
+                    } else {
+                        vm.addAllPlayerToMerchantResult = JSON.stringify(data.data.error);
+                    }
+                    $scope.safeApply();
+                }
+            });
+        }
+
         /////////////////////////////////////// Merchant Group end  /////////////////////////////////////////////////
 
         /////////////////////////////////////// Alipay Group start  /////////////////////////////////////////////////
