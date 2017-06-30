@@ -35,7 +35,7 @@ var rewardTaskSchema = new Schema({
     unlockedBonusAmount: {type: Number, default: 0},
     //current unlocked amount, if current unlock amount is >= requiredUnlockAmount, reward task is unlocked
     unlockedAmount: {type: Number, default: 0},
-    //credit when transfer in 
+    //player's valid credit that transferred into the game
     _inputCredit: {type: Number, default: 0},
     //current reward amount
     currentAmount: {type: Number, default: 0},
