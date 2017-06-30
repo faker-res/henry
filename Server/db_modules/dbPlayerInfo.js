@@ -2666,9 +2666,11 @@ let dbPlayerInfo = {
         var playerObj = null;
         var retObj = {};
         var platformPrefix = "";
+        let requireLogInCaptcha = null;
         dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
                 if (platformData) {
+                    requireLogInCaptcha = platformData.requireLogInCaptcha || false;
                     platformId = platformData._id;
                     platformPrefix = platformData.prefix;
                     playerData.prefixName = platformData.prefix + playerData.name;
@@ -2842,6 +2844,7 @@ let dbPlayerInfo = {
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                                            retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
                                             deferred.resolve(retObj);
                                         },
                                         errorZone => {
