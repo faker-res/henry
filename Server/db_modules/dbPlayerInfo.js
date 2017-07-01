@@ -95,6 +95,9 @@ let dbPlayerInfo = {
                         platformObj = platformData;
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
+                        if( platformData.onlyNewCanLogin ){
+                            inputData.isNewSystem = true;
+                        }
                         let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             name: inputData.name,
                             platform: platformData._id
@@ -2658,18 +2661,20 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent) {
-        var deferred = Q.defer();
-        var db_password = null;
-        var newAgentArray = [];
-        var platformId = null;
-        var uaObj = null;
-        var playerObj = null;
-        var retObj = {};
-        var platformPrefix = "";
+        let deferred = Q.defer();
+        let db_password = null;
+        let newAgentArray = [];
+        let platformId = null;
+        let uaObj = null;
+        let playerObj = null;
+        let retObj = {};
+        let platformPrefix = "";
         let requireLogInCaptcha = null;
+        let platformObj = {};
         dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
                 if (platformData) {
+                    platformObj = platformData;
                     requireLogInCaptcha = platformData.requireLogInCaptcha || false;
                     platformId = platformData._id;
                     platformPrefix = platformData.prefix;
@@ -2700,6 +2705,14 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
+                    if( platformObj.onlyNewCanLogin && !playerObj.isNewSystem ){
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Only new system user can login",
+                            code: constServerCode.INVALID_DATA
+                        });
+                        return;
+                    }
                     db_password = String(data.password); // hashedPassword from db
                     if (dbUtility.isMd5(db_password)) {
                         if (md5(playerData.password) == db_password) {

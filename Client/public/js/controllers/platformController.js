@@ -9166,6 +9166,7 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
             vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
             vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
+            vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
             $scope.safeApply();
         }
 
@@ -9410,7 +9411,8 @@ define(['js/app'], function (myApp) {
                     autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
                     bonusCharges: srcData.bonusCharges,
-                    requireLogInCaptcha: srcData.requireLogInCaptcha
+                    requireLogInCaptcha: srcData.requireLogInCaptcha,
+                    onlyNewCanLogin: srcData.onlyNewCanLogin
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
