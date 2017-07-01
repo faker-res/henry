@@ -2561,6 +2561,7 @@ let dbPlayerInfo = {
             })
     },
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
+        console.log("\n\n\n\n",data);
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
         //todo encrytion ?
@@ -2577,10 +2578,13 @@ let dbPlayerInfo = {
                     return thisPlayer;
                 });
         }
+        let tempEmail = data.email;
+        delete data.email;
 
         var a = dbconfig.collection_players
             .find({platform: platformId, $and: [
-                {$or:[data,{qq:data.email}]}
+                data,
+                {$or:[{email:tempEmail},{qq:tempEmail}]}
             ]}, {similarPlayers: 0})
             .sort(sortObj).skip(index).limit(limit)
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
