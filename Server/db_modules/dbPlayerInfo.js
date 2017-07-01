@@ -1563,7 +1563,19 @@ let dbPlayerInfo = {
         queryObject.operationTime = {$gte: time0, $lt: time1};
         var a = dbconfig.collection_creditChangeLog.find(queryObject).count();
         var b = dbconfig.collection_creditChangeLog.find(queryObject).sort(sortCol).skip(index).limit(limit);
-        return Q.all([a, b]).then(data => {
+        var c = dbconfig.collection_proposal.find({
+            "data.playerObjId":ObjectId(query.playerId),
+            createTime :{$gte: new Date(startTime)}
+        });
+        return Q.all([a, b, c]).then(data => {
+            data[1].forEach((result)=>{
+                if(!result.data.proposalId){
+                    let temp = data[2].filter((proposal)=>{
+                        return proposal.data.requestId === result.data.requestId;
+                    });
+                    result.data.proposalId = temp[0].proposalId;
+                }
+            });
             return {total: data[0], data: data[1]};
         })
     },
