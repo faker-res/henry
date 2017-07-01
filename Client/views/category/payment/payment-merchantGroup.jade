@@ -66,6 +66,11 @@
                         select.input-sm.form-control(ng-model='vm.filterMerchantType', style='max-width:200px', ng-init='vm.filterMerchantType="all"')
                             option(value='all') {{'any' | translate}}
                             option(ng-repeat='(i,v) in vm.allMerchantTypeList', value='{{i}}') {{v.name | translate}}
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Target Devices" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterMerchantTargetDevices', style='max-width:200px', ng-init='vm.filterMerchantTargetDevices="all"')
+                            option(value='all') {{'any' | translate}}
+                            option(ng-repeat='(i,v) in merchantTargetDeviceJson', value='{{i}}') {{v | translate}}
                     .inlineBlk
                         button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantGroupClicked(1,vm.SelectedMerchantGroupNode)") {{"FILTER" | translate}}
                 #MerchantList.panel-group(ng-if='vm.SelectedMerchantGroupNode')
