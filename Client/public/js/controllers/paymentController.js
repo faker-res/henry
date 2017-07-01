@@ -755,7 +755,10 @@ define(['js/app'], function (myApp) {
 
                         } else if (vm.filterMerchantAcc && v.merchantNo.indexOf(vm.filterMerchantAcc) == -1) {
 
-                        } else {
+                        } else if (vm.filterMerchantTargetDevices && (vm.filterMerchantTargetDevices != 'all') && (vm.filterMerchantTargetDevices != v.targetDevices)) {
+
+                        }
+                        else {
                             vm.includedMerchants.push(v);
                         }
                     });
