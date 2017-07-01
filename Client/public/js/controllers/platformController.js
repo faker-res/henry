@@ -6844,12 +6844,6 @@ define(['js/app'], function (myApp) {
                 return;
             }
             $('#partnerRefreshIcon').addClass('fa-spin');
-            
-            // if(curP && limit){
-            //     var index = (curP - 1) * limit;
-            //     vm.advancedPartnerQueryObj.index = index;
-            //     vm.advancedPartnerQueryObj.limit = limit;
-            // }
 
             vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {
                 "platformId": vm.selectedPlatform.id,
