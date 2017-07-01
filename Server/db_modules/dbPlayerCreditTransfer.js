@@ -17,7 +17,17 @@ const dbConfig = require('./../modules/dbproperties');
 const dbLogger = require("./../modules/dbLogger");
 const errorUtils = require("./../modules/errorUtils");
 
-const dbPlayerCreditTransfer = {
+let dbPlayerCreditTransfer = {
+    // separate out api calls so it can be test easily
+    getPlayerGameCredit: (obj) => {
+        return cpmsAPI.player_queryCredit(obj);
+    },
+    playerTransferIn: (obj) => {
+        return cpmsAPI.player_transferIn(obj);
+    },
+    playerTransferOut: (obj) => {
+        return cpmsAPI.player_transferOut(obj)
+    },
 
     /**
      * TODO: NOT YET COMPLETE
@@ -33,7 +43,8 @@ const dbPlayerCreditTransfer = {
      * @param cpName
      * @param forSync
      */
-    playerCreditTransferToProvider: (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) => {
+    playerCreditTransferToProvider: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
+        let dPCT = this;
         let gameAmount = 0, regGameAmount = 0;
         let rewardAmount = 0;
         let providerAmount = 0;
@@ -69,7 +80,7 @@ const dbPlayerCreditTransfer = {
                     let rewardProm = dbRewardTask.getPlayerAllRewardTask(playerObjId);
                     let gameCreditProm = {};
                     if (playerData.lastPlayedProvider) {
-                        gameCreditProm = cpmsAPI.player_queryCredit(
+                        gameCreditProm = dPCT.getPlayerGameCredit(
                             {
                                 username: userName,
                                 platformId: platformId,
@@ -254,7 +265,7 @@ const dbPlayerCreditTransfer = {
                             // Second log before call cpmsAPI
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                 id, providerShortId, transferAmount, lockedTransferAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
-                            return cpmsAPI.player_transferIn(
+                            return dPCT.playerTransferIn(
                                 {
                                     username: userName,
                                     platformId: platformId,
@@ -405,7 +416,8 @@ const dbPlayerCreditTransfer = {
      *          it will transfer out 254,
      *          leaving the 0.88 in the game as game credit.
      */
-    playerCreditTransferFromProvider: (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) => {
+    playerCreditTransferFromProvider: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
+        let pCTFP = this;
         let deferred = Q.defer();
         let providerPlayerObj = null;
         let rewardTasks = null;
@@ -423,7 +435,7 @@ const dbPlayerCreditTransfer = {
         if (forSync) {
             initFunc = Q.resolve({credit: amount});
         } else {
-            initFunc = cpmsAPI.player_queryCredit(
+            initFunc = pCTFP.getPlayerGameCredit(
                 {
                     username: userName,
                     platformId: platformId,
@@ -451,8 +463,7 @@ const dbPlayerCreditTransfer = {
                                     );
                                 }
                             );
-                        }
-                        else {
+                        } else {
                             deferred.reject({
                                 status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                                 name: "DataError",
@@ -468,6 +479,7 @@ const dbPlayerCreditTransfer = {
                 }
             },
             function (err) {
+                console.log('this error is', err)
                 deferred.reject(err);
             }
         ).then(
@@ -478,7 +490,7 @@ const dbPlayerCreditTransfer = {
 
                     if (data) {
                         rewardTasks = data.reverse(); // to handle reward task decending
-                        if (rewardTasks[rewardTasks.length-1].requiredBonusAmount > 0) {
+                        if (rewardTasks[rewardTasks.length-1] && rewardTasks[rewardTasks.length-1].requiredBonusAmount && rewardTasks[rewardTasks.length-1].requiredBonusAmount > 0) {
                             // handle register bonus separately
                             let rewardTask = rewardTasks[rewardTasks.length-1];
                             rewardTask.currentAmount = amount;
@@ -562,7 +574,7 @@ const dbPlayerCreditTransfer = {
                             // console.log("player_transferOut:", userName, providerShortId, amount);
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
                                 providerShortId, amount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
-                            return cpmsAPI.player_transferOut(
+                            return pCTFP.playerTransferOut(
                                 {
                                     username: userName,
                                     platformId: platformId,
