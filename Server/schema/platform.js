@@ -96,7 +96,9 @@ var platformSchema = new Schema({
     // Auto check player level up
     autoCheckPlayerLevelUp: {type: Boolean, default: false},
     // user login require captcha verfication
-    requireLogInCaptcha: {type: Boolean, default: false}
+    requireLogInCaptcha: {type: Boolean, default: false},
+    //only new system user can login
+    onlyNewCanLogin: {type: String}
 });
 
 //add platform id before save
