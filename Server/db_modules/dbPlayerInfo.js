@@ -3978,13 +3978,13 @@ let dbPlayerInfo = {
                                 rewardTaskCredit = rewardTask.currentAmount;
                             }
                             else {
-                                diffAmount = providerPlayerObj.gameCredit - rewardTask._inputCredit;
+                                diffAmount = Math.floor(providerPlayerObj.gameCredit) - rewardTask._inputCredit;
                                 if (diffAmount > 0) {
                                     rewardTask.currentAmount += diffAmount;
                                     validCreditToAdd = rewardTask._inputCredit;
                                     rewardTask.inProvider = false;
                                 } else {
-                                    validCreditToAdd = providerPlayerObj.gameCredit;
+                                    validCreditToAdd = Math.floor(providerPlayerObj.gameCredit);
                                     rewardTask.inProvider = false;
                                     rewardTask.currentAmount = 0;
                                     //rewardTask.status = constRewardTaskStatus.NO_CREDIT;
