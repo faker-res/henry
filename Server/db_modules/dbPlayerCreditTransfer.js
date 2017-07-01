@@ -5,7 +5,7 @@ const constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTra
 const constServerCode = require('./../const/constServerCode');
 const constSystemParam = require("../const/constSystemParam.js");
 
-const dbOperations = require('./../db_common/dbOperations');
+const dbOps = require('./../db_common/dbOperations');
 
 const dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 const dbRewardTask = require('./../db_modules/dbRewardTask');
@@ -765,7 +765,7 @@ function playerCreditChange(playerObjId, platformObjId, incValidCredit, incLocke
         updateObj.lastPlayedProvider = lastPlayedProviderObjId;
     }
 
-    return dbOperations.findOneAndUpdateWithRetry(
+    return dbOps.findOneAndUpdateWithRetry(
         dbConfig.collection_players,
         {_id: playerObjId, platform: platformObjId},
         updateObj,
