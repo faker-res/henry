@@ -155,7 +155,8 @@ var simplifiedChinese = {
     "Verification SMS already sent within last minute": "验证码已发送，请稍后再试",
     "Invalid referral": "推荐人不存在",
     "Player does not have enough top up or consumption amount": "玩家没有达到奖励要求",
-    "Player or partner already has a pending reward proposal for this type": "玩家有待审批的奖励，请稍后再试"
+    "Player or partner already has a pending reward proposal for this type": "玩家有待审批的奖励，请稍后再试",
+    "Only new system user can login": "只有新系统用户可以登陆，请尝试使用其他域名登陆"
     //todo::add missing messages here
 
     /*
