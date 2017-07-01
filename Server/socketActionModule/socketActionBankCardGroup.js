@@ -145,6 +145,16 @@ function socketActionBankCardGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.addPlayersToBankCardGroup, [data.bankCardGroupObjId, data.playerObjIds], actionName, isValidData);
         },
 
+        /**
+         * Add all players to bank card group
+         * @param {json} data
+         */
+        addAllPlayersToBankCardGroup: function addAllPlayersToBankCardGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.bankCardGroupObjId && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.addAllPlayersToBankCardGroup, [data.bankCardGroupObjId, data.platformObjId], actionName, isValidData);
+        },
+
         syncBankCardGroupData: function syncBankCardGroupData(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId);

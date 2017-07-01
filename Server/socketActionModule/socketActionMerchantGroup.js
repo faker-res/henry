@@ -120,7 +120,17 @@ function socketActionMerchantGroup(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.bankMerchantGroupObjId && data.playerObjIds && data.playerObjIds.length > 0);
             socketUtil.emitter(self.socket, dbPlatformMerchantGroup.addPlayersToMerchantGroup, [data.bankMerchantGroupObjId, data.playerObjIds], actionName, isValidData);
-        }
+        },
+
+        /**
+         * Add all players to bank card group
+         * @param {json} data
+         */
+        addAllPlayersToMerchantGroup: function addAllPlayersToMerchantGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.bankMerchantGroupObjId && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.addAllPlayersToMerchantGroup, [data.bankMerchantGroupObjId, data.platformObjId], actionName, isValidData);
+        },
 
     };
     socketActionMerchantGroup.actions = this.actions;
