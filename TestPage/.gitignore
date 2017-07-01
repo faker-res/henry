@@ -1,0 +1,11 @@
+.idea/
+.idea/*
+ReactClient
+ReactClient/*
+*.log
+node_modules/
+/.vscode/
+services/
+services/*
+testAPI/
+testAPI/*

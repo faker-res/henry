@@ -517,6 +517,11 @@
                                 td {{'CAPTCHA_VERIFICATION_FOR_LOGIN' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireLogInCaptcha', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'ONLY_NEW_USER_CAN_LOGIN' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.onlyNewCanLogin', ng-disabled='!vm.configTableEdit')
+
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
