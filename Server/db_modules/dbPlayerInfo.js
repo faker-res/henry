@@ -2561,7 +2561,6 @@ let dbPlayerInfo = {
             })
     },
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
-        console.log("\n\n\n\n",data);
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
         //todo encrytion ?
