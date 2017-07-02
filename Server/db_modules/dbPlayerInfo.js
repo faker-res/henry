@@ -2584,13 +2584,12 @@ let dbPlayerInfo = {
                     return thisPlayer;
                 });
         }
-        let tempEmail = data.email;
-        delete data.email;
+        // let tempEmail = data.email;
+        // delete data.email;
 
         var a = dbconfig.collection_players
             .find({platform: platformId, $and: [
-                data,
-                {$or:[{email:tempEmail},{qq:tempEmail}]}
+                data
             ]}, {similarPlayers: 0})
             .sort(sortObj).skip(index).limit(limit)
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
