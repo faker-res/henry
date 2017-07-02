@@ -1582,7 +1582,7 @@ let dbPlayerInfo = {
                             let temp = data[2].filter((proposal) => {
                                 return proposal.data.requestId === result.data.requestId;
                             });
-                            result.data.proposalId = temp[0].proposalId;
+                            result.data.proposalId = temp[0] ? temp[0].proposalId : "";
                         }
                     });
                 return {total: data[0], data: data[1]};
