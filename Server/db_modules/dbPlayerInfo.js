@@ -1228,7 +1228,14 @@ let dbPlayerInfo = {
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
-
+                    //check if bankAccountName in update data is the same as player's real name
+                    if( updateData.bankAccountName && updateData.bankAccountName != playerData.realName ){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Bank account name is different from real name"
+                        });
+                    }
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     })
@@ -1238,7 +1245,7 @@ let dbPlayerInfo = {
                         name: "DataError",
                         code: constServerCode.DOCUMENT_NOT_FOUND,
                         message: "Unable to find player"
-                    })
+                    });
                 }
             }
         ).then(
