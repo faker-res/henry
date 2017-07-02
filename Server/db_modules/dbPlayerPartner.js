@@ -493,7 +493,14 @@ let dbPlayerPartner = {
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
-
+                    //check if bankAccountName in update data is the same as player's real name
+                    if( updateData.bankAccountName && updateData.bankAccountName != playerData.realName ){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Bank account name is different from real name"
+                        });
+                    }
                     // 2. Get partner info
                     return dbConfig.collection_partner.findOne({player: playerData._id}).lean();
                 }
@@ -512,6 +519,14 @@ let dbPlayerPartner = {
                         _id: partnerData._id,
                         platform: partnerData.platform
                     };
+                    //check if bankAccountName in update data is the same as player's real name
+                    if( updateData.bankAccountName && updateData.bankAccountName != partnerData.realName ){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Bank account name is different from real name"
+                        });
+                    }
                     // Check whether player and partner queried is from same platform
                     if (String(playerObj.platform) == String(partnerData.platform)) {
                         // 3. Get platform info
