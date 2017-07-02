@@ -1,24 +1,25 @@
 "use strict";
 
-let WebSocketUtil = require("./../../server_common/WebSocketUtil");
-let PlayerService = require("./../../services/client/ClientServices").PlayerService;
-let dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
-let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
-let dbUtility = require('./../../modules/dbutility');
-let constServerCode = require('./../../const/constServerCode');
-let constSystemParam = require('./../../const/constSystemParam');
-let jwt = require('jsonwebtoken');
-let uaParser = require('ua-parser-js');
-let geoip = require('geoip-lite');
-let localization = require('../../modules/localization').localization;
-let constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
-let SMSSender = require('../../modules/SMSSender');
-let queryPhoneLocation = require('query-mobile-phone-area');
-let constProposalEntryType = require('./../../const/constProposalEntryType');
-let constProposalUserType = require('./../../const/constProposalUserType');
-let dbLogger = require('./../../modules/dbLogger');
-let dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
-let dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
+const WebSocketUtil = require("./../../server_common/WebSocketUtil");
+const PlayerService = require("./../../services/client/ClientServices").PlayerService;
+const dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
+const dbPlayerMail = require('./../../db_modules/dbPlayerMail');
+const dbUtility = require('./../../modules/dbutility');
+const constServerCode = require('./../../const/constServerCode');
+const constSystemParam = require('./../../const/constSystemParam');
+const jwt = require('jsonwebtoken');
+const uaParser = require('ua-parser-js');
+const geoip = require('geoip-lite');
+const localization = require('../../modules/localization').localization;
+const constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
+const SMSSender = require('../../modules/SMSSender');
+const queryPhoneLocation = require('query-mobile-phone-area');
+const constProposalEntryType = require('./../../const/constProposalEntryType');
+const constProposalUserType = require('./../../const/constProposalUserType');
+const constProposalStatus = require('./../../const/constProposalStatus');
+const dbLogger = require('./../../modules/dbLogger');
+const dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
+const dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
 
 let PlayerServiceImplement = function () {
     PlayerService.call(this);
@@ -67,9 +68,10 @@ let PlayerServiceImplement = function () {
             }
             conn.captchaCode = null;
             data.isOnline = true;
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, true, false, true).then(
+            let inputData = Object.assign({}, data);
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData], isValidData, true, true, true).then(
                 (playerData) => {
-                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData);
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
                     conn.playerObjId = playerData._id;
@@ -91,8 +93,24 @@ let PlayerServiceImplement = function () {
                         data: playerData,
                         token: token,
                     }, data);
-                }, (error) => {
-                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data);
+                }, (err) => {
+                    if (err && err.status) {
+                        if (err.errorMessage || err.message) {
+                            var msg = err.errorMessage || err.message;
+                            err.errorMessage = localization.translate(msg, conn.lang);
+                        }
+                        wsFunc.response(conn, err, data);
+                    }
+                    else {
+                        var errorCode = err && err.code || constServerCode.COMMON_ERROR;
+                        var resObj = {
+                            status: errorCode,
+                            errorMessage: localization.translate(err.message || err.errorMessage, conn.lang)
+                        };
+                        resObj.errorMessage = err.errMessage || resObj.errorMessage;
+                        wsFunc.response(conn, resObj, data);
+                    }
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                 }
             ).catch(WebSocketUtil.errorHandler)
                 .done();
@@ -679,7 +697,7 @@ let PlayerServiceImplement = function () {
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [{playerId: conn.playerId}, data], isValidData, true, true, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [{playerId: conn.playerId}, data], isValidData, true, false, false).then(
             function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);

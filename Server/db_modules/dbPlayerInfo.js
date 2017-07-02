@@ -1228,7 +1228,14 @@ let dbPlayerInfo = {
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
-
+                    //check if bankAccountName in update data is the same as player's real name
+                    if( updateData.bankAccountName && updateData.bankAccountName != playerData.realName ){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Bank account name is different from real name"
+                        });
+                    }
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     })
@@ -1238,7 +1245,7 @@ let dbPlayerInfo = {
                         name: "DataError",
                         code: constServerCode.DOCUMENT_NOT_FOUND,
                         message: "Unable to find player"
-                    })
+                    });
                 }
             }
         ).then(
@@ -2577,13 +2584,12 @@ let dbPlayerInfo = {
                     return thisPlayer;
                 });
         }
-        let tempEmail = data.email;
-        delete data.email;
+        // let tempEmail = data.email;
+        // delete data.email;
 
         var a = dbconfig.collection_players
             .find({platform: platformId, $and: [
-                data,
-                {$or:[{email:tempEmail},{qq:tempEmail}]}
+                data
             ]}, {similarPlayers: 0})
             .sort(sortObj).skip(index).limit(limit)
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})

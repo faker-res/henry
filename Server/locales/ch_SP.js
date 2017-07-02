@@ -147,6 +147,7 @@ var simplifiedChinese = {
     "Player has applied for max reward times": "您已经达到了该奖励今日的申请上限",
     "Player do not have permission for reward": "您好， 您目前暂无申请优惠的权限，请联系客服。",
     "Username should be alphanumeric and within 12 characters": "用户名只能为6-12位的数字和字母",
+    "Username should be alphanumeric and within 20 characters": "用户名只能为6-20位的数字和字母",
     "Realname should be chinese character": "真实姓名必须为汉字",
     "There is consumption after top up": "玩家充值后已投注",
     "Player does not have valid merchant data": "玩家没有有效的商户信息",
@@ -156,7 +157,8 @@ var simplifiedChinese = {
     "Invalid referral": "推荐人不存在",
     "Player does not have enough top up or consumption amount": "玩家没有达到奖励要求",
     "Player or partner already has a pending reward proposal for this type": "玩家有待审批的奖励，请稍后再试",
-    "Only new system user can login": "只有新系统用户可以登陆，请尝试使用其他域名登陆"
+    "Only new system user can login": "只有新系统用户可以登陆，请尝试使用其他域名登陆",
+    "Bank account name is different from real name": "银行账号姓名和真实姓名不相符"
     //todo::add missing messages here
 
     /*

@@ -115,13 +115,13 @@ let dbPartner = {
 
         // Player name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        if (partnerdata.partnerName.length > 15 || !partnerdata.partnerName.match(alphaNumRegex)) {
+        if (partnerdata.partnerName.length > 20 || !partnerdata.partnerName.match(alphaNumRegex)) {
             // ignore for unit test
             if (env.mode !== "local" && env.mode !== "qa") {
                 return Q.reject({
                     status: constServerCode.PARTNER_NAME_INVALID,
                     name: "DBError",
-                    message: "Username should be alphanumeric and within 15 characters"
+                    message: "Username should be alphanumeric and within 20 characters"
                 });
             }
         }
