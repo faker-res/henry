@@ -95,7 +95,7 @@ let dbPlayerInfo = {
                         platformObj = platformData;
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
-                        if( platformData.onlyNewCanLogin ){
+                        if (platformData.onlyNewCanLogin) {
                             inputData.isNewSystem = true;
                         }
                         let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
@@ -1229,7 +1229,7 @@ let dbPlayerInfo = {
                 if (playerData) {
                     playerObj = playerData;
                     //check if bankAccountName in update data is the same as player's real name
-                    if( updateData.bankAccountName && updateData.bankAccountName != playerData.realName ){
+                    if (updateData.bankAccountName && updateData.bankAccountName != playerData.realName) {
                         return Q.reject({
                             name: "DataError",
                             code: constServerCode.INVALID_DATA,
@@ -1571,20 +1571,22 @@ let dbPlayerInfo = {
         var a = dbconfig.collection_creditChangeLog.find(queryObject).count();
         var b = dbconfig.collection_creditChangeLog.find(queryObject).sort(sortCol).skip(index).limit(limit);
         var c = dbconfig.collection_proposal.find({
-            "data.playerObjId":ObjectId(query.playerId),
-            createTime :{$gte: new Date(startTime)}
-        });
-        return Q.all([a, b, c]).then(data => {
-            data[1].forEach((result)=>{
-                if(!result.data.proposalId){
-                    let temp = data[2].filter((proposal)=>{
-                        return proposal.data.requestId === result.data.requestId;
+            "data.playerObjId": ObjectId(query.playerId),
+            createTime: {$gte: new Date(startTime)}
+        }).lean();
+        return Q.all([a, b, c]).then(
+            data => {
+                data[1].forEach(
+                    (result) => {
+                        if (result && result.data && !result.data.proposalId) {
+                            let temp = data[2].filter((proposal) => {
+                                return proposal.data.requestId === result.data.requestId;
+                            });
+                            result.data.proposalId = temp[0].proposalId;
+                        }
                     });
-                    result.data.proposalId = temp[0].proposalId;
-                }
-            });
-            return {total: data[0], data: data[1]};
-        })
+                return {total: data[0], data: data[1]};
+            })
     },
 
     /*
@@ -2584,13 +2586,16 @@ let dbPlayerInfo = {
                     return thisPlayer;
                 });
         }
+
         // let tempEmail = data.email;
         // delete data.email;
 
         var a = dbconfig.collection_players
-            .find({platform: platformId, $and: [
-                data
-            ]}, {similarPlayers: 0})
+            .find({
+                platform: platformId, $and: [
+                    data
+                ]
+            }, {similarPlayers: 0})
             .sort(sortObj).skip(index).limit(limit)
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "partner", model: dbconfig.collection_partner})
@@ -2728,7 +2733,7 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
-                    if( platformObj.onlyNewCanLogin && !playerObj.isNewSystem ){
+                    if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
                         deferred.reject({
                             name: "DataError",
                             message: "Only new system user can login",
