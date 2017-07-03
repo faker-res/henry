@@ -2465,6 +2465,7 @@ define(['js/app'], function (myApp) {
                     return item;
                 });
                 vm.newPlayerQuery.totalTopupPlayerCount = retData[3];
+                vm.newPlayerQuery.totalTopupMultipleTimesPlayerCount = retData[4];
                 vm.drawDomainPlayerGraph(domainData);
                 vm.drawDomainPlayerTable(domainData);
                 vm.drawPartnerPlayerGraph(partnerData);

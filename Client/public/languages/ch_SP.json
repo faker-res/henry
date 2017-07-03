@@ -737,6 +737,7 @@
   "Create Top Up Test Record": "创建玩家充值记录测试",
   "Are you sure to delete department": "您确定要删除部门",
   "Player with Top-ups": "充值玩家",
+  "Player with Top-ups Multiple Times": "多次充值玩家",
   "Player with Domain": "有开户来源的玩家",
   "Player with Partner": "推广渠道玩家",
   "department": "部门",

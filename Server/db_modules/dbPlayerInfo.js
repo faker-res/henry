@@ -5192,6 +5192,17 @@ let dbPlayerInfo = {
             registrationTime: timeQuery
         };
         var d = dbconfig.collection_players.find(topupQuery).count();
+
+        let topUpMultipleTimesQuery = {
+            platform: platform,
+            isRealPlayer: true,
+            isTestPlayer: false,
+            topUpTimes: {$gt: 1},
+            topUpSum: {$gt: 0},
+            registrationTime: timeQuery
+        }
+
+        let e = dbconfig.collection_players.find(topUpMultipleTimesQuery).count();
         // var d = dbconfig.collection_players.find(query, {_id: 1}).lean().then(
         //     players => {
         //         if (players && players.length > 0) {
@@ -5226,7 +5237,7 @@ let dbPlayerInfo = {
         //     }
         // );
 
-        return Q.all([a, b, c, d]).then(
+        return Q.all([a, b, c, d,e]).then(
             data => {
                 retData = data;
                 var prop = [];
