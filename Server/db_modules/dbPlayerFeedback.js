@@ -81,7 +81,7 @@ var dbPlayerFeedback = {
         }
 
         if (query.startTime && query.endTime) {
-            query.createTime = {$gte: query.startTime, $lt: query.endTime};
+            query.createTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
             delete  query.startTime;
             delete  query.endTime;
         }
@@ -108,6 +108,7 @@ var dbPlayerFeedback = {
                 } else if (adminArr.length == 0 && admin) {
                     return [];
                 }
+                console.log("query", query);
                 var a = dbconfig.collection_playerFeedback
                     .find(query)
                     .populate({path: "playerId", model: dbconfig.collection_players})
