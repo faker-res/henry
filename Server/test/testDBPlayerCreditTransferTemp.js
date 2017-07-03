@@ -55,18 +55,17 @@ Object.setPrototypeOf(mockedDbPlayerCreditTransfer, dbPlayerCreditTransfer);
 describe('Test player credit transfer', function () {
 
     // todo :: WIP
-    return true;
+    // return true;
 
     let testPlatformObj = null;
     let testGameProviderObj = null;
     let testGameProviderObj2 = null;
     let testPlayers = [];
-    let originalCpmsAPI = null;
 
     before(function (done) {
 
         // create a test platform
-        commonTestFunc.createTestPlatform().then(
+        commonTestFunc.createTestPlatform().then( // TODO :: make sure that multireward option is 'on'
             function (data) {
                 testPlatformObj = data;
                 // create a test game provider
@@ -620,7 +619,7 @@ describe('Test player credit transfer', function () {
                             requiredUnlockAmount: 200,
                             initAmount: 100,
                             currentAmount: 100
-                        }
+                        };
 
                         return dbRewardTask.createRewardTask(rewardTaskData);
                     },
@@ -718,6 +717,337 @@ describe('Test player credit transfer', function () {
                     }
                 )
             });
+        });
+
+        describe('with multiple non-applicable rewards and valid credit', function () {
+            // TODO
+
+            let testPlayerObj = null;
+            let testRewardObj = null;
+            let testRewardObj2 = null;
+            let testRewardObj3 = null;
+
+            before(function (done) {
+                // create a test player
+                createCustomTestPlayer(testPlatformObj._id, {lockedCredit: 300}).then(
+                    function (data) {
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
+                        // create a test reward task
+                        let rewardTaskData = {
+                            playerId: testPlayerObj._id,
+                            platformId: testPlatformObj._id,
+                            targetProviders: [testGameProviderObj2._id],
+                            type: "testTask",
+                            rewardType: "testTask",
+                            requiredUnlockAmount: 200,
+                            initAmount: 100,
+                            currentAmount: 100
+                        };
+
+                        return dbRewardTask.createRewardTask(rewardTaskData);
+                    },
+                    function (error) {
+                        console.error(error);
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        testRewardObj = data;
+                        let rewardTaskData2 = {
+                            playerId: testPlayerObj._id,
+                            platformId: testPlatformObj._id,
+                            targetProviders: [testGameProviderObj2._id],
+                            type: "testTask",
+                            rewardType: "testTask",
+                            requiredUnlockAmount: 200,
+                            initAmount: 100,
+                            currentAmount: 100
+                        };
+
+                        return dbRewardTask.createRewardTask(rewardTaskData2);
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        testRewardObj2 = data;
+                        let rewardTaskData3 = {
+                            playerId: testPlayerObj._id,
+                            platformId: testPlatformObj._id,
+                            targetProviders: [testGameProviderObj2._id],
+                            type: "testTask",
+                            rewardType: "testTask",
+                            requiredUnlockAmount: 200,
+                            initAmount: 100,
+                            currentAmount: 100
+                        };
+
+                        return dbRewardTask.createRewardTask(rewardTaskData3);
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        testRewardObj3 = data;
+                        done();
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).catch(
+                    function (error) {
+                        done(error)
+                    }
+                );
+            });
+
+            it('should be able to transfer in credit to provider', function (done) {
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, -1, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    // dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    function (data) {
+                        if (data) {
+                            data.providerCredit.should.be.equal("300.00");
+                            thePlayerCredit[testPlayerObj.name].should.be.equal(300);
+                            done();
+                        } else {
+                            done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
+                        }
+
+                    },
+                    function (error) {
+                        console.error(error);
+                        done(error);
+                    }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
+            });
+
+            it('should be able to transfer in again after topup', function (done) {
+                dbPlayerInfo.playerTopUp(testPlayerObj._id, 100, "testPayment").then(
+                    function () {
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, -1, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                    },
+                    function (error) {
+                        done(error);
+                    }
+                ).then(
+                    function (data) {
+                        if (data) {
+                            data.providerCredit.should.be.equal("400.00");
+                            thePlayerCredit[testPlayerObj.name].should.be.equal(400);
+                            done();
+                        } else {
+                            done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
+                        }
+                    }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
+            });
+
+            it('should be able to transfer out with all the credit back into valid credit', function (done) {
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 400, testPlayerObj.playerId, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    function (data) {
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("400.00");
+                        data.rewardCredit.should.be.equal("300.00");
+                        thePlayerCredit[testPlayerObj.name].should.be.equal(0);
+                        return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        data.validCredit.should.be.equal(400);
+                        data.lockedCredit.should.be.equal(300);
+                        done();
+                    },
+                    function (error) {
+                        done(error);
+                    }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
+            });
+        });
+
+        describe.only('with multiple applicable rewards and valid credit', function () {
+            // TODO
+            let testPlayerObj = null;
+            let testRewardObj = null;
+            let testRewardObj2 = null;
+            let testRewardObj3 = null;
+
+            before(function (done) {
+                // create a test player
+                createCustomTestPlayer(testPlatformObj._id, {lockedCredit: 300}).then(
+                    function (data) {
+                        testPlayerObj = data;
+                        console.log('playerData', data)
+                        testPlayers.push(testPlayerObj._id);
+
+                        // create a test reward task
+                        let rewardTaskData = {
+                            playerId: testPlayerObj._id,
+                            platformId: testPlatformObj._id,
+                            targetProviders: [testGameProviderObj._id],
+                            type: "testTask",
+                            rewardType: "testTask",
+                            requiredUnlockAmount: 200,
+                            initAmount: 100,
+                            currentAmount: 100
+                        };
+
+                        return dbRewardTask.createRewardTask(rewardTaskData);
+                    },
+                    function (error) {
+                        console.error(error);
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        testRewardObj = data;
+                        let rewardTaskData2 = {
+                            playerId: testPlayerObj._id,
+                            platformId: testPlatformObj._id,
+                            targetProviders: [testGameProviderObj._id],
+                            type: "testTask",
+                            rewardType: "testTask",
+                            requiredUnlockAmount: 200,
+                            initAmount: 100,
+                            currentAmount: 100
+                        };
+
+                        return dbRewardTask.createRewardTask(rewardTaskData2);
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        testRewardObj2 = data;
+                        let rewardTaskData3 = {
+                            playerId: testPlayerObj._id,
+                            platformId: testPlatformObj._id,
+                            targetProviders: [testGameProviderObj._id],
+                            type: "testTask",
+                            rewardType: "testTask",
+                            requiredUnlockAmount: 200,
+                            initAmount: 100,
+                            currentAmount: 100
+                        };
+
+                        return dbRewardTask.createRewardTask(rewardTaskData3);
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        testRewardObj3 = data;
+                        done();
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).catch(
+                    function (error) {
+                        done(error)
+                    }
+                );
+            });
+
+            it('should be able to transfer in credit to provider', function (done) {
+                mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, -1, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    function (data) {
+                        if (data) {
+                            data.providerCredit.should.be.equal("600.00");
+                            thePlayerCredit[testPlayerObj.name].should.be.equal(600);
+                            done();
+                        } else {
+                            done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
+                        }
+
+                    },
+                    function (error) {
+                        console.error(error);
+                        done(error);
+                    }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
+            });
+
+            it('should be able to transfer in again after topup', function (done) {
+                dbPlayerInfo.playerTopUp(testPlayerObj._id, 100, "testPayment").then(
+                    function () {
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, -1, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                    },
+                    function (error) {
+                        done(error);
+                    }
+                ).then(
+                    function (data) {
+                        if (data) {
+                            data.providerCredit.should.be.equal("700.00");
+                            thePlayerCredit[testPlayerObj.name].should.be.equal(700);
+                            done();
+                        } else {
+                            done(new Error("transferPlayerCreditToProviderbyPlayerObjId return null."));
+                        }
+                    }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
+            });
+
+            it('should be able to transfer out with all the credit back into valid credit', function (done) {
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 700, testPlayerObj.playerId, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    function (data) {
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("400.00");
+                        data.rewardCredit.should.be.equal("300.00");
+                        thePlayerCredit[testPlayerObj.name].should.be.equal(0);
+                        return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        data.validCredit.should.be.equal(400);
+                        data.lockedCredit.should.be.equal(300);
+                        done();
+                    },
+                    function (error) {
+                        done(error);
+                    }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
+            });
+        });
+
+        describe('with multiple mixed rewards and valid credit', function () {
+            // TODO
         });
     });
 
@@ -1051,6 +1381,18 @@ describe('Test player credit transfer', function () {
                     }
                 )
             });
+        });
+
+        describe('with multiple non-applicable reward and valid credit', function () {
+            // TODO
+        });
+
+        describe('with multiple applicable reward and valid credit', function () {
+            // TODO
+        });
+
+        describe('with multiple mixed applicable reward and valid credit', function () {
+            // TODO
         });
     });
 
@@ -1469,6 +1811,18 @@ describe('Test player credit transfer', function () {
                     )
                 });
             });
+        });
+
+        describe('with multiple non-applicable reward and valid credit', function () {
+            // TODO
+        });
+
+        describe('with multiple applicable reward and valid credit', function () {
+            // TODO
+        });
+
+        describe('with multiple mixed applicable reward and valid credit', function () {
+            // TODO
         });
     });
 
