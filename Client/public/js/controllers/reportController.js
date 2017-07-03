@@ -3256,6 +3256,9 @@ define(['js/app'], function (myApp) {
          * @returns {Promise.<{}>}
          */
         function settleProvidersInList(providersToSettle, settlementDate) {
+            //todo: temp disable settlement here
+            return Promise.resolve({});
+
             // We will empty this list, so make a copy first
             providersToSettle = providersToSettle.slice(0);
             console.log(`Performing settlement for ${providersToSettle.length} providers`);
