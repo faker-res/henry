@@ -5,7 +5,7 @@ const constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTra
 const constServerCode = require('./../const/constServerCode');
 const constSystemParam = require("../const/constSystemParam.js");
 
-const dbOperations = require('./../db_common/dbOperations');
+const dbOps = require('./../db_common/dbOperations');
 
 const dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 const dbRewardTask = require('./../db_modules/dbRewardTask');
@@ -47,7 +47,6 @@ let dbPlayerCreditTransfer = {
         let dPCT = this;
         let gameAmount = 0, regGameAmount = 0;
         let rewardAmount = 0;
-        let providerAmount = 0;
         let playerCredit = 0;
         let rewardTaskAmount = 0;
         let rewardDataObj = null;
@@ -57,10 +56,9 @@ let dbPlayerCreditTransfer = {
         let validTransferAmount = 0, lockedTransferAmount = 0;
         let bTransfered = false;
         let transferId = new Date().getTime();
-        let changedLockCredit = 0;
-        let totalLockedAmount = 0;
         let transferAmount = 0;
         let gameCredit = 0;
+        let isFirstRegistrationReward = false;
 
         return dbConfig.collection_players.findOne({_id: playerObjId}).populate(
             {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
@@ -101,7 +99,6 @@ let dbPlayerCreditTransfer = {
                 // Player has enough credit
                 rewardData = taskData[0];
                 gameCredit = (taskData[1] && taskData[1].credit) ? parseFloat(taskData[1].credit) : 0;
-                let isFirstRegistrationReward = false;
 
                 //if amount is less than 0, means transfer all
                 validTransferAmount = amount > 0 ? amount : parseFloat(playerData.validCredit.toFixed(2));
@@ -313,16 +310,32 @@ let dbPlayerCreditTransfer = {
                         let updProm = [];
 
                         rewardData.forEach(reward => {
-                            updProm.push(dbRewardTask.updateRewardTask(
-                                {
-                                    _id: reward._id,
-                                    platformId: reward.platformId
-                                }, {
-                                    inProvider: reward.inProvider,
-                                    _inputCredit: reward._inputCredit,
-                                    currentAmount: reward.currentAmount
+                            if (isFirstRegistrationReward) {
+                                if (reward.requiredBonusAmount > 0) {
+                                    updProm.push(dbRewardTask.updateRewardTask(
+                                        {
+                                            _id: reward._id,
+                                            platformId: reward.platformId
+                                        }, {
+                                            inProvider: reward.inProvider,
+                                            _inputCredit: reward._inputCredit,
+                                            currentAmount: reward.currentAmount
+                                        }
+                                    ))
                                 }
-                            ))
+                            }
+                            else {
+                                updProm.push(dbRewardTask.updateRewardTask(
+                                    {
+                                        _id: reward._id,
+                                        platformId: reward.platformId
+                                    }, {
+                                        inProvider: reward.inProvider,
+                                        _inputCredit: reward._inputCredit,
+                                        currentAmount: reward.currentAmount
+                                    }
+                                ))
+                            }
                         });
 
                         return Promise.all(updProm);
@@ -340,11 +353,7 @@ let dbPlayerCreditTransfer = {
                             console.error(err);
                             if (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) {
                             } else {
-                                return dbConfig.collection_players.findOneAndUpdate(
-                                    {_id: playerObjId, platform: playerData.platform},
-                                    {$inc: {validCredit: validTransferAmount}, lockedAmount: lockedTransferAmount},
-                                    {new: true}
-                                );
+                                return playerCreditChange(playerObjId, playerData.platform, validTransferAmount, lockedTransferAmount);
                             }
                         }
                     }
@@ -383,14 +392,7 @@ let dbPlayerCreditTransfer = {
                 else {
                     return Q.reject({name: "DataError", message: "Error transfer player credit to provider."});
                 }
-            },
-            err => playerCreditChange(playerObjId, playerData.platform, validTransferAmount, lockedTransferAmount).then(
-                () => Q.reject({
-                    status: constServerCode.FAILED_UPDATE_REWARD_TASK,
-                    name: "DBError",
-                    errorMessage: "Failed when updating reward task during transfer in"
-                })
-            )
+            }
         );//.catch( error => console.log("transfer error:", error));
     },
 
@@ -758,7 +760,7 @@ let dbPlayerCreditTransfer = {
 };
 
 /**
- *
+ * TODO should we put a general log here to log all the credit change action performed?
  * @param playerObjId
  * @param platformObjId
  * @param incValidCredit
@@ -775,7 +777,7 @@ function playerCreditChange(playerObjId, platformObjId, incValidCredit, incLocke
         updateObj.lastPlayedProvider = lastPlayedProviderObjId;
     }
 
-    return dbOperations.findOneAndUpdateWithRetry(
+    return dbOps.findOneAndUpdateWithRetry(
         dbConfig.collection_players,
         {_id: playerObjId, platform: platformObjId},
         updateObj,

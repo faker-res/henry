@@ -154,7 +154,8 @@
                 "getWechatTopupRequestList",
                 "requestWechatTopup",
                 "cancelWechatTopup",
-                "getPlayerWechatPayStatus"
+                "getPlayerWechatPayStatus",
+                "getAlipaySingleLimit"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

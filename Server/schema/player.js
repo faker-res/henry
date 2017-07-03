@@ -213,7 +213,9 @@ var playerSchema = new Schema({
     //if this player is from online registration
     isOnline: {type: Boolean},
     //if player has applied consumption return
-    isConsumptionReturn: {type: Boolean}
+    isConsumptionReturn: {type: Boolean},
+    //is new system user
+    isNewSystem: {type: Boolean}
 });
 
 //record is unique by name and platform
@@ -321,6 +323,7 @@ playerSchema.post('find', function (result) {
         return result;
     }
 });
+
 playerSchema.post('findOne', function (result) {
     playerPostFindUpdate(result, true);
 });
