@@ -243,6 +243,9 @@
                     label.block {{"Player with Top-ups" | translate}}
                     label.block.text-danger {{vm.newPlayerQuery.totalTopupPlayerCount || 0}}
                 .col-md-3
+                    label.block {{"Player with Top-ups" | translate}}
+                    label.block.text-danger {{vm.newPlayerQuery.totalTopupMultipleTimesPlayerCount || 0}}
+                .col-md-3
                     label.block {{"Player with Domain" | translate}}
                     label.block.text-danger {{vm.newPlayerQuery.totalDomainPlayerCount || 0}}
                 .col-md-3
