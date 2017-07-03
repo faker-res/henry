@@ -3,7 +3,7 @@ const env = require("../config/env").config();
 const dbconfig = require("../modules/dbproperties");
 const rsaCrypto = require("../modules/rsaCrypto");
 
-dbconfig.collection_platform.findOne({name: "Yunyou"}).lean().then(
+dbconfig.collection_platform.findOne({name: "MsGreen"}).lean().then(
     platformData => {
         if (platformData) {
             const cursor = dbconfig.collection_players.find({platform: platformData._id}).cursor();
