@@ -12,7 +12,7 @@
                     .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalId')")
                         label {{"Proposal No" | translate}}
                         input.form-control(ng-model='vm.queryProposalId', ng-change='vm.queryProposalIdUpdate()')
-                    .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalType')")
+                    .inlineBlk.selectProposalTypeDiv(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalType')")
                         label {{'FILTER_PROPOSAL_TYPE' | translate}}
                         //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
                         //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
