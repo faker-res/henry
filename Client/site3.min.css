@@ -2519,7 +2519,9 @@ table.stronger-bottom, tr.stronger-bottom > td, td.stronger-bottom {
     width: initial;
     padding: 0 5px;
 }
-
+.selectProposalTypeDiv .ms-parent .ms-drop ul{
+    min-height:500px !important;
+}
 .ms-drop ul > li > label > input {
     margin-right: 5px;
 }
