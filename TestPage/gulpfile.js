@@ -24,12 +24,12 @@ gulp.task("cleanFolder_testAPI", function (cb) {
 gulp.task("clean", ["cleanFolder_services", "cleanFolder_testAPI"]);
 
 gulp.task("copyFolder_services", function () {
-    return gulp.src(["../Server/services/*", ])
+    return gulp.src(["../Server/services/**", ])
         .pipe(gulp.dest("./services"));
 });
 
 gulp.task("copyFolder_testAPI", function () {
-    return gulp.src(["../Server/testAPI/*", ])
+    return gulp.src(["../Server/testAPI/**", ])
         .pipe(gulp.dest("./testAPIl"));
 });
 
