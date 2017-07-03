@@ -3721,6 +3721,7 @@ define(['js/app'], function (myApp) {
         //Create new player
         vm.createNewPlayer = function () {
             vm.newPlayer.platform = vm.selectedPlatform.id;
+            vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
             console.log('newPlayer',vm.newPlayer);
             if (vm.newPlayer.createPartner) {
                 socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
