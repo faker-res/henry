@@ -4,6 +4,7 @@
 const constProposalStatus = {
     PREPENDING: "PrePending",
     PENDING: "Pending",
+    AUTOAUDIT: "AutoAudit",
     PROCESSING: "Processing",
     APPROVED: "Approved",
     REJECTED: "Rejected",

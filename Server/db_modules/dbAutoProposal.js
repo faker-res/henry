@@ -45,7 +45,7 @@ let dbAutoProposal = {
                     // CS TEST - Include pending proposal as well
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
-                        status: {$in: [constProposalStatus.PROCESSING, constProposalStatus.PENDING]},
+                        status: constProposalStatus.AUTOAUDIT,//{$in: [constProposalStatus.AUTOAUDIT, constProposalStatus.PENDING]},
                         $or: [{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: new Date()}}]
                     }).cursor({batchSize: 10000});
 
@@ -285,7 +285,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                 bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
                             }
 
-                            if (validConsumptionAmount != 0) {
+                            //if (validConsumptionAmount != 0) {
                                 // Check consumption for each cycle
                                 // User lost all bonus amount
                                 if (initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
@@ -303,19 +303,19 @@ function checkProposalConsumption(proposal, platformObj) {
                                     isApprove = true;
                                     isClearCycle = true;
                                 }
-                            }
-                            else {
-                                // No consumption at this cycle, not approved
-                                isApprove = false;
-                                checkMsg += "No consumption for proposal " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
-                            }
+                            // }
+                            // else {
+                            //     // No consumption at this cycle, not approved
+                            //     isApprove = false;
+                            //     checkMsg += "No consumption for proposal " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                            // }
                         }
 
                         // Final check on consumption sum
                         // Check consumption for each cycle
                         if ((validConsumptionAmount + lostThreshold) < spendingAmount || validConsumptionAmount == 0) {
                             isApprove = false;
-                            repeatMsg = "Insufficient overall consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
+                            repeatMsg = "Insufficient overall consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
                         }
 
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
@@ -328,8 +328,7 @@ function checkProposalConsumption(proposal, platformObj) {
                             // Proposal approved - DISABLED FOR CSTEST
                             // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
-                            sendToAudit(proposal._id, proposal.createTime, approveRemark, checkMsg);
-
+                            sendToApprove(proposal._id, proposal.createTime, approveRemark, checkMsg);
                         }
                         else {
                             // Proposal not approved; Throw back to loop pool or deny this proposal
@@ -590,6 +589,35 @@ function checkProposalConsumption(proposal, platformObj) {
 
 }
 
+function sendToApprove(proposalObjId, createTime, remark, processRemark) {
+    processRemark = processRemark ? processRemark : "";
+
+    dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
+        path: "type",
+        model: dbconfig.collection_proposalType
+    }).lean().then(
+        proposalData => {
+            if (proposalData) {
+                return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, true, proposalData, true).then(
+                    res => {
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {
+                                noSteps: true,
+                                process: null,
+                                status: constProposalStatus.APPROVED,
+                                'data.remark': 'Auto Approval Approved: ' + remark,
+                                'data.autoAuditCheckMsg': processRemark
+                            },
+                            {new: true}
+                        );
+                    }
+                );
+            }
+        }
+    );
+}
+
 function sendToAudit(proposalObjId, createTime, remark, processRemark) {
     // temporary disabled system log since success will also send to audit
     // console.log('Sending to audit', proposalObjId, remark);
@@ -603,31 +631,32 @@ function sendToAudit(proposalObjId, createTime, remark, processRemark) {
     }).lean().then(
         proposalData => {
             if (proposalData) {
-                // if (!proposalData.noSteps) {
-                dbconfig.collection_proposal.findOneAndUpdate({
-                    _id: proposalObjId,
-                    createTime: createTime
-                }, {
-                    //status: constProposalStatus.PENDING,
-                    'data.autoAuditRemark': 'Auto Approval ' + remark,
-                    'data.autoAuditCheckMsg': processRemark
-                }).then();
-                // }
-                // else {
-                //     return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
-                //         res => {
-                //             return dbconfig.collection_proposal.findOneAndUpdate(
-                //                 {_id: proposalData._id, createTime: proposalData.createTime},
-                //                 {
-                //                     noSteps: true,
-                //                     process: null,
-                //                     status: constProposalStatus.FAIL,
-                //                     'data.remark': 'Auto Approval Denied: ' + remark
-                //                 },
-                //                 {new: true}
-                //             );
-                //         })
-                // }
+                if (!proposalData.noSteps) {
+                    dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObjId,
+                        createTime: createTime
+                    }, {
+                        status: constProposalStatus.PENDING,
+                        'data.autoAuditRemark': 'Auto Approval ' + remark,
+                        'data.autoAuditCheckMsg': processRemark
+                    }).then();
+                }
+                else {
+                    return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
+                        res => {
+                            return dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: proposalData._id, createTime: proposalData.createTime},
+                                {
+                                    noSteps: true,
+                                    process: null,
+                                    status: constProposalStatus.FAIL,
+                                    'data.remark': 'Auto Approval Denied: ' + remark,
+                                    'data.autoAuditCheckMsg': processRemark
+                                },
+                                {new: true}
+                            );
+                        })
+                }
             }
         }
     );

@@ -39,7 +39,8 @@ define(['js/app'], function (myApp) {
             FAIL: "Fail",
             CANCEL: "Cancel",
             EXPIRED: "Expired",
-            UNDETERMINED: "Undetermined"
+            UNDETERMINED: "Undetermined",
+            AUTOAUDIT: "AutoAudit"
         };
         vm.depositMethodList = {
             Online: 1,
