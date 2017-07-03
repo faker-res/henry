@@ -90,7 +90,7 @@ var dbPlayerFeedback = {
             data => {
                 data.map(item => {
                     playerArr.push(item._id);
-                })
+                });
                 return dbconfig.collection_admin.find({adminName: {$regex: ".*" + admin + ".*"}});
             }
         ).then(
@@ -108,7 +108,11 @@ var dbPlayerFeedback = {
                 } else if (adminArr.length == 0 && admin) {
                     return [];
                 }
-                console.log("query", query);
+
+                if (query && query.platform && typeof query.platform === "string") {
+                    query.platform = new mongoose.mongo.ObjectId(query.platform);
+                }
+
                 var a = dbconfig.collection_playerFeedback
                     .find(query)
                     .populate({path: "playerId", model: dbconfig.collection_players})
