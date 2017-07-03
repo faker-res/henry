@@ -529,7 +529,9 @@ const dbPlayerCreditTransfer = {
                                     // if the reward is the last one AND totalAmountLeftToTransfer left is more than _inputCredit
                                     if (isOldestReward && totalAmountLeftToTransfer > rewardTask._inputCredit) {
                                         // add the rest to currentAmount (when win money, add to reward first)
-                                        rewardTask.currentAmount += totalAmountLeftToTransfer - rewardTask._inputCredit;
+                                        let winningAmount = totalAmountLeftToTransfer - rewardTask._inputCredit;
+                                        relevantRewards[0].currentAmount += winningAmount;
+                                        lockedAmount += winningAmount;
 
                                         // the totalAmountLeftToTransfer will hold the valid credit value
                                         totalAmountLeftToTransfer = rewardTask._inputCredit;
