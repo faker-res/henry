@@ -2572,6 +2572,7 @@ let dbPlayerInfo = {
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
+        let advancedQuery = {};
         //todo encrytion ?
         if (data && data.phoneNumber) {
             data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};
@@ -2587,15 +2588,24 @@ let dbPlayerInfo = {
                 });
         }
 
-        // let tempEmail = data.email;
-        // delete data.email;
+        if(data.email){
+            let tempEmail = data.email;
+            delete data.email; 
+            advancedQuery = {
+                platform: platformId, 
+                $and: [
+                    data,
+                    {$or:[{email:tempEmail},{qq:tempEmail}]}
+                ]}
+        } else{
+            advancedQuery = {
+                platform: platformId, 
+                $and: [data]
+            }
+        }
 
         var a = dbconfig.collection_players
-            .find({
-                platform: platformId, $and: [
-                    data
-                ]
-            }, {similarPlayers: 0})
+            .find(advancedQuery, {similarPlayers: 0})
             .sort(sortObj).skip(index).limit(limit)
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "partner", model: dbconfig.collection_partner})
