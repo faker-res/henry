@@ -215,7 +215,20 @@ let dbPlayerReward = {
                 if (eventObj) {
                     eventData = eventObj;
                     //check if player is valid for reward
-                    return dbConfig.collection_playerTopUpRecord.findOne({createTime: playerObj.openEasterEgg}).lean();
+                    //find player's easter egg reward
+                    return dbConfig.collection_proposalType.findOne({
+                        name: constProposalType.PLAYER_EASTER_EGG_REWARD,
+                        platform: playerObj.platform
+                    }).lean().then(
+                        typeData => {
+                            if (typeData) {
+
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Cannot find "});
+                            }
+                        }
+                    );
                     //calculate reward amount
                 }
                 else {
@@ -236,13 +249,44 @@ let dbPlayerReward = {
     },
 
     getEasterEggPlayerInfo: (platformId) => {
-        return dbConfig.collection_platform.findOne({platformId: platformId}).then(
+        let platformObj = {};
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
-                return
-                [
-                    {username: "test1", amount: 1},
-                    {username: "test2", amount: 3}
-                ];
+                if (platformData) {
+                    platformObj = platformData;
+                    return dbConfig.collection_proposalType.findOne({
+                        name: constProposalType.PLAYER_EASTER_EGG_REWARD,
+                        platform: platformData._id
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            typeData => {
+                if (typeData) {
+                    return dbConfig.collection_proposal.find({
+                        platform: platformObj._id,
+                        type: typeData._id,
+                        status: constProposalStatus.APPROVED
+                    }).sort({createTime: -1}).limit(3).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find easter egg reward proposal type"});
+                }
+            }
+        ).then(
+            proposalDatas => {
+                let res = [];
+                if (proposalDatas && proposalDatas.length > 0) {
+                    proposalDatas.forEach(
+                        pData => {
+                            res.push({username: pData.data.playerName, amount: pData.data.rewardAmount});
+                        }
+                    );
+                }
+                return res;
             }
         );
     }
