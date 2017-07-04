@@ -164,7 +164,7 @@ describe("Test Client API - Player service", function () {
             playerId: testPlayerId,
             bankType: "testBank",
             bankAccount: "1234567890123456",
-            bankAccountName: "testPlayer",
+            // bankAccountName: "testPlayer",
             bankAccountType: "saving"
         };
         clientPlayerAPITest.updatePaymentInfo(function (data) {
