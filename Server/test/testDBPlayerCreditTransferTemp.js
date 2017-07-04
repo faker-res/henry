@@ -1,12 +1,5 @@
 "use strict";
 
-/*
- *  After the functions are moved from dbPlayerInfo to dbPlayerCreditTransfer,
- *  TODO :: change the function used to test the correct functions. #dbGameProvider.getPlayerCreditInProvider()
- * 
- *  TODO :: test if the game credit is correct
- */
-
 let should = require('should');
 // let dbConfig = require('../modules/dbproperties');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
@@ -56,7 +49,7 @@ Object.setPrototypeOf(mockedDbPlayerCreditTransfer, dbPlayerCreditTransfer);
 describe('Test player credit transfer', function () {
 
     // todo :: WIP
-    // return true;
+    return true;
 
     let testPlatformObj = null;
     let testGameProviderObj = null;
@@ -2423,7 +2416,7 @@ describe('Test player credit transfer', function () {
         });
 
         describe('with multiple non-applicable reward and valid credit', function () {
-            // TODO
+
             let testPlayerObj = null;
             let testRewardObj = null;
             let testRewardObj2 = null;
@@ -2574,7 +2567,7 @@ describe('Test player credit transfer', function () {
         describe('with multiple applicable reward and valid credit', function () {
 
             describe('when loss is less than valid credit', function () {
-                // TODO
+
                 let testPlayerObj = null;
                 let testRewardObj = null;
                 let testRewardObj2 = null;
@@ -2723,7 +2716,7 @@ describe('Test player credit transfer', function () {
             });
 
             describe('when loss is more than valid credit', function () {
-                // TODO
+
                 let testPlayerObj = null;
                 let testRewardObj = null;
                 let testRewardObj2 = null;
