@@ -47,6 +47,7 @@ var dbPlayerFeedback = {
     },
 
     getAllPlayerFeedbacks: function (query, admin, player, index, limit, sortCol) {
+        console.log("getAllPlayerFeedback db function has been reached");
         var adminArr = [];
         var playerArr = [];
         var returnedData = [];
@@ -88,6 +89,7 @@ var dbPlayerFeedback = {
 
         return dbconfig.collection_players.find({name: {$regex: ".*" + player + ".*"}}).then(
             data => {
+                console.log('getAllPlayerFeedback part 1 has been reached');
                 data.map(item => {
                     playerArr.push(item._id);
                 });
@@ -95,6 +97,7 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
+                console.log('getAllPlayerFeedback part 2 has been reached');
                 data.map(item => {
                     adminArr.push(item._id);
                 })

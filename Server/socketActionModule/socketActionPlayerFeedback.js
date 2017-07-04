@@ -31,6 +31,7 @@ function socketActionPlayerFeedback(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbacks, [data], actionName, isValidData);
         },
         getAllPlayerFeedbacks: function getAllPlayerFeedbacks(data) {
+            console.log("getAllPlayerFeedbacks socket action has been reached");
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query);
             socketUtil.emitter(self.socket, dbPlayerFeedback.getAllPlayerFeedbacks, [data.query, data.admin, data.player, data.index, data.limit, data.sortCol], actionName, isValidData);
