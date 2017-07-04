@@ -7910,6 +7910,9 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD:
                                     return dbPlayerReward.applyConsecutiveLoginReward(playerId, code, adminInfo);
                                     break;
+                                case constRewardType.PLAYER_EASTER_EGG_REWARD:
+                                    return dbPlayerReward.applyEasterEggReward(playerId, code, adminInfo);
+                                    break;
                                 default:
                                     return Q.reject({
                                         status: constServerCode.INVALID_DATA,
