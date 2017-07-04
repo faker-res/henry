@@ -8,7 +8,7 @@
  */
 
 let should = require('should');
-let dbConfig = require('../modules/dbproperties');
+// let dbConfig = require('../modules/dbproperties');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 let dbPlatform = require('../db_modules/dbPlatform');
@@ -3724,10 +3724,10 @@ describe('Test player credit transfer', function () {
         });
     });
 
-    describe.only('when there are rewards being unlocked', function () {
+    describe('when there are rewards being unlocked', function () {
 
         describe('before transfer out happen', function () {
-            // TODO
+
             let testPlayerObj = null;
             let testRewardObj = null;
             let testRewardObj2 = null;
@@ -3810,12 +3810,8 @@ describe('Test player credit transfer', function () {
                         if (data) {
                             // to simulate win of 200 credit
                             thePlayerCredit[testPlayerObj.name] += 200;
-                            // done();
-                            return dbRewardTask.findOneAndUpdateWithRetry(
-                                dbConfig.collection_rewardTask,
-                                {_id: testRewardObj._id, platformId: testRewardObj.platformId},
-                                {status: constRewardTaskStatus.COMPLETED}
-                            );
+
+                            return dbRewardTask.getRewardTask({_id: testRewardObj._id});
                         } else {
                             done(new Error("transferPlayerCreditToProviderbyPlayerObjId return falsey value"));
                         }
@@ -3826,11 +3822,16 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        if (data) {
-                            done();
-                        } else {
-                            done(new Error("update reward task return falsey value"))
-                        }
+                        testRewardObj = data;
+                        return dbRewardTask.completeRewardTask(testRewardObj);
+                    },
+                    function (error) {
+                        console.error(error);
+                        throw(error);
+                    }
+                ).then(
+                    function () {
+                        done();
                     },
                     function (error) {
                         done(error);
@@ -3842,7 +3843,6 @@ describe('Test player credit transfer', function () {
                 )
             });
 
-            // todo :: need to FIX this issue ASAP
             it('should still keep the winning credit as lockedAmount if there are other reward lefts', function (done) {
 
                 mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 800, testPlayerObj.playedId, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
@@ -3861,7 +3861,6 @@ describe('Test player credit transfer', function () {
                         data.validCredit.should.be.equal(400);
                         data.lockedCredit.should.be.equal(400);
 
-                        // let prom1 = dbRewardTask.getRewardTask({_id: testRewardObj._id});
                         let prom2 = dbRewardTask.getRewardTask({_id: testRewardObj2._id});
                         let prom3 = dbRewardTask.getRewardTask({_id: testRewardObj3._id});
 
@@ -3872,7 +3871,7 @@ describe('Test player credit transfer', function () {
                     }
                 ).then(
                     function (data) {
-                        if(data && data[0] && data[1] && data[2]) {
+                        if(data && data[0] && data[1]) {
                             let reward2 = data[0];
                             let reward3 = data[1];
 
@@ -3891,14 +3890,209 @@ describe('Test player credit transfer', function () {
                     function (error) {
                         done(error);
                     }
-                )
+                );
             });
         });
 
-        describe.skip('after transfer out happen', function () {
-            // TODO
-            it('should still keep the winning credit as lockedAmount if there are other reward lefts', function (done) {
+        describe('after transfer out happen', function () {
 
+            let testPlayerObj = null;
+            let testRewardObj = null;
+            let testRewardObj2 = null;
+            let testRewardObj3 = null;
+
+            before(function (done) {
+                // create a test player credit
+                createCustomTestPlayer(testPlatformObj._id, {lockedCredit: 300}).then(
+                    function (data) {
+                        testPlayerObj = data;
+                        testPlayers.push(testPlayerObj._id);
+
+                        // create a test reward task
+                        let rewardTaskData = {
+                            playerId: testPlayerObj._id,
+                            platformId: testPlatformObj._id,
+                            targetProviders: [testGameProviderObj._id],
+                            type: "testTask",
+                            rewardType: "testTask",
+                            requiredUnlockAmount: 200,
+                            initAmount: 100,
+                            currentAmount: 100
+                        };
+
+                        return dbRewardTask.createRewardTask(rewardTaskData);
+                    },
+                    function (error) {
+                        console.error(error);
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        testRewardObj = data;
+                        let rewardTaskData2 = {
+                            playerId: testPlayerObj._id,
+                            platformId: testPlatformObj._id,
+                            targetProviders: [testGameProviderObj._id],
+                            type: "testTask",
+                            rewardType: "testTask",
+                            requiredUnlockAmount: 200,
+                            initAmount: 100,
+                            currentAmount: 100
+                        };
+
+                        return dbRewardTask.createRewardTask(rewardTaskData2);
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        testRewardObj2 = data;
+                        let rewardTaskData3 = {
+                            playerId: testPlayerObj._id,
+                            platformId: testPlatformObj._id,
+                            targetProviders: [testGameProviderObj._id],
+                            type: "testTask",
+                            rewardType: "testTask",
+                            requiredUnlockAmount: 200,
+                            initAmount: 100,
+                            currentAmount: 100
+                        };
+
+                        return dbRewardTask.createRewardTask(rewardTaskData3);
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        testRewardObj3 = data;
+                        // transfer in
+                        return mockedDbPlayerCreditTransfer.playerCreditTransferToProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, -1, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name);
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        if (data) {
+                            // to simulate win of 200 credit
+                            thePlayerCredit[testPlayerObj.name] += 200;
+                            done();
+                        } else {
+                            done(new Error("transferPlayerCreditToProviderbyPlayerObjId return falsey value"));
+                        }
+                    },
+                    function (error) {
+                        console.error(error);
+                        done(error);
+                    }
+                );
+            });
+
+            it('should be able to transfer out correctly', function (done) {
+                mockedDbPlayerCreditTransfer.playerCreditTransferFromProvider(testPlayerObj._id, testPlatformObj._id, testGameProviderObj._id, 800, testPlayerObj.playedId, testGameProviderObj.providerId, testPlayerObj.name, testPlatformObj.platformId, null, testGameProviderObj.name).then(
+                    function (data) {
+                        thePlayerCredit[testPlayerObj.name].should.be.equal(0);
+                        data.providerCredit.should.be.equal("0.00");
+                        data.playerCredit.should.be.equal("300.00");
+                        data.rewardCredit.should.be.equal("500.00");
+                        return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        data.validCredit.should.be.equal(300);
+                        data.lockedCredit.should.be.equal(500);
+
+                        let prom1 = dbRewardTask.getRewardTask({_id: testRewardObj._id});
+                        let prom2 = dbRewardTask.getRewardTask({_id: testRewardObj2._id});
+                        let prom3 = dbRewardTask.getRewardTask({_id: testRewardObj3._id});
+
+                        return Promise.all([prom1, prom2, prom3]);
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        if(data && data[0] && data[1] && data[2]) {
+                            let reward1 = data[0];
+                            let reward2 = data[1];
+                            let reward3 = data[2];
+
+                            reward1.currentAmount.should.be.equal(100);
+                            reward2.currentAmount.should.be.equal(100);
+                            reward3.currentAmount.should.be.equal(300);
+
+                            done();
+                        } else {
+                            throw(new Error("The data received from reward task is incomplete."));
+                        }
+                    },
+                    function (error) {
+                        done(error);
+                    }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                )
+            });
+
+            it('should be able to unlock properly', function (done) {
+                dbRewardTask.getRewardTask({_id: testRewardObj._id}).then(
+                    function (data) {
+                        testRewardObj = data;
+                        return dbRewardTask.completeRewardTask(testRewardObj)
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function () {
+                        return dbPlayerInfo.getPlayerInfo({_id: testPlayerObj._id});
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        data.validCredit.should.be.equal(400);
+                        data.lockedCredit.should.be.equal(400);
+
+                        let prom2 = dbRewardTask.getRewardTask({_id: testRewardObj2._id});
+                        let prom3 = dbRewardTask.getRewardTask({_id: testRewardObj3._id});
+
+                        return Promise.all([prom2, prom3]);
+                    },
+                    function (error) {
+                        throw(error);
+                    }
+                ).then(
+                    function (data) {
+                        if(data && data[0] && data[1]) {
+                            let reward2 = data[0];
+                            let reward3 = data[1];
+
+                            reward2.currentAmount.should.be.equal(100);
+                            reward3.currentAmount.should.be.equal(300);
+
+                            done();
+                        } else {
+                            throw(new Error("The data received from reward task is incomplete."));
+                        }
+                    },
+                    function (error) {
+                        done(error);
+                    }
+                ).catch(
+                    function (error) {
+                        done(error);
+                    }
+                );
             });
         });
     });
