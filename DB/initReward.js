@@ -424,9 +424,15 @@ db.rewardParam.insert({
     "name": type19, params: {
         targetEnable: {type: "Boolean", des: "If target is enabled"},
         providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
-        minRewardAmount: {type: "Number", des: "Min reward amount"},
-        maxRewardAmount: {type: "Number", des: "Max reward amount"},
         minTopUpAmount: {type: "Number", des: "Day Index"},
+        reward: {
+            type: "Table",
+            data: {
+                rewardAmount: {type: "Number", des: "Reward amount"},
+                probability: {type: "Number", des: "Consumption Times"}
+            },
+            des: "Reward parameter"
+        }
     }
 });
 
