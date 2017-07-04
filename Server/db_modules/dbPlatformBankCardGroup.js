@@ -241,6 +241,16 @@ var dbPlatformBankCardGroup = {
         );
     },
 
+    addAllPlayersToBankCardGroup: function (bankCardGroupObjId, platformObjId) {
+        return dbconfig.collection_players.update({platform: platformObjId}, {bankCardGroup: bankCardGroupObjId}, {multi: true}).then(data => {
+            if (data && data.ok) {
+                return {platform: platformObjId, bankCardGroup: bankCardGroupObjId, nModified: data.nModified, n: data.n}
+            } else {
+                return {platform: platformObjId, bankCardGroup: bankCardGroupObjId, error: data};
+            }
+        });
+    },
+
     deleteBankcard: function (accountNumber) {
         return dbconfig.collection_platformBankCardGroup.update(
             {},

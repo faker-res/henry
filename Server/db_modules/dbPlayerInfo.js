@@ -95,6 +95,9 @@ let dbPlayerInfo = {
                         platformObj = platformData;
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
+                        if (platformData.onlyNewCanLogin) {
+                            inputData.isNewSystem = true;
+                        }
                         let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             name: inputData.name,
                             platform: platformData._id
@@ -1225,7 +1228,14 @@ let dbPlayerInfo = {
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
-
+                    //check if bankAccountName in update data is the same as player's real name
+                    if (updateData.bankAccountName && updateData.bankAccountName != playerData.realName) {
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Bank account name is different from real name"
+                        });
+                    }
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     })
@@ -1235,7 +1245,7 @@ let dbPlayerInfo = {
                         name: "DataError",
                         code: constServerCode.DOCUMENT_NOT_FOUND,
                         message: "Unable to find player"
-                    })
+                    });
                 }
             }
         ).then(
@@ -1560,9 +1570,23 @@ let dbPlayerInfo = {
         queryObject.operationTime = {$gte: time0, $lt: time1};
         var a = dbconfig.collection_creditChangeLog.find(queryObject).count();
         var b = dbconfig.collection_creditChangeLog.find(queryObject).sort(sortCol).skip(index).limit(limit);
-        return Q.all([a, b]).then(data => {
-            return {total: data[0], data: data[1]};
-        })
+        var c = dbconfig.collection_proposal.find({
+            "data.playerObjId": ObjectId(query.playerId),
+            createTime: {$gte: new Date(startTime)}
+        }).lean();
+        return Q.all([a, b, c]).then(
+            data => {
+                data[1].forEach(
+                    (result) => {
+                        if (result && result.data && !result.data.proposalId) {
+                            let temp = data[2].filter((proposal) => {
+                                return proposal.data.requestId === result.data.requestId;
+                            });
+                            result.data.proposalId = temp[0] ? temp[0].proposalId : "";
+                        }
+                    });
+                return {total: data[0], data: data[1]};
+            })
     },
 
     /*
@@ -2548,6 +2572,7 @@ let dbPlayerInfo = {
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
+        let advancedQuery = {};
         //todo encrytion ?
         if (data && data.phoneNumber) {
             data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};
@@ -2563,8 +2588,24 @@ let dbPlayerInfo = {
                 });
         }
 
+        if(data.email){
+            let tempEmail = data.email;
+            delete data.email; 
+            advancedQuery = {
+                platform: platformId, 
+                $and: [
+                    data,
+                    {$or:[{email:tempEmail},{qq:tempEmail}]}
+                ]}
+        } else{
+            advancedQuery = {
+                platform: platformId, 
+                $and: [data]
+            }
+        }
+
         var a = dbconfig.collection_players
-            .find({platform: platformId, $and: [data]}, {similarPlayers: 0})
+            .find(advancedQuery, {similarPlayers: 0})
             .sort(sortObj).skip(index).limit(limit)
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "partner", model: dbconfig.collection_partner})
@@ -2658,17 +2699,21 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent) {
-        var deferred = Q.defer();
-        var db_password = null;
-        var newAgentArray = [];
-        var platformId = null;
-        var uaObj = null;
-        var playerObj = null;
-        var retObj = {};
-        var platformPrefix = "";
+        let deferred = Q.defer();
+        let db_password = null;
+        let newAgentArray = [];
+        let platformId = null;
+        let uaObj = null;
+        let playerObj = null;
+        let retObj = {};
+        let platformPrefix = "";
+        let requireLogInCaptcha = null;
+        let platformObj = {};
         dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
                 if (platformData) {
+                    platformObj = platformData;
+                    requireLogInCaptcha = platformData.requireLogInCaptcha || false;
                     platformId = platformData._id;
                     platformPrefix = platformData.prefix;
                     playerData.prefixName = platformData.prefix + playerData.name;
@@ -2698,6 +2743,14 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
+                    if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Only new system user can login",
+                            code: constServerCode.INVALID_DATA
+                        });
+                        return;
+                    }
                     db_password = String(data.password); // hashedPassword from db
                     if (dbUtility.isMd5(db_password)) {
                         if (md5(playerData.password) == db_password) {
@@ -2842,6 +2895,7 @@ let dbPlayerInfo = {
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
                                             retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                                            retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
                                             deferred.resolve(retObj);
                                         },
                                         errorZone => {
@@ -3950,13 +4004,13 @@ let dbPlayerInfo = {
                                 rewardTaskCredit = rewardTask.currentAmount;
                             }
                             else {
-                                diffAmount = providerPlayerObj.gameCredit - rewardTask._inputCredit;
+                                diffAmount = Math.floor(providerPlayerObj.gameCredit) - rewardTask._inputCredit;
                                 if (diffAmount > 0) {
                                     rewardTask.currentAmount += diffAmount;
                                     validCreditToAdd = rewardTask._inputCredit;
                                     rewardTask.inProvider = false;
                                 } else {
-                                    validCreditToAdd = providerPlayerObj.gameCredit;
+                                    validCreditToAdd = Math.floor(providerPlayerObj.gameCredit);
                                     rewardTask.inProvider = false;
                                     rewardTask.currentAmount = 0;
                                     //rewardTask.status = constRewardTaskStatus.NO_CREDIT;
@@ -5138,6 +5192,17 @@ let dbPlayerInfo = {
             registrationTime: timeQuery
         };
         var d = dbconfig.collection_players.find(topupQuery).count();
+
+        let topUpMultipleTimesQuery = {
+            platform: platform,
+            isRealPlayer: true,
+            isTestPlayer: false,
+            topUpTimes: {$gt: 1},
+            topUpSum: {$gt: 0},
+            registrationTime: timeQuery
+        }
+
+        let e = dbconfig.collection_players.find(topUpMultipleTimesQuery).count();
         // var d = dbconfig.collection_players.find(query, {_id: 1}).lean().then(
         //     players => {
         //         if (players && players.length > 0) {
@@ -5172,7 +5237,7 @@ let dbPlayerInfo = {
         //     }
         // );
 
-        return Q.all([a, b, c, d]).then(
+        return Q.all([a, b, c, d,e]).then(
             data => {
                 retData = data;
                 var prop = [];
@@ -7844,6 +7909,9 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD:
                                     return dbPlayerReward.applyConsecutiveLoginReward(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_EASTER_EGG_REWARD:
+                                    return dbPlayerReward.applyEasterEggReward(playerId, code, adminInfo);
                                     break;
                                 default:
                                     return Q.reject({

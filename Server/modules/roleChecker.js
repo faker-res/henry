@@ -370,27 +370,33 @@ var roleChecker = {
                 Read: ['getPlatformBankCardGroup', 'getIncludedBankCardByBankCardGroup', 'getExcludedBankCardByBankCardGroup'],
                 Create: ['addPlatformBankCardGroup', 'addPlayersToBankCardGroup'],
                 Update: ['updatePlatformBankCardGroup', 'setPlatformDefaultBankCardGroup', 'syncBankCardGroupData'],
-                Delete: ['deleteBankCardGroup']
+                Delete: ['deleteBankCardGroup'],
+                AddPlayer: ['addPlayersToBankCardGroup'],
+                AddAllPlayer: ['addAllPlayersToBankCardGroup']
             },
             "MerchantGroup": {
                 Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup'],
                 Create: ['addPlatformMerchantGroup', 'addPlayersToMerchantGroup'],
                 Update: ['renamePlatformMerchantGroup', 'updatePlatformMerchantGroup', 'setPlatformDefaultMerchantGroup'],
-                Delete: ['deleteMerchantGroup']
+                Delete: ['deleteMerchantGroup'],
+                AddPlayer: ['addPlayersToMerchantGroup'],
+                AddAllPlayer: ['addAllPlayersToMerchantGroup']
             },
             "AlipayGroup": {
                 Read: ['getPlatformWechatPayGroup'],
                 Create: ['addPlatformAlipayGroup'],
                 Update: ['renamePlatformAlipayGroup', 'setPlatformDefaultAlipayGroup', 'getPlayerForAttachGroup', 'addPlayersToAlipayGroup'],
-                Delete: ["deleteAlipayGroup"]
+                Delete: ["deleteAlipayGroup"],
+                AddPlayer: ['addPlayersToAlipayGroup'],
+                AddAllPlayer: ['addAllPlayersToAlipayGroup']
             },
             "WechatPayGroup": {
                 Read: ['getPlatformWechatPayGroup'],
                 Create: ['addPlatformWechatPayGroup'],
                 Update: ['renamePlatformWechatPayGroup', 'setPlatformDefaultWechatPayGroup', 'addPlayersToWechatPayGroup'],
                 Delete: ["deleteWechatPayGroup"],
-                AddPlayer: [],
-                AddAllPlayer: []
+                AddPlayer: ['addPlayersToWechatPayGroup'],
+                AddAllPlayer: ['addAllPlayersToWechatPayGroup']
             }
         },
         Provider: {

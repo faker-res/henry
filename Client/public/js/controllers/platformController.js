@@ -267,12 +267,15 @@ define(['js/app'], function (myApp) {
             vm.showDailySettlement = nowDate != dailyDate;
             vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
             vm.platformSettlement = {};
-            vm.partnerSearch = {limit:10, index:0};
+            vm.advancedPartnerQueryObj = {limit:10, index:0};
 
             //load partner
             utilService.actionAfterLoaded("#partnerTablePage", function () {
-                vm.partnerSearch.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize:10}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "partnerSearch", vm.getPlatformPartnersData( curP ,pageSize))
+                vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize:10}, $translate, function (curP, pageSize) {
+                    var index = (curP - 1) * pageSize;
+                    vm.advancedPartnerQueryObj.index = index;
+                    vm.advancedPartnerQueryObj.limit = pageSize;
+                    vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData())
                 });
             })
 
@@ -2132,6 +2135,15 @@ define(['js/app'], function (myApp) {
             table.clear();
             if (data) {
                 data.forEach(function (rowData) {
+                    if(rowData.credits){
+                        rowData.credits = rowData.credits.toFixed(2);
+                    }
+                    if (rowData.registrationTime) {
+                        rowData.registrationTime = utilService.getFormatTime(rowData.registrationTime);
+                    }
+                    if (rowData.lastAccessTime) {
+                        rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
+                    }
                     table.row.add(rowData);
                 });
             }
@@ -3709,6 +3721,7 @@ define(['js/app'], function (myApp) {
         //Create new player
         vm.createNewPlayer = function () {
             vm.newPlayer.platform = vm.selectedPlatform.id;
+            vm.newPlayer.platformId = vm.selectedPlatform.data.platformId;
             console.log('newPlayer',vm.newPlayer);
             if (vm.newPlayer.createPartner) {
                 socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
@@ -6836,29 +6849,25 @@ define(['js/app'], function (myApp) {
         };
 
         //get all platform partners data from server
-        vm.getPlatformPartnersData = function (curP, limit) {
+        vm.getPlatformPartnersData = function () {
             if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
                 return;
             }
             $('#partnerRefreshIcon').addClass('fa-spin');
-            
-            if(curP && limit){
-                var index = (curP - 1) * limit;
-                vm.partnerSearch.index = index;
-                vm.partnerSearch.limit = limit;
-            }
 
-            vm.partnerSearch = vm.partnerSearch || {
+            vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {
                 "platformId": vm.selectedPlatform.id,
                 "index": 0,
-                "limit": 10
+                "limit": 10,
+
             }
 
             var sendData ={
                 "platform":{
                     "platformId":vm.selectedPlatform.id,
-                    "index":vm.partnerSearch.index,
-                    "limit":vm.partnerSearch.limit
+                    "index":vm.advancedPartnerQueryObj.index,
+                    "limit":vm.advancedPartnerQueryObj.limit,
+                    "sortCol":vm.advancedPartnerQueryObj.sortCol
                 }
             }
 
@@ -6890,7 +6899,7 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        var getPartnersByAdvancedQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
+        vm.getPartnersByAdvancedQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
 
             utilService.hideAllPopoversExcept();
             vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
@@ -7469,9 +7478,9 @@ define(['js/app'], function (myApp) {
             createAdvancedSearchFilters({
                 tableOptions: tableOptions,
                 filtersElement: '#partnerTable-search-filters',
-                queryFunction: getPartnersByAdvancedQueryDebounced
+                queryFunction: vm.getPartnersByAdvancedQueryDebounced
             });
-            vm.partnerSearch.pageObj.init({maxCount: data.size});
+            vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size});
             $scope.safeApply();
         };
         vm.sendSMSToPartner = function () {
@@ -9166,6 +9175,8 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
             vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
+            vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
+            vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
             $scope.safeApply();
         }
 
@@ -9409,7 +9420,9 @@ define(['js/app'], function (myApp) {
                     canMultiReward: srcData.canMultiReward,
                     autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
-                    bonusCharges: srcData.bonusCharges
+                    bonusCharges: srcData.bonusCharges,
+                    requireLogInCaptcha: srcData.requireLogInCaptcha,
+                    onlyNewCanLogin: srcData.onlyNewCanLogin
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -10600,6 +10613,26 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     })
+
+
+                    $('#partnerDataTable').on('order.dt', function (event, a, b) {
+                        // console.log(event, a, b);
+                        if (!a.aaSorting[0]) return;
+                        var sortCol = a.aaSorting[0][0];
+                        var sortDire = a.aaSorting[0][1];
+                        var sortKey = a.aoColumns[sortCol].data
+                        vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
+                        if (sortKey) {
+                            vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {};
+                            var preVal = vm.advancedPartnerQueryObj.sortCol[sortKey];
+                            vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                            if (vm.advancedPartnerQueryObj.sortCol[sortKey] != preVal) {
+                                vm.advancedPartnerQueryObj.sortCol = {};
+                                vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                                vm.getPartnersByAdvancedQueryDebounced();
+                            }
+                        }
+                    });
 
 
                     Q.all([]).then(

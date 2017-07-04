@@ -668,6 +668,24 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         }
+
+        vm.submitAddAllPlayersToBankCardGroup = function () {
+            let sendData = {
+                bankCardGroupObjId: vm.SelectedBankCardGroupNode._id,
+                platformObjId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'addAllPlayersToBankCardGroup', sendData, function (data) {
+                if (data.data) {
+                    if (data.data.bankCardGroup == vm.SelectedBankCardGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
+                        vm.addAllPlayerToBankCardResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
+                    } else {
+                        vm.addAllPlayerToBankCardResult = JSON.stringify(data.data.error);
+                    }
+                    $scope.safeApply();
+                }
+            });
+        }
+
         vm.getPlatformPlayersData = function () {
             socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: vm.selectedPlatform.id}, function (playerCount) {
                 console.log('playerCount', playerCount);
@@ -737,7 +755,10 @@ define(['js/app'], function (myApp) {
 
                         } else if (vm.filterMerchantAcc && v.merchantNo.indexOf(vm.filterMerchantAcc) == -1) {
 
-                        } else {
+                        } else if (vm.filterMerchantTargetDevices && (vm.filterMerchantTargetDevices != 'all') && (vm.filterMerchantTargetDevices != v.targetDevices)) {
+
+                        }
+                        else {
                             vm.includedMerchants.push(v);
                         }
                     });
@@ -871,6 +892,23 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'addPlayersToMerchantGroup', sendData, function (data) {
                 // vm.getPlatformPlayersData();
                 $scope.safeApply();
+            });
+        }
+
+        vm.submitAddAllPlayersToMerchantGroup = function () {
+            let sendData = {
+                bankMerchantGroupObjId: vm.SelectedMerchantGroupNode._id,
+                platformObjId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'addAllPlayersToMerchantGroup', sendData, function (data) {
+                if (data.data) {
+                    if (data.data.merchantGroup == vm.SelectedMerchantGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
+                        vm.addAllPlayerToMerchantResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
+                    } else {
+                        vm.addAllPlayerToMerchantResult = JSON.stringify(data.data.error);
+                    }
+                    $scope.safeApply();
+                }
             });
         }
 
@@ -1052,12 +1090,28 @@ define(['js/app'], function (myApp) {
                 playerArr.push(a._id);
             })
             var sendData = {
-                bankAlipayGroupObjId: vm.SelectedMerchantGroupNode._id,
+                bankAlipayGroupObjId: vm.SelectedAlipayGroupNode._id,
                 playerObjIds: playerArr
             }
             socketService.$socket($scope.AppSocket, 'addPlayersToAlipayGroup', sendData, function (data) {
                 // vm.getPlatformPlayersData();
                 $scope.safeApply();
+            });
+        }
+        vm.submitAddAllPlayersToAlipayGroup = function () {
+            let sendData = {
+                bankAlipayGroupObjId: vm.SelectedAlipayGroupNode._id,
+                platformObjId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'addAllPlayersToAlipayGroup', sendData, function (data) {
+                if (data.data) {
+                    if (data.data.alipayGroup == vm.SelectedAlipayGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
+                        vm.addAllPlayerToAlipayResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
+                    } else {
+                        vm.addAllPlayerToAlipayResult = JSON.stringify(data.data.error);
+                    }
+                    $scope.safeApply();
+                }
             });
         }
 

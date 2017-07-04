@@ -543,7 +543,8 @@ let dbPlayerCreditTransfer = {
                                         // add the rest to currentAmount (when win money, add to reward first)
                                         let winningAmount = totalAmountLeftToTransfer - rewardTask._inputCredit;
                                         relevantRewards[0].currentAmount += winningAmount;
-                                        if(relevantRewards.length !== 1) {
+
+                                        if (relevantRewards.length !== 1) {
                                             lockedAmount += winningAmount;
                                         }
 

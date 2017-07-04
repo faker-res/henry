@@ -55,7 +55,7 @@ var dbPlayerFeedback = {
         const endTime = query.endTime ? new Date(query.endTime) : new Date();
         index = index || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
-        sortCol = sortCol || {}
+        sortCol = sortCol || {};
 
         function getTopupCoountWithinPeriod(feedback) {
             return dbconfig.collection_playerTopUpRecord.aggregate([
@@ -73,13 +73,15 @@ var dbPlayerFeedback = {
                         amount: {$sum: "$amount"}
                     }
                 }
-            ]).then(res => {
-                return {topup: res, time: feedback.createTime}
-            })
+            ]).then(
+                res => {
+                    return {topup: res, time: feedback.createTime}
+                }
+            );
         }
 
         if (query.startTime && query.endTime) {
-            query.createTime = {$gte: query.startTime, $lt: query.endTime}
+            query.createTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
             delete  query.startTime;
             delete  query.endTime;
         }
@@ -88,8 +90,8 @@ var dbPlayerFeedback = {
             data => {
                 data.map(item => {
                     playerArr.push(item._id);
-                })
-                return dbconfig.collection_admin.find({adminName: {$regex: ".*" + admin + ".*"}})
+                });
+                return dbconfig.collection_admin.find({adminName: {$regex: ".*" + admin + ".*"}});
             }
         ).then(
             data => {
@@ -106,75 +108,76 @@ var dbPlayerFeedback = {
                 } else if (adminArr.length == 0 && admin) {
                     return [];
                 }
+
+                if (query && query.platform && typeof query.platform === "string") {
+                    query.platform = new mongoose.mongo.ObjectId(query.platform);
+                }
+
+                console.log('**query', query);
                 var a = dbconfig.collection_playerFeedback
                     .find(query)
                     .populate({path: "playerId", model: dbconfig.collection_players})
-                    .populate({path: "adminId", model: dbconfig.collection_admin}).lean()
+                    .populate({path: "adminId", model: dbconfig.collection_admin}).lean();
                 var b = dbconfig.collection_playerFeedback
                     .find(query).count();
-                return Q.all([a, b]);
+                // temp for debug
+                var c = dbconfig.collection_playerFeedback
+                    .find(query).lean();
+                return Q.all([a, b, c]);
             }
-        ).then(data => {
-            returnedData = Object.assign([], data[0]);
-            total = data[1];
-            var proms = [];
-            returnedData.forEach(
-                feedback => {
-                    if (feedback.result == constPlayerFeedbackResult.NORMAL) {
-                        proms.push(
-                            getTopupCoountWithinPeriod(feedback)
-                            // dbconfig.collection_playerTopUpRecord.aggregate([
-                            //     {
-                            //         $match: {
-                            //             playerId: feedback.playerId._id,
-                            //             platformId: feedback.platform,
-                            //             createTime: {$gte: feedback.createTime, $lt: endTime}
-                            //         }
-                            //     },
-                            //     {
-                            //         $group: {
-                            //             _id: "$playerId",
-                            //             topupTimes: {$sum: 1},
-                            //             amount: {$sum: "$amount"}
-                            //         }
-                            //     }
-                            // ])
-                        )
-                    } else {
-                        proms.push(Q.resolve({}));
+        ).then(
+            data => {
+                // todo :: remove the var c above and these 3 console.log after debug finished.
+                console.log('**playerFeedBackResult', data[0]);
+                console.log('**playerFeedBackCount', data[1]);
+                console.log('**debugQuery', data[2]);
+                returnedData = Object.assign([], data[0]);
+                total = data[1];
+                var proms = [];
+                returnedData.forEach(
+                    feedback => {
+                        if (feedback.result == constPlayerFeedbackResult.NORMAL) {
+                            proms.push(
+                                getTopupCoountWithinPeriod(feedback)
+                            )
+                        } else {
+                            proms.push(Q.resolve({}));
+                        }
                     }
-                }
-            );
-            return Q.all(proms);
-        }).then(data => {
-            var objPlayerToTopupTimes = {};
-            data.forEach(item => {
-                if (item && item.topup && item.topup[0]) {
-                    //use playerId and timestamp as the key
-                    objPlayerToTopupTimes[item.topup[0]._id + new Date(item.time).getTime()] = item.topup[0];
-                }
-            });
-            var key = Object.keys(sortCol)[0];
-            var val = sortCol[key];
+                );
+                return Q.all(proms);
+            }
+        ).then(
+            data => {
+                var objPlayerToTopupTimes = {};
+                data.forEach(item => {
+                    if (item && item.topup && item.topup[0]) {
+                        //use playerId and timestamp as the key
+                        objPlayerToTopupTimes[item.topup[0]._id + new Date(item.time).getTime()] = item.topup[0];
+                    }
+                });
+                var key = Object.keys(sortCol)[0];
+                var val = sortCol[key];
 
-            var finalData = returnedData.map(item => {
-                var newObj = Object.assign({}, item);
-                let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
-                newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
-                newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
-                return newObj;
-            }).sort((a, b) => {
-                var test = 0;
-                if (a[key] > b[key]) {
-                    test = 1
-                }
-                if (a[key] < b[key]) {
-                    test = -1
-                }
-                return test * val;
-            });
-            return {data: finalData.slice(index, index + limit), size: total};
-        })
+                var finalData = returnedData.map(item => {
+                    var newObj = Object.assign({}, item);
+                    let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
+                    newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
+                    newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
+                    return newObj;
+                }).sort((a, b) => {
+                    var test = 0;
+                    if (a[key] > b[key]) {
+                        test = 1
+                    }
+                    if (a[key] < b[key]) {
+                        test = -1
+                    }
+                    return test * val;
+                });
+                return {data: finalData.slice(index, index + limit), size: total};
+            }
+        );
     },
 
     getPlayerFeedbackReport: function (query, index, limit, sortCol) {

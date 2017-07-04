@@ -16,53 +16,58 @@ var dbPlayerRegistrationIntentRecord = {
      * create top up intent record
      * @param {Json} data
      */
-    createPlayerRegistrationIntentRecordAPI: function (data) {
-        var deferred = Q.defer();
+    createPlayerRegistrationIntentRecordAPI: function (data, status) {
         if (data && data.platformId) {
-            dbconfig.collection_platform.findOne({platformId: data.platformId}).then(
+            return dbconfig.collection_platform.findOne({platformId: data.platformId}).then(
                 function (plat) {
                     if (plat && plat._id) {
                         data.platformId = plat.platformId;
-                        data.platform=plat._id,
-                        deferred.resolve(dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data));
+                        data.platform = plat._id;
+                        return dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, status);
                     } else {
-                        deferred.reject({name: "DataError", message: "Platform does not exist"});
+                        return Q.reject({name: "DataError", message: "Platform does not exist"});
                     }
                 },
                 function (err) {
-                    deferred.reject({name: "DataError", message: "Error in getting platform ID", error: err});
+                    return Q.reject({name: "DataError", message: "Error in getting platform ID", error: err});
                 }
             );
         } else {
-            deferred.reject({name: "DataError", message: "Incomplete input data"});
+            return Q.reject({name: "DataError", message: "Incomplete input data"});
         }
-        return deferred.promise;
     },
-    createPlayerRegistrationIntentRecord: function (data) {
-        if(data){
-            data.operationList=['Add registration intention'];
-        }
+
+    createPlayerRegistrationIntentRecord: function (data, status) {
         let proposalData = {
             creator: data.adminInfo || {
                 type: 'player',
                 name: data.name,
                 id: data.playerId
-            },
-            playerId: data.playerId,
-            playerObjId: data._id,
-            playerName: data.name,
-            curAmount: data.validCredit,
-            realName: data.realName,
+            }
         };
         let newProposal = {
             creator: proposalData.creator,
-            data: proposalData,
+            data: data,
             entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
             userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
         };
-        dbProposal.createProposalWithTypeName(data.platform, constProposalType.PLAYER_REGISTRATION_INTENTION, newProposal);
+        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
         var newRecord = new dbconfig.collection_playerRegistrationIntentRecord(data);
         return newRecord.save();
+    },
+
+    createPlayerRegistrationIntentionProposal: (platform, data, status) => {
+        dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(
+            newProposal => {
+                if (newProposal) {
+                    dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: newProposal._id,
+                        createTime: newProposal.createTime
+                    }, {status: status}).then();
+                }
+            }
+        );
+
     },
 
     /**
@@ -71,9 +76,9 @@ var dbPlayerRegistrationIntentRecord = {
      * @param {string} updateData - The update data string
      */
     updatePlayerRegistrationIntentRecord: function (query, updateData) {
-        if( query && query._id && query.creatTime ){
+        if (query && query._id && query.creatTime) {
             return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(query, updateData, {new: true});
-        } else{
+        } else {
             return dbUtil.findOneAndUpdateForShard(
                 dbconfig.collection_playerRegistrationIntentRecord,
                 query, updateData,

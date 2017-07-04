@@ -236,16 +236,19 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchNewPlayerRecord(true)') {{'SEARCH' | translate}}
             .row.text-center
-                .col-md-3
+                .col-md-2
                     label.block {{"Total Players" | translate}}
                     label.block.text-danger {{vm.newPlayerQuery.totalPlayerCount || 0}}
-                .col-md-3
+                .col-md-2
                     label.block {{"Player with Top-ups" | translate}}
                     label.block.text-danger {{vm.newPlayerQuery.totalTopupPlayerCount || 0}}
-                .col-md-3
+                .col-md-2
+                    label.block {{"Player with Top-ups Multiple Times" | translate}}
+                    label.block.text-danger {{vm.newPlayerQuery.totalTopupMultipleTimesPlayerCount || 0}}
+                .col-md-2
                     label.block {{"Player with Domain" | translate}}
                     label.block.text-danger {{vm.newPlayerQuery.totalDomainPlayerCount || 0}}
-                .col-md-3
+                .col-md-2
                     label.block {{"Player with Partner" | translate}}
                     label.block.text-danger {{vm.newPlayerQuery.totalpartnerPlayerCount || 0}}
             br

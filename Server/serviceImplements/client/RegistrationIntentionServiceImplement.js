@@ -1,8 +1,9 @@
-var WebSocketUtil = require("./../../server_common/WebSocketUtil");
-var RegistrationIntentionService = require("./../../services/client/ClientServices").RegistrationIntentionService;
-var dbPlayerRegistrationIntentRecord = require('./../../db_modules/dbPlayerRegistrationIntentRecord');
-var constServerCode = require('./../../const/constServerCode');
-var constMessageClientTypes = require('./../../const/constMessageClientTypes');
+const WebSocketUtil = require("./../../server_common/WebSocketUtil");
+const RegistrationIntentionService = require("./../../services/client/ClientServices").RegistrationIntentionService;
+const dbPlayerRegistrationIntentRecord = require('./../../db_modules/dbPlayerRegistrationIntentRecord');
+const constServerCode = require('./../../const/constServerCode');
+const constMessageClientTypes = require('./../../const/constMessageClientTypes');
+const constProposalStatus = require('./../../const/constProposalStatus');
 
 var RegistrationIntentionServiceImplement = function () {
     RegistrationIntentionService.call(this);
@@ -10,7 +11,7 @@ var RegistrationIntentionServiceImplement = function () {
     //add api handler
     this.add.expectsData = 'name: String, mobile: String, platformId: String';
     this.add.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.name && data.mobile && data.hasOwnProperty("platformId"));
+        var isValidData = Boolean(data && data.name && data.hasOwnProperty("platformId") && data.realName);
         data.ipAddress = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -18,7 +19,7 @@ var RegistrationIntentionServiceImplement = function () {
         }
         WebSocketUtil.responsePromise(
             conn, wsFunc, data, dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI,
-            [data], isValidData, true, false, true
+            [data, constProposalStatus.PENDING], isValidData, true, false, true
         ).then(
             function (res) {
                 wsFunc.response(conn, {status: constServerCode.SUCCESS, data: res}, data);

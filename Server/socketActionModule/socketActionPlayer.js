@@ -58,7 +58,7 @@ function socketActionPlayer(socketIO, socket) {
                     data.phoneType = queryRes.type;
                 }
             }
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfo, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfoAPI, [data], actionName, isValidData);
         },
 
         /**

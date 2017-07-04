@@ -115,13 +115,13 @@ let dbPartner = {
 
         // Player name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        if (partnerdata.partnerName.length > 15 || !partnerdata.partnerName.match(alphaNumRegex)) {
+        if (partnerdata.partnerName.length > 20 || !partnerdata.partnerName.match(alphaNumRegex)) {
             // ignore for unit test
             if (env.mode !== "local" && env.mode !== "qa") {
                 return Q.reject({
                     status: constServerCode.PARTNER_NAME_INVALID,
                     name: "DBError",
-                    message: "Username should be alphanumeric and within 15 characters"
+                    message: "Username should be alphanumeric and within 20 characters"
                 });
             }
         }
@@ -503,7 +503,7 @@ let dbPartner = {
         var count = dbconfig.collection_partner.find({platform: data.platformId}).count();
         var detail = dbconfig.collection_partner.find({platform: data.platformId})
             .populate({path: "parent", model: dbconfig.collection_partner})
-            .populate({path: "level", model: dbconfig.collection_partnerLevel}).skip(data.index).limit(data.limit);
+            .populate({path: "level", model: dbconfig.collection_partnerLevel}).skip(data.index).sort(data.sortCol).limit(data.limit);
         return Q.all([count, detail]).then( function(data){
             return {size:data[0],data:data[1]}
         })
@@ -516,10 +516,8 @@ let dbPartner = {
      */
     getPartnersByAdvancedQuery: function (platformId, data) {
         return dbconfig.collection_partner.find({
-            platform: platformId,
-            $and: [data]
-        }).limit(constSystemParam.MAX_RECORD_NUM)
-            .populate({path: "level", model: dbconfig.collection_partnerLevel}).exec();
+            platform: platformId
+        }).populate({path: "level", model: dbconfig.collection_partnerLevel}).skip(data.index).sort(data.sortCol).limit(data.limit).exec();
     },
 
     /**
@@ -918,11 +916,13 @@ let dbPartner = {
     partnerLoginAPI: function (partnerData, userAgent) {
         var platformObjId = null;
         var partnerObj = null;
+        let requireLogInCaptcha = null;
         return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
             platformData => {
                 if (platformData) {
                     platformObjId = platformData._id;
                     partnerData.prefixName = platformData.partnerPrefix + partnerData.name;
+                    requireLogInCaptcha = platformData.requireLogInCaptcha || false;
 
                     return dbconfig.collection_partner.findOne({partnerName: partnerData.prefixName.toLowerCase()}).lean();
                 }
@@ -1032,7 +1032,10 @@ let dbPartner = {
                             Object.assign(recordData, geoInfo);
                             var record = new dbconfig.collection_partnerLoginRecord(recordData);
                             return record.save().then(
-                                () => data
+                                () => {
+                                    data.platform.requireLogInCaptcha = requireLogInCaptcha;
+                                    return data;
+                                }
                             );
                         },
                         error => {

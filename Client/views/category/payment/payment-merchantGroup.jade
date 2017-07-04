@@ -27,8 +27,11 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformMerchantGroupList.length>0)", data-toggle="modal", data-target='#modalSetMerchantGroupDefault')
                         text {{"Default" | translate}}
                         img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Create')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddPlayersToMerchantGroup', ng-click='vm.preparePlayerToGroupDialog("merchantGroup","#playertoMerchantGroupDataTable")')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'AddPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddPlayersToMerchantGroup', ng-click='vm.preparePlayerToGroupDialog("merchantGroup","#playertoMerchantGroupDataTable")')
                         text {{"ADD_PLAYER" | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'AddAllPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToMerchantGroup', ng-click='vm.addAllPlayerToMerchantResult=""')
+                        text {{"ADD_ALL_PLAYER" | translate}}
                         img.img-create
                     //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedMerchantGroupNode", ng-click='vm.confirmDetachProvider()')
@@ -63,6 +66,11 @@
                         select.input-sm.form-control(ng-model='vm.filterMerchantType', style='max-width:200px', ng-init='vm.filterMerchantType="all"')
                             option(value='all') {{'any' | translate}}
                             option(ng-repeat='(i,v) in vm.allMerchantTypeList', value='{{i}}') {{v.name | translate}}
+                    .inlineBlk.margin-right-5
+                        .control-label {{"Target Devices" | translate}}
+                        select.input-sm.form-control(ng-model='vm.filterMerchantTargetDevices', style='max-width:200px', ng-init='vm.filterMerchantTargetDevices="all"')
+                            option(value='all') {{'any' | translate}}
+                            option(ng-repeat='(i,v) in merchantTargetDeviceJson', value='{{i}}') {{v | translate}}
                     .inlineBlk
                         button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.merchantGroupClicked(1,vm.SelectedMerchantGroupNode)") {{"FILTER" | translate}}
                 #MerchantList.panel-group(ng-if='vm.SelectedMerchantGroupNode')
@@ -77,7 +85,7 @@
                                 a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedMerchants', class='{{vm.highlightMerchant[v.merchantNo]}}', ng-click='vm.merchantClicked(i,v,"in")')
                                     table.bg-pale
                                         tr
-                                            td.text-center(rowspan="6")
+                                            td.text-center(rowspan="7")
                                                 i.fa.fa-money.text-danger
                                             td {{'TITLE' | translate}}
                                             td.text-success {{v.name}}
@@ -97,6 +105,9 @@
                                             td {{'Merchant Type ID' | translate}}
                                             td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
                                                 img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
+                                        tr
+                                            td {{'Limit' | translate}}
+                                            td.text-success {{v.permerchantLimits | translate}}
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#MerchantList", href='#excludedMerchants', ng-click='vm.showMerchantCate="exclude";vm.toggleBankType()')
                             h4.panel-title
@@ -286,3 +297,21 @@
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitAddPlayersToMerchantGroup()") {{"ADD" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalAddAllPlayersToMerchantGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            label {{"Add All Player to Merchant group"|translate}}&nbsp;:&nbsp;{{vm.SelectedMerchantGroupNode.name}}
+                            br
+                            label {{"Please confirm your action." | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(ng-show='!vm.addAllPlayerToMerchantResult' ng-click="vm.submitAddAllPlayersToMerchantGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(ng-show='!vm.addAllPlayerToMerchantResult' data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-success.common-button(ng-show='vm.addAllPlayerToMerchantResult' data-dismiss='modal') {{"CONFIRM" | translate}}
+                label(ng-show='vm.addAllPlayerToMerchantResult') {{vm.addAllPlayerToMerchantResult}}

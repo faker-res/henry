@@ -2,9 +2,10 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'utilService', 'socketService', 'Upload', 'CONFIG'];
+    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'utilService', 'socketService', 'CONFIG'];
 
-    var providerController = function ($scope, $filter, $location, $log, $timeout, authService, utilService, socketService, Upload, CONFIG) {
+    var providerController = function ($scope, $filter, $location, $log, $timeout, authService, utilService, socketService, CONFIG) {
+        var Upload = {};
         var $translate = $filter('translate');
         var vm = this;
 
@@ -16,7 +17,7 @@ define(['js/app'], function (myApp) {
         };
         vm.allProviderStatusKeys = ['NORMAL', 'MAINTENANCE', 'HALT'];
         vm.allGameStatusString = {
-            ENABLE: 1 , // "Enable",
+            ENABLE: 1, // "Enable",
             MAINTENANCE: 2, //"Maintenance" //
             DISABLE: 3, //"Disable", //2
             DELETED: 4
@@ -375,13 +376,13 @@ define(['js/app'], function (myApp) {
                 console.log('expenserecords', data);
                 vm.gameExpenseQuery.loading = false;
                 var tableData = data.data.data ? data.data.data.map(item => {
-                    item.createTime$ = vm.dateReformat(item.createTime);
-                    item.validAmount$ = item.validAmount.toFixed(2);
-                    item.amount$ = item.amount.toFixed(2);
-                    item.bonusAmount$ = item.bonusAmount.toFixed(2);
-                    item.commissionAmount$ = item.commissionAmount.toFixed(2);
-                    return item;
-                }) : [];
+                        item.createTime$ = vm.dateReformat(item.createTime);
+                        item.validAmount$ = item.validAmount.toFixed(2);
+                        item.amount$ = item.amount.toFixed(2);
+                        item.bonusAmount$ = item.bonusAmount.toFixed(2);
+                        item.commissionAmount$ = item.commissionAmount.toFixed(2);
+                        return item;
+                    }) : [];
                 vm.gameExpenseQuery.totalCount = data.data.count || 0;
                 var summary = data.data.summary || {};
                 var tableOptions = {
@@ -485,13 +486,13 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPagedGameProviderConsumptionRecord', queryData, function (data) {
                 vm.providerExpenseTableLoading = false;
                 var tableData = data.data.data ? data.data.data.map(item => {
-                    item.createTime$ = vm.dateReformat(item.createTime);
-                    item.validAmount$ = item.validAmount.toFixed(2);
-                    item.amount$ = item.amount.toFixed(2);
-                    item.bonusAmount$ = item.bonusAmount.toFixed(2);
-                    item.commissionAmount$ = item.commissionAmount.toFixed(2);
-                    return item;
-                }) : [];
+                        item.createTime$ = vm.dateReformat(item.createTime);
+                        item.validAmount$ = item.validAmount.toFixed(2);
+                        item.amount$ = item.amount.toFixed(2);
+                        item.bonusAmount$ = item.bonusAmount.toFixed(2);
+                        item.commissionAmount$ = item.commissionAmount.toFixed(2);
+                        return item;
+                    }) : [];
                 vm.expenseQuery.totalCount = data.data.count || 0;
                 var summary = data.data.summary || {};
                 var tableOptions = {
@@ -613,13 +614,13 @@ define(['js/app'], function (myApp) {
             vm.settlementAction.result = '';
             $scope.safeApply();
             if (!vm.SelectedProvider) return;
-            let sendData={
+            let sendData = {
                 providerId: vm.SelectedProvider._id,
                 settlementDay: vm.settlementAction.date
             };
 
-            sendData.selectedPlatformID = (vm.selectedPlatformID === "_allPlatform") ?vm.allPlatformId :vm.selectedPlatformID;
-            
+            sendData.selectedPlatformID = (vm.selectedPlatformID === "_allPlatform") ? vm.allPlatformId : vm.selectedPlatformID;
+
             // if(vm.selectedPlatformID !== "_allPlatform") {
             //     sendData.selectedPlatformID = vm.selectedPlatformID;
             // }
@@ -629,7 +630,7 @@ define(['js/app'], function (myApp) {
 
             console.log(sendData);
 
-            socketService.$socket($scope.AppSocket, 'manualDailyProviderSettlement',sendData, function (data) {
+            socketService.$socket($scope.AppSocket, 'manualDailyProviderSettlement', sendData, function (data) {
                 console.log("Settlement done:", data);
                 vm.getAllProvider(function () {
                     var selectedTree = $('#providerTree').treeview('search', [vm.SelectedProvider.name, {
@@ -962,10 +963,10 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                         if (data.data) {
                             vm.platformList = data.data;
-                            vm.allPlatformId = vm.platformList.reduce((temp,platform)=>{
+                            vm.allPlatformId = vm.platformList.reduce((temp, platform) => {
                                 temp.push(platform._id);
                                 return temp;
-                            },[]);
+                            }, []);
                             if (vm.platformList.length == 0) {
                                 return;
                             } else {

@@ -94,7 +94,11 @@ var platformSchema = new Schema({
     //can apply multiple reward
     canMultiReward: {type: Boolean, default: false},
     // Auto check player level up
-    autoCheckPlayerLevelUp: {type: Boolean, default: false}
+    autoCheckPlayerLevelUp: {type: Boolean, default: false},
+    // user login require captcha verfication
+    requireLogInCaptcha: {type: Boolean, default: false},
+    //only new system user can login
+    onlyNewCanLogin: {type: Boolean, default: false}
 });
 
 //add platform id before save

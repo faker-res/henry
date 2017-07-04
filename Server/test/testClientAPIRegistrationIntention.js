@@ -87,7 +87,7 @@ describe("Test Client API - Consumption Service", function () {
             done();
         }, {
             name: "testRegistrationIntentionPlayer",
-            mobile: "72834569283",
+            realName: "testPlayer",
             status: constRegistrationIntentRecordStatus.INTENT,
             platformId: testPlatformId
         });
