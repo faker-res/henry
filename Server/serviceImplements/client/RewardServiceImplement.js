@@ -100,7 +100,7 @@ let RewardServiceImplement = function () {
 
     this.getEasterEggPlayerInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getEasterEggPlayerInfo, [data.platformId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getEasterEggPlayerInfo, [data.platformId], isValidData, false, false, true);
     };
 
 };
