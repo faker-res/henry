@@ -19,8 +19,8 @@ const constRewardType = {
     PLAYER_REFERRAL_REWARD: "PlayerReferralReward",
     PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward",
     PLAYER_DOUBLE_TOP_UP_REWARD: "PlayerDoubleTopUpReward",
-    PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward"
-
+    PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward",
+    PLAYER_EASTER_EGG_REWARD: "PlayerEasterEggReward"
 };
 
 module.exports = constRewardType;
