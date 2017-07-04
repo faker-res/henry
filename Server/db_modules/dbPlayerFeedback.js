@@ -113,16 +113,24 @@ var dbPlayerFeedback = {
                     query.platform = new mongoose.mongo.ObjectId(query.platform);
                 }
 
+                console.log('**query', query);
                 var a = dbconfig.collection_playerFeedback
                     .find(query)
                     .populate({path: "playerId", model: dbconfig.collection_players})
                     .populate({path: "adminId", model: dbconfig.collection_admin}).lean();
                 var b = dbconfig.collection_playerFeedback
                     .find(query).count();
-                return Q.all([a, b]);
+                // temp for debug
+                var c = dbconfig.collection_playerFeedback
+                    .find(query).lean();
+                return Q.all([a, b, c]);
             }
         ).then(
             data => {
+                // todo :: remove the var c above and these 3 console.log after debug finished.
+                console.log('**playerFeedBackResult', data[0]);
+                console.log('**playerFeedBackCount', data[1]);
+                console.log('**debugQuery', data[2]);
                 returnedData = Object.assign([], data[0]);
                 total = data[1];
                 var proms = [];
