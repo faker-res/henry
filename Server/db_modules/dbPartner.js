@@ -39,7 +39,7 @@ let dbPartner = {
             platformData => {
                 if (platformData) {
                     partnerData.platform = platformData._id;
-
+                    partnerData.isNewSystem = true;
                     // attach platform prefix to player name if available
                     // if (platformData.partnerPrefix) {
                     //     partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
@@ -112,7 +112,7 @@ let dbPartner = {
                 message: "You did not provide the 'platform' (ObjectId) field for the new partner"
             });
         }
-
+        partnerdata.isNewSystem = true;
         // Player name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
         if (partnerdata.partnerName.length > 20 || !partnerdata.partnerName.match(alphaNumRegex)) {

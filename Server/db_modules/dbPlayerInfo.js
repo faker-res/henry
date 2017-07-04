@@ -95,9 +95,8 @@ let dbPlayerInfo = {
                         platformObj = platformData;
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
-                        if (platformData.onlyNewCanLogin) {
-                            inputData.isNewSystem = true;
-                        }
+                        //player flag for new system
+                        inputData.isNewSystem = true;
                         let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             name: inputData.name,
                             platform: platformData._id
