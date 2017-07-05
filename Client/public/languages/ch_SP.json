@@ -1991,5 +1991,6 @@
   "TWO_WEEK_ABOVE": "两星期前",
   "ONE_MONTH_ABOVE": "一个月前",
   "ONLY_NEW_USER_CAN_LOGIN": "只允许新系统用户登陆",
-  "AutoAudit": "自动审核"
+  "AutoAudit": "自动审核",
+  "USE_LOCK_CREDIT": "使用锁定额度"
 }
