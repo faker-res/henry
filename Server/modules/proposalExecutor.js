@@ -1011,7 +1011,8 @@ var proposalExecutor = {
                         initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
-                        targetEnable: proposalData.data.targetEnable
+                        targetEnable: proposalData.data.targetEnable,
+                        useLockedCredit: proposalData.data.useLockedCredit
                     };
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
