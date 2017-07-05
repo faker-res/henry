@@ -2122,6 +2122,19 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             error => Q.reject({name: "DBError", message: "Error creating reward task for " + rewardType, error: error})
         )
     ).then(
+        () => {
+            if( !taskData.useLockedCredit ){
+                return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                    playerData => {
+                        return dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerData._id, platform: playerData.platform},
+                            {$inc: {validCredit: proposalData.data.rewardAmount}}
+                        )
+                    }
+                );
+            }
+        }
+    ).then(
         //() => createRewardLogForProposal(taskData.rewardType, proposalData)
         () => {
             SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
