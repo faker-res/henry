@@ -223,7 +223,7 @@ db.rewardParam.insert({
             type: "Table",
             data: {
                 rewardAmount: {type: "Number", des: "Reward amount"},
-                probability: {type: "Number", des: "Consumption Times"}
+                probability: {type: "Number", des: "Probability"}
             },
             des: "Reward parameter"
         }
