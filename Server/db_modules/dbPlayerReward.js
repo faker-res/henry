@@ -212,24 +212,38 @@ let dbPlayerReward = {
             }
         ).then(
             eventObj => {
-                if (eventObj) {
+                if (eventObj && eventObj.params && eventObj.params.reward) {
                     eventData = eventObj;
                     //check if player is valid for reward
                     //find player's easter egg reward
                     return dbConfig.collection_proposalType.findOne({
                         name: constProposalType.PLAYER_EASTER_EGG_REWARD,
-                        platform: playerObj.platform
+                        platformId: playerObj.platform
                     }).lean().then(
                         typeData => {
                             if (typeData) {
-
+                                return dbConfig.collection_proposal.find({
+                                    type: typeData._id,
+                                    "data.playerName": playerObj.name,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING]},
+                                }).sort({createTime: -1}).limit(1).lean();
                             }
                             else {
                                 return Q.reject({name: "DataError", message: "Cannot find "});
                             }
                         }
+                    ).then(
+                        proposalsData => {
+                            let lastRewardTime = dbUtility.getTodaySGTime().startTime;
+                            if (proposalsData && proposalsData[0]) {
+                                lastRewardTime = proposalsData[0].createTime;
+                            }
+                            return dbConfig.collection_playerTopUpRecord.findOne({
+                                playerId: playerObj._id,
+                                createTime: {$gte: lastRewardTime}
+                            }).lean();
+                        }
                     );
-                    //calculate reward amount
                 }
                 else {
                     return Q.reject({
@@ -240,10 +254,53 @@ let dbPlayerReward = {
                 }
             }
         ).then(
-            records => {
-                return {
-                    rewardAmount: 1
-                };
+            record => {
+                if (record && !playerObj.applyingEasterEgg) {
+                    //update player easter egg lock
+                    return dbConfig.collection_players.findOneAndUpdate(
+                        {_id: playerObj._id, platform: playerObj.platform},
+                        {applyingEasterEgg: true}
+                    );
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player does not match the condition for this reward"
+                    });
+                }
+            }
+        ).then(
+            playerData => {
+                if(playerData && !playerData.applyingEasterEgg){
+                    //calculate player reward amount
+                    let totalProbability = 0;
+                    eventData.params.reward.forEach(
+                        eReward => {
+                            totalProbability += eReward.probability;
+                        }
+                    );
+                    let pNumber = Math.floor(Math.random() * totalProbability);
+                    //minimum one reward
+                    let rewardAmount = 1;
+                    let startPro = 0;
+                    eventData.params.reward.forEach(
+                        eReward => {
+                            if( pNumber >= startPro && pNumber <= (startPro + eReward.probability) ){
+                                rewardAmount = eReward.rewardAmount;
+                            }
+                            startPro += eReward.probability;
+                        }
+                    );
+                    //todo:: create proposal here
+                }
+                else{
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player does not match the condition for this reward"
+                    });
+                }
             }
         );
     },
@@ -256,7 +313,7 @@ let dbPlayerReward = {
                     platformObj = platformData;
                     return dbConfig.collection_proposalType.findOne({
                         name: constProposalType.PLAYER_EASTER_EGG_REWARD,
-                        platform: platformData._id
+                        platformId: platformData._id
                     }).lean();
                 }
                 else {
@@ -267,7 +324,6 @@ let dbPlayerReward = {
             typeData => {
                 if (typeData) {
                     return dbConfig.collection_proposal.find({
-                        platform: platformObj._id,
                         type: typeData._id,
                         status: constProposalStatus.APPROVED
                     }).sort({createTime: -1}).limit(3).lean();

@@ -215,7 +215,9 @@ var playerSchema = new Schema({
     //if player has applied consumption return
     isConsumptionReturn: {type: Boolean},
     //is new system user
-    isNewSystem: {type: Boolean}
+    isNewSystem: {type: Boolean},
+    //adding easter egg
+    applyingEasterEgg: {type: Boolean, default: false}
 });
 
 //record is unique by name and platform
