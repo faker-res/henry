@@ -245,6 +245,19 @@ const pmsAPI = {
         return callPMSAPI("payment", "requestWeChatQRAccount", data);
     },
 
+    //quickPayment service
+    quickPayment_getQuickPaymentList: function (data) {
+        return callPMSAPI("quickPayment", "getQuickPaymentList", data);
+    },
+
+    quickPayment_getQuickPayment: function (data) {
+        return callPMSAPI("quickPayment", "getQuickPayment", data);
+    },
+
+    payment_requestMfbAccount: function (data) {
+        return callPMSAPI("payment", "requestMfbAccount", data);
+    },
+
 };
 
 module.exports = pmsAPI;
