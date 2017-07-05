@@ -152,7 +152,7 @@ let dbPlayerReward = {
                                 queryTime = dateArr.pop();
                                 return processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
                                     data => {
-                                        if(data){
+                                        if (data) {
                                             bProposal = true;
                                         }
                                         if (dateArr && dateArr.length > 0) {
@@ -164,7 +164,7 @@ let dbPlayerReward = {
 
                             return proc().then(
                                 data => {
-                                    if(!bProposal){
+                                    if (!bProposal) {
                                         return Q.reject({
                                             status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                                             name: "DataError",
@@ -195,7 +195,159 @@ let dbPlayerReward = {
                 }
             }
         );
+    },
+
+    applyEasterEggReward: (playerId, code, adminId) => {
+        let playerObj = {};
+        let eventData = {};
+        return dbConfig.collection_players.findOne({playerId: playerId}).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+                    return dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform, constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD, code);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            eventObj => {
+                if (eventObj && eventObj.params && eventObj.params.reward) {
+                    eventData = eventObj;
+                    //check if player is valid for reward
+                    //find player's easter egg reward
+                    return dbConfig.collection_proposalType.findOne({
+                        name: constProposalType.PLAYER_EASTER_EGG_REWARD,
+                        platformId: playerObj.platform
+                    }).lean().then(
+                        typeData => {
+                            if (typeData) {
+                                return dbConfig.collection_proposal.find({
+                                    type: typeData._id,
+                                    "data.playerName": playerObj.name,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING]},
+                                }).sort({createTime: -1}).limit(1).lean();
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Cannot find "});
+                            }
+                        }
+                    ).then(
+                        proposalsData => {
+                            let lastRewardTime = dbUtility.getTodaySGTime().startTime;
+                            if (proposalsData && proposalsData[0]) {
+                                lastRewardTime = proposalsData[0].createTime;
+                            }
+                            return dbConfig.collection_playerTopUpRecord.findOne({
+                                playerId: playerObj._id,
+                                createTime: {$gte: lastRewardTime}
+                            }).lean();
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "Cannot find player easter egg event data for platform"
+                    });
+                }
+            }
+        ).then(
+            record => {
+                if (record && !playerObj.applyingEasterEgg) {
+                    //update player easter egg lock
+                    return dbConfig.collection_players.findOneAndUpdate(
+                        {_id: playerObj._id, platform: playerObj.platform},
+                        {applyingEasterEgg: true}
+                    );
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player does not match the condition for this reward"
+                    });
+                }
+            }
+        ).then(
+            playerData => {
+                if(playerData && !playerData.applyingEasterEgg){
+                    //calculate player reward amount
+                    let totalProbability = 0;
+                    eventData.params.reward.forEach(
+                        eReward => {
+                            totalProbability += eReward.probability;
+                        }
+                    );
+                    let pNumber = Math.floor(Math.random() * totalProbability);
+                    //minimum one reward
+                    let rewardAmount = 1;
+                    let startPro = 0;
+                    eventData.params.reward.forEach(
+                        eReward => {
+                            if( pNumber >= startPro && pNumber <= (startPro + eReward.probability) ){
+                                rewardAmount = eReward.rewardAmount;
+                            }
+                            startPro += eReward.probability;
+                        }
+                    );
+                    //todo:: create proposal here
+                }
+                else{
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player does not match the condition for this reward"
+                    });
+                }
+            }
+        );
+    },
+
+    getEasterEggPlayerInfo: (platformId) => {
+        let platformObj = {};
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+                    return dbConfig.collection_proposalType.findOne({
+                        name: constProposalType.PLAYER_EASTER_EGG_REWARD,
+                        platformId: platformData._id
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            typeData => {
+                if (typeData) {
+                    return dbConfig.collection_proposal.find({
+                        type: typeData._id,
+                        status: constProposalStatus.APPROVED
+                    }).sort({createTime: -1}).limit(3).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find easter egg reward proposal type"});
+                }
+            }
+        ).then(
+            proposalDatas => {
+                //todo:: temp test data
+                let res = [{username: "test1", amount: 1}, {username: "test2", amount: 3}];
+                if (proposalDatas && proposalDatas.length > 0) {
+                    proposalDatas.forEach(
+                        pData => {
+                            res.push({username: pData.data.playerName, amount: pData.data.rewardAmount});
+                        }
+                    );
+                }
+                return res;
+            }
+        );
     }
+
 };
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {
@@ -272,7 +424,7 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                 });
             }
             else {
-                if( !isPrevious ){
+                if (!isPrevious) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",

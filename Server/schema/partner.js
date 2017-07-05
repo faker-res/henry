@@ -135,8 +135,9 @@ var partnerSchema = new Schema({
         disableCommSettlement: {type: Boolean, default: false}
     },
     // partner status normal or forbid
-    status: {type: Number, default: constPartnerStatus.NORMAL, index: true}
-
+    status: {type: Number, default: constPartnerStatus.NORMAL, index: true},
+    //is new system user
+    isNewSystem: {type: Boolean}
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));

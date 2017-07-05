@@ -95,9 +95,8 @@ let dbPlayerInfo = {
                         platformObj = platformData;
                         platformObjId = platformData._id;
                         platformPrefix = platformData.prefix;
-                        if (platformData.onlyNewCanLogin) {
-                            inputData.isNewSystem = true;
-                        }
+                        //player flag for new system
+                        inputData.isNewSystem = true;
                         let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                             name: inputData.name,
                             platform: platformData._id
@@ -7909,6 +7908,9 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD:
                                     return dbPlayerReward.applyConsecutiveLoginReward(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_EASTER_EGG_REWARD:
+                                    return dbPlayerReward.applyEasterEggReward(playerId, code, adminInfo);
                                     break;
                                 default:
                                     return Q.reject({

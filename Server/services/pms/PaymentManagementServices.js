@@ -104,7 +104,8 @@
                 "requestAlipayAccount",
                 "requestCancellationPayOrder",
                 "requestWeChatAccount",
-                "requestWeChatQRAccount"
+                "requestWeChatQRAccount",
+                "requestMfbAccount"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames1, ["proposalId"]);
 
@@ -226,6 +227,24 @@
         rootObj.WechatService = WechatService;
     };
 
+    var defineQuickPayService = function (sinonet) {
+        var QuickPayService = function (connection) {
+            sinonet.WebSocketService.call(this, "quickPayment", connection);
+
+            //define functions
+            var functionNames = [
+                "getQuickPaymentList",
+                "getQuickPayment",
+            ];
+            addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
+        };
+
+        QuickPayService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        QuickPayService.prototype.constructor = QuickPayService;
+
+        rootObj.QuickPayService = QuickPayService;
+    };
+
     if (isNode) {
         var sinonet = require("./../../server_common/WebSocketService");
         defineConnectionService(sinonet);
@@ -237,6 +256,7 @@
         defineMerchantService(sinonet);
         defineAlipayService(sinonet);
         defineWechatService(sinonet);
+        defineQuickPayService(sinonet);
         module.exports = rootObj;
     } else {
         define(["common/WebSocketService"], function (sinonet) {
@@ -249,6 +269,7 @@
             defineMerchantService(sinonet);
             defineAlipayService(sinonet);
             defineWechatService(sinonet);
+            defineQuickPayService(sinonet);
             return rootObj;
         });
     }

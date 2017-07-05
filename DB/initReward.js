@@ -424,7 +424,8 @@ db.rewardParam.insert({
     "name": type19, params: {
         targetEnable: {type: "Boolean", des: "If target is enabled"},
         providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
-        minTopUpAmount: {type: "Number", des: "Day Index"},
+        minTopUpAmount: {type: "Number", des: "Min top up amount"},
+        consumptionTimes: {type: "Number", des: "Required Consumption Amount Times"},
         reward: {
             type: "Table",
             data: {
@@ -439,4 +440,4 @@ db.rewardParam.insert({
 var param19Cursor = db.rewardParam.find({"name": type19});
 var param19 = param19Cursor.next();
 
-db.rewardType.insert({"name": type19, params: param19._id, des: "Player Consecutive Login Reward"});
+db.rewardType.insert({"name": type19, params: param19._id, des: "Player Easter Egg Reward"});

@@ -30,7 +30,7 @@ gulp.task("copyFolder_services", function () {
 
 gulp.task("copyFolder_testAPI", function () {
     return gulp.src(["../Server/testAPI/**", ])
-        .pipe(gulp.dest("./testAPIl"));
+        .pipe(gulp.dest("./testAPI"));
 });
 
 gulp.task('default', ["clean", "copyFolder_services","copyFolder_testAPI"], function () {
