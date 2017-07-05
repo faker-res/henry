@@ -526,7 +526,7 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.useLockedCredit', ng-disabled='!vm.configTableEdit')
 
-            br
+                            br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
