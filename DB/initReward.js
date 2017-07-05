@@ -440,4 +440,4 @@ db.rewardParam.insert({
 var param19Cursor = db.rewardParam.find({"name": type19});
 var param19 = param19Cursor.next();
 
-db.rewardType.insert({"name": type19, params: param19._id, des: "Player Consecutive Login Reward"});
+db.rewardType.insert({"name": type19, params: param19._id, des: "Player Easter Egg Reward"});
