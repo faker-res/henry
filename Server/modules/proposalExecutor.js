@@ -135,6 +135,7 @@ var proposalExecutor = {
             this.executions.executePlayerWechatTopUp.des = "Player wechat top up";
             this.executions.executePlayerConsecutiveLoginReward.des = "Player Consecutive Login Reward";
             this.executions.executePlayerRegistrationIntention.des = "Player Registration Intention";
+            this.executions.executePlayerEasterEggReward.des = "Player Easter Egg Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -174,6 +175,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerWechatTopUp.des = "Reject Player Top up";
             this.rejections.rejectPlayerConsecutiveLoginReward.des = "Reject Player Consecutive Login Reward";
             this.rejections.rejectPlayerRegistrationIntention.des = "Reject Player Registration Intention";
+            this.rejections.rejectPlayerEasterEggReward.des = "Reject Player Easter Egg Reward";
 
         },
 
@@ -1596,6 +1598,42 @@ var proposalExecutor = {
                 }
             },
 
+            executePlayerEasterEggReward: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    var taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_EASTER_EGG_REWARD,
+                        rewardType: constRewardType.PLAYER_EASTER_EGG_REWARD,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.applyAmount,
+                        initAmount: proposalData.data.applyAmount,
+                        eventId: proposalData.data.eventId
+                    };
+                    if (proposalData.data.providers) {
+                        taskData.targetProviders = proposalData.data.providers;
+                    }
+
+                    dbconfig.collection_players.findOneAndUpdate({_id: proposalData.data.playerObjId, platform: proposalData.data.platformId}, {applyingEasterEgg: false}).then(
+                        data => {
+                            createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_EASTER_EGG_REWARD, proposalData);
+                        },
+                        error => {
+                            deferred.reject({
+                                name: "DBError",
+                                message: "Failed to update playerinfo for applyingEasterEgg",
+                                error: error
+                            });
+                        }
+                    )
+                } else {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Incorrect player consecutive login reward proposal data"
+                    });
+                }
+            },
+
             /**
              * execution function for player intention proposal
              */
@@ -2065,6 +2103,21 @@ var proposalExecutor = {
 
             rejectPlayerConsecutiveLoginReward: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerEasterEggReward: function (proposalData, deferred) {
+                dbconfig.collection_players.findOneAndUpdate({_id: proposalData.data.playerObjId, platform: proposalData.data.platformId}, {applyingEasterEgg: false}).then(
+                    data => {
+                        deferred.resolve("Proposal is rejected");
+                    },
+                    error => {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Failed to update playerinfo for applyingEasterEgg",
+                            error: error
+                        });
+                    }
+                );
             },
 
             /**

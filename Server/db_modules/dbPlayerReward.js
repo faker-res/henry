@@ -197,7 +197,7 @@ let dbPlayerReward = {
         );
     },
 
-    applyEasterEggReward: (playerId, code, adminId) => {
+    applyEasterEggReward: (playerId, code, adminInfo) => {
         let playerObj = {};
         let eventData = {};
         return dbConfig.collection_players.findOne({playerId: playerId}).then(
@@ -212,8 +212,10 @@ let dbPlayerReward = {
             }
         ).then(
             eventObj => {
-                if (eventObj && eventObj.params && eventObj.params.reward) {
+                if (eventObj && eventObj.param && eventObj.param.reward) {
                     eventData = eventObj;
+
+
                     //check if player is valid for reward
                     //find player's easter egg reward
                     return dbConfig.collection_proposalType.findOne({
@@ -240,7 +242,8 @@ let dbPlayerReward = {
                             }
                             return dbConfig.collection_playerTopUpRecord.findOne({
                                 playerId: playerObj._id,
-                                createTime: {$gte: lastRewardTime}
+                                createTime: {$gte: lastRewardTime},
+                                amount: {$gte: eventData.param.minTopUpAmount}
                             }).lean();
                         }
                     );
@@ -276,7 +279,7 @@ let dbPlayerReward = {
                     playerObj = playerData;
                     //calculate player reward amount
                     let totalProbability = 0;
-                    eventData.params.reward.forEach(
+                    eventData.param.reward.forEach(
                         eReward => {
                             totalProbability += eReward.probability;
                         }
@@ -285,7 +288,7 @@ let dbPlayerReward = {
                     //minimum one reward
                     let rewardAmount = 1;
                     let startPro = 0;
-                    eventData.params.reward.forEach(
+                    eventData.param.reward.forEach(
                         eReward => {
                             if( pNumber >= startPro && pNumber <= (startPro + eReward.probability) ){
                                 rewardAmount = eReward.rewardAmount;
@@ -310,15 +313,19 @@ let dbPlayerReward = {
                             realName: playerObj.realName,
                             platformObjId: playerObj.platform,
                             rewardAmount: rewardAmount,
-                            eventId: rewardEvent._id,
-                            eventName: rewardEvent.name,
-                            eventCode: rewardEvent.code,
-                            eventDescription: rewardEvent.description
+                            spendingAmount: rewardAmount * Number(eventData.param.consumptionTimes),
+                            applyAmount: rewardAmount,
+                            amount: rewardAmount,
+                            eventId: eventData._id,
+                            eventName: eventData.name,
+                            eventCode: eventData.code,
+                            eventDescription: eventData.description,
+                            providers: eventData.param.providers
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS
                     };
-                    return dbProposal.createProposalWithTypeId(rewardEvent.executeProposal, proposalData);
+                    return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                 }
                 else{
                     return Q.reject({
