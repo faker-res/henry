@@ -1013,7 +1013,8 @@ var proposalExecutor = {
                         initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
-                        targetEnable: proposalData.data.targetEnable
+                        targetEnable: proposalData.data.targetEnable,
+                        useLockedCredit: proposalData.data.useLockedCredit
                     };
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
@@ -2173,6 +2174,19 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         ).catch(
             error => Q.reject({name: "DBError", message: "Error creating reward task for " + rewardType, error: error})
         )
+    ).then(
+        () => {
+            if( !taskData.useLockedCredit ){
+                return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                    playerData => {
+                        return dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerData._id, platform: playerData.platform},
+                            {$inc: {validCredit: proposalData.data.rewardAmount}}
+                        )
+                    }
+                );
+            }
+        }
     ).then(
         //() => createRewardLogForProposal(taskData.rewardType, proposalData)
         () => {

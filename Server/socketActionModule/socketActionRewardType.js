@@ -55,7 +55,9 @@ function socketActionReward(socketIO, socket) {
                         constRewardType.PLAYER_TOP_UP_REWARD,
                         constRewardType.PLAYER_REFERRAL_REWARD,
                         constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
-                        constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD],
+                        constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
+                        constRewardType.PLAYER_EASTER_EGG_REWARD
+                    ],
                     canSettle: [
                         constRewardType.PLAYER_CONSUMPTION_RETURN,
                         constRewardType.FULL_ATTENDANCE,
