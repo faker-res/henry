@@ -204,7 +204,7 @@ let dbPlayerReward = {
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
-                    return dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform, constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD, code);
+                    return dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform, constRewardType.PLAYER_EASTER_EGG_REWARD, code);
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid player data"});
@@ -260,7 +260,7 @@ let dbPlayerReward = {
                     return dbConfig.collection_players.findOneAndUpdate(
                         {_id: playerObj._id, platform: playerObj.platform},
                         {applyingEasterEgg: true}
-                    );
+                    ).lean();
                 }
                 else {
                     return Q.reject({
@@ -273,6 +273,7 @@ let dbPlayerReward = {
         ).then(
             playerData => {
                 if(playerData && !playerData.applyingEasterEgg){
+                    playerObj = playerData;
                     //calculate player reward amount
                     let totalProbability = 0;
                     eventData.params.reward.forEach(
@@ -292,7 +293,32 @@ let dbPlayerReward = {
                             startPro += eReward.probability;
                         }
                     );
-                    //todo:: create proposal here
+
+                    // create reward proposal
+                    let proposalData ={
+                        type: eventData.executeProposal,
+                        creator: adminInfo ? adminInfo :
+                            {
+                                type: 'player',
+                                name: playerObj.name,
+                                id: playerId
+                            },
+                        data: {
+                            playerObjId: playerObj._id,
+                            playerId: playerObj.playerId,
+                            playerName: playerObj.name,
+                            realName: playerObj.realName,
+                            platformObjId: playerObj.platform,
+                            rewardAmount: rewardAmount,
+                            eventId: rewardEvent._id,
+                            eventName: rewardEvent.name,
+                            eventCode: rewardEvent.code,
+                            eventDescription: rewardEvent.description
+                        },
+                        entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                        userType: constProposalUserType.PLAYERS
+                    };
+                    return dbProposal.createProposalWithTypeId(rewardEvent.executeProposal, proposalData);
                 }
                 else{
                     return Q.reject({
