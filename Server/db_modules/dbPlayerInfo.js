@@ -7049,7 +7049,7 @@ let dbPlayerInfo = {
                     platformId = player.platform;
 
                     let taskProm;
-                    if (!player.platform.canMultiReward) {
+                    if (!player.platform.canMultiReward && player.platform.useLockedCredit) {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
@@ -7141,9 +7141,13 @@ let dbPlayerInfo = {
                 rewardAmount = Math.min((record.amount * rewardParam.rewardPercentage), rewardParam.maxRewardAmount);
                 deductionAmount = record.amount;
 
-                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record).then(
-                    function () {
-                        bDoneDeduction = true;
+                let creditProm = Q.resolve(false);
+                if (player.platform.useLockedCredit) {
+                    creditProm = dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record);
+                }
+                creditProm.then(
+                    function (bDeduct) {
+                        bDoneDeduction = bDeduct;
 
                         var proposalData = {
                             type: eventData.executeProposal,
