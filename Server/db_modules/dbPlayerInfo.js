@@ -2589,7 +2589,8 @@ let dbPlayerInfo = {
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
                 playerId: thisPlayer._id,
-                status: constRewardTaskStatus.STARTED
+                status: constRewardTaskStatus.STARTED,
+                useLockedCredit: true
             }).then(
                 rewardData => {
                     thisPlayer.rewardInfo = rewardData;
