@@ -56,7 +56,9 @@ var rewardTaskSchema = new Schema({
     //max reward amount
     maxRewardAmount: {type: Number},
     //related proposal id
-    proposalId: {type: String, index: true}
+    proposalId: {type: String, index: true},
+    //use locked credit
+    useLockedCredit: {type: Boolean, default: false}
 });
 
 rewardTaskSchema.index({targetProviders: 1});

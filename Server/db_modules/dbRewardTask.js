@@ -37,7 +37,7 @@ var dbRewardTask = {
                 return dbRewardTask.getPlayerCurRewardTask(rewardData.playerId);
             }
         ).then(data => {
-            if (data && !data.platformId.canMultiReward) {
+            if (data && !data.platformId.canMultiReward && data.platformId.useLockedCredit) {
                 return Q.reject({
                     status: constServerCode.PLAYER_HAS_REWARD_TASK,
                     message: "The player has not unlocked the previous reward task. Not valid for new reward"
@@ -65,22 +65,24 @@ var dbRewardTask = {
         rewardData.bonusAmount = rewardData.initAmount;
         let rewardTask = new dbconfig.collection_rewardTask(rewardData);
         let taskProm = rewardTask.save();
-        let playerProm;
+        let playerProm = {validCredit: 0};
 
         dbconfig.collection_platform.findOne({_id: rewardData.platformId}).lean().then(
             platformData => {
-                if (platformData.canMultiReward) {
-                    // Player's locked credit will increase from current lockedAmount
-                    playerProm = dbconfig.collection_players.findOneAndUpdate(
-                        {_id: rewardData.playerId, platform: rewardData.platformId},
-                        {$inc: {lockedCredit: rewardData.initAmount}}
-                    ).exec();
-                }
-                else {
-                    playerProm = dbconfig.collection_players.findOneAndUpdate(
-                        {_id: rewardData.playerId, platform: rewardData.platformId},
-                        {lockedCredit: rewardData.initAmount}
-                    ).exec();
+                if (rewardData.useLockedCredit) {
+                    if (platformData.canMultiReward) {
+                        // Player's locked credit will increase from current lockedAmount
+                        playerProm = dbconfig.collection_players.findOneAndUpdate(
+                            {_id: rewardData.playerId, platform: rewardData.platformId},
+                            {$inc: {lockedCredit: rewardData.initAmount}}
+                        ).exec();
+                    }
+                    else {
+                        playerProm = dbconfig.collection_players.findOneAndUpdate(
+                            {_id: rewardData.playerId, platform: rewardData.platformId},
+                            {lockedCredit: rewardData.initAmount}
+                        ).exec();
+                    }
                 }
                 return Promise.all([taskProm, playerProm]);
             }
@@ -190,7 +192,7 @@ var dbRewardTask = {
         return dbconfig.collection_rewardTask.find({
             playerId: playerId,
             status: constRewardTaskStatus.STARTED
-        }).sort({createdTime:1}).lean().exec();
+        }).sort({createdTime: 1}).lean().exec();
     },
 
     /**
@@ -515,14 +517,21 @@ var dbRewardTask = {
      * @param {Object} taskData - reward task object
      */
     completeRewardTask: function (taskData) {
-        let updateData;
+        let updateData = {};
+        let inputCreditChange;
         return new Promise((resolve, reject) => {
             // Check that we have the input we need to proceed
             if (!taskData._id) {
-                return Q.reject({name: "DataError", message: "Cannot update task with no _id: " + JSON.stringify(taskData)});
+                return Q.reject({
+                    name: "DataError",
+                    message: "Cannot update task with no _id: " + JSON.stringify(taskData)
+                });
             }
             if (!taskData.platformId) {
-                return Q.reject({name: "DataError", message: "Cannot update task with no platformId: " + JSON.stringify(taskData)});
+                return Q.reject({
+                    name: "DataError",
+                    message: "Cannot update task with no platformId: " + JSON.stringify(taskData)
+                });
             }
 
             let bUpdateProposal = false;
@@ -557,6 +566,12 @@ var dbRewardTask = {
                         updateData = {
                             $inc: {validCredit: rewardAmount, lockedCredit: -rewardAmount},
                         };
+
+                        if (taskData.inProvider) {
+                            inputCreditChange = {
+                                $inc: {_inputCredit: taskData.initAmount}
+                            }
+                        }
                     }
                     else {
                         updateData = {
@@ -565,23 +580,55 @@ var dbRewardTask = {
                         };
                     }
 
-                    //if reward task is for first top up, mark player
-                    if (taskData.type == constRewardType.FIRST_TOP_UP) {
-                        updateData.bFirstTopUpReward = true;
-                    }
-
                     return taskProm;
                 }
             ).then(
                 rewardTask => {
                     // This is the old document we have replaced. If the old document had already been marked as completed by another process, then we will not proceed.
                     if (rewardTask && rewardTask.status != constRewardTaskStatus.COMPLETED) {
-                        return dbRewardTask.findOneAndUpdateWithRetry(
-                            dbconfig.collection_players,
-                            {_id: taskData.playerId, platform: taskData.platformId},
-                            updateData,
-                            {new: true}
-                        );
+                        if (inputCreditChange) {
+                            // If there are other tasks available increase the _inputCredit so the amount that will moved to validCredit when transfer out will increase
+                            return dbRewardTask.updateWithRetry(
+                                dbconfig.collection_rewardTask,
+                                {
+                                    playerId: taskData.playerId,
+                                    platformId: taskData.platformId,
+                                    status: constRewardTaskStatus.STARTED
+                                },
+                                inputCreditChange,
+                                {multi: true}
+                            ).then(
+                                () => {
+                                    if (taskData.useLockedCredit) {
+                                        return dbRewardTask.findOneAndUpdateWithRetry(
+                                            dbconfig.collection_players,
+                                            {_id: taskData.playerId, platform: taskData.platformId},
+                                            updateData,
+                                            {new: true}
+                                        );
+                                    }
+                                    else {
+                                        return true;
+                                    }
+                                },
+                                error => {
+                                    console.log(error);
+                                    return false;
+                                }
+                            )
+                        } else {
+                            if (taskData.useLockedCredit) {
+                                return dbRewardTask.findOneAndUpdateWithRetry(
+                                    dbconfig.collection_players,
+                                    {_id: taskData.playerId, platform: taskData.platformId},
+                                    updateData,
+                                    {new: true}
+                                );
+                            }
+                            else {
+                                return true;
+                            }
+                        }
                     }
                     else {
                         reject({name: "DataError", message: "Incorrect reward task status"});
@@ -594,26 +641,10 @@ var dbRewardTask = {
             ).then(
                 data => {
                     if (data) {
-                        //if (rewardAmount > 0) {
-                        dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, taskData);
-                        //}
+                        if (taskData.useLockedCredit) {
+                            dbLogger.createCreditChangeLogWithLockedCredit(taskData.playerId, taskData.platformId, rewardAmount, taskData.type + ":unlock", data.validCredit, 0, -rewardAmount, null, taskData);
+                        }
                         resolve(taskData.currentAmount);
-
-                        // if (bUpdateProposal) {
-                        //     var diffAmount = taskData.currentAmount - taskData.maxRewardAmount;
-                        //
-                        //     return dbUtil.findOneAndUpdateForShard(
-                        //         dbconfig.collection_proposal,
-                        //         {proposalId: taskData.proposalId},
-                        //         {"data.diffAmount": diffAmount},
-                        //         constShardKeys.collection_proposal
-                        //     ).then(() => {
-                        //         resolve(taskData.currentAmount);
-                        //     });
-                        // }
-                        // else {
-                        //     resolve(taskData.currentAmount);
-                        // }
                     }
                     else {
                         reject({name: "DataError", message: "Can't update reward task and player credit"});
@@ -626,20 +657,6 @@ var dbRewardTask = {
                         message: "Error updating reward task and player credit",
                         error: error
                     });
-                    // Revert reward task status
-                    // return dbconfig.collection_rewardTask.findOneAndUpdate(
-                    //     {_id: taskData._id, platformId: taskData.platformId},
-                    //     {status: originalStatus},
-                    //     {new: true}
-                    // ).then(
-                    //     data => {
-                    //         reject({
-                    //             name: "DBError",
-                    //             message: "Error updating reward task and player credit",
-                    //             error: error
-                    //         });
-                    //     }
-                    // );
                 }
             );
         })
@@ -658,6 +675,37 @@ var dbRewardTask = {
                         return Q.reject({
                             name: 'DBError',
                             message: "Failed " + currentAttemptCount + " attempts to findOneAndUpdate",
+                            //collection: '...',
+                            query: query,
+                            update: update,
+                            error: error
+                        });
+                    }
+
+                    console.log(`Update attempt ${currentAttemptCount}/${maxAttempts} failed with "${error}", retrying...`);
+                    return Q.delay(delayBetweenAttempts).then(
+                        () => attemptUpdate(currentAttemptCount + 1)
+                    );
+                }
+            );
+        };
+
+        return attemptUpdate(1);
+    },
+
+    updateWithRetry: function (model, query, update, options) {
+        const maxAttempts = 4;
+        const delayBetweenAttempts = 500;
+
+        const attemptUpdate = (currentAttemptCount) => {
+            return model.update(query, update, options).catch(
+                error => {
+                    if (currentAttemptCount >= maxAttempts) {
+                        // This is a bad situation, so we log a lot to help debugging
+                        console.log(`Update attempt ${currentAttemptCount}/${maxAttempts} failed.  query=`, query, `update=`, update, `error=`, error);
+                        return Q.reject({
+                            name: 'DBError',
+                            message: "Failed " + currentAttemptCount + " attempts to update",
                             //collection: '...',
                             query: query,
                             update: update,
@@ -919,49 +967,49 @@ var dbRewardTask = {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform}
             ).lean().then(
-            playerData => {
-                if (playerData) {
-                    playerObj = playerData;
+                playerData => {
+                    if (playerData) {
+                        playerObj = playerData;
 
-                    if (!playerObj.platform.canMultiReward) {
-                        return dbconfig.collection_rewardTask.findOne(
-                            {playerId: playerData._id, status: constRewardTaskStatus.STARTED}
-                        ).lean();
+                        if (!playerObj.platform.canMultiReward) {
+                            return dbconfig.collection_rewardTask.findOne(
+                                {playerId: playerData._id, status: constRewardTaskStatus.STARTED}
+                            ).lean();
+                        }
+                        else {
+                            return false;
+                        }
                     }
                     else {
-                        return false;
+                        return Q.reject({name: "DataError", message: "Can not find player"});
                     }
                 }
-                else {
-                    return Q.reject({name: "DataError", message: "Can not find player"});
-                }
-            }
-        ).then(
-            taskData => {
-                if (taskData) {
-                    return Q.reject({name: "DataError", message: "Reward task is not completed"});
-                }
-                else {
-                    if (playerObj.lockedCredit >= 1) {
-                        playerObj.validCredit += playerObj.lockedCredit;
-                        return dbconfig.collection_players.findOneAndUpdate({
-                            _id: playerObj._id,
-                            platform: playerObj.platform
-                        }, {
-                            $inc: {validCredit: playerObj.lockedCredit},
-                            lockedCredit: 0
-                        }).then(() => {
-                            playerObj.fixedStatus = 'fixed';
-                            playerObj.lockedCredit = 0;
+            ).then(
+                taskData => {
+                    if (taskData) {
+                        return Q.reject({name: "DataError", message: "Reward task is not completed"});
+                    }
+                    else {
+                        if (playerObj.lockedCredit >= 1) {
+                            playerObj.validCredit += playerObj.lockedCredit;
+                            return dbconfig.collection_players.findOneAndUpdate({
+                                _id: playerObj._id,
+                                platform: playerObj.platform
+                            }, {
+                                $inc: {validCredit: playerObj.lockedCredit},
+                                lockedCredit: 0
+                            }).then(() => {
+                                playerObj.fixedStatus = 'fixed';
+                                playerObj.lockedCredit = 0;
+                                return playerObj;
+                            });
+                        } else {
+                            playerObj.fixedStatus = 'unnecessary';
                             return playerObj;
-                        });
-                    } else {
-                        playerObj.fixedStatus = 'unnecessary';
-                        return playerObj;
+                        }
                     }
                 }
-            }
-        );
+            );
     }
 
 };

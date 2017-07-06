@@ -98,7 +98,9 @@ var platformSchema = new Schema({
     // user login require captcha verfication
     requireLogInCaptcha: {type: Boolean, default: false},
     //only new system user can login
-    onlyNewCanLogin: {type: Boolean, default: false}
+    onlyNewCanLogin: {type: Boolean, default: false},
+    //if use locked credit
+    useLockedCredit: {type: Boolean, default: false}
 });
 
 //add platform id before save

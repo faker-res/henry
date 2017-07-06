@@ -8430,7 +8430,7 @@ define(['js/app'], function (myApp) {
                     console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                     return true;
                 }
-            })
+            });
 
             const onCreationForm = vm.platformRewardPageName === 'newReward';
 
@@ -8604,6 +8604,29 @@ define(['js/app'], function (myApp) {
                 } else {
                     console.warn("Could not reorder:", rewardType);
                 }
+            } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
+                vm.rewardParams.reward = vm.rewardParams.reward || [];
+                vm.allGames = [];
+
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                    vm.platformProvider = data.data.gameProviders;
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("cannot get gameProvider", data);
+                });
+
+                //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                if (vm.rewardParams.provider) {
+                    socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                        vm.allGames = data.data;
+                        console.log('ok', vm.allGames);
+                        $scope.safeApply();
+                    }, function (data) {
+                        console.log("created not", data);
+                        //vm.rewardTabClicked();
+                    });
+                }
+                $scope.safeApply();
             }
 
             if (onCreationForm) {
@@ -9177,6 +9200,7 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
             vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
             vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
+            vm.platformBasic.useLockedCredit = vm.selectedPlatform.data.useLockedCredit;
             $scope.safeApply();
         }
 
@@ -9422,7 +9446,8 @@ define(['js/app'], function (myApp) {
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
                     bonusCharges: srcData.bonusCharges,
                     requireLogInCaptcha: srcData.requireLogInCaptcha,
-                    onlyNewCanLogin: srcData.onlyNewCanLogin
+                    onlyNewCanLogin: srcData.onlyNewCanLogin,
+                    useLockedCredit: srcData.useLockedCredit
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
