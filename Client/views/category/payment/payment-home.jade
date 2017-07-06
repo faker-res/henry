@@ -33,6 +33,10 @@
                             a.common-tab(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Read')", data-toggle="tab", href="#wechatPayGroup", ng-click="vm.paymentPageName='wechatPayGroup';vm.updatePageTile();")
                                 img.margin-right-5(src='images/icon/wechatPayBlue.png')
                                 text.span {{"WechatPay" | translate}}
+                        li
+                            a.common-tab(ng-if="checkViewPermission('Payment', 'QuickPayGroup', 'Read')", data-toggle="tab", href="#quickPayGroup", ng-click="vm.paymentPageName='quickPayGroup';vm.updatePageTile();")
+                                .fa.fa-forward.margin-right-5
+                                text.span {{"QuickPay" | translate}}
 
                 .panel-body.common-right-panel-body
                     div.tab-content
@@ -44,4 +48,6 @@
                             include ./payment-alipayGroup
                         #wechatPayGroup.tab-pane.fade
                             include ./payment-wechatPayGroup
+                        #quickPayGroup.tab-pane.fade
+                            include ./payment-quickPayGroup
 #dialogFrame.dialog-frame
