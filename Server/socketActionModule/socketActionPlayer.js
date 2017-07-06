@@ -291,9 +291,9 @@ function socketActionPlayer(socketIO, socket) {
          */
         resetPlayerPassword: function resetPlayerPassword(data) {
             let actionName = arguments.callee.name;
-            let randomPSW = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-            let isValidData = Boolean(data && data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.resetPlayerPassword, [data.playerId, randomPSW, data.platform, data.resetPartnerPassword], actionName, isValidData);
+            let newPassword = (data && data.newPassword) ? data.newPassword : chance.hash({length: constSystemParam.PASSWORD_LENGTH});
+            let isValidData = Boolean(data && data.playerId && newPassword && newPassword.length >= 6);
+            socketUtil.emitter(self.socket, dbPlayerInfo.resetPlayerPassword, [data.playerId, newPassword, data.platform, data.resetPartnerPassword], actionName, isValidData);
         },
 
         // /**

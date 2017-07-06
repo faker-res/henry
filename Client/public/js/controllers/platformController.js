@@ -3905,6 +3905,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initResetPlayerPasswordModal = () => {
+            vm.customNewPassword = "";
             vm.playerNewPassword = "";
             vm.resetPartnerNewPassword = false;
         };
@@ -3914,7 +3915,8 @@ define(['js/app'], function (myApp) {
 
             let queryObj = {
                 playerId: vm.isOneSelectedPlayer()._id,
-                platform: vm.isOneSelectedPlayer().platform
+                platform: vm.isOneSelectedPlayer().platform,
+                newPassword: vm.customNewPassword
             };
 
             if (vm.resetPartnerNewPassword) {
