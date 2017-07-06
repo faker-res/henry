@@ -121,6 +121,7 @@ define(['js/app'], function (myApp) {
             vm.loadAlipayGroupData();
             vm.loadWechatPayGroupData();
             vm.getAllPlayerLevels();
+            vm.loadQuickPayGroupData();
             $scope.safeApply();
         };
 
@@ -431,6 +432,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.playerToGroupFilter = function (newSearch, which, id) {
+            console.log("playerToGroupFilter",newSearch,which,id);
             if (!which) {
                 which = vm.playerToGroupFilterObj.which;
             }
@@ -453,6 +455,15 @@ define(['js/app'], function (myApp) {
             if (vm.playerToGroupFilterObj.which = 'bankCardGroup' && vm.playerToGroupFilterObj.filter.bankCardGroup != "all") {
                 query.bankCardGroup = vm.playerToGroupFilterObj.filter.bankCardGroup;
             }
+            if (vm.playerToGroupFilterObj.which = 'alipayGroup' && vm.playerToGroupFilterObj.filter.alipayGroup != "all") {
+                query.alipayGroup = vm.playerToGroupFilterObj.filter.alipayGroup;
+            }
+            if (vm.playerToGroupFilterObj.which = 'wechatPayGroup' && vm.playerToGroupFilterObj.filter.wechatPayGroup != "all") {
+                query.wechatPayGroup = vm.playerToGroupFilterObj.filter.wechatPayGroup;
+            }
+            if (vm.playerToGroupFilterObj.which = 'quickPayGroup' && vm.playerToGroupFilterObj.filter.quickPayGroup != "all") {
+                query.quickPayGroup = vm.playerToGroupFilterObj.filter.quickPayGroup;
+            }
 
             if (vm.playerToGroupFilterObj.which = 'validCredit' && vm.playerToGroupFilterObj.filter.validCredit != "all") {
                 query.validCredit = vm.playerToGroupFilterObj.filter.validCredit;
@@ -474,6 +485,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawPlayerAttachTable = function (newSearch, data, size) {
+            console.log("drawPlayerAttachTable",data);
             let tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
                 data: data,
                 columnDefs: [
@@ -572,6 +584,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: "<div>" + $translate('WechatPay Group') + "</div>",
                         "data": $translate('wechatPayGroup.name') || '',
+                        "sClass": "alignCenter"
+                    },
+                    {
+                        title: "<div>" + $translate('QuickPay Group') + "</div>",
+                        "data": $translate('quickPayGroup.name') || '',
                         "sClass": "alignCenter"
                     }
                 ],
@@ -1116,6 +1133,208 @@ define(['js/app'], function (myApp) {
         }
 
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
+    
+        /////////////////////////////////////// QuickPay Group start  /////////////////////////////////////////////////
+        vm.QuickPayGroupTabClicked = function () {
+
+        }
+
+        vm.loadQuickPayGroupData = function () {
+            //init gametab start===============================
+            vm.showQuickPayCate = "include";
+            vm.curGame = null;
+            //init gameTab end==================================
+            if (!vm.selectedPlatform) {
+                return
+            }
+            console.log("getQuickPays", vm.selectedPlatform.id);
+            socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                console.log('QuickPaygroup', data);
+                //provider list init
+                vm.platformQuickPayGroupList = data.data;
+                vm.platformQuickPayGroupListCheck = {};
+                $.each(vm.platformQuickPayGroupList, function (i, v) {
+                    vm.platformQuickPayGroupListCheck[v._id] = true;
+                })
+                $scope.safeApply();
+            })
+        }
+
+        vm.addQuickPayGroup = function (data) {
+            console.log('vm.newQuickPayGroup', vm.newQuickPayGroup);
+            //vm.selectGameGroupParent
+            var sendData = {
+                platform: vm.selectedPlatform.id,
+                name: vm.newQuickPayGroup.name,
+                code: vm.newQuickPayGroup.code,
+                displayName: vm.newQuickPayGroup.displayName
+            }
+            socketService.$socket($scope.AppSocket, 'addPlatformQuickPayGroup', sendData, function (data) {
+                console.log("addPlatformQuickPayGroup",data.data);
+                vm.loadQuickPayGroupData();
+                $scope.safeApply();
+            })
+        }
+
+        vm.QuickPayGroupClicked = function (i, QuickPayGroup) {
+            vm.SelectedQuickPayGroupNode = QuickPayGroup;
+            vm.includedQuickPays = null;
+            vm.excludedQuickPays = null;
+            console.log('QuickPayGroup clicked', QuickPayGroup);
+            var query = {
+                platform: vm.selectedPlatform.data.platformId,
+                quickPayGroup: QuickPayGroup._id
+            }
+            socketService.$socket($scope.AppSocket, 'getIncludedQuickPayByQuickPayGroup', query, function (data2) {
+                console.log("attached QuickPays", data2);
+                if (data2 && data2.data) {
+                    vm.includedQuickPays = [];
+                    $.each(data2.data, function (i, v) {
+                        if (vm.filterQuickPayTitle && v.name.indexOf(vm.filterQuickPayTitle) == -1) {
+
+                        } else if (vm.filterQuickPayAcc && v.accountNumber.indexOf(vm.filterQuickPayAcc) == -1) {
+
+                        } else {
+                            vm.includedQuickPays.push(v);
+                        }
+                    });
+
+                } else {
+                    vm.includedQuickPays = [];
+                }
+                $scope.safeApply();
+            })
+
+            socketService.$socket($scope.AppSocket, 'getExcludedQuickPayByQuickPayGroup', query, function (data2) {
+                console.log("not attached QuickPays", data2);
+                if (data2 && data2.data) {
+                    vm.excludedQuickPays = data2.data;
+                } else {
+                    vm.excludedQuickPays = [];
+                }
+                $scope.safeApply();
+            })
+        }
+
+        vm.removeQuickPayGroup = function (node) {
+            console.log('to del node', node);
+            socketService.$socket($scope.AppSocket, 'deleteQuickPayGroup', {_id: node._id}, function (data) {
+                console.log(data.data);
+                vm.loadQuickPayGroupData();
+                $scope.safeApply();
+            })
+        }
+        
+        vm.initRenameQuickPayGroup = function () {
+            vm.newQuickPayGroup = {};
+            vm.newQuickPayGroup.name = vm.SelectedQuickPayGroupNode.name;
+            vm.newQuickPayGroup.displayName = vm.SelectedQuickPayGroupNode.displayName;
+            vm.newQuickPayGroup.code = vm.SelectedQuickPayGroupNode.code;
+        }
+
+        vm.renameQuickPayGroup = function () {
+            var sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    name: vm.SelectedQuickPayGroupNode.groupId
+                },
+                update: {
+                    name: vm.newQuickPayGroup.name,
+                    displayName: vm.newQuickPayGroup.displayName,
+                    code: vm.newQuickPayGroup.code
+                }
+            }
+            socketService.$socket($scope.AppSocket, 'renamePlatformQuickPayGroup', sendData, function (data) {
+                console.log(data.data);
+                vm.loadQuickPayGroupData();
+                $scope.safeApply();
+            })
+        }
+
+        vm.submitDefaultQuickPayGroup = function () {
+            console.log('vm.defaultQuickPayGroup', vm.defaultQuickPayGroup);
+            var sendData = {
+                platform: vm.selectedPlatform.id,
+                default: vm.defaultQuickPayGroup
+            }
+            socketService.$socket($scope.AppSocket, 'setPlatformDefaultQuickPayGroup', sendData, function (data) {
+                vm.loadQuickPayGroupData();
+            })
+        }
+
+        vm.QuickPayClicked = function (i, v, which) {
+            console.log('QuickPay clicked', i, v, which);
+            vm.highlightQuickPay = {};
+            vm.highlightQuickPay[v.QuickPayNo] = 'bg-pale'
+            vm.curQuickPay = v;
+        }
+
+        vm.QuickPaytoQuickPayGroup = function (type) {
+            var sendData = {
+                query: {
+                    platform: vm.selectedPlatform.id,
+                    _id: vm.SelectedQuickPayGroupNode._id
+                }
+            }
+            if (type === 'attach') {
+                sendData.update = {
+                    "$push": {
+                        quickpays: vm.curQuickPay.accountNumber
+                    }
+                }
+            } else if (type === 'detach') {
+                sendData.update = {
+                    "$pull": {
+                        quickpays: vm.curQuickPay.accountNumber
+                    }
+                }
+            }
+
+            console.log(sendData);
+            socketService.$socket($scope.AppSocket, 'updatePlatformQuickPayGroup', sendData, success);
+            function success(data) {
+                vm.curQuickPay = null;
+                console.log(data);
+                vm.QuickPayGroupClicked(0, vm.SelectedQuickPayGroupNode);
+                $scope.safeApply();
+            }
+        }
+        
+        vm.submitAddPlayersToQuickPayGroup = function () {
+            var playerArr = [], data = vm.attachPlayerTable.rows('.selected').data();
+
+            data.each(a => {
+                playerArr.push(a._id);
+            })
+            var sendData = {
+                bankQuickPayGroupObjId: vm.SelectedQuickPayGroupNode._id,
+                playerObjIds: playerArr
+            }
+            socketService.$socket($scope.AppSocket, 'addPlayersToQuickPayGroup', sendData, function (data) {
+                // vm.getPlatformPlayersData();
+                $scope.safeApply();
+            });
+        }
+
+        vm.submitAddAllPlayersToQuickPayGroup = function () {
+            let sendData = {
+                bankQuickPayGroupObjId: vm.SelectedQuickPayGroupNode._id,
+                platformObjId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'addAllPlayersToQuickPayGroup', sendData, function (data) {
+                if (data.data) {
+                    console.log("submitAddAllPlayersToQuickPayGroup",data.data);
+                    if (data.data.quickPayGroup == vm.SelectedQuickPayGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
+                        vm.addAllPlayerToQuickPayResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
+                    } else {
+                        vm.addAllPlayerToQuickPayResult = JSON.stringify(data.data.error);
+                    }
+                    $scope.safeApply();
+                }
+            });
+        }
+
+        /////////////////////////////////////// QuickPay Group end  /////////////////////////////////////////////////
 
         /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
         vm.loadWechatPayGroupData = function () {
