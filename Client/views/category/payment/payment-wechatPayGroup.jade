@@ -231,7 +231,7 @@
                                 label {{'CREDIT' | translate}}
                                 input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.validCredit')
                             .inlineBlk
-                                button.btn.btn-primary.common-button(ng-click='vm.playerToGroupFilter(true,"alipay")') {{'SEARCH' | translate}}
+                                button.btn.btn-primary.common-button(ng-click='vm.playerToGroupFilter(true,"wechat")') {{'SEARCH' | translate}}
                             .inlineBlk(ng-show='vm.loadingPlayerTable')
                                 label.blink.text-danger {{'Loading' | translate}}
                         text.text-danger(ng-show='vm.players.length==0') {{"No player is found."|translate}}
