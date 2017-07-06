@@ -11,7 +11,6 @@ let dbPlatformQuickPayGroup = {
      * @param {String}  name, code, displayName
      */
     addPlatformQuickPayGroup: function (platform, name, code, displayName) {
-        console.log(platform,name,code,displayName);
         let QuickPayGroup = new dbconfig.collection_platformQuickPayGroup({
             groupId: name,
             name: name,
