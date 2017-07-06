@@ -38,7 +38,9 @@ var roleChecker = {
         'deleteMerchantGroup', 'addPlatformAlipayGroup',
         'renamePlatformAlipayGroup', 'setPlatformDefaultAlipayGroup', 'getPlayerForAttachGroup', 'addPlayersToAlipayGroup',
         'deleteAlipayGroup', 'updateGameProvider', 'startProviderDailySettlement', 'delayManualTopupRequest', 'createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig',
-        'applyPartnerBonusRequest', 'addPlatformWechatPayGroup'
+        'applyPartnerBonusRequest', 'addPlatformWechatPayGroup',
+        'getPlatformQuickPayGroup','addPlatformQuickpayGroup','renamePlatformQuickpayGroup', 'setPlatformDefaultQuickpayGroup', 'getPlayerForAttachGroup', 'addPlayersToQuickpayGroup',
+        'deleteQuickpayGroup','addPlayersToQuickpayGroup','addAllPlayersToQuickpayGroup'
     ],
 
     publicActions: {
@@ -115,6 +117,9 @@ var roleChecker = {
         "playerTopUp": true,
         'applyRewardEvent': true,
         'getPlayerCurRewardTaskDetailByPlayerId': true,
+        'getIncludedQuickPayByQuickPayGroup': true,
+        'getExcludedQuickPayByQuickPayGroup': true,
+        "updatePlatformQuickPayGroup": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
@@ -220,7 +225,8 @@ var roleChecker = {
                 WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
                 RewardSettlement: ['startPlatformRewardEventSettlement'],
                 SettlementHistory: ['getSettlementHistory'],
-                PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement']
+                PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
+                transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider']
             },
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
@@ -383,7 +389,7 @@ var roleChecker = {
                 AddAllPlayer: ['addAllPlayersToMerchantGroup']
             },
             "AlipayGroup": {
-                Read: ['getPlatformWechatPayGroup'],
+                Read: ['getPlatformAliPayGroup'],
                 Create: ['addPlatformAlipayGroup'],
                 Update: ['renamePlatformAlipayGroup', 'setPlatformDefaultAlipayGroup', 'getPlayerForAttachGroup', 'addPlayersToAlipayGroup'],
                 Delete: ["deleteAlipayGroup"],
@@ -397,6 +403,14 @@ var roleChecker = {
                 Delete: ["deleteWechatPayGroup"],
                 AddPlayer: ['addPlayersToWechatPayGroup'],
                 AddAllPlayer: ['addAllPlayersToWechatPayGroup']
+            },
+            "QuickPayGroup": {
+                Read: ['getPlatformQuickPayGroup'],
+                Create: ['addPlatformQuickpayGroup'],
+                Update: ['renamePlatformQuickpayGroup', 'setPlatformDefaultQuickpayGroup', 'getPlayerForAttachGroup', 'addPlayersToQuickpayGroup'],
+                Delete: ['deleteQuickpayGroup'],
+                AddPlayer: ['addPlayersToQuickpayGroup'],
+                AddAllPlayer: ['addAllPlayersToQuickpayGroup']
             }
         },
         Provider: {
