@@ -1802,7 +1802,7 @@ let dbPlayerInfo = {
                     return true;
 
                 } else {
-                    if (!playerData.platform.canMultiReward) {
+                    if (!playerData.platform.canMultiReward && playerData.platform.useLockedCredit) {
                         return dbRewardTask.getPlayerCurRewardTask(playerData._id);
                     }
                     else {
@@ -2277,7 +2277,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: playerData._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
@@ -2589,7 +2590,8 @@ let dbPlayerInfo = {
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
                 playerId: thisPlayer._id,
-                status: constRewardTaskStatus.STARTED
+                status: constRewardTaskStatus.STARTED,
+                useLockedCredit: true
             }).then(
                 rewardData => {
                     thisPlayer.rewardInfo = rewardData;
@@ -7048,11 +7050,12 @@ let dbPlayerInfo = {
                     platformId = player.platform;
 
                     let taskProm;
-                    if (!player.platform.canMultiReward) {
+                    if (!player.platform.canMultiReward && player.platform.useLockedCredit) {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
@@ -7139,9 +7142,13 @@ let dbPlayerInfo = {
                 rewardAmount = Math.min((record.amount * rewardParam.rewardPercentage), rewardParam.maxRewardAmount);
                 deductionAmount = record.amount;
 
-                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record).then(
-                    function () {
-                        bDoneDeduction = true;
+                let creditProm = Q.resolve(false);
+                if (player.platform.useLockedCredit) {
+                    creditProm = dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record);
+                }
+                creditProm.then(
+                    function (bDeduct) {
+                        bDoneDeduction = bDeduct;
 
                         var proposalData = {
                             type: eventData.executeProposal,
@@ -7253,7 +7260,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
@@ -7589,7 +7597,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit
                             }
                         );
                     }
@@ -8386,7 +8395,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }

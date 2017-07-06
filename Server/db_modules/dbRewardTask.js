@@ -37,7 +37,7 @@ var dbRewardTask = {
                 return dbRewardTask.getPlayerCurRewardTask(rewardData.playerId);
             }
         ).then(data => {
-            if (data && !data.platformId.canMultiReward) {
+            if (data && !data.platformId.canMultiReward && data.platformId.useLockedCredit) {
                 return Q.reject({
                     status: constServerCode.PLAYER_HAS_REWARD_TASK,
                     message: "The player has not unlocked the previous reward task. Not valid for new reward"
@@ -83,8 +83,8 @@ var dbRewardTask = {
                             {lockedCredit: rewardData.initAmount}
                         ).exec();
                     }
-                    return Promise.all([taskProm, playerProm]);
                 }
+                return Promise.all([taskProm, playerProm]);
             }
         ).then(
             data => {

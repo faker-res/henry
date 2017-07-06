@@ -1067,7 +1067,7 @@ define(['js/app'], function (myApp) {
             settleProvidersInList(providersToSettle, settlementDate).then(
                 settlementResult => {
                     // Fetch report
-                    vm.operationReportLoadingStatus = settlementResult.failureReportMessage + $translate("Fetching report");
+                    vm.operationReportLoadingStatus = (settlementResult.failureReportMessage || "") + $translate("Fetching report");
                     $scope.safeApply();
 
                     console.log("vm.curQueryOperation", vm.curQueryOperation);
@@ -1460,7 +1460,7 @@ define(['js/app'], function (myApp) {
             settleProvidersInList(providersToSettle, endTime).then(
                 settlementResult => {
                     // Fetch the report
-                    vm.operationReportLoadingStatus = settlementResult.failureReportMessage + $translate("Fetching report");
+                    vm.operationReportLoadingStatus = (settlementResult.failureReportMessage || "") + $translate("Fetching report");
                     $scope.safeApply();
 
                     var sendData = {
