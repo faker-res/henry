@@ -100,6 +100,7 @@ var playerSchema = new Schema({
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},
         alipayTransaction: {type: Boolean, default: true},
+        quickpayTransaction: {type: Boolean, default: true},
         banReward: {type: Boolean, default: false},
         disableWechatPay: {type: Boolean, default: false},
         forbidPlayerConsumptionReturn: {type: Boolean, default: false},
@@ -186,6 +187,8 @@ var playerSchema = new Schema({
     alipayGroup: {type: Schema.ObjectId, ref: 'platformAlipayGroup'},
     //wechat pay group
     wechatPayGroup: {type: Schema.ObjectId, ref: 'platformWechatPayGroup'},
+    //quickPay group
+    quickPayGroup: {type: Schema.ObjectId, ref: 'platformQuickPayGroup'},
     //forbid top up types
     forbidTopUpType: [{type: String}],
     //reward info
