@@ -2530,8 +2530,7 @@ let dbPlayerInfo = {
         }).populate({
             path: "alipayGroup",
             model: dbconfig.collection_platformAlipayGroup
-        })
-        lean().exec();
+        }).lean().exec();
     },
 
     getPaymentPlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
