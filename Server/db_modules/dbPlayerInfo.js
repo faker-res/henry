@@ -2557,6 +2557,9 @@ let dbPlayerInfo = {
                         }).populate({
                             path: "wechatPayGroup",
                             model: dbconfig.collection_platformWechatPayGroup
+                        }).populate({
+                            path: "quickPayGroup",
+                            model: dbconfig.collection_platformQuickPayGroup
                         }).lean())
                 })
                 return Q.all(proms).then(newPlayer => {
