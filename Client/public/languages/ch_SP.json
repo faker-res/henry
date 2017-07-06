@@ -1995,7 +1995,7 @@
   "USE_LOCK_CREDIT": "使用锁定额度",
   "Probability": "机率",
   "Reward parameter": "奖励参数",
-  "Required Consumption Amount Times": "需求投注次数",
+  "Required Consumption Amount Times": "需求投注倍数",
   "Min top up amount": "最低充值额度",
   "Player Easter Egg Reward": "彩蛋奖励",
   "PLAYER_EASTER_EGG_REWARD_REPORT": "彩蛋奖励报表"
