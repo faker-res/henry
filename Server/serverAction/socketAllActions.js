@@ -31,7 +31,8 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionPlatformAnnouncement'),
     require('./../socketActionModule/socketActionPlayerMail'),
     require('./../socketActionModule/socketActionReport'),
-    require('./../socketActionModule/socketActionTestRewardEvent')
+    require('./../socketActionModule/socketActionTestRewardEvent'),
+    require('./../socketActionModule/socketActionQuickPayGroup'),
 ];
 
 var socketActions = [
