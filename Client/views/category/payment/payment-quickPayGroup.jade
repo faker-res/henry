@@ -1,0 +1,257 @@
+.col-sm-12(ng-if='!vm.curPlatformText')
+    .text-center
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+.row(ng-if='vm.curPlatformText')
+    .col-md-3
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"QuickPay Group" | translate}}
+            .panel-body
+                div(ng-if='!vm.platformQuickPayGroupList || vm.platformQuickPayGroupList.length==0', style="height: 50px; overflow-y: auto;")
+                    label.text-danger {{"No QuickPay Group" | translate}}
+                ul.list-group(ng-if='vm.platformQuickPayGroupList.length > 0', style="height: 430px; overflow-y: auto;")
+                    li.list-group-item(ng-repeat='(i,QuickPayGroup) in vm.platformQuickPayGroupList', ng-click='vm.QuickPayGroupClicked(i,QuickPayGroup)', ng-class='{active: vm.SelectedQuickPayGroupNode === QuickPayGroup}')
+                        text {{QuickPayGroup.name}}
+                        i.fa.fa-star.pull-right.margin-right-5(ng-show='QuickPayGroup.bDefault')
+                .btn-group.text-center(style="border-radius:9px",role="group")
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'QuickPayGroup', 'Create')", data-toggle="modal", ng-click='vm.newQuickPayGroup={};', data-target='#modalAddQuickPayGroup')
+                        text {{"ADD" | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'QuickPayGroup', 'Delete')", ng-disabled="!vm.selectedPlatform || !vm.SelectedQuickPayGroupNode", data-toggle="modal", data-target='#modalRemoveQuickPayGroup', ng-click='')
+                        text {{"DELETE" | translate}}
+                        img.img-delete
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'QuickPayGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !vm.SelectedQuickPayGroupNode", data-toggle="modal", data-target='#modalRenameQuickPayGroup', ng-click='vm.initRenameQuickPayGroup()')
+                        text {{"EDIT" | translate}}
+                        img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'QuickPayGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformQuickPayGroupList.length>0)", data-toggle="modal", data-target='#modalSetQuickPayGroupDefault')
+                        text {{"Default" | translate}}
+                        img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'QuickPayGroup', 'Create')", ng-disabled="!vm.selectedPlatform || !vm.SelectedQuickPayGroupNode", data-toggle="modal", data-target='#modalAddPlayersToQuickPayGroup', ng-click='vm.preparePlayerToGroupDialog("QuickPayGroup","#playertoQuickPayGroupDataTable")')
+                        text {{"ADD_PLAYER" | translate}}
+                        img.img-create
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'QuickPayGroup', 'AddAllPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedQuickPayGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToQuickPayGroup', ng-click='vm.addAllPlayerToQuickPayResult=""')
+                        text {{"ADD_ALL_PLAYER" | translate}}
+                        img.img-create
+                    //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
+                    //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedQuickPayGroupNode", ng-click='vm.confirmDetachProvider()')
+                    //    text {{"DETACH" | translate}}
+                    //    .fa.fa-chain-broken
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary(style="min-height:610px")
+            .panel-heading.panel-heading-sm
+                label {{"QuickPay Group" | translate}} : {{vm.SelectedQuickPayGroupNode.name}} ({{vm.SelectedQuickPayGroupNode.displayName}})
+            .panel-body
+                .text-center(ng-if='!vm.SelectedQuickPayGroupNode')
+                    label.text-danger {{"NO_MERCHANT_GROUP_MESSAGE" | translate}}
+                .well
+                    .inlineBlk.margin-right-5
+                        .control-label {{"TITLE" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterQuickPayTitle')
+                    .inlineBlk.margin-right-5
+                        .control-label {{"ACCOUNT" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterQuickPayAcc')
+                    .inlineBlk
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.QuickPayGroupClicked(1,vm.SelectedQuickPayGroupNode)") {{"FILTER" | translate}}
+                #QuickPayList.panel-group(ng-if='vm.SelectedQuickPayGroupNode')
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#QuickPayList", href='#includedQuickpays', ng-click='vm.showQuickPayCate="include";vm.toggleBankType()')
+                            h4.panel-title
+                                text {{'Included QuickPay' | translate}}
+                                span(ng-if='vm.includedQuickpays') &nbsp;:&nbsp;({{vm.includedQuickpays.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.includedQuickpays') {{'loading QuickPay' | translate}}...
+                        #includedQuickpays.panel-collapse.collapse.in
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedQuickpays', class='{{vm.highlightQuickPay[v.accountNumber]}}', ng-click='vm.QuickPayClicked(i,v,"in")')
+                                    table.bg-pale
+                                        tr
+                                            td.text-center(rowspan="5")
+                                                i.fa.fa-money.text-danger
+                                            td {{'TITLE' | translate}}
+                                            td.text-success {{v.name}}
+                                        tr
+                                            td {{'ACCOUNT' | translate}}
+                                            td.text-success {{v.accountNumber}}
+                                        tr
+                                            td {{'QUOTA' | translate}}
+                                            td.text-success {{v.quota}}
+                    .panel.panel-default
+                        .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#QuickPayList", href='#excludedQuickPays', ng-click='vm.showQuickPayCate="exclude";vm.toggleBankType()')
+                            h4.panel-title
+                                text {{'Excluded QuickPays' | translate}}
+                                span(ng-if='vm.excludedQuickPays') &nbsp;:&nbsp;({{vm.excludedQuickPays.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.excludedQuickPays') {{'loading QuickPays' | translate}}...
+                        #excludedQuickPays.panel-collapse.collapse
+                            .panel-body(style='height:250px;overflow-y:auto')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.excludedQuickPays', class='{{vm.highlightQuickPay[v.accountNumber]}}', ng-click='vm.QuickPayClicked(i,v,"ex")')
+                                    table.bg-pale
+                                        tr
+                                            td.text-center(rowspan="5")
+                                                i.fa.fa-money.text-danger
+                                            td {{'TITLE' | translate}}
+                                            td.text-success {{v.name}}
+                                        tr
+                                            td {{'ACCOUNT' | translate}}
+                                            td.text-success {{v.accountNumber}}
+                                        tr
+                                            td {{'QUOTA' | translate}}
+                                            td.text-success {{v.quota}}
+                .panel.panel-info(ng-if='vm.curQuickPay')
+                    .panel-heading.panel-heading-sm
+                        h4.panel-title(style='display:inline-block') {{'QuickPay' | translate}} : {{vm.curQuickPay.name}}
+                    .panel-body(style='padding:5px')
+                        .QuickPayPropFlex
+                            .QuickPayPropdiv
+                                text {{'QuickPayAccount' | translate}}
+                                label.text-success {{vm.curQuickPay.accountNumber}}
+                            .QuickPayPropdiv
+                                text {{'TITLE' | translate}}
+                                label.text-success {{vm.curQuickPay.name}}
+                div(ng-if='vm.curQuickPay')
+                    div(ng-if='vm.showQuickPayCate=="include"')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'QuickPayGroup', 'Update')", ng-click='vm.QuickPaytoQuickPayGroup("detach")')
+                            i.fa.fa-minus-square
+                            text {{"EXCLUDE" | translate}}
+                    div(ng-if='vm.showQuickPayCate=="exclude"')
+                        button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'QuickPayGroup', 'Update')", ng-click='vm.QuickPaytoQuickPayGroup("attach")')
+                            i.fa.fa-plus-square
+                            text {{"INCLUDE" | translate}}
+
+#modalAddQuickPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add QuickPay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"QuickPay Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newQuickPayGroup.name')
+                            .form-group
+                                .control-label {{"QuickPay Group Display Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newQuickPayGroup.displayName')
+                            .form-group
+                                .control-label {{"QuickPay Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newQuickPayGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.addQuickPayGroup(vm.newQuickPayGroup)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalRemoveQuickPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Remove QuickPay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"QuickPay Group Name" | translate}}
+                                label {{vm.SelectedQuickPayGroupNode.name}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.removeQuickPayGroup(vm.SelectedQuickPayGroupNode)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalRenameQuickPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Rename QuickPay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"QuickPay Group Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newQuickPayGroup.name')
+                            .form-group
+                                .control-label {{"QuickPay Group Display Name" | translate}}
+                                input.form-control(type='text', ng-model='vm.newQuickPayGroup.displayName')
+                            .form-group
+                                .control-label {{"QuickPay Group Code" | translate}}
+                                input.form-control(type='text', ng-model='vm.newQuickPayGroup.code')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.renameQuickPayGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalSetQuickPayGroupDefault.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"QuickPay Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                label.control-label {{"Please choose default QuickPay group" | translate}}
+                                div(ng-repeat='(i,v) in vm.platformQuickPayGroupList')
+                                    label {{v.name}} ({{v.displayName}})
+                                        input.pull-left.margin-right-5(type='radio', name='defaultQuickPayGroup', ng-model='vm.defaultQuickPayGroup', ng-value='v._id')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitDefaultQuickPayGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalAddPlayersToQuickPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        label {{"Add Player to QuickPay group"|translate}}&nbsp;:&nbsp;{{vm.SelectedQuickPayGroupNode.name}}
+                        br
+                        .well
+                            .inlineBlk.margin-right-5
+                                label {{'QuickPay' | translate}}
+                                select.form-control(ng-model='vm.playerToGroupFilterObj.filter.quickPayGroup')
+                                    option(value='all') {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.platformQuickPayGroupList', value='{{v._id}}') {{v.name}}({{v.displayName}})
+                            .inlineBlk.margin-right-5
+                                label {{'PLAYER_LEVEL' | translate}}
+                                select.form-control(ng-model='vm.playerToGroupFilterObj.filter.playerLevel')
+                                    option(value='all') {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                            .inlineBlk.margin-right-5
+                                label {{'USER_NAME' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerToGroupFilterObj.filter.name')
+                            .inlineBlk.margin-right-5
+                                label {{'MIN_TOPUP_TIMES' | translate}}
+                                input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.topUpTimes')
+                            .inlineBlk.margin-right-5
+                                label {{'CREDIT' | translate}}
+                                input.form-control(type='number', ng-model='vm.playerToGroupFilterObj.filter.validCredit')
+                            .inlineBlk
+                                button.btn.btn-primary.common-button(ng-click='vm.playerToGroupFilter(true,"quickpay")') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-show='vm.loadingPlayerTable')
+                                label.blink.text-danger {{'Loading' | translate}}
+                        text.text-danger(ng-show='vm.players.length==0') {{"No player is found."|translate}}
+                        label {{"Total" | translate}} {{vm.playerToGroupFilterObj.totalCount}} {{"records" | translate}}
+                        table#playertoQuickPayGroupDataTable.display(style="width:100%")
+                            thead
+                        #playertoQuickPayGroupDataTablePage
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.submitAddPlayersToQuickPayGroup()") {{"ADD" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+#modalAddAllPlayersToQuickPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            label {{"Add All Player to QuickPay group"|translate}}&nbsp;:&nbsp;{{vm.SelectedQuickPayGroupNode.name}}
+                            br
+                            label {{"Please confirm your action." | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(ng-show='!vm.addAllPlayerToQuickPayResult' ng-click="vm.submitAddAllPlayersToQuickPayGroup()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(ng-show='!vm.addAllPlayerToQuickPayResult' data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-success.common-button(ng-show='vm.addAllPlayerToQuickPayResult' data-dismiss='modal') {{"CONFIRM" | translate}}
+                label(ng-show='vm.addAllPlayerToQuickPayResult') {{vm.addAllPlayerToQuickPayResult}}
