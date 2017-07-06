@@ -131,6 +131,9 @@ var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', par
 let geoIpSchema = require('./../schema/geoip');
 let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 
+let platformQuickPayGroupSchema = require('./../schema/platformQuickPayGroup');
+let platformQuickPayGroupModel = db_admin.model('platformQuickPayGroup', platformQuickPayGroupSchema, 'platformQuickPayGroup');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -315,6 +318,7 @@ var dbProperties = {
     collection_platformMerchantGroup: platformMerchantGroupModel,
     collection_platformAlipayGroup: platformAlipayGroupModel,
     collection_platformWechatPayGroup: platformWechatPayGroupModel,
+    collection_platformQuickPayGroup: platformQuickPayGroupModel,
 
     collection_gameType: gameTypeModel,
     collection_game: gameModel,
