@@ -117,8 +117,8 @@ var roleChecker = {
         "playerTopUp": true,
         'applyRewardEvent': true,
         'getPlayerCurRewardTaskDetailByPlayerId': true,
-        'getIncludedQuickPayByQuickPayGroup': true,
-        'getExcludedQuickPayByQuickPayGroup': true,
+        'getIncludedQuickPaysByQuickPayGroup': true,
+        'getExcludedQuickPaysByQuickPayGroup': true,
         "updatePlatformQuickPayGroup": true,
 
         // API Actions - can be ignored

@@ -1185,7 +1185,7 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.data.platformId,
                 quickPayGroup: QuickPayGroup._id
             }
-            socketService.$socket($scope.AppSocket, 'getIncludedQuickPayByQuickPayGroup', query, function (data2) {
+            socketService.$socket($scope.AppSocket, 'getIncludedQuickPaysByQuickPayGroup', query, function (data2) {
                 console.log("attached QuickPays", data2);
                 if (data2 && data2.data) {
                     vm.includedQuickPays = [];
@@ -1205,7 +1205,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             })
 
-            socketService.$socket($scope.AppSocket, 'getExcludedQuickPayByQuickPayGroup', query, function (data2) {
+            socketService.$socket($scope.AppSocket, 'getExcludedQuickPaysByQuickPayGroup', query, function (data2) {
                 console.log("not attached QuickPays", data2);
                 if (data2 && data2.data) {
                     vm.excludedQuickPays = data2.data;

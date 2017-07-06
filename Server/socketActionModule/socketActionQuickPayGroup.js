@@ -49,20 +49,20 @@ function socketActionQuickPayGroup(socketIO, socket) {
          * Get all the games by platform and the BankCardGroup
          * @param {json} data - query data
          */
-        getIncludedQuickPayByQuickPayGroup: function getIncludedQuickPayByQuickPayGroup(data) {
+        getIncludedQuickPaysByQuickPayGroup: function getIncludedQuickPaysByQuickPayGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.quickPayGroup);
-            socketUtil.emitter(self.socket, dbPlatformQuickPayGroup.getIncludedQuickPayByQuickPayGroup, [data.platform, data.quickPayGroup], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformQuickPayGroup.getIncludedQuickPaysByQuickPayGroup, [data.platform, data.quickPayGroup], actionName, isValidData);
         },
 
         /**
          * Get all the games which are not in this BankCardGroup
          * @param {json} data - query data
          */
-        getExcludedQuickPayByQuickPayGroup: function getExcludedQuickPayByQuickPayGroup(data) {
+        getExcludedQuickPaysByQuickPayGroup: function getExcludedQuickPaysByQuickPayGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.quickPayGroup);
-            socketUtil.emitter(self.socket, dbPlatformQuickPayGroup.getExcludedQuickPayByQuickPayGroup, [data.platform, data.quickPayGroup], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformQuickPayGroup.getExcludedQuickPaysByQuickPayGroup, [data.platform, data.quickPayGroup], actionName, isValidData);
         },
 
         /**
