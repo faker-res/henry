@@ -1801,7 +1801,7 @@ let dbPlayerInfo = {
                     return true;
 
                 } else {
-                    if (!playerData.platform.canMultiReward) {
+                    if (!playerData.platform.canMultiReward && playerData.platform.useLockedCredit) {
                         return dbRewardTask.getPlayerCurRewardTask(playerData._id);
                     }
                     else {
@@ -2276,7 +2276,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: playerData._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
@@ -7051,7 +7052,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
@@ -7252,7 +7254,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
@@ -7588,7 +7591,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit
                             }
                         );
                     }
@@ -8385,7 +8389,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
