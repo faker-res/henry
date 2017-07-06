@@ -421,6 +421,9 @@ define(['js/app'], function (myApp) {
                     playerLevel: 'all',
                     merchantGroup: 'all',
                     bankCardGroup: 'all',
+                    alipayGroup: 'all',
+                    wechatPayGroup: 'all',
+                    quickPayGroup: 'all'
                 }
             };
             utilService.actionAfterLoaded(id + "Page", function () {
