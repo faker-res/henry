@@ -291,6 +291,13 @@
         this._service.getAlipaySingleLimit.once(callback);
     };
 
+    proto.requestQuickpayTopup = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.requestQuickpayTopup.request(data);
+        this._service.requestQuickpayTopup.once(callback);
+    };
+
+
     if (isNode) {
         module.exports = ClientPaymentAPITest;
     } else {

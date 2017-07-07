@@ -1628,7 +1628,7 @@ var dbPlayerTopUpRecord = {
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "quickPayGroup", model: dbconfig.collection_platformQuickPayGroup}).then(
                 playerData => {
-                    if (playerData && playerData.platform && playerData.quickpayGroup && playerData.quickPayGroup.quickpays && playerData.quickPayGroup.quickpays.length > 0) {
+                    if (playerData && playerData.platform && playerData.quickPayGroup && playerData.quickPayGroup.quickpays && playerData.quickPayGroup.quickpays.length > 0) {
                         player = playerData;
                         let minTopUpAmount = playerData.platform.minTopUpAmount || 0;
                         if (amount < minTopUpAmount) {
@@ -1638,13 +1638,13 @@ var dbPlayerTopUpRecord = {
                                 errorMessage: "Top up amount is not enough"
                             });
                         }
-                        if (!playerData.permission || !playerData.permission.quickpayTransaction) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_NO_PERMISSION,
-                                name: "DataError",
-                                errorMessage: "Player does not have this permission"
-                            });
-                        }
+                        // if (!playerData.permission || !playerData.permission.quickpayTransaction) {
+                        //     return Q.reject({
+                        //         status: constServerCode.PLAYER_NO_PERMISSION,
+                        //         name: "DataError",
+                        //         errorMessage: "Player does not have this permission"
+                        //     });
+                        // }
                         let proposalData = {};
                         proposalData.playerId = playerId;
                         proposalData.playerObjId = playerData._id;
