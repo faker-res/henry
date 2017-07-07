@@ -357,13 +357,13 @@ function checkProposalConsumption(proposal, platformObj) {
                             }
                             else {
                                 // Check if player is VIP - Passed
-                                if (proposal.data.proposalPlayerLevel == constPlayerLevel.NORMAL) {
+                                if (proposal.data.proposalPlayerLevelValue > 0) {
                                     // DISABLED FOR CSTEST
                                     // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.FAIL, proposal.data.bonusId, "Exceed Auto Approval Repeat Limit");
-                                    sendToAudit(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出自动审核回圈次数");
+                                    sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出自动审核回圈次数，流水不够", checkMsg);
                                 }
                                 else {
-                                    sendToAudit(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出自动审核回圈次数");
+                                    sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出自动审核回圈次数，流水不够", checkMsg);
                                 }
                             }
                         }
@@ -616,6 +616,36 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                 status: constProposalStatus.APPROVED,
                                 'data.remark': 'Auto Approval Approved: ' + remark,
                                 'data.remarkChinese': '自动审核成功：' + remarkChinese,
+                                'data.autoAuditCheckMsg': processRemark
+                            },
+                            {new: true}
+                        );
+                    }
+                );
+            }
+        }
+    );
+}
+
+function sendToReject(proposalObjId, createTime, remark, remarkChinese, processRemark) {
+    processRemark = processRemark ? processRemark : "";
+
+    dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
+        path: "type",
+        model: dbconfig.collection_proposalType
+    }).lean().then(
+        proposalData => {
+            if (proposalData) {
+                return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
+                    res => {
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {
+                                noSteps: true,
+                                process: null,
+                                status: constProposalStatus.REJECTED,
+                                'data.remark': 'Auto Approval Denied: ' + remark,
+                                'data.remarkChinese': '自动审核失败：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark
                             },
                             {new: true}
