@@ -1691,12 +1691,12 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
-                            realName: quickpayName,//player.realName || "",
+                            realName: quickpayName || player.realName || "",
                             amount: amount,
                             groupMfbList: player.quickPayGroup ? player.quickPayGroup.quickpays : [],
-                            // remark: remark,
+                            remark: quickpayName || player.realName || "",
                             // createTime: cTimeString,
-                            // operateType: entryType == "ADMIN" ? 1 : 0
+                            operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         if (quickpayAccount) {
                             requestData.groupQuickpayList = [quickpayAccount];
