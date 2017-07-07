@@ -6496,6 +6496,71 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         }
+
+        // quickpay topup
+        vm.initPlayerQuickpayTopUp = function () {
+            vm.playerQuickpayTopUp = {submitted: false};
+            vm.existingQuickpayTopup = null;
+            socketService.$socket($scope.AppSocket, 'getQuickpayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
+                data => {
+                    vm.existingQuickpayTopup = data.data ? data.data : false;
+                    $scope.safeApply();
+                });
+            utilService.actionAfterLoaded('#modalPlayerQuickpayTopUp', function () {
+                vm.playerQuickpayTopUp.createTime = utilService.createDatePicker('#modalPlayerQuickpayTopUp .createTime');
+                vm.playerQuickpayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
+            });
+            $scope.safeApply();
+        };
+
+        vm.applyPlayerQuickpayTopUp = () => {
+            let sendData = {
+                playerId: vm.isOneSelectedPlayer().playerId,
+                amount: vm.playerQuickpayTopUp.amount,
+                quickpayName: vm.playerQuickpayTopUp.quickpayName,
+                quickpayAccount: vm.playerQuickpayTopUp.quickpayAccount,
+                remark: vm.playerQuickpayTopUp.remark,
+                createTime: vm.playerQuickpayTopUp.createTime.data('datetimepicker').getLocalDate()
+            };
+            vm.playerQuickpayTopUp.submitted = true;
+            $scope.safeApply();
+            socketService.$socket($scope.AppSocket, 'applyQuickpayTopUpRequest', sendData,
+                data => {
+                    vm.playerQuickpayTopUp.responseMsg = $translate('SUCCESS');
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                },
+                error => {
+                    vm.playerQuickpayTopUp.responseMsg = error.error.errorMessage;
+                    socketService.showErrorMessage(error.error.errorMessage);
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                }
+            );
+        };
+
+        vm.cancelPlayerQuickpayTopUp = () => {
+            if (!vm.existingQuickpayTopup) {
+                return;
+            }
+            let sendQuery = {
+                playerId: vm.selectedSinglePlayer.playerId,
+                proposalId: vm.existingQuickpayTopup.proposalId
+            };
+            socketService.$socket($scope.AppSocket, 'cancelQuickpayTopup', sendQuery,
+                data => {
+                    if (vm.existingQuickpayTopup.proposalId == data.data.proposalId) {
+                        vm.existingQuickpayTopup.isCanceled = true;
+                    }
+                    $scope.safeApply();
+                },
+                error => {
+                    vm.playerQuickpayTopUp.responseMsg = error.error.errorMessage;
+                    $scope.safeApply();
+                }
+            );
+        };
+
         vm.getZoneList = function (provinceId, cityId) {
             vm.freezeZoneSelection = true;
             $scope.safeApply();
