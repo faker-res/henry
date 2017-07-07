@@ -193,7 +193,7 @@
                     label.text-danger {{'FAIL' | translate}}
                     label.form-control {{(vm.playerCreateResult.error.message || vm.playerCreateResult.error.errorMessage || vm.playerCreateResult.error || vm.playerCreateResult) | translate}}
             .modal-footer
-                button.btn.btn-primary.common-button(ng-disabled='form_new_player.$invalid || vm.passwordLengthCheck(vm.newPlayer.password)', ng-click="vm.createNewPlayer();", ng-hide='vm.playerCreateResult') {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(ng-disabled='form_new_player.$invalid || vm.passwordLengthCheck(vm.newPlayer.password)', ng-click="vm.createNewPlayer();", ng-hide='vm.playerCreateResult && vm.playerCreateResult.success') {{"CREATE" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal', ng-hide='vm.playerCreateResult') {{"CANCEL" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal', ng-show='vm.playerCreateResult') {{"CLOSE" | translate}}
 include modalGameCreditLog
@@ -453,6 +453,7 @@ include modalGameCreditLog
                             .form-group
                                 label.control-label {{'NEW_PASSWORD' | translate}} ({{'optional' | translate}})
                                 input.form-control(ng-model='vm.customNewPassword', placeholder='{{"Leaving empty will generate a random password." | translate}}')
+                                text {{"Note: " | translate}}{{"Leaving empty will generate a random password." | translate}}
                         .well(ng-if='vm.playerNewPassword')
                             .form-group
                                 text The new password for&nbsp;

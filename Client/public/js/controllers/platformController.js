@@ -3415,6 +3415,7 @@ define(['js/app'], function (myApp) {
             vm.newPlayer.domain = window.location.hostname;
             vm.getReferralPlayer(vm.newPlayer, "new");
             vm.playerCreateResult = null;
+            vm.playerPswverify = null;
         }
         vm.editPlayerStatus = function (id) {
             console.log(id);
@@ -3911,7 +3912,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initResetPlayerPasswordModal = () => {
-            vm.customNewPassword = "";
+            vm.customNewPassword = "888888";
             vm.playerNewPassword = "";
             vm.resetPartnerNewPassword = false;
         };
