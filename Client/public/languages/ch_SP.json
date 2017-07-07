@@ -647,6 +647,8 @@
   "WechatPay Group": "微信支付组",
   "WechatPay": "微信支付",
   "QuickPay":"秒付宝",
+  "QuickPay Name":"秒付宝名",
+  "QuickPay Account":"秒付宝账户",
   "QuickPay Group":"秒付宝组",
   "No QuickPay Group":"请选择秒付宝组",
   "Included QuickPay":"包含的秒付宝账户 ",

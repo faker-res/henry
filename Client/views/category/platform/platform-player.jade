@@ -1564,10 +1564,10 @@ include modalGameCreditLog
                                     text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
                                 input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerQuickpayTopUp.amount', required)
                                 .control-label
-                                    label {{'quickpayName' | translate}}
+                                    label {{'QuickPay Name' | translate}}
                                 input.form-control(ng-model='vm.playerQuickpayTopUp.quickpayName', required)
                                 .control-label
-                                    label {{'quickpayAccount' | translate}}
+                                    label {{'QuickPay Account' | translate}}
                                 input.form-control(ng-model='vm.playerQuickpayTopUp.quickpayAccount', required)
                                 .control-label
                                     label {{'REMARK' | translate}}
