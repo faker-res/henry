@@ -707,6 +707,24 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelWechatTopup, [data.playerId, data.proposalId], actionName, isValidData);
         },
 
+        // Quickpay TopUp
+        getQuickpayTopUpRequestList: function getQuickpayTopUpRequestList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId !== null);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getQuickpayTopUpRequestList, [data.playerId], actionName, isValidData);
+        },
+
+        applyQuickpayTopUpRequest: function applyQuickpayTopUpRequest(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.amount && data.quickpayName && data.quickpayAccount);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.applyQuickpayTopUpRequest, [data.playerId, data.amount, data.quickpayName, data.quickpayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
+        },
+
+        cancelQuickpayTopup: function cancelQuickpayTopup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data.playerId && data.proposalId);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelQuickpayTopup, [data.playerId, data.proposalId], actionName, isValidData);
+        },
 
         verifyPlayerBankAccount: function verifyPlayerBankAccount(data) {
             var actionName = arguments.callee.name;
