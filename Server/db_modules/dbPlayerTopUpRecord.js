@@ -463,12 +463,41 @@ var dbPlayerTopUpRecord = {
                     }
                 };
 
-                return getLastConsumptionIfNeeded().then(function (latestConsumptionRecords) {
-                    const latestConsumptionRecord = latestConsumptionRecords[0]; // We probably could have used .findOne().sort().limit()
+                const getLastPlayerWithdraw = () => {
+                    if (bSinceLastConsumption) {
+                        return dbconfig.collection_proposalType.findOne({
+                            name: constProposalType.PLAYER_BONUS,
+                            platformId: player.platform
+                        }).lean().then(
+                            typeData => {
+                                if(typeData){
+                                    return dbconfig.collection_proposal.find({
+                                        type: typeData._id,
+                                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.AUTOAUDIT,
+                                            constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.UNDETERMINED]},
+                                        "data.playerId": playerId
+                                    }).sort({createTime: -1}).limit(1).lean();
+                                }
+                                else{
+                                    return [];
+                                }
+                            }
+                        );
+                    } else {
+                        return Q.resolve([]);
+                    }
+                };
+
+                return Q.all([getLastConsumptionIfNeeded(), getLastPlayerWithdraw()]).then(function (data) {
+                    const latestConsumptionRecord = data[0][0];
+                    const lastPlayerWidthDraw = data[1][0];
 
                     let queryStartTime = 0;
-                    if (bSinceLastConsumption && latestConsumptionRecord && latestConsumptionRecord.createTime) {
-                        queryStartTime = latestConsumptionRecord.createTime.getTime();
+                    if (bSinceLastConsumption && (latestConsumptionRecord && latestConsumptionRecord.createTime || lastPlayerWidthDraw && lastPlayerWidthDraw.createTime)) {
+                        queryStartTime = latestConsumptionRecord && latestConsumptionRecord.createTime ? latestConsumptionRecord.createTime.getTime() : 0;
+                        if(lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime){
+                            queryStartTime = lastPlayerWidthDraw.createTime.getTime()
+                        }
                     }
                     if (startTime && new Date(startTime).getTime() > queryStartTime) {
                         queryStartTime = startTime;
