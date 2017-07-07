@@ -187,6 +187,12 @@
         this._service.cancelWechatTopup.once(callback);
     };
 
+    proto.cancelQuickpayTopup = function (callback, requestData) {
+        var data = requestData || {};
+        this._service.cancelQuickpayTopup.request(data);
+        this._service.cancelQuickpayTopup.once(callback);
+    };
+
     proto.delayManualTopupRequest = function (callback, requestData) {
         var data = requestData || {};
         this._service.delayManualTopupRequest.request(data);
@@ -289,6 +295,12 @@
         let data = requestData || {};
         this._service.getAlipaySingleLimit.request(data);
         this._service.getAlipaySingleLimit.once(callback);
+    };
+
+    proto.getQuickpaySingleLimit = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.getQuickpaySingleLimit.request(data);
+        this._service.getQuickpaySingleLimit.once(callback);
     };
 
     proto.requestQuickpayTopup = function (callback, requestData) {
