@@ -463,12 +463,41 @@ var dbPlayerTopUpRecord = {
                     }
                 };
 
-                return getLastConsumptionIfNeeded().then(function (latestConsumptionRecords) {
-                    const latestConsumptionRecord = latestConsumptionRecords[0]; // We probably could have used .findOne().sort().limit()
+                const getLastPlayerWithdraw = () => {
+                    if (bSinceLastConsumption) {
+                        return dbconfig.collection_proposalType.findOne({
+                            name: constProposalType.PLAYER_BONUS,
+                            platformId: player.platform
+                        }).lean().then(
+                            typeData => {
+                                if(typeData){
+                                    return dbconfig.collection_proposal.find({
+                                        type: typeData._id,
+                                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.AUTOAUDIT,
+                                            constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.UNDETERMINED]},
+                                        "data.playerId": playerId
+                                    }).sort({createTime: -1}).limit(1).lean();
+                                }
+                                else{
+                                    return [];
+                                }
+                            }
+                        );
+                    } else {
+                        return Q.resolve([]);
+                    }
+                };
+
+                return Q.all([getLastConsumptionIfNeeded(), getLastPlayerWithdraw()]).then(function (data) {
+                    const latestConsumptionRecord = data[0][0];
+                    const lastPlayerWidthDraw = data[1][0];
 
                     let queryStartTime = 0;
-                    if (bSinceLastConsumption && latestConsumptionRecord && latestConsumptionRecord.createTime) {
-                        queryStartTime = latestConsumptionRecord.createTime.getTime();
+                    if (bSinceLastConsumption && (latestConsumptionRecord && latestConsumptionRecord.createTime || lastPlayerWidthDraw && lastPlayerWidthDraw.createTime)) {
+                        queryStartTime = latestConsumptionRecord && latestConsumptionRecord.createTime ? latestConsumptionRecord.createTime.getTime() : 0;
+                        if(lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime){
+                            queryStartTime = lastPlayerWidthDraw.createTime.getTime()
+                        }
                     }
                     if (startTime && new Date(startTime).getTime() > queryStartTime) {
                         queryStartTime = startTime;
@@ -1599,7 +1628,7 @@ var dbPlayerTopUpRecord = {
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "quickPayGroup", model: dbconfig.collection_platformQuickPayGroup}).then(
                 playerData => {
-                    if (playerData && playerData.platform && playerData.quickpayGroup && playerData.quickPayGroup.quickpays && playerData.quickPayGroup.quickpays.length > 0) {
+                    if (playerData && playerData.platform && playerData.quickPayGroup && playerData.quickPayGroup.quickpays && playerData.quickPayGroup.quickpays.length > 0) {
                         player = playerData;
                         let minTopUpAmount = playerData.platform.minTopUpAmount || 0;
                         if (amount < minTopUpAmount) {
@@ -1609,13 +1638,13 @@ var dbPlayerTopUpRecord = {
                                 errorMessage: "Top up amount is not enough"
                             });
                         }
-                        if (!playerData.permission || !playerData.permission.quickpayTransaction) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_NO_PERMISSION,
-                                name: "DataError",
-                                errorMessage: "Player does not have this permission"
-                            });
-                        }
+                        // if (!playerData.permission || !playerData.permission.quickpayTransaction) {
+                        //     return Q.reject({
+                        //         status: constServerCode.PLAYER_NO_PERMISSION,
+                        //         name: "DataError",
+                        //         errorMessage: "Player does not have this permission"
+                        //     });
+                        // }
                         let proposalData = {};
                         proposalData.playerId = playerId;
                         proposalData.playerObjId = playerData._id;
@@ -1663,18 +1692,17 @@ var dbPlayerTopUpRecord = {
                             platformId: player.platform.platformId,
                             userName: player.name,
                             realName: quickpayName,//player.realName || "",
-                            quickpayAccount: 1,
                             amount: amount,
-                            groupQuickpayList: player.quickPayGroup ? player.quickPayGroup.quickpays : [],
-                            remark: remark,
-                            createTime: cTimeString,
-                            operateType: entryType == "ADMIN" ? 1 : 0
+                            groupMfbList: player.quickPayGroup ? player.quickPayGroup.quickpays : [],
+                            // remark: remark,
+                            // createTime: cTimeString,
+                            // operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         if (quickpayAccount) {
                             requestData.groupQuickpayList = [quickpayAccount];
                         }
                         //console.log("requestData", requestData);
-                        return pmsAPI.payment_requestQuickPaymentList(requestData);
+                        return pmsAPI.payment_requestMfbAccount(requestData);
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create quickpay top up proposal"});
@@ -1692,13 +1720,14 @@ var dbPlayerTopUpRecord = {
                         updateData.data = Object.assign({}, proposal.data);
                         updateData.data.requestId = requestData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
-                        updateData.data.quickpayAccount = requestData.result.quickpayAccount;
-                        requestData.result.quickpayQRCode = requestData.result.quickpayQRCode || "";
-                        updateData.data.quickpayQRCode = requestData.result.quickpayQRCode
+                        updateData.data.mfbAccount = requestData.result.mfbAccount;
+                        requestData.result.mfbQRCode = requestData.result.mfbQRCode || "";
+                        updateData.data.mfbQRCode = requestData.result.mfbQRCode;
+                        updateData.data.createTime = requestData.result.createTime;
                         if (requestData.result.validTime) {
                             updateData.data.validTime = new Date(requestData.result.validTime);
                         }
-                        requestData.result.quickpayName = quickpayName;
+                        // requestData.result.quickpayName = quickpayName;
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,

@@ -159,7 +159,8 @@ var simplifiedChinese = {
     "Player or partner already has a pending reward proposal for this type": "玩家有待审批的奖励，请稍后再试",
     "Only new system user can login": "只有新系统用户可以登陆，请尝试使用其他域名登陆",
     "Bank account name is different from real name": "银行账号姓名和真实姓名不相符",
-    "Player has been rewarded for first time top up event!": "玩家已申请首冲奖励"
+    "Player has been rewarded for first time top up event!": "玩家已申请首冲奖励",
+    "Top up record is not the first top up of this week": "该存款不是本周第一笔存款",
     //todo::add missing messages here
 
     /*

@@ -1790,11 +1790,8 @@ let dbPlayerInfo = {
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
-                    $or: [
-                        {status: constProposalStatus.SUCCESS},
-                        {status: constProposalStatus.APPROVED}
-                    ]
-                })
+                    status:{$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                });
 
             }, function (error) {
                 deferred.reject({name: "DataError", message: "Can't find player data", error: error});
@@ -2102,6 +2099,7 @@ let dbPlayerInfo = {
                         platformId: platformId,
                         periodType: eventData.param.periodType,
                         topUpRecordIds: topUpRecordIds,
+                        topUpProposalId: records[0].proposalId,
                         applyAmount: deductionAmount,
                         rewardAmount: rewardAmount,
                         providers: eventData.param.providers,
@@ -7177,6 +7175,7 @@ let dbPlayerInfo = {
                                 playerName: player.name,
                                 platformId: platformId,
                                 topUpRecordId: topUpRecordId,
+                                topUpProposalId: record.proposalId,
                                 applyAmount: deductionAmount,
                                 rewardAmount: rewardAmount,
                                 providers: eventData.param.providers,
@@ -7849,7 +7848,8 @@ let dbPlayerInfo = {
 
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
-                            if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
+                            if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
+                                && rewardEvent.type != constRewardType.PLAYER_TOP_UP_RETURN) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
