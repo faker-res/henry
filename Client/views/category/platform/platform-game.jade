@@ -44,6 +44,9 @@
                     label.text-danger {{"NO_PROVIDER_MESSAGE" | translate}}
                 .well
                     .inlineBlk.margin-right-5
+                        .control-label {{"GAME" | translate}} ID
+                        input.input-sm.form-control(type='text', ng-model='vm.filterGameId')
+                    .inlineBlk.margin-right-5
                         .control-label {{"GAME_TITLE" | translate}}
                         input.input-sm.form-control(type='text', ng-model='vm.filterGameName')
                     .inlineBlk.margin-right-5
@@ -51,6 +54,9 @@
                         select.input-sm.form-control(ng-model='vm.filterGameType', style='max-width:150px')
                             option(value='all', ) {{'any' | translate}}
                             option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v.gameTypeId}}') {{v.name}}&nbsp;({{v.description}})
+                    .inlineBlk.margin-right-5
+                        .control-label {{"GAME_DESCRIPTION" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterGameDescription')
                     .inlineBlk.margin-right-5
                         .control-label {{"Play Game Type" | translate}}
                         select.input-sm.form-control(ng-model='vm.filterPlayGameType', style='max-width:150px')
