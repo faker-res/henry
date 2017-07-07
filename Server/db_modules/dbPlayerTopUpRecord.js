@@ -1750,6 +1750,33 @@ var dbPlayerTopUpRecord = {
             );
     },
 
+    cancelQuickpayTopup: function (playerId, proposalId) {
+        var proposal = null;
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+            proposalData => {
+                if (proposalData) {
+                    if (proposalData.data && proposalData.data.playerId == playerId) {
+                        proposal = proposalData;
+
+                        return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
+                    }
+                    else {
+                        return Q.reject({name: "DBError", message: 'Invalid proposal'});
+                    }
+                }
+                else {
+                    return Q.reject({name: "DBError", message: 'Cannot find proposal'});
+                }
+            }
+        ).then(
+            request => {
+                return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            }
+        ).then(
+            data => ({proposalId: proposalId})
+        );
+    }
+
 };
 
 var proto = dbPlayerTopUpRecordFunc.prototype;

@@ -717,7 +717,7 @@ function socketActionPlayer(socketIO, socket) {
         applyQuickpayTopUpRequest: function applyQuickpayTopUpRequest(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.amount && data.quickpayName && data.quickpayAccount);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.applyQuickpayTopUpRequest, [data.playerId, data.amount, data.quickpayName, data.quickpayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestQuickpayTopup, [data.playerId, data.amount, data.quickpayName, data.quickpayAccount, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
         },
 
         cancelQuickpayTopup: function cancelQuickpayTopup(data) {
