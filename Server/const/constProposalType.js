@@ -41,7 +41,8 @@ const constProposalType = {
     UPDATE_PARTNER_CREDIT:"UpdatePartnerCredit",
     PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward",
     PLAYER_REGISTRATION_INTENTION: "PlayerRegistrationIntention",
-    PLAYER_EASTER_EGG_REWARD: "PlayerEasterEggReward"
+    PLAYER_EASTER_EGG_REWARD: "PlayerEasterEggReward",
+    PLAYER_QUICKPAY_TOP_UP: "PlayerQuickpayTopUp",
 };
 
 module.exports = constProposalType;

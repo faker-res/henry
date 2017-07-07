@@ -36,7 +36,7 @@ describe("Test Partner API - Partner service", () => {
                 testPlatformId = data.platformId;
 
                 let createNewTestPartner = commonTestFun.createTestPartner(testPlatformObjId);
-                let createNewTestPlayer = commonTestFun.createTestPlayer(testPlatformObjId,testPlatformId);
+                let createNewTestPlayer = commonTestFun.createTestPlayer(testPlatformObjId);
                 return Q.all([createNewTestPartner,createNewTestPlayer]);
             },
             (error) => {
@@ -64,7 +64,7 @@ describe("Test Partner API - Partner service", () => {
     it('Should fail due to partner phone number is not unique', (done) => {
 
             let partnerData = {
-                "platform": testPlatformObjId,
+                platformId: testPlatformId,
                 "partnerName": "testPartner1",
                 "email": "testP1@gmail.com",
                 "password": "123123",
@@ -84,7 +84,7 @@ describe("Test Partner API - Partner service", () => {
 
     it('Should failed due to partner name is not unique', (done) => {
             let partnerData = {
-                "platform": testPlatformObjId,
+                "platformId": testPlatformId,
                 "email": "testP2@gmail.com",
                 "password": "123123",
                 "phoneNumber":"123456789",
@@ -105,7 +105,7 @@ describe("Test Partner API - Partner service", () => {
     // test player uniquess
     it('Should fail due to player phone number is not unique', (done) => {
             let playerData = {
-                "platform": testPlatformObjId,
+                "platformId": testPlatformId,
                 name: "testPlayer1",
                 password: '123456',
                 realName:"Test Player 1",
@@ -127,7 +127,7 @@ describe("Test Partner API - Partner service", () => {
 
     it('Should failed due to player real name is not unique', (done) => {
             let playerData = {
-                "platform": testPlatformObjId,
+                "platformId": testPlatformId,
                 name: "testPlayer2",
                 password: '123456',
                 phoneNumber: "1234561231",
@@ -149,7 +149,7 @@ describe("Test Partner API - Partner service", () => {
 
     it('Should failed due to player name is not unique', (done) => {
             let playerData = {
-                "platform": testPlatformObjId,
+                "platformId": testPlatformId,
                 password: '123456',
                 phoneNumber: "1234561232",
                 email: 'testPlayer3@sinonet.com.sg',

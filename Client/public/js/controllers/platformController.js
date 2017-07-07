@@ -325,6 +325,7 @@ define(['js/app'], function (myApp) {
                     vm.loadMerchantGroupData();
                     vm.loadAlipayGroupData();
                     vm.loadWechatPayGroupData();
+                    vm.loadQuickPayGroupData();
                     vm.getPlatformAnnouncements();
                     //     break;
                     // }
@@ -631,6 +632,11 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
         };
+
+        vm.initTransferAllPlayersCreditFromProvider = function ($event) {
+            $('#modalTransferOutAllPlayerCreditFromGameProvider').modal('show');
+            $scope.safeApply();
+        }
 
         //before update platform
         vm.befreUpdatePlatform = function () {
@@ -8122,10 +8128,6 @@ define(['js/app'], function (myApp) {
         };
         /////////////////////////////////////// bank card start  /////////////////////////////////////////////////
 
-        vm.bankCardGroupTabClicked = function () {
-
-        }
-
         vm.loadBankCardGroupData = function () {
             //init gametab start===============================
             vm.showBankCate = "include";
@@ -8175,9 +8177,6 @@ define(['js/app'], function (myApp) {
 
         /////////////////////////////////////// Alipay Group start  /////////////////////////////////////////////////
 
-        vm.alipayGroupTabClicked = function () {
-
-        }
         vm.loadAlipayGroupData = function () {
             //init gametab start===============================
             vm.showAlipayCate = "include";
@@ -8198,84 +8197,33 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             })
         }
-        vm.addAlipayGroup = function (data) {
-            console.log('vm.newAlipayGroup', vm.newAlipayGroup);
-            var sendData = {
-                platform: vm.selectedPlatform.id,
-                name: vm.newAlipayGroup.name,
-                code: vm.newAlipayGroup.code,
-                displayName: vm.newAlipayGroup.displayName
-            }
-            socketService.$socket($scope.AppSocket, 'addPlatformAlipayGroup', sendData, function (data) {
-                console.log(data.data);
-                vm.loadAlipayGroupData();
-                $scope.safeApply();
-            })
-        }
-        vm.alipayGroupClicked = function (i, alipayGroup) {
-            vm.SelectedAlipayGroupNode = alipayGroup;
-            vm.includedAlipays = null;
-            vm.excludedAlipays = null;
-            console.log('alipayGroup clicked', alipayGroup);
-            var query = {
-                platform: vm.selectedPlatform.data.platformId,
-                alipayGroup: alipayGroup._id
-            }
-        }
-
-        vm.removeAlipayGroup = function (node) {
-            console.log('to del node', node);
-            socketService.$socket($scope.AppSocket, 'deleteAlipayGroup', {_id: node._id}, function (data) {
-                console.log(data.data);
-                vm.loadAlipayGroupData();
-                $scope.safeApply();
-            })
-        }
-        vm.initRenameAlipayGroup = function () {
-            vm.newAlipayGroup = {};
-            vm.newAlipayGroup.name = vm.SelectedAlipayGroupNode.name;
-            vm.newAlipayGroup.displayName = vm.SelectedAlipayGroupNode.displayName;
-            vm.newAlipayGroup.code = vm.SelectedAlipayGroupNode.code;
-        }
-
-        vm.renameAlipayGroup = function () {
-            var sendData = {
-                query: {
-                    platform: vm.selectedPlatform.id,
-                    name: vm.SelectedAlipayGroupNode.groupId
-                },
-                update: {
-                    name: vm.newAlipayGroup.name,
-                    displayName: vm.newAlipayGroup.displayName,
-                    code: vm.newAlipayGroup.code
-                }
-            }
-            socketService.$socket($scope.AppSocket, 'renamePlatformAlipayGroup', sendData, function (data) {
-                console.log(data.data);
-                vm.loadAlipayGroupData();
-                $scope.safeApply();
-            })
-        }
-
-        vm.submitDefaultAlipayGroup = function () {
-            console.log('vm.defaultAlipayGroup', vm.defaultAlipayGroup);
-            var sendData = {
-                platform: vm.selectedPlatform.id,
-                default: vm.defaultAlipayGroup
-            }
-            socketService.$socket($scope.AppSocket, 'setPlatformDefaultAlipayGroup', sendData, function (data) {
-                vm.loadAlipayGroupData();
-            })
-        }
-
-        vm.AlipayClicked = function (i, v, which) {
-            console.log('Alipay clicked', i, v, which);
-            vm.highlightAlipay = {};
-            vm.highlightAlipay[v.AlipayNo] = 'bg-pale'
-            vm.curAlipay = v;
-        }
 
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
+
+        /////////////////////////////////////// QuickPay Group start  /////////////////////////////////////////////////
+
+        vm.loadQuickPayGroupData = function () {
+            //init gametab start===============================
+            vm.showQuickPayCate = "include";
+            vm.curGame = null;
+            //init gameTab end==================================
+            if (!vm.selectedPlatform) {
+                return
+            }
+            console.log("getQuickPay", vm.selectedPlatform.id);
+            socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                console.log('QuickPayGroup', data);
+                //provider list init
+                vm.platformQuickPayGroupList = data.data;
+                vm.platformQuickPayGroupListCheck = {};
+                $.each(vm.platformQuickPayGroupList, function (i, v) {
+                    vm.platformQuickPayGroupListCheck[v._id] = true;
+                })
+                $scope.safeApply();
+            })
+        }
+
+        /////////////////////////////////////// QuickPay Group end  /////////////////////////////////////////////////
 
         /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
         vm.loadWechatPayGroupData = function () {
