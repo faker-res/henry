@@ -161,6 +161,7 @@ var simplifiedChinese = {
     "Bank account name is different from real name": "银行账号姓名和真实姓名不相符",
     "Player has been rewarded for first time top up event!": "玩家已申请首冲奖励",
     "Top up record is not the first top up of this week": "该存款不是本周第一笔存款",
+    "Player does not match the condition for this reward": "不符合领取条件",
     //todo::add missing messages here
 
     /*
