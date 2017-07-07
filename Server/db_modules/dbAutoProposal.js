@@ -147,7 +147,7 @@ function checkProposalConsumption(proposal, platformObj) {
                 }).sort({createTime: -1}).lean();
             }
             else {
-                sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal");
+                sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal", "失败：玩家首次提款");
                 // next then block's sendToAudit will trigger if player do their first withdrawal after transferOut
                 // to prevent that from happening, a Promise.reject() is added to skip the next block
                 return Promise.reject("reject");
@@ -167,7 +167,8 @@ function checkProposalConsumption(proposal, platformObj) {
             if (!proposals) {
                 // There is no other withdrawal between this withdrawal and last withdrawal
                 let approveRemark = "Success: No proposals between this and last withdrawal";
-                sendToAudit(proposal._id, proposal.createTime, approveRemark, checkMsg);
+                let approveRemarkChinese = "成功： 在此提案和上次的提款之间并没有其他提案";
+                sendToAudit(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg);
             }
             else {
                 while (proposals && proposals.length > 0) {
@@ -322,16 +323,17 @@ function checkProposalConsumption(proposal, platformObj) {
                         }
 
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single bonus limit");
+                            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single bonus limit", "失败：超出自动审核单笔提款金额限制");
                         } else if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single day bonus limit");
+                            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single day bonus limit", "失败：超出自动审核单日总提款金额限制");
                         } else if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Player not allowed for auto proposal");
+                            sendToAudit(proposal._id, proposal.createTime, "Denied: Player not allowed for auto proposal", "失败：此玩家不被允许自动审核");
                         } else if (isApprove || isTypeEApproval) {
                             // Proposal approved - DISABLED FOR CSTEST
                             // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
-                            sendToApprove(proposal._id, proposal.createTime, approveRemark, checkMsg);
+                            let approveRemarkChinese = "成功：投注额 " + validConsumptionAmount + "，投注额需求 " + spendingAmount;
+                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg);
                         }
                         else {
                             // Proposal not approved; Throw back to loop pool or deny this proposal
@@ -358,10 +360,10 @@ function checkProposalConsumption(proposal, platformObj) {
                                 if (proposal.data.proposalPlayerLevel == constPlayerLevel.NORMAL) {
                                     // DISABLED FOR CSTEST
                                     // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.FAIL, proposal.data.bonusId, "Exceed Auto Approval Repeat Limit");
-                                    sendToAudit(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit");
+                                    sendToAudit(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出自动审核回圈次数");
                                 }
                                 else {
-                                    sendToAudit(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit");
+                                    sendToAudit(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出自动审核回圈次数");
                                 }
                             }
                         }
@@ -595,7 +597,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
 }
 
-function sendToApprove(proposalObjId, createTime, remark, processRemark) {
+function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -613,6 +615,7 @@ function sendToApprove(proposalObjId, createTime, remark, processRemark) {
                                 process: null,
                                 status: constProposalStatus.APPROVED,
                                 'data.remark': 'Auto Approval Approved: ' + remark,
+                                'data.remarkChinese': '自动审核成功：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark
                             },
                             {new: true}
@@ -624,7 +627,7 @@ function sendToApprove(proposalObjId, createTime, remark, processRemark) {
     );
 }
 
-function sendToAudit(proposalObjId, createTime, remark, processRemark) {
+function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark) {
     // temporary disabled system log since success will also send to audit
     // console.log('Sending to audit', proposalObjId, remark);
     //check if proposal got process, if there is no process, reject directly
@@ -644,6 +647,7 @@ function sendToAudit(proposalObjId, createTime, remark, processRemark) {
                     }, {
                         status: constProposalStatus.PENDING,
                         'data.autoAuditRemark': 'Auto Approval ' + remark,
+                        'data.autoAuditRemarkChinese': '自动审核' + remarkChinese,
                         'data.autoAuditCheckMsg': processRemark
                     }).then();
                 }
@@ -657,6 +661,7 @@ function sendToAudit(proposalObjId, createTime, remark, processRemark) {
                                     process: null,
                                     status: constProposalStatus.FAIL,
                                     'data.remark': 'Auto Approval Denied: ' + remark,
+                                    'data.remarkChinese': '自动审核失败：' + remarkChinese,
                                     'data.autoAuditCheckMsg': processRemark
                                 },
                                 {new: true}

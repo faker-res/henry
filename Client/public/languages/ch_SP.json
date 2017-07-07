@@ -2019,5 +2019,7 @@
   "PLAYER_EASTER_EGG_REWARD_REPORT": "彩蛋奖励报表",
   "optional": "选填",
   "Leaving empty will generate a random password." : "放空此栏将随机生成密码。",
-  "Note: ": "注意："
+  "Note: ": "注意：",
+  "remarkChinese": "中午备注",
+  "autoAuditRemarkChinese": "自动审核：中文备注"
 }
