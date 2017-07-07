@@ -164,7 +164,8 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let checkResult = [], checkMsg = "";
 
-            if (!proposals) {
+            // empty array is treated as 'truthy' in javascript
+            if (proposals && !proposals.length) {
                 // There is no other withdrawal between this withdrawal and last withdrawal
                 let approveRemark = "Success: No proposals between this and last withdrawal";
                 let approveRemarkChinese = "成功： 在此提案和上次的提款之间并没有其他提案";
@@ -180,7 +181,6 @@ function checkProposalConsumption(proposal, platformObj) {
                     let queryDateTo = new Date(dateTo);
 
                     let checkingNo = countProposals;
-
                     switch (getProp.mainType) {
                         case "TopUp":
                             let isSkip = false;
