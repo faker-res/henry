@@ -1028,7 +1028,11 @@ var proposal = {
                         {
                             department: {$in: data[1].departments},
                             role: {$in: data[1].roles},
-                            status: constProposalStatus.PENDING
+                            status: constProposalStatus.PENDING,
+                            createTime: {
+                                $gte: startTime,
+                                $lt: endTime
+                            }
                         }
                     ).exec();
                 }
