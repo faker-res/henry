@@ -3905,7 +3905,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initResetPlayerPasswordModal = () => {
-            vm.customNewPassword = "";
+            vm.customNewPassword = "888888";
             vm.playerNewPassword = "";
             vm.resetPartnerNewPassword = false;
         };

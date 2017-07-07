@@ -453,6 +453,7 @@ include modalGameCreditLog
                             .form-group
                                 label.control-label {{'NEW_PASSWORD' | translate}} ({{'optional' | translate}})
                                 input.form-control(ng-model='vm.customNewPassword', placeholder='{{"Leaving empty will generate a random password." | translate}}')
+                                text {{"Note: " | translate}}{{"Leaving empty will generate a random password." | translate}}
                         .well(ng-if='vm.playerNewPassword')
                             .form-group
                                 text The new password for&nbsp;
