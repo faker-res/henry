@@ -710,7 +710,11 @@ let dbPlayerInfo = {
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm]);
+                    let quickpayGroupProm = dbconfig.collection_platformQuickPayGroup.findOne({
+                        platform: playerdata.platform,
+                        bDefault: true
+                    });
+                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm,quickpayGroupProm]);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't create new player."});
@@ -746,6 +750,9 @@ let dbPlayerInfo = {
                     }
                     if (data[5]) {
                         playerUpdateData.wechatPayGroup = data[5]._id;
+                    }
+                    if (data[6]) {
+                        playerUpdateData.quickpayGroup = data[5]._id;
                     }
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
@@ -1783,11 +1790,8 @@ let dbPlayerInfo = {
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
-                    $or: [
-                        {status: constProposalStatus.SUCCESS},
-                        {status: constProposalStatus.APPROVED}
-                    ]
-                })
+                    status:{$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                });
 
             }, function (error) {
                 deferred.reject({name: "DataError", message: "Can't find player data", error: error});
@@ -2095,6 +2099,7 @@ let dbPlayerInfo = {
                         platformId: platformId,
                         periodType: eventData.param.periodType,
                         topUpRecordIds: topUpRecordIds,
+                        topUpProposalId: records[0].proposalId,
                         applyAmount: deductionAmount,
                         rewardAmount: rewardAmount,
                         providers: eventData.param.providers,
@@ -2541,8 +2546,7 @@ let dbPlayerInfo = {
         }).populate({
             path: "alipayGroup",
             model: dbconfig.collection_platformAlipayGroup
-        })
-        lean().exec();
+        }).lean().exec();
     },
 
     getPaymentPlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
@@ -2568,6 +2572,9 @@ let dbPlayerInfo = {
                         }).populate({
                             path: "wechatPayGroup",
                             model: dbconfig.collection_platformWechatPayGroup
+                        }).populate({
+                            path: "quickPayGroup",
+                            model: dbconfig.collection_platformQuickPayGroup
                         }).lean())
                 })
                 return Q.all(proms).then(newPlayer => {
@@ -7168,6 +7175,7 @@ let dbPlayerInfo = {
                                 playerName: player.name,
                                 platformId: platformId,
                                 topUpRecordId: topUpRecordId,
+                                topUpProposalId: record.proposalId,
                                 applyAmount: deductionAmount,
                                 rewardAmount: rewardAmount,
                                 providers: eventData.param.providers,
@@ -7840,7 +7848,8 @@ let dbPlayerInfo = {
 
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
-                            if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
+                            if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
+                                && rewardEvent.type != constRewardType.PLAYER_TOP_UP_RETURN) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",

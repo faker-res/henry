@@ -277,6 +277,33 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getAlipaySingleLimit, [conn.playerId], isValidData);
     }
 
+    // quick pay
+    this.requestQuickpayTopup.expectsData = 'amount: Number|String';
+    this.requestQuickpayTopup.onRequest = function (wsFunc, conn, data) {
+        if (data) {
+            data.amount = Number(data.amount);
+        }
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.quickpayName);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestQuickpayTopup, [conn.playerId, data.amount, data.quickpayName, data.quickpayAccount, "CLIENT"], isValidData);
+    };
+
+    this.cancelQuickpayTopup.expectsData = 'proposalId: String';
+    this.cancelQuickpayTopup.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId && data.proposalId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.cancelQuickpayTopup, [conn.playerId, data.proposalId], isValidData);
+    };
+
+    this.getQuickpayTopupRequestList.expectsData = '';
+    this.getQuickpayTopupRequestList.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getQuickpayTopupRequestList, [conn.playerId], isValidData);
+    };
+
+    this.getQuickpaySingleLimit.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getQuickpaySingleLimit, [conn.playerId], isValidData);
+    }
+
 };
 var proto = PaymentServiceImplement.prototype = Object.create(PaymentService.prototype);
 proto.constructor = PaymentServiceImplement;

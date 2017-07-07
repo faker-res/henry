@@ -254,6 +254,10 @@ const pmsAPI = {
         return callPMSAPI("quickPayment", "getQuickPayment", data);
     },
 
+    payment_requestQuickPaymentList: function (data) {
+        return callPMSAPI("payment", "requestQuickPaymentAccount", data);
+    },
+
     payment_requestMfbAccount: function (data) {
         return callPMSAPI("payment", "requestMfbAccount", data);
     },
