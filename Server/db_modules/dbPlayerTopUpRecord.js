@@ -1663,18 +1663,17 @@ var dbPlayerTopUpRecord = {
                             platformId: player.platform.platformId,
                             userName: player.name,
                             realName: quickpayName,//player.realName || "",
-                            quickpayAccount: 1,
                             amount: amount,
-                            groupQuickpayList: player.quickPayGroup ? player.quickPayGroup.quickpays : [],
-                            remark: remark,
-                            createTime: cTimeString,
-                            operateType: entryType == "ADMIN" ? 1 : 0
+                            groupMfbList: player.quickPayGroup ? player.quickPayGroup.quickpays : [],
+                            // remark: remark,
+                            // createTime: cTimeString,
+                            // operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         if (quickpayAccount) {
                             requestData.groupQuickpayList = [quickpayAccount];
                         }
                         //console.log("requestData", requestData);
-                        return pmsAPI.payment_requestQuickPaymentList(requestData);
+                        return pmsAPI.payment_requestMfbAccount(requestData);
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create quickpay top up proposal"});
@@ -1692,13 +1691,14 @@ var dbPlayerTopUpRecord = {
                         updateData.data = Object.assign({}, proposal.data);
                         updateData.data.requestId = requestData.result.requestId;
                         updateData.data.proposalId = proposal.proposalId;
-                        updateData.data.quickpayAccount = requestData.result.quickpayAccount;
-                        requestData.result.quickpayQRCode = requestData.result.quickpayQRCode || "";
-                        updateData.data.quickpayQRCode = requestData.result.quickpayQRCode
+                        updateData.data.mfbAccount = requestData.result.mfbAccount;
+                        requestData.result.mfbQRCode = requestData.result.mfbQRCode || "";
+                        updateData.data.mfbQRCode = requestData.result.mfbQRCode;
+                        updateData.data.createTime = requestData.result.createTime;
                         if (requestData.result.validTime) {
                             updateData.data.validTime = new Date(requestData.result.validTime);
                         }
-                        requestData.result.quickpayName = quickpayName;
+                        // requestData.result.quickpayName = quickpayName;
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,
