@@ -299,10 +299,10 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getQuickpayTopupRequestList, [conn.playerId], isValidData);
     };
 
-    this.getQuickpaySingleLimit.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getQuickpaySingleLimit, [conn.playerId], isValidData);
-    }
+    // this.getQuickpaySingleLimit.onRequest = function (wsFunc, conn, data) {
+    //     let isValidData = Boolean(conn.playerId);
+    //     WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getQuickpaySingleLimit, [conn.playerId], isValidData);
+    // }
 
 };
 var proto = PaymentServiceImplement.prototype = Object.create(PaymentService.prototype);
