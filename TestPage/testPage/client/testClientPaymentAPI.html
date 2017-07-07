@@ -722,6 +722,28 @@
     </div>
 </div>
 
+<h3>Get Quick pay single limit (秒付宝单笔限额)</h3>
+<div class="test-container">
+    <button data-api-name="getQuickpaySingleLimit">Get</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Cancel Quick pay  TopUp Request(取消秒付宝充值)</h3>
+<div class="test-container">
+    <div>
+        <label>Proposal Id
+            <input name="proposalId">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="cancelQuickpayTopup">Cancel</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPaymentAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPaymentAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
