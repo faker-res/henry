@@ -1573,11 +1573,12 @@ let dbPlayerInfo = {
             "data.playerObjId": ObjectId(query.playerId),
             createTime: {$gte: new Date(startTime)}
         }).lean();
+        var logThatHaveNoProposal = ['TransferIn', 'TransferOut'];
         return Q.all([a, b, c]).then(
             data => {
                 data[1].forEach(
                     (result) => {
-                        if (result && result.data && !result.data.proposalId) {
+                        if (result && result.data && !result.data.proposalId && !logThatHaveNoProposal.includes(result.operationType)) {
                             let temp = data[2].filter((proposal) => {
                                 return proposal.data.requestId === result.data.requestId;
                             });
