@@ -27,7 +27,7 @@ define([], function () {
                     setTimeout(function () {
                         self.curScope.errorMessages.pop();
                         self.curScope.safeApply();
-                    }, 5000);
+                    }, 10000);
                     self.curScope.safeApply();
                 }
             }
@@ -54,7 +54,7 @@ define([], function () {
                 setTimeout(function () {
                     self.curScope.confirmMessages.pop();
                     self.curScope.safeApply();
-                }, time || 5000);
+                }, time || 10000);
                 self.curScope.safeApply();
             }
         };

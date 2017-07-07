@@ -1511,6 +1511,8 @@ define(['js/app'], function (myApp) {
                 if (vm.filterGameType && (vm.filterGameType != 'all') && (vm.filterGameType != item.type)) return false;
                 if (vm.filterPlayGameType && (vm.filterPlayGameType != 'all') && (vm.filterPlayGameType != item.playGameType)) return false;
                 if (vm.filterGameName && item.name.indexOf(vm.filterGameName) == -1) return false;
+                if (vm.filterGameId && item.gameId.indexOf(vm.filterGameId) == -1) return false;
+                if (vm.filterGameDescription && item.description.indexOf(vm.filterGameDescription) == -1) return false;
                 if (filterProvider && vm.filterGameProvider && (vm.filterGameProvider != 'all') && (vm.filterGameProvider != item.provider)) return false;
                 if (item.status == 4) return false;
                 return true;
@@ -3909,6 +3911,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initResetPlayerPasswordModal = () => {
+            vm.customNewPassword = "";
             vm.playerNewPassword = "";
             vm.resetPartnerNewPassword = false;
         };
@@ -3918,7 +3921,8 @@ define(['js/app'], function (myApp) {
 
             let queryObj = {
                 playerId: vm.isOneSelectedPlayer()._id,
-                platform: vm.isOneSelectedPlayer().platform
+                platform: vm.isOneSelectedPlayer().platform,
+                newPassword: vm.customNewPassword
             };
 
             if (vm.resetPartnerNewPassword) {
@@ -8378,7 +8382,7 @@ define(['js/app'], function (myApp) {
                     console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                     return true;
                 }
-            })
+            });
 
             const onCreationForm = vm.platformRewardPageName === 'newReward';
 
@@ -8552,6 +8556,29 @@ define(['js/app'], function (myApp) {
                 } else {
                     console.warn("Could not reorder:", rewardType);
                 }
+            } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
+                vm.rewardParams.reward = vm.rewardParams.reward || [];
+                vm.allGames = [];
+
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                    vm.platformProvider = data.data.gameProviders;
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("cannot get gameProvider", data);
+                });
+
+                //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                if (vm.rewardParams.provider) {
+                    socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                        vm.allGames = data.data;
+                        console.log('ok', vm.allGames);
+                        $scope.safeApply();
+                    }, function (data) {
+                        console.log("created not", data);
+                        //vm.rewardTabClicked();
+                    });
+                }
+                $scope.safeApply();
             }
 
             if (onCreationForm) {
@@ -9125,6 +9152,7 @@ define(['js/app'], function (myApp) {
             vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
             vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
             vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
+            vm.platformBasic.useLockedCredit = vm.selectedPlatform.data.useLockedCredit;
             $scope.safeApply();
         }
 
@@ -9370,7 +9398,8 @@ define(['js/app'], function (myApp) {
                     bonusPercentageCharges: srcData.bonusPercentageCharges,
                     bonusCharges: srcData.bonusCharges,
                     requireLogInCaptcha: srcData.requireLogInCaptcha,
-                    onlyNewCanLogin: srcData.onlyNewCanLogin
+                    onlyNewCanLogin: srcData.onlyNewCanLogin,
+                    useLockedCredit: srcData.useLockedCredit
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

@@ -1,0 +1,43 @@
+.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.targetEnable.des | translate}}
+        input.form-control(type='checkbox', ng-model='vm.rewardParams.targetEnable', ng-disabled='vm.platformRewardShowEdit()')
+
+    .full-width-input-block(ng-if="vm.platformRewardPageName!=='showReward'")
+        label(style='vertical-align: top;') {{"PROVIDER" | translate}}
+        div.inlineBlk
+            label.margin-right-5(ng-repeat='(i,v) in vm.platformProvider') {{v.name}}
+                input.pull-left(type='checkbox', ng-model="vm.easterEggReward.providerTick[v._id]", ng-change='vm.topupProviderChange(v._id,vm.easterEggReward.providerTick[v._id])')
+    .full-width-input-block(ng-if="vm.platformRewardPageName =='showReward'")
+        label(style='vertical-align: top;') {{"PROVIDER" | translate}}
+        div.inlineBlk
+            label.margin-right-5(ng-repeat='(i,v) in vm.rewardParams.providers') {{vm.getProviderText(v)|translate}}
+
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.minTopUpAmount.des | translate}}
+        input.form-control(type='number', min=0, ng-model='vm.rewardParams.minTopUpAmount', ng-disabled='vm.platformRewardShowEdit()')
+
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.consumptionTimes.des | translate}}
+        input.form-control(type='number', min=0, ng-model='vm.rewardParams.consumptionTimes', ng-disabled='vm.platformRewardShowEdit()')
+
+    label {{vm.showRewardTypeData.params.params.reward.des | translate}}
+    table.paddingTbl(style='min-width:100%')
+        thead
+            tr
+                th {{vm.showRewardTypeData.params.params.reward.data.rewardAmount.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.probability.des | translate}}
+                th action
+        tbody
+            tr(ng-repeat='(i,data) in vm.rewardParams.reward')
+                td
+                    text(ng-if="vm.platformRewardPageName=='showReward'") {{data.rewardAmount}}
+                    input(ng-if="vm.platformRewardPageName!=='showReward'", type='number', ng-model='data.rewardAmount', style='min-width:100%')
+                td
+                    text(ng-if="vm.platformRewardPageName=='showReward'") {{data.probability}}
+                    input(ng-if="vm.platformRewardPageName!=='showReward'", type='number', ng-model='data.probability', style='min-width:100%')
+                td.text-center
+                    i.fa.fa-minus.text-danger(ng-click='vm.updateRewardInEdit("remove",rowIndex)')
+            tr
+                td.text-center(colspan=3)
+                    i.fa.fa-plus.text-success(ng-click='vm.updateRewardInEdit("add",{})')

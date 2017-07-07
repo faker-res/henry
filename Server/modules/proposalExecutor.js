@@ -135,6 +135,7 @@ var proposalExecutor = {
             this.executions.executePlayerWechatTopUp.des = "Player wechat top up";
             this.executions.executePlayerConsecutiveLoginReward.des = "Player Consecutive Login Reward";
             this.executions.executePlayerRegistrationIntention.des = "Player Registration Intention";
+            this.executions.executePlayerEasterEggReward.des = "Player Easter Egg Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -174,6 +175,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerWechatTopUp.des = "Reject Player Top up";
             this.rejections.rejectPlayerConsecutiveLoginReward.des = "Reject Player Consecutive Login Reward";
             this.rejections.rejectPlayerRegistrationIntention.des = "Reject Player Registration Intention";
+            this.rejections.rejectPlayerEasterEggReward.des = "Reject Player Easter Egg Reward";
 
         },
 
@@ -203,7 +205,7 @@ var proposalExecutor = {
         refundPlayerApplyAmountIfNeeded: function (proposalData, reason) {
             return Q.resolve().then(
                 () => {
-                    if (proposalData && proposalData.data && proposalData.data.applyAmount) {
+                    if (proposalData && proposalData.data && proposalData.data.applyAmount && proposalData.data.useLockedCredit) {
                         // We should give a refund
                         return proposalExecutor.refundPlayer(proposalData, proposalData.data.applyAmount, reason);
                     }
@@ -1011,7 +1013,8 @@ var proposalExecutor = {
                         initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
-                        targetEnable: proposalData.data.targetEnable
+                        targetEnable: proposalData.data.targetEnable,
+                        useLockedCredit: proposalData.data.useLockedCredit
                     };
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
@@ -1042,7 +1045,8 @@ var proposalExecutor = {
                         useConsumption: proposalData.data.useConsumption,
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
-                        targetEnable: proposalData.data.targetEnable
+                        targetEnable: proposalData.data.targetEnable,
+                        useLockedCredit: proposalData.data.useLockedCredit
                     };
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
@@ -1595,6 +1599,43 @@ var proposalExecutor = {
                 }
             },
 
+            executePlayerEasterEggReward: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    var taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_EASTER_EGG_REWARD,
+                        rewardType: constRewardType.PLAYER_EASTER_EGG_REWARD,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.applyAmount,
+                        initAmount: proposalData.data.applyAmount,
+                        eventId: proposalData.data.eventId,
+                        useLockedCredit: proposalData.data.useLockedCredit
+                    };
+                    if (proposalData.data.providers) {
+                        taskData.targetProviders = proposalData.data.providers;
+                    }
+
+                    dbconfig.collection_players.findOneAndUpdate({_id: proposalData.data.playerObjId, platform: proposalData.data.platformId}, {applyingEasterEgg: false}).then(
+                        data => {
+                            createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_EASTER_EGG_REWARD, proposalData);
+                        },
+                        error => {
+                            deferred.reject({
+                                name: "DBError",
+                                message: "Failed to update playerinfo for applyingEasterEgg",
+                                error: error
+                            });
+                        }
+                    )
+                } else {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Incorrect player consecutive login reward proposal data"
+                    });
+                }
+            },
+
             /**
              * execution function for player intention proposal
              */
@@ -2066,6 +2107,21 @@ var proposalExecutor = {
                 deferred.resolve("Proposal is rejected");
             },
 
+            rejectPlayerEasterEggReward: function (proposalData, deferred) {
+                dbconfig.collection_players.findOneAndUpdate({_id: proposalData.data.playerObjId, platform: proposalData.data.platformId}, {applyingEasterEgg: false}).then(
+                    data => {
+                        deferred.resolve("Proposal is rejected");
+                    },
+                    error => {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Failed to update playerinfo for applyingEasterEgg",
+                            error: error
+                        });
+                    }
+                );
+            },
+
             /**
              * reject create player intention proposal
              */
@@ -2102,7 +2158,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
     //check if player has reward task and if player's platform support multi reward
     dbconfig.collection_rewardTask.findOne(
-        {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED}
+        {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED, useLockedCredit: true}
     ).populate(
         {path: "platformId", model: dbconfig.collection_platform}
     ).lean().then(
@@ -2120,6 +2176,16 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         ).catch(
             error => Q.reject({name: "DBError", message: "Error creating reward task for " + rewardType, error: error})
         )
+    ).then(
+        () => {
+            if( !taskData.useLockedCredit ){
+                return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                    playerData => {
+                        dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
+                    }
+                );
+            }
+        }
     ).then(
         //() => createRewardLogForProposal(taskData.rewardType, proposalData)
         () => {

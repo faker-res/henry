@@ -1580,11 +1580,12 @@ let dbPlayerInfo = {
             "data.playerObjId": ObjectId(query.playerId),
             createTime: {$gte: new Date(startTime)}
         }).lean();
+        var logThatHaveNoProposal = ['TransferIn', 'TransferOut'];
         return Q.all([a, b, c]).then(
             data => {
                 data[1].forEach(
                     (result) => {
-                        if (result && result.data && !result.data.proposalId) {
+                        if (result && result.data && !result.data.proposalId && !logThatHaveNoProposal.includes(result.operationType)) {
                             let temp = data[2].filter((proposal) => {
                                 return proposal.data.requestId === result.data.requestId;
                             });
@@ -1808,7 +1809,7 @@ let dbPlayerInfo = {
                     return true;
 
                 } else {
-                    if (!playerData.platform.canMultiReward) {
+                    if (!playerData.platform.canMultiReward && playerData.platform.useLockedCredit) {
                         return dbRewardTask.getPlayerCurRewardTask(playerData._id);
                     }
                     else {
@@ -1942,7 +1943,10 @@ let dbPlayerInfo = {
         let playerProm = dbconfig.collection_players.findOne(query).populate({
             path: "playerLevel",
             model: dbconfig.collection_playerLevel
-        });
+        }).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).lean();
 
         Q.all([playerProm, recordProm]).then(
             data => {
@@ -2071,12 +2075,17 @@ let dbPlayerInfo = {
 
                 // All conditions have been satisfied.
                 deductionAmount = recordAmount;
-
-                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyFirstTopUpReward:Deduction", records);
+                //if not use locked amount, no need to deduct credit from player
+                if (player.platform && player.platform.useLockedCredit) {
+                    return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform._id, deductionAmount, "applyFirstTopUpReward:Deduction", records);
+                }
+                else {
+                    return false;
+                }
             }
         ).then(
-            function () {
-                bDoneDeduction = true;
+            function (bDeduct) {
+                bDoneDeduction = bDeduct;
                 var rewardAmount = Math.min((recordAmount * playerLvlData.rewardPercentage), playerLvlData.maxRewardAmount);
                 var proposalData = {
                     type: eventData.executeProposal,
@@ -2103,7 +2112,8 @@ let dbPlayerInfo = {
                         eventId: eventData._id,
                         eventName: eventData.name,
                         eventCode: eventData.code,
-                        eventDescription: eventData.description
+                        eventDescription: eventData.description,
+                        useLockedCredit: Boolean(player.platform.useLockedCredit)
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
@@ -2274,7 +2284,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: playerData._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
@@ -2588,7 +2599,8 @@ let dbPlayerInfo = {
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
                 playerId: thisPlayer._id,
-                status: constRewardTaskStatus.STARTED
+                status: constRewardTaskStatus.STARTED,
+                useLockedCredit: true
             }).then(
                 rewardData => {
                     thisPlayer.rewardInfo = rewardData;
@@ -2596,18 +2608,19 @@ let dbPlayerInfo = {
                 });
         }
 
-        if(data.email){
+        if (data.email) {
             let tempEmail = data.email;
-            delete data.email; 
+            delete data.email;
             advancedQuery = {
-                platform: platformId, 
+                platform: platformId,
                 $and: [
                     data,
-                    {$or:[{email:tempEmail},{qq:tempEmail}]}
-                ]}
-        } else{
+                    {$or: [{email: tempEmail}, {qq: tempEmail}]}
+                ]
+            }
+        } else {
             advancedQuery = {
-                platform: platformId, 
+                platform: platformId,
                 $and: [data]
             }
         }
@@ -3448,16 +3461,6 @@ let dbPlayerInfo = {
                         });
                         return;
                     }
-                    //return dbPlayerInfo.getPlayerPendingProposalByType(playerData._id, playerData.platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
-                    //hasPendingProposal => {
-                    // if (hasPendingProposal) {
-                    //     deferred.reject({
-                    //         status: constServerCode.PLAYER_PENDING_PROPOSAL,
-                    //         name: "DataError",
-                    //         message: "Player has pending proposal to update credit"
-                    //     });
-                    // }
-                    // else {
 
                     // Enough credit to proceed
                     let platformId = playerData.platform ? playerData.platform.platformId : null;
@@ -3472,9 +3475,6 @@ let dbPlayerInfo = {
                     else {
                         return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
                     }
-                    //}
-                    // }
-                    //);
                 } else {
                     deferred.reject({name: "DataError", message: "Cannot find player or provider"});
                 }
@@ -3538,6 +3538,9 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({_id: playerObjId}).populate({
             path: "lastPlayedProvider",
             model: dbconfig.collection_gameProvider
+        }).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
         }).lean().then(
             function (playerData1) {
                 if (playerData1) {
@@ -3554,7 +3557,10 @@ let dbPlayerInfo = {
                         return;
                     }
                     // Check player current reward task
-                    let rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
+                    let rewardProm = null;
+                    if (playerData.platform && playerData.platform.useLockedCredit) {
+                        rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
+                    }
                     let gameCreditProm = {};
                     if (playerData.lastPlayedProvider) {
                         gameCreditProm = cpmsAPI.player_queryCredit(
@@ -3871,22 +3877,9 @@ let dbPlayerInfo = {
             function (data) {
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
-                    // return dbPlayerInfo.getPlayerPendingProposalByType(data[0]._id, data[0].platform._id, constProposalType.UPDATE_PLAYER_CREDIT).then(
-                    //     hasPendingProposal => {
-                    //         if (hasPendingProposal) {
-                    //             deferred.reject({
-                    //                 status: constServerCode.PLAYER_PENDING_PROPOSAL,
-                    //                 name: "DataError",
-                    //                 message: "Player has pending proposal to update credit"
-                    //             });
-                    //         }
-                    //         else {
+
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-                    // return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                    // }
-                    //     }
-                    // );
 
                     if (playerObj.platform.canMultiReward) {
                         // Platform supporting multiple rewards will use new function first
@@ -3984,7 +3977,13 @@ let dbPlayerInfo = {
                         }
                         return;
                     }
-                    return dbRewardTask.getPlayerCurRewardTask(playerObjId);
+                    return dbconfig.collection_platform.findOne({_id: platform}).lean().then(
+                        platformData => {
+                            if (platformData.useLockedCredit) {
+                                return dbRewardTask.getPlayerCurRewardTask(playerObjId);
+                            }
+                        }
+                    );
                 } else {
                     deferred.reject({name: "DataError", message: "Cant find player credit in provider."});
                     return false;
@@ -4081,7 +4080,6 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     if (bUpdateTask) {
-                        // TODO:: Need sorting here for multiple reward
                         return dbconfig.collection_rewardTask.findOneAndUpdate(
                             {_id: rewardTask._id, platformId: rewardTask.platformId},
                             {
@@ -4237,7 +4235,9 @@ let dbPlayerInfo = {
      */
     getPlayerCredit: function (playerId) {
         var returnObj = {};
-        return dbconfig.collection_players.findOne({playerId: playerId}).then(
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).lean().then(
             playerData => {
                 if (playerData) {
                     returnObj.validCredit = playerData.validCredit;
@@ -4260,7 +4260,7 @@ let dbPlayerInfo = {
                                         var applyAmount = proposals[key].data.applyAmount || 0;
                                         var rewardAmount = proposals[key].data.rewardAmount || 0;
                                         var currentAmount = proposals[key].data.currentAmount || 0;
-                                        if (proposals[key].type && proposals[key].type.name == constProposalType.PLAYER_CONSUMPTION_RETURN) {
+                                        if (proposals[key].type && (proposals[key].type.name == constProposalType.PLAYER_CONSUMPTION_RETURN || !playerData.platform.useLockedCredit)) {
                                             sumAmount = sumAmount + Number(rewardAmount);
                                         }
                                         else {
@@ -4286,7 +4286,8 @@ let dbPlayerInfo = {
                     creditData.lockedCredit = playerData.lockedCredit;
                     return dbconfig.collection_rewardTask.findOne({
                         playerId: playerData._id,
-                        status: constRewardTaskStatus.STARTED
+                        status: constRewardTaskStatus.STARTED,
+                        useLockedCredit: true
                     }).lean().then(
                         taskData => {
                             creditData.taskData = taskData;
@@ -5245,7 +5246,7 @@ let dbPlayerInfo = {
         //     }
         // );
 
-        return Q.all([a, b, c, d,e]).then(
+        return Q.all([a, b, c, d, e]).then(
             data => {
                 retData = data;
                 var prop = [];
@@ -7061,11 +7062,12 @@ let dbPlayerInfo = {
                     platformId = player.platform;
 
                     let taskProm;
-                    if (!player.platform.canMultiReward) {
+                    if (!player.platform.canMultiReward && player.platform.useLockedCredit) {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
@@ -7152,9 +7154,13 @@ let dbPlayerInfo = {
                 rewardAmount = Math.min((record.amount * rewardParam.rewardPercentage), rewardParam.maxRewardAmount);
                 deductionAmount = record.amount;
 
-                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record).then(
-                    function () {
-                        bDoneDeduction = true;
+                let creditProm = Q.resolve(false);
+                if (player.platform.useLockedCredit) {
+                    creditProm = dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record);
+                }
+                creditProm.then(
+                    function (bDeduct) {
+                        bDoneDeduction = bDeduct;
 
                         var proposalData = {
                             type: eventData.executeProposal,
@@ -7182,7 +7188,8 @@ let dbPlayerInfo = {
                                 eventId: eventData._id,
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
-                                eventDescription: eventData.description
+                                eventDescription: eventData.description,
+                                useLockedCredit: Boolean(player.platform.useLockedCredit)
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -7266,7 +7273,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
@@ -7602,7 +7610,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit
                             }
                         );
                     }
@@ -7771,7 +7780,9 @@ let dbPlayerInfo = {
             }
         }
 
-        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).lean().then(
             playerData => {
                 if (playerData) {
                     playerInfo = playerData;
@@ -7827,11 +7838,15 @@ let dbPlayerInfo = {
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
-                    let pendingCount = dbRewardTask.getPendingRewardTaskCount({
-                        mainType: 'Reward',
-                        "data.playerObjId": playerInfo._id,
-                        status: 'Pending'
-                    }, rewardTaskWithProposalList);
+                    let pendingCount = 0;
+                    if (playerInfo.platform && playerInfo.platform.useLockedCredit) {
+                        pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                            mainType: 'Reward',
+                            "data.playerObjId": playerInfo._id,
+                            status: 'Pending'
+                        }, rewardTaskWithProposalList);
+                    }
+
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime) {
@@ -8393,7 +8408,8 @@ let dbPlayerInfo = {
                         taskProm = dbRewardTask.getRewardTask(
                             {
                                 playerId: player._id,
-                                status: constRewardTaskStatus.STARTED
+                                status: constRewardTaskStatus.STARTED,
+                                useLockedCredit: true
                             }
                         );
                     }
