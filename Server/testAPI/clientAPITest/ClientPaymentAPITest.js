@@ -309,6 +309,12 @@
         this._service.requestQuickpayTopup.once(callback);
     };
 
+    proto.getQuickpayTopupRequestList = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.getQuickpayTopupRequestList.request(data);
+        this._service.getQuickpayTopupRequestList.once(callback);
+    };
+
 
     if (isNode) {
         module.exports = ClientPaymentAPITest;
