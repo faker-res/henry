@@ -148,6 +148,9 @@ function checkProposalConsumption(proposal, platformObj) {
             }
             else {
                 sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal");
+                // next then block's sendToAudit will trigger if player do their first withdrawal after transferOut
+                // to prevent that from happening, a Promise.reject() is added to skip the next block
+                return Promise.reject("reject");
             }
         }
     ).then(
@@ -367,6 +370,9 @@ function checkProposalConsumption(proposal, platformObj) {
             }
 
 
+        },
+        error => {
+            // do nothing
         }
     )
     //
