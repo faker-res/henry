@@ -78,6 +78,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyWechatPayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerWechatPayTopUp', ng-click='vm.initPlayerWechatPayTopUp();')
             text {{"APPLY_WECHATPAY_TOPUP" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ApplyQuickpayTopup')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalPlayerQuickpayTopUp', ng-click='vm.initPlayerQuickpayTopUp();')
+            text {{"Apply QuickPay Topup" | translate}}
+            img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'applyBonus')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerBonus();', data-target='#modalPlayerBonus')
             text {{"APPLY_BONUS" | translate}}
             img.img-edit
@@ -1528,6 +1531,55 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_wechatPay_topup.$invalid || form_wechatPay_topup.$pristine || (vm.existingWechatPayTopup && !vm.existingWechatPayTopup.isCanceled)', ng-show='!vm.playerWechatPayTopUp.submitted', ng-click='vm.applyPlayerWechatPayTopUp()') {{'APPLY' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                 label.inlineBlk.wordWrap(ng-if='vm.playerWechatPayTopUp.submitted && vm.playerWechatPayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerWechatPayTopUp.responseMsg}}
+
+// Modal - Player apply QuickPay Topup
+#modalPlayerQuickpayTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Apply QuickPay Topup" | translate}}
+            .modal-body
+                .row
+                    .col-md-12
+                        .well.margin-bottom-5(ng-if='vm.existingQuickpayTopup===null')
+                            label.blink {{"Searching existing QuickPay topup request..." | translate}}
+                        .well.margin-bottom-5(ng-if='vm.existingQuickpayTopup')
+                            .lineThrough(ng-if='vm.existingQuickpayTopup.isCanceled')
+                                button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingQuickpayTopup.createTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingQuickpayTopup.data.amount}}
+                            div(ng-if='!vm.existingQuickpayTopup.isCanceled')
+                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+                                label.margin-right-5 {{"Player has pending QuickPay topup request already." | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingQuickpayTopup.createTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingQuickpayTopup.data.amount}}
+                                button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerQuickpayTopUp()') {{'CANCEL' | translate}}
+                .row(ng-show='vm.existingQuickpayTopup===false || vm.existingQuickpayTopup.isCanceled')
+                    .col-md-12
+                        form(name='form_quickpay_topup').well
+                            .form-group-col-md-6
+                                .control-label
+                                    label {{'CREDIT' | translate}}
+                                    text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
+                                input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerQuickpayTopUp.amount', required)
+                                .control-label
+                                    label {{'quickpayName' | translate}}
+                                input.form-control(ng-model='vm.playerQuickpayTopUp.quickpayName', required)
+                                .control-label
+                                    label {{'quickpayAccount' | translate}}
+                                input.form-control(ng-model='vm.playerQuickpayTopUp.quickpayAccount', required)
+                                .control-label
+                                    label {{'REMARK' | translate}}
+                                input.form-control(ng-model='vm.playerQuickpayTopUp.remark')
+                                .inlineBlk
+                                    label {{'DEPOSITE_TIME' | translate}}
+                                    .createTime
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerQuickpayTopUp.submitted') {{'Submitted' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_quickpay_topup.$invalid || form_quickpay_topup.$pristine || (vm.existingQuickpayTopup && !vm.existingQuickpayTopup.isCanceled)', ng-show='!vm.playerQuickpayTopUp.submitted', ng-click='vm.applyPlayerQuickpayTopUp()') {{'APPLY' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.playerQuickpayTopUp.submitted && vm.playerQuickpayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerQuickpayTopUp.responseMsg}}
 
 #modalPlayerBonus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
