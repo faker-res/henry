@@ -4226,7 +4226,9 @@ let dbPlayerInfo = {
      */
     getPlayerCredit: function (playerId) {
         var returnObj = {};
-        return dbconfig.collection_players.findOne({playerId: playerId}).then(
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).lean().then(
             playerData => {
                 if (playerData) {
                     returnObj.validCredit = playerData.validCredit;
@@ -4249,7 +4251,7 @@ let dbPlayerInfo = {
                                         var applyAmount = proposals[key].data.applyAmount || 0;
                                         var rewardAmount = proposals[key].data.rewardAmount || 0;
                                         var currentAmount = proposals[key].data.currentAmount || 0;
-                                        if (proposals[key].type && proposals[key].type.name == constProposalType.PLAYER_CONSUMPTION_RETURN) {
+                                        if (proposals[key].type && (proposals[key].type.name == constProposalType.PLAYER_CONSUMPTION_RETURN || !playerData.platform.useLockedCredit)) {
                                             sumAmount = sumAmount + Number(rewardAmount);
                                         }
                                         else {
@@ -4275,7 +4277,8 @@ let dbPlayerInfo = {
                     creditData.lockedCredit = playerData.lockedCredit;
                     return dbconfig.collection_rewardTask.findOne({
                         playerId: playerData._id,
-                        status: constRewardTaskStatus.STARTED
+                        status: constRewardTaskStatus.STARTED,
+                        useLockedCredit: true
                     }).lean().then(
                         taskData => {
                             creditData.taskData = taskData;
