@@ -22,7 +22,7 @@ var proposalProcessStepSchema = new Schema({
     //assigned role
     role:{type:Schema.Types.ObjectId, ref:'role', index: true},
     //creation date
-    createTime: {type: Date, default: Date.now}
+    createTime: {type: Date, default: Date.now, index: true}
 });
 
 module.exports = proposalProcessStepSchema;
