@@ -3409,6 +3409,7 @@ define(['js/app'], function (myApp) {
             vm.newPlayer.domain = window.location.hostname;
             vm.getReferralPlayer(vm.newPlayer, "new");
             vm.playerCreateResult = null;
+            vm.playerPswverify = null;
         }
         vm.editPlayerStatus = function (id) {
             console.log(id);
