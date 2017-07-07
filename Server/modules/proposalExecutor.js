@@ -1045,7 +1045,8 @@ var proposalExecutor = {
                         useConsumption: proposalData.data.useConsumption,
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
-                        targetEnable: proposalData.data.targetEnable
+                        targetEnable: proposalData.data.targetEnable,
+                        useLockedCredit: proposalData.data.useLockedCredit
                     };
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
@@ -1608,7 +1609,8 @@ var proposalExecutor = {
                         requiredUnlockAmount: proposalData.data.spendingAmount,
                         currentAmount: proposalData.data.applyAmount,
                         initAmount: proposalData.data.applyAmount,
-                        eventId: proposalData.data.eventId
+                        eventId: proposalData.data.eventId,
+                        useLockedCredit: proposalData.data.useLockedCredit
                     };
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
@@ -2156,7 +2158,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
     //check if player has reward task and if player's platform support multi reward
     dbconfig.collection_rewardTask.findOne(
-        {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED}
+        {playerId: proposalData.data.playerObjId, status: constRewardTaskStatus.STARTED, useLockedCredit: true}
     ).populate(
         {path: "platformId", model: dbconfig.collection_platform}
     ).lean().then(
@@ -2179,10 +2181,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             if( !taskData.useLockedCredit ){
                 return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
                     playerData => {
-                        return dbconfig.collection_players.findOneAndUpdate(
-                            {_id: playerData._id, platform: playerData.platform},
-                            {$inc: {validCredit: proposalData.data.rewardAmount}}
-                        )
+                        dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
                     }
                 );
             }

@@ -89,9 +89,11 @@ var dbRewardTask = {
         ).then(
             data => {
                 if (data && data[0] && data[1]) {
-                    dbLogger.createCreditChangeLogWithLockedCredit(
-                        rewardData.playerId, rewardData.platformId, 0, rewardData.rewardType,
-                        data[1].validCredit, rewardData.currentAmount, rewardData.currentAmount, null, data[0]);
+                    if (rewardData.useLockedCredit) {
+                        dbLogger.createCreditChangeLogWithLockedCredit(
+                            rewardData.playerId, rewardData.platformId, 0, rewardData.rewardType,
+                            data[1].validCredit, rewardData.currentAmount, rewardData.currentAmount, null, data[0]);
+                    }
                     deferred.resolve(data[0]);
                 }
                 else {
