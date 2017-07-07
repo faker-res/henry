@@ -57,11 +57,11 @@
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#QuickPayList", href='#includedQuickpays', ng-click='vm.showQuickPayCate="include";vm.toggleBankType()')
                             h4.panel-title
                                 text {{'Included QuickPay' | translate}}
-                                span(ng-if='vm.includedQuickpays') &nbsp;:&nbsp;({{vm.includedQuickpays.length}})
-                                text.blink.margin-left-5.text-danger(ng-if='!vm.includedQuickpays') {{'loading QuickPay' | translate}}...
+                                span(ng-if='vm.includedQuickPays') &nbsp;:&nbsp;({{vm.includedQuickPays.length}})
+                                text.blink.margin-left-5.text-danger(ng-if='!vm.includedQuickPays') {{'loading QuickPay' | translate}}...
                         #includedQuickpays.panel-collapse.collapse.in
                             .panel-body(style='height:250px;overflow-y:auto')
-                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedQuickpays', class='{{vm.highlightQuickPay[v.accountNumber]}}', ng-click='vm.QuickPayClicked(i,v,"in")')
+                                a.platformBankcardDiv(ng-repeat='(i,v) in vm.includedQuickPays', class='{{vm.highlightQuickPay[v.accountNumber]}}', ng-click='vm.QuickPayClicked(i,v,"in")')
                                     table.bg-pale
                                         tr
                                             td.text-center(rowspan="5")
