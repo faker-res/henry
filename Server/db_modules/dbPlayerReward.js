@@ -200,11 +200,13 @@ let dbPlayerReward = {
     applyEasterEggReward: (playerId, code, adminInfo) => {
         let playerObj = {};
         let eventData = {};
-        return dbConfig.collection_players.findOne({playerId: playerId}).then(
+        return dbConfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbConfig.collection_platform}
+        ).then(
             playerData => {
-                if (playerData) {
+                if (playerData && playerData.platform) {
                     playerObj = playerData;
-                    return dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform, constRewardType.PLAYER_EASTER_EGG_REWARD, code);
+                    return dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform._id, constRewardType.PLAYER_EASTER_EGG_REWARD, code);
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid player data"});
@@ -215,12 +217,11 @@ let dbPlayerReward = {
                 if (eventObj && eventObj.param && eventObj.param.reward) {
                     eventData = eventObj;
 
-
                     //check if player is valid for reward
                     //find player's easter egg reward
                     return dbConfig.collection_proposalType.findOne({
                         name: constProposalType.PLAYER_EASTER_EGG_REWARD,
-                        platformId: playerObj.platform
+                        platformId: playerObj.platform._id
                     }).lean().then(
                         typeData => {
                             if (typeData) {
@@ -261,7 +262,7 @@ let dbPlayerReward = {
                 if (record && !playerObj.applyingEasterEgg) {
                     //update player easter egg lock
                     return dbConfig.collection_players.findOneAndUpdate(
-                        {_id: playerObj._id, platform: playerObj.platform},
+                        {_id: playerObj._id, platform: playerObj.platform._id},
                         {applyingEasterEgg: true}
                     ).lean();
                 }
@@ -311,7 +312,7 @@ let dbPlayerReward = {
                             playerId: playerObj.playerId,
                             playerName: playerObj.name,
                             realName: playerObj.realName,
-                            platformObjId: playerObj.platform,
+                            platformObjId: playerObj.platform._id,
                             rewardAmount: rewardAmount,
                             spendingAmount: rewardAmount * Number(eventData.param.consumptionTimes),
                             applyAmount: rewardAmount,
@@ -320,7 +321,8 @@ let dbPlayerReward = {
                             eventName: eventData.name,
                             eventCode: eventData.code,
                             eventDescription: eventData.description,
-                            providers: eventData.param.providers
+                            providers: eventData.param.providers,
+                            useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS
