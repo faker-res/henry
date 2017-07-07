@@ -7025,10 +7025,10 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('CHILDREN'),
-                        data: 'children',
+                        data: 'childrencount',
                         "sClass": "alignRight sumInt",
                         render: function (data, type, row) {
-                            data = data || [];
+                            data = data;
                             //var showStr=$('<div>');
                             var showStr = $('<a>', {
                                 'class': "partnerChildrenPopover",
@@ -7038,7 +7038,7 @@ define(['js/app'], function (myApp) {
                                 'data-placement': "bottom",
                                 'data-trigge': "focus",
                                 'data-row': JSON.stringify(row),
-                            }).text(data.length);
+                            }).text(data);
                             //return data.length;
                             return showStr.prop('outerHTML');
                         }
@@ -10602,7 +10602,8 @@ define(['js/app'], function (myApp) {
                             var sortCol = a.aaSorting[0][0];
                             var sortDire = a.aaSorting[0][1];
                             var sortKey = a.aoColumns[sortCol].data
-                            vm.playerTableQuery.aaSorting = a.aaSorting;
+                            // vm.playerTableQuery.aaSorting = a.aaSorting;
+
                             if (sortKey) {
                                 vm.playerTableQuery.sortCol = vm.playerTableQuery.sortCol || {};
                                 var preVal = vm.playerTableQuery.sortCol[sortKey];
@@ -10623,7 +10624,11 @@ define(['js/app'], function (myApp) {
                         var sortCol = a.aaSorting[0][0];
                         var sortDire = a.aaSorting[0][1];
                         var sortKey = a.aoColumns[sortCol].data
-                        vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
+                        // vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
+                        // if(sortKey=='childrencount'){
+                        //     sortKey = 'children';
+                        // }
+
                         if (sortKey) {
                             vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {};
                             var preVal = vm.advancedPartnerQueryObj.sortCol[sortKey];
