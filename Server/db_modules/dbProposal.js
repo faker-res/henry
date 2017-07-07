@@ -252,11 +252,12 @@ var proposal = {
                             proposalData.data.partnerName = data[2].partnerName;
                             proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPartnerLevel = data[2].level.name;
+                            proposalData.data.proposalPartnerLevelValue = data[2].level.value;
                         }
                         else {
                             proposalData.data.playerName = data[2].name;
                             proposalData.data.playerStatus = data[2].status;
-                            proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
+                            proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
                         }
                     }
 
