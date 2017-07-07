@@ -247,6 +247,7 @@ var roleChecker = {
                 ApplyManualTopup: ['applyManualTopUpRequest', 'cancelManualTopupRequest'],
                 ApplyAlipayTopup: ['getAlipayTopUpRequestList', 'applyAlipayTopUpRequest', 'cancelAlipayTopup'],
                 ApplyWechatPayTopup: ['getWechatPayTopUpRequestList', 'applyWechatPayTopUpRequest', 'cancelWechatPayTopup'],
+                ApplyQuickpayTopup: ['getQuickpayTopUpRequestList', 'applyQuickpayTopUpRequest', 'cancelQuickpayTopup'],
                 TopupRecord: ['getPlayerTopUpRecords'],
                 applyBonus: ['applyBonusRequest'],
                 BonusHistory: [],
