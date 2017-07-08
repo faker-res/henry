@@ -512,8 +512,7 @@ let dbPartner = {
         if(data.sortCol){
             var detail = dbconfig.collection_partner.aggregate([
                 {$match: {platform: mongoose.Types.ObjectId(data.platformId)}},
-
-                {$project:{ childrencount: {$size:"$children"},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
+                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},             
                 {$sort:data.sortCol},                
                 {$skip:data.index},
                 {$limit:data.limit}
@@ -521,14 +520,18 @@ let dbPartner = {
             aggr => {
                 var retData = [];
 
-                function getDoc(id) {
-                    return dbconfig.collection_partner.find({platform: data.platformId})
+                function getDoc(id, childrencount) {
+                    return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(id)})
                         .populate({path: "parent", model: dbconfig.collection_partner})
-                        .populate({path: "level", model: dbconfig.collection_partnerLevel})
+                        .populate({path: "level", model: dbconfig.collection_partnerLevel}).
+                        then(function(partnerdata){
+                            partnerdata._doc.childrencount = childrencount;
+                            return partnerdata
+                        })
                 }
 
                 for (var index in aggr) {
-                    var prom = getDoc(aggr[index].docId);
+                    var prom = vm.getDoc(aggr[index]._id , aggr[index].childrencount);
                     retData.push(prom);
                 }
                 return Q.all(retData);
@@ -536,10 +539,19 @@ let dbPartner = {
         }else{
             var detail = dbconfig.collection_partner.aggregate([  
                 {$match: {platform: mongoose.Types.ObjectId(data.platformId)}},
-                {$project:{ childrencount: {$size:"$children"},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},             
+                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},             
                 {$skip:data.index},
                 {$limit:data.limit}
-            ])
+            ]).then(
+            aggr => {
+                var retData = [];
+
+                for (var index in aggr) {
+                    var prom = vm.getDoc(aggr[index]._id , aggr[index].childrencount);
+                    retData.push(prom);
+                }
+                return Q.all(retData);
+            });
         }
         return Q.all([count, detail]).then( function(data){
             return {size:data[0],data:data[1]}
@@ -560,7 +572,7 @@ let dbPartner = {
         if(data.sortCol){
             return dbconfig.collection_partner.aggregate([
                 {$match: {platform: mongoose.Types.ObjectId(platformId)}},
-                {$project:{ childrencount: {$size:"$children"},"partnerId":1,"partnerName":1,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
+                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},             
                 {$sort:data.sortCol},                
                 {$skip:data.index},
                 {$limit:data.limit}
@@ -568,14 +580,12 @@ let dbPartner = {
             aggr => {
                 var retData = [];
 
-                function getDoc(id) {
-                    return dbconfig.collection_partner.find({platform: data.platformId})
-                        .populate({path: "parent", model: dbconfig.collection_partner})
-                        .populate({path: "level", model: dbconfig.collection_partnerLevel})
-                }
 
                 for (var index in aggr) {
-                    var prom = getDoc(aggr[index].docId);
+                    var prom = vm.getDoc(aggr[index]._id , aggr[index].childrencount);
+
+
+                    
                     retData.push(prom);
                 }
                 return Q.all(retData);
@@ -583,28 +593,31 @@ let dbPartner = {
         }else{
             return dbconfig.collection_partner.aggregate([
                 {$match: {platform: mongoose.Types.ObjectId(platformId)}},
-                {$project:{ childrencount: {$size:"$children"},"partnerId":1,"partnerName":1,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},               
+                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},             
                 {$skip:data.index},
                 {$limit:data.limit}
             ]).then(
             aggr => {
                 var retData = [];
 
-                function getDoc(id) {
-                    return dbconfig.collection_partner.find({platform: data.platformId})
-                        .populate({path: "parent", model: dbconfig.collection_partner})
-                        .populate({path: "level", model: dbconfig.collection_partnerLevel})
-                }
-
                 for (var index in aggr) {
-                    var prom = getDoc(aggr[index].docId);
+                    var prom = vm.getDoc(aggr[index]._id , aggr[index].childrencount);
+
                     retData.push(prom);
                 }
                 return Q.all(retData);
             });
         }
     },
-
+    getDoc: function(id, childrencount) {
+        return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(id)})
+            .populate({path: "parent", model: dbconfig.collection_partner})
+            .populate({path: "level", model: dbconfig.collection_partnerLevel}).
+            then(function(partnerdata){
+                partnerdata._doc.childrencount = childrencount;
+                return partnerdata
+            })
+    }
 // then(
 //     aggr => {
 //         var retData = [];

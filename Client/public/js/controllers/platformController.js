@@ -10625,10 +10625,6 @@ define(['js/app'], function (myApp) {
                         var sortDire = a.aaSorting[0][1];
                         var sortKey = a.aoColumns[sortCol].data
                         // vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
-                        // if(sortKey=='childrencount'){
-                        //     sortKey = 'children';
-                        // }
-
                         if (sortKey) {
                             vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {};
                             var preVal = vm.advancedPartnerQueryObj.sortCol[sortKey];
