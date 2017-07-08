@@ -9208,7 +9208,15 @@ define(['js/app'], function (myApp) {
                     vm.allPlatformAnnouncements = data.data;
                     $scope.safeApply();
                 });
-        }
+        };
+
+        vm.initCreatePlatform = function () {
+            vm.configTableAdd=true;
+            vm.newAnn={};
+            vm.currentlyFocusedAnnouncement = vm.newAnn;
+            vm.newAnn.date = new Date();
+        };
+
         // announcement codes==============end===============================
         vm.getPlatformBasic = function () {
             vm.platformBasic = vm.platformBasic || {};
