@@ -114,6 +114,10 @@ let dbAutoProposal = {
             //     }
             // )
         }
+    },
+
+    changeStatusToPendingFromAutoAudit: (proposalObjId, createTime) => {
+         return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalObjId, status: constProposalStatus.AUTOAUDIT, createTime: createTime}, {status: constProposalStatus.PENDING, 'data.remark': "Changed to manual audit.", 'data.remarkChinese': "已转换成手动审核。"});
     }
 };
 

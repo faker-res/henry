@@ -2020,8 +2020,9 @@
   "optional": "选填",
   "Leaving empty will generate a random password." : "放空此栏将随机生成密码。",
   "Note: ": "注意：",
-  "remarkChinese": "中午备注",
+  "remarkChinese": "中文备注",
   "autoAuditRemarkChinese": "自动审核：中文备注",
   "autoAuditRepeatMsgChinese": "自动审核：回圈信息（中文）",
-  "autoAuditCheckMsgChinese": "自动审核：审核信息（中文）"
+  "autoAuditCheckMsgChinese": "自动审核：审核信息（中文）",
+  "Manual": "手动"
 }

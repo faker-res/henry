@@ -1035,6 +1035,7 @@ define(['js/app'], function (myApp) {
             if (!data) {
                 return;
             }
+            vm.changeStatusToPendingFromAutoAuditMessage = "";
             vm.selectedProposal = data;
             vm.updateProposalLockBtnStatus();
             $('#modalOperationProposal').modal();
@@ -1240,7 +1241,25 @@ define(['js/app'], function (myApp) {
                 console.log('playerbonus error', error);
                 $scope.safeApply();
             })
-        }
+        };
+
+
+
+        vm.changeStatusToPendingFromAutoAudit = function () {
+            socketService.$socket($scope.AppSocket, 'changeStatusToPendingFromAutoAudit', {
+                proposalObjId: vm.selectedProposal._id,
+                createTime: vm.selectedProposal.createTime
+            }, function (data) {
+                console.log("changeStatusToPendingFromAutoAudit", data);
+                vm.changeStatusToPendingFromAutoAuditMessage = $translate("SUCCESS");
+                $scope.safeApply();
+                vm.loadProposalQueryData(true);
+            }, function (error) {
+                console.error(error);
+                vm.changeStatusToPendingFromAutoAuditMessage = $translate("FAIL") + " - " + error.error.message;
+                $scope.safeApply();
+            })
+        };
 
         ///////////////////////////////// approval proposal table
         // vm.loadApprovalProposalData = function (callback) {
