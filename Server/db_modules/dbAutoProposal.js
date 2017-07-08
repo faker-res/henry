@@ -114,6 +114,10 @@ let dbAutoProposal = {
             //     }
             // )
         }
+    },
+
+    changeStatusToPendingFromAutoAudit: (proposalObjId, createTime) => {
+         return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalObjId, status: constProposalStatus.AUTOAUDIT, createTime: createTime}, {status: constProposalStatus.PENDING, 'data.remark': "Changed to manual audit.", 'data.remarkChinese': "已转换成手动审核。"});
     }
 };
 
@@ -156,13 +160,13 @@ function checkProposalConsumption(proposal, platformObj) {
     ).then(
         // Get player consumption first before other checkings
         proposals => {
-            let isApprove = true, proms = [], repeatMsg = "";
+            let isApprove = true, proms = [], repeatMsg = "", repeatMsgChinese = "";
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
             let dateTo = proposal.createTime;
 
-            let checkResult = [], checkMsg = "";
+            let checkResult = [], checkMsg = "", checkMsgChinese = "";
 
             // empty array is treated as 'truthy' in javascript
             if (proposals && !proposals.length) {
@@ -296,10 +300,12 @@ function checkProposalConsumption(proposal, platformObj) {
                                     isApprove = false;
                                     isClearCycle = true;
                                     checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
+                                    checkMsgChinese += "所有奖励输光与提案 " + checkResult[i].proposalId + " ：初始奖励额度 " + initBonusAmount + " ，盈余 " + bonusAmount + "; ";
                                 }
                                 else if (validConsumptionAmount + lostThreshold < spendingAmount) {
                                     isApprove = false;
                                     checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                                    checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
                                 }
                                 else {
                                     // Consumption has fulfilled requirement during this cycle
@@ -320,6 +326,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         if ((validConsumptionAmount + lostThreshold) < spendingAmount || validConsumptionAmount == 0) {
                             isApprove = false;
                             repeatMsg = "Insufficient overall consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                            repeatMsgChinese = "整体投注额不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
                         }
 
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
@@ -352,7 +359,9 @@ function checkProposalConsumption(proposal, platformObj) {
                                     'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
                                     'data.nextCheckTime': nextCheckTime,
                                     'data.autoAuditRepeatMsg': repeatMsg,
-                                    'data.autoAuditCheckMsg': checkMsg
+                                    'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
+                                    'data.autoAuditCheckMsg': checkMsg,
+                                    'data.autoAuditCheckMsgChinese': checkMsgChinese
                                 }).exec();
                             }
                             else {

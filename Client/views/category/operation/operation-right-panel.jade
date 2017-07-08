@@ -152,6 +152,8 @@
                     i.fa.fa-spin.fa-2x.fa-spinner
                 label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                text(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
                 .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
                     label.inlineBlk {{'remark' | translate}}
                     input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
