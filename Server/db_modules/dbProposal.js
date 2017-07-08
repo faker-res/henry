@@ -236,7 +236,7 @@ var proposal = {
                     let queryObj = {
                         type: proposalData.type,
                         "data.platformId": data[0].platformId,
-                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING]}
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
                     };
                     let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
