@@ -1039,7 +1039,12 @@ var dbPlatform = {
     calculatePlayersConsumptionIncentive: function (playerObjIds, eventData, proposalTypeId, startTime, endTime) {
         let proms = [];
         for (let i = 0; i < playerObjIds.length; i++) {
-            proms.push(dbPlatform.calculatePlayerConsumptionIncentive(playerObjIds[i], eventData, proposalTypeId, startTime, endTime));
+            proms.push(
+                dbPlatform.calculatePlayerConsumptionIncentive(playerObjIds[i], eventData, proposalTypeId, startTime, endTime).then(
+                    data => data,
+                    error => error
+                )
+            );
         }
         return Q.all(proms)
     },
@@ -1067,265 +1072,15 @@ var dbPlatform = {
 
         return playerProm.then(
             data => {
-                if(!data.permission.forbidPlayerConsumptionIncentive){
+                if (!data.permission.forbidPlayerConsumptionIncentive) {
                     //get player's platform reward event data
                     if (data && data.playerLevel) {
                         player = data;
-                        platformId = player.platform;
-                        event = eventData;
-                        let minTopUpRecordAmount = 0;
-
-                        // Filter event param based on player level
-                        eventParams = eventData.param.reward.filter(reward => {
-                            if (reward.minPlayerLevel == player.playerLevel.value) {
-                                return reward;
-                            }
-                        });
-
-                        // Loose filter if no matched param for player level
-                        if (eventParams.length == 0) {
-                            eventParams = eventData.param.reward.filter(reward => {
-                                if (reward.minPlayerLevel <= player.playerLevel.value) {
-                                    if (reward.minTopUpRecordAmount > minTopUpRecordAmount) {
-                                        minTopUpRecordAmount = reward.minTopUpRecordAmount;
-                                    }
-                                    return reward;
-                                }
-                            });
-                        }
-
-                        if (eventParams && eventParams.length > 0) {
-                            //get yesterday top up amount
-                            return dbconfig.collection_playerTopUpRecord.aggregate(
-                                {
-                                    $match: {
-                                        playerId: player._id,
-                                        platformId: player.platform,
-                                        amount: {$gte: minTopUpRecordAmount},
-                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                                        $or: [{bDirty: false}, {
-                                            bDirty: true,
-                                            usedType: constRewardType.PLAYER_TOP_UP_RETURN
-                                        }]
-                                    }
-                                },
-                                {
-                                    $group: {
-                                        _id: {playerId: "$playerId", platformId: "$platformId"},
-                                        amount: {$sum: "$amount"}
-                                    }
-                                }
-                            );
-                        }
-                        else {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                                name: "DataError",
-                                message: "Player is not valid for this reward"
-                            });
-                        }
+                        return dbPlayerInfo.applyConsumptionIncentive(data.playerId, eventData.code);
                     }
-                    else {
-                        return Q.reject({
-                            status: constServerCode.REWARD_EVENT_INVALID,
-                            name: "DataError",
-                            message: "Cannot find player consumption incentive event data for platform"
-                        });
-                    }
-                }
-                else{
-                    return Q.reject({
-                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                        name: "DataError",
-                        message: "Player is forbidded for consumption incentive event"
-                    });
                 }
             }
-        ).then(
-            topUpData => {
-                if (topUpData && topUpData[0] && topUpData[0].amount > 0) {
-                    playerTopUpAmount = topUpData[0].amount;
-
-                    //get yesterday bonus credit
-                    let bonusProm = dbconfig.collection_proposalType.findOne({
-                        platformId: player.platform,
-                        name: constProposalType.PLAYER_BONUS
-                    }).then(
-                        typeData => {
-                            if (typeData) {
-                                return dbconfig.collection_proposal.find(
-                                    {
-                                        type: typeData._id,
-                                        "data.playerObjId": player._id,
-                                        "data.platformId": player.platform,
-                                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime}
-                                    }
-                                ).lean();
-                            }
-                            else {
-                                return Q.reject({
-                                    name: "DataError",
-                                    message: "Can not find player bonus proposal type"
-                                });
-                            }
-                        }
-                    ).then(
-                        bonusData => {
-                            if (bonusData && bonusData.length > 0) {
-                                let bonusCredit = 0;
-                                bonusData.forEach(
-                                    data => {
-                                        bonusCredit += data.data.amount * data.data.bonusCredit
-                                    }
-                                );
-                                return bonusCredit;
-                            }
-                            else {
-                                return 0;
-                            }
-                        }
-                    );
-
-                    //get game credit from log
-                    let providerCreditProm = dbconfig.collection_playerCreditsDailyLog.findOne({
-                        platformObjId: player.platform,
-                        playerObjId: player._id,
-                        createTime: {$gt: yerTime.startTime, $lte: yerTime.endTime}
-                    }).lean().then(
-                        creditLogData => {
-                            if (creditLogData) {
-                                return creditLogData.validCredit + creditLogData.lockedCredit + creditLogData.gameCredit;
-                            } else {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                                    name: "DataError",
-                                    message: "Error in getting player balance credit"
-                                });
-                            }
-                        }
-                    );
-                    return Q.all([bonusProm, providerCreditProm]);
-                }
-                else {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                        name: "DataError",
-                        message: "Player does not have enough top up amount"
-                    });
-                }
-            }
-        ).then(
-            data => {
-                if (data) {
-                    let curParam = null;
-                    let deficitAmount = playerTopUpAmount - data[0] - data[1];
-
-                    // Filter event param by deficit amount
-                    eventParams.map(param => {
-                        if (deficitAmount >= param.minDeficitAmount) {
-                            if (!curParam) {
-                                curParam = param;
-                            } else {
-                                if (param.minDeficitAmount > curParam.minDeficitAmount) {
-                                    curParam = param;
-                                }
-                            }
-                        }
-                    });
-
-                    eventParam = curParam;
-
-                    let proposalData = {
-                        type: event.executeProposal,
-                        creator: {
-                            type: 'player',
-                            name: player.name,
-                            id: player.playerId
-                        },
-                        data: {
-                            playerObjId: player._id,
-                            playerId: player.playerId,
-                            playerName: player.name,
-                            platformId: platformId,
-                            deficitAmount: deficitAmount,
-                            curAmount: player.validCredit,
-                            providerCreditAmount: data[1],
-                            eventId: event._id,
-                            eventName: event.name,
-                            eventCode: event.code,
-                            eventDescription: event.description
-                        },
-                        entryType: constProposalEntryType.SYSTEM,
-                        userType: constProposalUserType.PLAYERS,
-                    };
-
-                    // Set percentage to 100% if not available
-                    if (eventParam.rewardAmount && !eventParam.rewardPercentage) {
-                        // Incentive by fixed amount
-                        proposalData.data.rewardAmount = eventParam.rewardAmount;
-
-                        return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
-                    }
-                    else if ((deficitAmount * eventParam.rewardPercentage) >= eventParam.minRewardAmount) {
-                        // Incentive by percentage
-                        proposalData.data.rewardAmount = Math.min(Math.floor(deficitAmount * eventParam.rewardPercentage), eventParam.maxRewardAmount);
-                        proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventParam.spendingTimes;
-
-                        // Check whether player has existing reward task
-                        if (!player.platform.canMultiReward) {
-                            return dbconfig.collection_rewardTask.findOne({
-                                platformId: platformId,
-                                playerId: player._id,
-                                eventId: event._id,
-                                status: constRewardTaskStatus.STARTED
-                            }).lean().then(
-                                data => {
-                                    if (!data) {
-                                        return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
-                                    }
-                                }
-                            )
-                        }
-                        else {
-                            return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
-                        }
-                    }
-                    else {
-                        if ((player.validCredit + player.lockedCredit + data[1]) > eventParam.maxPlayerCredit) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                                name: "DataError",
-                                message: "Player has too much credit"
-                            });
-                        }
-                        else {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                                name: "DataError",
-                                message: "Not enough reward amount"
-                            });
-                        }
-                    }
-                }
-                else {
-                    return Q.reject({
-                        name: "DataError",
-                        message: "Can not find player bonus proposal or provider credit"
-                    });
-                }
-            }
-        ).catch(
-            error => console.log({
-                name: "DataError",
-                message: "Player is not valid for player consumption incentive reward",
-                error: error
-            })
-        ).then(
-            data => {
-                return data
-            }
-        );
+        )
     },
 
     getPlatformConsumptionReturnDetail: function (platformObjId, period) {

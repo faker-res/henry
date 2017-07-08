@@ -40,7 +40,7 @@ var platformRewardSettlement = {
                     // Settle each event in turn
                     let processEvent = function (event) {
                         //check if reward event is valid and if settlement period is correct
-                        if (rewardUtil.isValidRewardEvent(event.type.name, event) && event.settlementPeriod == period) {
+                        if (rewardUtil.isValidRewardEvent(event.type.name, event)) {
                             //check reward event valid time
                             var curTime = new Date();
                             if ((event.validStartTime && curTime.getTime() < event.validStartTime.getTime()) ||
@@ -52,7 +52,9 @@ var platformRewardSettlement = {
                                     return dbPlayerTopUpDaySummary.checkPlatformFullAttendanceStream(platformId, event, event.executeProposal);
                                     break;
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, event, event.executeProposal, event.settlementPeriod);
+                                    if(event.settlementPeriod == period){
+                                        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, event, event.executeProposal, event.settlementPeriod);
+                                    }
                                     break;
                                 case constRewardType.PARTNER_CONSUMPTION_RETURN:
                                     return dbPartnerWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, event, event.executeProposal);

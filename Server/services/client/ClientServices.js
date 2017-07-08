@@ -158,8 +158,7 @@
                 "getAlipaySingleLimit",
                 "requestQuickpayTopup",
                 "cancelQuickpayTopup",
-                "getQuickpayTopupRequestList",
-                "getQuickpaySingleLimit"
+                "getQuickpayTopupRequestList"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -33,7 +33,7 @@ div(style="height:265px;overflow:auto;margin-bottom:5px")
                     td
                         input.form-control(type="datetime", date-time, ng-model="vm.newAnn.date")
 .pull-right
-    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Announcement', 'PlatformAnnouncementCreate')", ng-click="vm.configTableAdd=true; vm.newAnn={}; vm.currentlyFocusedAnnouncement = vm.newAnn")
+    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Announcement', 'PlatformAnnouncementCreate')", ng-click="vm.initCreatePlatform()")
         text {{'CREATE' | translate}}
         img.img-create
     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Announcement', 'PlatformAnnouncementUpdate')", ng-disabled="!vm.selectedPlatformAnnouncement", ng-click='vm.configStartEdit("announcement")')
