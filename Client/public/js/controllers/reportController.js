@@ -369,8 +369,7 @@ define(['js/app'], function (myApp) {
                 vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[3]);
                 vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[1]);
                 vm.currentRewardTaskName = "ALL";
-            } else if (choice == "OPERATION_REPORT") {
-
+            } else if (choice == "PROVIDER_REPORT") {
                 vm.queryOperation = {};
                 vm.queryOperation.providerId = 'all';
                 utilService.actionAfterLoaded("#operationTable", function () {
@@ -387,17 +386,17 @@ define(['js/app'], function (myApp) {
                     vm.fullAttendanceResultQuery = {status: 'all'};
                     $scope.safeApply();
                 });
-            } else if (choice == "PROVIDER_REPORT") {
-                vm.rewardTypeName = 'GAME_PROVIDER_REWARD';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[2]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                vm.currentRewardTaskName = "GAME_PROVIDER_REWARD";
-
-                utilService.actionAfterLoadedDateTimePickers("#providerRewardReport", function () {
-                    $scope.safeApply();
-                });
-
-            } else if (choice == "PROPOSAL_REPORT") {
+            } 
+            // else if (choice == "PROVIDER_REPORT") {
+            //     vm.rewardTypeName = 'GAME_PROVIDER_REWARD';
+            //     vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[2]);
+            //     vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+            //     vm.currentRewardTaskName = "GAME_PROVIDER_REWARD";
+            //     utilService.actionAfterLoadedDateTimePickers("#providerRewardReport", function () {
+            //         $scope.safeApply();
+            //     });
+            // } 
+            else if (choice == "PROPOSAL_REPORT") {
                 vm.proposalQuery = {};
                 vm.proposalQuery.status = 'all';
                 vm.proposalQuery.totalCount = 0;

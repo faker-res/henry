@@ -485,7 +485,7 @@ var roleChecker = {
                 Read: ['getPlatform', 'getProposalTypeByPlatformId'],
                 TOPUP_REPORT: ['topupReport'],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
-                OPERATION_REPORT: ['operationReport', 'operationSummaryReport'],
+                PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement'],
                 NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData'],
