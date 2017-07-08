@@ -219,6 +219,7 @@ var proposal = {
                     }
                     if (data[0].name == constProposalType.PLAYER_TOP_UP || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP ||
                         data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_QUICKPAY_TOP_UP
                     ) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PREPENDING;
