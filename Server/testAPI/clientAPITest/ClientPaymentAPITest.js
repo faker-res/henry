@@ -297,12 +297,6 @@
         this._service.getAlipaySingleLimit.once(callback);
     };
 
-    proto.getQuickpaySingleLimit = function (callback, requestData) {
-        let data = requestData || {};
-        this._service.getQuickpaySingleLimit.request(data);
-        this._service.getQuickpaySingleLimit.once(callback);
-    };
-
     proto.requestQuickpayTopup = function (callback, requestData) {
         let data = requestData || {};
         this._service.requestQuickpayTopup.request(data);
