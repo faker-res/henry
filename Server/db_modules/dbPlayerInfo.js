@@ -7919,7 +7919,7 @@ let dbPlayerInfo = {
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
-                                && rewardEvent.type != constRewardType.PLAYER_TOP_UP_RETURN) {
+                                && rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",

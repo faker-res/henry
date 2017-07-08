@@ -227,6 +227,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardEvent.startSavePlayersCredit, [data.platformObjId], actionName, isDataValid);
         },
 
+        changeStatusToPendingFromAutoAudit: function changeStatusToPendingFromAutoAudit(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.proposalObjId && data.createTime);
+            socketUtil.emitter(self.socket, dbAutoProposal.changeStatusToPendingFromAutoAudit, [data.proposalObjId, data.createTime], actionName, isDataValid);
+        },
+
         updateAutoApprovalConfig: function updateAutoApprovalConfig(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query && data.updateData);
