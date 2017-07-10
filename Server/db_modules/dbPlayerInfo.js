@@ -752,7 +752,7 @@ let dbPlayerInfo = {
                         playerUpdateData.wechatPayGroup = data[5]._id;
                     }
                     if (data[6]) {
-                        playerUpdateData.quickpayGroup = data[5]._id;
+                        playerUpdateData.quickpayGroup = data[6]._id;
                     }
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
