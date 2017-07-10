@@ -5412,9 +5412,9 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 console.log('applyBonusRequest Fail', data);
                 vm.playerBonus.showSubmit = false;
-                if (data.error.errorMessage) {
-                    vm.playerBonus.resMsg = data.error.errorMessage;
-                    socketService.showErrorMessage(data.error.errorMessage);
+                if (data.error.errorMessage || data.error.message) {
+                    vm.playerBonus.resMsg = data.error.errorMessage || data.error.message;
+                    socketService.showErrorMessage(data.error.errorMessage || data.error.message);
                     $scope.safeApply();
                 }
                 $scope.safeApply();
