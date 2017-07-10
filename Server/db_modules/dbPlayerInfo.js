@@ -1654,6 +1654,9 @@ let dbPlayerInfo = {
                         case constPlayerTopUpType.ALIPAY:
                             type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
                             break;
+                        case constPlayerTopUpType.QUICKPAY:
+                            type = constPlayerCreditChangeType.QUICKPAY_TOP_UP;
+                            break;
                         default:
                             type = constPlayerCreditChangeType.TOP_UP;
                             break;
