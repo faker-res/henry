@@ -151,6 +151,7 @@ function checkProposalConsumption(proposal, platformObj) {
     ).then(
         lastWithdrawDate => {
             bFirstWithdraw = lastWithdrawDate ? false : true;
+            lastWithdrawDate = lastWithdrawDate ? lastWithdrawDate : new Date(0);
             return dbconfig.collection_proposal.find({
                 'data.platformId': ObjectId(proposal.data.platformId),
                 'data.playerObjId': ObjectId(proposal.data.playerObjId),
@@ -171,7 +172,7 @@ function checkProposalConsumption(proposal, platformObj) {
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
 
             // empty array is treated as 'truthy' in javascript
-            if (proposals && !proposals.length) {
+            if (proposals && !proposals.length && !bFirstWithdraw) {
                 // There is no other withdrawal between this withdrawal and last withdrawal
                 let approveRemark = "No proposals between this and last withdrawal";
                 let approveRemarkChinese = "在此提案和上次的提款之间并没有其他提案";
@@ -301,13 +302,15 @@ function checkProposalConsumption(proposal, platformObj) {
                             if (initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
                                 isApprove = false;
                                 isClearCycle = true;
-                                checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
-                                checkMsgChinese += "所有奖励输光与提案 " + checkResult[i].proposalId + " ：初始奖励额度 " + initBonusAmount + " ，盈余 " + bonusAmount + "; ";
+                                // checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
+                                // checkMsgChinese += "所有奖励输光与提案 " + checkResult[i].proposalId + " ：初始奖励额度 " + initBonusAmount + " ，盈余 " + bonusAmount + "; ";
                             }
                             else if (validConsumptionAmount + lostThreshold < spendingAmount) {
                                 isApprove = false;
-                                checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                                checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
+                                if( checkMsg == "" ){
+                                    checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                                    checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
+                                }
                             }
                             else {
                                 // Consumption has fulfilled requirement during this cycle
@@ -332,14 +335,22 @@ function checkProposalConsumption(proposal, platformObj) {
                         }
 
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single bonus limit", "失败：超出自动审核单笔提款金额限制");
+                            checkMsg += "Denied: Amount exceed single bonus limit";
+                            checkMsgChinese += "失败：超出自动审核单笔提款金额限制";
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese);
                         } else if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single day bonus limit", "失败：超出自动审核单日总提款金额限制");
+                            checkMsg += "Denied: Amount exceed single day bonus limit";
+                            checkMsgChinese += "失败：超出自动审核单日总提款金额限制";
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese);
                         } else if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Player not allowed for auto proposal", "失败：此玩家不被允许自动审核");
+                            checkMsg += "Denied: Player not allowed for auto proposal";
+                            checkMsgChinese += "失败：此玩家不被允许自动审核";
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese);
                         }
                         else if (bFirstWithdraw) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal", "失败：玩家首次提款");
+                            checkMsg += "Denied: Player's first withdrawal";
+                            checkMsgChinese += "失败：玩家首次提款";
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese);
                         }
                         else if (isApprove || isTypeEApproval) {
                             // Proposal approved - DISABLED FOR CSTEST
