@@ -5417,8 +5417,9 @@ define(['js/app'], function (myApp) {
                     socketService.showErrorMessage(data.error.errorMessage || data.error.message);
                     if (vm.playerBonus.resMsg === "Player or partner already has a pending proposal for this type") {
                         vm.playerBonus.resMsg = $translate("Player has already submitted the bonus proposal and is yet to audit.");
+                    } else {
+                        vm.playerBonus.resMsg = $translate(vm.playerBonus.resMsg)
                     }
-                    $scope.safeApply();
                 }
                 $scope.safeApply();
             });
