@@ -34,6 +34,7 @@ const constProposalMainType = {
     "PlayerTopUp": constMainType.TOP_UP,
     "PlayerAlipayTopUp": constMainType.TOP_UP,
     "PlayerWechatTopUp": constMainType.TOP_UP,
+    "PlayerQuickpayTopUp": constMainType.TOP_UP,
 
     //REWARD
     "ConsecutiveTopUp": constMainType.REWARD,
