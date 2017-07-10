@@ -1,6 +1,7 @@
 const dbconfig = require('./../modules/dbproperties');
 const pmsAPI = require("../externalAPI/pmsAPI.js");
 const serverInstance = require("../modules/serverInstance");
+const Q = require("q");
 
 const dbPlayerPayment = {
 
