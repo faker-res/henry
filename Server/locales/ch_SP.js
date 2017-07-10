@@ -162,13 +162,16 @@ var simplifiedChinese = {
     "Player has been rewarded for first time top up event!": "玩家已申请首冲奖励",
     "Top up record is not the first top up of this week": "该存款不是本周第一笔存款",
     "Player does not match the condition for this reward": "不符合领取条件",
+    "player valid credit abnormal.": "玩家额度不正常",
+    "Player is updating bank info": "玩家正在更新支付资料",
+    "Cannot find bonus": "无法找到提款资料",
+    "Update player credit failed": "更新玩家额度失败"
     //todo::add missing messages here
 
     /*
      "partner valid credit abnormal.": "_________",
      "Partner is updating bank info": "_________",
      "Cannot find partner": "_________",
-     "Cannot find bonus": "_________",
      "Partner does not have enough credit.": "_________",
      "Partner does not have valid payment information": "_________",
      //"Partner does not have enough Expenses.": "_________",
