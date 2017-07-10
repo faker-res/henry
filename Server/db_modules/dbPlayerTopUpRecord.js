@@ -464,28 +464,24 @@ var dbPlayerTopUpRecord = {
                 };
 
                 const getLastPlayerWithdraw = () => {
-                    if (bSinceLastConsumption) {
-                        return dbconfig.collection_proposalType.findOne({
-                            name: constProposalType.PLAYER_BONUS,
-                            platformId: player.platform
-                        }).lean().then(
-                            typeData => {
-                                if(typeData){
-                                    return dbconfig.collection_proposal.find({
-                                        type: typeData._id,
-                                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.AUTOAUDIT,
-                                            constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.UNDETERMINED]},
-                                        "data.playerId": playerId
-                                    }).sort({createTime: -1}).limit(1).lean();
-                                }
-                                else{
-                                    return [];
-                                }
+                    return dbconfig.collection_proposalType.findOne({
+                        name: constProposalType.PLAYER_BONUS,
+                        platformId: player.platform
+                    }).lean().then(
+                        typeData => {
+                            if(typeData){
+                                return dbconfig.collection_proposal.find({
+                                    type: typeData._id,
+                                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.AUTOAUDIT,
+                                        constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.UNDETERMINED]},
+                                    "data.playerId": playerId
+                                }).sort({createTime: -1}).limit(1).lean();
                             }
-                        );
-                    } else {
-                        return Q.resolve([]);
-                    }
+                            else{
+                                return [];
+                            }
+                        }
+                    );
                 };
 
                 return Q.all([getLastConsumptionIfNeeded(), getLastPlayerWithdraw()]).then(function (data) {
@@ -495,9 +491,9 @@ var dbPlayerTopUpRecord = {
                     let queryStartTime = 0;
                     if (bSinceLastConsumption && (latestConsumptionRecord && latestConsumptionRecord.createTime || lastPlayerWidthDraw && lastPlayerWidthDraw.createTime)) {
                         queryStartTime = latestConsumptionRecord && latestConsumptionRecord.createTime ? latestConsumptionRecord.createTime.getTime() : 0;
-                        if(lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime){
-                            queryStartTime = lastPlayerWidthDraw.createTime.getTime()
-                        }
+                    }
+                    if(lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime){
+                        queryStartTime = lastPlayerWidthDraw.createTime.getTime()
                     }
                     if (startTime && new Date(startTime).getTime() > queryStartTime) {
                         queryStartTime = startTime;

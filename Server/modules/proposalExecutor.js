@@ -136,6 +136,7 @@ var proposalExecutor = {
             this.executions.executePlayerConsecutiveLoginReward.des = "Player Consecutive Login Reward";
             this.executions.executePlayerRegistrationIntention.des = "Player Registration Intention";
             this.executions.executePlayerEasterEggReward.des = "Player Easter Egg Reward";
+            this.executions.executePlayerQuickpayTopUp.des = "Player Quickpay Top Up";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -176,6 +177,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerConsecutiveLoginReward.des = "Reject Player Consecutive Login Reward";
             this.rejections.rejectPlayerRegistrationIntention.des = "Reject Player Registration Intention";
             this.rejections.rejectPlayerEasterEggReward.des = "Reject Player Easter Egg Reward";
+            this.rejections.rejectPlayerQuickpayTopUp.des = "Reject Player Quickpay Top Up";
 
         },
 
@@ -788,6 +790,33 @@ var proposalExecutor = {
              */
             executePlayerAlipayTopUp: function (proposalData, deferred) {
                 dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ALIPAY, proposalData).then(
+                    function (data) {
+                        //todo::add top up notify here ???
+                        // var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                        // if (wsMessageClient) {
+                        //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
+                        //         {
+                        //             proposalId: proposalData.proposalId,
+                        //             amount: proposalData.data.amount,
+                        //             handleTime: new Date(),
+                        //             status: proposalData.status,
+                        //             playerId: proposalData.data.playerId
+                        //         }
+                        //     );
+                        // }
+                        deferred.resolve(proposalData);
+                    },
+                    function (error) {
+                        deferred.reject(error);
+                    }
+                );
+            },
+
+            /**
+             * execution function for player top up proposal type
+             */
+            executePlayerQuickpayTopUp: function (proposalData, deferred) {
+                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.QUICKPAY, proposalData).then(
                     function (data) {
                         //todo::add top up notify here ???
                         // var wsMessageClient = serverInstance.getWebSocketMessageClient();
@@ -1902,6 +1931,25 @@ var proposalExecutor = {
              * reject function for player alipay top up
              */
             rejectPlayerAlipayTopUp: function (proposalData, deferred) {
+                // var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                // if (wsMessageClient) {
+                //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
+                //         {
+                //             proposalId: proposalData.proposalId,
+                //             amount: proposalData.data.amount,
+                //             handleTime: new Date(),
+                //             status: proposalData.status,
+                //             playerId: proposalData.data.playerId
+                //         }
+                //     );
+                // }
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for player quickpay top up
+             */
+            rejectPlayerQuickpayTopUp: function (proposalData, deferred) {
                 // var wsMessageClient = serverInstance.getWebSocketMessageClient();
                 // if (wsMessageClient) {
                 //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",

@@ -117,7 +117,15 @@ let dbAutoProposal = {
     },
 
     changeStatusToPendingFromAutoAudit: (proposalObjId, createTime) => {
-         return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalObjId, status: constProposalStatus.AUTOAUDIT, createTime: createTime}, {status: constProposalStatus.PENDING, 'data.remark': "Changed to manual audit.", 'data.remarkChinese': "已转换成手动审核。"});
+        return dbconfig.collection_proposal.findOneAndUpdate({
+            _id: proposalObjId,
+            status: constProposalStatus.AUTOAUDIT,
+            createTime: createTime
+        }, {
+            status: constProposalStatus.PENDING,
+            'data.remark': "Changed to manual audit.",
+            'data.remarkChinese': "已转换成手动审核。"
+        });
     }
 };
 
@@ -132,6 +140,7 @@ let dbAutoProposal = {
 function checkProposalConsumption(proposal, platformObj) {
     let repeatCount = platformObj.autoApproveRepeatCount;
     let todayBonusAmount = 0;
+    let bFirstWithdraw = false;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
@@ -141,21 +150,14 @@ function checkProposalConsumption(proposal, platformObj) {
         }
     ).then(
         lastWithdrawDate => {
-            if (lastWithdrawDate) {
-                return dbconfig.collection_proposal.find({
-                    'data.platformId': ObjectId(proposal.data.platformId),
-                    'data.playerObjId': ObjectId(proposal.data.playerObjId),
-                    createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
-                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                    mainType: {$in: ["TopUp", "Reward"]}
-                }).sort({createTime: -1}).lean();
-            }
-            else {
-                sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal", "失败：玩家首次提款");
-                // next then block's sendToAudit will trigger if player do their first withdrawal after transferOut
-                // to prevent that from happening, a Promise.reject() is added to skip the next block
-                return Promise.reject("reject");
-            }
+            bFirstWithdraw = lastWithdrawDate ? false : true;
+            return dbconfig.collection_proposal.find({
+                'data.platformId': ObjectId(proposal.data.platformId),
+                'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                mainType: {$in: ["TopUp", "Reward"]}
+            }).sort({createTime: -1}).lean();
         }
     ).then(
         // Get player consumption first before other checkings
@@ -294,25 +296,25 @@ function checkProposalConsumption(proposal, platformObj) {
                             }
 
                             //if (validConsumptionAmount != 0) {
-                                // Check consumption for each cycle
-                                // User lost all bonus amount
-                                if (initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
-                                    isApprove = false;
-                                    isClearCycle = true;
-                                    checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
-                                    checkMsgChinese += "所有奖励输光与提案 " + checkResult[i].proposalId + " ：初始奖励额度 " + initBonusAmount + " ，盈余 " + bonusAmount + "; ";
-                                }
-                                else if (validConsumptionAmount + lostThreshold < spendingAmount) {
-                                    isApprove = false;
-                                    checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                                    checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
-                                }
-                                else {
-                                    // Consumption has fulfilled requirement during this cycle
-                                    // reset from current cycle
-                                    isApprove = true;
-                                    isClearCycle = true;
-                                }
+                            // Check consumption for each cycle
+                            // User lost all bonus amount
+                            if (initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
+                                isApprove = false;
+                                isClearCycle = true;
+                                checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
+                                checkMsgChinese += "所有奖励输光与提案 " + checkResult[i].proposalId + " ：初始奖励额度 " + initBonusAmount + " ，盈余 " + bonusAmount + "; ";
+                            }
+                            else if (validConsumptionAmount + lostThreshold < spendingAmount) {
+                                isApprove = false;
+                                checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                                checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
+                            }
+                            else {
+                                // Consumption has fulfilled requirement during this cycle
+                                // reset from current cycle
+                                isApprove = true;
+                                isClearCycle = true;
+                            }
                             // }
                             // else {
                             //     // No consumption at this cycle, not approved
@@ -335,7 +337,11 @@ function checkProposalConsumption(proposal, platformObj) {
                             sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single day bonus limit", "失败：超出自动审核单日总提款金额限制");
                         } else if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
                             sendToAudit(proposal._id, proposal.createTime, "Denied: Player not allowed for auto proposal", "失败：此玩家不被允许自动审核");
-                        } else if (isApprove || isTypeEApproval) {
+                        }
+                        else if (bFirstWithdraw) {
+                            sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal", "失败：玩家首次提款");
+                        }
+                        else if (isApprove || isTypeEApproval) {
                             // Proposal approved - DISABLED FOR CSTEST
                             // dbProposal.updateBonusProposal(proposal.proposalId, constProposalStatus.SUCCESS, proposal.data.bonusId);
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
