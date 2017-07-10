@@ -752,7 +752,7 @@ let dbPlayerInfo = {
                         playerUpdateData.wechatPayGroup = data[5]._id;
                     }
                     if (data[6]) {
-                        playerUpdateData.quickpayGroup = data[5]._id;
+                        playerUpdateData.quickpayGroup = data[6]._id;
                     }
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
@@ -1578,7 +1578,10 @@ let dbPlayerInfo = {
         var b = dbconfig.collection_creditChangeLog.find(queryObject).sort(sortCol).skip(index).limit(limit);
         var c = dbconfig.collection_proposal.find({
             "data.playerObjId": ObjectId(query.playerId),
-            createTime: {$gte: new Date(startTime)}
+            createTime: {
+                $gte: time0,
+                $lt: time1
+            }
         }).lean();
         var logThatHaveNoProposal = ['TransferIn', 'TransferOut'];
         return Q.all([a, b, c]).then(
@@ -1587,7 +1590,14 @@ let dbPlayerInfo = {
                     (result) => {
                         if (result && result.data && !result.data.proposalId && !logThatHaveNoProposal.includes(result.operationType)) {
                             let temp = data[2].filter((proposal) => {
-                                return proposal.data.requestId === result.data.requestId;
+                                if(result.operationType==="rejectPlayerBonus"){
+                                    return proposal.data.requestId === result.data.requestId
+                                        && proposal.mainType === "PlayerBonus"
+                                        && proposal.status === "Rejected"
+                                }
+                                else{
+                                    return proposal.data.requestId === result.data.requestId;
+                                }
                             });
                             result.data.proposalId = temp[0] ? temp[0].proposalId : "";
                         }

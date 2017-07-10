@@ -143,9 +143,9 @@
                 button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "PartnerCommissionSettlement")',ng-disabled="!vm.selectedPlatform", ng-click='vm.startPlatformPartnerCommissionSettlement($event)')
                     text {{"Partner Commission Settlement" | translate}}
                     img.img-edit
-                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "transferPlayerCreditFromProvider")',ng-disabled="!vm.selectedPlatform", ng-click='vm.initTransferAllPlayersCreditFromProvider()')
-                    text {{"Transfer Credit of All Player from Provider" | translate}}
-                    .fa.fa-gamepad
+                //- button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "transferPlayerCreditFromProvider")',ng-disabled="!vm.selectedPlatform", ng-click='vm.initTransferAllPlayersCreditFromProvider()')
+                //-     text {{"Transfer Credit of All Player from Provider" | translate}}
+                //-     .fa.fa-gamepad
                 //button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Delete")',ng-disabled="!vm.selectedPlatform", ng-click='vm.transferAllCreditOut()')
                 //    text {{"TRANSFER_OUT_FROM_AGMG" | translate}}
                 //    img.img-edit
@@ -288,7 +288,7 @@
     .modal-dialog(style='width:70%;')
         .modal-content
             .modal-header
-                a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")')
+                a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalTransferOutAllPlayerCreditFromGameProvider")')
                 h4.modal-title {{'Transfer Out All Players Credit From Providers' | translate}}
             .modal-body
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
