@@ -297,6 +297,7 @@ var dbPlayerConsumptionWeekSummary = {
                                             eventName: eventData.name,
                                             eventCode: eventData.code,
                                             rewardAmount: returnAmount < 1 ? 0 : returnAmount,
+                                            spendingAmount: returnAmount < 1 ? 0 : returnAmount,
                                             returnDetail: returnDetail,
                                             summaryIds: summaryIds,
                                             bConsumptionReturnRequest: bRequest,

@@ -5,7 +5,8 @@ const constPlayerTopUpTypes = {
     MANUAL: 1,
     ONLINE: 2,
     ALIPAY: 3,
-    WECHAT: 4
+    WECHAT: 4,
+    QUICKPAY: 5
 };
 
 module.exports = constPlayerTopUpTypes;
