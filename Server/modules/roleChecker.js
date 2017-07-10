@@ -273,7 +273,8 @@ var roleChecker = {
                 TriggerAutoProposal: ['triggerAutoProposal'],
                 TriggerSavePlayersCredit: ['triggerSavePlayersCredit'],
                 playerDailyCreditLog :['playerCreditDailyLog'],
-                playerApiLog:['getPlayerApiLog']
+                playerApiLog: ['getPlayerApiLog'],
+                rewardTaskLog: ['getPlayerRewardTask']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
