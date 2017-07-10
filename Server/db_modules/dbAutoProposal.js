@@ -78,7 +78,15 @@ let dbAutoProposal = {
     },
 
     changeStatusToPendingFromAutoAudit: (proposalObjId, createTime) => {
-         return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalObjId, status: constProposalStatus.AUTOAUDIT, createTime: createTime}, {status: constProposalStatus.PENDING, 'data.remark': "Changed to manual audit.", 'data.remarkChinese': "已转换成手动审核。"});
+        return dbconfig.collection_proposal.findOneAndUpdate({
+            _id: proposalObjId,
+            status: constProposalStatus.AUTOAUDIT,
+            createTime: createTime
+        }, {
+            status: constProposalStatus.PENDING,
+            'data.remark': "Changed to manual audit.",
+            'data.remarkChinese': "已转换成手动审核。"
+        });
     }
 };
 
@@ -93,6 +101,7 @@ let dbAutoProposal = {
 function checkProposalConsumption(proposal, platformObj) {
     let repeatCount = platformObj.autoApproveRepeatCount;
     let todayBonusAmount = 0;
+    let bFirstWithdraw = false;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
@@ -102,62 +111,32 @@ function checkProposalConsumption(proposal, platformObj) {
         }
     ).then(
         lastWithdrawDate => {
+            bFirstWithdraw = lastWithdrawDate ? false : true;
+
+            let proposalQuery = {
+                'data.platformId': ObjectId(proposal.data.platformId),
+                'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                createTime: {$lt: proposal.createTime},
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                mainType: {$in: ["TopUp", "Reward"]}
+            }
+
+            let transferLogQuery = {
+                platformObjId: ObjectId(proposal.data.platformId),
+                playerObjId: ObjectId(proposal.data.playerObjId),
+                createTime: {$lt: proposal.createTime},
+                status: constPlayerCreditTransferStatus.SUCCESS.toString()
+            }
+
             if (lastWithdrawDate) {
-                let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find({
-                    'data.platformId': ObjectId(proposal.data.platformId),
-                    'data.playerObjId': ObjectId(proposal.data.playerObjId),
-                    createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
-                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                    mainType: {$in: ["TopUp", "Reward"]}
-                }).sort({createTime: -1}).lean();
-                let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find({
-                    platformObjId: ObjectId(proposal.data.platformId),
-                    playerObjId: ObjectId(proposal.data.playerObjId),
-                    createTime: {$gt: lastWithdrawDate, $lt: proposal.createTime},
-                    status: constPlayerCreditTransferStatus.SUCCESS.toString()
-                }).sort({createTime: 1}).lean();
-
-                return Promise.all([proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise]);
+                proposalQuery.createTime["$gt"] = lastWithdrawDate;
+                transferLogQuery.createTime["$gt"] = lastWithdrawDate;
             }
-            else {
-                let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find({
-                    'data.platformId': ObjectId(proposal.data.platformId),
-                    'data.playerObjId': ObjectId(proposal.data.playerObjId),
-                    createTime: {$lt: proposal.createTime},
-                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                    mainType: {$in: ["TopUp", "Reward"]}
-                }).sort({createTime: -1}).lean();
-                let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find({
-                    platformObjId: ObjectId(proposal.data.platformId),
-                    playerObjId: ObjectId(proposal.data.playerObjId),
-                    createTime: {$lt: proposal.createTime},
-                    status: constPlayerCreditTransferStatus.SUCCESS.toString()
-                }).sort({createTime: 1}).lean();
 
-                return Promise.all([proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise]).then(
-                    function (data) {
-                        let proposals;
-                        let transferAbnormalMessage = "";
-                        let transferAbnormalMessageChinese = "";
-                        if (data && data[0]) {
-                            proposals = data[0];
-                        }
+            let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).sort({createTime: -1}).lean();
+            let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
 
-                        if (data && data[1]) {
-                            let transferAbnormalities = findTransferAbnormality(data[1], proposals);
-
-                            for (let i = 0; i < transferAbnormalities.length; i++) {
-                                transferAbnormalMessage += transferAbnormalities[i].en + "; ";
-                                transferAbnormalMessageChinese += transferAbnormalities[i].ch + "; ";
-                            }
-                        }
-
-
-                        sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal", "失败：玩家首次提款", null, transferAbnormalMessage, transferAbnormalMessageChinese);
-                        return Promise.reject("reject");
-                    }
-                );
-            }
+            return Promise.all([proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise]);
         }
     ).then(
         data => {
@@ -185,7 +164,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
 
-            if (proposals && !proposals.length) {
+            if (proposals && !proposals.length && !bFirstWithdraw) {
                 // There is no other withdrawal between this withdrawal and last withdrawal
                 let approveRemark = "No proposals between this and last withdrawal";
                 let approveRemarkChinese = "在此提案和上次的提款之间并没有其他提案";
@@ -309,6 +288,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                 bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
                             }
 
+                            //if (validConsumptionAmount != 0) {
                             // Check consumption for each cycle
                             // User lost all bonus amount
                             if (initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
@@ -323,9 +303,17 @@ function checkProposalConsumption(proposal, platformObj) {
                                 checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
                             }
                             else {
+                                // Consumption has fulfilled requirement during this cycle
+                                // reset from current cycle
                                 isApprove = true;
                                 isClearCycle = true;
                             }
+                            // }
+                            // else {
+                            //     // No consumption at this cycle, not approved
+                            //     isApprove = false;
+                            //     checkMsg += "No consumption for proposal " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                            // }
                         }
 
                         if ((validConsumptionAmount + lostThreshold) < spendingAmount || validConsumptionAmount == 0) {
@@ -340,7 +328,11 @@ function checkProposalConsumption(proposal, platformObj) {
                             sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single day bonus limit", "失败：超出自动审核单日总提款金额限制", null, transferAbnormalMessage, transferAbnormalMessageChinese);
                         } else if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
                             sendToAudit(proposal._id, proposal.createTime, "Denied: Player not allowed for auto proposal", "失败：此玩家不被允许自动审核", null, transferAbnormalMessage, transferAbnormalMessageChinese);
-                        } else if (isApprove || isTypeEApproval) {
+                        }
+                        else if (bFirstWithdraw) {
+                            sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal", "失败：玩家首次提款", null, transferAbnormalMessage, transferAbnormalMessageChinese);
+                        }
+                        else if (isApprove || isTypeEApproval) {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：投注额 " + validConsumptionAmount + "，投注额需求 " + spendingAmount;
                             sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, transferAbnormalMessage, transferAbnormalMessageChinese);

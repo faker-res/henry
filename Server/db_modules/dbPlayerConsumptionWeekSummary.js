@@ -142,7 +142,7 @@ var dbPlayerConsumptionWeekSummary = {
      */
     checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period) {
 
-        var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
+        var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
         var balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
             // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
@@ -203,9 +203,10 @@ var dbPlayerConsumptionWeekSummary = {
         var gameTypesProm = dbGameType.getAllGameTypes();
 
         var processedSummaries = [];
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformId}).lean();
 
-        Q.all([summaryProm, playerLevelProm, gameTypesProm]).spread(
-            function (consumptionSummaries, players, allGameTypes) {
+        Q.all([summaryProm, playerLevelProm, gameTypesProm, platformProm]).spread(
+            function (consumptionSummaries, players, allGameTypes, platformData) {
                 if (consumptionSummaries && players) {
                     // Process the data into key map
                     var consumptionSummariesByKey = {};
@@ -226,7 +227,11 @@ var dbPlayerConsumptionWeekSummary = {
                     var proms = [];
                     players.forEach(
                         function (playerData) {
-                            if(playerData && !(playerData.permission.forbidPlayerConsumptionReturn)){
+                            if (playerData && !(playerData.permission.forbidPlayerConsumptionReturn)) {
+                                //check if platform only allow new system users
+                                if( platformData && platformData.onlyNewCanLogin && !playerData.isNewSystem ){
+                                    return;
+                                }
                                 var returnAmount = 0;
 
                                 // Check all game types and calculate return amount
@@ -292,11 +297,14 @@ var dbPlayerConsumptionWeekSummary = {
                                             eventName: eventData.name,
                                             eventCode: eventData.code,
                                             rewardAmount: returnAmount < 1 ? 0 : returnAmount,
+                                            spendingAmount: returnAmount < 1 ? 0 : returnAmount,
                                             returnDetail: returnDetail,
                                             summaryIds: summaryIds,
                                             bConsumptionReturnRequest: bRequest,
                                             applyAmount: applyAmount,
-                                            eventDescription: eventData.description
+                                            eventDescription: eventData.description,
+                                            startTime: startTime,
+                                            endTime: endTime
                                         }
                                     };
                                     proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));
@@ -439,9 +447,12 @@ var dbPlayerConsumptionWeekSummary = {
         ).then(
             function (eventsData) {
                 if (eventsData) {
-                    return dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform._id}, {isConsumptionReturn: true}).then(
+                    return dbconfig.collection_players.findOneAndUpdate({
+                        _id: playerData._id,
+                        platform: playerData.platform._id
+                    }, {isConsumptionReturn: true}).then(
                         updatePlayer => {
-                            if(!updatePlayer.isConsumptionReturn){
+                            if (!updatePlayer.isConsumptionReturn) {
                                 let proms = [];
                                 for (let eventData of eventsData) {
                                     proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest));
@@ -449,17 +460,23 @@ var dbPlayerConsumptionWeekSummary = {
                                 return Q.all(proms).then(
                                     data => {
                                         //reset consumption return status
-                                        dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform._id}, {isConsumptionReturn: false}).then();
+                                        dbconfig.collection_players.findOneAndUpdate({
+                                            _id: playerData._id,
+                                            platform: playerData.platform._id
+                                        }, {isConsumptionReturn: false}).then();
                                         return data;
                                     },
                                     error => {
                                         //reset consumption return status
-                                        dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform._id}, {isConsumptionReturn: false}).then();
+                                        dbconfig.collection_players.findOneAndUpdate({
+                                            _id: playerData._id,
+                                            platform: playerData.platform._id
+                                        }, {isConsumptionReturn: false}).then();
                                         return Q.reject(error);
                                     }
                                 );
                             }
-                            else{
+                            else {
                                 deferred.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
@@ -487,10 +504,10 @@ var dbPlayerConsumptionWeekSummary = {
             }
         ).then(
             function (data) {
-                if( data && data[0] ){
+                if (data && data[0]) {
                     deferred.resolve(true);
                 }
-                else{
+                else {
                     deferred.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DBError",
@@ -518,9 +535,9 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {json} eventData
      */
     calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest) {
-        let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdaySGTime() : dbutility.getLastWeekSGTime();
-        if( bRequest ){
-            settleTime = dbutility.getTodaySGTime();
+        let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
+        if (bRequest) {
+            settleTime = dbutility.getTodayConsumptionReturnSGTime();
         }
         return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest);
     },
@@ -619,7 +636,7 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {Boolean} bDetail, if contain detailed player info
      */
     getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest) {
-        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? (bRequest ? dbutility.getTodaySGTime() : dbutility.getYesterdaySGTime() ) : dbutility.getLastWeekSGTime();
+        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? (bRequest ? dbutility.getTodayConsumptionReturnSGTime() : dbutility.getYesterdayConsumptionReturnSGTime() ) : dbutility.getLastWeekSGTime();
         var eventData = event.param;
         var summaryDay = {$gte: settleTime.startTime};
         //if preview for settlement, only calculate for settlement time

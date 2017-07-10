@@ -79,19 +79,8 @@ var dbUtility = {
      * Get past day time frame based on SGT
      */
     getYesterdaySGTime: function () {
-        //var timezoneDiff = Math.floor(8 + (new Date().getTimezoneOffset() / 60));
-        //var endTime = new Date();
-        //endTime = new Date(endTime.getTime() + timezoneDiff * 60 * 60 * 1000);
-        //endTime.setHours(0, 0, 0, 0);
-        //endTime = new Date(endTime.getTime() - timezoneDiff * 60 * 60 * 1000);
-        //
-        //var startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
-
         var endTime = moment().tz('Asia/Singapore').startOf('day').toDate();
         var startTime = moment(endTime).subtract(1, 'days').toDate();
-
-        //console.log("Yesterday startTime:", startTime);
-        //console.log("Yesterday endTime:  ", endTime);
 
         return {
             startTime: startTime,
@@ -286,6 +275,28 @@ var dbUtility = {
 
         var endTime = moment().tz('Asia/Singapore').startOf("week").add(day, 'day').toDate().setHours(hour, minutes, 0, 0);
         var startTime = new Date(endTime - 7 * 24 * 60 * 60 * 1000);
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getYesterdayConsumptionReturnSGTime: function () {
+        var endTime = moment().tz('Asia/Singapore').startOf('day').toDate();
+        endTime = new Date(endTime.getTime() + 12*60*60*1000);
+        var startTime = moment(endTime).subtract(1, 'days').toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getTodayConsumptionReturnSGTime: function () {
+        var startTime = moment().tz('Asia/Singapore').startOf('day').toDate();
+        startTime = new Date(startTime.getTime() + 12*60*60*1000);
+        var endTime = moment(startTime).add(1, 'days').toDate();
 
         return {
             startTime: startTime,
