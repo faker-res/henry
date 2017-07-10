@@ -120,8 +120,43 @@ function checkProposalConsumption(proposal, platformObj) {
                 return Promise.all([proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise]);
             }
             else {
-                sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal", "失败：玩家首次提款");
-                return Promise.reject("reject");
+                let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find({
+                    'data.platformId': ObjectId(proposal.data.platformId),
+                    'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                    createTime: {$lt: proposal.createTime},
+                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                    mainType: {$in: ["TopUp", "Reward"]}
+                }).sort({createTime: -1}).lean();
+                let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find({
+                    platformObjId: ObjectId(proposal.data.platformId),
+                    playerObjId: ObjectId(proposal.data.playerObjId),
+                    createTime: {$lt: proposal.createTime},
+                    status: constPlayerCreditTransferStatus.SUCCESS.toString()
+                }).sort({createTime: 1}).lean();
+
+                return Promise.all([proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise]).then(
+                    function (data) {
+                        let proposals;
+                        let transferAbnormalMessage = "";
+                        let transferAbnormalMessageChinese = "";
+                        if (data && data[0]) {
+                            proposals = data[0];
+                        }
+
+                        if (data && data[1]) {
+                            let transferAbnormalities = findTransferAbnormality(data[1], proposals);
+
+                            for (let i = 0; i < transferAbnormalities.length; i++) {
+                                transferAbnormalMessage += transferAbnormalities[i].en + "; ";
+                                transferAbnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+                            }
+                        }
+
+
+                        sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal", "失败：玩家首次提款", null, transferAbnormalMessage, transferAbnormalMessageChinese);
+                        return Promise.reject("reject");
+                    }
+                );
             }
         }
     ).then(
@@ -137,12 +172,11 @@ function checkProposalConsumption(proposal, platformObj) {
                 let transferAbnormalities = findTransferAbnormality(data[1], proposals);
 
                 for (let i = 0; i < transferAbnormalities.length; i++) {
-                    console.log('here')
                     transferAbnormalMessage += transferAbnormalities[i].en + "; ";
                     transferAbnormalMessageChinese += transferAbnormalities[i].ch + "; ";
                 }
             }
-                         console.log('transferAbnormalMessage', transferAbnormalMessage)
+
             let isApprove = true, proms = [], repeatMsg = "", repeatMsgChinese = "";
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let countProposals = 0;
@@ -331,8 +365,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                     'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
                                     'data.autoAuditCheckMsg': checkMsg,
                                     'data.autoAuditCheckMsgChinese': checkMsgChinese,
-                                    'data.detail': transferAbnormalMessage ? transferAbnormalMessage : null,
-                                    'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : null
+                                    'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
+                                    'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
                                 }).exec();
                             }
                             else {
@@ -379,8 +413,8 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                 'data.remark': 'Auto Approval Approved: ' + remark,
                                 'data.remarkChinese': '自动审核成功：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
-                                'data.detail': transferAbnormalMessage ? transferAbnormalMessage : null,
-                                'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : null
+                                'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
+                                'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
                             },
                             {new: true}
                         );
@@ -411,8 +445,8 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
                                 'data.remark': 'Auto Approval Denied: ' + remark,
                                 'data.remarkChinese': '自动审核失败：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
-                                'data.detail': transferAbnormalMessage ? transferAbnormalMessage : null,
-                                'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : null
+                                'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
+                                'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
                             },
                             {new: true}
                         );
@@ -441,8 +475,8 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                         'data.autoAuditRemark': 'Auto Approval ' + remark,
                         'data.autoAuditRemarkChinese': '自动审核' + remarkChinese,
                         'data.autoAuditCheckMsg': processRemark,
-                        'data.detail': transferAbnormalMessage ? transferAbnormalMessage : null,
-                        'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : null
+                        'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
+                        'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
                     }).then();
                 }
                 else {
@@ -457,8 +491,8 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                                     'data.remark': 'Auto Approval Denied: ' + remark,
                                     'data.remarkChinese': '自动审核失败：' + remarkChinese,
                                     'data.autoAuditCheckMsg': processRemark,
-                                    'data.detail': transferAbnormalMessage ? transferAbnormalMessage : null,
-                                    'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : null
+                                    'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
+                                    'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
                                 },
                                 {new: true}
                             );
