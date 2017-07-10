@@ -112,13 +112,8 @@ function checkProposalConsumption(proposal, platformObj) {
     ).then(
         lastWithdrawDate => {
             bFirstWithdraw = lastWithdrawDate ? false : true;
-<<<<<<< HEAD
 
             let proposalQuery = {
-=======
-            lastWithdrawDate = lastWithdrawDate ? lastWithdrawDate : new Date(0);
-            return dbconfig.collection_proposal.find({
->>>>>>> upstream/develop-1.1
                 'data.platformId': ObjectId(proposal.data.platformId),
                 'data.playerObjId': ObjectId(proposal.data.playerObjId),
                 createTime: {$lt: proposal.createTime},
@@ -140,8 +135,17 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).sort({createTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
+            let promises = [];
 
-            return Promise.all([proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise]);
+            if (lastWithdrawDate) {
+                promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise];
+                proposalQuery.createTime["$gt"] = lastWithdrawDate;
+                transferLogQuery.createTime["$gt"] = lastWithdrawDate;
+            } else {
+                promises = [[], transferLogsWithinPeriodPromise];
+            }
+
+            return Promise.all(promises);
         }
     ).then(
         data => {
@@ -169,10 +173,6 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
 
-<<<<<<< HEAD
-=======
-            // empty array is treated as 'truthy' in javascript
->>>>>>> upstream/develop-1.1
             if (proposals && !proposals.length && !bFirstWithdraw) {
                 // There is no other withdrawal between this withdrawal and last withdrawal
                 let approveRemark = "No proposals between this and last withdrawal";
@@ -334,40 +334,26 @@ function checkProposalConsumption(proposal, platformObj) {
                         }
 
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
-<<<<<<< HEAD
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single bonus limit", "失败：超出自动审核单笔提款金额限制", null, transferAbnormalMessage, transferAbnormalMessageChinese);
-                        } else if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Amount exceed single day bonus limit", "失败：超出自动审核单日总提款金额限制", null, transferAbnormalMessage, transferAbnormalMessageChinese);
-                        } else if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Player not allowed for auto proposal", "失败：此玩家不被允许自动审核", null, transferAbnormalMessage, transferAbnormalMessageChinese);
-                        }
-                        else if (bFirstWithdraw) {
-                            sendToAudit(proposal._id, proposal.createTime, "Denied: Player's first withdrawal", "失败：玩家首次提款", null, transferAbnormalMessage, transferAbnormalMessageChinese);
-=======
                             checkMsg += "Denied: Amount exceed single bonus limit";
                             checkMsgChinese += "失败：超出自动审核单笔提款金额限制";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, transferAbnormalMessage, transferAbnormalMessageChinese);
                         } else if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
                             checkMsg += "Denied: Amount exceed single day bonus limit";
                             checkMsgChinese += "失败：超出自动审核单日总提款金额限制";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, transferAbnormalMessage, transferAbnormalMessageChinese);
                         } else if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
                             checkMsg += "Denied: Player not allowed for auto proposal";
                             checkMsgChinese += "失败：此玩家不被允许自动审核";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese);
-                        }
-                        else if (bFirstWithdraw) {
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, transferAbnormalMessage, transferAbnormalMessageChinese);
+                        } else if (bFirstWithdraw) {
                             checkMsg += "Denied: Player's first withdrawal";
                             checkMsgChinese += "失败：玩家首次提款";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese);
->>>>>>> upstream/develop-1.1
-                        }
-                        else if (isApprove || isTypeEApproval) {
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, transferAbnormalMessage, transferAbnormalMessageChinese);
+                        } else if (isApprove || isTypeEApproval) {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：投注额 " + validConsumptionAmount + "，投注额需求 " + spendingAmount;
                             sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, transferAbnormalMessage, transferAbnormalMessageChinese);
-                        }
-                        else {
+                        } else {
                             // Proposal not approved; Throw back to loop pool or deny this proposal
                             proposal.data.autoApproveRepeatCount =
                                 proposal.data.autoApproveRepeatCount || proposal.data.autoApproveRepeatCount == 0 ?
@@ -390,13 +376,11 @@ function checkProposalConsumption(proposal, platformObj) {
                                     'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
                                     'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
                                 }).exec();
-                            }
-                            else {
+                            } else {
                                 // Check if player is VIP - Passed
                                 if (proposal.data.proposalPlayerLevelValue > 0) {
                                     sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出自动审核回圈次数，流水不够", checkMsg, transferAbnormalMessage, transferAbnormalMessageChinese);
-                                }
-                                else {
+                                } else {
                                     sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出自动审核回圈次数，流水不够", checkMsg, transferAbnormalMessage, transferAbnormalMessageChinese);
                                 }
                             }
