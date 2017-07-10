@@ -5412,10 +5412,15 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 console.log('applyBonusRequest Fail', data);
                 vm.playerBonus.showSubmit = false;
-                if (data.error.errorMessage) {
-                    vm.playerBonus.resMsg = data.error.errorMessage;
-                    socketService.showErrorMessage(data.error.errorMessage);
-                    $scope.safeApply();
+                let errorMsg = data.error.errorMessage || data.error.message;
+                if (errorMsg) {
+                    if (errorMsg === "Player or partner already has a pending proposal for this type") {
+                        errorMsg = $translate("Player has already submitted the bonus proposal and is yet to audit.");
+                    } else {
+                        errorMsg = $translate(errorMsg);
+                    }
+                    vm.playerBonus.resMsg = errorMsg;
+                    socketService.showErrorMessage(errorMsg);
                 }
                 $scope.safeApply();
             });

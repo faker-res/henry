@@ -143,6 +143,9 @@
                 button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "PartnerCommissionSettlement")',ng-disabled="!vm.selectedPlatform", ng-click='vm.startPlatformPartnerCommissionSettlement($event)')
                     text {{"Partner Commission Settlement" | translate}}
                     img.img-edit
+                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "transferPlayerCreditFromProvider")',ng-disabled="!vm.selectedPlatform", ng-click='vm.initTransferAllPlayersCreditFromProvider()')
+                    text {{"Transfer Credit of All Player from Provider" | translate}}
+                    .fa.fa-gamepad
                 //button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Delete")',ng-disabled="!vm.selectedPlatform", ng-click='vm.transferAllCreditOut()')
                 //    text {{"TRANSFER_OUT_FROM_AGMG" | translate}}
                 //    img.img-edit
@@ -281,4 +284,48 @@
                 button.btn.btn-success.common-button(ng-if='vm.partnerCommissionSettlement.status=="ready"', ng-click="vm.performPartnerCommissionSetlement()") {{'CONFIRM' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.partnerCommissionSettlement.status=="processing"')
 
-
+#modalTransferOutAllPlayerCreditFromGameProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:70%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")')
+                h4.modal-title {{'Transfer Out All Players Credit From Providers' | translate}}
+            .modal-body
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.fixPlayerRewardAmount.rewardInfo.length > 0 || vm.fixPlayerRewardAmount.isProcessing', ng-click='vm.sendFixPlayerRewardAmount()') {{'Fix Player RewardAmount' | translate}}
+                label#fixedRewardAmountResult.margin-left-5
+                label.pull-right.blink(ng-show='vm.creditTransfer.needClose') {{'Please close the dialog to refresh the data.' | translate}}
+                table.simple-table
+                    thead
+                        tr
+                            th {{'PROVIDER' | translate}}
+                            th {{'PROVIDER_ID' | translate}}
+                            th {{'CREDIT' | translate}}
+                            th {{'TRANSFER' | translate}}
+                    tbody(style='max-height:500px;overflow-y:auto')
+                        tr(ng-repeat='(i,v) in vm.platformProviderList')
+                            td {{v.name}}
+                            td {{v.providerId}}
+                            td
+                                i.fa.fa-spinner.fa-spin(ng-if='!vm.playerCredit[v.providerId]')
+                                text(ng-if='vm.playerCredit[v.providerId]') {{vm.playerCredit[v.providerId].gameCredit}}
+                            td(class='prov{{v.providerId}}', ng-if='!vm.transferAllCredit.isProcessing')
+                                i.fa.fa-spinner.fa-spin(ng-if='!vm.playerCredit[v.providerId]')
+                                div(ng-if='vm.playerCredit[v.providerId]')
+                                    div(ng-show='!vm.creditTransfer.transferResult')
+                                        label.radio-inline(ng-show='vm.playerCredit[v.providerId].gameCredit>=1') {{'from Provider' | translate}}
+                                            input.pull-left.relative(type='radio', data-provider='{{v}}', name='credit_transfer_type', ng-click='vm.transferCreditFromProviderClicked(v.providerId)', value='in')
+                                        label.radio-inline(ng-show='vm.creditTransfer.showValidCredit + vm.creditTransfer.showRewardAmount>=1') {{'to Provider' | translate}}
+                                            input.pull-left.relative(type='radio', data-provider='{{v}}', name='credit_transfer_type', ng-click='vm.transferCreditToProviderClicked(v.providerId)', value='out')
+                                    p
+                                    div(ng-show='vm.creditTransfer.focusProvider==v.providerId')
+                                        div(ng-show='!vm.creditTransfer.transferResult')
+                                            button.common-button.margin-right-5.btn.btn-success(ng-click='vm.confirmCreditTransfer(v.providerId)') {{'CONFIRM' | translate}}
+                                            button.common-button.margin-right-5.btn.btn-warning(ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")') {{'CANCEL' | translate}}
+                                            i.fa.fa-spin.fa-spinner.text-danger(ng-show='vm.creditTransfer.isProcessing')
+                                        div(ng-show='vm.creditTransfer.transferResult')
+                                            button.common-button.margin-right-5.btn.btn-success(ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")') {{'OK' | translate}}
+                                            label {{vm.creditTransfer.transferResult | translate}}
+                            td(class='prov{{v.providerId}}', ng-if='vm.transferAllCredit.isProcessing')
+                                text.text-danger {{vm.transferAllCredit[v.providerId].text | translate}}
+                                i.fa.fa-spinner.fa-spin(ng-if='vm.transferAllCredit[v.providerId].finished== false')

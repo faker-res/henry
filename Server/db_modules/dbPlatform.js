@@ -1084,7 +1084,7 @@ var dbPlatform = {
     },
 
     getPlatformConsumptionReturnDetail: function (platformObjId, period) {
-        var settleTime = dbUtility.getYesterdaySGTime();
+        var settleTime = dbUtility.getYesterdayConsumptionReturnSGTime();
         var res = [];
         return dbRewardEvent.getPlatformRewardEventsWithTypeName(platformObjId, constRewardType.PLAYER_CONSUMPTION_RETURN).then(
             eventData => {
