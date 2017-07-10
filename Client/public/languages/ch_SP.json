@@ -2029,5 +2029,6 @@
   "autoAuditRemarkChinese": "自动审核：中文备注",
   "autoAuditRepeatMsgChinese": "自动审核：回圈信息（中文）",
   "autoAuditCheckMsgChinese": "自动审核：审核信息（中文）",
-  "Manual": "手动"
+  "Manual": "手动",
+  "Player has already submitted the bonus proposal and is yet to audit.": "该用户已提交过提款提案，尚未审批完。"
 }
