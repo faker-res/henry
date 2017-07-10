@@ -352,7 +352,11 @@ var dbPlayerConsumptionRecord = {
             function (bDirty) {
                 if (!bDirty) {
                     //update consumption summary record
-                    var summaryDay = moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate();
+                    let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12*60*60*1000);
+                    let summaryDay = recordDateNoon;
+                    if( record.createTime.getTime() < recordDateNoon.getTime() ){
+                        summaryDay = new Date(recordDateNoon.getTime() - 24*60*60*1000);
+                    }
                     var query = {
                         playerId: record.playerId,
                         platformId: record.platformId,
