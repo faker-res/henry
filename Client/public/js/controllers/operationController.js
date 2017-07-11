@@ -1151,7 +1151,7 @@ define(['js/app'], function (myApp) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;
                 var creatorId = (proposal && proposal.creator) ? proposal.creator.id : '';
                 var proposalStatus = proposal.status || proposal.process.status;
-                return (creatorId == authService.adminId) && (proposalStatus == "Pending");
+                return (creatorId == authService.adminId) && (proposalStatus == "Pending" || proposalStatus === "AutoAudit");
             }
 
             vm.selectedProposal.showCancel = canCancelProposal(vm.selectedProposal);
