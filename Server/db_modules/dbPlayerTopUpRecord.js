@@ -1246,7 +1246,7 @@ var dbPlayerTopUpRecord = {
         ).then(
             isValid => {
                 if (isValid) {
-                    var startTime = null;
+                    var startTime = 0;
                     if (period == 2) {
                         startTime = dbUtility.getCurrentWeekSGTime().startTime;
                     }

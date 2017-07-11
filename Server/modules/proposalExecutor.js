@@ -2024,7 +2024,7 @@ var proposalExecutor = {
              * reject function for player bonus
              */
             rejectPlayerBonus: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.amount && proposalData.data.bonusCredit) {
+                if (proposalData && proposalData.data && proposalData.data.amount) {
                     //todo::add more reasons here, ex:cancel request
 
                     // return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
