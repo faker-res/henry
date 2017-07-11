@@ -714,7 +714,7 @@ let dbPlayerInfo = {
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm,quickpayGroupProm]);
+                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm]);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't create new player."});
@@ -1590,12 +1590,12 @@ let dbPlayerInfo = {
                     (result) => {
                         if (result && result.data && !result.data.proposalId && !logThatHaveNoProposal.includes(result.operationType)) {
                             let temp = data[2].filter((proposal) => {
-                                if(result.operationType==="rejectPlayerBonus"){
+                                if (result.operationType === "rejectPlayerBonus") {
                                     return proposal.data.requestId === result.data.requestId
                                         && proposal.mainType === "PlayerBonus"
                                         && proposal.status === "Rejected"
                                 }
-                                else{
+                                else {
                                     return proposal.data.requestId === result.data.requestId;
                                 }
                             });
@@ -1803,7 +1803,7 @@ let dbPlayerInfo = {
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
-                    status:{$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                 });
 
             }, function (error) {
@@ -1970,8 +1970,8 @@ let dbPlayerInfo = {
         ).then(
             eData => {
                 eventData = eData;
-                let queryFirstOfWeek = {};
-                if(eventData.param.periodType == 1){
+                let queryFirstOfWeek = {playerId: player._id};
+                if (eventData.param.periodType == 1) {
                     queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
                 }
                 return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: 1}).limit(1).lean();
@@ -5866,244 +5866,222 @@ let dbPlayerInfo = {
         };
         bonusId = parseInt(bonusId);
         amount = parseInt(amount);
-        return pmsAPI.bonus_getBonusList({}).then(
-            bonusData => {
-                if (bonusData && bonusData.bonuses && bonusData.bonuses.length > 0) {
-                    var bValid = false;
-                    bonusData.bonuses.forEach(
-                        bonus => {
-                            if (bonus.bonus_id == bonusId) {
-                                bValid = true;
-                                bonusDetail = bonus;
+
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                playerData => {
+                    //check if player has pending proposal to update bank info
+                    if (playerData) {
+                        return dbconfig.collection_proposalType.findOne({
+                            platformId: playerData.platform._id,
+                            name: constProposalType.UPDATE_PLAYER_BANK_INFO
+                        }).then(
+                            proposalType => {
+                                if (proposalType) {
+                                    return dbconfig.collection_proposal.find({
+                                        type: proposalType._id,
+                                        "data._id": String(playerData._id)
+                                    }).populate(
+                                        {path: "process", model: dbconfig.collection_proposalProcess}
+                                    ).lean();
+                                }
+                                else {
+                                    return Q.reject({
+                                        name: "DataError",
+                                        errorMessage: "Cannot find proposal type"
+                                    });
+                                }
                             }
-                        }
-                    );
-                    if (bValid) {
-                        return dbconfig.collection_players.findOne({playerId: playerId})
-                            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
-                                playerData => {
-                                    //check if player has pending proposal to update bank info
-                                    if (playerData) {
-                                        return dbconfig.collection_proposalType.findOne({
-                                            platformId: playerData.platform._id,
-                                            name: constProposalType.UPDATE_PLAYER_BANK_INFO
-                                        }).then(
-                                            proposalType => {
-                                                if (proposalType) {
-                                                    return dbconfig.collection_proposal.find({
-                                                        type: proposalType._id,
-                                                        "data._id": String(playerData._id)
-                                                    }).populate(
-                                                        {path: "process", model: dbconfig.collection_proposalProcess}
-                                                    ).lean();
-                                                }
-                                                else {
-                                                    return Q.reject({
-                                                        name: "DataError",
-                                                        errorMessage: "Cannot find proposal type"
-                                                    });
-                                                }
+                        ).then(
+                            proposals => {
+                                if (proposals && proposals.length > 0) {
+                                    var bExist = false;
+                                    proposals.forEach(
+                                        proposal => {
+                                            if (proposal.status == constProposalStatus.PENDING ||
+                                                ( proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
+                                                bExist = true;
                                             }
-                                        ).then(
-                                            proposals => {
-                                                if (proposals && proposals.length > 0) {
-                                                    var bExist = false;
-                                                    proposals.forEach(
-                                                        proposal => {
-                                                            if (proposal.status == constProposalStatus.PENDING ||
-                                                                ( proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
-                                                                bExist = true;
-                                                            }
-                                                        }
-                                                    );
-                                                    if (!bExist || bForce) {
-                                                        return playerData;
-                                                    }
-                                                    else {
-                                                        return Q.reject({
-                                                            name: "DataError",
-                                                            errorMessage: "Player is updating bank info"
-                                                        });
-                                                    }
-                                                }
-                                                else {
-                                                    return playerData;
-                                                }
-                                            }
-                                        );
+                                        }
+                                    );
+                                    if (!bExist || bForce) {
+                                        return playerData;
                                     }
                                     else {
-                                        return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
+                                        return Q.reject({
+                                            name: "DataError",
+                                            errorMessage: "Player is updating bank info"
+                                        });
                                     }
                                 }
-                            );
+                                else {
+                                    return playerData;
+                                }
+                            }
+                        );
                     }
                     else {
-                        return Q.reject({name: "DataError", errorMessage: "Invalid bonus id"});
+                        return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
                 }
-                else {
-                    return Q.reject({name: "DataError", errorMessage: "Cannot find bonus"});
-                }
-            }
-        ).then(
-            playerData => {
-                if (playerData) {
-                    // if ((!playerData.permission || !playerData.permission.applyBonus) && !bForce) {
-                    //     return Q.reject({
-                    //         status: constServerCode.PLAYER_NO_PERMISSION,
-                    //         name: "DataError",
-                    //         errorMessage: "Player does not have this permission"
-                    //     });
-                    // }
-                    if (playerData.bankName == null || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
-                        || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                            name: "DataError",
-                            errorMessage: "Player does not have valid payment information"
-                        });
-                    }
-
-                    //check if player has enough credit
-                    player = playerData;
-                    if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                            name: "DataError",
-                            errorMessage: "Player does not have enough credit."
-                        });
-                    }
-
-                    let todayTime = dbUtility.getTodaySGTime();
-                    return dbconfig.collection_proposal.find(
-                        {
-                            mainType: "PlayerBonus",
-                            createTime: {
-                                $gte: todayTime.startTime,
-                                $lt: todayTime.endTime
-                            },
-                            "data.playerId": playerId,
-                            status: {
-                                $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
-                            }
+            ).then(
+                playerData => {
+                    if (playerData) {
+                        // if ((!playerData.permission || !playerData.permission.applyBonus) && !bForce) {
+                        //     return Q.reject({
+                        //         status: constServerCode.PLAYER_NO_PERMISSION,
+                        //         name: "DataError",
+                        //         errorMessage: "Player does not have this permission"
+                        //     });
+                        // }
+                        if (playerData.bankName == null || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
+                            || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                                name: "DataError",
+                                errorMessage: "Player does not have valid payment information"
+                            });
                         }
-                    ).lean().then(
-                        todayBonusApply => {
 
-                            let changeCredit = -amount;
-                            let finalAmount = amount;
-                            let creditCharge = 0;
-                            let amountAfterUpdate = player.validCredit - amount;
+                        //check if player has enough credit
+                        player = playerData;
+                        if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                name: "DataError",
+                                errorMessage: "Player does not have enough credit."
+                            });
+                        }
 
-                            if (todayBonusApply.length >= playerData.platform.bonusCharges && playerData.platform.bonusPercentageCharges > 0) {
-                                creditCharge = (finalAmount * playerData.platform.bonusPercentageCharges) * 0.01;
-                                finalAmount = finalAmount - creditCharge;
-                            }
-
-                            return dbconfig.collection_players.findOneAndUpdate(
-                                {
-                                    _id: player._id,
-                                    platform: player.platform._id
+                        let todayTime = dbUtility.getTodaySGTime();
+                        return dbconfig.collection_proposal.find(
+                            {
+                                mainType: "PlayerBonus",
+                                createTime: {
+                                    $gte: todayTime.startTime,
+                                    $lt: todayTime.endTime
                                 },
-                                {$inc: {validCredit: changeCredit}},
-                                {new: true}
-                            ).then(
-                                //check if player's credit is correct after update
-                                updateRes => dbconfig.collection_players.findOne({_id: player._id})
-                            ).then(
-                                newPlayerData => {
-                                    if (newPlayerData) {
-                                        bUpdateCredit = true;
-                                        //to fix float problem...
-                                        if (newPlayerData.validCredit < -0.02) {
-                                            //credit will be reset below
-                                            return Q.reject({
-                                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                                name: "DataError",
-                                                errorMessage: "Player does not have enough credit.",
-                                                data: '(detected after withdrawl)'
-                                            });
+                                "data.playerId": playerId,
+                                status: {
+                                    $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
+                                }
+                            }
+                        ).lean().then(
+                            todayBonusApply => {
+
+                                let changeCredit = -amount;
+                                let finalAmount = amount;
+                                let creditCharge = 0;
+                                let amountAfterUpdate = player.validCredit - amount;
+
+                                if (todayBonusApply.length >= playerData.platform.bonusCharges && playerData.platform.bonusPercentageCharges > 0) {
+                                    creditCharge = (finalAmount * playerData.platform.bonusPercentageCharges) * 0.01;
+                                    finalAmount = finalAmount - creditCharge;
+                                }
+
+                                return dbconfig.collection_players.findOneAndUpdate(
+                                    {
+                                        _id: player._id,
+                                        platform: player.platform._id
+                                    },
+                                    {$inc: {validCredit: changeCredit}},
+                                    {new: true}
+                                ).then(
+                                    //check if player's credit is correct after update
+                                    updateRes => dbconfig.collection_players.findOne({_id: player._id})
+                                ).then(
+                                    newPlayerData => {
+                                        if (newPlayerData) {
+                                            bUpdateCredit = true;
+                                            //to fix float problem...
+                                            if (newPlayerData.validCredit < -0.02) {
+                                                //credit will be reset below
+                                                return Q.reject({
+                                                    status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                                    name: "DataError",
+                                                    errorMessage: "Player does not have enough credit.",
+                                                    data: '(detected after withdrawl)'
+                                                });
+                                            }
+                                            //check if player's credit is correct after update
+                                            if (amountAfterUpdate != newPlayerData.validCredit) {
+                                                console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
+                                                return Q.reject({
+                                                    status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                                    name: "DataError",
+                                                    errorMessage: "Update player credit failed",
+                                                    data: '(detected after withdrawl)'
+                                                });
+                                            }
+                                            //fix player negative credit
+                                            if (newPlayerData.validCredit < 0 && newPlayerData.validCredit > -0.02) {
+                                                newPlayerData.validCredit = 0;
+                                                dbconfig.collection_players.findOneAndUpdate(
+                                                    {_id: newPlayerData._id, platform: newPlayerData.platform},
+                                                    {validCredit: 0}
+                                                ).then();
+                                            }
+                                            player.validCredit = newPlayerData.validCredit;
+                                            //create proposal
+                                            var proposalData = {
+                                                creator: adminInfo || {
+                                                    type: 'player',
+                                                    name: player.name,
+                                                    id: playerId
+                                                },
+                                                playerId: playerId,
+                                                playerObjId: player._id,
+                                                playerName: player.name,
+                                                bonusId: bonusId,
+                                                platformId: player.platform._id,
+                                                platform: player.platform.platformId,
+                                                bankTypeId: player.bankName,
+                                                amount: finalAmount,
+                                                // bonusCredit: bonusDetail.credit,
+                                                curAmount: player.validCredit,
+                                                remark: player.remark,
+                                                lastSettleTime: new Date(),
+                                                honoreeDetail: honoreeDetail,
+                                                creditCharge: creditCharge,
+                                                isAutoApproval: player.platform.enableAutoApplyBonus
+                                                //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
+                                            };
+                                            var newProposal = {
+                                                creator: proposalData.creator,
+                                                data: proposalData,
+                                                entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                                userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                            };
+                                            return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
                                         }
-                                        //check if player's credit is correct after update
-                                        if (amountAfterUpdate != newPlayerData.validCredit) {
-                                            console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
-                                            return Q.reject({
-                                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                                name: "DataError",
-                                                errorMessage: "Update player credit failed",
-                                                data: '(detected after withdrawl)'
-                                            });
-                                        }
-                                        //fix player negative credit
-                                        if (newPlayerData.validCredit < 0 && newPlayerData.validCredit > -0.02) {
-                                            newPlayerData.validCredit = 0;
-                                            dbconfig.collection_players.findOneAndUpdate(
-                                                {_id: newPlayerData._id, platform: newPlayerData.platform},
-                                                {validCredit: 0}
-                                            ).then();
-                                        }
-                                        player.validCredit = newPlayerData.validCredit;
-                                        //create proposal
-                                        var proposalData = {
-                                            creator: adminInfo || {
-                                                type: 'player',
-                                                name: player.name,
-                                                id: playerId
-                                            },
-                                            playerId: playerId,
-                                            playerObjId: player._id,
-                                            playerName: player.name,
-                                            bonusId: bonusId,
-                                            platformId: player.platform._id,
-                                            platform: player.platform.platformId,
-                                            bankTypeId: player.bankName,
-                                            amount: finalAmount,
-                                            bonusCredit: bonusDetail.credit,
-                                            curAmount: player.validCredit,
-                                            remark: player.remark,
-                                            lastSettleTime: new Date(),
-                                            honoreeDetail: honoreeDetail,
-                                            creditCharge: creditCharge,
-                                            isAutoApproval: player.platform.enableAutoApplyBonus
-                                            //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
-                                        };
-                                        var newProposal = {
-                                            creator: proposalData.creator,
-                                            data: proposalData,
-                                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                                            userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                        };
-                                        return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
-                                    }
-                                });
-                        });
-                } else {
-                    return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
-                }
-            }
-        ).then(
-            proposal => {
-                if (proposal) {
-                    if (bUpdateCredit) {
-                        dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount * proposal.data.bonusCredit, constProposalType.PLAYER_BONUS, player.validCredit, null, proposal);
+                                    });
+                            });
+                    } else {
+                        return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
-                    return proposal;
-                } else {
-                    return Q.reject({name: "DataError", errorMessage: "Cannot create bonus proposal"});
                 }
-            }
-        ).then(
-            data => data,
-            error => {
-                if (bUpdateCredit) {
-                    return resetCredit(player._id, player.platform._id, amount * bonusDetail.credit, error);
+            ).then(
+                proposal => {
+                    if (proposal) {
+                        if (bUpdateCredit) {
+                            dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount * proposal.data.bonusCredit, constProposalType.PLAYER_BONUS, player.validCredit, null, proposal);
+                        }
+                        return proposal;
+                    } else {
+                        return Q.reject({name: "DataError", errorMessage: "Cannot create bonus proposal"});
+                    }
                 }
-                else {
-                    return Q.reject(error);
+            ).then(
+                data => data,
+                error => {
+                    if (bUpdateCredit) {
+                        return resetCredit(player._id, player.platform._id, amount, error);
+                    }
+                    else {
+                        return Q.reject(error);
+                    }
                 }
-            }
-        );
+            );
     },
 
     /*
@@ -7013,7 +6991,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getQuickpayTopupRequestList:  (playerId) => {
+    getQuickpayTopupRequestList: (playerId) => {
         var platformObjectId = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate({
             path: "platform",
