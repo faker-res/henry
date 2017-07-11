@@ -204,7 +204,7 @@ function checkProposalConsumption(proposal, platformObj) {
                 sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg);
             }
             else {
-                while (proposals && proposals.length > 0 && !bFirstWithdraw) {
+                while (proposals && proposals.length > 0) {
                     // FIFO dequeue from nearest date proposal
                     let getProp = proposals.shift();
 
