@@ -156,6 +156,7 @@
                 "cancelWechatTopup",
                 "getPlayerWechatPayStatus",
                 "getAlipaySingleLimit",
+                "getMerchantSingleLimits",
                 "requestQuickpayTopup",
                 "cancelQuickpayTopup",
                 "getQuickpayTopupRequestList"
