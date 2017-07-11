@@ -1946,7 +1946,7 @@ let dbPlayerInfo = {
         let adminInfo = ifAdmin;
         let startTime = dbUtility.getCurrentWeekSGTime().startTime;
         let endTime = dbUtility.getCurrentWeekSGTime().endTime;
-        let weekFirstRecordId = null;
+        let firstRecordId = null;
 
         let query = playerObjId ? {_id: playerObjId} : {playerId: playerId};
         let recordProm = dbconfig.collection_playerTopUpRecord.find({_id: {$in: topUpRecordIds}});
@@ -1963,16 +1963,32 @@ let dbPlayerInfo = {
                 player = data[0];
                 records = data[1];
 
-                let queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
-
-                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: 1}).limit(1).exec();
+                //get player's platform reward event data
+                platformId = player.platform;
+                return dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.FIRST_TOP_UP, code);
+            }
+        ).then(
+            eData => {
+                eventData = eData;
+                let queryFirstOfWeek = {};
+                if(eventData.param.periodType == 1){
+                    queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
+                }
+                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: 1}).limit(1).lean();
             }
         ).then(
             firstRecordData => {
                 if (firstRecordData && firstRecordData[0]) {
-                    weekFirstRecordId = String(firstRecordData[0]._id);
+                    firstRecordId = String(firstRecordData[0]._id);
                 }
-
+                if (firstRecordId && topUpRecordIds.indexOf(firstRecordId) < 0) {
+                    deferred.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Top up record is not the first top up record"
+                    });
+                    return;
+                }
                 //check all top up records
                 let bValid = true;
                 if (records.length > 0) {
@@ -1996,9 +2012,6 @@ let dbPlayerInfo = {
                     return;
                 }
 
-                //get player's platform reward event data
-                platformId = player.platform;
-                return dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.FIRST_TOP_UP, code);
             },
             function (error) {
                 deferred.reject({
@@ -2009,17 +2022,7 @@ let dbPlayerInfo = {
                 });
             }
         ).then(
-            function (eData) {
-                eventData = eData;
-                if (eventData.param.periodType == 1 && weekFirstRecordId &&
-                    topUpRecordIds.indexOf(weekFirstRecordId) < 0) {
-                    deferred.reject({
-                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        name: "DataError",
-                        message: "Top up record is not the first top up of this week"
-                    });
-                    return;
-                }
+            function (data) {
                 //get player data
                 if (eventData) {
                     if (eventData.param.periodType == 0) {
