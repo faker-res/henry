@@ -1,7 +1,7 @@
 const dbconfig = require('./../modules/dbproperties');
 const pmsAPI = require("../externalAPI/pmsAPI.js");
 const serverInstance = require("../modules/serverInstance");
-const constPlayerTopUpTypes = require("../const/constPlayerTopUpTypes.js");
+const constPlayerTopUpTypes = require("../const/constPlayerTopUpType.js");
 const Q = require("q");
 
 const dbPlayerPayment = {
@@ -75,21 +75,21 @@ const dbPlayerPayment = {
             merchantsFromPms => {
                 let bValid = false;
                 let singleLimitList = {wechat: 0, alipay: 0};
-                if (merchantsFromPms && merchantsFromPms.data && merchantsFromPms.data.length > 0) {
-                    merchantsFromPms.data.forEach(
+                if (merchantsFromPms && merchantsFromPms.merchants && merchantsFromPms.merchants.length > 0) {
+                    merchantsFromPms.merchants.forEach(
                         merchantFromPms => {
                             playerData.merchantGroup.merchants.forEach(
                                 merchantNoFromGroup => {
-                                    if (merchantNoFromGroup == merchantFromPms.accountNumber && merchantFromPms.state == "NORMAL") {
+                                    if (merchantNoFromGroup == merchantFromPms.merchantNo && merchantFromPms.status == "ENABLED") {
                                         bValid = true;
                                         if (merchantFromPms.topupType && merchantFromPms.topupType == constPlayerTopUpTypes.ONLINE) {
-                                            if (merchantFromPms.singleLimit > singleLimitList.wechat) {
-                                                singleLimitList.wechat = merchantFromPms.singleLimit;
+                                            if (merchantFromPms.permerchantLimits > singleLimitList.wechat) {
+                                                singleLimitList.wechat = merchantFromPms.permerchantLimits;
                                             }
                                         }
                                         else if (merchantFromPms.topupType && merchantFromPms.topupType == constPlayerTopUpTypes.ALIPAY) {
-                                            if (merchantFromPms.singleLimit > singleLimitList.alipay) {
-                                                singleLimitList.alipay = merchantFromPms.singleLimit;
+                                            if (merchantFromPms.permerchantLimits > singleLimitList.alipay) {
+                                                singleLimitList.alipay = merchantFromPms.permerchantLimits;
                                             }
                                         }
                                     }
