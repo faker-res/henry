@@ -259,6 +259,8 @@ var proposal = {
                             proposalData.data.playerName = data[2].name;
                             proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
+                            proposalData.data.playerLevelName = data[2].playerLevel.name;
+                            proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
                         }
                     }
 
@@ -710,7 +712,7 @@ var proposal = {
                         var proposalStatus = proposalData.status || proposalData.process.status;
                         if (proposalData.creator.id.toString() != adminId.toString()) {
                             reject = false;
-                        } else if (proposalStatus != constProposalStatus.PENDING) {
+                        } else if (proposalStatus != constProposalStatus.PENDING && proposalStatus !== constProposalStatus.AUTOAUDIT) {
                             reject = false;
                         }
                         if (reject) {

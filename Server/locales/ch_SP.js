@@ -165,7 +165,8 @@ var simplifiedChinese = {
     "player valid credit abnormal.": "玩家额度不正常",
     "Player is updating bank info": "玩家正在更新支付资料",
     "Cannot find bonus": "无法找到提款资料",
-    "Update player credit failed": "更新玩家额度失败"
+    "Update player credit failed": "更新玩家额度失败",
+    "Top up record is not the first top up record": "不符合优惠申请条件"
     //todo::add missing messages here
 
     /*

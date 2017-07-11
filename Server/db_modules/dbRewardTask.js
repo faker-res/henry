@@ -908,7 +908,7 @@ var dbRewardTask = {
         ).then(
             creditData => {
                 if (creditData && taskObj) {
-                    var playerCredit = playerObj.lockedCredit;
+                    var playerCredit = playerObj.lockedCredit + playerObj.validCredit;
                     var totalCredit = 0;
                     creditData.forEach(
                         credit => {

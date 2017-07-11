@@ -135,15 +135,13 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).sort({createTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
-            let promises = [];
-
+ 
             if (lastWithdrawDate) {
-                promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise];
                 proposalQuery.createTime["$gt"] = lastWithdrawDate;
                 transferLogQuery.createTime["$gt"] = lastWithdrawDate;
-            } else {
-                promises = [[], transferLogsWithinPeriodPromise];
             }
+
+            let promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise];
 
             return Promise.all(promises);
         }
@@ -180,7 +178,7 @@ function checkProposalConsumption(proposal, platformObj) {
                 sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, transferAbnormalMessage, transferAbnormalMessageChinese);
             }
             else {
-                while (proposals && proposals.length > 0) {
+                while (proposals && proposals.length > 0 && !bFirstWithdraw) {
                     // FIFO dequeue from nearest date proposal
                     let getProp = proposals.shift();
 
