@@ -1512,7 +1512,7 @@ define(['js/app'], function (myApp) {
                 if (vm.filterPlayGameType && (vm.filterPlayGameType != 'all') && (vm.filterPlayGameType != item.playGameType)) return false;
                 if (vm.filterGameName && item.name.indexOf(vm.filterGameName) == -1) return false;
                 if (vm.filterGameId && item.gameId.indexOf(vm.filterGameId) == -1) return false;
-                if (vm.filterGameDescription && item.description.indexOf(vm.filterGameDescription) == -1) return false;
+                if (vm.filterGameDescription && (item.description && item.description.indexOf(vm.filterGameDescription) == -1 || !item.description)) return false;
                 if (filterProvider && vm.filterGameProvider && (vm.filterGameProvider != 'all') && (vm.filterGameProvider != item.provider)) return false;
                 if (item.status == 4) return false;
                 return true;
