@@ -2248,8 +2248,9 @@ let dbPlayerInfo = {
                             $gte: startDate
                         },
                         "data.periodType": rewardData.periodType,
-                        "data.playerId": playerData._id
-                    })
+                        "data.playerObjId": playerData._id,
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                    });
                 } else {
                     return deferred.resolve(false);
                 }
