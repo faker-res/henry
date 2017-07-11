@@ -5128,6 +5128,9 @@ define(['js/app'], function (myApp) {
             if (vm.queryPara.playerExpense.providerId) {
                 sendData.providerId = vm.queryPara.playerExpense.providerId
             }
+            if (vm.queryPara.playerExpense.gameName) {
+                sendData.gameName = vm.queryPara.playerExpense.gameName;
+            }
             vm.playerExpenseLog.loading = true;
             console.log("Query", sendData);
             vm.prepareShowPlayerExpenseRecords(sendData, newSearch);
