@@ -5833,7 +5833,7 @@ let dbPlayerInfo = {
      * Apply bonus
      */
     applyBonus: function (playerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
-        if (amount < 100) {
+        if (amount < 100 && !adminInfo) {
             return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
         let player = null;

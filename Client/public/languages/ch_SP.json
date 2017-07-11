@@ -2026,8 +2026,8 @@
   "optional": "选填",
   "Leaving empty will generate a random password." : "放空此栏将随机生成密码。",
   "Note: ": "注意：",
-  "remarkChinese": "中文备注",
-  "autoAuditRemarkChinese": "自动审核：中文备注",
+  "remarkChinese": "备注（中文）",
+  "autoAuditRemarkChinese": "自动审核：备注（中文）",
   "autoAuditRepeatMsgChinese": "自动审核：回圈信息（中文）",
   "autoAuditCheckMsgChinese": "自动审核：审核信息（中文）",
   "Manual": "手动",
@@ -2098,5 +2098,7 @@
   "player valid credit abnormal.": "玩家额度不正常",
   "Player is updating bank info": "玩家正在更新支付资料",
   "Cannot find bonus": "无法找到提款资料",
-  "Update player credit failed": "更新玩家额度失败"
+  "Update player credit failed": "更新玩家额度失败",
+  "detail": "详情",
+  "detailChinese": "详情（中文）"
 }

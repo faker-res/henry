@@ -59,6 +59,9 @@
                             option(value='all', ) {{'any' | translate}}
                             option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v.gameTypeId}}') {{v.name}}&nbsp;({{v.description}})
                     .inlineBlk.margin-right-5
+                        .control-label {{"GAME_DESCRIPTION" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.filterGameDescription')
+                    .inlineBlk.margin-right-5
                         .control-label {{"Play Game Type" | translate}}
                         select.input-sm.form-control(ng-model='vm.filterPlayGameType', style='max-width:150px')
                             option(value='all') {{'any' | translate}}
