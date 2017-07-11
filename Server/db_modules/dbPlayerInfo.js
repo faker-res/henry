@@ -5949,13 +5949,13 @@ let dbPlayerInfo = {
         ).then(
             playerData => {
                 if (playerData) {
-                    if ((!playerData.permission || !playerData.permission.applyBonus) && !bForce) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_NO_PERMISSION,
-                            name: "DataError",
-                            errorMessage: "Player does not have this permission"
-                        });
-                    }
+                    // if ((!playerData.permission || !playerData.permission.applyBonus) && !bForce) {
+                    //     return Q.reject({
+                    //         status: constServerCode.PLAYER_NO_PERMISSION,
+                    //         name: "DataError",
+                    //         errorMessage: "Player does not have this permission"
+                    //     });
+                    // }
                     if (playerData.bankName == null || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
                         || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
                         return Q.reject({
