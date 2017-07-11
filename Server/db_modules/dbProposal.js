@@ -712,7 +712,7 @@ var proposal = {
                         var proposalStatus = proposalData.status || proposalData.process.status;
                         if (proposalData.creator.id.toString() != adminId.toString()) {
                             reject = false;
-                        } else if (proposalStatus != constProposalStatus.PENDING) {
+                        } else if (proposalStatus != constProposalStatus.PENDING && proposalStatus !== constProposalStatus.AUTOAUDIT) {
                             reject = false;
                         }
                         if (reject) {
