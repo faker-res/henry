@@ -119,14 +119,19 @@ function checkProposalConsumption(proposal, platformObj) {
                 createTime: {$lt: proposal.createTime},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                 mainType: {$in: ["TopUp", "Reward"]}
-            }
+            };
 
             let transferLogQuery = {
                 platformObjId: ObjectId(proposal.data.platformId),
                 playerObjId: ObjectId(proposal.data.playerObjId),
                 createTime: {$lt: proposal.createTime},
                 status: constPlayerCreditTransferStatus.SUCCESS.toString()
-            }
+            };
+
+            let playerQuery = {
+                _id: ObjectId(proposal.data.playerObjId),
+                platform: ObjectId(proposal.data.platformId)
+            };
 
             if (lastWithdrawDate) {
                 proposalQuery.createTime["$gt"] = lastWithdrawDate;
@@ -135,31 +140,52 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).sort({createTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
+            let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
  
             if (lastWithdrawDate) {
                 proposalQuery.createTime["$gt"] = lastWithdrawDate;
                 transferLogQuery.createTime["$gt"] = lastWithdrawDate;
             }
 
-            let promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise];
+            let promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise, playerInfoPromise];
 
             return Promise.all(promises);
         }
     ).then(
         data => {
-            let proposals;
-            let transferAbnormalMessage = "";
-            let transferAbnormalMessageChinese = "";
+            let proposals, playerData;
+            let bTransferAbnormal = false;
+            let bNoBonusPermission = false;
+            let bPendingPaymentInfo = false;
+            let abnormalMessage = "";
+            let abnormalMessageChinese = "";
+
             if (data && data[0]) {
                 proposals = data[0];
+
+                if (hasPendingPaymentInfoChanges(proposals)) {
+                    bPendingPaymentInfo = true;
+                    abnormalMessage += "Player have pending payment info changes proposal.; ";
+                    abnormalMessageChinese += "玩家有未审核编辑玩家银行资料提案。; ";
+                }
             }
 
             if (data && data[1]) {
                 let transferAbnormalities = findTransferAbnormality(data[1], proposals);
 
                 for (let i = 0; i < transferAbnormalities.length; i++) {
-                    transferAbnormalMessage += transferAbnormalities[i].en + "; ";
-                    transferAbnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+                    abnormalMessage += transferAbnormalities[i].en + "; ";
+                    abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+                    bTransferAbnormal = true;
+                }
+            }
+
+            if (data && data[2]) {
+                playerData = data[2];
+                if (!playerData.permission.applyBonus) {
+                    bNoBonusPermission = true;
+                    abnormalMessage += "This player do not have permission to apply bonus.; ";
+                    abnormalMessageChinese += "玩家没有权限提款。; "
                 }
             }
 
@@ -171,11 +197,11 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
 
-            if (proposals && !proposals.length && !bFirstWithdraw) {
+            if (proposals && !proposals.length && !bFirstWithdraw && !bNoBonusPermission && !bTransferAbnormal) {
                 // There is no other withdrawal between this withdrawal and last withdrawal
                 let approveRemark = "No proposals between this and last withdrawal";
                 let approveRemarkChinese = "在此提案和上次的提款之间并没有其他提案";
-                sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, transferAbnormalMessage, transferAbnormalMessageChinese);
+                sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg);
             }
             else {
                 while (proposals && proposals.length > 0 && !bFirstWithdraw) {
@@ -334,23 +360,35 @@ function checkProposalConsumption(proposal, platformObj) {
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
                             checkMsg += "Denied: Amount exceed single bonus limit";
                             checkMsgChinese += "失败：超出自动审核单笔提款金额限制";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, transferAbnormalMessage, transferAbnormalMessageChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                         } else if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
                             checkMsg += "Denied: Amount exceed single day bonus limit";
                             checkMsgChinese += "失败：超出自动审核单日总提款金额限制";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, transferAbnormalMessage, transferAbnormalMessageChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                         } else if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
                             checkMsg += "Denied: Player not allowed for auto proposal";
                             checkMsgChinese += "失败：此玩家不被允许自动审核";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, transferAbnormalMessage, transferAbnormalMessageChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                         } else if (bFirstWithdraw) {
                             checkMsg += "Denied: Player's first withdrawal";
                             checkMsgChinese += "失败：玩家首次提款";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, transferAbnormalMessage, transferAbnormalMessageChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        } else if (bTransferAbnormal) {
+                            checkMsg += 'Denied: Abnormal Transfer In or Transfer Out log';
+                            checkMsgChinese += '失败：转入转出记录异常';
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        } else if (bNoBonusPermission) {
+                            checkMsg += 'Denied: This player do not have permission to apply bonus';
+                            checkMsgChinese += '失败：玩家没有权限提款';
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        } else if (bPendingPaymentInfo) {
+                            checkMsg += 'Denied: Player have pending payment info changes proposal';
+                            checkMsgChinese += '失败：玩家有未审核编辑玩家银行资料提案';
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                         } else if (isApprove || isTypeEApproval) {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：投注额 " + validConsumptionAmount + "，投注额需求 " + spendingAmount;
-                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, transferAbnormalMessage, transferAbnormalMessageChinese);
+                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese);
                         } else {
                             // Proposal not approved; Throw back to loop pool or deny this proposal
                             proposal.data.autoApproveRepeatCount =
@@ -371,15 +409,15 @@ function checkProposalConsumption(proposal, platformObj) {
                                     'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
                                     'data.autoAuditCheckMsg': checkMsg,
                                     'data.autoAuditCheckMsgChinese': checkMsgChinese,
-                                    'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
-                                    'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
+                                    'data.detail': abnormalMessage ? abnormalMessage : "",
+                                    'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
                                 }).exec();
                             } else {
                                 // Check if player is VIP - Passed
                                 if (proposal.data.proposalPlayerLevelValue > 0) {
-                                    sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出自动审核回圈次数，流水不够", checkMsg, transferAbnormalMessage, transferAbnormalMessageChinese);
+                                    sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出自动审核回圈次数，流水不够", checkMsg, abnormalMessage, abnormalMessageChinese);
                                 } else {
-                                    sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出自动审核回圈次数，流水不够", checkMsg, transferAbnormalMessage, transferAbnormalMessageChinese);
+                                    sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出自动审核回圈次数，流水不够", checkMsg, abnormalMessage, abnormalMessageChinese);
                                 }
                             }
                         }
@@ -397,7 +435,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
 }
 
-function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, transferAbnormalMessage, transferAbnormalMessageChinese) {
+function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -417,8 +455,8 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                 'data.remark': 'Auto Approval Approved: ' + remark,
                                 'data.remarkChinese': '自动审核成功：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
-                                'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
-                                'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
+                                'data.detail': abnormalMessage ? abnormalMessage : "",
+                                'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
                             },
                             {new: true}
                         );
@@ -429,7 +467,7 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
     );
 }
 
-function sendToReject(proposalObjId, createTime, remark, remarkChinese, processRemark, transferAbnormalMessage, transferAbnormalMessageChinese) {
+function sendToReject(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -449,8 +487,8 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
                                 'data.remark': 'Auto Approval Denied: ' + remark,
                                 'data.remarkChinese': '自动审核失败：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
-                                'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
-                                'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
+                                'data.detail': abnormalMessage ? abnormalMessage : "",
+                                'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
                             },
                             {new: true}
                         );
@@ -461,7 +499,7 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
     );
 }
 
-function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark, transferAbnormalMessage, transferAbnormalMessageChinese) {
+function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -479,8 +517,8 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                         'data.autoAuditRemark': 'Auto Approval ' + remark,
                         'data.autoAuditRemarkChinese': '自动审核' + remarkChinese,
                         'data.autoAuditCheckMsg': processRemark,
-                        'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
-                        'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
+                        'data.detail': abnormalMessage ? abnormalMessage : "",
+                        'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
                     }).then();
                 }
                 else {
@@ -495,8 +533,8 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                                     'data.remark': 'Auto Approval Denied: ' + remark,
                                     'data.remarkChinese': '自动审核失败：' + remarkChinese,
                                     'data.autoAuditCheckMsg': processRemark,
-                                    'data.detail': transferAbnormalMessage ? transferAbnormalMessage : "",
-                                    'data.detailChinese': transferAbnormalMessageChinese ? transferAbnormalMessageChinese : ""
+                                    'data.detail': abnormalMessage ? abnormalMessage : "",
+                                    'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
                                 },
                                 {new: true}
                             );
@@ -649,6 +687,17 @@ function findTransferAbnormality(transferLogs, proposals) {
             multipleTransferOutStreakExist = true;
         }
     }
+}
+
+function hasPendingPaymentInfoChanges(proposals) {
+    let length = proposals.length;
+    for (let i = 0; i < length; i++) {
+        let proposal = proposals[i];
+        if (proposal.type === constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status === constProposalStatus.PENDING) {
+            return true;
+        }
+    }
+    return false;
 }
 
 module.exports = dbAutoProposal;
