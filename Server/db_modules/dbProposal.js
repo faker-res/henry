@@ -259,6 +259,8 @@ var proposal = {
                             proposalData.data.playerName = data[2].name;
                             proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
+                            proposalData.data.playerLevelName = data[2].playerLevel.name;
+                            proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
                         }
                     }
 
