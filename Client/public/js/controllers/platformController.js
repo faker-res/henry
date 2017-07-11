@@ -6914,8 +6914,9 @@ define(['js/app'], function (myApp) {
                 query: vm.advancedPartnerQueryObj
             };
             socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
-                setPartnerTableData(reply.data);
-                vm.searchPartnerCount = reply.data.length;
+                setPartnerTableData(reply.data.data);
+                vm.searchPartnerCount = reply.data.size;
+                vm.advancedPartnerQueryObj.pageObj.init({maxCount: reply.data.size});
                 $scope.safeApply();
             });
         });

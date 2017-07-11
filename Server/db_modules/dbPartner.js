@@ -498,13 +498,28 @@ let dbPartner = {
      * Get Partners by objectId of platform schema
      *
      */
-
     getPartnersByPlatform: function (data) {
+        var query = {};
+        var count = 0;
+        query.platform = mongoose.Types.ObjectId(data.platformId);
+        for(var k in data){
+            if(k!="limit" && k!="index" && k!="pageObj" && k!="sortCol"&& k!="platformId"){
 
-        var count = dbconfig.collection_partner.find({platform: data.platformId}).count();
+                if(k=="status"){
+                    data["status"] = parseInt(data["status"]);
+                }
+                if(k=="level"){
+                    data["level"] = mongoose.Types.ObjectId(data["level"]);
+                }
+                query[k]= data[k];
+            }
+        }
+        
+        count = dbconfig.collection_partner.find( query ).count();
         if(data.sortCol){
+
             var detail = dbconfig.collection_partner.aggregate([
-                {$match: {platform: mongoose.Types.ObjectId(data.platformId)}},
+                {$match: query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
                 {$sort:data.sortCol},
                 {$skip:data.index},
@@ -519,8 +534,9 @@ let dbPartner = {
                 return Q.all(retData);
             });
         }else{
+
             var detail = dbconfig.collection_partner.aggregate([  
-                {$match: {platform: mongoose.Types.ObjectId(data.platformId)}},
+                {$match: query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
                 {$skip:data.index},
                 {$limit:data.limit}
@@ -533,6 +549,7 @@ let dbPartner = {
                 }
                 return Q.all(retData);
             });
+            
         }
         return Q.all([count, detail]).then( function(data){
             return {size:data[0],data:data[1]}
@@ -545,10 +562,26 @@ let dbPartner = {
      *  {  bankAccount , partnerName, partnerId, level }
      */
     getPartnersByAdvancedQuery: function (platformId, data) {
+        var count = 0;
+        var query = {};
+        query.platform  = mongoose.Types.ObjectId(platformId);
+        for(var k in data){
+            if(k!="limit" && k!="index" && k!="pageObj" && k!="sortCol"&& k!="platformId"){
 
+                if(k=="status"){
+                    data["status"] = parseInt(data["status"]);
+                }
+                if(k=="level"){
+                    data["level"] = mongoose.Types.ObjectId(data["level"]);
+                }
+                query[k]= data[k];
+            }
+        }
+
+        count = dbconfig.collection_partner.find( query ).count();
         if(data.sortCol){
-            return dbconfig.collection_partner.aggregate([
-                {$match: {platform: mongoose.Types.ObjectId(platformId)}},
+            var detail = dbconfig.collection_partner.aggregate([
+                {$match:query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
                 {$sort:data.sortCol},
                 {$skip:data.index},
@@ -562,9 +595,10 @@ let dbPartner = {
                     }
                     return Q.all(retData);
             });
+            
         }else{
-            return dbconfig.collection_partner.aggregate([
-                {$match: {platform: mongoose.Types.ObjectId(platformId)}},
+            var detail = dbconfig.collection_partner.aggregate([
+                {$match:query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
                 {$skip:data.index},
                 {$limit:data.limit}
@@ -577,7 +611,11 @@ let dbPartner = {
                 }
                 return Q.all(retData);
             });
+            
         }
+        return Q.all([count, detail]).then( function(data){
+            return {size:data[0],data:data[1]}
+        })
     },
     getPartnerItem: function(id, childrencount) {
         return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(id)})
