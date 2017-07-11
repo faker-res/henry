@@ -277,6 +277,11 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getAlipaySingleLimit, [conn.playerId], isValidData);
     }
 
+    this.getMerchantSingleLimits.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getMerchantSingleLimits, [conn.playerId], isValidData);
+    }
+
     // quick pay
     this.requestQuickpayTopup.expectsData = 'amount: Number|String';
     this.requestQuickpayTopup.onRequest = function (wsFunc, conn, data) {

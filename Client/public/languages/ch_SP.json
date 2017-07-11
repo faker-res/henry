@@ -932,6 +932,7 @@
   "ISNEWPLAYER": "是否为新开户",
   "ACCOUNT": "账号",
   "QUOTA": "限额",
+  "SINGLELIMIT": "单笔最高限额",
   "START_TIME": "加入时间",
   "ACTIION": "行动",
   "END_TIME": "返回处理时间",

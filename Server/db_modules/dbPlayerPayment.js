@@ -1,6 +1,7 @@
 const dbconfig = require('./../modules/dbproperties');
 const pmsAPI = require("../externalAPI/pmsAPI.js");
 const serverInstance = require("../modules/serverInstance");
+const constPlayerTopUpTypes = require("../const/constPlayerTopUpTypes.js");
 const Q = require("q");
 
 const dbPlayerPayment = {
@@ -9,7 +10,7 @@ const dbPlayerPayment = {
      * Get player alipay top up max amount
      * @param {String} playerId - The data of the PlayerTrustLevel. Refer to PlayerTrustLevel schema.
      */
-    getAlipaySingleLimit : (playerId) => {
+    getAlipaySingleLimit: (playerId) => {
         let playerData = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
@@ -19,10 +20,10 @@ const dbPlayerPayment = {
             data => {
                 if (data && data.platform && data.alipayGroup) {
                     playerData = data;
-                        return pmsAPI.alipay_getAlipayList({
-                            platformId: data.platform.platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
+                    return pmsAPI.alipay_getAlipayList({
+                        platformId: data.platform.platformId,
+                        queryId: serverInstance.getQueryId()
+                    });
                 } else {
                     return Q.reject({name: "DataError", message: "Invalid player data"})
                 }
@@ -38,7 +39,7 @@ const dbPlayerPayment = {
                                 pAlipay => {
                                     if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
                                         bValid = true;
-                                        if(alipay.singleLimit > singleLimit){
+                                        if (alipay.singleLimit > singleLimit) {
                                             singleLimit = alipay.singleLimit;
                                         }
                                     }
@@ -48,6 +49,56 @@ const dbPlayerPayment = {
                     );
                 }
                 return {bValid: bValid, singleLimit: singleLimit};
+            }
+        );
+    },
+
+    getMerchantSingleLimits: (playerId) => {
+        let playerData = null;
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).populate(
+            {path: "merchantGroup", model: dbconfig.collection_platformMerchantGroup}
+        ).lean().then(
+            data => {
+                if (data && data.platform && data.merchantGroup) {
+                    playerData = data;
+                    return pmsAPI.merchant_getMerchantList({
+                        platformId: data.platform.platformId,
+                        queryId: serverInstance.getQueryId()
+                    });
+                } else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"})
+                }
+            }
+        ).then(
+            merchantsFromPms => {
+                let bValid = false;
+                let singleLimitList = {wechat: 0, alipay: 0};
+                if (merchantsFromPms && merchantsFromPms.data && merchantsFromPms.data.length > 0) {
+                    merchantsFromPms.data.forEach(
+                        merchantFromPms => {
+                            playerData.merchantGroup.merchants.forEach(
+                                merchantNoFromGroup => {
+                                    if (merchantNoFromGroup == merchantFromPms.accountNumber && merchantFromPms.state == "NORMAL") {
+                                        bValid = true;
+                                        if (merchantFromPms.topupType && merchantFromPms.topupType == constPlayerTopUpTypes.ONLINE) {
+                                            if (merchantFromPms.singleLimit > singleLimitList.wechat) {
+                                                singleLimitList.wechat = merchantFromPms.singleLimit;
+                                            }
+                                        }
+                                        else if (merchantFromPms.topupType && merchantFromPms.topupType == constPlayerTopUpTypes.ALIPAY) {
+                                            if (merchantFromPms.singleLimit > singleLimitList.alipay) {
+                                                singleLimitList.alipay = merchantFromPms.singleLimit;
+                                            }
+                                        }
+                                    }
+                                }
+                            );
+                        }
+                    );
+                }
+                return {bValid: bValid, singleLimitList: singleLimitList};
             }
         );
     }
