@@ -4384,6 +4384,7 @@ define(['js/app'], function (myApp) {
                 }
             });
         };
+
         vm.transferAllCreditToPlayer = function () {
             vm.transferAllCredit.isProcessing = true;
             $.each(vm.playerCredit, function (i, v) {
@@ -4423,8 +4424,9 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformPlayersData();
             });
         }
-        vm.closeCreditTransferLog = function () {
-            $('#modalPlayerGameProviderCredit').modal('hide');
+        
+        vm.closeCreditTransferLog = function (modal) {
+            $(modal).modal('hide');
             if (vm.creditTransfer.needRefreshPlatformPlayerData) {
                 vm.creditTransfer.needRefreshPlatformPlayerData = false;
                 vm.advancedPlayerQuery();
@@ -6201,6 +6203,7 @@ define(['js/app'], function (myApp) {
                 resMsg: '',
                 showSubmit: true,
                 notSent: true,
+                bonusId :1
             };
         }
 
