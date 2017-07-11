@@ -1592,7 +1592,7 @@ include modalGameCreditLog
                     .form-group-col-md-6
                         label.control-label {{'CREDIT' | translate}}
                         input.leftALignNumber.form-control(type='number',ng-model='vm.playerBonus.amount', required)
-                    .form-group-col-md-6
+                    .form-group-col-md-6(ng-hide='vm.playerBonus.bonusId')
                         label.control-label {{'BONUS_ID' | translate}}
                         input.form-control(ng-model='vm.playerBonus.bonusId', required)
                     .form-group-col-md-6
