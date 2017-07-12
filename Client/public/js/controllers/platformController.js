@@ -5128,6 +5128,9 @@ define(['js/app'], function (myApp) {
             if (vm.queryPara.playerExpense.providerId) {
                 sendData.providerId = vm.queryPara.playerExpense.providerId
             }
+            if (vm.queryPara.playerExpense.gameName) {
+                sendData.gameName = vm.queryPara.playerExpense.gameName;
+            }
             vm.playerExpenseLog.loading = true;
             console.log("Query", sendData);
             vm.prepareShowPlayerExpenseRecords(sendData, newSearch);
@@ -6992,14 +6995,15 @@ define(['js/app'], function (myApp) {
                     delete vm.advancedPartnerQueryObj[k];
                 }
             }
-
+            vm.advancedPartnerQueryObj.index = 0;
             var apiQuery = {
                 platformId: vm.selectedPlatform.id,
                 query: vm.advancedPartnerQueryObj
             };
             socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
-                setPartnerTableData(reply.data);
-                vm.searchPartnerCount = reply.data.length;
+                setPartnerTableData(reply.data.data);
+                vm.searchPartnerCount = reply.data.size;
+                vm.advancedPartnerQueryObj.pageObj.init({maxCount: reply.data.size}, true);
                 $scope.safeApply();
             });
         });
@@ -7109,10 +7113,10 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('CHILDREN'),
-                        data: 'children',
+                        data: 'childrencount',
                         "sClass": "alignRight sumInt",
                         render: function (data, type, row) {
-                            data = data || [];
+                            data = data;
                             //var showStr=$('<div>');
                             var showStr = $('<a>', {
                                 'class': "partnerChildrenPopover",
@@ -7122,7 +7126,7 @@ define(['js/app'], function (myApp) {
                                 'data-placement': "bottom",
                                 'data-trigge': "focus",
                                 'data-row': JSON.stringify(row),
-                            }).text(data.length);
+                            }).text(data);
                             //return data.length;
                             return showStr.prop('outerHTML');
                         }
@@ -10659,7 +10663,8 @@ define(['js/app'], function (myApp) {
                             var sortCol = a.aaSorting[0][0];
                             var sortDire = a.aaSorting[0][1];
                             var sortKey = a.aoColumns[sortCol].data
-                            vm.playerTableQuery.aaSorting = a.aaSorting;
+                            // vm.playerTableQuery.aaSorting = a.aaSorting;
+
                             if (sortKey) {
                                 vm.playerTableQuery.sortCol = vm.playerTableQuery.sortCol || {};
                                 var preVal = vm.playerTableQuery.sortCol[sortKey];
@@ -10680,7 +10685,7 @@ define(['js/app'], function (myApp) {
                         var sortCol = a.aaSorting[0][0];
                         var sortDire = a.aaSorting[0][1];
                         var sortKey = a.aoColumns[sortCol].data
-                        vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
+                        // vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
                         if (sortKey) {
                             vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {};
                             var preVal = vm.advancedPartnerQueryObj.sortCol[sortKey];
