@@ -12,6 +12,7 @@ let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommi
 
 let dbAutoProposal = require('./../db_modules/dbAutoProposal');
 let dbRewardEvent = require('./../db_modules/dbRewardEvent');
+let consumptionReturnEvent = require('./../scheduleTask/consumptionReturnEvent');
 
 function socketActionPlatform(socketIO, socket) {
 
@@ -232,11 +233,31 @@ function socketActionPlatform(socketIO, socket) {
             let isDataValid = Boolean(data && data.proposalObjId && data.createTime);
             socketUtil.emitter(self.socket, dbAutoProposal.changeStatusToPendingFromAutoAudit, [data.proposalObjId, data.createTime], actionName, isDataValid);
         },
-
+        
         updateAutoApprovalConfig: function updateAutoApprovalConfig(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlatform.updateAutoApprovalConfig, [data.query, data.updateData], actionName, isValidData);
+        },
+
+         /**
+         * Start Player Consumption Return Settlement
+         * @param {json} data - It has to contain platformId
+         */
+        startPlatformPlayerConsumptionReturnSettlement: function startPlatformPlayerConsumptionReturnSettlement(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, consumptionReturnEvent.checkPlatformWeeklyConsumptionReturnEvent, [ObjectId(data.platformId)], actionName, isValidData);
+        },
+
+        /**
+         * Start Player Consumption Inceptive Settlement
+         * @param {json} data - It has to contain platformId
+         */
+        startPlatformPlayerConsumptionIncentiveSettlement: function startPlatformPlayerConsumptionIncentiveSettlement(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatform.startCalculatePlayerConsumptionIncentive, [ObjectId(data.platformId)], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;

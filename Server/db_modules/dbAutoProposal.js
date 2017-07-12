@@ -693,7 +693,7 @@ function hasPendingPaymentInfoChanges(proposals) {
     let length = proposals.length;
     for (let i = 0; i < length; i++) {
         let proposal = proposals[i];
-        if (proposal.type === constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status === constProposalStatus.PENDING) {
+        if (proposal.type === constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status != constProposalStatus.REJECTED) {
             return true;
         }
     }

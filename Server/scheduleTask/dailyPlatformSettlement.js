@@ -207,14 +207,14 @@ var dailyPlatformSettlement = {
             () => playerSummary.calculateYesterdayActiveValidPlayerSummary(platformId).catch(
                 error => Q.reject({name: "DBError", message: "Error calculating platform day summary!", error: error})
             )
-        ).then(
-            () => platformRewardSettlement.startPlatformRewardEventSettlement(platformId, constSettlementPeriod.DAILY).catch(
-                error => Q.reject({
-                    name: "DBError",
-                    message: "Error performing platform reward event settlement!",
-                    error: error
-                })
-            )
+        // ).then(
+        //     () => platformRewardSettlement.startPlatformRewardEventSettlement(platformId, constSettlementPeriod.DAILY).catch(
+        //         error => Q.reject({
+        //             name: "DBError",
+        //             message: "Error performing platform reward event settlement!",
+        //             error: error
+        //         })
+        //     )
         ).then(
             // We want to do this before the player level data is reset below
             () => dbPlatform.checkPlayerLevelDownForPlatform(platformId).catch(

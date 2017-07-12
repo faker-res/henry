@@ -247,6 +247,11 @@ var proposal = {
                         }
                     );
 
+                    // Player modify payment info
+                    if (data[0].name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposalData.data.isPlayerInit) {
+                        proposalData.status = constProposalStatus.SUCCESS;
+                    }
+
                     // attach player info if available
                     if (data[2]) {
                         if (proposalData.isPartner) {
