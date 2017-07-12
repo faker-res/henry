@@ -1434,41 +1434,74 @@ let dbPlayerInfo = {
         index = index || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {createTime: -1}
-        if (query.playerId) {
-            queryObject.playerId = ObjectId(query.playerId);
+        let bGameSearch = false;
+        let gameSearch;
+
+        if (query.gameName) {
+            bGameSearch = true;
+            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + query.gameName + '.*')}).lean();
+        } else {
+            gameSearch = false;
         }
-        if (query.startTime && query.endTime) {
-            queryObject.createTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
-        }
-        if (query.providerId) {
-            queryObject.providerId = ObjectId(query.providerId);
-        }
-        if (query.dirty != null) {
-            queryObject.bDirty = query.dirty;
-        }
-        var a = dbconfig.collection_playerConsumptionRecord
-            .find(queryObject).sort(sortCol).skip(index).limit(limit)
-            .populate({
-                path: "gameId",
-                model: dbconfig.collection_game
-            })
-            .populate({
-                path: "providerId",
-                model: dbconfig.collection_gameProvider
-            });
-        var b = dbconfig.collection_playerConsumptionRecord.find(queryObject).count();
-        var c = dbconfig.collection_playerConsumptionRecord.aggregate({$match: queryObject}, {
-            $group: {
-                _id: false,
-                validAmountSum: {$sum: "$validAmount"},
-                amountSum: {$sum: "$amount"},
-                bonusAmountSum: {$sum: "$bonusAmount"},
-                commissionAmountSum: {$sum: "$commissionAmount"}
+
+        return Promise.all([gameSearch]).then(
+            function (data) {
+                let games;
+                let gamesId = [];
+                if (bGameSearch && data && data[0]) {
+                    games = data[0];
+                    for (let i = 0; i < games.length; i++) {
+                        let game = games[i];
+                        gamesId.push(game._id);
+                    }
+                }
+
+                if (query.playerId) {
+                    queryObject.playerId = ObjectId(query.playerId);
+                }
+                if (query.startTime && query.endTime) {
+                    queryObject.createTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
+                }
+                if (query.providerId) {
+                    queryObject.providerId = ObjectId(query.providerId);
+                }
+                if (query.dirty != null) {
+                    queryObject.bDirty = query.dirty;
+                }
+                if (bGameSearch) {
+                    queryObject.gameId = {
+                        $in: gamesId
+                    }
+                }
+
+
+                var a = dbconfig.collection_playerConsumptionRecord
+                    .find(queryObject).sort(sortCol).skip(index).limit(limit)
+                    .populate({
+                        path: "gameId",
+                        model: dbconfig.collection_game
+                    })
+                    .populate({
+                        path: "providerId",
+                        model: dbconfig.collection_gameProvider
+                    });
+                var b = dbconfig.collection_playerConsumptionRecord.find(queryObject).count();
+                var c = dbconfig.collection_playerConsumptionRecord.aggregate({$match: queryObject}, {
+                    $group: {
+                        _id: false,
+                        validAmountSum: {$sum: "$validAmount"},
+                        amountSum: {$sum: "$amount"},
+                        bonusAmountSum: {$sum: "$bonusAmount"},
+                        commissionAmountSum: {$sum: "$commissionAmount"}
+                    }
+                });
+                return Q.all([a, b, c]).then(result => {
+                    return {data: result[0], size: result[1], summary: result[2] ? result[2][0] : {}};
+                })
             }
-        })
-        return Q.all([a, b, c]).then(result => {
-            return {data: result[0], size: result[1], summary: result[2] ? result[2][0] : {}};
-        })
+        )
+
+
     },
 
     /*
@@ -2230,7 +2263,8 @@ let dbPlayerInfo = {
         dbRewardTask.getRewardTask(
             {
                 playerId: playerData._id,
-                status: constRewardTaskStatus.STARTED
+                status: constRewardTaskStatus.STARTED,
+                useLockedCredit: true
             }
         ).then(
             rewardTask => {
@@ -5955,17 +5989,26 @@ let dbPlayerInfo = {
                         }
 
                         let todayTime = dbUtility.getTodaySGTime();
-                        return dbconfig.collection_proposal.find(
-                            {
-                                mainType: "PlayerBonus",
-                                createTime: {
-                                    $gte: todayTime.startTime,
-                                    $lt: todayTime.endTime
-                                },
-                                "data.playerId": playerId,
-                                status: {
-                                    $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
-                                }
+                        let creditProm = Q.resolve();
+                        if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                        }
+
+                        return creditProm.then(
+                            () => {
+                                return dbconfig.collection_proposal.find(
+                                    {
+                                        mainType: "PlayerBonus",
+                                        createTime: {
+                                            $gte: todayTime.startTime,
+                                            $lt: todayTime.endTime
+                                        },
+                                        "data.playerId": playerId,
+                                        status: {
+                                            $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
+                                        }
+                                    }
+                                );
                             }
                         ).lean().then(
                             todayBonusApply => {

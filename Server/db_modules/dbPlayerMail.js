@@ -21,9 +21,9 @@ const dbPlayerMail = {
     },
 
     sendPlayerMailFromAdminToPlayer: function (platformId, adminId, adminName, playerIds, title, content) {
-        playerIds = Array.isArray(playerIds) ?playerIds :[playerIds];
+        playerIds = Array.isArray(playerIds) ? playerIds : [playerIds];
 
-        let proms = playerIds.reduce((tempProms,playerId)=>{
+        let proms = playerIds.reduce((tempProms, playerId) => {
             tempProms.push(
                 dbPlayerMail.createPlayerMail({
                     platformId: platformId,
@@ -37,12 +37,12 @@ const dbPlayerMail = {
                 })
             );
             return tempProms;
-        },[]);
+        }, []);
 
-        return Q.all(proms).then((results)=>{
-            if(results){
+        return Q.all(proms).then((results) => {
+            if (results) {
                 let notifyProm = [];
-                results.forEach((result)=> {
+                results.forEach((result) => {
                     notifyProm.push(notifyPlayerOfNewMessage(result));
                 });
                 return Q.all(notifyProm);
@@ -131,7 +131,7 @@ const dbPlayerMail = {
     },
 
     sendVerificationCodeToNumber: function (telNum, code, platformId) {
-        let lastMin = moment().subtract(1, 'minutes');
+        let lastMin = moment().subtract(2, 'minutes');
         let channel = null;
         let platformObjId = null;
         let template = null;
