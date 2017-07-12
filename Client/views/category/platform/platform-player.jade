@@ -1022,6 +1022,9 @@ include modalGameCreditLog
                                             label {{'Registration Domain' | translate}}
                                             text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
                                         .inlineBlk
+                                            label {{'SOURCE_URL' | translate}}
+                                            text {{vm.selectedSinglePlayer.sourceUrl || 'Unknown' | translate}}
+                                        .inlineBlk
                                             button.btn.btn-primary.common-button-sm(ng-click='vm.showIPHistory()') {{"View Details" | translate}}
                                 tr
                                     td
