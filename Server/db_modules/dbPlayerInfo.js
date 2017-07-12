@@ -6008,9 +6008,9 @@ let dbPlayerInfo = {
                                             $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
                                         }
                                     }
-                                );
+                                ).lean();
                             }
-                        ).lean().then(
+                        ).then(
                             todayBonusApply => {
 
                                 let changeCredit = -amount;
