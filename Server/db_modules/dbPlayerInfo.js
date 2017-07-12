@@ -894,14 +894,34 @@ let dbPlayerInfo = {
             .exec();
     },
     getOnePlayerInfo: function (query) {
+        let playerData;
+
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "partner", model: dbconfig.collection_partner})
             .then(data => {
                 if (data) {
-                    return data;
+                    playerData = data;
+                    return dbconfig.collection_platform.findOne({
+                        _id: playerData.platform
+                    });
                 } else return Q.reject({message: "incorrect player result"});
-            });
+            }).then(
+                platformData => {
+                    return dbconfig.collection_playerClientSourceLog.findOne({
+                        platformId: platformData.platformId,
+                        playerName: playerData.name
+                    }).lean()
+                }
+            ).then(
+                sourceLogData => {
+                    if (sourceLogData) {
+                        playerData.sourceUrl = sourceLogData.sourceUrl;
+                    }
+
+                    return playerData;
+                }
+            )
     },
 
     getPlayerPhoneNumber: function (playerObjId) {
@@ -4374,17 +4394,16 @@ let dbPlayerInfo = {
      * get captcha
      */
     getCaptcha: function (conn) {
-        var deferred = Q.defer();
-        //todo::update the size and color later
-        var captchaCode = parseInt(Math.random() * 9000 + 1000);
+        let deferred = Q.defer();
+        let captchaCode = parseInt(Math.random() * 9000 + 1000);
         conn.captchaCode = captchaCode;
-        var p = new captchapng(80, 30, captchaCode); // width,height,numeric captcha
-        p.color(0, 0, 80, 255);  // First color: background (red, green, blue, alpha)
-        p.color(80, 80, 80, 255); // Second color: paint (red, green, blue, alpha)
+        let p = new captchapng(80, 30, captchaCode); // width,height,numeric captcha
+        p.color(8, 18, 188, 255);  // First color: background (red, green, blue, alpha)
+        p.color(18, 188, 8, 255); // Second color: paint (red, green, blue, alpha)
 
 
-        var img = p.getBase64();
-        var imgbase64 = new Buffer(img, 'base64');
+        let img = p.getBase64();
+        let imgbase64 = new Buffer(img, 'base64');
         deferred.resolve(imgbase64);
         return deferred.promise;
     },
