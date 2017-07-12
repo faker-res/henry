@@ -18,7 +18,10 @@ var dbPlayerLoginRecord = {
         return playerLoginRecord.save();
     },
     getIpHistory: function (playerId) {
-        var p1 = dbconfig.collection_playerLoginRecord.find({'player': playerId}).sort({"loginTime": 1}).limit(1).lean();
+        var p1 = dbconfig.collection_playerLoginRecord.find({
+            'player': playerId,
+            'loginIP': {$ne: ''}
+        }).sort({"loginTime": 1}).limit(1).lean();
         var p2 = dbconfig.collection_playerLoginRecord.find({'player': playerId}).sort({"loginTime": -1}).limit(100).lean();
         var returnData = {reg: [], login: []};
         return Q.all([p1, p2]).then(

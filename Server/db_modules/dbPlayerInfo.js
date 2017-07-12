@@ -894,14 +894,34 @@ let dbPlayerInfo = {
             .exec();
     },
     getOnePlayerInfo: function (query) {
+        let playerData;
+
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "partner", model: dbconfig.collection_partner})
             .then(data => {
                 if (data) {
-                    return data;
+                    playerData = data;
+                    return dbconfig.collection_platform.findOne({
+                        _id: playerData.platform
+                    });
                 } else return Q.reject({message: "incorrect player result"});
-            });
+            }).then(
+                platformData => {
+                    return dbconfig.collection_playerClientSourceLog.findOne({
+                        platformId: platformData.platformId,
+                        playerName: playerData.name
+                    }).lean()
+                }
+            ).then(
+                sourceLogData => {
+                    if (sourceLogData) {
+                        playerData.sourceUrl = sourceLogData.sourceUrl;
+                    }
+
+                    return playerData;
+                }
+            )
     },
 
     getPlayerPhoneNumber: function (playerObjId) {
