@@ -968,6 +968,23 @@ var dbPlatform = {
             );
     },
 
+    startCalculatePlayerConsumptionIncentive: (platformId) => {
+        //get platform consecutive top up reward event data and rule data
+        return dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSUMPTION_INCENTIVE).then(
+            function (eventData) {
+
+                if (eventData && eventData.param && eventData.executeProposal) {
+                    //get all the players has top up for more than min amount yesterday
+                    return dbPlatform.calculatePlatformPlayerConsumptionIncentive(platformId, eventData, eventData.executeProposal);
+                }
+                else {
+                    //platform doesn't have this reward event
+                    return Q.resolve(false);
+                }
+            }
+        );
+    },
+
     /**
      * calculate platform player consumption incentive reward
      * @param platformId

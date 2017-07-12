@@ -87,20 +87,29 @@ var dbPlayerFeedback = {
             delete  query.endTime;
         }
 
-        return dbconfig.collection_players.find({name: {$regex: ".*" + player + ".*"}}).then(
+        console.log('**player', player);
+        let playerProm;
+        if (player) {
+            playerProm = dbconfig.collection_players.find({name: {$regex: ".*" + player + ".*"}}).lean();
+        } else {
+            playerProm = [];
+        }
+
+        return Promise.all([playerProm]).then(
             data => {
-                console.log('getAllPlayerFeedback part 1 has been reached');
-                data.map(item => {
-                    playerArr.push(item._id);
-                });
-                return dbconfig.collection_admin.find({adminName: {$regex: ".*" + admin + ".*"}});
+                if (data && data[0]) {
+                    data[0].map(item => {
+                        playerArr.push(item._id);
+                    });
+                }
+
+                return dbconfig.collection_admin.find({adminName: {$regex: ".*" + admin + ".*"}}).lean();
             }
         ).then(
             data => {
-                console.log('getAllPlayerFeedback part 2 has been reached');
                 data.map(item => {
                     adminArr.push(item._id);
-                })
+                });
                 if (playerArr.length > 0) {
                     query.playerId = {$in: playerArr};
                 } else if (playerArr.length == 0 && player) {
@@ -123,17 +132,10 @@ var dbPlayerFeedback = {
                     .populate({path: "adminId", model: dbconfig.collection_admin}).lean();
                 var b = dbconfig.collection_playerFeedback
                     .find(query).count();
-                // temp for debug
-                var c = dbconfig.collection_playerFeedback
-                    .find(query).lean();
-                return Q.all([a, b, c]);
+                return Q.all([a, b]);
             }
         ).then(
             data => {
-                // todo :: remove the var c above and these 3 console.log after debug finished.
-                console.log('**playerFeedBackResult', data[0]);
-                console.log('**playerFeedBackCount', data[1]);
-                console.log('**debugQuery', data[2]);
                 returnedData = Object.assign([], data[0]);
                 total = data[1];
                 var proms = [];

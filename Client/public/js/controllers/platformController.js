@@ -633,6 +633,56 @@ define(['js/app'], function (myApp) {
                 });
         };
 
+        vm.startPlatformPlayerConsumptionReturnSettlement = function ($event) {
+            vm.playerConsumptionReturnSettlement = {
+                result: false,
+                status: 'ready'
+            }
+            $('#playerConsumptionReturnSettlementModal').modal('show');
+            $scope.safeApply();
+        }
+        vm.performPlayerConsumptionReturnSettlement = function () {
+            vm.playerConsumptionReturnSettlement.status = 'processing';
+            socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
+                {platformId: vm.selectedPlatform.id},
+                function (data) {
+                    console.log('playerConsumptionReturn', data);
+                    vm.playerConsumptionReturnSettlement.status = 'completed';
+                    vm.playerConsumptionReturnSettlement.result = $translate('Success');
+                    $scope.safeApply();
+                }, function (err) {
+                    console.log('err', err);
+                    vm.playerConsumptionReturnSettlement.status = 'completed';
+                    vm.playerConsumptionReturnSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                    $scope.safeApply();
+                });
+        };
+
+        vm.startPlatformPlayerConsumptionIncentiveSettlement = function ($event) {
+            vm.playerConsumptionIncentiveSettlement = {
+                result: false,
+                status: 'ready'
+            }
+            $('#playerConsumptionIncentiveSettlementModal').modal('show');
+            $scope.safeApply();
+        }
+        vm.performPlayerConsumptionIncentiveSettlement = function () {
+            vm.playerConsumptionIncentiveSettlement.status = 'processing';
+            socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionIncentiveSettlement',
+                {platformId: vm.selectedPlatform.id},
+                function (data) {
+                    console.log('playerConsumptionIncentive', data);
+                    vm.playerConsumptionIncentiveSettlement.status = 'completed';
+                    vm.playerConsumptionIncentiveSettlement.result = $translate('Success');
+                    $scope.safeApply();
+                }, function (err) {
+                    console.log('err', err);
+                    vm.playerConsumptionIncentiveSettlement.status = 'completed';
+                    vm.playerConsumptionIncentiveSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                    $scope.safeApply();
+                });
+        };
+
         vm.initTransferAllPlayersCreditFromProvider = function ($event) {
             $('#modalTransferOutAllPlayerCreditFromGameProvider').modal('show');
             $scope.safeApply();

@@ -143,6 +143,12 @@
                 button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "PartnerCommissionSettlement")',ng-disabled="!vm.selectedPlatform", ng-click='vm.startPlatformPartnerCommissionSettlement($event)')
                     text {{"Partner Commission Settlement" | translate}}
                     img.img-edit
+                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "PlayerConsumptionIncentiveSettlement")',ng-disabled="!vm.selectedPlatform", ng-click='vm.startPlatformPlayerConsumptionIncentiveSettlement($event)')
+                    text {{"Player Consumption Incentive Settlement" | translate}}
+                    img.img-edit
+                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "PlayerConsumptionReturnSettlement")',ng-disabled="!vm.selectedPlatform", ng-click='vm.startPlatformPlayerConsumptionReturnSettlement($event)')
+                    text {{"Player Consumption Return Settlement" | translate}}
+                    img.img-edit
                 //- button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "transferPlayerCreditFromProvider")',ng-disabled="!vm.selectedPlatform", ng-click='vm.initTransferAllPlayersCreditFromProvider()')
                 //-     text {{"Transfer Credit of All Player from Provider" | translate}}
                 //-     .fa.fa-gamepad
@@ -321,11 +327,42 @@
                                     div(ng-show='vm.creditTransfer.focusProvider==v.providerId')
                                         div(ng-show='!vm.creditTransfer.transferResult')
                                             button.common-button.margin-right-5.btn.btn-success(ng-click='vm.confirmCreditTransfer(v.providerId)') {{'CONFIRM' | translate}}
-                                            button.common-button.margin-right-5.btn.btn-warning(ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")') {{'CANCEL' | translate}}
+                                            button.common-button.margin-right-5.btn.btn-warning(ng-click='vm.closeCreditTransferLog("#modalTransferOutAllPlayerCreditFromGameProvider")') {{'CANCEL' | translate}}
                                             i.fa.fa-spin.fa-spinner.text-danger(ng-show='vm.creditTransfer.isProcessing')
                                         div(ng-show='vm.creditTransfer.transferResult')
-                                            button.common-button.margin-right-5.btn.btn-success(ng-click='vm.closeCreditTransferLog("#modalPlayerGameProviderCredit")') {{'OK' | translate}}
+                                            button.common-button.margin-right-5.btn.btn-success(ng-click='vm.closeCreditTransferLog("#modalTransferOutAllPlayerCreditFromGameProvider")') {{'OK' | translate}}
                                             label {{vm.creditTransfer.transferResult | translate}}
                             td(class='prov{{v.providerId}}', ng-if='vm.transferAllCredit.isProcessing')
                                 text.text-danger {{vm.transferAllCredit[v.providerId].text | translate}}
                                 i.fa.fa-spinner.fa-spin(ng-if='vm.transferAllCredit[v.providerId].finished== false')
+
+#playerConsumptionReturnSettlementModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:50%;margin-left:20%')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Player Consumption Return Settlement" | translate}} : {{vm.selectedPlatform.text}}
+            .modal-body
+                label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+            .modal-footer
+                .form-control.inlineBlk(style='width:initial', ng-if='vm.playerConsumptionReturnSettlement.status=="completed"')
+                    .text-danger {{vm.playerConsumptionReturnSettlement.result | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
+                button.btn.btn-success.common-button(ng-if='vm.playerConsumptionReturnSettlement.status=="ready"', ng-click="vm.performPlayerConsumptionReturnSettlement()") {{'CONFIRM' | translate}}
+                i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.playerConsumptionReturnSettlement.status=="processing"')
+
+
+#playerConsumptionIncentiveSettlementModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:50%;margin-left:20%')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Player Consumption Incentive Settlement" | translate}} : {{vm.selectedPlatform.text}}
+            .modal-body
+                label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+            .modal-footer
+                .form-control.inlineBlk(style='width:initial', ng-if='vm.playerConsumptionIncentiveSettlement.status=="completed"')
+                    .text-danger {{vm.playerConsumptionIncentiveSettlement.result | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
+                button.btn.btn-success.common-button(ng-if='vm.playerConsumptionIncentiveSettlement.status=="ready"', ng-click="vm.performPlayerConsumptionIncentiveSettlement()") {{'CONFIRM' | translate}}
+                i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.playerConsumptionIncentiveSettlement.status=="processing"')
