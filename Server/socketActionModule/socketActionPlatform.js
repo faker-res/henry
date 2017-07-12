@@ -257,7 +257,7 @@ function socketActionPlatform(socketIO, socket) {
         startPlatformPlayerConsumptionIncentiveSettlement: function startPlatformPlayerConsumptionIncentiveSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, dbPlatform.getConsumptionIncentivePlayer, [data.platformId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.startCalculatePlayerConsumptionIncentive, [ObjectId(data.platformId)], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;
