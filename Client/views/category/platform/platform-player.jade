@@ -485,6 +485,9 @@ include modalGameCreditLog
                                 label {{'END_DATE' | translate}}
                                 .endTime
                             .inlineBlk
+                                label {{'Game' | translate}}
+                                input.form-control(ng-model='vm.queryPara.playerExpense.gameName')
+                            .inlineBlk
                                 label {{'GAME_PROVIDER' | translate}}
                                 select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
                                     option(value='') {{'any' | translate}}
