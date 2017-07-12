@@ -1732,10 +1732,10 @@ include modalGameCreditLog
                 label {{vm.playerIpHistoryData.reg[0].loginIP}}
             .inlineBlk
                 text {{'country' | translate}}:&nbsp;
-                label {{vm.playerIpHistoryData.reg.country || 'Unknown' | translate}}
+                label {{vm.playerIpHistoryData.reg[0].country || 'Unknown' | translate}}
             .inlineBlk
                 text {{'city' | translate}}:&nbsp;
-                label {{vm.playerIpHistoryData.reg.city || 'Unknown' | translate}}
+                label {{vm.playerIpHistoryData.reg[0].city || 'Unknown' | translate}}
     .panel.panel-info
         .panel-heading
             .panel-title {{'LAST_LOGIN_IP' | translate}}
