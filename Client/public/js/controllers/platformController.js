@@ -6908,7 +6908,7 @@ define(['js/app'], function (myApp) {
                     delete vm.advancedPartnerQueryObj[k];
                 }
             }
-
+            vm.advancedPartnerQueryObj.index = 0;
             var apiQuery = {
                 platformId: vm.selectedPlatform.id,
                 query: vm.advancedPartnerQueryObj
@@ -6916,7 +6916,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
                 setPartnerTableData(reply.data.data);
                 vm.searchPartnerCount = reply.data.size;
-                vm.advancedPartnerQueryObj.pageObj.init({maxCount: reply.data.size});
+                vm.advancedPartnerQueryObj.pageObj.init({maxCount: reply.data.size}, true);
                 $scope.safeApply();
             });
         });

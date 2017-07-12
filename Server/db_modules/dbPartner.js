@@ -514,10 +514,9 @@ let dbPartner = {
                 query[k]= data[k];
             }
         }
-        
         count = dbconfig.collection_partner.find( query ).count();
         if(data.sortCol){
-
+            //if there is sorting parameter
             var detail = dbconfig.collection_partner.aggregate([
                 {$match: query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
@@ -534,7 +533,7 @@ let dbPartner = {
                 return Q.all(retData);
             });
         }else{
-
+            //if there is not sorting parameter
             var detail = dbconfig.collection_partner.aggregate([  
                 {$match: query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
@@ -577,9 +576,9 @@ let dbPartner = {
                 query[k]= data[k];
             }
         }
-
         count = dbconfig.collection_partner.find( query ).count();
         if(data.sortCol){
+            //if there is sorting parameter
             var detail = dbconfig.collection_partner.aggregate([
                 {$match:query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
@@ -597,6 +596,7 @@ let dbPartner = {
             });
             
         }else{
+            //if there is not sorting parameter
             var detail = dbconfig.collection_partner.aggregate([
                 {$match:query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
