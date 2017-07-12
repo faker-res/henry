@@ -1439,7 +1439,7 @@ let dbPlayerInfo = {
 
         if (query.gameName) {
             bGameSearch = true;
-            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + query.gameName + '.*')}).lean();
+            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + query.gameName + '.*', 'i')}).lean();
         } else {
             gameSearch = false;
         }
