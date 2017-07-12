@@ -669,7 +669,7 @@ define(['js/app'], function (myApp) {
         vm.performPlayerConsumptionIncentiveSettlement = function () {
             vm.playerConsumptionIncentiveSettlement.status = 'processing';
             socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionIncentiveSettlement',
-                {platformId: vm.selectedPlatform.data.platformId},
+                {platformId: vm.selectedPlatform.id},
                 function (data) {
                     console.log('playerConsumptionIncentive', data);
                     vm.playerConsumptionIncentiveSettlement.status = 'completed';
