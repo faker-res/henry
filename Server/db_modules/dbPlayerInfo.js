@@ -2230,7 +2230,8 @@ let dbPlayerInfo = {
         dbRewardTask.getRewardTask(
             {
                 playerId: playerData._id,
-                status: constRewardTaskStatus.STARTED
+                status: constRewardTaskStatus.STARTED,
+                useLockedCredit: true
             }
         ).then(
             rewardTask => {
@@ -5955,17 +5956,26 @@ let dbPlayerInfo = {
                         }
 
                         let todayTime = dbUtility.getTodaySGTime();
-                        return dbconfig.collection_proposal.find(
-                            {
-                                mainType: "PlayerBonus",
-                                createTime: {
-                                    $gte: todayTime.startTime,
-                                    $lt: todayTime.endTime
-                                },
-                                "data.playerId": playerId,
-                                status: {
-                                    $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
-                                }
+                        let creditProm = Q.resolve();
+                        if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                        }
+
+                        return creditProm.then(
+                            () => {
+                                return dbconfig.collection_proposal.find(
+                                    {
+                                        mainType: "PlayerBonus",
+                                        createTime: {
+                                            $gte: todayTime.startTime,
+                                            $lt: todayTime.endTime
+                                        },
+                                        "data.playerId": playerId,
+                                        status: {
+                                            $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
+                                        }
+                                    }
+                                );
                             }
                         ).lean().then(
                             todayBonusApply => {
