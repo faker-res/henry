@@ -2101,5 +2101,6 @@
   "Cannot find bonus": "无法找到提款资料",
   "Update player credit failed": "更新玩家额度失败",
   "detail": "详情",
-  "detailChinese": "详情（中文）"
+  "detailChinese": "详情（中文）",
+  "isPlayerInit": "玩家提交"
 }

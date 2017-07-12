@@ -1229,11 +1229,13 @@ let dbPlayerInfo = {
      */
     updatePlayerPayment: function (query, updateData) {
         let playerObj = null;
+        let platformObjId;
         // Get platform
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
+                    platformObjId = playerData.platform;
                     //check if bankAccountName in update data is the same as player's real name
                     if (updateData.bankAccountName && updateData.bankAccountName != playerData.realName) {
                         return Q.reject({
@@ -1303,6 +1305,12 @@ let dbPlayerInfo = {
                 if (isVerified) {
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
                 }
+            }
+        ).then(
+            updatedData => {
+                updateData.isPlayerInit = true;
+                dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {data: updateData});
+                return updatedData;
             }
         )
     },
