@@ -2007,7 +2007,7 @@ let dbPlayerInfo = {
                 if (eventData.param.periodType == 1) {
                     queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
                 }
-                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: 1}).limit(1).lean();
+                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: -1}).limit(1).lean();
             }
         ).then(
             firstRecordData => {
@@ -5901,7 +5901,8 @@ let dbPlayerInfo = {
         amount = parseInt(amount);
 
         return dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean().then(
                 playerData => {
                     //check if player has pending proposal to update bank info
                     if (playerData) {
