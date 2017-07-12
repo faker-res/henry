@@ -2015,7 +2015,7 @@ let dbPlayerInfo = {
                 if (eventData.param.periodType == 1) {
                     queryFirstOfWeek = {playerId: player._id, createTime: {$gte: startTime, $lt: endTime}};
                 }
-                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: -1}).limit(1).lean();
+                return dbconfig.collection_playerTopUpRecord.find(queryFirstOfWeek).sort({createTime: 1}).limit(1).lean();
             }
         ).then(
             firstRecordData => {
