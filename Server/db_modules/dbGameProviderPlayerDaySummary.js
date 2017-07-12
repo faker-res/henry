@@ -1001,7 +1001,50 @@ var dbGameProviderPlayerDaySummary = {
             }
         );
         return deferred.promise;
+    },
+
+    getPlayerDailyExpenseSummary:function (query, index, limit, sortCol) {
+        var queryObject = {};
+        index = index || 0;
+        limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        sortCol = sortCol || {createTime: -1}
+        if (query.playerId) {
+            queryObject.playerId = ObjectId(query.playerId);
+        }
+        if (query.startTime && query.endTime) {
+            queryObject.createTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
+        }
+        if (query.providerId) {
+            queryObject.providerId = ObjectId(query.providerId);
+        }
+        if (query.dirty != null) {
+            queryObject.bDirty = query.dirty;
+        }
+        var a = dbconfig.collection_gameProviderPlayerDaySummary
+            .find(queryObject).sort(sortCol).skip(index).limit(limit)
+            .populate({
+                path: "gameId",
+                model: dbconfig.collection_game
+            })
+            .populate({
+                path: "providerId",
+                model: dbconfig.collection_gameProvider
+            });
+        var b = dbconfig.collection_gameProviderPlayerDaySummary.find(queryObject).count();
+        var c = dbconfig.collection_gameProviderPlayerDaySummary.aggregate({$match: queryObject}, {
+            $group: {
+                _id: false,
+                validAmountSum: {$sum: "$validAmount"},
+                amountSum: {$sum: "$amount"},
+                bonusAmountSum: {$sum: "$bonusAmount"},
+                commissionAmountSum: {$sum: "$commissionAmount"}
+            }
+        })
+        return Q.all([a, b, c]).then(result => {
+            return {data: result[0], size: result[1], summary: result[2] ? result[2][0] : {}};
+        })
     }
+
 
 }
 

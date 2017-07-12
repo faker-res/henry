@@ -5209,6 +5209,43 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         };
+        // daily player expense
+        vm.prepareShowPlayerDailyExpense = function () {
+            vm.playerExpenseLog = {totalCount: 0};
+            vm.initQueryTimeFilter('playerDailyExpense', function () {
+                $('#modalPlayerDailyExpenses').modal();
+                vm.playerExpenseLog.pageObj = utilService.createPageForPagingTable("#playerDailyExpenseTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "playerDailyExpenseLog", vm.getPlayerExpenseByFilter)
+                });
+                vm.getPlayerExpenseByFilter(true);
+            });
+        }
+        vm.getPlayerDailyExpenseByFilter = function (newSearch) {
+            var sendData = {
+                startTime: vm.queryPara.playerDailyExpense.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.queryPara.playerDailyExpense.endTime.data('datetimepicker').getLocalDate(),
+                playerId: vm.isOneSelectedPlayer()._id,
+                index: newSearch ? 0 : (vm.playerDailyExpenseLog.index || 0),
+                limit: newSearch ? 10 : (vm.playerDailyExpenseLog.limit || 10),
+                sortCol: vm.playerExpenseLog.sortCol || null
+            };
+            if (vm.queryPara.playerDailyExpense.dirty == 'Y') {
+                sendData.dirty = true;
+            } else if (vm.queryPara.playerDailyExpense.dirty == 'N') {
+                sendData.dirty = false;
+            }
+            if (vm.queryPara.playerDailyExpense.providerId) {
+                sendData.providerId = vm.queryPara.playerDailyExpense.providerId
+            }
+            vm.playerExpenseLog.loading = true;
+            console.log("Query", sendData);
+            vm.prepareShowPlayerDailyExpenseRecords(sendData, newSearch);
+            $("#playerDailyExpenseTable").off('order.dt');
+            $("#playerDailyExpenseTable").on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'playerDailyExpenseLog', vm.getPlayerDailyExpenseByFilter);
+            });
+        }
+
 
         vm.prepareShowRepairPayment = function (modalID) {
 
@@ -5243,6 +5280,95 @@ define(['js/app'], function (myApp) {
                 });
             });
         }
+        vm.prepareShowPlayerDailyExpenseRecords = function (queryData, newSearch) {
+            vm.playerDailyExpenseRecords = [];
+            socketService.$socket($scope.AppSocket, 'getGameProviderPlayerDaySummary', queryData, function (data) {
+                vm.playerDailyExpenseRecords = data.data.data;
+                vm.playerExpenseLog.totalCount = data.data.size;
+                var summary = data.data.summary || {};
+                vm.playerExpenseLog.loading = false;
+                console.log('consumption record', data);
+                var validAmount = 0;
+                var amount = 0;
+                var bonusAmount = 0;
+                var tableData = vm.playerDailyExpenseRecords.map(
+                    record => {
+                        validAmount += Number(record.validAmount);
+                        amount += Number(record.amount);
+                        bonusAmount += Number(record.bonusAmount);
+                        record.createTime$ = vm.dateReformat(record.createTime);
+                        // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
+                        record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
+                        record.amount$ = parseFloat(record.amount).toFixed(2);
+                        record.bonusAmount$ = parseFloat(record.bonusAmount).toFixed(2);
+                        record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
+                        record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
+                        return record
+                    }
+                );
+                vm.totalConsumptionAmount = parseFloat(amount).toFixed(2);
+                vm.totalConsumptionValidAmount = parseFloat(validAmount).toFixed(2);
+                vm.totalConsumptionBonusAmount = parseFloat(bonusAmount).toFixed(2);
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tableData,
+                    "aaSorting": vm.playerExpenseLog.aaSorting || [[1, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'providerId', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'gameId', bSortable: true, 'aTargets': [3]},
+                        // {'sortCol': 'gameType', bSortable: true, 'aTargets': [4]},
+                        // {'sortCol': 'roundNo', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
+                        // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
+                        // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [7]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+
+                    columns: [
+                        {title: $translate('orderId'), data: "orderNo"},
+                        {title: $translate('CREATION_TIME'), data: "createTime$"},
+                        {title: $translate('PROVIDER'), data: "providerId.name"},
+                        {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
+                        // {title: $translate('GAME_TYPE'), data: "gameType$", sClass: 'sumText'},
+                        // {title: $translate('Game Round'), data: "roundNo", sClass: 'sumText'},
+                        {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
+                        {title: $translate('CREDIT'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
+                        {
+                            title: $translate('bonusAmount1'),
+                            data: "bonusAmount$", sClass: 'alignRight sumFloat'
+                        },
+                        {title: $translate('Occupy'), data: "bDirty$"},
+                        // {
+                        //     title: $translate('commissionAmount'),
+                        //     data: "commissionAmount$",
+                        //     sClass: "alignRight sumFloat"
+                        // },
+                    ],
+                    destroy: true,
+                    paging: false,
+                    autoWidth: true
+                });
+                // $('#playerExpenseTable').DataTable(option);
+                var a = utilService.createDatatableWithFooter('#playerDailyExpenseTable', option, {
+                    4: summary.validAmountSum,
+                    5: summary.amountSum,
+                    6: summary.bonusAmountSum,
+                    // 8: summary.commissionAmountSum
+                });
+                vm.playerExpenseLog.pageObj.init({maxCount: vm.playerExpenseLog.totalCount}, newSearch);
+                setTimeout(function () {
+                    $('#playerExpenseTable').resize();
+                }, 300);
+                $scope.safeApply();
+            });
+        };
+
+
+
+
         vm.submitRepairPayment = function () {
             vm.submitRepairePayementStep = 1;
             $scope.safeApply();

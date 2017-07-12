@@ -8,6 +8,7 @@ var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionDaySummary = require('./../db_modules/dbPlayerConsumptionDaySummary');
 var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
+var dbGameProviderPlayerDaySummary = require('./../db_modules/dbGameProviderPlayerDaySummary');
 let dbApiLog = require('./../db_modules/dbApiLog');
 var socketUtil = require('./../modules/socketutility');
 var utility = require('./../modules/encrypt');
@@ -222,6 +223,16 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerConsumptionRecords, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        /**
+         * get player's daily consumption summary records
+         * @param {json} data - It has to contain playerid
+         */
+        getGameProviderPlayerDaySummary: function getGameProviderPlayerDaySummary(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getPlayerDailyExpenseSummary, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
         /**
