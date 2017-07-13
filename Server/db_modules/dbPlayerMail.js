@@ -207,6 +207,25 @@ const dbPlayerMail = {
 
             }
         )
+    },
+
+    sendVerificationCodeToPlayer: function (playerObjId, smsCode, platformId) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platform => {
+                platformObjId = platform._id;
+                return dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}, {similarPlayers: 0}).lean();
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error in getting platform data", error: error});
+            }
+        ).then(
+            player => {
+                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId);
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
+            }
+        );
     }
 };
 
