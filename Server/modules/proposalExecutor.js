@@ -1071,7 +1071,7 @@ var proposalExecutor = {
                         //todo::check current amount init value???
                         currentAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
                         initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
-                        useConsumption: proposalData.data.useConsumption,
+                        useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
                         targetEnable: proposalData.data.targetEnable,
@@ -1639,7 +1639,8 @@ var proposalExecutor = {
                         currentAmount: proposalData.data.applyAmount,
                         initAmount: proposalData.data.applyAmount,
                         eventId: proposalData.data.eventId,
-                        useLockedCredit: proposalData.data.useLockedCredit
+                        useLockedCredit: proposalData.data.useLockedCredit,
+                        useConsumption: Boolean(proposalData.data.useConsumption)
                     };
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;
