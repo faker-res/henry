@@ -9310,6 +9310,8 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
             vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
+            vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
+            vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
             $scope.safeApply();
         };
 
@@ -9554,7 +9556,9 @@ define(['js/app'], function (myApp) {
                     autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
                     autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
                     autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
-                    autoApproveLostThreshold: srcData.lostThreshold
+                    autoApproveLostThreshold: srcData.lostThreshold,
+                    autoApproveProfitTimes: srcData.profitTimes,
+                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount
                 }
             };
             console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
