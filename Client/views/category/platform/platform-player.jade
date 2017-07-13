@@ -649,42 +649,6 @@ include modalGameCreditLog
                                         td {{v.orderNo}}
                                         td {{v.bonusAmount || 0}}
                                         td {{v.commissionAmount || 0}}
-//#modalPlayerBankCard.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"BANKCARD_GROUP" | translate}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .well
-                            label {{"BANKCARD_GROUP"|translate}}
-                            br
-                            select(ng-model='vm.showPlayerBankCardId')
-                                option(value='NULL') none
-                                option(ng-repeat='(i,v) in vm.platformBankCardGroupList', value='{{v._id}}', ng-selected='vm.showPlayerBankCardId==v._id') {{v.displayName}}
-            .modal-footer
-                button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-click='vm.submitBankCardForPlayer()') {{'OK' | translate}}
-                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
-//#modalPlayerMerchant.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"MERCHANT_GROUP" | translate}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .well
-                            label {{"MERCHANT_GROUP"|translate}}
-                            br
-                            select(ng-model='vm.showPlayerMerchantId')
-                                option(value='NULL') none
-                                option(ng-repeat='(i,v) in vm.platformMerchantGroupList', value='{{v._id}}', ng-selected='vm.showPlayerMerchantId==v._id') {{v.displayName}}
-            .modal-footer
-                button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-click='vm.submitMerchantForPlayer()') {{'OK' | translate}}
-                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #statusPopover.hide(style="width: 600px", ng-non-bindable)
     //- label The status for {{vm.statusPopover.name}}
