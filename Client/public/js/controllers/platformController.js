@@ -5209,15 +5209,18 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         };
+
+
+
         // daily player expense
         vm.prepareShowPlayerDailyExpense = function () {
-            vm.playerExpenseLog = {totalCount: 0};
+            vm.playerDailyExpenseLog = {totalCount: 0};
             vm.initQueryTimeFilter('playerDailyExpense', function () {
                 $('#modalPlayerDailyExpenses').modal();
-                vm.playerExpenseLog.pageObj = utilService.createPageForPagingTable("#playerDailyExpenseTablePage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "playerDailyExpenseLog", vm.getPlayerExpenseByFilter)
+                vm.playerDailyExpenseLog.pageObj = utilService.createPageForPagingTable("#playerDailyExpenseTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "playerDailyExpenseLog", vm.getPlayerDailyExpenseByFilter)
                 });
-                vm.getPlayerExpenseByFilter(true);
+                vm.getPlayerDailyExpenseByFilter(true);
             });
         }
         vm.getPlayerDailyExpenseByFilter = function (newSearch) {
@@ -5227,7 +5230,7 @@ define(['js/app'], function (myApp) {
                 playerId: vm.isOneSelectedPlayer()._id,
                 index: newSearch ? 0 : (vm.playerDailyExpenseLog.index || 0),
                 limit: newSearch ? 10 : (vm.playerDailyExpenseLog.limit || 10),
-                sortCol: vm.playerExpenseLog.sortCol || null
+                sortCol: vm.playerDailyExpenseLog.sortCol || null
             };
             if (vm.queryPara.playerDailyExpense.dirty == 'Y') {
                 sendData.dirty = true;
@@ -5237,7 +5240,7 @@ define(['js/app'], function (myApp) {
             if (vm.queryPara.playerDailyExpense.providerId) {
                 sendData.providerId = vm.queryPara.playerDailyExpense.providerId
             }
-            vm.playerExpenseLog.loading = true;
+            vm.playerDailyExpenseLog.loading = true;
             console.log("Query", sendData);
             vm.prepareShowPlayerDailyExpenseRecords(sendData, newSearch);
             $("#playerDailyExpenseTable").off('order.dt');
@@ -5284,9 +5287,9 @@ define(['js/app'], function (myApp) {
             vm.playerDailyExpenseRecords = [];
             socketService.$socket($scope.AppSocket, 'getGameProviderPlayerDaySummary', queryData, function (data) {
                 vm.playerDailyExpenseRecords = data.data.data;
-                vm.playerExpenseLog.totalCount = data.data.size;
+                vm.playerDailyExpenseLog.totalCount = data.data.size;
                 var summary = data.data.summary || {};
-                vm.playerExpenseLog.loading = false;
+                vm.playerDailyExpenseLog.loading = false;
                 console.log('consumption record', data);
                 var validAmount = 0;
                 var amount = 0;
@@ -5296,7 +5299,7 @@ define(['js/app'], function (myApp) {
                         validAmount += Number(record.validAmount);
                         amount += Number(record.amount);
                         bonusAmount += Number(record.bonusAmount);
-                        record.createTime$ = vm.dateReformat(record.createTime);
+                        record.date = vm.dateReformat(record.date);
                         // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
                         record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
                         record.amount$ = parseFloat(record.amount).toFixed(2);
@@ -5311,25 +5314,23 @@ define(['js/app'], function (myApp) {
                 vm.totalConsumptionBonusAmount = parseFloat(bonusAmount).toFixed(2);
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: tableData,
-                    "aaSorting": vm.playerExpenseLog.aaSorting || [[1, 'desc']],
+                    "aaSorting": vm.playerDailyExpenseLog.aaSorting || [[1, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
-                        {'sortCol': 'providerId', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'gameId', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'gameId', bSortable: true, 'aTargets': [2]},
                         // {'sortCol': 'gameType', bSortable: true, 'aTargets': [4]},
                         // {'sortCol': 'roundNo', bSortable: true, 'aTargets': [4]},
-                        {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
-                        {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'validAmount', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'amount', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [5]},
                         // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
                         // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [7]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
 
                     columns: [
-                        {title: $translate('orderId'), data: "orderNo"},
-                        {title: $translate('CREATION_TIME'), data: "createTime$"},
+                        {title: $translate('CREATION_TIME'), data: "date"},
                         {title: $translate('PROVIDER'), data: "providerId.name"},
                         {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
                         // {title: $translate('GAME_TYPE'), data: "gameType$", sClass: 'sumText'},
@@ -5349,20 +5350,25 @@ define(['js/app'], function (myApp) {
                     ],
                     destroy: true,
                     paging: false,
-                    autoWidth: true
+                    autoWidth: true,
+                    initComplete: function(){
+                        $scope.safeApply();
+                    }
                 });
                 // $('#playerExpenseTable').DataTable(option);
                 var a = utilService.createDatatableWithFooter('#playerDailyExpenseTable', option, {
-                    4: summary.validAmountSum,
-                    5: summary.amountSum,
-                    6: summary.bonusAmountSum,
+                    3: summary.validAmountSum,
+                    4: summary.amountSum,
+                    5: summary.bonusAmountSum,
                     // 8: summary.commissionAmountSum
                 });
-                vm.playerExpenseLog.pageObj.init({maxCount: vm.playerExpenseLog.totalCount}, newSearch);
+                vm.playerDailyExpenseLog.pageObj.init({maxCount: vm.playerDailyExpenseLog.totalCount}, newSearch);
                 setTimeout(function () {
-                    $('#playerExpenseTable').resize();
-                }, 300);
-                $scope.safeApply();
+                    $('#playerDailyExpenseTable').resize();
+                }, 500);
+                
+
+                
             });
         };
 
