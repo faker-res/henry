@@ -5221,7 +5221,7 @@ let dbPlayerInfo = {
         para.name ? query.name = para.name : null;
         para.realName ? query.realName = para.realName : null;
         para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
-        para.domain ? query.domain = para.domain : null; //{$regex: (".*" + para.domain + "*.")} : null;
+        para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i'): null;
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partner', model: dbconfig.collection_partner});
