@@ -896,7 +896,7 @@ let PlayerServiceImplement = function () {
     this.addClientSourceLog.expectsData = 'sourceUrl: String';
     this.addClientSourceLog.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.sourceUrl);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerClientSourceLog, [data], true, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerClientSourceLog, [data], isValidData, false, false, true);
     };
 
 };

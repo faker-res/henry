@@ -8137,6 +8137,22 @@ let dbPlayerInfo = {
         domain = domain.split(':')[0];
         data.domain = domain;
 
+        dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
+            function (platform) {
+                let platformObjId = platform._id;
+                dbconfig.collection_players.findOneAndUpdate(
+                    {name: data.playerName, platform: platformObjId},
+                    {sourceUrl: data.sourceUrl}
+                ).lean();
+            },
+            function (error) {
+                console.error({
+                    message: "Platform not found.",
+                    error: error
+                })
+            }
+        );
+
         var newLog = new dbconfig.collection_playerClientSourceLog(data);
         return newLog.save();
     },
