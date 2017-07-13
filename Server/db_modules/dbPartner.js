@@ -18,6 +18,7 @@ var pmsAPI = require("../externalAPI/pmsAPI.js");
 var dbLogger = require("./../modules/dbLogger");
 var constProposalMainType = require('../const/constProposalMainType');
 let rsaCrypto = require("../modules/rsaCrypto");
+let dbutility = require("./../modules/dbutility");
 
 let env = require('../config/env').config();
 
@@ -547,7 +548,20 @@ let dbPartner = {
                     retData.push(prom);
                 }
                 return Q.all(retData);
-            });
+            }).then(
+                partners => {
+                    for (let i = 0; i < partners.length; i++) {
+                        if (partners[i].phoneNumber) {
+                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                        }
+                    }
+
+                    return partners;
+                },
+                error => {
+                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                }
+            );
             
         }
         return Q.all([count, detail]).then( function(data){
@@ -610,7 +624,20 @@ let dbPartner = {
                     retData.push(prom);
                 }
                 return Q.all(retData);
-            });
+            }).then(
+                partners => {
+                    for (let i = 0; i < partners.length; i++) {
+                        if (partners[i].phoneNumber) {
+                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                        }
+                    }
+
+                    return partners;
+                },
+                error => {
+                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                }
+            );
             
         }
         return Q.all([count, detail]).then( function(data){

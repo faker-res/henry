@@ -7011,6 +7011,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', sendData ,success);
 
             function success(data) {
+                console.log('getPartnersByPlatform output', data);
                 vm.partnerIdObj = {};
                 var partnersObjId = [];
                 $.each(data.data.data, function (i, v) {
@@ -7022,9 +7023,10 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPartnersPlayerInfo', {
                     platformObjId: vm.selectedPlatform.id,
                     partnersObjId: partnersObjId
-                }, function (playersIno) {
+                }, function (playersInfo) {
+
                     vm.partnerPlayerObj = {};
-                    $.each(playersIno.data, function (i, v) {
+                    $.each(playersInfo.data, function (i, v) {
                         vm.partnerPlayerObj[v.partnerId] = v;
                     });
                     vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
