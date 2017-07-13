@@ -1162,6 +1162,50 @@
     </div>
 </div>
 
+<h3>CREATE CLIENT SOURCE LOG (创造玩家来源记录)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type="text" name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Player Name
+            <input type="text" name="playerName">
+        </label>
+    </div>
+    <div>
+        <label>Source URL
+            <input type="text" name="sourceUrl">
+        </label>
+    </div>
+    <div>
+        <label>Client Type
+            <input type="text" name="clientType">
+        </label>
+    </div>
+    <div>
+        <label>Access Type
+            <input type="text" name="accessType">
+        </label>
+    </div>
+    <div>
+        <label>Data
+            <textarea name="content" class="data"></textarea>
+        </label>
+    </div>
+
+    <p></p>
+
+    <div>
+        <button data-api-name="addClientSourceLog">Send</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {
