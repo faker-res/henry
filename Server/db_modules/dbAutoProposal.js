@@ -674,7 +674,7 @@ function findTransferAbnormality(transferLogs, proposals) {
         function hasProposalWithinPeriod(startTime, endTime) {
             let relevantProposalMainType = ["TopUp", "Reward"];
             for (let i = 0; i < proposals.length; i++) {
-                if (proposals.createTime > startTime && proposals.createTime < endTime && relevantProposalMainType.includes(log.mainType)) {
+                if (proposals[i].createTime > startTime && proposals[i].createTime < endTime && relevantProposalMainType.includes(proposals[i].mainType)) {
                     return true;
                 }
             }
