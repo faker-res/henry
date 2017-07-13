@@ -87,7 +87,6 @@ var dbPlayerFeedback = {
             delete  query.endTime;
         }
 
-        console.log('**player', player);
         let playerProm;
         if (player) {
             playerProm = dbconfig.collection_players.find({name: {$regex: ".*" + player + ".*"}}).lean();
@@ -125,7 +124,6 @@ var dbPlayerFeedback = {
                     query.platform = new mongoose.mongo.ObjectId(query.platform);
                 }
 
-                console.log('**query', query);
                 var a = dbconfig.collection_playerFeedback
                     .find(query)
                     .populate({path: "playerId", model: dbconfig.collection_players})
