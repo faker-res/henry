@@ -6135,7 +6135,7 @@ let dbPlayerInfo = {
                 proposal => {
                     if (proposal) {
                         if (bUpdateCredit) {
-                            dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount * proposal.data.bonusCredit, constProposalType.PLAYER_BONUS, player.validCredit, null, proposal);
+                            dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, null, proposal);
                         }
                         return proposal;
                     } else {
