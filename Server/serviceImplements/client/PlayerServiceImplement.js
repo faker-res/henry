@@ -804,6 +804,13 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId], isValidData, false, false, true);
     };
 
+    this.sendSMSCodeToPlayer.expectsData = 'platformId: String';
+    this.sendSMSCodeToPlayer.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId);
+        let smsCode = parseInt(Math.random() * 9000 + 1000);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerObjId, smsCode, data.platformId], isValidData, false, false, true);
+    };
+
     this.authenticate.expectsData = 'playerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.playerId && data.token);

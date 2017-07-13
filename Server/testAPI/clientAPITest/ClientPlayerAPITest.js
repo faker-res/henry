@@ -76,6 +76,19 @@
         });
     };
 
+    proto.sendSMSCodeToPlayer = function (callback, requestData) {
+        var data = requestData || {
+                phoneNumber: 97787654
+            };
+        this.playerService.sendSMSCodeToPlayer.request(data);
+        this.playerService.sendSMSCodeToPlayer.once(function (data) {
+            smsCode=data.data;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.create = function (callback, requestData) {
         date = new Date().getTime();
         //console.log("data:platformId.....", platformId);
