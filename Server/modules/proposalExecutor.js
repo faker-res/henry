@@ -1425,7 +1425,7 @@ var proposalExecutor = {
                 dbRewardTask.getRewardTask({
                     playerId: proposalData.data.playerId,
                     status: constRewardTaskStatus.STARTED,
-                    useLocedCredit: true
+                    useLockedCredit: true
                 }).then(
                     function (curData) {
                         if(curData) {
