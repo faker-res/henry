@@ -171,7 +171,7 @@ function checkProposalConsumption(proposal, platformObj) {
             if (data && data[1]) {
                 let transferInRec = data[1].filter(rec => rec.type == "TransferIn");
 
-                if (transferInRec) {
+                if (transferInRec && transferInRec[0]) {
                     initialAmount = transferInRec[0].amount;
                 }
 
@@ -443,6 +443,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                 createTime: proposal.createTime
                             }, {
                                 'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
+                                'data.autoAuditTime': Date.now(),
                                 'data.nextCheckTime': nextCheckTime,
                                 'data.autoAuditRepeatMsg': repeatMsg,
                                 'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
@@ -488,6 +489,7 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                 noSteps: true,
                                 process: null,
                                 status: constProposalStatus.APPROVED,
+                                'data.autoAuditTime': Date.now(),
                                 'data.remark': 'Auto Approval Approved: ' + remark,
                                 'data.remarkChinese': '自动审核成功：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
@@ -520,6 +522,7 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
                                 noSteps: true,
                                 process: null,
                                 status: constProposalStatus.REJECTED,
+                                'data.autoAuditTime': Date.now(),
                                 'data.remark': 'Auto Approval Denied: ' + remark,
                                 'data.remarkChinese': '自动审核失败：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
@@ -550,6 +553,7 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                         createTime: createTime
                     }, {
                         status: constProposalStatus.PENDING,
+                        'data.autoAuditTime': Date.now(),
                         'data.autoAuditRemark': 'Auto Approval ' + remark,
                         'data.autoAuditRemarkChinese': '自动审核' + remarkChinese,
                         'data.autoAuditCheckMsg': processRemark,
@@ -566,6 +570,7 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                                     noSteps: true,
                                     process: null,
                                     status: constProposalStatus.FAIL,
+                                    'data.autoAuditTime': Date.now(),
                                     'data.remark': 'Auto Approval Denied: ' + remark,
                                     'data.remarkChinese': '自动审核失败：' + remarkChinese,
                                     'data.autoAuditCheckMsg': processRemark,
