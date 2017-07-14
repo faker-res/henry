@@ -4361,7 +4361,7 @@ let dbPlayerInfo = {
                                         }
                                     );
                                 }
-                                else{
+                                else {
                                     return returnObj;
                                 }
 
@@ -4406,7 +4406,7 @@ let dbPlayerInfo = {
                                     }
                                 );
                             }
-                            else{
+                            else {
                                 return creditData;
                             }
 
