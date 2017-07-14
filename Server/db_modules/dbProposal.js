@@ -252,6 +252,12 @@ var proposal = {
                         proposalData.status = constProposalStatus.SUCCESS;
                     }
 
+                    // Player modify phone number
+                    let phoneUpdateProposalType = [constProposalType.UPDATE_PLAYER_PHONE, constProposalType.UPDATE_PARTNER_PHONE];
+                    if (phoneUpdateProposalType.includes(data[0].name) && proposalData.data.isPlayerInit) {
+                        proposalData.status = constProposalStatus.SUCCESS;
+                    }
+
                     // attach player info if available
                     if (data[2]) {
                         if (proposalData.isPartner) {
