@@ -6005,16 +6005,6 @@ let dbPlayerInfo = {
                             });
                         }
 
-                        //check if player has enough credit
-                        player = playerData;
-                        if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                name: "DataError",
-                                errorMessage: "Player does not have enough credit."
-                            });
-                        }
-
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
                         if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
@@ -6023,6 +6013,19 @@ let dbPlayerInfo = {
 
                         return creditProm.then(
                             () => {
+                                return dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "platform", model: dbconfig.collection_platform}).lean();
+                            }
+                        ).then(
+                            playerData => {
+                                //check if player has enough credit
+                                player = playerData;
+                                if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                        name: "DataError",
+                                        errorMessage: "Player does not have enough credit."
+                                    });
+                                }
                                 return dbconfig.collection_proposal.find(
                                     {
                                         mainType: "PlayerBonus",
@@ -8133,6 +8136,37 @@ let dbPlayerInfo = {
         //find & remove port number
         domain = domain.split(':')[0];
         data.domain = domain;
+
+        let platformObjId;
+
+        dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
+            function (platform) {
+                platformObjId = platform._id;
+                return dbconfig.collection_players.findOne(
+                    {name: data.playerName, platform: platformObjId}
+                ).lean();
+            },
+            function (error) {
+                console.error({
+                    message: "Platform not found.",
+                    error: error
+                })
+            }
+        ).then(
+            function (player) {
+                let playerObjId = player._id;
+                dbconfig.collection_players.findOneAndUpdate(
+                    {_id: playerObjId, platform: platformObjId},
+                    {sourceUrl: data.sourceUrl}
+                ).lean().exec();
+            },
+            function (error) {
+                console.error({
+                    message: "Platform not found.",
+                    error: error
+                })
+            }
+        );
 
         var newLog = new dbconfig.collection_playerClientSourceLog(data);
         return newLog.save();
