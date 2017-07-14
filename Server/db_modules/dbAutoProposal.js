@@ -249,12 +249,12 @@ function checkProposalConsumption(proposal, platformObj) {
                                         totalTopUpAmount += topUpRecord.amount;
 
                                         // Only check consumption if the topup record is clean, else ignore this proposal
-                                        if (!topUpRecord.bDirty) {
-                                            return getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo);
-                                        }
-                                        else {
-                                            isSkip = true;
-                                        }
+                                        // if (!topUpRecord.bDirty) {
+                                        return getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo);
+                                        // }
+                                        // else {
+                                        //     isSkip = true;
+                                        // }
                                     }
                                 ).then(
                                     record => {
@@ -305,7 +305,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 sequence: checkingNo,
                                                 proposalId: getProp.proposalId,
                                                 initBonusAmount: initBonusAmount,
-                                                requiredConsumption: getProp.data.spendingAmount,
+                                                requiredConsumption: getProp.data.spendingAmount - getProp.data.applyAmount,
                                                 curConsumption: curConsumption,
                                                 bonusAmount: bonusAmount
                                             });
@@ -327,15 +327,16 @@ function checkProposalConsumption(proposal, platformObj) {
 
             Promise.all(proms).then(
                 () => {
-                    let isClearCycle = true;
-                    let validConsumptionAmount, spendingAmount, bonusAmount, initBonusAmount;
+                    let isClearCycle = false;
+                    let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
+                    let totalConsumptionAmount = 0, totalSpendingAmount = 0;
 
                     // Make sure the check result is in correct order
                     checkResult.sort((a, b) => b.sequence - a.sequence);
 
                     // Compare consumption and spendingAmount
                     for (let i = 0; i < checkResult.length; i++) {
-                        // reset the amounts if consumption > spending at previous cycle
+                        // reset the amounts if consumption > spending for next cycle
                         if (isClearCycle) {
                             validConsumptionAmount = 0;
                             spendingAmount = 0;
@@ -346,6 +347,9 @@ function checkProposalConsumption(proposal, platformObj) {
                         validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
                         spendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
 
+                        totalConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
+                        totalSpendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
+
                         if (checkResult[i].initBonusAmount) {
                             initBonusAmount += checkResult[i].initBonusAmount ? checkResult[i].initBonusAmount : 0;
                             bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
@@ -354,7 +358,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         //if (validConsumptionAmount != 0) {
                         // Check consumption for each cycle
                         // User lost all bonus amount
-                        if (initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
+                        if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
                             isApprove = true;
                             isClearCycle = true;
                             // checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
@@ -386,8 +390,8 @@ function checkProposalConsumption(proposal, platformObj) {
 
                     if ((validConsumptionAmount + lostThreshold) < spendingAmount || validConsumptionAmount == 0) {
                         isApprove = false;
-                        repeatMsg = "Insufficient overall consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                        repeatMsgChinese = "整体投注额不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
+                        repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+                        repeatMsgChinese = "整体投注额不足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                     }
 
                     // Check consumption approved or not
