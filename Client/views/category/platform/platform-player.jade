@@ -296,8 +296,8 @@ include modalGameCreditLog
                             label.control-label {{"districtId" | translate}}
                             select.form-control(type='text', ng-model='vm.currentDistrict', ng-options='v.id as v.name for (i,v) in vm.districtList', ng-disabled='!vm.isEditingPlayerPayment')
                     .form-group-col-md-6
-                        label.control-label {{'Bank Address' | translate}}
-                        input.form-control(ng-model='vm.playerPayment.bankAddress', ng-disabled='!vm.isEditingPlayerPayment')
+                        label.control-label *{{'Bank Address' | translate}}
+                        input.form-control(ng-model='vm.playerPayment.bankAddress', ng-disabled='!vm.isEditingPlayerPayment', required)
                     //.form-group-col-md-6
                         label.control-label {{'BANK_BRANCH' | translate}}
                         input.form-control(ng-model='vm.playerPayment.bankBranch', ng-disabled='!vm.isEditingPlayerPayment')
