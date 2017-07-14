@@ -5,11 +5,13 @@ let rsaCrypto = require("../modules/rsaCrypto");
 
 const constServerCode = require('../const/constServerCode');
 const constShardKeys = require('../const/constShardKeys');
+const constProposalType = require('../const/constProposalType')
 
 let dbConfig = require('../modules/dbproperties');
+let dbUtility = require('./../modules/dbutility');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
-let dbUtility = require('./../modules/dbutility');
+let dbProposal = require('./../db_modules/dbProposal')
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI: registerData => {
@@ -472,7 +474,60 @@ let dbPlayerPartner = {
                     }
                 }
             }
-        );
+        ).then(
+            result => {
+
+                // data.data.playerObjId && data.data.playerName && data.data.curData &&
+                // data.data.updateData && data.data.updateData.phoneNumber
+                let player, partner, playerUpdateData, partnerUpdateData;
+                switch (targetType) {
+                    case 0:
+                        // player = result;
+                        // playerUpdateData = {
+                        //     isPlayerInit: true,
+                        //     playerObjId: player._id,
+                        //     playerName: player.name,
+                        //     "updateData.phoneNumber": player.phoneNumber
+                        // };
+                        result.isPlayerInit = true;
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: result});
+                        break;
+                    case 1:
+                        // partner = result;
+                        // partnerUpdateData = {
+                        //     isPlayerInit: true,
+                        //     partnerObjId: partner._id,
+                        //     partnerName: partner.name,
+                        //     "updateData.phoneNumber": partner.phoneNumber
+                        // };
+                        result.isPlayerInit = true;
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: result});
+                        break;
+                    case 2:
+                        // player = result[0];
+                        // playerUpdateData = {
+                        //     isPlayerInit: true,
+                        //     playerObjId: player._id,
+                        //     playerName: player.name,
+                        //     "updateData.phoneNumber": player.phoneNumber
+                        // };
+                        // partner = result[1];
+                        // partnerUpdateData = {
+                        //     isPlayerInit: true,
+                        //     partnerObjId: partner._id,
+                        //     partnerName: partner.name,
+                        //     "updateData.phoneNumber": partner.phoneNumber
+                        // };
+                        result[0].isPlayerInit = true;
+                        result[1].isPlayerInit = true;
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: result[0]});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: result[1]});
+                        break;
+                }
+
+                return result;
+            }
+        )
     },
 
     /**
