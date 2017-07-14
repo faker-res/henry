@@ -2108,5 +2108,6 @@
   "detail": "详情",
   "detailChinese": "详情（中文）",
   "isPlayerInit": "玩家提交",
-  "SOURCE_URL": "来源URL"
+  "SOURCE_URL": "来源URL",
+  "autoAuditTime": "自动审核：审核时间"
 }
