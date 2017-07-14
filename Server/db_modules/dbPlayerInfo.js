@@ -8137,13 +8137,28 @@ let dbPlayerInfo = {
         domain = domain.split(':')[0];
         data.domain = domain;
 
+        let platformObjId;
+
         dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
             function (platform) {
-                let platformObjId = platform._id;
-                dbconfig.collection_players.findOneAndUpdate(
-                    {name: data.playerName, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl}
+                platformObjId = platform._id;
+                return dbconfig.collection_players.findOne(
+                    {name: data.playerName, platform: platformObjId}
                 ).lean();
+            },
+            function (error) {
+                console.error({
+                    message: "Platform not found.",
+                    error: error
+                })
+            }
+        ).then(
+            function (player) {
+                let playerObjId = player._id;
+                dbconfig.collection_players.findOneAndUpdate(
+                    {_id: playerObjId, platform: platformObjId},
+                    {sourceUrl: data.sourceUrl}
+                ).lean().exec();
             },
             function (error) {
                 console.error({
