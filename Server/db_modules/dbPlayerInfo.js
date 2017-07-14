@@ -4311,9 +4311,10 @@ let dbPlayerInfo = {
      * @param {playerId} playerId
      */
     getPlayerCredit: function (playerId) {
-        var returnObj = {};
+        var returnObj = {gameCredit: 0};
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
-            {path: "platform", model: dbconfig.collection_platform}
+            {path: "platform", model: dbconfig.collection_platform}).populate(
+            {path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}
         ).lean().then(
             playerData => {
                 if (playerData) {
@@ -4346,17 +4347,40 @@ let dbPlayerInfo = {
                                     }
                                 }
                                 returnObj.pendingRewardAmount = sumAmount;
-                                return returnObj;
+                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                                    return cpmsAPI.player_queryCredit(
+                                        {
+                                            username: playerData.name,
+                                            platformId: playerData.platform.platformId,
+                                            providerId: playerData.lastPlayedProvider.providerId
+                                        }
+                                    ).then(
+                                        creditData => {
+                                            returnObj.gameCredit = creditData ? parseFloat(creditData.credit) : 0;
+                                            return returnObj;
+                                        }
+                                    );
+                                }
+                                else{
+                                    return returnObj;
+                                }
+
                             }
                         )
-                } else return {};
+                }
+                else {
+                    return {};
+                }
             }
         );
     },
 
     getPlayerCreditInfo: function (playerId) {
-        var creditData = {};
-        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+        var creditData = {gameCredit: 0};
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}).populate(
+            {path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}
+        ).lean().then(
             playerData => {
                 if (playerData) {
                     creditData.validCredit = playerData.validCredit;
@@ -4368,7 +4392,24 @@ let dbPlayerInfo = {
                     }).lean().then(
                         taskData => {
                             creditData.taskData = taskData;
-                            return creditData;
+                            if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                                return cpmsAPI.player_queryCredit(
+                                    {
+                                        username: playerData.name,
+                                        platformId: playerData.platform.platformId,
+                                        providerId: playerData.lastPlayedProvider.providerId
+                                    }
+                                ).then(
+                                    gameData => {
+                                        creditData.gameCredit = gameData ? parseFloat(gameData.credit) : 0;
+                                        return creditData;
+                                    }
+                                );
+                            }
+                            else{
+                                return creditData;
+                            }
+
                         }
                     );
                 }
@@ -8137,13 +8178,28 @@ let dbPlayerInfo = {
         domain = domain.split(':')[0];
         data.domain = domain;
 
+        let platformObjId;
+
         dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
             function (platform) {
-                let platformObjId = platform._id;
-                dbconfig.collection_players.findOneAndUpdate(
-                    {name: data.playerName, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl}
+                platformObjId = platform._id;
+                return dbconfig.collection_players.findOne(
+                    {name: data.playerName, platform: platformObjId}
                 ).lean();
+            },
+            function (error) {
+                console.error({
+                    message: "Platform not found.",
+                    error: error
+                })
+            }
+        ).then(
+            function (player) {
+                let playerObjId = player._id;
+                dbconfig.collection_players.findOneAndUpdate(
+                    {_id: playerObjId, platform: platformObjId},
+                    {sourceUrl: data.sourceUrl}
+                ).lean().exec();
             },
             function (error) {
                 console.error({

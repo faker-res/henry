@@ -126,6 +126,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerExpenses')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowPlayerExpense()')
             text {{"PLAYER_EXPENSES" | translate}}
             i.fa.fa-table
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerDailyExpenses')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowPlayerDailyExpense()')
+            text {{"PLAYER_DAILY_EXPENSES" | translate}}
+            i.fa.fa-table
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.showPagedPlayerCreditChangeLog()')
             text {{"Credit Change Log" | translate}}
             img.img-edit
@@ -581,6 +584,81 @@ include modalGameCreditLog
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-click='vm.submitMerchantForPlayer()') {{'OK' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalPlayerDailyExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Daily Expense Records for"|translate}} {{vm.isOneSelectedPlayer().name}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        #playerDailyExpense.adminLogQueryDiv
+                            .inlineBlk
+                                label {{'START_DATE' | translate}}
+                                .startTime
+                            .inlineBlk
+                                label {{'END_DATE' | translate}}
+                                .endTime
+                            .inlineBlk
+                                label {{'GAME_PROVIDER' | translate}}
+                                select.form-control(ng-model='vm.queryPara.playerDailyExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
+                                    option(value='') {{'any' | translate}}
+                            //.inlineBlk
+                                label {{'Search limit(Max rows)' | translate}}
+                                select.form-control.limit(ng-model='vm.queryPara.playerDailyExpense.limit')
+                                    option 50
+                                    option 100
+                                    option 200
+                                    option(value='-1') {{'Unlimited' | translate}}
+                            .inlineBlk
+                                label {{'Occupy' | translate}}
+                                select.form-control.limit(ng-model='vm.queryPara.playerDailyExpense.dirty', required)
+                                    option(value='') {{'any' | translate}}
+                                    option(value='Y') {{'Yes' | translate}}
+                                    option(value='N') {{'No' | translate}}
+                            .inlineBlk
+                                button.btn.btn-primary(ng-click='vm.getPlayerDailyExpenseByFilter(true)') {{'SEARCH' | translate}}
+                        .well
+                            .row
+                                .col-md-12
+                                    pre
+                                        text {{"Total Amount"|translate}}:
+                                        label {{vm.totalConsumptionAmount}}&nbsp
+                                        text {{"Total Valid Amount"|translate}}:
+                                        label {{vm.totalConsumptionValidAmount}}&nbsp
+                                        text {{"Total Bonus Amount"|translate}}:
+                                        label {{vm.totalConsumptionBonusAmount}}
+                                    p
+                                    label {{"Total" | translate}} {{vm.playerDailyExpenseLog.totalCount}} {{"records" | translate}}
+                                    i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
+                                    table#playerDailyExpenseTable.common-table.display(style='width:100%')
+                                    #playerDailyExpenseTablePage
+                                //thead
+                                    tr
+                                        th {{'CREATION_TIME' | translate}}
+                                        th {{'PROVIDER' | translate}}
+                                        th {{'GAME_TITLE' | translate}}
+                                        th {{'GAME_TYPE' | translate}}
+                                        th {{'Game Round' | translate}}
+                                        th {{'VALID_AMOUNT' | translate}}
+                                        th {{'CREDIT' | translate}}
+                                        th {{'orderId' | translate}}
+                                        th {{'bonusAmount' | translate}}
+                                        th {{'commissionAmount' | translate}}
+                                //tbody
+                                    tr(ng-repeat='(i,v) in vm.playerDailyExpenseRecords')
+                                        td {{vm.dateReformat(v.createTime)}}
+                                        td {{v.providerId.name}}
+                                        td {{v.gameId.name}}
+                                        td {{vm.allGameTypes[v.gameType] || 'Unknown' | translate}}
+                                        td {{v.roundNo}}
+                                        td {{v.validAmount || 0}}
+                                        td {{v.amount || 0}}
+                                        td {{v.orderNo}}
+                                        td {{v.bonusAmount || 0}}
+                                        td {{v.commissionAmount || 0}}
 
 #statusPopover.hide(style="width: 600px", ng-non-bindable)
     //- label The status for {{vm.statusPopover.name}}
