@@ -251,12 +251,12 @@ function checkProposalConsumption(proposal, platformObj) {
                                         totalTopUpAmount += topUpRecord.amount;
 
                                         // Only check consumption if the topup record is clean, else ignore this proposal
-                                        if (!topUpRecord.bDirty) {
-                                            return getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo);
-                                        }
-                                        else {
-                                            isSkip = true;
-                                        }
+                                        // if (!topUpRecord.bDirty) {
+                                        return getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo);
+                                        // }
+                                        // else {
+                                        //     isSkip = true;
+                                        // }
                                     }
                                 ).then(
                                     record => {
@@ -306,7 +306,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 sequence: checkingNo,
                                                 proposalId: getProp.proposalId,
                                                 initBonusAmount: initBonusAmount,
-                                                requiredConsumption: getProp.data.spendingAmount,
+                                                requiredConsumption: getProp.data.spendingAmount - getProp.data.applyAmount,
                                                 curConsumption: curConsumption,
                                                 bonusAmount: bonusAmount
                                             });
