@@ -276,7 +276,7 @@ let dbPlayerReward = {
             }
         ).then(
             playerData => {
-                if(playerData && !playerData.applyingEasterEgg){
+                if (playerData && !playerData.applyingEasterEgg) {
                     playerObj = playerData;
                     //calculate player reward amount
                     let totalProbability = 0;
@@ -291,7 +291,7 @@ let dbPlayerReward = {
                     let startPro = 0;
                     eventData.param.reward.forEach(
                         eReward => {
-                            if( pNumber >= startPro && pNumber <= (startPro + eReward.probability) ){
+                            if (pNumber >= startPro && pNumber <= (startPro + eReward.probability)) {
                                 rewardAmount = eReward.rewardAmount;
                             }
                             startPro += eReward.probability;
@@ -299,7 +299,7 @@ let dbPlayerReward = {
                     );
 
                     // create reward proposal
-                    let proposalData ={
+                    let proposalData = {
                         type: eventData.executeProposal,
                         creator: adminInfo ? adminInfo :
                             {
@@ -322,6 +322,7 @@ let dbPlayerReward = {
                             eventCode: eventData.code,
                             eventDescription: eventData.description,
                             providers: eventData.param.providers,
+                            useConsumption: eventData.param.useConsumption,
                             useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
@@ -329,7 +330,7 @@ let dbPlayerReward = {
                     };
                     return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                 }
-                else{
+                else {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
