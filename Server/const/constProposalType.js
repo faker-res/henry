@@ -42,7 +42,7 @@ const constProposalType = {
     PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward",
     PLAYER_REGISTRATION_INTENTION: "PlayerRegistrationIntention",
     PLAYER_EASTER_EGG_REWARD: "PlayerEasterEggReward",
-    PLAYER_QUICKPAY_TOP_UP: "PlayerQuickpayTopUp",
+    PLAYER_QUICKPAY_TOP_UP: "PlayerQuickpayTopUp"
 };
 
 module.exports = constProposalType;
