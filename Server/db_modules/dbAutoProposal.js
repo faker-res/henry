@@ -330,6 +330,7 @@ function checkProposalConsumption(proposal, platformObj) {
                 () => {
                     let isClearCycle = false;
                     let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
+                    let totalConsumptionAmount = 0, totalSpendingAmount = 0;
 
                     // Make sure the check result is in correct order
                     checkResult.sort((a, b) => b.sequence - a.sequence);
@@ -346,6 +347,9 @@ function checkProposalConsumption(proposal, platformObj) {
 
                         validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
                         spendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
+
+                        totalConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
+                        totalSpendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
 
                         if (checkResult[i].initBonusAmount) {
                             initBonusAmount += checkResult[i].initBonusAmount ? checkResult[i].initBonusAmount : 0;
@@ -387,8 +391,8 @@ function checkProposalConsumption(proposal, platformObj) {
 
                     if ((validConsumptionAmount + lostThreshold) < spendingAmount || validConsumptionAmount == 0) {
                         isApprove = false;
-                        repeatMsg = "Insufficient overall consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                        repeatMsgChinese = "整体投注额不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
+                        repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+                        repeatMsgChinese = "整体投注额不足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                     }
 
                     if (isApprove || isTypeEApproval) {
