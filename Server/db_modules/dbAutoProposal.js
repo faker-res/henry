@@ -40,14 +40,13 @@ let dbAutoProposal = {
             proposalType => {
                 if (proposalType) {
                     proposalTypeObjId = proposalType._id;
-                    let lastCheckBefore = new Date();
-                    lastCheckBefore.setMinutes(lastCheckBefore.getMinutes() - platformData.autoApproveRepeatDelay);
+                    let checkTime = new Date();
+                    checkTime.setMinutes(checkTime.getMinutes() + 1);
 
-                    // CS TEST - Include pending proposal as well
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
-                        status: constProposalStatus.AUTOAUDIT,//{$in: [constProposalStatus.AUTOAUDIT, constProposalStatus.PENDING]},
-                        $or: [{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: new Date()}}]
+                        status: constProposalStatus.AUTOAUDIT,
+                        $or: [{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: checkTime}}]
                     }).cursor({batchSize: 10000});
 
                     let balancer = new SettlementBalancer();
@@ -59,8 +58,7 @@ let dbAutoProposal = {
                                 makeRequest: function (proposals, request) {
                                     request("player", "processAutoProposals", {
                                         proposals: proposals,
-                                        platformObj: platformData,
-                                        proposalTypeObjId: proposalTypeObjId,
+                                        platformObj: platformData
                                     });
                                 }
                             }
@@ -71,7 +69,7 @@ let dbAutoProposal = {
         )
     },
 
-    processAutoProposals: (proposals, platformObj, proposalTypeObjId) => {
+    processAutoProposals: (proposals, platformObj) => {
         if (proposals && proposals.length > 0) {
             return Promise.all(proposals.map(proposal => checkProposalConsumption(proposal, platformObj)));
         }
@@ -113,7 +111,7 @@ function checkProposalConsumption(proposal, platformObj) {
         }
     ).then(
         lastWithdrawDate => {
-            bFirstWithdraw = lastWithdrawDate ? false : true;
+            bFirstWithdraw = !lastWithdrawDate;
 
             let proposalQuery = {
                 'data.platformId': ObjectId(proposal.data.platformId),
@@ -435,31 +433,45 @@ function checkProposalConsumption(proposal, platformObj) {
                                 proposal.data.autoApproveRepeatCount - 1
                                 : repeatCount - 1;
 
+                        let updObj = {
+                            'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
+                            'data.autoAuditTime': Date.now()
+                        };
+
+                        if (repeatMsg.length > 0 || repeatMsgChinese.length > 0) {
+                            updObj['data.autoAuditRepeatMsg'] = repeatMsg;
+                            updObj['data.autoAuditRepeatMsgChinese'] = repeatMsgChinese;
+                        }
+
+                        if (checkMsg.length > 0 || checkMsgChinese.length > 0) {
+                            updObj['data.autoAuditCheckMsg'] = checkMsg;
+                            updObj['data.autoAuditCheckMsgChinese'] = checkMsgChinese;
+                        }
+
+                        if (abnormalMessage.length > 0 || abnormalMessageChinese.length > 0) {
+                            updObj['data.detail'] = abnormalMessage;
+                            updObj['data.detailChinese'] = abnormalMessageChinese;
+                        }
+
                         if (proposal.data.autoApproveRepeatCount >= 0) {
                             let nextCheckTime = new Date();
                             nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
-                            return dbconfig.collection_proposal.findOneAndUpdate({
-                                _id: proposal._id,
-                                createTime: proposal.createTime
-                            }, {
-                                'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
-                                'data.autoAuditTime': Date.now(),
-                                'data.nextCheckTime': nextCheckTime,
-                                'data.autoAuditRepeatMsg': repeatMsg,
-                                'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
-                                'data.autoAuditCheckMsg': checkMsg,
-                                'data.autoAuditCheckMsgChinese': checkMsgChinese,
-                                'data.detail': abnormalMessage ? abnormalMessage : "",
-                                'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
-                            }).exec();
+                            updObj['data.nextCheckTime'] = nextCheckTime;
                         } else {
+                            updObj['data.nextCheckTime'] = undefined;
+
                             // Check if player is VIP - Passed
-                            if (proposal.data.proposalPlayerLevelValue > 0) {
+                            if (proposal.data.proposalPlayerLevelValue == 0) {
                                 sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出自动审核回圈次数，流水不够", checkMsg, abnormalMessage, abnormalMessageChinese);
                             } else {
                                 sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出自动审核回圈次数，流水不够", checkMsg, abnormalMessage, abnormalMessageChinese);
                             }
                         }
+
+                        return dbconfig.collection_proposal.findOneAndUpdate({
+                            _id: proposal._id,
+                            createTime: proposal.createTime
+                        }, updObj).exec();
                     }
                 }
             );
