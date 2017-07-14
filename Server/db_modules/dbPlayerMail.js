@@ -213,6 +213,8 @@ const dbPlayerMail = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
                 platformObjId = platform._id;
+                console.log('***playerObjId', playerObjId)
+                console.log('***platformObjId', platformObjId)
                 return dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}, {similarPlayers: 0}).lean();
             },
             error => {
@@ -220,6 +222,7 @@ const dbPlayerMail = {
             }
         ).then(
             player => {
+                console.log('***player', player)
                 return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId);
             },
             error => {
