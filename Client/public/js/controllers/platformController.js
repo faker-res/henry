@@ -5277,7 +5277,6 @@ define(['js/app'], function (myApp) {
         };
 
 
-
         // daily player expense
         vm.prepareShowPlayerDailyExpense = function () {
             vm.playerDailyExpenseLog = {totalCount: 0};
@@ -5417,7 +5416,7 @@ define(['js/app'], function (myApp) {
                     destroy: true,
                     paging: false,
                     autoWidth: true,
-                    initComplete: function(){
+                    initComplete: function () {
                         $scope.safeApply();
                     }
                 });
@@ -5432,9 +5431,8 @@ define(['js/app'], function (myApp) {
                 setTimeout(function () {
                     $('#playerDailyExpenseTable').resize();
                 }, 500);
-                
 
-                
+
             });
         };
 
