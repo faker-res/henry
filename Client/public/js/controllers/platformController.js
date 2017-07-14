@@ -5645,6 +5645,7 @@ define(['js/app'], function (myApp) {
             vm.isEditingPlayerPayment = false;
             vm.isEditingPlayerPaymentShowVerify = false;
             vm.playerPayment = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys);
+            vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
             vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
             vm.playerPayment.showNewAccountNo = false;
             vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
