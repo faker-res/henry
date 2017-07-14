@@ -804,6 +804,15 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId], isValidData, false, false, true);
     };
 
+    this.sendSMSCodeToPlayer.expectsData = 'platformId: String';
+    this.sendSMSCodeToPlayer.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId);
+        let smsCode = parseInt(Math.random() * 9000 + 1000);
+        console.log('***conn.playerId', conn.playerId);
+        console.log('***conn.playerObjId', conn.playerObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId], isValidData, false, false, true);
+    };
+
     this.authenticate.expectsData = 'playerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.playerId && data.token);
@@ -889,7 +898,7 @@ let PlayerServiceImplement = function () {
     this.addClientSourceLog.expectsData = 'sourceUrl: String';
     this.addClientSourceLog.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.sourceUrl);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerClientSourceLog, [data], true, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerClientSourceLog, [data], isValidData, false, false, true);
     };
 
 };

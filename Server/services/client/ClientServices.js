@@ -51,6 +51,7 @@
                 "logoutPlayerPartner",
                 "isLogin",
                 "getSMSCode",
+                "sendSMSCodeToPlayer",
                 "updatePaymentInfo",
                 "updatePlayerPartnerPaymentInfo",
                 "updateSmsSetting",

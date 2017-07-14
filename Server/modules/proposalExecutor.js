@@ -1071,7 +1071,7 @@ var proposalExecutor = {
                         //todo::check current amount init value???
                         currentAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
                         initAmount: proposalData.data.rewardAmount + proposalData.data.applyAmount,
-                        useConsumption: proposalData.data.useConsumption,
+                        useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
                         targetEnable: proposalData.data.targetEnable,
@@ -1424,13 +1424,14 @@ var proposalExecutor = {
 
                 dbRewardTask.getRewardTask({
                     playerId: proposalData.data.playerId,
-                    status: constRewardTaskStatus.STARTED
+                    status: constRewardTaskStatus.STARTED,
+                    useLockedCredit: true
                 }).then(
                     function (curData) {
                         if(curData) {
                             dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).then(
                                 function(platformData) {
-                                    if(platformData.canMultiReward){
+                                    if(platformData.canMultiReward || !platformData.useLockedCredit){
                                         dbRewardTask.createRewardTask(proposalData.data).then(
                                             deferred.resolve, deferred.reject
                                         );
@@ -1639,7 +1640,8 @@ var proposalExecutor = {
                         currentAmount: proposalData.data.applyAmount,
                         initAmount: proposalData.data.applyAmount,
                         eventId: proposalData.data.eventId,
-                        useLockedCredit: proposalData.data.useLockedCredit
+                        useLockedCredit: proposalData.data.useLockedCredit,
+                        useConsumption: Boolean(proposalData.data.useConsumption)
                     };
                     if (proposalData.data.providers) {
                         taskData.targetProviders = proposalData.data.providers;

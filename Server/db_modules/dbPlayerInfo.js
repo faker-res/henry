@@ -894,14 +894,34 @@ let dbPlayerInfo = {
             .exec();
     },
     getOnePlayerInfo: function (query) {
+        let playerData;
+
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "partner", model: dbconfig.collection_partner})
             .then(data => {
                 if (data) {
-                    return data;
+                    playerData = data;
+                    return dbconfig.collection_platform.findOne({
+                        _id: playerData.platform
+                    });
                 } else return Q.reject({message: "incorrect player result"});
-            });
+            }).then(
+                platformData => {
+                    return dbconfig.collection_playerClientSourceLog.findOne({
+                        platformId: platformData.platformId,
+                        playerName: playerData.name
+                    }).lean()
+                }
+            ).then(
+                sourceLogData => {
+                    if (sourceLogData) {
+                        playerData.sourceUrl = sourceLogData.sourceUrl;
+                    }
+
+                    return playerData;
+                }
+            )
     },
 
     getPlayerPhoneNumber: function (playerObjId) {
@@ -4291,9 +4311,10 @@ let dbPlayerInfo = {
      * @param {playerId} playerId
      */
     getPlayerCredit: function (playerId) {
-        var returnObj = {};
+        var returnObj = {gameCredit: 0};
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
-            {path: "platform", model: dbconfig.collection_platform}
+            {path: "platform", model: dbconfig.collection_platform}).populate(
+            {path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}
         ).lean().then(
             playerData => {
                 if (playerData) {
@@ -4326,17 +4347,40 @@ let dbPlayerInfo = {
                                     }
                                 }
                                 returnObj.pendingRewardAmount = sumAmount;
-                                return returnObj;
+                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                                    return cpmsAPI.player_queryCredit(
+                                        {
+                                            username: playerData.name,
+                                            platformId: playerData.platform.platformId,
+                                            providerId: playerData.lastPlayedProvider.providerId
+                                        }
+                                    ).then(
+                                        creditData => {
+                                            returnObj.gameCredit = creditData ? parseFloat(creditData.credit) : 0;
+                                            return returnObj;
+                                        }
+                                    );
+                                }
+                                else{
+                                    return returnObj;
+                                }
+
                             }
                         )
-                } else return {};
+                }
+                else {
+                    return {};
+                }
             }
         );
     },
 
     getPlayerCreditInfo: function (playerId) {
-        var creditData = {};
-        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+        var creditData = {gameCredit: 0};
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}).populate(
+            {path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}
+        ).lean().then(
             playerData => {
                 if (playerData) {
                     creditData.validCredit = playerData.validCredit;
@@ -4348,7 +4392,24 @@ let dbPlayerInfo = {
                     }).lean().then(
                         taskData => {
                             creditData.taskData = taskData;
-                            return creditData;
+                            if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                                return cpmsAPI.player_queryCredit(
+                                    {
+                                        username: playerData.name,
+                                        platformId: playerData.platform.platformId,
+                                        providerId: playerData.lastPlayedProvider.providerId
+                                    }
+                                ).then(
+                                    gameData => {
+                                        creditData.gameCredit = gameData ? parseFloat(gameData.credit) : 0;
+                                        return creditData;
+                                    }
+                                );
+                            }
+                            else{
+                                return creditData;
+                            }
+
                         }
                     );
                 }
@@ -4374,17 +4435,16 @@ let dbPlayerInfo = {
      * get captcha
      */
     getCaptcha: function (conn) {
-        var deferred = Q.defer();
-        //todo::update the size and color later
-        var captchaCode = parseInt(Math.random() * 9000 + 1000);
+        let deferred = Q.defer();
+        let captchaCode = parseInt(Math.random() * 9000 + 1000);
         conn.captchaCode = captchaCode;
-        var p = new captchapng(80, 30, captchaCode); // width,height,numeric captcha
-        p.color(0, 0, 80, 255);  // First color: background (red, green, blue, alpha)
-        p.color(80, 80, 80, 255); // Second color: paint (red, green, blue, alpha)
+        let p = new captchapng(80, 30, captchaCode); // width,height,numeric captcha
+        p.color(8, 18, 188, 255);  // First color: background (red, green, blue, alpha)
+        p.color(18, 188, 8, 255); // Second color: paint (red, green, blue, alpha)
 
 
-        var img = p.getBase64();
-        var imgbase64 = new Buffer(img, 'base64');
+        let img = p.getBase64();
+        let imgbase64 = new Buffer(img, 'base64');
         deferred.resolve(imgbase64);
         return deferred.promise;
     },
@@ -5202,7 +5262,7 @@ let dbPlayerInfo = {
         para.name ? query.name = para.name : null;
         para.realName ? query.realName = para.realName : null;
         para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
-        para.domain ? query.domain = para.domain : null; //{$regex: (".*" + para.domain + "*.")} : null;
+        para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i'): null;
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partner', model: dbconfig.collection_partner});
@@ -5986,16 +6046,6 @@ let dbPlayerInfo = {
                             });
                         }
 
-                        //check if player has enough credit
-                        player = playerData;
-                        if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                name: "DataError",
-                                errorMessage: "Player does not have enough credit."
-                            });
-                        }
-
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
                         if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
@@ -6004,6 +6054,19 @@ let dbPlayerInfo = {
 
                         return creditProm.then(
                             () => {
+                                return dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "platform", model: dbconfig.collection_platform}).lean();
+                            }
+                        ).then(
+                            playerData => {
+                                //check if player has enough credit
+                                player = playerData;
+                                if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                        name: "DataError",
+                                        errorMessage: "Player does not have enough credit."
+                                    });
+                                }
                                 return dbconfig.collection_proposal.find(
                                     {
                                         mainType: "PlayerBonus",
@@ -6116,7 +6179,7 @@ let dbPlayerInfo = {
                 proposal => {
                     if (proposal) {
                         if (bUpdateCredit) {
-                            dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount * proposal.data.bonusCredit, constProposalType.PLAYER_BONUS, player.validCredit, null, proposal);
+                            dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, null, proposal);
                         }
                         return proposal;
                     } else {
@@ -8079,6 +8142,37 @@ let dbPlayerInfo = {
         //find & remove port number
         domain = domain.split(':')[0];
         data.domain = domain;
+
+        let platformObjId;
+
+        dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
+            function (platform) {
+                platformObjId = platform._id;
+                return dbconfig.collection_players.findOne(
+                    {name: data.playerName, platform: platformObjId}
+                ).lean();
+            },
+            function (error) {
+                console.error({
+                    message: "Platform not found.",
+                    error: error
+                })
+            }
+        ).then(
+            function (player) {
+                let playerObjId = player._id;
+                dbconfig.collection_players.findOneAndUpdate(
+                    {_id: playerObjId, platform: platformObjId},
+                    {sourceUrl: data.sourceUrl}
+                ).lean().exec();
+            },
+            function (error) {
+                console.error({
+                    message: "Platform not found.",
+                    error: error
+                })
+            }
+        );
 
         var newLog = new dbconfig.collection_playerClientSourceLog(data);
         return newLog.save();
