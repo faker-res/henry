@@ -57,6 +57,10 @@ form(name="form_edit_player", novalidate)
             select.form-control(ng-model='playerBeingEdited.wechatPayGroup')
                 option(ng-repeat='(i,v) in platformWechatPayGroupList', value='{{v._id}}', ng-selected='playerBeingEdited.wechatPayGroup==v._id') {{v.displayName}}
         .form-group.col-md-6
+            label.control-label {{"QuickPay Group"|translate}}
+            select.form-control(ng-model='playerBeingEdited.quickPayGroup')
+                option(ng-repeat='(i,v) in platformQuickPayGroupList', value='{{v._id}}', ng-selected='playerBeingEdited.quickPayGroup==v._id') {{v.displayName}}
+        .form-group.col-md-6
             label.control-label {{"TrustLevel"|translate}}
             select.form-control(ng-model='playerBeingEdited.trustLevel')
                 option(ng-repeat='(i,v) in allPlayerTrustLvl', value='{{v.value}}', ng-selected='playerBeingEdited.trustLevel==v.value') {{v.name | translate}}
