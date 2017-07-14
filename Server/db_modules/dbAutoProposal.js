@@ -359,7 +359,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         //if (validConsumptionAmount != 0) {
                         // Check consumption for each cycle
                         // User lost all bonus amount
-                        if (initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
+                        if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
                             isApprove = false;
                             isClearCycle = true;
                             // checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
