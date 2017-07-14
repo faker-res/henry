@@ -752,7 +752,7 @@ let dbPlayerInfo = {
                         playerUpdateData.wechatPayGroup = data[5]._id;
                     }
                     if (data[6]) {
-                        playerUpdateData.quickpayGroup = data[6]._id;
+                        playerUpdateData.quickPayGroup = data[6]._id;
                     }
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
@@ -7063,41 +7063,6 @@ let dbPlayerInfo = {
                         status: constProposalStatus.PENDING
                     };
                     return dbconfig.collection_proposal.findOne(queryObject);
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Cannot find proposal type"});
-                }
-            }
-        );
-    },
-
-    getAlipayTopupRequestList: function (playerId) {
-        var platformObjectId = null;
-        return dbconfig.collection_players.findOne({playerId: playerId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        }).lean().then(
-            playerData => {
-                if (playerData && playerData.platform) {
-                    platformObjectId = playerData.platform._id;
-                    return dbconfig.collection_proposalType.findOne({
-                        platformId: platformObjectId,
-                        name: constProposalType.PLAYER_ALIPAY_TOP_UP
-                    });
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Cannot find player"});
-                }
-            }
-        ).then(
-            proposalTypeData => {
-                if (proposalTypeData) {
-                    var queryObject = {
-                        "data.playerId": playerId,
-                        type: proposalTypeData._id,
-                        status: constProposalStatus.PENDING
-                    };
-                    return dbconfig.collection_proposal.findOne(queryObject).lean();
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find proposal type"});

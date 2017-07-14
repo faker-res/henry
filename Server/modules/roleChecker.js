@@ -229,7 +229,6 @@ var roleChecker = {
                 SettlementHistory: ['getSettlementHistory'],
                 PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
                 transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
-                transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
                 PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
                 PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement']
             },
