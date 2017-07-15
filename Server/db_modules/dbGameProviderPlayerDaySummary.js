@@ -1003,7 +1003,7 @@ var dbGameProviderPlayerDaySummary = {
         return deferred.promise;
     },
 
-    getPlayerDailyExpenseSummary:function (query, index, limit, sortCol) {
+    getPlayerDailyExpenseSummary: function (query, index, limit, sortCol) {
         var queryObject = {};
         index = index || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);

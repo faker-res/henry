@@ -1431,7 +1431,7 @@ var proposalExecutor = {
                         if(curData) {
                             dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).then(
                                 function(platformData) {
-                                    if(platformData.canMultiReward || !platformData.useLockedCredit){
+                                    if (platformData.canMultiReward || !platformData.useLockedCredit) {
                                         dbRewardTask.createRewardTask(proposalData.data).then(
                                             deferred.resolve, deferred.reject
                                         );

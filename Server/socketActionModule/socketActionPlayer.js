@@ -229,7 +229,7 @@ function socketActionPlayer(socketIO, socket) {
          * get player's daily consumption summary records
          * @param {json} data - It has to contain playerid
          */
-        getGameProviderPlayerDaySummary: function getGameProviderPlayerDaySummary(data){
+        getGameProviderPlayerDaySummary: function getGameProviderPlayerDaySummary(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getPlayerDailyExpenseSummary, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
