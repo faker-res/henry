@@ -301,11 +301,14 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 bonusAmount = record[0].bonusAmount;
                                             }
 
+                                            // Skip applyAmount if reward is consumption return
+                                            let applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
+
                                             checkResult.push({
                                                 sequence: checkingNo,
                                                 proposalId: getProp.proposalId,
                                                 initBonusAmount: initBonusAmount,
-                                                requiredConsumption: getProp.data.spendingAmount - getProp.data.applyAmount,
+                                                requiredConsumption: getProp.data.spendingAmount - applyAmount,
                                                 curConsumption: curConsumption,
                                                 bonusAmount: bonusAmount
                                             });
