@@ -714,7 +714,7 @@ var dbPlayerTopUpRecord = {
      * @param playerID
      * @param inputData
      */
-    addManualTopupRequest: function (playerId, inputData, entryType, adminId, adminName) {
+    addManualTopupRequest: function (playerId, inputData, entryType, adminId, adminName, fromFPMS) {
         var player = null;
         var proposal = null;
         var request = null;
@@ -737,6 +737,20 @@ var dbPlayerTopUpRecord = {
             playerData => {
                 if (playerData && playerData.platform && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
                     player = playerData;
+                    
+                    if (inputData.lastBankcardNo.length > 0 && fromFPMS) {
+                        let isCorrectBankAcc = player.bankCardGroup.banks.find((bankAcc)=>{
+                            return inputData.lastBankcardNo == bankAcc.slice(-(inputData.lastBankcardNo.length));
+                        });
+                        if(!isCorrectBankAcc){
+                            return Q.reject({
+                                status: constServerCode.PLAYER_TOP_UP_FAIL,
+                                name: "DataError",
+                                errorMessage: "Bank Account is not correct"
+                            });                 
+                        }
+                    }
+
                     var minTopUpAmount = playerData.platform.minTopUpAmount || 0;
                     if (inputData.amount < minTopUpAmount) {
                         return Q.reject({
@@ -745,6 +759,7 @@ var dbPlayerTopUpRecord = {
                             errorMessage: "Top up amount is not enough"
                         });
                     }
+
                     if (!playerData.permission || !playerData.permission.topupManual) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
@@ -752,6 +767,7 @@ var dbPlayerTopUpRecord = {
                             errorMessage: "Player does not have manual topup permission"
                         });
                     }
+
                     var proposalData = Object.assign({}, inputData);
                     proposalData.playerId = playerId;
                     proposalData.playerObjId = playerData._id;
@@ -763,7 +779,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.depositMethod = inputData.depositMethod;
                     proposalData.realName = inputData.realName;
                     proposalData.remark = inputData.remark || "";
-                    proposalData.lastBankcardNo = inputData.lastBankcardNo;
+                    proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
                     proposalData.creator = entryType == "ADMIN" ? {
                         type: 'admin',
                         name: adminName,
