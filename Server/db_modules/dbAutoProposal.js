@@ -302,7 +302,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                             }
 
                                             // Skip applyAmount if reward is consumption return
-                                            let applyAmount = getProp.data.bConsumptionReturnRequest ? 0 : getProp.data.applyAmount;
+                                            let applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
 
                                             checkResult.push({
                                                 sequence: checkingNo,
