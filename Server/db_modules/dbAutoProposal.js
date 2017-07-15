@@ -366,10 +366,10 @@ function checkProposalConsumption(proposal, platformObj) {
                         }
                         else if (validConsumptionAmount + lostThreshold < spendingAmount) {
                             isApprove = false;
-                            if (checkMsg == "") {
+                            //if (checkMsg == "") {
                                 checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
                                 checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
-                            }
+                            //}
                         }
                         else {
                             // Consumption has fulfilled requirement during this cycle
