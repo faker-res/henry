@@ -593,7 +593,7 @@ function socketActionPlayer(socketIO, socket) {
         applyManualTopUpRequest: function applyManualTopUpRequest(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod && data.lastBankcardNo && data.provinceId && data.cityId);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [data.playerId, data, "ADMIN", getAdminId(), getAdminName()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [data.playerId, data, "ADMIN", getAdminId(), getAdminName(),data.fromFPMS], actionName, isValidData);
         },
         /**
          *  Get deposit methods
@@ -786,6 +786,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId && data.startDate && data.endDate);
             socketUtil.emitter(self.socket, dbApiLog.getPlayerApiLog, [data.playerObjId, data.startDate, data.endDate, data.action, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        transferAllPlayersCreditFromProvider: function transferAllPlayersCreditFromProvider(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform && data.playerId && data.providerId && typeof(data.amount) === 'number');
+            socketUtil.emitter(self.socket, dbPlayerInfo.transferAllPlayersCreditFromProvider, [data.platform, data.providerId, data.adminName], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

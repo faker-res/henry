@@ -5433,13 +5433,8 @@ define(['js/app'], function (myApp) {
                 setTimeout(function () {
                     $('#playerDailyExpenseTable').resize();
                 }, 500);
-
-
             });
         };
-
-
-
 
         vm.submitRepairPayment = function () {
             vm.submitRepairePayementStep = 1;
@@ -5562,7 +5557,8 @@ define(['js/app'], function (myApp) {
                 bankTypeId: vm.playerManualTopUp.bankTypeId,
                 provinceId: vm.playerManualTopUp.provinceId,
                 cityId: vm.playerManualTopUp.cityId,
-                districtId: vm.playerManualTopUp.districtId
+                districtId: vm.playerManualTopUp.districtId,
+                fromFPMS: true
             };
             vm.playerManualTopUp.submitted = true;
             $scope.safeApply();
