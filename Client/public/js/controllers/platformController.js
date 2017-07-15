@@ -1868,7 +1868,6 @@ define(['js/app'], function (myApp) {
             //
             // getAllPlayerCreditTransferStatus();
         };
-
         vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch) {
             let tableData = data.map(item => {
                 item.createTime$ = vm.dateReformat(item.createTime);
@@ -1960,6 +1959,153 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
+        vm.newPlayerList = function () {
+            vm.newPlayerRecords = {totalCount: 0};
+            vm.initQueryTimeFilter('newPlayerList', function () {
+                // $('#modalNewPla').modal();
+                vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "newPlayerList", vm.getNewPlayerListByFilter)
+                });
+                vm.getNewPlayerListByFilter(true);
+            });
+        }
+
+        vm.getNewPlayerListByFilter = function(newSearch){
+            // var sendData = {
+            //     startTime: vm.queryPara.newPlayerList.startTime.data('datetimepicker').getLocalDate(),
+            //     endTime: vm.queryPara.newPlayerList.endTime.data('datetimepicker').getLocalDate(),
+            //     playerId: vm.isOneSelectedPlayer()._id,
+            //     index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
+            //     limit: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
+            //     sortCol: vm.newPlayerRecords.sortCol || null
+            // };
+            var selectedStatus = [];
+            if (vm.proposalStatusSelected) {
+                vm.proposalStatusSelected.forEach(
+                    status => {
+                        selectedStatus.push(status);
+                        if (status == "Success") {
+                            selectedStatus.push("Approved");
+                        }
+                        if (status == "Fail") {
+                            selectedStatus.push("Rejected");
+                        }
+                    }
+                );
+            }
+            var sendData = {
+                adminId: authService.adminId,
+                platformId:  vm.selectedPlatform.id,
+                // type: vm.proposalTypeSelected,
+                type:"PlayerRegistrationIntention",
+                startDate: vm.queryPara.newPlayerList.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.newPlayerList.endTime.data('datetimepicker').getLocalDate(),
+                // relateUser: vm.queryProposalRelatedUser,
+                // entryType: vm.queryProposalEntryType,
+                // size: newSearch ? 10 : (vm.queryProposal.limit || 10),
+                index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
+                sortCol: {"createTime": -1}//vm.newPlayerRecords.sortCol || null
+            }
+            if (selectedStatus) {
+                sendData.status = selectedStatus
+            }
+
+            vm.newPlayerRecords.loading = true;
+            console.log("Query", sendData);
+            vm.prepareNewPlayerListRecords(sendData, newSearch);
+            $("#newPlayerListTablePage").off('order.dt');
+            $("#newPlayerListTablePage").on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'newPlayerList', vm.getNewPlayerListByFilter);
+            });
+        };
+        vm.prepareNewPlayerListRecords = function (queryData, newSearch) {
+            vm.playerDailyExpenseRecords = [];
+            socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', queryData, function (data) {
+                vm.playerDailyExpenseRecords = data.data.data;
+                vm.newPlayerRecords.totalCount = data.data.size;
+                var summary = data.data.summary || {};
+                vm.newPlayerRecords.loading = false;
+                console.log('consumption record', data);
+                var validAmount = 0;
+                var amount = 0;
+                var bonusAmount = 0;
+                var tableData = vm.playerDailyExpenseRecords.map(
+                    record => {
+                        validAmount += Number(record.validAmount);
+                        amount += Number(record.amount);
+                        bonusAmount += Number(record.bonusAmount);
+                        record.date = vm.dateReformat(record.date);
+                        // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
+                        record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
+                        record.amount$ = parseFloat(record.amount).toFixed(2);
+                        record.bonusAmount$ = parseFloat(record.bonusAmount).toFixed(2);
+                        record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
+                        record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
+                        return record
+                    }
+                );
+                vm.totalConsumptionAmount = parseFloat(amount).toFixed(2);
+                vm.totalConsumptionValidAmount = parseFloat(validAmount).toFixed(2);
+                vm.totalConsumptionBonusAmount = parseFloat(bonusAmount).toFixed(2);
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tableData,
+                    "aaSorting": vm.newPlayerRecords.aaSorting || [[1, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'gameId', bSortable: true, 'aTargets': [2]},
+                        // {'sortCol': 'gameType', bSortable: true, 'aTargets': [4]},
+                        // {'sortCol': 'roundNo', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'validAmount', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'amount', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [5]},
+                        // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
+                        // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [7]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+
+                    columns: [
+                        {title: $translate('CREATION_TIME'), data: "date"},
+                        {title: $translate('PROVIDER'), data: "providerId.name"},
+                        {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
+                        // {title: $translate('GAME_TYPE'), data: "gameType$", sClass: 'sumText'},
+                        // {title: $translate('Game Round'), data: "roundNo", sClass: 'sumText'},
+                        {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
+                        {title: $translate('CREDIT'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
+                        {
+                            title: $translate('bonusAmount1'),
+                            data: "bonusAmount$", sClass: 'alignRight sumFloat'
+                        },
+                        {title: $translate('Occupy'), data: "bDirty$"},
+                        // {
+                        //     title: $translate('commissionAmount'),
+                        //     data: "commissionAmount$",
+                        //     sClass: "alignRight sumFloat"
+                        // },
+                    ],
+                    destroy: true,
+                    paging: false,
+                    autoWidth: true,
+                    initComplete: function(){
+                        $scope.safeApply();
+                    }
+                });
+                // $('#playerExpenseTable').DataTable(option);
+                var a = utilService.createDatatableWithFooter('#newPlayerListTablePage', option, {
+                    3: summary.validAmountSum,
+                    4: summary.amountSum,
+                    5: summary.bonusAmountSum,
+                    // 8: summary.commissionAmountSum
+                });
+                vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
+                setTimeout(function () {
+                    $('#newPlayerListTablePage').resize();
+                }, 300);
+                
+
+                
+            });
+        };
         vm.prepareRepairTransfer = function () {
             vm.showPlatformRepair = !vm.showPlatformRepair;
             if (vm.showPlatformRepair) {
