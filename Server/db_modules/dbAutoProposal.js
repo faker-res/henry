@@ -369,8 +369,8 @@ function checkProposalConsumption(proposal, platformObj) {
                             spendingAmount = 0;
                             bonusAmount = 0;
                             initBonusAmount = 0;
-                            checkMsg = "";
-                            checkMsgChinese = "";
+                            // checkMsg = "";
+                            // checkMsgChinese = "";
                         }
 
                         validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
