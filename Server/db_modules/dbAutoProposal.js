@@ -401,6 +401,8 @@ function checkProposalConsumption(proposal, platformObj) {
                     // Check consumption approved or not
                     if (proposal.data.autoApproveRepeatCount <= 0 && (isApprove || isTypeEApproval)) {
                         let canApprove = true;
+                        checkMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+                        checkMsgChinese += "整体投注额已满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                         // Consumption reached, check for other conditions
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
                             checkMsg += "Denied: Amount exceed single bonus limit";
@@ -453,7 +455,6 @@ function checkProposalConsumption(proposal, platformObj) {
                         }
                         if (!canApprove) {
                             sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-
                         } else {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：投注额 " + validConsumptionAmount + "，投注额需求 " + spendingAmount;
