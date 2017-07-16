@@ -399,7 +399,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     }
 
                     // Check consumption approved or not
-                    if (isApprove || isTypeEApproval) {
+                    if (proposal.data.autoApproveRepeatCount <= 0 && (isApprove || isTypeEApproval)) {
                         let canApprove = true;
                         // Consumption reached, check for other conditions
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
@@ -486,7 +486,7 @@ function checkProposalConsumption(proposal, platformObj) {
                             updObj['data.detailChinese'] = abnormalMessageChinese;
                         }
 
-                        if (proposal.data.autoApproveRepeatCount >= 0) {
+                        if (proposal.data.autoApproveRepeatCount > 0) {
                             let nextCheckTime = new Date();
                             nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
                             updObj['data.nextCheckTime'] = nextCheckTime;
