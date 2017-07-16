@@ -142,14 +142,21 @@ function checkProposalConsumption(proposal, platformObj) {
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).sort({createTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
+            let proposalsPromise = dbconfig.collection_proposal.find(
+                {
+                    'data.platformId': ObjectId(proposal.data.platformId),
+                    'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                    createTime: {$lt: proposal.createTime}
+                }
+            ).sort({createTime: -1}).lean();
 
-            let promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise, playerInfoPromise];
+            let promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise];
 
             return Promise.all(promises);
         }
     ).then(
         data => {
-            let proposals, playerData;
+            let proposals, allProposals, playerData;
             let bTransferAbnormal = false;
             let transferAbnormalId = "";
             let bNoBonusPermission = false;
@@ -157,10 +164,14 @@ function checkProposalConsumption(proposal, platformObj) {
             let abnormalMessage = "";
             let abnormalMessageChinese = "";
 
-            if (data && data[0]) {
+            if( data && data[0] ){
                 proposals = data[0];
+            }
 
-                if (hasPendingPaymentInfoChanges(proposals)) {
+            if (data && data[3]) {
+                allProposals = data[3];
+
+                if (hasPendingPaymentInfoChanges(allProposals)) {
                     bPendingPaymentInfo = true;
                     abnormalMessage += "Player have pending payment info changes proposal.; ";
                     abnormalMessageChinese += "玩家有未审核编辑玩家银行资料提案。; ";
@@ -174,7 +185,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     initialAmount = transferInRec[0].amount;
                 }
 
-                let transferAbnormalities = findTransferAbnormality(data[1], proposals);
+                let transferAbnormalities = findTransferAbnormality(data[1], allProposals);
 
                 for (let i = 0; i < transferAbnormalities.length; i++) {
                     abnormalMessage += transferAbnormalities[i].en + "; ";
