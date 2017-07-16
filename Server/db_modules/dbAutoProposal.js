@@ -142,13 +142,19 @@ function checkProposalConsumption(proposal, platformObj) {
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).sort({createTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
-            let proposalsPromise = dbconfig.collection_proposal.find(
-                {
-                    'data.platformId': ObjectId(proposal.data.platformId),
-                    'data.playerObjId': ObjectId(proposal.data.playerObjId),
-                    createTime: {$lt: proposal.createTime}
-                }
-            ).sort({createTime: -1}).lean();
+            //todo::check credit change log instead of proposal
+            let allProposalQuery = {
+                'data.platformId': ObjectId(proposal.data.platformId),
+                createTime: {$lt: proposal.createTime},
+                $or: [{'data.playerObjId': ObjectId(proposal.data.playerObjId)}]
+            };
+            if( proposal.data.playerId ){
+                allProposalQuery["$or"].push({'data.playerId': proposal.data.playerId});
+            }
+            if( proposal.data.playerName ){
+                allProposalQuery["$or"].push({'data.playerName': proposal.data.playerName});
+            }
+            let proposalsPromise = dbconfig.collection_proposal.find(allProposalQuery).sort({createTime: -1}).lean();
 
             let promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise];
 
@@ -408,12 +414,14 @@ function checkProposalConsumption(proposal, platformObj) {
                         repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese = "整体投注额不足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                     }
+                    else {
+                        repeatMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+                        repeatMsgChinese += "整体投注额已满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
+                    }
 
                     // Check consumption approved or not
                     if (proposal.data.autoApproveRepeatCount <= 0 && (isApprove || isTypeEApproval)) {
                         let canApprove = true;
-                        checkMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
-                        checkMsgChinese += "整体投注额已满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                         // Consumption reached, check for other conditions
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
                             checkMsg += "Denied: Amount exceed single bonus limit";
