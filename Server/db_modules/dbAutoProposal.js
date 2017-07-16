@@ -133,21 +133,24 @@ function checkProposalConsumption(proposal, platformObj) {
                 platform: ObjectId(proposal.data.platformId)
             };
 
+            let allProposalQuery = {
+                'data.platformId': ObjectId(proposal.data.platformId),
+                createTime: {$lt: proposal.createTime},
+                $or: [{'data.playerObjId': ObjectId(proposal.data.playerObjId)}]
+            };
+
             if (lastWithdrawDate) {
                 dLastWithdraw = lastWithdrawDate;
                 proposalQuery.createTime["$gt"] = lastWithdrawDate;
                 transferLogQuery.createTime["$gt"] = lastWithdrawDate;
+                allProposalQuery.createTime["$gt"] = lastWithdrawDate;
             }
 
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).sort({createTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
             //todo::check credit change log instead of proposal
-            let allProposalQuery = {
-                'data.platformId': ObjectId(proposal.data.platformId),
-                createTime: {$lt: proposal.createTime},
-                $or: [{'data.playerObjId': ObjectId(proposal.data.playerObjId)}]
-            };
+
             if (proposal.data.playerId) {
                 allProposalQuery["$or"].push({'data.playerId': proposal.data.playerId});
             }
@@ -414,7 +417,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         totalBonusAmount += checkResult[i].bonusAmount;
                     }
 
-                    if ((validConsumptionAmount + lostThreshold) < spendingAmount || validConsumptionAmount == 0) {
+                    if ((validConsumptionAmount + lostThreshold) < spendingAmount) {
                         isApprove = false;
                         repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese = "整体投注额不足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
