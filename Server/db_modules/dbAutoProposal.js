@@ -151,6 +151,7 @@ function checkProposalConsumption(proposal, platformObj) {
         data => {
             let proposals, playerData;
             let bTransferAbnormal = false;
+            let transferAbnormalId = "";
             let bNoBonusPermission = false;
             let bPendingPaymentInfo = false;
             let abnormalMessage = "";
@@ -370,8 +371,8 @@ function checkProposalConsumption(proposal, platformObj) {
                         else if (validConsumptionAmount + lostThreshold < spendingAmount) {
                             isApprove = false;
                             //if (checkMsg == "") {
-                                checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                                checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
+                            checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                            checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
                             //}
                         }
                         else {
@@ -399,40 +400,60 @@ function checkProposalConsumption(proposal, platformObj) {
 
                     // Check consumption approved or not
                     if (isApprove || isTypeEApproval) {
+                        let canApprove = true;
                         // Consumption reached, check for other conditions
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
                             checkMsg += "Denied: Amount exceed single bonus limit";
                             checkMsgChinese += "失败：超出自动审核单笔提款金额限制";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        } else if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
+                            canApprove = false;
+                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        }
+                        if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
                             checkMsg += "Denied: Amount exceed single day bonus limit";
                             checkMsgChinese += "失败：超出自动审核单日总提款金额限制";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        } else if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
+                            canApprove = false;
+                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        }
+                        if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
                             checkMsg += "Denied: Player not allowed for auto proposal";
-                            checkMsgChinese += "失败：此玩家不被允许自动审核";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        } else if (bFirstWithdraw) {
+                            checkMsgChinese += "失败：玩家状态不是正常，此玩家不被允许自动审核";
+                            canApprove = false;
+                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        }
+                        if (bFirstWithdraw) {
                             checkMsg += "Denied: Player's first withdrawal";
                             checkMsgChinese += "失败：玩家首次提款";
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        } else if (bTransferAbnormal) {
+                            canApprove = false;
+                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        }
+                        if (bTransferAbnormal) {
                             checkMsg += 'Denied: Abnormal Transfer In or Transfer Out log';
                             checkMsgChinese += '失败：转入转出记录异常';
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        } else if (bNoBonusPermission) {
+                            canApprove = false;
+                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        }
+                        if (bNoBonusPermission) {
                             checkMsg += 'Denied: This player do not have permission to apply bonus';
                             checkMsgChinese += '失败：玩家没有权限提款';
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        } else if (bPendingPaymentInfo) {
+                            canApprove = false;
+                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        }
+                        if (bPendingPaymentInfo) {
                             checkMsg += 'Denied: Player have pending payment info changes proposal';
                             checkMsgChinese += '失败：玩家有未审核编辑玩家银行资料提案';
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        } else if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
+                            canApprove = false;
+                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        }
+                        if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
                             && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
                             checkMsg += 'Denied: Players profit has exceed allowed profit times';
                             checkMsgChinese += '失败：玩家盈利大于盈利倍数限制';
+                            canApprove = false;
+                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                        }
+                        if (!canApprove) {
                             sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+
                         } else {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：投注额 " + validConsumptionAmount + "，投注额需求 " + spendingAmount;
@@ -682,7 +703,7 @@ function findTransferAbnormality(transferLogs, proposals) {
     let validCreditMoreThanOneAfterTransferIn = false;
     let multipleTransferOutStreakExist = false;
     let lastTransferLogType = "";
-    let lastTransferLogTime = "";
+    let lastTransferInLogTime = "";
     let lastTransferLogProviderId = "";
     proposals = proposals ? proposals : [];
 
@@ -690,11 +711,11 @@ function findTransferAbnormality(transferLogs, proposals) {
     for (let i = 0; i < logsLength; i++) {
         if (transferLogs[i].type === 'TransferIn') {
             auditTransferInLog(transferLogs[i]);
+            lastTransferInLogTime = transferLogs[i].createTime;
         } else {
             auditTransferOutLog(transferLogs[i]);
         }
         lastTransferLogType = transferLogs[i].type;
-        lastTransferLogTime = transferLogs[i].createTime;
         lastTransferLogProviderId = transferLogs[i].providerId;
     }
 
@@ -725,7 +746,7 @@ function findTransferAbnormality(transferLogs, proposals) {
 
     function auditTransferInLog(log) {
         if (lastTransferLogType === "TransferIn") {
-            if (!hasProposalWithinPeriod(lastTransferLogTime, log.createTime)) {
+            if (!hasProposalWithinPeriod(lastTransferInLogTime, log.createTime)) {
                 multipleTransferInWithoutOtherProposals = true;
             }
 
@@ -737,7 +758,7 @@ function findTransferAbnormality(transferLogs, proposals) {
         function hasProposalWithinPeriod(startTime, endTime) {
             let relevantProposalMainType = ["TopUp", "Reward"];
             for (let i = 0; i < proposals.length; i++) {
-                if (proposals[i].createTime > startTime && proposals[i].createTime < endTime && relevantProposalMainType.includes(proposals[i].mainType)) {
+                if (proposals[i].createTime > startTime && proposals[i].createTime < endTime /*&& relevantProposalMainType.includes(proposals[i].mainType)*/) {
                     return true;
                 }
             }
