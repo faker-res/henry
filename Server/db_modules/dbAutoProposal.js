@@ -379,6 +379,8 @@ function checkProposalConsumption(proposal, platformObj) {
                         totalConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
                         totalSpendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
 
+                        checkMsg += "ProposalId:" + checkResult[i] + " requiredConsumption:" + checkResult[i].requiredConsumption + ", ";
+
                         if (checkResult[i].initBonusAmount) {
                             initBonusAmount += checkResult[i].initBonusAmount ? checkResult[i].initBonusAmount : 0;
                             bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
