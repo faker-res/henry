@@ -114,8 +114,8 @@ function checkProposalConsumption(proposal, platformObj) {
             bFirstWithdraw = !lastWithdrawDate;
 
             let proposalQuery = {
-                'data.platformId': ObjectId(proposal.data.platformId),
-                'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                'data.platformId': {$in: [ObjectId(proposal.data.platformId), String(proposal.data.platformId)]},
+                'data.playerObjId': {$in: [ObjectId(proposal.data.playerObjId), String(proposal.data.platformId)]},
                 createTime: {$lt: proposal.createTime},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                 mainType: {$in: ["TopUp", "Reward"]}
