@@ -148,13 +148,15 @@ function checkProposalConsumption(proposal, platformObj) {
                 createTime: {$lt: proposal.createTime},
                 $or: [{'data.playerObjId': ObjectId(proposal.data.playerObjId)}]
             };
-            if( proposal.data.playerId ){
+            if (proposal.data.playerId) {
                 allProposalQuery["$or"].push({'data.playerId': proposal.data.playerId});
             }
-            if( proposal.data.playerName ){
+            if (proposal.data.playerName) {
                 allProposalQuery["$or"].push({'data.playerName': proposal.data.playerName});
             }
-            let proposalsPromise = dbconfig.collection_proposal.find(allProposalQuery).sort({createTime: -1}).lean();
+            let proposalsPromise = dbconfig.collection_proposal.find(allProposalQuery).populate(
+                {path: "type", model: dbconfig.collection_proposalType}
+            ).sort({createTime: -1}).lean();
 
             let promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise];
 
@@ -170,7 +172,7 @@ function checkProposalConsumption(proposal, platformObj) {
             let abnormalMessage = "";
             let abnormalMessageChinese = "";
 
-            if( data && data[0] ){
+            if (data && data[0]) {
                 proposals = data[0];
             }
 
@@ -800,7 +802,7 @@ function hasPendingPaymentInfoChanges(proposals) {
     let length = proposals.length;
     for (let i = 0; i < length; i++) {
         let proposal = proposals[i];
-        if (proposal.type === constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status != constProposalStatus.REJECTED) {
+        if (proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status != constProposalStatus.REJECTED) {
             return true;
         }
     }
