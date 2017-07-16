@@ -184,21 +184,22 @@ function checkProposalConsumption(proposal, platformObj) {
                 }
             }
 
-            if (data && data[1]) {
-                let transferInRec = data[1].filter(rec => rec.type == "TransferIn");
-
-                if (transferInRec && transferInRec[0]) {
-                    initialAmount = transferInRec[0].amount;
-                }
-
-                let transferAbnormalities = findTransferAbnormality(data[1], allProposals);
-
-                for (let i = 0; i < transferAbnormalities.length; i++) {
-                    abnormalMessage += transferAbnormalities[i].en + "; ";
-                    abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
-                    bTransferAbnormal = true;
-                }
-            }
+            //todo:: eanble the transfer log check later
+            // if (data && data[1]) {
+            //     let transferInRec = data[1].filter(rec => rec.type == "TransferIn");
+            //
+            //     if (transferInRec && transferInRec[0]) {
+            //         initialAmount = transferInRec[0].amount;
+            //     }
+            //
+            //     let transferAbnormalities = findTransferAbnormality(data[1], allProposals);
+            //
+            //     for (let i = 0; i < transferAbnormalities.length; i++) {
+            //         abnormalMessage += transferAbnormalities[i].en + "; ";
+            //         abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+            //         bTransferAbnormal = true;
+            //     }
+            // }
 
             if (data && data[2]) {
                 playerData = data[2];
@@ -363,6 +364,8 @@ function checkProposalConsumption(proposal, platformObj) {
                             spendingAmount = 0;
                             bonusAmount = 0;
                             initBonusAmount = 0;
+                            checkMsg = "";
+                            checkMsgChinese = "";
                         }
 
                         validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
@@ -506,7 +509,7 @@ function checkProposalConsumption(proposal, platformObj) {
                             updObj['data.detailChinese'] = abnormalMessageChinese;
                         }
 
-                        if (proposal.data.autoApproveRepeatCount > 0) {
+                        if (proposal.data.autoApproveRepeatCount >= 0) {
                             let nextCheckTime = new Date();
                             nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
                             updObj['data.nextCheckTime'] = nextCheckTime;
