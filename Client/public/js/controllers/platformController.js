@@ -1998,6 +1998,7 @@ define(['js/app'], function (myApp) {
                 platformId:  vm.selectedPlatform.id,
                 // type: vm.proposalTypeSelected, PlayerRegistrationIntention
                 type:["UpdatePlayerCredit", "PlayerRegistrationIntention"],
+
                 startDate: vm.queryPara.newPlayerList.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.newPlayerList.endTime.data('datetimepicker').getLocalDate(),
                 // relateUser: vm.queryProposalRelatedUser,
@@ -2005,6 +2006,7 @@ define(['js/app'], function (myApp) {
                 // size: newSearch ? 10 : (vm.queryProposal.limit || 10),
                 index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
                 sortCol: {"createTime": -1} //vm.newPlayerRecords.sortCol || null
+
             }
             if (selectedStatus) {
                 sendData.status = selectedStatus
@@ -2101,9 +2103,15 @@ define(['js/app'], function (myApp) {
                 setTimeout(function () {
                     $('#newPlayerListTablePage').resize();
                 }, 300);
+<<<<<<< HEAD
 
 
 
+=======
+
+
+
+>>>>>>> 6fe8bc50ad18b5dfcaebb770521db56fcdfc62d1
             });
         };
         vm.prepareRepairTransfer = function () {
