@@ -390,7 +390,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         totalConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
                         totalSpendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
 
-                        //checkMsg += "ProposalId:" + checkResult[i].proposalId + " requiredConsumption:" + checkResult[i].requiredConsumption + ", ";
+                        // checkMsg += "ProposalId:" + checkResult[i].proposalId + " requiredConsumption:" + checkResult[i].requiredConsumption + ", ";
 
                         if (checkResult[i].initBonusAmount) {
                             initBonusAmount += checkResult[i].initBonusAmount ? checkResult[i].initBonusAmount : 0;
@@ -479,7 +479,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (bPendingPaymentInfo) {
-                        checkMsg += ' Denied: Pending payment info changes ';
+                        checkMsg += ' Denied: Rebank ';
                         checkMsgChinese += '失败：银改';
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
@@ -495,11 +495,11 @@ function checkProposalConsumption(proposal, platformObj) {
                     // Check consumption approved or not
                     if (isApprove || isTypeEApproval) {
                         if (!canApprove) {
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
                         } else {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：投注额 " + validConsumptionAmount + "，投注额需求 " + spendingAmount;
-                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese);
+                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
                         }
                     } else {
                         // Consumption not reached; Throw back to loop pool or deny this proposal
@@ -557,7 +557,7 @@ function checkProposalConsumption(proposal, platformObj) {
     )
 }
 
-function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese) {
+function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -579,7 +579,9 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                 'data.remarkChinese': '自动审核成功：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
                                 'data.detail': abnormalMessage ? abnormalMessage : "",
-                                'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
+                                'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
+                                'data.autoAuditRepeatMsg' : repeatMsg,
+                                'data.autoAuditRepeatMsgChinese' : repeatMsgChinese
                             },
                             {new: true}
                         );
@@ -623,7 +625,7 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
     );
 }
 
-function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese) {
+function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -643,7 +645,9 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                         'data.autoAuditRemarkChinese': '自动审核' + remarkChinese,
                         'data.autoAuditCheckMsg': processRemark,
                         'data.detail': abnormalMessage ? abnormalMessage : "",
-                        'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
+                        'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
+                        'data.autoAuditRepeatMsg' : repeatMsg,
+                        'data.autoAuditRepeatMsgChinese' : repeatMsgChinese
                     }).then();
                 }
                 else {
@@ -767,22 +771,22 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
-            en: "There are multiple transfer in without any top up or reward in between. (ID: " + multipleTransferInId +")",
-            ch: "连续两次或以上转入，期间无任何充值或奖励。 (ID: " + multipleTransferInId +")"
+            en: "Multi TransferIn (ID: " + multipleTransferInId +")",
+            ch: "连续转入 (ID: " + multipleTransferInId +")"
         });
     }
 
     if (validCreditMoreThanOneAfterTransferIn) {
         abnormalities.push({
-            en: "There are more than 1 credit left in local after transfer in.",
-            ch: "转入后检测本地余额多过1。"
+            en: "1TransferIn",
+            ch: "转入后多过1"
         });
     }
 
     if (multipleTransferOutStreakExist) {
         abnormalities.push({
-            en: "There are multiple transfer out without any transfer in in between. (ID: " + multipleTransferOutId +")",
-            ch: "相同游戏厅连续转出两次或以上（期间无转入记录）。 (ID: " + multipleTransferOutId +")"
+            en: "Multi TransferOut (ID: " + multipleTransferOutId +")",
+            ch: "连续转出 (ID: " + multipleTransferOutId +")"
         });
     }
 
