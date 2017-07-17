@@ -184,8 +184,8 @@ function checkProposalConsumption(proposal, platformObj) {
 
                 if (hasPendingPaymentInfoChanges(allProposals)) {
                     bPendingPaymentInfo = true;
-                    abnormalMessage += "Player have pending payment info changes proposal.; ";
-                    abnormalMessageChinese += "玩家有未审核编辑玩家银行资料提案。; ";
+                    // abnormalMessage += "Player have pending payment info changes proposal.; ";
+                    // abnormalMessageChinese += "玩家有未审核编辑玩家银行资料提案。; ";
                 }
             }
 
@@ -210,8 +210,8 @@ function checkProposalConsumption(proposal, platformObj) {
                 playerData = data[2];
                 if (!playerData.permission.applyBonus) {
                     bNoBonusPermission = true;
-                    abnormalMessage += "This player do not have permission to apply bonus.; ";
-                    abnormalMessageChinese += "玩家没有权限提款。; "
+                    // abnormalMessage += "This player do not have permission to apply bonus.; ";
+                    // abnormalMessageChinese += "玩家没有权限提款。; "
                 }
             }
 
