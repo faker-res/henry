@@ -531,8 +531,8 @@ let dbPlayerInfo = {
         let func = (fieldName == 'phoneNumber')
             ? dbUtility.encodePhoneNum
             : ((fieldName == 'bankAccount')
-            ? dbUtility.encodeBankAcc
-            : null);
+                ? dbUtility.encodeBankAcc
+                : null);
         return Q.resolve(prom1).then(results => {
             let prom = [];
             let similarPlayersArray = [];
@@ -1396,6 +1396,7 @@ let dbPlayerInfo = {
         ).then(
             updatedData => {
                 updateData.isPlayerInit = true;
+                updateData.playerName = playerObj.name;
                 dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {data: updateData});
                 return updatedData;
             }
@@ -3583,9 +3584,9 @@ let dbPlayerInfo = {
         let deferred = Q.defer();
         let prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform});
+                .populate({path: "platform", model: dbconfig.collection_platform});
         let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         let playerData = null;
         let providerData = null;
@@ -4013,9 +4014,9 @@ let dbPlayerInfo = {
         var playerObj = {};
         var prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform});
+                .populate({path: "platform", model: dbconfig.collection_platform});
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
