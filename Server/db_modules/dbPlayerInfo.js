@@ -79,7 +79,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData) {
+    createPlayerInfoAPI: function (inputData, isSMSVerified) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -90,58 +90,93 @@ let dbPlayerInfo = {
         else if (inputData.platformId) {
             return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
                 platformData => {
-                    if (platformData) {
-                        platformId = platformData.platformId;
-                        platformObj = platformData;
-                        platformObjId = platformData._id;
-                        platformPrefix = platformData.prefix;
-                        //player flag for new system
-                        inputData.isNewSystem = true;
-                        let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
-                            name: inputData.name,
-                            platform: platformData._id
-                        });
-                        let realNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
-                            realName: inputData.realName,
-                            platform: platformData._id
-                        });
-                        if (!("allowSameRealNameToRegister" in platformData)) {
-                            platformData.allowSameRealNameToRegister = true;
-                        }
-                        if (platformData.allowSameRealNameToRegister) {
-                            return playerNameChecker;
-                        }
-
-                        return Q.all([playerNameChecker, realNameChecker]).then(data => {
-                            if (data && data.length == 2 && data[0] && data[1]) {
-                                if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
-                                    // console.log();
-                                    return {"isPlayerNameValid": true};
-                                }
-                                else {
-                                    if (!data[0].isPlayerNameValid) {
-                                        return Q.reject({
-                                            status: constServerCode.USERNAME_ALREADY_EXIST,
-                                            name: "DBError",
-                                            message: "Player name already exists"
-                                        });
-                                    } else {
-                                        return Q.reject({
-                                            status: constServerCode.USERNAME_ALREADY_EXIST,
-                                            name: "DBError",
-                                            message: "Realname already exists"
-                                        });
-                                    }
-                                }
-                            }
-                            else {
-                                return {"isPlayerNameValid": false};
-                            }
-                        });
-                    }
-                    else {
+                    if (!platformData) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
+
+                    platformId = platformData.platformId;
+                    platformObj = platformData;
+                    platformObjId = platformData._id;
+                    platformPrefix = platformData.prefix;
+
+                    // isSMSVerified is true when smsCode is already verified in dbPlayerPartner
+                    if (!platformObj.requireSMSVerification || isSMSVerified) {
+                        return Q.resolve(true);
+                    }
+
+                    let smsProm = dbconfig.collection_smsVerificationLog.findOne({
+                        platformId: platformId,
+                        tel: inputData.phoneNumber
+                    }).sort({createTime: -1});
+
+                    return smsProm.then(
+                        verificationSMS => {
+                            // Check verification SMS code
+                            if (verificationSMS && verificationSMS.code && verificationSMS.code === inputData.smsCode) {
+                                verificationSMS = verificationSMS || {};
+                                return dbconfig.collection_smsVerificationLog.remove({
+                                    _id: verificationSMS._id
+                                }).then(
+                                    () => {
+                                        Q.resolve(true);
+                                    }
+                                );
+                            }
+                            else {
+                                // Verification code is invalid
+                                return Q.reject({
+                                    status: constServerCode.VALIDATION_CODE_INVALID,
+                                    name: "ValidationError",
+                                    message: "Invalid SMS Validation Code"
+                                });
+                            }
+                        }
+                    );
+                }
+            ).then(
+                isVerified => {
+                    //player flag for new system
+                    inputData.isNewSystem = true;
+                    let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
+                        name: inputData.name,
+                        platform: platformObjId
+                    });
+                    let realNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
+                        realName: inputData.realName,
+                        platform: platformObjId
+                    });
+                    if (!("allowSameRealNameToRegister" in platformObj)) {
+                        platformObj.allowSameRealNameToRegister = true;
+                    }
+                    if (platformObj.allowSameRealNameToRegister) {
+                        return playerNameChecker;
+                    }
+
+                    return Q.all([playerNameChecker, realNameChecker]).then(data => {
+                        if (data && data.length == 2 && data[0] && data[1]) {
+                            if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
+                                return {"isPlayerNameValid": true};
+                            }
+                            else {
+                                if (!data[0].isPlayerNameValid) {
+                                    return Q.reject({
+                                        status: constServerCode.USERNAME_ALREADY_EXIST,
+                                        name: "DBError",
+                                        message: "Player name already exists"
+                                    });
+                                } else {
+                                    return Q.reject({
+                                        status: constServerCode.USERNAME_ALREADY_EXIST,
+                                        name: "DBError",
+                                        message: "Realname already exists"
+                                    });
+                                }
+                            }
+                        }
+                        else {
+                            return {"isPlayerNameValid": false};
+                        }
+                    });
                 }
             ).then(
                 validData => {
