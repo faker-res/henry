@@ -54,7 +54,7 @@ let dbPlayerPartner = {
                     pRegisterData.partnerName = registerData.name;
                     if (!platformObj.requireSMSVerification) {
                         // SMS verification not required
-                        let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
+                        let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData, true);
                         let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
                         return Promise.all([plyProm, partnerProm]);
                     }
@@ -73,7 +73,7 @@ let dbPlayerPartner = {
                                         _id: verificationSMS._id
                                     }).then(
                                         retData => {
-                                            let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData);
+                                            let plyProm = dbPlayerInfo.createPlayerInfoAPI(registerData, true);
                                             let partnerProm = dbPartner.createPartnerAPI(pRegisterData);
 
                                             return Promise.all([plyProm, partnerProm]);
@@ -482,46 +482,62 @@ let dbPlayerPartner = {
                 let player, partner, playerUpdateData, partnerUpdateData;
                 switch (targetType) {
                     case 0:
-                        // player = result;
-                        // playerUpdateData = {
-                        //     isPlayerInit: true,
-                        //     playerObjId: player._id,
-                        //     playerName: player.name,
-                        //     "updateData.phoneNumber": player.phoneNumber
-                        // };
-                        result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: result});
+                        player = result;
+                        playerUpdateData = {
+                            isPlayerInit: true,
+                            data: {
+                                playerObjId: player._id,
+                                playerName: player.name,
+                                updateData: {
+                                    phoneNumber: player.phoneNumber
+                                }
+                            }
+                        };
+                        // result.isPlayerInit = true;
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData});
                         break;
                     case 1:
-                        // partner = result;
-                        // partnerUpdateData = {
-                        //     isPlayerInit: true,
-                        //     partnerObjId: partner._id,
-                        //     partnerName: partner.name,
-                        //     "updateData.phoneNumber": partner.phoneNumber
-                        // };
-                        result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: result});
+                        partner = result;
+                        partnerUpdateData = {
+                            isPlayerInit: true,
+                            data: {
+                                partnerObjId: partner._id,
+                                partnerName: partner.name,
+                                updateData: {
+                                    phoneNumber: player.phoneNumber
+                                }
+                            }
+                        };
+                        // result.isPlayerInit = true;
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData});
                         break;
                     case 2:
-                        // player = result[0];
-                        // playerUpdateData = {
-                        //     isPlayerInit: true,
-                        //     playerObjId: player._id,
-                        //     playerName: player.name,
-                        //     "updateData.phoneNumber": player.phoneNumber
-                        // };
-                        // partner = result[1];
-                        // partnerUpdateData = {
-                        //     isPlayerInit: true,
-                        //     partnerObjId: partner._id,
-                        //     partnerName: partner.name,
-                        //     "updateData.phoneNumber": partner.phoneNumber
-                        // };
-                        result[0].isPlayerInit = true;
-                        result[1].isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: result[0]});
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: result[1]});
+                        player = result[0];
+                        playerUpdateData = {
+                            isPlayerInit: true,
+                            data: {
+                                playerObjId: player._id,
+                                playerName: player.name,
+                                updateData: {
+                                    phoneNumber: player.phoneNumber
+                                }
+                            }
+                        };
+                        partner = result[1];
+                        partnerUpdateData = {
+                            isPlayerInit: true,
+                            data: {
+                                partnerObjId: partner._id,
+                                partnerName: partner.name,
+                                updateData: {
+                                    phoneNumber: player.phoneNumber
+                                }
+                            }
+                        };
+                        // result[0].isPlayerInit = true;
+                        // result[1].isPlayerInit = true;
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData});
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData});
                         break;
                 }
 
