@@ -751,6 +751,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
     let lastTransferLogType = "";
     let lastTransferInLogTime = "";
     let lastTransferLogProviderId = "";
+    let multipleTransferInId = null;
+    let multipleTransferOutId = null;
     creditChangeLogs = creditChangeLogs ? creditChangeLogs : [];
 
     let logsLength = transferLogs.length;
@@ -769,8 +771,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
-            en: "Multi TransferIn",
-            ch: "连续转入"
+            en: "Multi TransferIn (ID: " + multipleTransferInId +")",
+            ch: "连续转入 (ID: " + multipleTransferInId +")"
         });
     }
 
@@ -783,8 +785,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
 
     if (multipleTransferOutStreakExist) {
         abnormalities.push({
-            en: "Multi TransferOut",
-            ch: "连续转出"
+            en: "Multi TransferOut (ID: " + multipleTransferOutId +")",
+            ch: "连续转出 (ID: " + multipleTransferOutId +")"
         });
     }
 
@@ -794,6 +796,9 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
         if (lastTransferLogType === "TransferIn") {
             if (!hasTopUpOrRewardWithinPeriod(lastTransferInLogTime, log.createTime)) {
                 multipleTransferInWithoutOtherCreditInput = true;
+                if (!multipleTransferInId) {
+                    multipleTransferInId = log.transferId;
+                }
             }
 
             // if (log.apiRes.validCredit >= 1) {
@@ -815,6 +820,9 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
     function auditTransferOutLog(log) {
         if (lastTransferLogType === "TransferOut" && log.providerId === lastTransferLogProviderId) {
             multipleTransferOutStreakExist = true;
+            if (!multipleTransferOutId) {
+                multipleTransferOutId = log.transferId;
+            }
         }
     }
 }
