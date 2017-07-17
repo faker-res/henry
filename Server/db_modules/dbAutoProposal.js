@@ -765,22 +765,22 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
-            en: "There are multiple transfer in without any top up or reward in between.",
-            ch: "连续两次或以上转入，期间无任何充值或奖励"
+            en: "Multi TransferIn",
+            ch: "连续转入"
         });
     }
 
     if (validCreditMoreThanOneAfterTransferIn) {
         abnormalities.push({
-            en: "There are more than 1 credit left in local after transfer in.",
-            ch: "转入后检测本地余额多过1"
+            en: "1TransferIn",
+            ch: "转入后多过1"
         });
     }
 
     if (multipleTransferOutStreakExist) {
         abnormalities.push({
-            en: "There are multiple transfer out without any transfer in in between.",
-            ch: "相同游戏厅连续转出两次或以上（期间无转入记录）"
+            en: "Multi TransferOut",
+            ch: "连续转出"
         });
     }
 
