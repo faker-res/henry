@@ -125,7 +125,7 @@ let dbPlayerPartner = {
         )
     },
 
-    createPlayerPartner: function(registerData) {
+    createPlayerPartner: function (registerData) {
         let pRegisterData = Object.assign({}, registerData);
         pRegisterData.partnerName = registerData.name;
 
@@ -476,7 +476,6 @@ let dbPlayerPartner = {
             }
         ).then(
             result => {
-
                 // data.data.playerObjId && data.data.playerName && data.data.curData &&
                 // data.data.updateData && data.data.updateData.phoneNumber
                 let player, partner, playerUpdateData, partnerUpdateData;
@@ -485,13 +484,12 @@ let dbPlayerPartner = {
                         player = result;
                         playerUpdateData = {
                             isPlayerInit: true,
-                            data: {
-                                playerObjId: player._id,
-                                playerName: player.name,
-                                updateData: {
-                                    phoneNumber: player.phoneNumber
-                                }
+                            playerObjId: player._id,
+                            playerName: player.name,
+                            updateData: {
+                                phoneNumber: player.phoneNumber
                             }
+
                         };
                         // result.isPlayerInit = true;
                         dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData});
@@ -500,13 +498,12 @@ let dbPlayerPartner = {
                         partner = result;
                         partnerUpdateData = {
                             isPlayerInit: true,
-                            data: {
-                                partnerObjId: partner._id,
-                                partnerName: partner.name,
-                                updateData: {
-                                    phoneNumber: player.phoneNumber
-                                }
+                            partnerObjId: partner._id,
+                            partnerName: partner.name,
+                            updateData: {
+                                phoneNumber: player.phoneNumber
                             }
+
                         };
                         // result.isPlayerInit = true;
                         dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData});
@@ -515,24 +512,22 @@ let dbPlayerPartner = {
                         player = result[0];
                         playerUpdateData = {
                             isPlayerInit: true,
-                            data: {
-                                playerObjId: player._id,
-                                playerName: player.name,
-                                updateData: {
-                                    phoneNumber: player.phoneNumber
-                                }
+                            playerObjId: player._id,
+                            playerName: player.name,
+                            updateData: {
+                                phoneNumber: player.phoneNumber
                             }
+
                         };
                         partner = result[1];
                         partnerUpdateData = {
                             isPlayerInit: true,
-                            data: {
-                                partnerObjId: partner._id,
-                                partnerName: partner.name,
-                                updateData: {
-                                    phoneNumber: player.phoneNumber
-                                }
+                            partnerObjId: partner._id,
+                            partnerName: partner.name,
+                            updateData: {
+                                phoneNumber: player.phoneNumber
                             }
+
                         };
                         // result[0].isPlayerInit = true;
                         // result[1].isPlayerInit = true;
@@ -565,7 +560,7 @@ let dbPlayerPartner = {
                 if (playerData) {
                     playerObj = playerData;
                     //check if bankAccountName in update data is the same as player's real name
-                    if( updateData.bankAccountName && updateData.bankAccountName != playerData.realName ){
+                    if (updateData.bankAccountName && updateData.bankAccountName != playerData.realName) {
                         return Q.reject({
                             name: "DataError",
                             code: constServerCode.INVALID_DATA,
@@ -591,7 +586,7 @@ let dbPlayerPartner = {
                         platform: partnerData.platform
                     };
                     //check if bankAccountName in update data is the same as player's real name
-                    if( updateData.bankAccountName && updateData.bankAccountName != partnerData.realName ){
+                    if (updateData.bankAccountName && updateData.bankAccountName != partnerData.realName) {
                         return Q.reject({
                             name: "DataError",
                             code: constServerCode.INVALID_DATA,
