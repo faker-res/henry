@@ -315,7 +315,7 @@ let dbPlayerReward = {
                             platformObjId: playerObj.platform._id,
                             rewardAmount: rewardAmount,
                             spendingAmount: rewardAmount * Number(eventData.param.consumptionTimes),
-                            applyAmount: rewardAmount,
+                            applyAmount: 0,
                             amount: rewardAmount,
                             eventId: eventData._id,
                             eventName: eventData.name,
