@@ -276,7 +276,7 @@ define(['js/app'], function (myApp) {
                 type: vm.proposalTypeSelected,
                 startDate: startTime.getLocalDate(),
                 endDate: newEndTime,
-                relateUser: vm.queryProposalRelatedUser,
+                relateUser: vm.queryProposalRelatedUser.toLowerCase(),
                 entryType: vm.queryProposalEntryType,
                 size: newSearch ? 10 : (vm.queryProposal.limit || 10),
                 index: newSearch ? 0 : (vm.queryProposal.index || 0),
