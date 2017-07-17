@@ -270,18 +270,22 @@ define(['js/app'], function (myApp) {
             var endTime = $('#datetimepicker2').data('datetimepicker');
             var newEndTime = endTime.getLocalDate();
 
-            var sendData = {
+            let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
                 type: vm.proposalTypeSelected,
                 startDate: startTime.getLocalDate(),
                 endDate: newEndTime,
-                relateUser: vm.queryProposalRelatedUser,
                 entryType: vm.queryProposalEntryType,
                 size: newSearch ? 10 : (vm.queryProposal.limit || 10),
                 index: newSearch ? 0 : (vm.queryProposal.index || 0),
                 sortCol: vm.queryProposal.sortCol
+            };
+
+            if (vm.queryProposalRelatedUser) {
+                sendData.relateUser = vm.queryProposalRelatedUser.toLowerCase();
             }
+
             if (selectedStatus) {
                 sendData.status = selectedStatus
             }

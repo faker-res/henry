@@ -459,7 +459,7 @@ let dbPlayerPartner = {
                         partnerId: partnerData ? partnerData.partnerId : null
                     };
                     let updateData = {
-                        phoneNumber: newEncrpytedPhoneNumber
+                        phoneNumber: newPhoneNumber
                     };
                     let plyProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_players, queryPlayer, updateData, constShardKeys.collection_players);
                     let partnerProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_partner, queryPartner, updateData, constShardKeys.collection_partner);

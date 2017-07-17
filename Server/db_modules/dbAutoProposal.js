@@ -190,8 +190,8 @@ function checkProposalConsumption(proposal, platformObj) {
 
                 if (hasPendingPaymentInfoChanges(allProposals)) {
                     bPendingPaymentInfo = true;
-                    abnormalMessage += "Player have pending payment info changes proposal.; ";
-                    abnormalMessageChinese += "玩家有未审核编辑玩家银行资料提案。; ";
+                    // abnormalMessage += "Player have pending payment info changes proposal.; ";
+                    // abnormalMessageChinese += "玩家有未审核编辑玩家银行资料提案。; ";
                 }
             }
 
@@ -217,8 +217,8 @@ function checkProposalConsumption(proposal, platformObj) {
                 playerData = data[2];
                 if (!playerData.permission.applyBonus) {
                     bNoBonusPermission = true;
-                    abnormalMessage += "This player do not have permission to apply bonus.; ";
-                    abnormalMessageChinese += "玩家没有权限提款。; "
+                    // abnormalMessage += "This player do not have permission to apply bonus.; ";
+                    // abnormalMessageChinese += "玩家没有权限提款。; "
                 }
             }
 
@@ -333,7 +333,11 @@ function checkProposalConsumption(proposal, platformObj) {
                                             }
 
                                             // Skip applyAmount if reward is consumption return
-                                            let applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
+                                            let applyAmount = 0;
+
+                                            if (getProp.data.applyAmount) {
+                                                applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
+                                            }
 
                                             checkResult.push({
                                                 sequence: checkingNo,
@@ -679,7 +683,7 @@ function getBonusRecordsOfPlayer(player, proposalTypeObjId) {
                     $lt: todayTime.endTime
                 },
                 'data.playerObjId': ObjectId(player),
-                status: {$in: [constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.AUTOAUDIT, constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }
         },
         {
