@@ -517,12 +517,11 @@ function checkProposalConsumption(proposal, platformObj) {
                             updObj['data.detailChinese'] = abnormalMessageChinese;
                         }
 
-                        if (proposal.data.autoApproveRepeatCount >= 0) {
+                        if (proposal.data.autoApproveRepeatCount > 0) {
                             let nextCheckTime = new Date();
                             nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
                             updObj['data.nextCheckTime'] = nextCheckTime;
                         } else {
-                            proposal.data.autoApproveRepeatCount = 0;
                             updObj['data.nextCheckTime'] = undefined;
 
                             // Check if player is VIP - Passed
