@@ -173,6 +173,10 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog()')
             text {{"Platform Credit Transfer Log" | translate}}
             img.img-edit
+
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'newPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
+            text {{"new player list" | translate}}
+            img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'TriggerAutoProposal')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.triggerAutoProposal()')
             text {{"Trigger Auto Approval" | translate}}
             img.img-edit
@@ -279,12 +283,12 @@ include modalGameCreditLog
                     .form-group-col-md-6
                         label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
                         select.form-control(ng-model='vm.playerPayment.bankAccountType', ng-disabled='!vm.isEditingPlayerPayment')
-                            option(value='2') {{'Debit Card '|translate}} 
+                            option(value='2') {{'Debit Card '|translate}}
                             option(value='1') {{'Credit Card '|translate}}
-                            option(value='3') {{'储存卡'|translate}} 
-                            option(value='4') {{'储蓄卡'|translate}} 
+                            option(value='3') {{'储存卡'|translate}}
+                            option(value='4') {{'储蓄卡'|translate}}
                             option(value='5') {{'商务理财卡'|translate}}
-                            option(value='6') {{'工商银行一卡通'|translate}} 
+                            option(value='6') {{'工商银行一卡通'|translate}}
                     .form-group-col-md-6
                         .col-md-4(style='padding-left:0')
                             label.control-label {{"PHONE_PROVINCE" | translate}}
@@ -1119,12 +1123,12 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_TYPE' | translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card '|translate}} 
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card '|translate}}
                                             text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card '|translate}}
                                             text(ng-if='vm.selectedSinglePlayer.bankAccountType==3 || vm.selectedSinglePlayer.bankAccountType=="3"') {{'储存卡'|translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==4 || vm.selectedSinglePlayer.bankAccountType=="4"') {{'储蓄卡'|translate}} 
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==5 || vm.selectedSinglePlayer.bankAccountType=="5"') {{'商务理财卡'|translate}} 
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}} 
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==4 || vm.selectedSinglePlayer.bankAccountType=="4"') {{'储蓄卡'|translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==5 || vm.selectedSinglePlayer.bankAccountType=="5"') {{'商务理财卡'|translate}}
+                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_PROVINCE' | translate}}
                                             text {{vm.showProvinceStr}}
@@ -1438,6 +1442,56 @@ include modalGameCreditLog
                     label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
                     table#playerApiLogTbl.common-table.display(style='min-width:100%')
                     #playerApiLogTblPage.height30
+#modalNewPlayerList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Daily Expense Records for"|translate}} {{vm.isOneSelectedPlayer().name}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        #newPlayerList.adminLogQueryDiv
+                            .inlineBlk
+                                label {{'START_DATE' | translate}}
+                                .startTime
+                            .inlineBlk
+                                label {{'END_DATE' | translate}}
+                                .endTime
+                            //.inlineBlk
+                                label {{'Search limit(Max rows)' | translate}}
+                                select.form-control.limit(ng-model='vm.queryPara.newPlayerList.limit')
+                                    option 50
+                                    option 100
+                                    option 200
+                                    option(value='-1') {{'Unlimited' | translate}}
+                            .inlineBlk
+                                label {{'ACCOUNT' | translate}}
+                                select.form-control
+                                    option(ng-repeat="merchantUse in vm.merchantUseList")
+                            .inlineBlk
+                                label {{'ACCOUNT' | translate}}
+                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerId', required)
+                            .inlineBlk
+                                button.btn.btn-primary(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
+                        .well
+                            .row
+                                .col-md-12
+                                    pre
+                                        text {{"Total Amount"|translate}}:
+                                        label {{vm.totalConsumptionAmount}}&nbsp
+                                        text {{"Total Valid Amount"|translate}}:
+                                        label {{vm.totalConsumptionValidAmount}}&nbsp
+                                        text {{"Total Bonus Amount"|translate}}:
+                                        label {{vm.totalConsumptionBonusAmount}}
+                                    p
+                                    label {{"Total" | translate}} {{vm.playerDailyExpenseLog.totalCount}} {{"records" | translate}}
+                                    i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
+                                    table#playerDailyExpenseTable.common-table.display(style='width:100%')
+                                    #playerDailyExpenseTablePage
+
+
+
 
 #modalPlayerManualTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
@@ -2029,4 +2083,3 @@ include modalGameCreditLog
                                 .col-md-12.textareaDetail
                                     textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
                             button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
-
