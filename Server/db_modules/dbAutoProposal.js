@@ -747,6 +747,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
     let lastTransferLogType = "";
     let lastTransferInLogTime = "";
     let lastTransferLogProviderId = "";
+    let multipleTransferInId = null;
+    let multipleTransferOutId = null;
     creditChangeLogs = creditChangeLogs ? creditChangeLogs : [];
 
     let logsLength = transferLogs.length;
@@ -765,22 +767,22 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
-            en: "There are multiple transfer in without any top up or reward in between.",
-            ch: "连续两次或以上转入，期间无任何充值或奖励"
+            en: "There are multiple transfer in without any top up or reward in between. (ID: " + multipleTransferInId +")",
+            ch: "连续两次或以上转入，期间无任何充值或奖励。 (ID: " + multipleTransferInId +")"
         });
     }
 
     if (validCreditMoreThanOneAfterTransferIn) {
         abnormalities.push({
             en: "There are more than 1 credit left in local after transfer in.",
-            ch: "转入后检测本地余额多过1"
+            ch: "转入后检测本地余额多过1。"
         });
     }
 
     if (multipleTransferOutStreakExist) {
         abnormalities.push({
-            en: "There are multiple transfer out without any transfer in in between.",
-            ch: "相同游戏厅连续转出两次或以上（期间无转入记录）"
+            en: "There are multiple transfer out without any transfer in in between. (ID: " + multipleTransferOutId +")",
+            ch: "相同游戏厅连续转出两次或以上（期间无转入记录）。 (ID: " + multipleTransferOutId +")"
         });
     }
 
@@ -790,6 +792,9 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
         if (lastTransferLogType === "TransferIn") {
             if (!hasTopUpOrRewardWithinPeriod(lastTransferInLogTime, log.createTime)) {
                 multipleTransferInWithoutOtherCreditInput = true;
+                if (!multipleTransferInId) {
+                    multipleTransferInId = log.transferId;
+                }
             }
 
             // if (log.apiRes.validCredit >= 1) {
@@ -811,6 +816,9 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
     function auditTransferOutLog(log) {
         if (lastTransferLogType === "TransferOut" && log.providerId === lastTransferLogProviderId) {
             multipleTransferOutStreakExist = true;
+            if (!multipleTransferOutId) {
+                multipleTransferOutId = log.transferId;
+            }
         }
     }
 }
