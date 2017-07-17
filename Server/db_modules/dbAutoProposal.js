@@ -482,7 +482,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     }
 
                     // Check consumption approved or not
-                    if (proposal.data.autoApproveRepeatCount <= 0 && (isApprove || isTypeEApproval)) {
+                    if (isApprove || isTypeEApproval) {
                         if (!canApprove) {
                             sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                         } else {
