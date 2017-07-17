@@ -531,8 +531,8 @@ let dbPlayerInfo = {
         let func = (fieldName == 'phoneNumber')
             ? dbUtility.encodePhoneNum
             : ((fieldName == 'bankAccount')
-                ? dbUtility.encodeBankAcc
-                : null);
+            ? dbUtility.encodeBankAcc
+            : null);
         return Q.resolve(prom1).then(results => {
             let prom = [];
             let similarPlayersArray = [];
@@ -1275,6 +1275,38 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    resetPlayerPasswordByPhoneNumber: function (phoneNumber, newPassword, platformId, resetPartnerPassword) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+            platformData => {
+                if (platformData) {
+                    var encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                    return dbconfig.collection_players.findOne({
+                        platform: platformData._id,
+                        phoneNumber: encryptedPhoneNumber
+                    }).lean();
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    return dbPlayerInfo.resetPlayerPassword(playerData._id, newPassword, playerData.platform, resetPartnerPassword);
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    });
+                }
+            });
     },
 
     /**
@@ -3551,9 +3583,9 @@ let dbPlayerInfo = {
         let deferred = Q.defer();
         let prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform});
+            .populate({path: "platform", model: dbconfig.collection_platform});
         let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         let playerData = null;
         let providerData = null;
@@ -3981,9 +4013,9 @@ let dbPlayerInfo = {
         var playerObj = {};
         var prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform});
+            .populate({path: "platform", model: dbconfig.collection_platform});
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
@@ -5297,7 +5329,7 @@ let dbPlayerInfo = {
         para.name ? query.name = para.name : null;
         para.realName ? query.realName = para.realName : null;
         para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
-        para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i'): null;
+        para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partner', model: dbconfig.collection_partner});
@@ -6089,7 +6121,10 @@ let dbPlayerInfo = {
 
                         return creditProm.then(
                             () => {
-                                return dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "platform", model: dbconfig.collection_platform}).lean();
+                                return dbconfig.collection_players.findOne({playerId: playerId}).populate({
+                                    path: "platform",
+                                    model: dbconfig.collection_platform
+                                }).lean();
                             }
                         ).then(
                             playerData => {

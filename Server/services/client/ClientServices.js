@@ -72,6 +72,7 @@
                 "sendPlayerMailFromPlayerToPlayer",
                 "sendPlayerMailFromPlayerToAdmin",
                 "addClientSourceLog",
+                "resetPasswordViaPhone",
                 "getCreditInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);

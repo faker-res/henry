@@ -672,7 +672,7 @@ function getBonusRecordsOfPlayer(player, proposalTypeObjId) {
                     $lt: todayTime.endTime
                 },
                 'data.playerObjId': ObjectId(player),
-                status: {$in: [constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                status: {$in: [constProposalStatus.AUTOAUDIT, constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }
         },
         {
