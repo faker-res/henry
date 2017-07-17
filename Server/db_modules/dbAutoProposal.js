@@ -479,7 +479,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (bPendingPaymentInfo) {
-                        checkMsg += ' Denied: Pending payment info changes ';
+                        checkMsg += ' Denied: Rebank ';
                         checkMsgChinese += '失败：银改';
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
@@ -495,11 +495,11 @@ function checkProposalConsumption(proposal, platformObj) {
                     // Check consumption approved or not
                     if (isApprove || isTypeEApproval) {
                         if (!canApprove) {
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
                         } else {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：投注额 " + validConsumptionAmount + "，投注额需求 " + spendingAmount;
-                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese);
+                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
                         }
                     } else {
                         // Consumption not reached; Throw back to loop pool or deny this proposal
@@ -557,7 +557,7 @@ function checkProposalConsumption(proposal, platformObj) {
     )
 }
 
-function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese) {
+function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -579,7 +579,9 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                 'data.remarkChinese': '自动审核成功：' + remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
                                 'data.detail': abnormalMessage ? abnormalMessage : "",
-                                'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
+                                'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
+                                'data.autoAuditRepeatMsg' : repeatMsg,
+                                'data.autoAuditRepeatMsgChinese' : repeatMsgChinese
                             },
                             {new: true}
                         );
@@ -623,7 +625,7 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
     );
 }
 
-function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese) {
+function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -643,7 +645,9 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                         'data.autoAuditRemarkChinese': '自动审核' + remarkChinese,
                         'data.autoAuditCheckMsg': processRemark,
                         'data.detail': abnormalMessage ? abnormalMessage : "",
-                        'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
+                        'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
+                        'data.autoAuditRepeatMsg' : repeatMsg,
+                        'data.autoAuditRepeatMsgChinese' : repeatMsgChinese
                     }).then();
                 }
                 else {
