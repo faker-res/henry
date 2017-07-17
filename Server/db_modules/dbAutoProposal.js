@@ -430,7 +430,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     }
 
                     // Check consumption approved or not
-                    if (proposal.data.autoApproveRepeatCount <= 0 && (isApprove || isTypeEApproval)) {
+                    if (proposal.data.autoApproveRepeatCount > 0 && (isApprove || isTypeEApproval)) {
                         let canApprove = true;
                         // Consumption reached, check for other conditions
                         if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
