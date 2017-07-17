@@ -429,59 +429,60 @@ function checkProposalConsumption(proposal, platformObj) {
                         repeatMsgChinese += "整体投注额已满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                     }
 
+                    let canApprove = true;
+                    // Consumption reached, check for other conditions
+                    if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
+                        checkMsg += " Denied: Single limit ";
+                        checkMsgChinese += " 失败：单限 ";
+                        canApprove = false;
+                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                    }
+                    if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
+                        checkMsg += " Denied: Daily limit ";
+                        checkMsgChinese += " 失败：日限 ";
+                        canApprove = false;
+                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                    }
+                    if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
+                        checkMsg += " Denied: Not allowed ";
+                        checkMsgChinese += " 失败：禁提 ";
+                        canApprove = false;
+                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                    }
+                    if (bFirstWithdraw) {
+                        checkMsg += " Denied: First withdrawal ";
+                        checkMsgChinese += " 失败：首提 ";
+                        canApprove = false;
+                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                    }
+                    if (bTransferAbnormal) {
+                        checkMsg += 'Denied: Abnormal Transfer In or Transfer Out log';
+                        checkMsgChinese += ' 失败：连续转账 ';
+                        canApprove = false;
+                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                    }
+                    if (bNoBonusPermission) {
+                        checkMsg += ' Denied: No permission ';
+                        checkMsgChinese += ' 失败：无权限 ';
+                        canApprove = false;
+                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                    }
+                    if (bPendingPaymentInfo) {
+                        checkMsg += ' Denied: Pending payment info changes ';
+                        checkMsgChinese += '失败：银改';
+                        canApprove = false;
+                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                    }
+                    if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
+                        && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
+                        checkMsg += ' Denied: Max profit times ';
+                        checkMsgChinese += ' 失败：盈利十倍 ';
+                        canApprove = false;
+                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                    }
+
                     // Check consumption approved or not
-                    if (proposal.data.autoApproveRepeatCount <= 0 && (isApprove || isTypeEApproval)) {
-                        let canApprove = true;
-                        // Consumption reached, check for other conditions
-                        if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
-                            checkMsg += " Denied: Single limit ";
-                            checkMsgChinese += " 失败：单限 ";
-                            canApprove = false;
-                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        }
-                        if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
-                            checkMsg += " Denied: Daily limit ";
-                            checkMsgChinese += " 失败：日限 ";
-                            canApprove = false;
-                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        }
-                        if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
-                            checkMsg += " Denied: Not allowed ";
-                            checkMsgChinese += " 失败：禁提 ";
-                            canApprove = false;
-                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        }
-                        if (bFirstWithdraw) {
-                            checkMsg += " Denied: First withdrawal ";
-                            checkMsgChinese += " 失败：首提 ";
-                            canApprove = false;
-                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        }
-                        if (bTransferAbnormal) {
-                            checkMsg += 'Denied: Abnormal Transfer In or Transfer Out log';
-                            checkMsgChinese += ' 失败：连续转账 ';
-                            canApprove = false;
-                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        }
-                        if (bNoBonusPermission) {
-                            checkMsg += ' Denied: No permission ';
-                            checkMsgChinese += ' 失败：无权限 ';
-                            canApprove = false;
-                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        }
-                        if (bPendingPaymentInfo) {
-                            checkMsg += ' Denied: Pending payment info changes ';
-                            checkMsgChinese += '失败：银改';
-                            canApprove = false;
-                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        }
-                        if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
-                            && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
-                            checkMsg += ' Denied: Max profit times ';
-                            checkMsgChinese += ' 失败：盈利十倍 ';
-                            canApprove = false;
-                            // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                        }
+                    if (isApprove || isTypeEApproval) {
                         if (!canApprove) {
                             sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                         } else {
@@ -516,7 +517,7 @@ function checkProposalConsumption(proposal, platformObj) {
                             updObj['data.detailChinese'] = abnormalMessageChinese;
                         }
 
-                        if (proposal.data.autoApproveRepeatCount >= 0) {
+                        if (proposal.data.autoApproveRepeatCount > 0) {
                             let nextCheckTime = new Date();
                             nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
                             updObj['data.nextCheckTime'] = nextCheckTime;
