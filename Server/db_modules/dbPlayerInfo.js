@@ -79,7 +79,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, isSMSVerified) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -99,8 +99,7 @@ let dbPlayerInfo = {
                     platformObjId = platformData._id;
                     platformPrefix = platformData.prefix;
 
-                    // isSMSVerified is true when smsCode is already verified in dbPlayerPartner
-                    if (!platformObj.requireSMSVerification || isSMSVerified) {
+                    if (!platformObj.requireSMSVerification || bypassSMSVerify) {
                         return Q.resolve(true);
                     }
 
