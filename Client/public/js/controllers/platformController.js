@@ -1996,8 +1996,8 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 adminId: authService.adminId,
                 platformId:  vm.selectedPlatform.id,
-                // type: vm.proposalTypeSelected, PlayerRegistrationIntention
-                type:["UpdatePlayerCredit", "PlayerRegistrationIntention"],
+                type: vm.proposalTypeSelected,
+                // type:["UpdatePlayerCredit", "PlayerRegistrationIntention"],
 
                 startDate: vm.queryPara.newPlayerList.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.newPlayerList.endTime.data('datetimepicker').getLocalDate(),
@@ -2015,15 +2015,15 @@ define(['js/app'], function (myApp) {
             vm.newPlayerRecords.loading = true;
             console.log("Query", sendData);
             vm.prepareNewPlayerListRecords(sendData, newSearch);
-            $("#newPlayerListTablePage").off('order.dt');
-            $("#newPlayerListTablePage").on('order.dt', function (event, a, b) {
+            $("#newPlayerListTable").off('order.dt');
+            $("#newPlayerListTable").on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'newPlayerList', vm.getNewPlayerListByFilter);
             });
         };
         vm.prepareNewPlayerListRecords = function (queryData, newSearch) {
-            vm.playerDailyExpenseRecords = [];
+            vm.newPlayerListRecords = [];
             socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', queryData, function (data) {
-                vm.playerDailyExpenseRecords = data.data.data;
+                vm.newPlayerListRecords = data.data.data;
                 vm.newPlayerRecords.totalCount = data.data.size;
                 var summary = data.data.summary || {};
                 vm.newPlayerRecords.loading = false;
@@ -2031,59 +2031,87 @@ define(['js/app'], function (myApp) {
                 var validAmount = 0;
                 var amount = 0;
                 var bonusAmount = 0;
-                var tableData = vm.playerDailyExpenseRecords.map(
-                    record => {
-                        validAmount += Number(record.validAmount);
-                        amount += Number(record.amount);
-                        bonusAmount += Number(record.bonusAmount);
-                        record.date = vm.dateReformat(record.date);
-                        // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
-                        record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
-                        record.amount$ = parseFloat(record.amount).toFixed(2);
-                        record.bonusAmount$ = parseFloat(record.bonusAmount).toFixed(2);
-                        record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
-                        record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
-                        return record
-                    }
-                );
+                // var tableData = vm.newPlayerListRecords.map(
+                //     record => {
+                //         validAmount += Number(record.validAmount);
+                //         amount += Number(record.amount);
+                //         bonusAmount += Number(record.bonusAmount);
+                //         record.date = vm.dateReformat(record.date);
+                //         // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
+                //         record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
+                //         record.amount$ = parseFloat(record.amount).toFixed(2);
+                //         record.bonusAmount$ = parseFloat(record.bonusAmount).toFixed(2);
+                //         record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
+                //         record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
+                //         record.createTime = record.createTime;
+                //         return record
+                //     }
+                // );
+                var tableData = vm.newPlayerListRecords;
+                console.log(tableData);
                 vm.totalConsumptionAmount = parseFloat(amount).toFixed(2);
                 vm.totalConsumptionValidAmount = parseFloat(validAmount).toFixed(2);
                 vm.totalConsumptionBonusAmount = parseFloat(bonusAmount).toFixed(2);
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: tableData,
-                    "aaSorting": vm.newPlayerRecords.aaSorting || [[1, 'desc']],
+                    // "aaSorting": vm.newPlayerRecords.aaSorting || [[0, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [0]},
-                        {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
-                        {'sortCol': 'gameId', bSortable: true, 'aTargets': [2]},
-                        // {'sortCol': 'gameType', bSortable: true, 'aTargets': [4]},
-                        // {'sortCol': 'roundNo', bSortable: true, 'aTargets': [4]},
-                        {'sortCol': 'validAmount', bSortable: true, 'aTargets': [3]},
-                        {'sortCol': 'amount', bSortable: true, 'aTargets': [4]},
-                        {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [5]},
-                        // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
-                        // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [7]},
-                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'platformId', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'status', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'actionName', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'playerId', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'playerName', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'partner', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'referral', bSortable: true, 'aTargets': [7]},
+                        {'sortCol': 'amount', bSortable: true, 'aTargets': [8]},
+                        {'sortCol': 'ip', bSortable: true, 'aTargets': [9]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [10]},
+                        {'sortCol': 'processTime', bSortable: true, 'aTargets': [11]},
+                        {'sortCol': 'phoneNumber', bSortable: true, 'aTargets': [11]},
+
+                        // {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
+                        // {'sortCol': 'gameId', bSortable: true, 'aTargets': [2]},
+                        // // {'sortCol': 'gameType', bSortable: true, 'aTargets': [4]},
+                        // // {'sortCol': 'roundNo', bSortable: true, 'aTargets': [4]},
+                        // {'sortCol': 'validAmount', bSortable: true, 'aTargets': [3]},
+                        // {'sortCol': 'amount', bSortable: true, 'aTargets': [4]},
+                        // {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [5]},
+                        // // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
+                        // // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [7]},
+                        // {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
 
                     columns: [
-                        {title: $translate('CREATION_TIME'), data: "date"},
-                        {title: $translate('PROVIDER'), data: "providerId.name"},
-                        {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
-                        // {title: $translate('GAME_TYPE'), data: "gameType$", sClass: 'sumText'},
-                        // {title: $translate('Game Round'), data: "roundNo", sClass: 'sumText'},
-                        {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
-                        {title: $translate('CREDIT'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
-                        {
-                            title: $translate('bonusAmount1'),
-                            data: "bonusAmount$", sClass: 'alignRight sumFloat'
-                        },
-                        {title: $translate('Occupy'), data: "bDirty$"},
+                        {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                        {title: $translate('PROVIDER'), data: "data.platformId"},
+                        {title: $translate('PROVIDER'), data: "status"},
+                        {title: $translate('PROVIDER'), data: "status"},
+                        {title: $translate('PLAYERID'), data: "data.playerId"},
+                        {title: $translate('PLAYERNAME'), data: "data.playerName"},
+                        {title: 'partner', data: ""},
+                        {title: 'referral', data: ""},
+                        {title: 'amount', data: ""},
+                        {title: $translate('IP_ADDRESS'), data: ""},
+                        {title: $translate('CREATETIME'), data: "createTime"},
+                        {title: 'ProcessTime', data: ""},
+
+                        // {title: $translate('PROVIDER'), data: "providerId.name"},
+                        // {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
+                        // // {title: $translate('GAME_TYPE'), data: "gameType$", sClass: 'sumText'},
+                        // // {title: $translate('Game Round'), data: "roundNo", sClass: 'sumText'},
+                        // {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
+                        // {title: $translate('CREDIT'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
                         // {
-                        //     title: $translate('commissionAmount'),
-                        //     data: "commissionAmount$",
-                        //     sClass: "alignRight sumFloat"
+                        //     title: $translate('bonusAmount1'),
+                        //     data: "bonusAmount$", sClass: 'alignRight sumFloat'
                         // },
+                        // {title: $translate('Occupy'), data: "bDirty$"},
+                        // // {
+                        // //     title: $translate('commissionAmount'),
+                        // //     data: "commissionAmount$",
+                        // //     sClass: "alignRight sumFloat"
+                        // // },
                     ],
                     destroy: true,
                     paging: false,
@@ -2093,7 +2121,7 @@ define(['js/app'], function (myApp) {
                     }
                 });
                 // $('#playerExpenseTable').DataTable(option);
-                var a = utilService.createDatatableWithFooter('#newPlayerListTablePage', option, {
+                var a = utilService.createDatatableWithFooter('#newPlayerListTable', option, {
                     3: summary.validAmountSum,
                     4: summary.amountSum,
                     5: summary.bonusAmountSum,
@@ -2101,17 +2129,9 @@ define(['js/app'], function (myApp) {
                 });
                 vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
                 setTimeout(function () {
-                    $('#newPlayerListTablePage').resize();
+                    $('#newPlayerListTable').resize();
                 }, 300);
-<<<<<<< HEAD
 
-
-
-=======
-
-
-
->>>>>>> 6fe8bc50ad18b5dfcaebb770521db56fcdfc62d1
             });
         };
         vm.prepareRepairTransfer = function () {
