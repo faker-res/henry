@@ -98,14 +98,14 @@ let dbAutoProposal = {
  */
 function checkProposalConsumption(proposal, platformObj) {
     let repeatCount = platformObj.autoApproveRepeatCount;
-    let todayBonusAmount = 0;
+    let todayBonusAmount = proposal.data.amount;
     let bFirstWithdraw = false;
     let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
     let dLastWithdraw;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
-            todayBonusAmount = bonusRecord ? bonusRecord.amount : 0;
+            todayBonusAmount += bonusRecord ? bonusRecord.amount : 0;
 
             return getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type);
         }
