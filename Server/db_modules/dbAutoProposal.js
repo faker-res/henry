@@ -431,6 +431,8 @@ function checkProposalConsumption(proposal, platformObj) {
                     else {
                         repeatMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese += "整体投注额已满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
+                        checkMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+                        checkMsgChinese += "整体投注额已满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                     }
 
                     let canApprove = true;
@@ -632,8 +634,8 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                     }, {
                         status: constProposalStatus.PENDING,
                         'data.autoAuditTime': Date.now(),
-                        'data.autoAuditRemark': 'Auto Approval ' + remark,
-                        'data.autoAuditRemarkChinese': '自动审核' + remarkChinese,
+                        'data.autoAuditRemark': remark,
+                        'data.autoAuditRemarkChinese': remarkChinese,
                         'data.autoAuditCheckMsg': processRemark,
                         'data.detail': abnormalMessage ? abnormalMessage : "",
                         'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
