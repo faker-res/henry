@@ -1088,12 +1088,10 @@ define(['js/app'], function (myApp) {
                 }
                 if (i == 'providers') {
                     var temp = [];
-                    if( proposalDetail.providers ){
-                        proposalDetail.providers.map(item => {
-                            temp.push(item.name);
-                        });
-                        proposalDetail.providers = temp;
-                    }
+                    proposalDetail.providers.map(item => {
+                        temp.push(item.name);
+                    });
+                    proposalDetail.providers = temp;
                 }
             }
             vm.selectedProposalDetailForDisplay = $.extend({}, proposalDetail);
