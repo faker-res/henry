@@ -1099,6 +1099,7 @@ define(['js/app'], function (myApp) {
                         proposalDetail.providers = temp;
                     }
                 }
+
             }
             vm.selectedProposalDetailForDisplay = $.extend({}, proposalDetail);
             if (vm.selectedProposalDetailForDisplay['provinceId']) {

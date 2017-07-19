@@ -969,7 +969,7 @@ define(['js/app'], function (myApp) {
                     title: vm.sendMultiMessage.messageTitle,
                     content: vm.sendMultiMessage.messageContent
                 };
-                
+
                 $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
             }
 
@@ -1868,7 +1868,6 @@ define(['js/app'], function (myApp) {
             //
             // getAllPlayerCreditTransferStatus();
         };
-
         vm.drawPagedPlatformCreditTransferQueryTable = function (data, size, newSearch) {
             let tableData = data.map(item => {
                 item.createTime$ = vm.dateReformat(item.createTime);
@@ -1960,6 +1959,101 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
+        vm.newPlayerList = function () {
+            vm.newPlayerRecords = {totalCount: 0};
+            vm.initQueryTimeFilter('newPlayerRecords', function () {
+                // $('#modalNewPla').modal();
+                vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
+                });
+                vm.getNewPlayerListByFilter(true);
+            });
+        }
+
+        vm.getNewPlayerListByFilter = function(newSearch){
+
+            var selectedStatus = ["Success","Fail"];
+            var sendData = {
+                adminId: authService.adminId,
+                platformId:  vm.selectedPlatform.id,
+                type:["PlayerRegistrationIntention"],
+                startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
+                relateUser: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.name : null,
+                // entryType: vm.queryProposalEntryType,
+                size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
+                index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
+                sortCol: vm.newPlayerRecords.sortCol || null
+
+            }
+            if (selectedStatus) {
+                sendData.status = selectedStatus
+            }
+
+            vm.newPlayerRecords.loading = true;
+            console.log("Query", sendData);
+            vm.prepareNewPlayerListRecords(sendData, newSearch);
+            $("#newPlayerListTable").off('order.dt');
+            $("#newPlayerListTable").on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'newPlayerRecords', vm.getNewPlayerListByFilter);
+            });
+        };
+
+        vm.prepareNewPlayerListRecords = function (queryData, newSearch) {
+            vm.newPlayerListRecords = [];
+            socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', queryData, function (data) {
+                vm.newPlayerListRecords = data.data.data;
+                vm.newPlayerRecords.totalCount = data.data.size;
+                var summary = data.data.summary || {};
+                vm.newPlayerRecords.loading = false;
+                console.log('consumption record', data);
+
+                var tableData = vm.newPlayerListRecords.map(
+                    record => {
+                        record.createTime = vm.dateReformat(record.createTime);
+                        record.statusName = $translate(record.status);
+                        record.fullPlayerId = record.data.playerId ? record.data.playerId : record.data.name ;
+                        return record
+                    }
+                );
+                var tableData = vm.newPlayerListRecords;
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tableData,
+                    aoColumnDefs: [
+                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'realName', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'phoneNumber', bSortable: true, 'aTargets': [6]},
+                        // {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                        {title: $translate('STATUS'), data: "statusName"},
+                        {title: $translate('PLAYERID'), data: "fullPlayerId"},
+                        {title: $translate('PLAYERNAME'), data: "data.realName"},
+                        {title: $translate('IP_ADDRESS'), data: "data.lastLoginIp"},
+                        {title: $translate('CREATETIME'), data: "createTime"},
+                        {title: $translate('phoneNumber'), data: "data.phoneNumber"}
+                    ],
+                    destroy: true,
+                    paging: false,
+                    autoWidth: true,
+                    initComplete: function(){
+                        $scope.safeApply();
+                    }
+                });
+                var a = utilService.createDatatableWithFooter('#newPlayerListTable', option, {
+                });
+                vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
+                setTimeout(function () {
+                    $('#newPlayerListTable').resize();
+                }, 300);
+
+            });
+        };
         vm.prepareRepairTransfer = function () {
             vm.showPlatformRepair = !vm.showPlatformRepair;
             if (vm.showPlatformRepair) {
@@ -4476,7 +4570,7 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformPlayersData();
             });
         }
-        
+
         vm.closeCreditTransferLog = function (modal) {
             $(modal).modal('hide');
             if (vm.creditTransfer.needRefreshPlatformPlayerData) {

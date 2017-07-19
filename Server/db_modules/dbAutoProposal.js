@@ -98,14 +98,14 @@ let dbAutoProposal = {
  */
 function checkProposalConsumption(proposal, platformObj) {
     let repeatCount = platformObj.autoApproveRepeatCount;
-    let todayBonusAmount = 0;
+    let todayBonusAmount = proposal.data.amount;
     let bFirstWithdraw = false;
     let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
     let dLastWithdraw;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
-            todayBonusAmount = bonusRecord ? bonusRecord.amount : 0;
+            todayBonusAmount += bonusRecord ? bonusRecord.amount : 0;
 
             return getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type);
         }
@@ -410,7 +410,7 @@ function checkProposalConsumption(proposal, platformObj) {
                             isApprove = false;
                             if (checkMsg == "") {
                                 checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                                checkMsgChinese += "提案 " + checkResult[i].proposalId + " 投注额度不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
+                                checkMsgChinese += "提案 " + checkResult[i].proposalId + "：流水 " + validConsumptionAmount + " ，所需流水 " + spendingAmount + "; ";
                             }
                         }
                         else {
@@ -433,11 +433,13 @@ function checkProposalConsumption(proposal, platformObj) {
                     if ((validConsumptionAmount + lostThreshold) < spendingAmount) {
                         isApprove = false;
                         repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
-                        repeatMsgChinese = "整体投注额不足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
+                        repeatMsgChinese = "总投注额不足：流水 " + totalConsumptionAmount + " ，所需流水 " + totalSpendingAmount + "; ";
                     }
                     else {
                         repeatMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
-                        repeatMsgChinese += "整体投注额已满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
+                        repeatMsgChinese += "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
+                        checkMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+                        checkMsgChinese += "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                     }
 
                     let canApprove = true;
@@ -498,7 +500,7 @@ function checkProposalConsumption(proposal, platformObj) {
                             sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
                         } else {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
-                            let approveRemarkChinese = "成功：投注额 " + validConsumptionAmount + "，投注额需求 " + spendingAmount;
+                            let approveRemarkChinese = "成功：流水 " + validConsumptionAmount + "，所需流水 " + spendingAmount;
                             sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
                         }
                     } else {
@@ -537,9 +539,9 @@ function checkProposalConsumption(proposal, platformObj) {
 
                             // Check if player is VIP - Passed
                             if (proposal.data.proposalPlayerLevelValue == 0) {
-                                sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出自动审核回圈次数，流水不够", checkMsg, abnormalMessage, abnormalMessageChinese);
+                                sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
                             } else {
-                                sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出自动审核回圈次数，流水不够", checkMsg, abnormalMessage, abnormalMessageChinese);
+                                sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
                             }
                         }
 
@@ -575,13 +577,13 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                 process: null,
                                 status: constProposalStatus.APPROVED,
                                 'data.autoAuditTime': Date.now(),
-                                'data.remark': 'Auto Approval Approved: ' + remark,
-                                'data.remarkChinese': '自动审核成功：' + remarkChinese,
+                                'data.autoAuditRemark': remark,
+                                'data.autoAuditRemarkChinese': remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
                                 'data.detail': abnormalMessage ? abnormalMessage : "",
                                 'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
-                                'data.autoAuditRepeatMsg' : repeatMsg,
-                                'data.autoAuditRepeatMsgChinese' : repeatMsgChinese
+                                'data.autoAuditRepeatMsg': repeatMsg,
+                                'data.autoAuditRepeatMsgChinese': repeatMsgChinese
                             },
                             {new: true}
                         );
@@ -610,8 +612,8 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
                                 process: null,
                                 status: constProposalStatus.REJECTED,
                                 'data.autoAuditTime': Date.now(),
-                                'data.remark': 'Auto Approval Denied: ' + remark,
-                                'data.remarkChinese': '自动审核失败：' + remarkChinese,
+                                'data.autoAuditRemark': remark,
+                                'data.autoAuditRemarkChinese': remarkChinese,
                                 'data.autoAuditCheckMsg': processRemark,
                                 'data.detail': abnormalMessage ? abnormalMessage : "",
                                 'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
@@ -641,13 +643,13 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                     }, {
                         status: constProposalStatus.PENDING,
                         'data.autoAuditTime': Date.now(),
-                        'data.autoAuditRemark': 'Auto Approval ' + remark,
-                        'data.autoAuditRemarkChinese': '自动审核' + remarkChinese,
+                        'data.autoAuditRemark': remark,
+                        'data.autoAuditRemarkChinese': remarkChinese,
                         'data.autoAuditCheckMsg': processRemark,
                         'data.detail': abnormalMessage ? abnormalMessage : "",
                         'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
-                        'data.autoAuditRepeatMsg' : repeatMsg,
-                        'data.autoAuditRepeatMsgChinese' : repeatMsgChinese
+                        'data.autoAuditRepeatMsg': repeatMsg,
+                        'data.autoAuditRepeatMsgChinese': repeatMsgChinese
                     }).then();
                 }
                 else {
@@ -660,8 +662,8 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                                     process: null,
                                     status: constProposalStatus.FAIL,
                                     'data.autoAuditTime': Date.now(),
-                                    'data.remark': 'Auto Approval Denied: ' + remark,
-                                    'data.remarkChinese': '自动审核失败：' + remarkChinese,
+                                    'data.autoAuditRemark': remark,
+                                    'data.autoAuditRemarkChinese': remarkChinese,
                                     'data.autoAuditCheckMsg': processRemark,
                                     'data.detail': abnormalMessage ? abnormalMessage : "",
                                     'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
@@ -771,8 +773,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
-            en: "Multi TransferIn (ID: " + multipleTransferInId +")",
-            ch: "连续转入 (ID: " + multipleTransferInId +")"
+            en: "Multi TransferIn (ID: " + multipleTransferInId + ")",
+            ch: "连续转入 (ID: " + multipleTransferInId + ")"
         });
     }
 
@@ -785,8 +787,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
 
     if (multipleTransferOutStreakExist) {
         abnormalities.push({
-            en: "Multi TransferOut (ID: " + multipleTransferOutId +")",
-            ch: "连续转出 (ID: " + multipleTransferOutId +")"
+            en: "Multi TransferOut (ID: " + multipleTransferOutId + ")",
+            ch: "连续转出 (ID: " + multipleTransferOutId + ")"
         });
     }
 
