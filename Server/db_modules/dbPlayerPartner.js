@@ -67,7 +67,7 @@ let dbPlayerPartner = {
                         return smsProm.then(
                             verificationSMS => {
                                 // Check verification SMS code
-                                if ((registerData.captcha && !registerData.smsCode) || (verificationSMS && verificationSMS.code && verificationSMS.code === registerData.smsCode)) {
+                                if ((registerData.captcha && !registerData.smsCode) || (verificationSMS && verificationSMS.code && verificationSMS.code == registerData.smsCode)) {
                                     verificationSMS = verificationSMS || {};
                                     return dbConfig.collection_smsVerificationLog.remove({
                                         _id: verificationSMS._id
@@ -459,7 +459,7 @@ let dbPlayerPartner = {
                         partnerId: partnerData ? partnerData.partnerId : null
                     };
                     let updateData = {
-                        phoneNumber: newPhoneNumber
+                        phoneNumber: newEncrpytedPhoneNumber
                     };
                     let plyProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_players, queryPlayer, updateData, constShardKeys.collection_players);
                     let partnerProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_partner, queryPartner, updateData, constShardKeys.collection_partner);
