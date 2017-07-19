@@ -1971,49 +1971,24 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getNewPlayerListByFilter = function(newSearch){
-            // var sendData = {
-            //     startTime: vm.queryPara.newPlayerList.startTime.data('datetimepicker').getLocalDate(),
-            //     endTime: vm.queryPara.newPlayerList.endTime.data('datetimepicker').getLocalDate(),
-            //     playerId: vm.isOneSelectedPlayer()._id,
-            //     index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
-            //     limit: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
-            //     sortCol: vm.newPlayerRecords.sortCol || null
-            // };
+
             var selectedStatus = ["Success","Fail"];
-            // if (vm.proposalStatusSelected) {
-            //     vm.proposalStatusSelected.forEach(
-            //         status => {
-            //             selectedStatus.push(status);
-            //             if (status == "Success") {
-            //                 selectedStatus.push("Approved");
-            //             }
-            //             if (status == "Fail") {
-            //                 selectedStatus.push("Rejected");
-            //             }
-            //         }
-            //     );
-            // }
             var sendData = {
                 adminId: authService.adminId,
                 platformId:  vm.selectedPlatform.id,
                 type:["PlayerRegistrationIntention"],
-
                 startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
                 relateUser: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.name : null,
                 // entryType: vm.queryProposalEntryType,
                 size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
                 index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
-                sortCol: {"createTime": -1} //vm.newPlayerRecords.sortCol || null
+                sortCol: vm.newPlayerRecords.sortCol || null
 
             }
             if (selectedStatus) {
                 sendData.status = selectedStatus
             }
-
-            // if(vm.newPlayerRecords.name){
-            //     sendData.name = vm.newPlayerRecords.name;
-            // }
 
             vm.newPlayerRecords.loading = true;
             console.log("Query", sendData);
@@ -2023,6 +1998,7 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'newPlayerRecords', vm.getNewPlayerListByFilter);
             });
         };
+
         vm.prepareNewPlayerListRecords = function (queryData, newSearch) {
             vm.newPlayerListRecords = [];
             socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', queryData, function (data) {
@@ -2031,82 +2007,36 @@ define(['js/app'], function (myApp) {
                 var summary = data.data.summary || {};
                 vm.newPlayerRecords.loading = false;
                 console.log('consumption record', data);
-                var validAmount = 0;
-                var amount = 0;
-                var bonusAmount = 0;
-                // var tableData = vm.newPlayerListRecords.map(
-                //     record => {
-                //         validAmount += Number(record.validAmount);
-                //         amount += Number(record.amount);
-                //         bonusAmount += Number(record.bonusAmount);
-                //         record.date = vm.dateReformat(record.date);
-                //         // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
-                //         record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
-                //         record.amount$ = parseFloat(record.amount).toFixed(2);
-                //         record.bonusAmount$ = parseFloat(record.bonusAmount).toFixed(2);
-                //         record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
-                //         record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
-                //         record.createTime = record.createTime;
-                //         return record
-                //     }
-                // );
+
+                var tableData = vm.newPlayerListRecords.map(
+                    record => {
+                        record.createTime = vm.dateReformat(record.createTime);
+                        record.statusName = $translate(record.status);
+                        record.fullPlayerId = record.data.playerId ? record.data.playerId : record.data.name ;
+                        return record
+                    }
+                );
                 var tableData = vm.newPlayerListRecords;
-                console.log(tableData);
-                vm.totalConsumptionAmount = parseFloat(amount).toFixed(2);
-                vm.totalConsumptionValidAmount = parseFloat(validAmount).toFixed(2);
-                vm.totalConsumptionBonusAmount = parseFloat(bonusAmount).toFixed(2);
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: tableData,
-                    // "aaSorting": vm.newPlayerRecords.aaSorting || [[0, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                         {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
-                        {'sortCol': 'actionName', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'name', bSortable: true, 'aTargets': [3]},
-                        {'sortCol': 'realName', bSortable: true, 'aTargets': [4]},
-                        {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
-                        {'sortCol': 'phoneNumber', bSortable: true, 'aTargets': [7]},
-
-
-                        // {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
-                        // {'sortCol': 'gameId', bSortable: true, 'aTargets': [2]},
-                        // // {'sortCol': 'gameType', bSortable: true, 'aTargets': [4]},
-                        // // {'sortCol': 'roundNo', bSortable: true, 'aTargets': [4]},
-                        // {'sortCol': 'validAmount', bSortable: true, 'aTargets': [3]},
-                        // {'sortCol': 'amount', bSortable: true, 'aTargets': [4]},
-                        // {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [5]},
-                        // // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
-                        // // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [7]},
+                        {'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'realName', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'phoneNumber', bSortable: true, 'aTargets': [6]},
                         // {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
-
                     columns: [
                         {title: $translate('PROPOSAL_ID'), data: "proposalId"},
-                        {title: $translate('PROVIDER'), data: "status"},
-                        {title: $translate('PROVIDER'), data: "status"},
-                        {title: $translate('PLAYERID'), data: "data.name"},
+                        {title: $translate('STATUS'), data: "statusName"},
+                        {title: $translate('PLAYERID'), data: "fullPlayerId"},
                         {title: $translate('PLAYERNAME'), data: "data.realName"},
                         {title: $translate('IP_ADDRESS'), data: "data.lastLoginIp"},
                         {title: $translate('CREATETIME'), data: "createTime"},
                         {title: $translate('phoneNumber'), data: "data.phoneNumber"}
-
-                        // {title: $translate('PROVIDER'), data: "providerId.name"},
-                        // {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
-                        // // {title: $translate('GAME_TYPE'), data: "gameType$", sClass: 'sumText'},
-                        // // {title: $translate('Game Round'), data: "roundNo", sClass: 'sumText'},
-                        // {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
-                        // {title: $translate('CREDIT'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
-                        // {
-                        //     title: $translate('bonusAmount1'),
-                        //     data: "bonusAmount$", sClass: 'alignRight sumFloat'
-                        // },
-                        // {title: $translate('Occupy'), data: "bDirty$"},
-                        // // {
-                        // //     title: $translate('commissionAmount'),
-                        // //     data: "commissionAmount$",
-                        // //     sClass: "alignRight sumFloat"
-                        // // },
                     ],
                     destroy: true,
                     paging: false,
@@ -2115,12 +2045,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 });
-                // $('#playerExpenseTable').DataTable(option);
                 var a = utilService.createDatatableWithFooter('#newPlayerListTable', option, {
-                    3: summary.validAmountSum,
-                    4: summary.amountSum,
-                    5: summary.bonusAmountSum,
-                    // 8: summary.commissionAmountSum
                 });
                 vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
                 setTimeout(function () {
