@@ -23,7 +23,7 @@ var RegistrationIntentionServiceImplement = function () {
             [data, constProposalStatus.PENDING], isValidData, true, false, true
         ).then(
             function (res) {
-                if (conn.captchaCode && (conn.captchaCode == data.captcha)) {
+                if (!conn.captchaCode || (conn.captchaCode && (conn.captchaCode == data.captcha))) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS, data: res}, data);
                     self.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyRegistrationIntentionUpdate", res);
                 } else {
