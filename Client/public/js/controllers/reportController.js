@@ -1636,6 +1636,7 @@ define(['js/app'], function (myApp) {
                     name: vm.playerDomain.name,
                     realName: vm.playerDomain.realName,
                     domain: vm.playerDomain.domain,
+                    sourceUrl: vm.playerDomain.sourceUrl,
                     topUpTimes: vm.playerDomain.topUpTimes.value,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate(),
@@ -1673,7 +1674,8 @@ define(['js/app'], function (myApp) {
                     {title: $translate('Partner'), data: "partner.partnerName"},
                     {title: $translate('LAST_ACCESS_TIME'), data: "registrationTime$"},
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
-                    {title: $translate('Domain Name'), data: "domain"}
+                    {title: $translate('Domain Name'), data: "domain"},
+                    {title: $translate('URL'), data: "sourceUrl"}
                 ],
                 "paging": false,
             }

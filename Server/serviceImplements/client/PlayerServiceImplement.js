@@ -144,7 +144,8 @@ let PlayerServiceImplement = function () {
     this.createPlayerPartner.expectsData = 'platformId: String, password: String';
     this.createPlayerPartner.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH) && data.realName.match(/\d+/g) == null);
-        if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber)) || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha === 'testCaptcha') {
+        if ((conn.smsCode && (String(conn.smsCode) == String(data.smsCode)) && (String(conn.phoneNumber) == String(data.phoneNumber)))
+            || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha === 'testCaptcha') {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -899,6 +900,27 @@ let PlayerServiceImplement = function () {
     this.addClientSourceLog.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.sourceUrl);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerClientSourceLog, [data], isValidData, false, false, true);
+    };
+
+    this.resetPasswordViaPhone.expectsData = 'platformId: String, password: String, smsCode: String, phoneNumber: String';
+    this.resetPasswordViaPhone.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data.platformId && data.phoneNumber && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
+        // console.error("conn.smsCode" + conn.smsCode);
+        // console.error("data.smsCode" + data.smsCode);
+        // console.error("conn.phoneNumber" + conn.phoneNumber);
+        // console.error("data.phoneNumber" + data.phoneNumber);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPlayerPasswordByPhoneNumber, [data.phoneNumber, data.password, data.platformId, true], isValidData, false, false, true);
+        if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber))) {
+            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPlayerPasswordByPhoneNumber, [data.phoneNumber, data.password, data.platformId, true], isValidData, false, false, true);
+        }
+        else {
+            conn.captchaCode = null;
+            wsFunc.response(conn, {
+                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                errorMessage: localization.translate("Verification code invalid", conn.lang),
+                data: null
+            }, data);
+        }
     };
 
 };

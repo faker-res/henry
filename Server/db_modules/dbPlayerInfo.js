@@ -79,7 +79,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, isSMSVerified) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -99,8 +99,7 @@ let dbPlayerInfo = {
                     platformObjId = platformData._id;
                     platformPrefix = platformData.prefix;
 
-                    // isSMSVerified is true when smsCode is already verified in dbPlayerPartner
-                    if (!platformObj.requireSMSVerification || isSMSVerified) {
+                    if (!platformObj.requireSMSVerification || bypassSMSVerify) {
                         return Q.resolve(true);
                     }
 
@@ -1277,6 +1276,38 @@ let dbPlayerInfo = {
         );
     },
 
+    resetPlayerPasswordByPhoneNumber: function (phoneNumber, newPassword, platformId, resetPartnerPassword) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+            platformData => {
+                if (platformData) {
+                    var encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                    return dbconfig.collection_players.findOne({
+                        platform: platformData._id,
+                        phoneNumber: encryptedPhoneNumber
+                    }).lean();
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    return dbPlayerInfo.resetPlayerPassword(playerData._id, newPassword, playerData.platform, resetPartnerPassword);
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    });
+                }
+            });
+    },
+
     /**
      * Update player payment info
      * @param {String}  query - The query string
@@ -1364,6 +1395,7 @@ let dbPlayerInfo = {
         ).then(
             updatedData => {
                 updateData.isPlayerInit = true;
+                updateData.playerName = playerObj.name;
                 dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {data: updateData});
                 return updatedData;
             }
@@ -5297,7 +5329,8 @@ let dbPlayerInfo = {
         para.name ? query.name = para.name : null;
         para.realName ? query.realName = para.realName : null;
         para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
-        para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i'): null;
+        para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
+        para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partner', model: dbconfig.collection_partner});
@@ -6089,7 +6122,10 @@ let dbPlayerInfo = {
 
                         return creditProm.then(
                             () => {
-                                return dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "platform", model: dbconfig.collection_platform}).lean();
+                                return dbconfig.collection_players.findOne({playerId: playerId}).populate({
+                                    path: "platform",
+                                    model: dbconfig.collection_platform
+                                }).lean();
                             }
                         ).then(
                             playerData => {
@@ -7188,6 +7224,41 @@ let dbPlayerInfo = {
                     return dbconfig.collection_proposalType.findOne({
                         platformId: platformObjectId,
                         name: constProposalType.PLAYER_WECHAT_TOP_UP
+                    });
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                }
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    var queryObject = {
+                        "data.playerId": playerId,
+                        type: proposalTypeData._id,
+                        status: constProposalStatus.PENDING
+                    };
+                    return dbconfig.collection_proposal.findOne(queryObject).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+            }
+        );
+    },
+
+    getAlipayTopupRequestList: function (playerId) {
+        var platformObjectId = null;
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).lean().then(
+            playerData => {
+                if (playerData && playerData.platform) {
+                    platformObjectId = playerData.platform._id;
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: platformObjectId,
+                        name: constProposalType.PLAYER_ALIPAY_TOP_UP
                     });
                 }
                 else {
