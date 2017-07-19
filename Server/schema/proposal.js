@@ -42,7 +42,9 @@ var proposalSchema = new Schema({
     // }],
     isLocked: {type: Schema.Types.ObjectId, ref: 'adminInfo'},
     //expiry date for each proposal
-    expirationTime: {type: Date, default: Date.now}
+    expirationTime: {type: Date, default: Date.now},
+    // create Time
+    settleTime: {type: Date, default: Date.now, index: true},
 });
 
 proposalSchema.index({"data.playerName": 1});
