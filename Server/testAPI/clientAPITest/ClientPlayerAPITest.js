@@ -211,6 +211,7 @@
             document.cookie = "platform=" + data.platformId;
             document.cookie = "expires=" + date + (5 * 60 * 60 * 1000);
         }
+        delete data.captcha;
         this.playerService.login.request(data);
         this.playerService.login.once(function (data) {
             testPlayerObjId = data && data.data ? data.data._id : null;
@@ -300,6 +301,12 @@
         var data = requestData || {};
         this.playerService.isValidUsername.request(data);
         this.playerService.isValidUsername.once(callback);
+    };
+
+    proto.isValidRealName = (callback, requestData) => {
+        let data = requestData || {};
+        this.playerService.isValidRealName.request(data);
+        this.playerService.isValidRealName.once(callback);
     };
 
     proto.updatePassword = function (callback, requestData) {

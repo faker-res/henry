@@ -59,6 +59,7 @@
                 "updatePasswordPlayerPartner",
                 "updateSMSSetting",
                 "isValidUsername",
+                "isValidRealName",
                 "authenticate",
                 "authenticatePlayerPartner",
                 "getPlayerDayStatus",
