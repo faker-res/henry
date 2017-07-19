@@ -106,8 +106,11 @@
                                             td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
                                                 img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
                                         tr
-                                            td {{'Limit' | translate}}
+                                            td {{'SINGLE_LIMIT' | translate}}
                                             td.text-success {{v.permerchantLimits | translate}}
+                                        tr
+                                            td {{'DAY_LIMIT' | translate}}
+                                            td.text-success {{v.transactionForPlayerOneDay | translate}}
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#MerchantList", href='#excludedMerchants', ng-click='vm.showMerchantCate="exclude";vm.toggleBankType()')
                             h4.panel-title
@@ -136,6 +139,12 @@
                                             td {{'Merchant Type ID' | translate}}
                                             td.text-success {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
                                                 img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
+                                        tr
+                                            td {{'SINGLE_LIMIT' | translate}}
+                                            td.text-success {{v.permerchantLimits | translate}}
+                                        tr
+                                            td {{'DAY_LIMIT' | translate}}
+                                            td.text-success {{v.transactionForPlayerOneDay | translate}}
                 .panel.panel-info(ng-if='vm.curMerchant')
                     .panel-heading.panel-heading-sm
                         h4.panel-title(style='display:inline-block') {{'Merchant' | translate}} : {{vm.curMerchant.name}}

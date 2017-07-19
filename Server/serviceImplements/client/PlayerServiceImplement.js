@@ -902,6 +902,27 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerClientSourceLog, [data], isValidData, false, false, true);
     };
 
+    this.resetPasswordViaPhone.expectsData = 'platformId: String, password: String, smsCode: String, phoneNumber: String';
+    this.resetPasswordViaPhone.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data.platformId && data.phoneNumber && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
+        // console.error("conn.smsCode" + conn.smsCode);
+        // console.error("data.smsCode" + data.smsCode);
+        // console.error("conn.phoneNumber" + conn.phoneNumber);
+        // console.error("data.phoneNumber" + data.phoneNumber);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPlayerPasswordByPhoneNumber, [data.phoneNumber, data.password, data.platformId, true], isValidData, false, false, true);
+        if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber))) {
+            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPlayerPasswordByPhoneNumber, [data.phoneNumber, data.password, data.platformId, true], isValidData, false, false, true);
+        }
+        else {
+            conn.captchaCode = null;
+            wsFunc.response(conn, {
+                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                errorMessage: localization.translate("Verification code invalid", conn.lang),
+                data: null
+            }, data);
+        }
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;
