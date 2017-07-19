@@ -582,8 +582,8 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                 'data.autoAuditCheckMsg': processRemark,
                                 'data.detail': abnormalMessage ? abnormalMessage : "",
                                 'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
-                                'data.autoAuditRepeatMsg' : repeatMsg,
-                                'data.autoAuditRepeatMsgChinese' : repeatMsgChinese
+                                'data.autoAuditRepeatMsg': repeatMsg,
+                                'data.autoAuditRepeatMsgChinese': repeatMsgChinese
                             },
                             {new: true}
                         );
@@ -648,8 +648,8 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                         'data.autoAuditCheckMsg': processRemark,
                         'data.detail': abnormalMessage ? abnormalMessage : "",
                         'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
-                        'data.autoAuditRepeatMsg' : repeatMsg,
-                        'data.autoAuditRepeatMsgChinese' : repeatMsgChinese
+                        'data.autoAuditRepeatMsg': repeatMsg,
+                        'data.autoAuditRepeatMsgChinese': repeatMsgChinese
                     }).then();
                 }
                 else {
@@ -773,8 +773,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
-            en: "Multi TransferIn (ID: " + multipleTransferInId +")",
-            ch: "连续转入 (ID: " + multipleTransferInId +")"
+            en: "Multi TransferIn (ID: " + multipleTransferInId + ")",
+            ch: "连续转入 (ID: " + multipleTransferInId + ")"
         });
     }
 
@@ -787,8 +787,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
 
     if (multipleTransferOutStreakExist) {
         abnormalities.push({
-            en: "Multi TransferOut (ID: " + multipleTransferOutId +")",
-            ch: "连续转出 (ID: " + multipleTransferOutId +")"
+            en: "Multi TransferOut (ID: " + multipleTransferOutId + ")",
+            ch: "连续转出 (ID: " + multipleTransferOutId + ")"
         });
     }
 
