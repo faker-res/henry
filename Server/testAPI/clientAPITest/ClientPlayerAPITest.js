@@ -302,6 +302,12 @@
         this.playerService.isValidUsername.once(callback);
     };
 
+    proto.isValidRealName = (callback, requestData) => {
+        let data = requestData || {};
+        this.playerService.isValidRealName.request(data);
+        this.playerService.isValidRealName.once(callback);
+    };
+
     proto.updatePassword = function (callback, requestData) {
         var data = requestData || {playerId: testPlayerId, oldPassword: "123456", newPassword: "654321"};
         this.playerService.updatePassword.request(data);

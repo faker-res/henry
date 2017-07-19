@@ -4689,6 +4689,21 @@ let dbPlayerInfo = {
         );
     },
 
+    isValidRealName: inputData => {
+        return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    inputData.name = platformData.prefix + inputData.name;
+                    inputData.name = inputData.name.toLowerCase();
+                    return dbPlayerInfo.isPlayerNameValidToRegister({name: inputData.name, platform: platformData._id});
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        );
+    },
+
     getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince) {
         //todo: active player indicator
         var matchObj = {
@@ -4732,6 +4747,23 @@ let dbPlayerInfo = {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
+                }
+            }
+        );
+    },
+
+    /**
+     * To check whether player's real name exist
+     * @param query
+     * @returns {Promise|Promise.<TResult>}
+     */
+    isPlayerRealNameExist: query => {
+        return dbconfig.collection_players.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    return {isPlayerRealNameExist: true};
+                } else {
+                    return {isPlayerRealNameExist: false};
                 }
             }
         );
