@@ -111,7 +111,7 @@ let dbPlayerInfo = {
                     return smsProm.then(
                         verificationSMS => {
                             // Check verification SMS code
-                            if (verificationSMS && verificationSMS.code && verificationSMS.code === inputData.smsCode) {
+                            if (verificationSMS && verificationSMS.code && verificationSMS.code == inputData.smsCode) {
                                 verificationSMS = verificationSMS || {};
                                 return dbconfig.collection_smsVerificationLog.remove({
                                     _id: verificationSMS._id
