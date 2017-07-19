@@ -1321,7 +1321,7 @@ define(['js/app'], function (myApp) {
                     break;
                 }
                 case (aData.creditAmount$ >= 50000 && aData.creditAmount$ < 500000): {
-                    $(nRow).css('background-color', 'rgba(231, 76, 60, 100)');
+                    $(nRow).css('background-color', 'rgba(236,100,75, 100)');
                     break;
                 }
                 case (aData.creditAmount$ >= 500000 && aData.creditAmount$ < 1000000): {
