@@ -21,6 +21,11 @@
         </label>
     </div>
     <div>
+        <label>Real Name
+            <input name="realName">
+        </label>
+    </div>
+    <div>
         <label>Platform Id
             <input name="platformId">
         </label>
@@ -28,6 +33,16 @@
     <div>
         <label>Mobile
             <input name="mobile">
+        </label>
+    </div>
+    <div>
+        <button id="getRegCaptcha">Get Captcha Code</button>
+        <img id="playerRegCaptchaImg"/>
+    </div>
+    <p></p>
+    <div>
+        <label id="captchaCode">Captcha Code
+            <input id="captchaCodeInput" type=text name="captcha">
         </label>
     </div>
     <!--<div>-->
@@ -93,11 +108,14 @@
     </div>
 </div>
 <script>
-    require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRegistrationIntentionAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
-            function (ClientServices, WebSocketClient, TestHelper, ClientRegistrationIntentionAPITest, ClientConnectionAPITest ) {
+    require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRegistrationIntentionAPITest','testAPI/clientAPITest/ClientConnectionAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest'],
+            function (ClientServices, WebSocketClient, TestHelper, ClientRegistrationIntentionAPITest, ClientConnectionAPITest, ClientPlayerAPITest ) {
                 var Client = function (url) {
 
                     WebSocketClient.call(this, url);
+
+                    var playerService = new ClientServices.PlayerService();
+                    this.addService(playerService);
 
                     var RegistrationIntention = new ClientServices.RegistrationIntentionService();
                     this.addService(RegistrationIntention);
@@ -116,11 +134,36 @@
                     var RegistrationIntention = client.getService("registrationIntention");
                     var clientRegistrationIntentionAPITest = new ClientRegistrationIntentionAPITest(RegistrationIntention);
 
+                    var playerService = client.getService("player");
+                    var clientPlayerAPITest = new ClientPlayerAPITest(playerService);
+
                     var connectionService = client.getService("connection");
                     var connAPITest = new ClientConnectionAPITest(connectionService);
 
                     connAPITest.setLang(function (data) {
                         console.log('setlang data.....', data);
+                    });
+
+                    function _arrayBufferToBase64(buffer) {
+                        var binary = '';
+                        var bytes = new Uint8Array(buffer);
+                        var len = bytes.byteLength;
+                        for (var i = 0; i < len; i++) {
+                            binary += String.fromCharCode(bytes[i]);
+                        }
+                        return window.btoa(binary);
+                    }
+
+                    $("#getLoginCaptcha").click(function () {
+                        clientPlayerAPITest.captcha(function (data) {
+                            $("#playerLoginCaptchaImg").attr("src", "data:image/png;base64," + _arrayBufferToBase64(data.data.data));
+                        });
+                    });
+
+                    $("#getRegCaptcha").click(function () {
+                        clientPlayerAPITest.captcha(function (data) {
+                            $("#playerRegCaptchaImg").attr("src", "data:image/png;base64," + _arrayBufferToBase64(data.data.data));
+                        });
                     });
 
                     TestHelper.setAPIName('ClientServices.registrationIntention');
