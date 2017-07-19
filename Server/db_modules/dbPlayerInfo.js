@@ -1152,7 +1152,12 @@ let dbPlayerInfo = {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
                     }
                 ).then(
-                    data => deferred.resolve(newPassword),
+                    data = function () {
+                        if (dontReturnPassword) {
+                            newPassword = "";
+                        }
+                        deferred.resolve(newPassword)
+                    },
                     error => deferred.reject({
                         name: "DBError",
                         message: "Error updating partner password.",
