@@ -647,6 +647,12 @@ let PlayerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
+    this.isValidRealName.expectsData = 'realName: String, platformId: String';
+    this.isValidRealName.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.realName && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.isPlayerRealNameExist, [data], isValidData, false, false, true);
+    };
+
     this.updatePassword.expectsData = 'playerId: String, oldPassword: String, newPassword: String';
     this.updatePassword.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId));
