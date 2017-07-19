@@ -360,14 +360,15 @@ var PartnerServiceImplement = function () {
 
     this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.platformId && data.partnerId && (data.partnerId == conn.partnerId) && data.phoneNumber && data.smsCode);
-        let queryRes = queryPhoneLocation(data.phoneNumber);
+        let isValidData = Boolean(data && data.platformId && data.partnerId && (data.partnerId == conn.partnerId) && (data.phoneNumber || data.newPhoneNumber) && data.smsCode);
+        let newPhoneNumber = data.newPhoneNumber ? data.newPhoneNumber : data.phoneNumber;
+        let queryRes = queryPhoneLocation(newPhoneNumber);
         if (queryRes) {
             data.phoneProvince = queryRes.province;
             data.phoneCity = queryRes.city;
             data.phoneType = queryRes.type;
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.partnerId, data.newPhoneNumber, data.smsCode, 1], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.partnerId, newPhoneNumber, data.smsCode, 1], isValidData);
     };
 
 };

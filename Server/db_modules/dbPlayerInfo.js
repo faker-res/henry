@@ -5330,7 +5330,7 @@ let dbPlayerInfo = {
         para.realName ? query.realName = para.realName : null;
         para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
-        para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i')  : null;
+        para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partner', model: dbconfig.collection_partner});
