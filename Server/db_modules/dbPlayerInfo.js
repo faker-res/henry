@@ -1143,10 +1143,7 @@ let dbPlayerInfo = {
                                 constShardKeys.collection_partner
                             );
                         }
-                        if (dontReturnPassword) {
-                            newPassword = "";
-                        }
-                        deferred.resolve(newPassword);
+                        deferred.resolve(dontReturnPassword ? "" : newPassword);
                     },
                     error => {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
