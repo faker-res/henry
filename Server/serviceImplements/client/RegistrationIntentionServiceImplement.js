@@ -2,6 +2,7 @@ const WebSocketUtil = require("./../../server_common/WebSocketUtil");
 const RegistrationIntentionService = require("./../../services/client/ClientServices").RegistrationIntentionService;
 const dbPlayerRegistrationIntentRecord = require('./../../db_modules/dbPlayerRegistrationIntentRecord');
 const constServerCode = require('./../../const/constServerCode');
+const localization = require('../../modules/localization').localization;
 const constMessageClientTypes = require('./../../const/constMessageClientTypes');
 const constProposalStatus = require('./../../const/constProposalStatus');
 
@@ -22,8 +23,17 @@ var RegistrationIntentionServiceImplement = function () {
             [data, constProposalStatus.PENDING], isValidData, true, false, true
         ).then(
             function (res) {
-                wsFunc.response(conn, {status: constServerCode.SUCCESS, data: res}, data);
-                self.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyRegistrationIntentionUpdate", res);
+                if (conn.captchaCode && (conn.captchaCode == data.captcha)) {
+                    wsFunc.response(conn, {status: constServerCode.SUCCESS, data: res}, data);
+                    self.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyRegistrationIntentionUpdate", res);
+                } else {
+                    conn.captchaCode = null;
+                    wsFunc.response(conn, {
+                        status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                        errorMessage: localization.translate("Verification code invalid", conn.lang),
+                        data: null
+                    }, data);
+                }
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };
