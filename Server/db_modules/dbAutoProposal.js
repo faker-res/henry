@@ -226,12 +226,12 @@ function checkProposalConsumption(proposal, platformObj) {
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
-            let dateTo = proposal.createTime;
+            let dateTo = proposal.settleTime;
 
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
 
             if (proposals && !proposals.length && !bFirstWithdraw && !bNoBonusPermission && !bTransferAbnormal) {
-                // There is no other withdrawal between this withdrawal and last withdrawal
+                // There is no other proposal between this withdrawal and last withdrawal
                 proms.push(
                     getPlayerConsumptionSummary(proposal.data.platformId, proposal.data.playerObjId, new Date(dLastWithdraw), new Date(dateTo)).then(
                         record => {
@@ -265,7 +265,8 @@ function checkProposalConsumption(proposal, platformObj) {
                     let getProp = proposals.shift();
 
                     // Set query date from checking proposal -> current proposal
-                    let queryDateFrom = new Date(getProp.createTime);
+                    // Use settleTime instead of createTime for more accurate consumption calculation
+                    let queryDateFrom = new Date(getProp.settleTime);
                     let queryDateTo = new Date(dateTo);
 
                     let checkingNo = countProposals;
