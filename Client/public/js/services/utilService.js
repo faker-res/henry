@@ -641,11 +641,13 @@ define([], function () {
                 case "UpdatePartnerPhone":
                 case "UpdatePartnerEmail":
                 case "UpdatePartnerInfo":
+                case "UpdatePartnerCredit":
                     return $trans("Player Proposal");
                 case "ManualPlayerTopUp":
                 case "PlayerAlipayTopUp":
                 case "PlayerTopUp":
                 case "PlayerWechatTopUp":
+                case "PlayerQuickpayTopUp":
                     return $trans("Topup Proposal");
                 case "PlayerBonus":
                 case "PartnerBonus":
@@ -667,6 +669,7 @@ define([], function () {
                 case "GameProviderReward":
                 case "PlayerDoubleTopUpReward":
                 case "PlayerConsecutiveLoginReward":
+                case "PlayerEasterEggReward":
                     return $trans("Reward Proposal");
                 case "PlayerConsumptionReturnFix":
                     return $trans("ReturnFix Proposal");
