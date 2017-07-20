@@ -51,7 +51,9 @@ var dbPlayerRegistrationIntentRecord = {
             entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
             userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
         };
-        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
+        if( data.phoneNumber ){
+            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
+        }
         var newRecord = new dbconfig.collection_playerRegistrationIntentRecord(data);
         return newRecord.save();
     },
