@@ -1143,10 +1143,7 @@ let dbPlayerInfo = {
                                 constShardKeys.collection_partner
                             );
                         }
-                        if (dontReturnPassword) {
-                            newPassword = "";
-                        }
-                        deferred.resolve(newPassword);
+                        deferred.resolve(dontReturnPassword ? "" : newPassword);
                     },
                     error => {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
@@ -4760,7 +4757,11 @@ let dbPlayerInfo = {
      * @returns {Promise|Promise.<TResult>}
      */
     isPlayerRealNameExist: query => {
-        return dbconfig.collection_players.findOne(query).then(
+        return dbconfig.collection_platform.findOne({platformId: query.platformId}).then(
+            platformData => {
+                return dbconfig.collection_players.findOne({realName: query.realName, platform: platformData._id})
+            }
+        ).then(
             playerData => {
                 if (playerData) {
                     return {isPlayerRealNameExist: true};

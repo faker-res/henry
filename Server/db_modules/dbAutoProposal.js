@@ -98,14 +98,14 @@ let dbAutoProposal = {
  */
 function checkProposalConsumption(proposal, platformObj) {
     let repeatCount = platformObj.autoApproveRepeatCount;
-    let todayBonusAmount = proposal.data.amount;
+    let todayBonusAmount = 0;
     let bFirstWithdraw = false;
     let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
     let dLastWithdraw;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
-            todayBonusAmount += bonusRecord ? bonusRecord.amount : 0;
+            todayBonusAmount = bonusRecord && bonusRecord[0] && bonusRecord[0].amount ? bonusRecord[0].amount : 0;
 
             return getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type);
         }
@@ -226,12 +226,12 @@ function checkProposalConsumption(proposal, platformObj) {
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
-            let dateTo = proposal.createTime;
+            let dateTo = proposal.settleTime ? proposal.settleTime : proposal.createTime;
 
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
 
             if (proposals && !proposals.length && !bFirstWithdraw && !bNoBonusPermission && !bTransferAbnormal) {
-                // There is no other withdrawal between this withdrawal and last withdrawal
+                // There is no other proposal between this withdrawal and last withdrawal
                 proms.push(
                     getPlayerConsumptionSummary(proposal.data.platformId, proposal.data.playerObjId, new Date(dLastWithdraw), new Date(dateTo)).then(
                         record => {
@@ -265,7 +265,8 @@ function checkProposalConsumption(proposal, platformObj) {
                     let getProp = proposals.shift();
 
                     // Set query date from checking proposal -> current proposal
-                    let queryDateFrom = new Date(getProp.createTime);
+                    // Use settleTime instead of createTime for more accurate consumption calculation
+                    let queryDateFrom = new Date(getProp.settleTime ? getProp.settleTime : getProp.createTime);
                     let queryDateTo = new Date(dateTo);
 
                     let checkingNo = countProposals;
@@ -709,7 +710,7 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
     }).sort({createTime: -1}).limit(1).lean().then(
         retData => {
             if (retData && retData[0]) {
-                return retData[0].createTime;
+                return retData[0].settleTime ? retData[0].settleTime : retData[0].createTime;
             }
         }
     );

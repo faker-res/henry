@@ -303,7 +303,7 @@
         this.playerService.isValidUsername.once(callback);
     };
 
-    proto.isValidRealName = (callback, requestData) => {
+    proto.isValidRealName = function (callback, requestData) {
         let data = requestData || {};
         this.playerService.isValidRealName.request(data);
         this.playerService.isValidRealName.once(callback);
