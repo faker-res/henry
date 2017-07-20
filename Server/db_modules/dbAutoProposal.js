@@ -98,14 +98,14 @@ let dbAutoProposal = {
  */
 function checkProposalConsumption(proposal, platformObj) {
     let repeatCount = platformObj.autoApproveRepeatCount;
-    let todayBonusAmount = proposal.data.amount;
+    let todayBonusAmount = 0;
     let bFirstWithdraw = false;
     let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
     let dLastWithdraw;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
-            todayBonusAmount += bonusRecord ? bonusRecord.amount : 0;
+            todayBonusAmount = bonusRecord && bonusRecord[0] && bonusRecord[0].amount ? bonusRecord[0].amount : 0;
 
             return getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type);
         }
@@ -226,12 +226,12 @@ function checkProposalConsumption(proposal, platformObj) {
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
-            let dateTo = proposal.createTime;
+            let dateTo = proposal.settleTime ? proposal.settleTime : proposal.createTime;
 
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
 
             if (proposals && !proposals.length && !bFirstWithdraw && !bNoBonusPermission && !bTransferAbnormal) {
-                // There is no other withdrawal between this withdrawal and last withdrawal
+                // There is no other proposal between this withdrawal and last withdrawal
                 proms.push(
                     getPlayerConsumptionSummary(proposal.data.platformId, proposal.data.playerObjId, new Date(dLastWithdraw), new Date(dateTo)).then(
                         record => {
@@ -265,7 +265,8 @@ function checkProposalConsumption(proposal, platformObj) {
                     let getProp = proposals.shift();
 
                     // Set query date from checking proposal -> current proposal
-                    let queryDateFrom = new Date(getProp.createTime);
+                    // Use settleTime instead of createTime for more accurate consumption calculation
+                    let queryDateFrom = new Date(getProp.settleTime ? getProp.settleTime : getProp.createTime);
                     let queryDateTo = new Date(dateTo);
 
                     let checkingNo = countProposals;
@@ -302,7 +303,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 initBonusAmount: getProp.data.amount,
                                                 requiredConsumption: getProp.data.amount,
                                                 curConsumption: curConsumption,
-                                                bonusAmount: bonusAmount
+                                                bonusAmount: bonusAmount,
+                                                settleTime: new Date(queryDateFrom)
                                             });
                                         }
                                     }
@@ -345,7 +347,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 initBonusAmount: initBonusAmount,
                                                 requiredConsumption: getProp.data.spendingAmount - applyAmount,
                                                 curConsumption: curConsumption,
-                                                bonusAmount: bonusAmount
+                                                bonusAmount: bonusAmount,
+                                                settleTime: new Date(queryDateFrom)
                                             });
 
                                         }
@@ -370,7 +373,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
 
                     // Make sure the check result is in correct order
-                    checkResult.sort((a, b) => b.sequence - a.sequence);
+                    checkResult.sort((a, b) => b.settleTime.getTime() - a.settleTime.getTime());
 
                     // Compare consumption and spendingAmount
                     for (let i = 0; i < checkResult.length; i++) {
@@ -434,8 +437,12 @@ function checkProposalConsumption(proposal, platformObj) {
                         isApprove = false;
                         repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese = "总投注额不足：流水 " + totalConsumptionAmount + " ，所需流水 " + totalSpendingAmount + "; ";
+                        checkMsg += "Insufficient consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                        checkMsgChinese += "投注额不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
                     }
                     else {
+                        checkMsg = "";
+                        checkMsgChinese = "";
                         repeatMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese += "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                         checkMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
@@ -539,9 +546,11 @@ function checkProposalConsumption(proposal, platformObj) {
 
                             // Check if player is VIP - Passed
                             if (proposal.data.proposalPlayerLevelValue == 0) {
-                                sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
+                                //sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
+                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
                             } else {
-                                sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
+                                //sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
+                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
                             }
                         }
 
@@ -709,7 +718,7 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
     }).sort({createTime: -1}).limit(1).lean().then(
         retData => {
             if (retData && retData[0]) {
-                return retData[0].createTime;
+                return retData[0].settleTime ? retData[0].settleTime : retData[0].createTime;
             }
         }
     );

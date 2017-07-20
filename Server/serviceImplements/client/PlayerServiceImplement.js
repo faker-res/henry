@@ -66,10 +66,11 @@ let PlayerServiceImplement = function () {
             if (data.qq && !data.email) {
                 data.email = data.qq + "@qq.com";
             }
+            let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
             conn.captchaCode = null;
             data.isOnline = true;
             let inputData = Object.assign({}, data);
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData], isValidData, true, true, true).then(
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
                 (playerData) => {
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
@@ -258,7 +259,7 @@ let PlayerServiceImplement = function () {
             data.phoneCity = queryRes.city;
             data.phoneType = queryRes.type;
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.playerId, data.newPhoneNumber, data.smsCode, 0], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.platformId, data.playerId, data.phoneNumber, data.smsCode, 0], isValidData);
     };
 
     this.updatePlayerPartnerPhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
@@ -646,6 +647,12 @@ let PlayerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
+    this.isValidRealName.expectsData = 'realName: String, platformId: String';
+    this.isValidRealName.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.realName && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.isPlayerRealNameExist, [data], isValidData, false, false, true);
+    };
+
     this.updatePassword.expectsData = 'playerId: String, oldPassword: String, newPassword: String';
     this.updatePassword.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId));
@@ -909,7 +916,7 @@ let PlayerServiceImplement = function () {
         // console.error("data.smsCode" + data.smsCode);
         // console.error("conn.phoneNumber" + conn.phoneNumber);
         // console.error("data.phoneNumber" + data.phoneNumber);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPlayerPasswordByPhoneNumber, [data.phoneNumber, data.password, data.platformId, true], isValidData, false, false, true);
+        // WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPlayerPasswordByPhoneNumber, [data.phoneNumber, data.password, data.platformId, true], isValidData, false, false, true);
         if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber))) {
             WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPlayerPasswordByPhoneNumber, [data.phoneNumber, data.password, data.platformId, true], isValidData, false, false, true);
         }

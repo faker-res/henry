@@ -11,7 +11,7 @@ let dbConfig = require('../modules/dbproperties');
 let dbUtility = require('./../modules/dbutility');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbPartner = require('./../db_modules/dbPartner');
-let dbProposal = require('./../db_modules/dbProposal')
+let dbProposal = require('./../db_modules/dbProposal');
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI: registerData => {
@@ -459,7 +459,7 @@ let dbPlayerPartner = {
                         partnerId: partnerData ? partnerData.partnerId : null
                     };
                     let updateData = {
-                        phoneNumber: newPhoneNumber
+                        phoneNumber: newEncrpytedPhoneNumber
                     };
                     let plyProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_players, queryPlayer, updateData, constShardKeys.collection_players);
                     let partnerProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_partner, queryPartner, updateData, constShardKeys.collection_partner);
@@ -479,6 +479,7 @@ let dbPlayerPartner = {
                 // data.data.playerObjId && data.data.playerName && data.data.curData &&
                 // data.data.updateData && data.data.updateData.phoneNumber
                 let player, partner, playerUpdateData, partnerUpdateData;
+                let updatePhoneNumber = dbUtility.encodePhoneNum(newPhoneNumber);
                 switch (targetType) {
                     case 0:
                         player = result;
@@ -487,7 +488,7 @@ let dbPlayerPartner = {
                             playerObjId: player._id,
                             playerName: player.name,
                             updateData: {
-                                phoneNumber: player.phoneNumber
+                                phoneNumber: updatePhoneNumber
                             }
 
                         };
@@ -501,7 +502,7 @@ let dbPlayerPartner = {
                             partnerObjId: partner._id,
                             partnerName: partner.name,
                             updateData: {
-                                phoneNumber: player.phoneNumber
+                                phoneNumber: updatePhoneNumber
                             }
 
                         };
@@ -515,7 +516,7 @@ let dbPlayerPartner = {
                             playerObjId: player._id,
                             playerName: player.name,
                             updateData: {
-                                phoneNumber: player.phoneNumber
+                                phoneNumber: updatePhoneNumber
                             }
 
                         };
@@ -525,7 +526,7 @@ let dbPlayerPartner = {
                             partnerObjId: partner._id,
                             partnerName: partner.name,
                             updateData: {
-                                phoneNumber: player.phoneNumber
+                                phoneNumber: updatePhoneNumber
                             }
 
                         };

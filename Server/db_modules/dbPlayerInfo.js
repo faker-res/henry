@@ -111,7 +111,7 @@ let dbPlayerInfo = {
                     return smsProm.then(
                         verificationSMS => {
                             // Check verification SMS code
-                            if (verificationSMS && verificationSMS.code && verificationSMS.code === inputData.smsCode) {
+                            if (verificationSMS && verificationSMS.code && verificationSMS.code == inputData.smsCode) {
                                 verificationSMS = verificationSMS || {};
                                 return dbconfig.collection_smsVerificationLog.remove({
                                     _id: verificationSMS._id
@@ -530,8 +530,8 @@ let dbPlayerInfo = {
         let func = (fieldName == 'phoneNumber')
             ? dbUtility.encodePhoneNum
             : ((fieldName == 'bankAccount')
-                ? dbUtility.encodeBankAcc
-                : null);
+            ? dbUtility.encodeBankAcc
+            : null);
         return Q.resolve(prom1).then(results => {
             let prom = [];
             let similarPlayersArray = [];
@@ -1103,7 +1103,7 @@ let dbPlayerInfo = {
      * @param {objectId} platform - player's platform
      * @param {boolean} resetPartnerPassword - reset partner password also if true
      */
-    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword) {
+    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword) {
         let deferred = Q.defer();
 
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
@@ -1143,14 +1143,13 @@ let dbPlayerInfo = {
                                 constShardKeys.collection_partner
                             );
                         }
-
-                        deferred.resolve(newPassword);
+                        deferred.resolve(dontReturnPassword ? "" : newPassword);
                     },
                     error => {
                         deferred.reject({name: "DBError", message: "Error updating player password.", error: error});
                     }
                 ).then(
-                    data => deferred.resolve(newPassword),
+                    data => deferred.resolve(dontReturnPassword ? "" : newPassword),
                     error => deferred.reject({
                         name: "DBError",
                         message: "Error updating partner password.",
@@ -1296,7 +1295,7 @@ let dbPlayerInfo = {
         ).then(
             playerData => {
                 if (playerData) {
-                    return dbPlayerInfo.resetPlayerPassword(playerData._id, newPassword, playerData.platform, resetPartnerPassword);
+                    return dbPlayerInfo.resetPlayerPassword(playerData._id, newPassword, playerData.platform, resetPartnerPassword, true);
                 }
                 else {
                     return Q.reject({
@@ -3583,9 +3582,9 @@ let dbPlayerInfo = {
         let deferred = Q.defer();
         let prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform});
+            .populate({path: "platform", model: dbconfig.collection_platform});
         let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         let playerData = null;
         let providerData = null;
@@ -4013,9 +4012,9 @@ let dbPlayerInfo = {
         var playerObj = {};
         var prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform});
+            .populate({path: "platform", model: dbconfig.collection_platform});
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
@@ -4689,6 +4688,21 @@ let dbPlayerInfo = {
         );
     },
 
+    isValidRealName: inputData => {
+        return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
+            platformData => {
+                if (platformData) {
+                    inputData.name = platformData.prefix + inputData.name;
+                    inputData.name = inputData.name.toLowerCase();
+                    return dbPlayerInfo.isPlayerNameValidToRegister({name: inputData.name, platform: platformData._id});
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        );
+    },
+
     getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince) {
         //todo: active player indicator
         var matchObj = {
@@ -4732,6 +4746,27 @@ let dbPlayerInfo = {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
+                }
+            }
+        );
+    },
+
+    /**
+     * To check whether player's real name exist
+     * @param query
+     * @returns {Promise|Promise.<TResult>}
+     */
+    isPlayerRealNameExist: query => {
+        return dbconfig.collection_platform.findOne({platformId: query.platformId}).then(
+            platformData => {
+                return dbconfig.collection_players.findOne({realName: query.realName, platform: platformData._id})
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    return {isPlayerRealNameExist: true};
+                } else {
+                    return {isPlayerRealNameExist: false};
                 }
             }
         );
@@ -8828,9 +8863,13 @@ let dbPlayerInfo = {
 
                 // All conditions have been satisfied.
                 deductionAmount = record.amount;
-                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerDoubleTopUpReward:Deduction", record).then(
-                    function () {
-                        bDoneDeduction = true;
+                let creditProm = Q.resolve(false);
+                if (player.platform.useLockedCredit) {
+                    dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerDoubleTopUpReward:Deduction", record);
+                }
+                creditProm.then(
+                    function (bDeduct) {
+                        bDoneDeduction = bDeduct;
                         var proposalData = {
                             type: eventData.executeProposal,
                             creator: adminInfo ? adminInfo :

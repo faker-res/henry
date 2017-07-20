@@ -2031,6 +2031,7 @@
   "Required Consumption Amount Times": "需求投注倍数",
   "Min top up amount": "最低充值额度",
   "Player Easter Egg Reward": "彩蛋奖励",
+  "PlayerEasterEggReward": "彩蛋奖励",
   "PLAYER_EASTER_EGG_REWARD_REPORT": "彩蛋奖励报表",
   "optional": "选填",
   "Leaving empty will generate a random password.": "放空此栏将随机生成密码。",
@@ -2111,5 +2112,6 @@
   "detailChinese": "详情（中文）",
   "isPlayerInit": "玩家提交",
   "SOURCE_URL": "来源URL",
-  "autoAuditTime": "自动审核：审核时间"
+  "autoAuditTime": "自动审核：审核时间",
+  "STATE": "状态"
 }

@@ -69,13 +69,17 @@ var proposalExecutor = {
                     proposalExecutor.executions[executionType](proposalData, deferred);
                     return deferred.promise.then(
                         responseData => {
-                            if (proposalData.mainType === 'Reward' && executionType != "executeManualUnlockPlayerReward") {
-                                return createRewardLogForProposal("GET_FROM_PROPOSAL", proposalData).then(
-                                    () => responseData
-                                );
-                            } else {
-                                return responseData;
-                            }
+                            return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {settleTime: new Date()}).then(
+                                res => {
+                                    if (proposalData.mainType === 'Reward' && executionType != "executeManualUnlockPlayerReward") {
+                                        return createRewardLogForProposal("GET_FROM_PROPOSAL", proposalData).then(
+                                            () => responseData
+                                        );
+                                    } else {
+                                        return responseData;
+                                    }
+                                }
+                            );
                         }
                     );
                 }
