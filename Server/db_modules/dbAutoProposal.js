@@ -437,6 +437,8 @@ function checkProposalConsumption(proposal, platformObj) {
                         isApprove = false;
                         repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese = "总投注额不足：流水 " + totalConsumptionAmount + " ，所需流水 " + totalSpendingAmount + "; ";
+                        checkMsg += "Insufficient consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                        checkMsgChinese += "投注额不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
                     }
                     else {
                         repeatMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
