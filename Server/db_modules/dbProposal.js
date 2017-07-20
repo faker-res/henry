@@ -283,7 +283,8 @@ var proposal = {
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
                             //for online top up and player consumption return, there can be multiple pending proposals
-                            if (pendingProposal && data[0].name != constProposalType.PLAYER_TOP_UP && data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN) {
+                            if (pendingProposal && data[0].name != constProposalType.PLAYER_TOP_UP && data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
+                                && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION) {
                                 deferred.reject({
                                     name: "DBError",
                                     message: "Player or partner already has a pending proposal for this type"
