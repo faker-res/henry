@@ -8863,9 +8863,13 @@ let dbPlayerInfo = {
 
                 // All conditions have been satisfied.
                 deductionAmount = record.amount;
-                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerDoubleTopUpReward:Deduction", record).then(
-                    function () {
-                        bDoneDeduction = true;
+                let creditProm = Q.resolve(false);
+                if (player.platform.useLockedCredit) {
+                    dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerDoubleTopUpReward:Deduction", record);
+                }
+                creditProm.then(
+                    function (bDeduct) {
+                        bDoneDeduction = bDeduct;
                         var proposalData = {
                             type: eventData.executeProposal,
                             creator: adminInfo ? adminInfo :
