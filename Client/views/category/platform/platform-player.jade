@@ -1446,7 +1446,7 @@ include modalGameCreditLog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"new player list"|translate}} {{vm.isOneSelectedPlayer().name}}
+                h4.modal-title {{"new player list"|translate}}
             .modal-body
                 .panel.panel-primary
                     .panel-body
@@ -1465,8 +1465,11 @@ include modalGameCreditLog
                                     option 200
                                     option(value='-1') {{'Unlimited' | translate}}
                             .inlineBlk
-                                label {{'ACCOUNT' | translate}}
-                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.name', required)
+                                label {{'PLAYERID' | translate}}
+                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerId', required)
+                            .inlineBlk
+                                label {{'PLAYERNAME' | translate}}
+                                input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
 
                             .inlineBlk
                                 button.btn.btn-primary(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}

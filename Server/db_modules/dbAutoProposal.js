@@ -373,7 +373,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
 
                     // Make sure the check result is in correct order
-                    checkResult.sort((a, b) => b.settleTime.getTime() - a.settleTime.getTime());
+                    checkResult.sort((a, b) => a.settleTime.getTime() - b.settleTime.getTime());
 
                     // Compare consumption and spendingAmount
                     for (let i = 0; i < checkResult.length; i++) {
