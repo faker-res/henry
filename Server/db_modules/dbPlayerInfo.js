@@ -4757,7 +4757,11 @@ let dbPlayerInfo = {
      * @returns {Promise|Promise.<TResult>}
      */
     isPlayerRealNameExist: query => {
-        return dbconfig.collection_players.findOne(query).then(
+        return dbconfig.collection_platform.findOne({platformId: query.platformId}).then(
+            platformData => {
+                return dbconfig.collection_players.findOne({realName: query.realName, platform: platformData._id})
+            }
+        ).then(
             playerData => {
                 if (playerData) {
                     return {isPlayerRealNameExist: true};
