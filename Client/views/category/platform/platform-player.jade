@@ -228,7 +228,7 @@ include modalGameCreditLog
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #dialogEditPlayer.dialog-dialog(ng-non-bindable).hidden
-    .dialog-content
+    .dialog-content(style="overflow: scroll;height:600px;")
         .dialog-header
             a.fa.fa-times.close.btn.btn-sm(type='button', data-dismiss='dialog')
             a.fa.fa-minus.close.btn.btn-sm(type='button', data-toggle='minimize')
@@ -239,7 +239,6 @@ include modalGameCreditLog
                     //- .well
                     .row
                         include player-edit-form
-        .dialog-footer
             button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
             button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
 #modalEditPlayerPayment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
