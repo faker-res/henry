@@ -18,6 +18,8 @@ var RegistrationIntentionServiceImplement = function () {
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             data.ipAddress = forwardedIp[0].trim();
         }
+        delete data.password;
+        delete data.confirmPassword;
         WebSocketUtil.responsePromise(
             conn, wsFunc, data, dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI,
             [data, constProposalStatus.PENDING], isValidData, true, false, true
