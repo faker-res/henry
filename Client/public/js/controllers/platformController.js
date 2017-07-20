@@ -1979,7 +1979,8 @@ define(['js/app'], function (myApp) {
                 type: ["PlayerRegistrationIntention"],
                 startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
-                relateUser: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.name : null,
+                relateUser: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerName : null,
+                relatePlayerId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerId : null,
                 // entryType: vm.queryProposalEntryType,
                 size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
                 index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
@@ -2012,7 +2013,8 @@ define(['js/app'], function (myApp) {
                     record => {
                         record.createTime = vm.dateReformat(record.createTime);
                         record.statusName = $translate(record.status);
-                        record.fullPlayerId = record.data.playerId ? record.data.playerId : record.data.name;
+                        record.playerId = record.data.playerId ? record.data.playerId : "" ;
+                        record.playerName = record.data.playerName ? record.data.playerName : "";
                         return record
                     }
                 );
@@ -2023,26 +2025,45 @@ define(['js/app'], function (myApp) {
                         {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                         {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
                         {'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'realName', bSortable: true, 'aTargets': [3]},
-                        {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [4]},
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'phoneNumber', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'data.playerName', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'realName', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'phoneNumber', bSortable: true, 'aTargets': [7]},
                         // {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
                         {title: $translate('PROPOSAL_ID'), data: "proposalId"},
                         {title: $translate('STATUS'), data: "statusName"},
-                        {title: $translate('PLAYERID'), data: "fullPlayerId"},
-                        {title: $translate('PLAYERNAME'), data: "data.realName"},
+                        {title: $translate('PLAYERID'), data: "playerId"},
+                        {title: $translate('PLAYERNAME'), data: "playerName"},
+                        {title: $translate('REAL_NAME'), data: "data.realName"},
                         {title: $translate('IP_ADDRESS'), data: "data.lastLoginIp"},
                         {title: $translate('CREATETIME'), data: "createTime"},
-                        {title: $translate('phoneNumber'), data: "data.phoneNumber"}
+                        {title: $translate('phoneNumber'), data: "data.phoneNumber", advSearch: true, "sClass": "",
+                         render: function(data, type, row){
+                            data = data || '';
+                            var playerObjId = row.data._id ? row.data._id: "";
+                            var link = $('<div>', {});
+                            link.append($('<div>', {
+                                'class': 'fa fa-volume-control-phone',
+                                'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                // 'data-row': JSON.stringify(row),
+                                'title': $translate("PHONE")
+                            }));
+                            return link.prop('outerHTML')
+                         }
+                        }
                     ],
                     destroy: true,
                     paging: false,
                     autoWidth: true,
-                    initComplete: function () {
+                    initComplete: function(data,type,row){
                         $scope.safeApply();
+                    },
+                    createdRow: function(row, data, dataIndex) {
+                      $compile(angular.element(row).contents())($scope);
+
                     }
                 });
                 var a = utilService.createDatatableWithFooter('#newPlayerListTable', option, {});
@@ -2562,7 +2583,7 @@ define(['js/app'], function (myApp) {
                         orderable: false,
                         render: function (data, type, row) {
                             data = data || '';
-
+                            var playerObjId = row._id ? row._id : "";
                             var link = $('<div>', {});
                             link.append($('<a>', {
                                 'class': 'fa fa-envelope margin-right-5',
@@ -2582,7 +2603,7 @@ define(['js/app'], function (myApp) {
                             }));
                             link.append($('<a>', {
                                 'class': 'fa fa-volume-control-phone',
-                                'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", ' + JSON.stringify(row) + ');',
+                                'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "'+ playerObjId + '",' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
                                 'title': $translate("PHONE"),
@@ -3450,7 +3471,7 @@ define(['js/app'], function (myApp) {
             vm.telphonePlayer = data;
             $('#messagePlayerModal').modal('show');
         }
-        vm.telorMessageToPlayerBtn = function (type, data) {
+        vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
             // var rowData = JSON.parse(data);
             console.log(type, data);
             var title, text;
@@ -3470,12 +3491,12 @@ define(['js/app'], function (myApp) {
                 var phoneCall = {
                     playerId: data.playerId,
                     name: data.name,
-                    toText: data.name,
+                    toText: data.playerName ? data.playerName: data.name,
                     platform: "jinshihao",
                     loadingNumber: true,
                 }
                 $scope.initPhoneCall(phoneCall);
-                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data._id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: playerObjId}, function (data) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();

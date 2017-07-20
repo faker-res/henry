@@ -1193,7 +1193,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, relateUser, entryType, startTime, endTime, index, size, sortCol) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1250,6 +1250,15 @@ var proposal = {
                                 $or: [
                                     {"data.playerName": relateUser},
                                     {"data.partnerName": relateUser}
+                                ]
+                            })
+                        }
+                        if (relatePlayerId) {
+                            queryObj["$and"] = [];
+                            queryObj["$and"].push({
+                                $or: [
+                                    {"data.playerId": relatePlayerId},
+                                    {"data.partnerId": relatePlayerId}
                                 ]
                             })
                         }
