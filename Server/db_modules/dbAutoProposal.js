@@ -226,7 +226,7 @@ function checkProposalConsumption(proposal, platformObj) {
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
-            let dateTo = proposal.settleTime;
+            let dateTo = proposal.settleTime ? proposal.settleTime : proposal.createTime;
 
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
 
@@ -266,7 +266,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
                     // Set query date from checking proposal -> current proposal
                     // Use settleTime instead of createTime for more accurate consumption calculation
-                    let queryDateFrom = new Date(getProp.settleTime);
+                    let queryDateFrom = new Date(getProp.settleTime ? getProp.settleTime : getProp.createTime);
                     let queryDateTo = new Date(dateTo);
 
                     let checkingNo = countProposals;
@@ -710,7 +710,7 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
     }).sort({createTime: -1}).limit(1).lean().then(
         retData => {
             if (retData && retData[0]) {
-                return retData[0].createTime;
+                return retData[0].settleTime ? retData[0].settleTime : retData[0].createTime;
             }
         }
     );
