@@ -303,7 +303,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 initBonusAmount: getProp.data.amount,
                                                 requiredConsumption: getProp.data.amount,
                                                 curConsumption: curConsumption,
-                                                bonusAmount: bonusAmount
+                                                bonusAmount: bonusAmount,
+                                                settleTime: new Date(queryDateFrom)
                                             });
                                         }
                                     }
@@ -346,7 +347,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 initBonusAmount: initBonusAmount,
                                                 requiredConsumption: getProp.data.spendingAmount - applyAmount,
                                                 curConsumption: curConsumption,
-                                                bonusAmount: bonusAmount
+                                                bonusAmount: bonusAmount,
+                                                settleTime: new Date(queryDateFrom)
                                             });
 
                                         }
@@ -371,7 +373,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
 
                     // Make sure the check result is in correct order
-                    checkResult.sort((a, b) => b.sequence - a.sequence);
+                    checkResult.sort((a, b) => b.settleTime - a.settleTime);
 
                     // Compare consumption and spendingAmount
                     for (let i = 0; i < checkResult.length; i++) {
