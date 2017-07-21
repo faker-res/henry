@@ -224,15 +224,12 @@ define(['js/app'], function (myApp) {
             });
         };
         vm.queryProposalIdUpdate = function () {
-            console.log('there')
             if (vm.queryProposalId) {
-                console.log('wat')
                 var te = $("#proposalDataTableDiv #search .inlineBlk").not(":nth-child(1)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee")
                 te.find(".ms-choice").prop("disabled", true).css("background-color", "#eee")
             } else {
-                console.log('here')
                 $("#proposalDataTableDiv #search .inlineBlk").find(".form-control").prop("disabled", false).css("background-color", "#fff");
                 $("#proposalDataTableDiv #search .inlineBlk").find(".form-control input").prop("disabled", false).css("background-color", "#fff");
                 $("#proposalDataTableDiv #search .inlineBlk").find(".form-control .ms-choice").prop("disabled", false).css("background-color", "transparent")
