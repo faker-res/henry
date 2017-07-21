@@ -54,10 +54,12 @@
                                 i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                     .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalPlayer')")
                         label {{"Set Date Range" | translate}}
-                        select.form-control(ng-model='range',ng-options='i as v | translate for (i,v) in {"day":"Today","week":"This Week","month":"This Month"}',ng-change='vm.setDateRange(range)')
+                        select.form-control(ng-model='vm.dateRange',ng-options='i as v | translate for (i,v) in {"day":"Today","week":"This Week","month":"This Month"}',ng-change='vm.setDateRange(vm.dateRange)')
                     .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                         button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
                         button.common-button.btn.btn-primary(ng-if='!vm.queryProposalId', ng-click='vm.loadProposalQueryData(true)') {{'SEARCH' | translate}}
+                    .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                        button.common-button.btn.btn-warning(ng-click='vm.resetFilter()') {{'Reset' | translate}}
                 .clearfix
                 .proposalMessage
                     text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.timeAllProposal}}
