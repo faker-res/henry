@@ -1797,7 +1797,7 @@ var dbPlayerTopUpRecord = {
                 if( playerData ){
                     return dbconfig.collection_playerTopUpRecord.findOne({playerId: playerData._id, topUpType: {$ne: String(constPlayerTopUpType.MANUAL)}}).lean().then(
                         record => {
-                            return record ? true : false;
+                            return record ? false : true;
                         }
                     );
                 }
