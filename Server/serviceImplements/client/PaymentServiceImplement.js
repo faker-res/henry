@@ -304,6 +304,11 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getQuickpayTopupRequestList, [conn.playerId], isValidData);
     };
 
+    this.isFirstTopUp.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.isPlayerFirstTopUp, [conn.playerId], isValidData);
+    };
+
 };
 var proto = PaymentServiceImplement.prototype = Object.create(PaymentService.prototype);
 proto.constructor = PaymentServiceImplement;
