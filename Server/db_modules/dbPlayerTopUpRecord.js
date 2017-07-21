@@ -110,11 +110,11 @@ var dbPlayerTopUpRecord = {
                 } else {
                     str = {
                         $in: [
-                                constProposalType.PLAYER_TOP_UP,
-                                constProposalType.PLAYER_ALIPAY_TOP_UP,
-                                constProposalType.PLAYER_MANUAL_TOP_UP,
-                                constProposalType.PLAYER_WECHAT_TOP_UP
-                            ]
+                            constProposalType.PLAYER_TOP_UP,
+                            constProposalType.PLAYER_ALIPAY_TOP_UP,
+                            constProposalType.PLAYER_MANUAL_TOP_UP,
+                            constProposalType.PLAYER_WECHAT_TOP_UP
+                        ]
                     };
                     queryObj['$or'] = [];
                     query.topupType ? queryObj['$or'].push({
@@ -469,15 +469,17 @@ var dbPlayerTopUpRecord = {
                         platformId: player.platform
                     }).lean().then(
                         typeData => {
-                            if(typeData){
+                            if (typeData) {
                                 return dbconfig.collection_proposal.find({
                                     type: typeData._id,
-                                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.AUTOAUDIT,
-                                        constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.UNDETERMINED]},
+                                    status: {
+                                        $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.AUTOAUDIT,
+                                            constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.UNDETERMINED]
+                                    },
                                     "data.playerId": playerId
                                 }).sort({createTime: -1}).limit(1).lean();
                             }
-                            else{
+                            else {
                                 return [];
                             }
                         }
@@ -492,7 +494,7 @@ var dbPlayerTopUpRecord = {
                     if (bSinceLastConsumption && (latestConsumptionRecord && latestConsumptionRecord.createTime || lastPlayerWidthDraw && lastPlayerWidthDraw.createTime)) {
                         queryStartTime = latestConsumptionRecord && latestConsumptionRecord.createTime ? latestConsumptionRecord.createTime.getTime() : 0;
                     }
-                    if(lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime){
+                    if (lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime) {
                         queryStartTime = lastPlayerWidthDraw.createTime.getTime()
                     }
                     if (startTime && new Date(startTime).getTime() > queryStartTime) {
@@ -737,17 +739,17 @@ var dbPlayerTopUpRecord = {
             playerData => {
                 if (playerData && playerData.platform && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
                     player = playerData;
-                    
+
                     if (inputData.lastBankcardNo.length > 0 && fromFPMS) {
-                        let isCorrectBankAcc = player.bankCardGroup.banks.find((bankAcc)=>{
+                        let isCorrectBankAcc = player.bankCardGroup.banks.find((bankAcc) => {
                             return inputData.lastBankcardNo == bankAcc.slice(-(inputData.lastBankcardNo.length));
                         });
-                        if(!isCorrectBankAcc){
+                        if (!isCorrectBankAcc) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_TOP_UP_FAIL,
                                 name: "DataError",
                                 errorMessage: "Bank Account is not correct"
-                            });                 
+                            });
                         }
                     }
 
@@ -1787,6 +1789,10 @@ var dbPlayerTopUpRecord = {
         ).then(
             data => ({proposalId: proposalId})
         );
+    },
+
+    isPlayerFirstTopUp: function (playerId) {
+
     }
 
 };
