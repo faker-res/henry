@@ -137,7 +137,52 @@ define(['js/app'], function (myApp) {
             );
             $scope.safeApply();
 
-        }
+        };
+
+        vm.resetFilter = function () {
+            vm.queryProposalId = "";
+
+            vm.queryProposalIdUpdate();
+            // $("#proposalDataTableDiv #search .inlineBlk").find(".form-control").prop("disabled", false).css("background-color", "#fff");
+            // $("#proposalDataTableDiv #search .inlineBlk").find(".form-control input").prop("disabled", false).css("background-color", "#fff");
+            // $("#proposalDataTableDiv #search .inlineBlk").find(".form-control .ms-choice").prop("disabled", false).css("background-color", "transparent");
+
+            vm.queryProposalEntryType = "";
+            vm.queryProposalMinCredit = "";
+            vm.queryProposalMaxCredit = "";
+            vm.queryProposalRelatedUser = "";
+
+            // var lastMonth = utilService.setNDaysAgo(new Date(), 1);
+            // var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
+            // vm.queryProposalstartTime = $("#datetimepicker").data('datetimepicker').setLocalDate(lastMonthDateStartTime);
+            // vm.queryProposalendTime = $('#datetimepicker2').data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
+
+            let platformId = vm.selectedPlatform === "_allPlatform" ? "_allPlatform" : vm.selectedPlatform._id;
+            vm.selectPlatform(platformId);
+
+            vm.initQueryPara();
+            vm.dateRange = "";
+
+            $scope.safeApply();
+            // if (!$('select#selectProposalType').next().find('li.ms-select-all').hasClass('selected')) {
+            //     if (!$('select#selectProposalType').next().find('button div').hasClass('open')) {
+            //         $('select#selectProposalType').next().find('button').click();
+            //     }
+            //     $('select#selectProposalType').next().find('input[data-name="selectAll"]').click();
+            //     $('select#selectProposalType').next().find('button').click();
+            // }
+            //
+            // if (!$('select#selectProposalStatus').next().find('li.ms-select-all').hasClass('selected')) {
+            //     if (!$('select#selectProposalStatus').next().find('button div').hasClass('open')) {
+            //         $('select#selectProposalStatus').next().find('button').click();
+            //     }
+            //     $('select#selectProposalStatus').next().find('input[data-name="selectAll"]').click();
+            //     $('select#selectProposalStatus').next().find('button').click();
+            // }
+
+            // vm.loadProposalQueryData(true);
+        };
+
         vm.proposalTypeClicked = function (i, v) {
             //vm.highlightProposalListSelection[i];
             vm.highlightProposalListSelection = {};
@@ -204,12 +249,15 @@ define(['js/app'], function (myApp) {
             });
         };
         vm.queryProposalIdUpdate = function () {
+            console.log('there')
             if (vm.queryProposalId) {
+                console.log('wat')
                 var te = $("#proposalDataTableDiv #search .inlineBlk").not(":nth-child(1)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee")
                 te.find(".ms-choice").prop("disabled", true).css("background-color", "#eee")
             } else {
+                console.log('here')
                 $("#proposalDataTableDiv #search .inlineBlk").find(".form-control").prop("disabled", false).css("background-color", "#fff");
                 $("#proposalDataTableDiv #search .inlineBlk").find(".form-control input").prop("disabled", false).css("background-color", "#fff");
                 $("#proposalDataTableDiv #search .inlineBlk").find(".form-control .ms-choice").prop("disabled", false).css("background-color", "transparent")
@@ -245,10 +293,14 @@ define(['js/app'], function (myApp) {
                 case 'month':
                     startDate = new Date(new Date(utilService.getTodayStartTime()).setDate(1));
                     break;
+                default:
+                    startDate = "";
             }
-            $("#datetimepicker").data('datetimepicker').setLocalDate(startDate);
-            $("#datetimepicker2").data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
-            vm.loadProposalQueryData(true);
+            if (startDate) {
+                $("#datetimepicker").data('datetimepicker').setLocalDate(startDate);
+                $("#datetimepicker2").data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
+                vm.loadProposalQueryData(true);
+            }
         }
         vm.loadProposalQueryData = function (newSearch, callback) {
             var selectedStatus = [];
