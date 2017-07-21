@@ -1792,7 +1792,20 @@ var dbPlayerTopUpRecord = {
     },
 
     isPlayerFirstTopUp: function (playerId) {
-
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                if( playerData ){
+                    return dbconfig.collection_playerTopUpRecord.findOne({playerId: playerData._id, topUpType: {$ne: String(constPlayerTopUpType.MANUAL)}}).lean().then(
+                        record => {
+                            return record ? true : false;
+                        }
+                    );
+                }
+                else{
+                    return false;
+                }
+            }
+        );
     }
 
 };
