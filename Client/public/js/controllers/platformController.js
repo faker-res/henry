@@ -83,6 +83,12 @@ define(['js/app'], function (myApp) {
             WEEKLY: 2
         };
 
+        vm.newPlayerListStatus = {
+            Success: $translate("Success"),
+            Fail:$translate("Fail"),
+            Pending: $translate("Pending")
+        }
+
         // Basic library functions
         var Lodash = {
             keyBy: (array, keyName) => {
@@ -1972,7 +1978,8 @@ define(['js/app'], function (myApp) {
 
         vm.getNewPlayerListByFilter = function (newSearch) {
 
-            var selectedStatus = ["Success", "Fail"];
+
+            var selectedStatus = vm.queryPara.newPlayerList ? [vm.queryPara.newPlayerList.status] :["Success", "Fail", "Pending"];
             var sendData = {
                 adminId: authService.adminId,
                 platformId: vm.selectedPlatform.id,
@@ -1987,8 +1994,10 @@ define(['js/app'], function (myApp) {
                 sortCol: vm.newPlayerRecords.sortCol || null
 
             }
-            if (selectedStatus) {
+            if (selectedStatus && selectedStatus != "") {
                 sendData.status = selectedStatus
+            }else{
+                sendData.status = ["Success", "Fail", "Pending"];
             }
 
             vm.newPlayerRecords.loading = true;
