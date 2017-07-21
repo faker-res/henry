@@ -8,7 +8,7 @@ var Chance = require('chance');
 var chance = new Chance();
 var Q = require("q");
 var bcrypt = require('bcrypt');
-var captchapng = require('captchapng');
+var captchapng = require('./../modules/captchapng');
 var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
@@ -9081,6 +9081,8 @@ let dbPlayerInfo = {
 
 
 };
+
+
 
 var proto = dbPlayerInfoFunc.prototype;
 proto = Object.assign(proto, dbPlayerInfo);
