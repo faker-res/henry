@@ -279,12 +279,6 @@ let PlayerServiceImplement = function () {
     this.login.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.password && data.platformId);
 
-        console.log("start checking conn.upgradeReq.headers=============================");
-        for (var i in conn.upgradeReq.headers) {
-            console.log("name: " + i);
-            console.log("value: " + conn.upgradeReq.headers[i]);
-        }
-        console.log("end checking conn.upgradeReq.headers=============================");
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -381,15 +375,6 @@ let PlayerServiceImplement = function () {
     this.loginPlayerPartner.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.name && data.password && data.platformId);
 
-        console.log("start checking conn.upgradeReq.headers=============================");
-        for (let i in conn.upgradeReq.headers) {
-            if (conn.upgradeReq.headers.hasOwnProperty(i)) {
-                console.log("name: " + i);
-                console.log("value: " + conn.upgradeReq.headers[i]);
-            }
-        }
-        console.log("end checking conn.upgradeReq.headers=============================");
-
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -477,15 +462,6 @@ let PlayerServiceImplement = function () {
     this.loginPlayerPartnerWithSMS.expectsData = 'phoneNumber: String, smsCode: String, platformId: String';
     this.loginPlayerPartnerWithSMS.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.smsCode && data.platformId);
-
-        console.log("start checking conn.upgradeReq.headers=============================");
-        for (let i in conn.upgradeReq.headers) {
-            if (conn.upgradeReq.headers.hasOwnProperty(i)) {
-                console.log("name: " + i);
-                console.log("value: " + conn.upgradeReq.headers[i]);
-            }
-        }
-        console.log("end checking conn.upgradeReq.headers=============================");
 
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
@@ -816,8 +792,6 @@ let PlayerServiceImplement = function () {
     this.sendSMSCodeToPlayer.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
         let smsCode = parseInt(Math.random() * 9000 + 1000);
-        console.log('***conn.playerId', conn.playerId);
-        console.log('***conn.playerObjId', conn.playerObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId], isValidData, false, false, true);
     };
 

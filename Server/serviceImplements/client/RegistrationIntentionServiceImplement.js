@@ -29,7 +29,6 @@ var RegistrationIntentionServiceImplement = function () {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS, data: res}, data);
                     self.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyRegistrationIntentionUpdate", res);
                 } else {
-                    conn.captchaCode = null;
                     wsFunc.response(conn, {
                         status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
                         errorMessage: localization.translate("Verification code invalid", conn.lang),
