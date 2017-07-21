@@ -162,7 +162,8 @@
                 "getMerchantSingleLimits",
                 "requestQuickpayTopup",
                 "cancelQuickpayTopup",
-                "getQuickpayTopupRequestList"
+                "getQuickpayTopupRequestList",
+                "isFirstTopUp"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
