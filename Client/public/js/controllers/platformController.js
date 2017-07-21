@@ -5692,7 +5692,7 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 }, function (error) {
-                    vm.playerManualTopUp.responseMsg = error.error.errorMessage;
+                    vm.playerManualTopUp.responseMsg = $translate(error.error.errorMessage);
                     socketService.showErrorMessage(error.error.errorMessage);
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
