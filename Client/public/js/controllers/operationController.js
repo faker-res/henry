@@ -137,7 +137,27 @@ define(['js/app'], function (myApp) {
             );
             $scope.safeApply();
 
-        }
+        };
+
+        vm.resetFilter = function () {
+            vm.queryProposalId = "";
+
+            vm.queryProposalIdUpdate();
+
+            vm.queryProposalEntryType = "";
+            vm.queryProposalMinCredit = "";
+            vm.queryProposalMaxCredit = "";
+            vm.queryProposalRelatedUser = "";
+
+            let platformId = vm.selectedPlatform === "_allPlatform" ? "_allPlatform" : vm.selectedPlatform._id;
+            vm.selectPlatform(platformId);
+
+            vm.initQueryPara();
+            vm.dateRange = "";
+
+            $scope.safeApply();
+        };
+
         vm.proposalTypeClicked = function (i, v) {
             //vm.highlightProposalListSelection[i];
             vm.highlightProposalListSelection = {};
@@ -245,10 +265,14 @@ define(['js/app'], function (myApp) {
                 case 'month':
                     startDate = new Date(new Date(utilService.getTodayStartTime()).setDate(1));
                     break;
+                default:
+                    startDate = "";
             }
-            $("#datetimepicker").data('datetimepicker').setLocalDate(startDate);
-            $("#datetimepicker2").data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
-            vm.loadProposalQueryData(true);
+            if (startDate) {
+                $("#datetimepicker").data('datetimepicker').setLocalDate(startDate);
+                $("#datetimepicker2").data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
+                vm.loadProposalQueryData(true);
+            }
         }
         vm.loadProposalQueryData = function (newSearch, callback) {
             var selectedStatus = [];

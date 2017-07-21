@@ -29,7 +29,7 @@ let PlayerServiceImplement = function () {
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH) && (!data.realName || data.realName.match(/\d+/g) === null));
-        if (data.smsCode || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
+        if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -66,11 +66,11 @@ let PlayerServiceImplement = function () {
             if (data.qq && !data.email) {
                 data.email = data.qq + "@qq.com";
             }
-            let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
+            // let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
             conn.captchaCode = null;
             data.isOnline = true;
             let inputData = Object.assign({}, data);
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData], isValidData, true, true, true).then(
                 (playerData) => {
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;

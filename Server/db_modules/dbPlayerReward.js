@@ -370,8 +370,7 @@ let dbPlayerReward = {
             }
         ).then(
             proposalDatas => {
-                //todo:: temp test data
-                let res = [{username: "test1", amount: 1}, {username: "test2", amount: 3}];
+                let res = [];
                 if (proposalDatas && proposalDatas.length > 0) {
                     proposalDatas.forEach(
                         pData => {
