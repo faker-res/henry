@@ -8,6 +8,7 @@ let constProposalType = require('../const/constProposalType');
 let constProposalEntryType = require('../const/constProposalEntryType');
 let constProposalUserType = require('../const/constProposalUserType');
 let constProposalMainType = require('../const/constProposalMainType');
+let constProposalStatus = require('../const/constProposalStatus');
 let Q = require("q");
 
 var dbPlayerRegistrationIntentRecord = {
@@ -59,17 +60,38 @@ var dbPlayerRegistrationIntentRecord = {
     },
 
     createPlayerRegistrationIntentionProposal: (platform, data, status) => {
-        dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(
-            newProposal => {
-                if (newProposal) {
-                    dbconfig.collection_proposal.findOneAndUpdate({
-                        _id: newProposal._id,
-                        createTime: newProposal.createTime
-                    }, {status: status}).then();
+        dbconfig.collection_proposalType.findOne({platformId:platform, name: constProposalType.PLAYER_REGISTRATION_INTENTION}).lean().then(
+            typeData => {
+                if( typeData ){
+                    return dbconfig.collection_proposal.findOne({
+                        type: typeData._id,
+                        "data.name": data.data.name,
+                        "data.phoneNumber": data.data.phoneNumber
+                    }).lean().then(
+                        proposalData => {
+                            if( proposalData ){
+                                dbconfig.collection_proposal.findOneAndUpdate(
+                                    {_id: proposalData._id, createTime: proposalData.createTime},
+                                    {status: status}
+                                ).then();
+                            }
+                            else{
+                                dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(
+                                    newProposal => {
+                                        if (newProposal) {
+                                            dbconfig.collection_proposal.findOneAndUpdate({
+                                                _id: newProposal._id,
+                                                createTime: newProposal.createTime
+                                            }, {status: status}).then();
+                                        }
+                                    }
+                                );
+                            }
+                        }
+                    );
                 }
             }
         );
-
     },
 
     /**
