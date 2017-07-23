@@ -32,6 +32,8 @@
                         option(value='3') 支付宝扫码(AlipayQR)
                         option(value='4') 微信App支付(WechatApp)
                         option(value='5') 支付宝App支付(AlipayApp)
+                        option(value='6') 快捷支付(FASTPAY)
+                        option(value='7') QQ扫码(QQPAYQR)
                 div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
                     label {{'Merchant Group' | translate}}
                     select.form-control(ng-model='vm.queryTopup.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupObj')
