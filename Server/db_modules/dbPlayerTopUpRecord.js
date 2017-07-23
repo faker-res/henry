@@ -1375,7 +1375,7 @@ var dbPlayerTopUpRecord = {
                         id: adminId
                     } : {
                         type: 'player',
-                        name: playerData.name,
+                        name: player.name,
                         id: playerId
                     };
                     let newProposal = {
@@ -1383,9 +1383,9 @@ var dbPlayerTopUpRecord = {
                         data: proposalData,
                         entryType: constProposalEntryType[entryType],
                         //createTime: createTime ? new Date(createTime) : new Date(),
-                        userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                        userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                     };
-                    return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
+                    return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
                 }
             ).then(
                 proposalData => {
