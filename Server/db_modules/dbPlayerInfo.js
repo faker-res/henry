@@ -2943,7 +2943,7 @@ let dbPlayerInfo = {
                     deferred.reject({
                         name: "DataError",
                         message: "Cannot find player",
-                        code: constServerCode.NO_USER_FOUND
+                        code: constServerCode.PLAYER_NAME_INVALID
                     });
                 }
             }
