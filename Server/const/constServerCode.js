@@ -47,6 +47,7 @@ const constServerCode = {
     INVALID_REFERRAL: 437,
     INVALID_PLATFORM: 438,
     FAILED_UPDATE_REWARD_TASK: 439,
+    NO_USER_FOUND: 440,
 
     // Payment API Server code
     INVALID_PAYMENT_SERVICE_GATEWAY: 401,
