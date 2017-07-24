@@ -359,7 +359,7 @@ let PlayerServiceImplement = function () {
                         conn.playerObjId = null;
                         conn.captchaCode = null;
                         wsFunc.response(conn, {
-                            status: constServerCode.INVALID_USER_PASSWORD,
+                            status: error.code || constServerCode.INVALID_USER_PASSWORD,
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
                         }, data);
