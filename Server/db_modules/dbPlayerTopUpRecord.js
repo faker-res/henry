@@ -107,13 +107,16 @@ var dbPlayerTopUpRecord = {
                     query.depositMethod ? queryObj['data'] = {'depositMethod': query.depositMethod} : '';
                 } else if (query && query.mainTopupType == constPlayerTopUpType.WECHAT) {
                     str = constProposalType.PLAYER_WECHAT_TOP_UP
-                } else {
+                } else if (query && query.mainTopupType == constPlayerTopUpType.QUICKPAY) {
+                    str = constProposalType.PLAYER_QUICKPAY_TOP_UP
+                }else {
                     str = {
                         $in: [
                             constProposalType.PLAYER_TOP_UP,
                             constProposalType.PLAYER_ALIPAY_TOP_UP,
                             constProposalType.PLAYER_MANUAL_TOP_UP,
-                            constProposalType.PLAYER_WECHAT_TOP_UP
+                            constProposalType.PLAYER_WECHAT_TOP_UP,
+                            constProposalType.PLAYER_QUICKPAY_TOP_UP
                         ]
                     };
                     queryObj['$or'] = [];

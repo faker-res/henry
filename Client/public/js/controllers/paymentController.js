@@ -13,7 +13,8 @@ define(['js/app'], function (myApp) {
             1: 'TOPUPMANUAL',
             2: 'TOPUPONLINE',
             3: 'TOPUPALIPAY',
-            4: 'TOPUPWECHAT'
+            4: 'TOPUPWECHAT',
+            5: 'TOPUPQUICKPAY'
         };
         vm.allPlayersStatusString = {
             NORMAL: 1,
