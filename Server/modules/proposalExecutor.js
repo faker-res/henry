@@ -1425,45 +1425,47 @@ var proposalExecutor = {
                         message: "Incorrect add player reward task proposal data"
                     });
                 }
+                proposalData.data.rewardAmount = proposalData.data.initAmount || 0;
+                createRewardTaskForProposal(proposalData, proposalData.data, deferred, constProposalType.ADD_PLAYER_REWARD_TASK, proposalData);
 
-                dbRewardTask.getRewardTask({
-                    playerId: proposalData.data.playerId,
-                    status: constRewardTaskStatus.STARTED,
-                    useLockedCredit: true
-                }).then(
-                    function (curData) {
-                        if(curData) {
-                            dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).then(
-                                function(platformData) {
-                                    if (platformData.canMultiReward || !platformData.useLockedCredit) {
-                                        dbRewardTask.createRewardTask(proposalData.data).then(
-                                            deferred.resolve, deferred.reject
-                                        );
-                                    } else {
-                                        deferred.reject({name: "DataError", message: "Player already has reward task"});
-                                    }
-                                },
-                                function(error) {
-                                    deferred.reject({
-                                        name: "DBError",
-                                        message: "Failed to get reward task data."
-                                    });
-                                }
-                            );
-                        } else {
-                            dbRewardTask.createRewardTask(proposalData.data).then(
-                                deferred.resolve, deferred.reject
-                            );
-                        }
-                    },
-                    function (error) {
-                        deferred.reject({
-                            name: "DBError",
-                            message: "Error finding reward task for player top up reward",
-                            error: error
-                        });
-                    }
-                );
+                // dbRewardTask.getRewardTask({
+                //     playerId: proposalData.data.playerId,
+                //     status: constRewardTaskStatus.STARTED,
+                //     useLockedCredit: true
+                // }).then(
+                //     function (curData) {
+                //         if(curData) {
+                //             dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).then(
+                //                 function(platformData) {
+                //                     if (platformData.canMultiReward || !platformData.useLockedCredit) {
+                //                         dbRewardTask.createRewardTask(proposalData.data).then(
+                //                             deferred.resolve, deferred.reject
+                //                         );
+                //                     } else {
+                //                         deferred.reject({name: "DataError", message: "Player already has reward task"});
+                //                     }
+                //                 },
+                //                 function(error) {
+                //                     deferred.reject({
+                //                         name: "DBError",
+                //                         message: "Failed to get reward task data."
+                //                     });
+                //                 }
+                //             );
+                //         } else {
+                //             dbRewardTask.createRewardTask(proposalData.data).then(
+                //                 deferred.resolve, deferred.reject
+                //             );
+                //         }
+                //     },
+                //     function (error) {
+                //         deferred.reject({
+                //             name: "DBError",
+                //             message: "Error finding reward task for player top up reward",
+                //             error: error
+                //         });
+                //     }
+                // );
             },
 
             executePlayerRegistrationReward: function (proposalData, deferred) {
