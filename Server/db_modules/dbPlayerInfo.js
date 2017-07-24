@@ -2911,7 +2911,7 @@ let dbPlayerInfo = {
                         deferred.reject({
                             name: "DataError",
                             message: "Only new system user can login",
-                            code: constServerCode.INVALID_DATA
+                            code: constServerCode.NO_USER_FOUND
                         });
                         return;
                     }
@@ -2943,7 +2943,7 @@ let dbPlayerInfo = {
                     deferred.reject({
                         name: "DataError",
                         message: "Cannot find player",
-                        code: constServerCode.INVALID_USER_PASSWORD
+                        code: constServerCode.NO_USER_FOUND
                     });
                 }
             }
