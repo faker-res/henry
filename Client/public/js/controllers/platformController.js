@@ -3305,7 +3305,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getEncQQ = function (playerData) {
-            return (playerData && playerData.qq) ? (playerData.qq.substring(0, (playerData.qq.length - 9)) + "****" + playerData.qq.slice(-5)) : ''
+            return (playerData && playerData.qq) ? (playerData.qq.substring(0, (playerData.qq.length - 4)) + "****" ): ''
         }
 
         vm.showPlayerInfoModal = function (playerName) {
