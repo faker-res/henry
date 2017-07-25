@@ -9573,6 +9573,7 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
             vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
             vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
+            vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
             $scope.safeApply();
         };
 
@@ -9819,7 +9820,8 @@ define(['js/app'], function (myApp) {
                     autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                     autoApproveLostThreshold: srcData.lostThreshold,
                     autoApproveProfitTimes: srcData.profitTimes,
-                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount
+                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
+                    autoApproveBonusProfitOffset: srcData.bonusProfitOffset
                 }
             };
             console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));

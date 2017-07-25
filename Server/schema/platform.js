@@ -95,6 +95,8 @@ var platformSchema = new Schema({
     autoApproveProfitTimes: {type: Number, default: 10},
     // Auto approve minimum withdrawal amount to trigger profit times checking
     autoApproveProfitTimesMinAmount: {type: Number, default: 2000},
+    // Auto approve abnormal bonus check offset
+    autoApproveBonusProfitOffset: {type: Number, default: 2000},
     //can apply multiple reward
     canMultiReward: {type: Boolean, default: false},
     // Auto check player level up
