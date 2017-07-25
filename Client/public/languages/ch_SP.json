@@ -2116,5 +2116,8 @@
   "isPlayerInit": "玩家提交",
   "SOURCE_URL": "来源URL",
   "autoAuditTime": "自动审核：审核时间",
-  "STATE": "状态"
+  "STATE": "状态",
+  "Profit Times": "盈利倍数（小于）",
+  "Profit Times Minimum Amount": "盈利倍数（最低触发值）",
+  "Abnormal Profit Offset": "异常输赢值宽限额"
 }
