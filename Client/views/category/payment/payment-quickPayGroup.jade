@@ -74,6 +74,9 @@
                                         tr
                                             td {{'QUOTA' | translate}}
                                             td.text-success {{v.quota}}
+                                        tr
+                                            td {{'STATE' | translate}}
+                                            td.text-success {{v.state | translate}}
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#QuickPayList", href='#excludedQuickPays', ng-click='vm.showQuickPayCate="exclude";vm.toggleBankType()')
                             h4.panel-title
