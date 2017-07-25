@@ -3486,12 +3486,12 @@ define(['js/app'], function (myApp) {
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
-                    playerId: data.playerId,
-                    name: data.name,
-                    nickName: data.nickName,
+                    playerId: playerObjId.playerId,
+                    name: playerObjId.name,
+                    nickName: playerObjId.nickName,
                     platformId: vm.selectedPlatform.data.platformId,
                     channel: $scope.channelList[0],
-                    hasPhone: data.phoneNumber
+                    hasPhone: playerObjId.phoneNumber
                 }
                 vm.sendSMSResult = {};
                 $scope.safeApply();
