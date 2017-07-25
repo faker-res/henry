@@ -3303,6 +3303,11 @@ define(['js/app'], function (myApp) {
         vm.getEncPhoneNumber = function (playerData) {
             return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
         }
+
+        vm.getEncQQ = function (playerData) {
+            return (playerData && playerData.qq) ? (playerData.qq.substring(0, (playerData.qq.length - 9)) + "****" + playerData.qq.slice(-5)) : ''
+        }
+
         vm.showPlayerInfoModal = function (playerName) {
             vm.similarPlayersForPlayer = null;
             var watch = $scope.$watch(function () {
@@ -3655,7 +3660,7 @@ define(['js/app'], function (myApp) {
             let editPlayer = vm.editPlayer;                  // ~ 6 fields
             let allPartner = vm.partnerIdObj;
             let allPlayerLevel = vm.allPlayerLvl;
-            // console.log("vm.editPlayer", vm.editPlayer);
+
             let option = {
                 $scope: $scope,
                 $compile: $compile,
