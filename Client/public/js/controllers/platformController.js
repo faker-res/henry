@@ -3573,6 +3573,12 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.selectedSinglePlayer.sourceUrl && vm.selectedSinglePlayer.sourceUrl.length > 35) {
+                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl.substring(0,30) + "...";
+                } else {
+                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl || null;
+                }
+
                 $scope.safeApply();
                 deferred.resolve();
             }, function (err) {

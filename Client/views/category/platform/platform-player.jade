@@ -1104,7 +1104,8 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'SOURCE_URL' | translate}}
-                                            text {{vm.selectedSinglePlayer.sourceUrl || 'Unknown' | translate}}
+                                            text
+                                                a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
                                         .inlineBlk
                                             button.btn.btn-primary.common-button-sm(ng-click='vm.showIPHistory()') {{"View Details" | translate}}
                                 tr
