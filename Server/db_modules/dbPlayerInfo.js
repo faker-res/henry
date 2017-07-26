@@ -1312,7 +1312,7 @@ let dbPlayerInfo = {
      * @param {String}  query - The query string
      * @param {Object} updateData - The update data string
      */
-    updatePlayerPayment: function (query, updateData) {
+    updatePlayerPayment: function (query, updateData, skipSMSVerification) {
         let playerObj = null;
         let platformObjId;
         // Get platform
@@ -1345,7 +1345,7 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData) {
                     // Check if platform sms verification is required
-                    if (!platformData.requireSMSVerificationForPaymentUpdate) {
+                    if (!platformData.requireSMSVerificationForPaymentUpdate || skipSMSVerification) {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
