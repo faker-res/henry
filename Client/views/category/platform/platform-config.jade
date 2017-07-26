@@ -497,6 +497,16 @@
                                 th {{'VALUE' | translate}}
                         tbody
                             tr
+                                td {{'playerNameMaxLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerNameMaxLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerNameMaxLength')
+                            tr
+                                td {{'playerNameMinLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerNameMinLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerNameMinLength')
+                            tr
                                 td {{'minTopUpAmount' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}

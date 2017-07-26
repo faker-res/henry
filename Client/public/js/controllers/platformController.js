@@ -9543,6 +9543,8 @@ define(['js/app'], function (myApp) {
         // announcement codes==============end===============================
         vm.getPlatformBasic = function () {
             vm.platformBasic = vm.platformBasic || {};
+            vm.platformBasic.playerNameMaxLength = vm.selectedPlatform.data.playerNameMaxLength;
+            vm.platformBasic.playerNameMinLength = vm.selectedPlatform.data.playerNameMinLength;
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
@@ -9798,7 +9800,9 @@ define(['js/app'], function (myApp) {
                     bonusCharges: srcData.bonusCharges,
                     requireLogInCaptcha: srcData.requireLogInCaptcha,
                     onlyNewCanLogin: srcData.onlyNewCanLogin,
-                    useLockedCredit: srcData.useLockedCredit
+                    useLockedCredit: srcData.useLockedCredit,
+                    playerNameMaxLength: srcData.playerNameMaxLength,
+                    playerNameMinLength: srcData.playerNameMinLength
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
