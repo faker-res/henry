@@ -3306,10 +3306,6 @@ define(['js/app'], function (myApp) {
             return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
         }
 
-        vm.getEncQQ = function (playerData) {
-            return (playerData && playerData.qq) ? (playerData.qq.substring(0, (playerData.qq.length - 4)) + "****" ): ''
-        }
-
         vm.showPlayerInfoModal = function (playerName) {
             vm.similarPlayersForPlayer = null;
             var watch = $scope.$watch(function () {
