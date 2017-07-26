@@ -820,7 +820,7 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
                 let bonusAmt = res[2][0].bonusAmount;
                 let profitDifference = bonusAmt - transDifference;
 
-                if ((profitDifference < 0 && profitDifference < platformObj.autoApproveBonusProfitOffset)
+                if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
                     || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
                     abnormalities.push({
                         en: "Abnormal Bonus (ID: " + transferOutId + ")",
