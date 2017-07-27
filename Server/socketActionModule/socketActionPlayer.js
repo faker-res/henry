@@ -153,7 +153,7 @@ function socketActionPlayer(socketIO, socket) {
         updatePlayerPayment: function updatePlayerPayment(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPayment, [data.query, {forbidTopUpType: data.updateData.forbidTopUpType}], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPayment, [data.query, {forbidTopUpType: data.updateData.forbidTopUpType}, true], actionName, isValidData);
         },
 
         /**

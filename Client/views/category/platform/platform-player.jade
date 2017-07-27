@@ -1039,13 +1039,13 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
                                         .inlineBlk
                                             label {{"EMAIL" | translate}}
-                                            text {{vm.selectedSinglePlayer.email || vm.getEncQQ(vm.selectedSinglePlayer) || 'Unknown' | translate}}
+                                            text {{vm.selectedSinglePlayer.email || vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{"WECHAT" | translate}}
                                             text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{"QQ" | translate}}
-                                            text {{vm.getEncQQ(vm.selectedSinglePlayer) || 'Unknown' | translate}}
+                                            text {{vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'Test Player' | translate}}
                                             text(style='height:inherit') {{vm.selectedSinglePlayer.isTestPlayer ? 'Yes' : 'No' | translate}}
@@ -1104,7 +1104,8 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'SOURCE_URL' | translate}}
-                                            text {{vm.selectedSinglePlayer.sourceUrl || 'Unknown' | translate}}
+                                            text
+                                                a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
                                         .inlineBlk
                                             button.btn.btn-primary.common-button-sm(ng-click='vm.showIPHistory()') {{"View Details" | translate}}
                                 tr

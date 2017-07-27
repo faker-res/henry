@@ -317,6 +317,10 @@ var playerPostFindUpdate = function (result, bOne) {
         // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
         result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
     }
+    //hide last 4 digits for qq
+    if (result && result.qq) {
+        result.qq = result.qq.substring(0, (result.qq.length - 4)) + "****" ;
+    }
 };
 
 // // example to get player phone number

@@ -2024,6 +2024,8 @@ define(['js/app'], function (myApp) {
                         record.statusName = $translate(record.status);
                         record.playerId = record.data.playerId ? record.data.playerId : "" ;
                         record.playerName = record.data.playerName ? record.data.playerName : "";
+                        record.realName = record.data.realName ? record.data.realName : "";
+                        record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp: "";
                         return record
                     }
                 );
@@ -2035,7 +2037,7 @@ define(['js/app'], function (myApp) {
                         {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
                         {'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
                         {'sortCol': 'data.playerName', bSortable: true, 'aTargets': [3]},
-                        {'sortCol': 'realName', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
                         {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
                         {'sortCol': 'phoneNumber', bSortable: true, 'aTargets': [7]},
@@ -2046,8 +2048,8 @@ define(['js/app'], function (myApp) {
                         {title: $translate('STATUS'), data: "statusName"},
                         {title: $translate('PLAYERID'), data: "playerId"},
                         {title: $translate('PLAYERNAME'), data: "playerName"},
-                        {title: $translate('REAL_NAME'), data: "data.realName"},
-                        {title: $translate('IP_ADDRESS'), data: "data.lastLoginIp"},
+                        {title: $translate('REAL_NAME'), data: "realName"},
+                        {title: $translate('IP_ADDRESS'), data: "lastLoginIp"},
                         {title: $translate('CREATETIME'), data: "createTime"},
                         {title: $translate('phoneNumber'), data: "data.phoneNumber", advSearch: true, "sClass": "",
                          render: function(data, type, row){
@@ -3304,10 +3306,6 @@ define(['js/app'], function (myApp) {
             return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
         }
 
-        vm.getEncQQ = function (playerData) {
-            return (playerData && playerData.qq) ? (playerData.qq.substring(0, (playerData.qq.length - 4)) + "****" ): ''
-        }
-
         vm.showPlayerInfoModal = function (playerName) {
             vm.similarPlayersForPlayer = null;
             var watch = $scope.$watch(function () {
@@ -3573,6 +3571,12 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedSinglePlayer.partner) {
                         vm.selectedSinglePlayer.partnerName = vm.selectedSinglePlayer.partner.partnerName;
                     }
+                }
+
+                if (vm.selectedSinglePlayer.sourceUrl && vm.selectedSinglePlayer.sourceUrl.length > 35) {
+                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl.substring(0,30) + "...";
+                } else {
+                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl || null;
                 }
 
                 $scope.safeApply();
@@ -9545,6 +9549,8 @@ define(['js/app'], function (myApp) {
         // announcement codes==============end===============================
         vm.getPlatformBasic = function () {
             vm.platformBasic = vm.platformBasic || {};
+            vm.platformBasic.playerNameMaxLength = vm.selectedPlatform.data.playerNameMaxLength;
+            vm.platformBasic.playerNameMinLength = vm.selectedPlatform.data.playerNameMinLength;
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
@@ -9801,7 +9807,9 @@ define(['js/app'], function (myApp) {
                     bonusCharges: srcData.bonusCharges,
                     requireLogInCaptcha: srcData.requireLogInCaptcha,
                     onlyNewCanLogin: srcData.onlyNewCanLogin,
-                    useLockedCredit: srcData.useLockedCredit
+                    useLockedCredit: srcData.useLockedCredit,
+                    playerNameMaxLength: srcData.playerNameMaxLength,
+                    playerNameMinLength: srcData.playerNameMinLength
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
