@@ -2040,7 +2040,7 @@ define(['js/app'], function (myApp) {
                         {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
                         {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
-                        {'sortCol': 'phoneNumber', bSortable: true, 'aTargets': [7]},
+                        {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
                         // {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
