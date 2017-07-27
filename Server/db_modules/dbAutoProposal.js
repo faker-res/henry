@@ -102,6 +102,9 @@ function checkProposalConsumption(proposal, platformObj) {
     let bFirstWithdraw = false;
     let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
     let dLastWithdraw;
+    let abnormalMessage = "";
+    let abnormalMessageChinese = "";
+    let bTransferAbnormal = false;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
@@ -173,28 +176,6 @@ function checkProposalConsumption(proposal, platformObj) {
         }
     ).then(
         data => {
-            let proposals, allProposals, playerData;
-            let bTransferAbnormal = false;
-            let transferAbnormalId = "";
-            let bNoBonusPermission = false;
-            let bPendingPaymentInfo = false;
-            let abnormalMessage = "";
-            let abnormalMessageChinese = "";
-
-            if (data && data[0]) {
-                proposals = data[0];
-            }
-
-            if (data && data[3]) {
-                allProposals = data[3];
-
-                if (hasPendingPaymentInfoChanges(allProposals)) {
-                    bPendingPaymentInfo = true;
-                    // abnormalMessage += "Player have pending payment info changes proposal.; ";
-                    // abnormalMessageChinese += "玩家有未审核编辑玩家银行资料提案。; ";
-                }
-            }
-
             if (data && data[1] && data[4]) {
                 let transferInRec = data[1].filter(rec => rec.type == "TransferIn");
 
@@ -204,22 +185,39 @@ function checkProposalConsumption(proposal, platformObj) {
 
                 let transferLogs = data[1];
                 let creditChangeLogs = data[4];
-                let transferAbnormalities = findTransferAbnormality(transferLogs, creditChangeLogs);
+                return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
+                    transferAbnormalities => {
+                        for (let i = 0; i < transferAbnormalities.length; i++) {
+                            abnormalMessage += transferAbnormalities[i].en + "; ";
+                            abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+                            bTransferAbnormal = true;
+                        }
 
-                for (let i = 0; i < transferAbnormalities.length; i++) {
-                    abnormalMessage += transferAbnormalities[i].en + "; ";
-                    abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
-                    bTransferAbnormal = true;
-                }
+                        return data;
+                    }
+                )
+            }
+
+            return data;
+        }
+    ).then(
+        data => {
+            let proposals, allProposals, playerData;
+            let bNoBonusPermission = false;
+            let bPendingPaymentInfo = false;
+
+            if (data && data[0]) {
+                proposals = data[0];
+            }
+
+            if (data && data[3]) {
+                allProposals = data[3];
+                bPendingPaymentInfo = hasPendingPaymentInfoChanges(allProposals);
             }
 
             if (data && data[2]) {
                 playerData = data[2];
-                if (!playerData.permission.applyBonus) {
-                    bNoBonusPermission = true;
-                    // abnormalMessage += "This player do not have permission to apply bonus.; ";
-                    // abnormalMessageChinese += "玩家没有权限提款。; "
-                }
+                bNoBonusPermission = !playerData.permission.applyBonus;
             }
 
             let isApprove = true, proms = [], repeatMsg = "", repeatMsgChinese = "";
@@ -254,10 +252,6 @@ function checkProposalConsumption(proposal, platformObj) {
                         }
                     )
                 );
-
-                // let approveRemark = "No proposals between this and last withdrawal";
-                // let approveRemarkChinese = "在此提案和上次的提款之间并没有其他提案";
-                // sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg);
             }
             else {
                 while (proposals && proposals.length > 0) {
@@ -272,7 +266,6 @@ function checkProposalConsumption(proposal, platformObj) {
                     let checkingNo = countProposals;
                     switch (getProp.mainType) {
                         case "TopUp":
-                            let isSkip = false;
                             proms.push(
                                 // Check if this top up has used for apply reward
                                 dbconfig.collection_playerTopUpRecord.findOne({proposalId: getProp.proposalId}).then(
@@ -280,33 +273,25 @@ function checkProposalConsumption(proposal, platformObj) {
                                         // Sum up top up amount to calculate profit limit
                                         totalTopUpAmount += getProp.data.amount;
 
-                                        // Only check consumption if the topup record is clean, else ignore this proposal
-                                        // if (!topUpRecord.bDirty) {
                                         return getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo);
-                                        // }
-                                        // else {
-                                        //     isSkip = true;
-                                        // }
                                     }
                                 ).then(
                                     record => {
-                                        if (!isSkip) {
-                                            let curConsumption = 0, bonusAmount = 0;
-                                            if (record && record[0]) {
-                                                curConsumption = record[0].validAmount;
-                                                bonusAmount = record[0].bonusAmount;
-                                            }
-
-                                            checkResult.push({
-                                                sequence: checkingNo,
-                                                proposalId: getProp.proposalId,
-                                                initBonusAmount: getProp.data.amount,
-                                                requiredConsumption: getProp.data.amount,
-                                                curConsumption: curConsumption,
-                                                bonusAmount: bonusAmount,
-                                                settleTime: new Date(queryDateFrom)
-                                            });
+                                        let curConsumption = 0, bonusAmount = 0;
+                                        if (record && record[0]) {
+                                            curConsumption = record[0].validAmount;
+                                            bonusAmount = record[0].bonusAmount;
                                         }
+
+                                        checkResult.push({
+                                            sequence: checkingNo,
+                                            proposalId: getProp.proposalId,
+                                            initBonusAmount: getProp.data.amount,
+                                            requiredConsumption: getProp.data.amount,
+                                            curConsumption: curConsumption,
+                                            bonusAmount: bonusAmount,
+                                            settleTime: new Date(queryDateFrom)
+                                        });
                                     }
                                 )
                             );
@@ -452,51 +437,52 @@ function checkProposalConsumption(proposal, platformObj) {
                     let canApprove = true;
                     // Consumption reached, check for other conditions
                     if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
-                        checkMsg += " Denied: Single limit ";
-                        checkMsgChinese += " 失败：单限 ";
+                        checkMsg += " Denied: Single limit;";
+                        checkMsgChinese += " 失败：单限;";
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
-                        checkMsg += " Denied: Daily limit ";
-                        checkMsgChinese += " 失败：日限 ";
+                        checkMsg += " Denied: Daily limit;";
+                        checkMsgChinese += " 失败：日限;";
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
-                        checkMsg += " Denied: Not allowed ";
-                        checkMsgChinese += " 失败：禁提 ";
+                        checkMsg += " Denied: Not allowed;";
+                        checkMsgChinese += " 失败：禁提;";
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (bFirstWithdraw) {
-                        checkMsg += " Denied: First withdrawal ";
-                        checkMsgChinese += " 失败：首提 ";
+                        checkMsg += " Denied: First withdrawal;";
+                        checkMsgChinese += " 失败：首提;";
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (bTransferAbnormal) {
-                        checkMsg += 'Denied: Abnormal Transfer In or Transfer Out log';
-                        checkMsgChinese += ' 失败：连续转账 ';
+                        checkMsg += ' Denied: Abnormal Transfer;';
+                        checkMsgChinese += ' 失败：转账异常;';
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (bNoBonusPermission) {
-                        checkMsg += ' Denied: No permission ';
-                        checkMsgChinese += ' 失败：无权限 ';
+                        checkMsg += ' Denied: No permission;';
+                        checkMsgChinese += ' 失败：无权限;';
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (bPendingPaymentInfo) {
-                        checkMsg += ' Denied: Rebank ';
-                        checkMsgChinese += '失败：银改';
+                        checkMsg += ' Denied: Rebank;';
+                        checkMsgChinese += ' 失败：银改;';
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
+
                     if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
                         && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
-                        checkMsg += ' Denied: Max profit times ';
-                        checkMsgChinese += ' 失败：盈利十倍 ';
+                        checkMsg += ' Denied: Max profit times;';
+                        checkMsgChinese += ' 失败：盈利十倍;';
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
@@ -750,11 +736,15 @@ function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
     );
 }
 
-function findTransferAbnormality(transferLogs, creditChangeLogs) {
+function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, playerId) {
 
     if (transferLogs && transferLogs.length <= 0) {
         return [];
     }
+
+    let completeCycle = false;
+    let promBonusCheck = [];
+    let inAmt = 0, outAmt = 0, inTime, outTime;
 
     let multipleTransferInWithoutOtherCreditInput = false;
     let validCreditMoreThanOneAfterTransferIn = false;
@@ -771,11 +761,32 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
         if (transferLogs[i].type === 'TransferIn') {
             auditTransferInLog(transferLogs[i]);
             lastTransferInLogTime = transferLogs[i].createTime;
+
+            // bonus <> transfer amount check
+            completeCycle = false;
+            inAmt = transferLogs[i].amount;
+            inTime = transferLogs[i].createTime;
         } else {
             auditTransferOutLog(transferLogs[i]);
+
+            // bonus <> transfer amount check
+            // if first transfer is not out, set completeCycle to true
+            completeCycle = i != 0;
+            outAmt = transferLogs[i].amount;
+            outTime = transferLogs[i].createTime;
         }
         lastTransferLogType = transferLogs[i].type;
         lastTransferLogProviderId = transferLogs[i].providerId;
+
+        if (completeCycle && inTime && outTime) {
+            let consumedAmt = outAmt - inAmt;
+            promBonusCheck.push([
+                Promise.resolve(transferLogs[i].transferId),
+                Promise.resolve(consumedAmt),
+                getPlayerConsumptionSummary(platformObj._id, playerId, inTime, outTime)
+            ]);
+            completeCycle = !completeCycle;
+        }
     }
 
     let abnormalities = [];
@@ -801,7 +812,26 @@ function findTransferAbnormality(transferLogs, creditChangeLogs) {
         });
     }
 
-    return abnormalities;
+    return Promise.all(promBonusCheck.map(each => {
+        return Promise.all(each).then(
+            res => {
+                let transferOutId = res[0];
+                let transDifference = res[1];
+                let bonusAmt = res[2][0].bonusAmount;
+                let profitDifference = bonusAmt - transDifference;
+
+                if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
+                    || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
+                    abnormalities.push({
+                        en: "Abnormal Bonus (ID: " + transferOutId + ")",
+                        ch: "异常盈利 (ID: " + transferOutId + ")"
+                    });
+                }
+            }
+        )
+    })).then(
+        res => abnormalities
+    );
 
     function auditTransferInLog(log) {
         if (lastTransferLogType === "TransferIn") {

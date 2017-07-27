@@ -641,9 +641,9 @@ let dbPlayerInfo = {
                         playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
                     }
 
-                    if((platformData.playerNameMaxLength > 0 && (playerdata.name.length + platformData.prefix.length) > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && (playerdata.name.length + platformData.prefix.length) < platformData.playerNameMinLength)){
+                    if ((platformData.playerNameMaxLength > 0 && (playerdata.name.length + platformData.prefix.length) > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && (playerdata.name.length + platformData.prefix.length) < platformData.playerNameMinLength)) {
                         return {isPlayerNameValid: false};
-                    }else{
+                    } else {
                         return {isPlayerNameValid: true};
                     }
                 } else {
@@ -658,8 +658,8 @@ let dbPlayerInfo = {
                 });
             }
         ).then(
-            function(data){
-                if(data.isPlayerNameValid){
+            function (data) {
+                if (data.isPlayerNameValid) {
                     if (platformData.allowSamePhoneNumberToRegister === true) {
                         return {isPhoneNumberValid: true};
                     } else {
@@ -668,10 +668,10 @@ let dbPlayerInfo = {
                             platform: playerdata.platform
                         });
                     }
-                }else{
+                } else {
                     deferred.reject({name: "DBError", message: "Length of Player Name is not valid"});
                 }
-            },function (error) {
+            }, function (error) {
                 deferred.reject({
                     name: "DBError",
                     message: "Player Name length is not valid",
@@ -4765,12 +4765,12 @@ let dbPlayerInfo = {
         );
     },
 
-    isPlayerNameLengthValid: function (playerName,platform) {
+    isPlayerNameLengthValid: function (playerName, platform) {
         dbconfig.collection_platform.findOne({_id: platform}).then(
             platformData => {
-                if((platformData.playerNameMaxLength > 0 && playerName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && playerName.length < platformData.playerNameMinLength)){
+                if ((platformData.playerNameMaxLength > 0 && playerName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && playerName.length < platformData.playerNameMinLength)) {
                     return {isPlayerNameValid: false};
-                }else{
+                } else {
                     return {isPlayerNameValid: true};
                 }
             }
