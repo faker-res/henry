@@ -889,5 +889,7 @@
   "ONE_WEEK_ABOVE": "One Week Ago",
   "TWO_WEEK_ABOVE": "Two Week Ago",
   "ONE_MONTH_ABOVE": "One Month Ago",
-  "SOURCE_URL": "Source URL"
+  "SOURCE_URL": "Source URL",
+  "playerNameMaxLength":"Maximum Length For Player Name",
+  "playerNameMinLength":"Minimum Length For Player Name"
 }

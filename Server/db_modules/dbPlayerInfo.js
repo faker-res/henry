@@ -635,17 +635,16 @@ let dbPlayerInfo = {
             function (platform) {
                 if (platform) {
                     platformData = platform;
-                    // if (playerdata.name.substring(0, delimitedPrefix.length) === delimitedPrefix) {
-                    //    // Player name already contains expected platform prefix
-                    // }
 
-                    if (platformData.allowSamePhoneNumberToRegister === true) {
-                        return {isPhoneNumberValid: true};
-                    } else {
-                        return dbPlayerInfo.isPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
-                            platform: playerdata.platform
-                        });
+                    let delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
+                    if (!skipPrefix) {
+                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    }
+
+                    if((platformData.playerNameMaxLength > 0 && (playerdata.name.length + platformData.prefix.length) > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && (playerdata.name.length + platformData.prefix.length) < platformData.playerNameMinLength)){
+                        return {isPlayerNameValid: false};
+                    }else{
+                        return {isPlayerNameValid: true};
                     }
                 } else {
                     deferred.reject({name: "DBError", message: "No such platform"});
@@ -659,15 +658,30 @@ let dbPlayerInfo = {
                 });
             }
         ).then(
+            function(data){
+                if(data.isPlayerNameValid){
+                    if (platformData.allowSamePhoneNumberToRegister === true) {
+                        return {isPhoneNumberValid: true};
+                    } else {
+                        return dbPlayerInfo.isPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
+                            platform: playerdata.platform
+                        });
+                    }
+                }else{
+                    deferred.reject({name: "DBError", message: "Length of Player Name is not valid"});
+                }
+            },function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Player Name length is not valid",
+                    error: error
+                });
+            }
+        ).then(
             //make sure phone number is unique
             function (data) {
                 if (data.isPhoneNumberValid) {
-                    var delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
-
-                    if (!skipPrefix) {
-                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
-                    }
-
                     return dbPlayerInfo.isPlayerNameValidToRegister({
                         name: playerdata.name,
                         platform: playerdata.platform
@@ -4745,6 +4759,18 @@ let dbPlayerInfo = {
                 if (playerData) {
                     return {isPlayerNameValid: false};
                 } else {
+                    return {isPlayerNameValid: true};
+                }
+            }
+        );
+    },
+
+    isPlayerNameLengthValid: function (playerName,platform) {
+        dbconfig.collection_platform.findOne({_id: platform}).then(
+            platformData => {
+                if((platformData.playerNameMaxLength > 0 && playerName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && playerName.length < platformData.playerNameMinLength)){
+                    return {isPlayerNameValid: false};
+                }else{
                     return {isPlayerNameValid: true};
                 }
             }
