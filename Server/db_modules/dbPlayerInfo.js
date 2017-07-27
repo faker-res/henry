@@ -641,7 +641,7 @@ let dbPlayerInfo = {
                         playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
                     }
 
-                    if ((platformData.playerNameMaxLength > 0 && (playerdata.name.length + platformData.prefix.length) > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && (playerdata.name.length + platformData.prefix.length) < platformData.playerNameMinLength)) {
+                    if ((platformData.playerNameMaxLength > 0 && playerdata.name.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && playerdata.name.length < platformData.playerNameMinLength)) {
                         return {isPlayerNameValid: false};
                     } else {
                         return {isPlayerNameValid: true};
