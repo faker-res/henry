@@ -2023,7 +2023,7 @@ define(['js/app'], function (myApp) {
                         record.createTime = vm.dateReformat(record.createTime);
                         record.statusName = $translate(record.status);
                         record.playerId = record.data.playerId ? record.data.playerId : "" ;
-                        record.playerName = record.data.playerName ? record.data.playerName : "";
+                        record.name = record.data.name ? record.data.name : "";
                         record.realName = record.data.realName ? record.data.realName : "";
                         record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp: "";
                         return record
@@ -2036,7 +2036,7 @@ define(['js/app'], function (myApp) {
                         {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                         {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
                         {'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'data.playerName', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
                         {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
                         {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
@@ -2047,7 +2047,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate('PROPOSAL_ID'), data: "proposalId"},
                         {title: $translate('STATUS'), data: "statusName"},
                         {title: $translate('PLAYERID'), data: "playerId"},
-                        {title: $translate('PLAYERNAME'), data: "playerName"},
+                        {title: $translate('PLAYERNAME'), data: "name"},
                         {title: $translate('REAL_NAME'), data: "realName"},
                         {title: $translate('IP_ADDRESS'), data: "lastLoginIp"},
                         {title: $translate('CREATETIME'), data: "createTime"},
@@ -2056,12 +2056,14 @@ define(['js/app'], function (myApp) {
                             data = data || '';
                             var playerObjId = row.data._id ? row.data._id: "";
                             var link = $('<div>', {});
-                            link.append($('<div>', {
-                                'class': 'fa fa-volume-control-phone',
-                                'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                'title': $translate("PHONE")
-                            }));
+                            if(row.data.phoneNumber && row.data.phoneNumber!=""){
+                                link.append($('<div>', {
+                                    'class': 'fa fa-volume-control-phone',
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    // 'data-row': JSON.stringify(row),
+                                    'title': $translate("PHONE")
+                                }));
+                            }
                             return link.prop('outerHTML')
                          }
                         }
