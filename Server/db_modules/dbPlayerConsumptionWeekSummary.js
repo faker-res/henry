@@ -536,9 +536,9 @@ var dbPlayerConsumptionWeekSummary = {
      */
     calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest) {
         let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
-        if (bRequest) {
-            settleTime = dbutility.getTodayConsumptionReturnSGTime();
-        }
+        // if (bRequest) {
+        //     settleTime = dbutility.getTodayConsumptionReturnSGTime();
+        // }
         return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest);
     },
 
@@ -636,7 +636,7 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {Boolean} bDetail, if contain detailed player info
      */
     getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest) {
-        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? (bRequest ? dbutility.getTodayConsumptionReturnSGTime() : dbutility.getYesterdayConsumptionReturnSGTime() ) : dbutility.getLastWeekSGTime();
+        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
         var eventData = event.param;
         var summaryDay = {$gte: settleTime.startTime};
         //if preview for settlement, only calculate for settlement time

@@ -104,7 +104,11 @@ var platformSchema = new Schema({
     //only new system user can login
     onlyNewCanLogin: {type: Boolean, default: false},
     //if use locked credit
-    useLockedCredit: {type: Boolean, default: false}
+    useLockedCredit: {type: Boolean, default: false},
+    // maximum length for player name included platform prefix
+    playerNameMaxLength : {type: Number, default: 0},
+    // minimum length for player name included platform prefix
+    playerNameMinLength : {type: Number, default: 0}
 });
 
 //add platform id before save
