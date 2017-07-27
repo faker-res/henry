@@ -2025,7 +2025,7 @@ define(['js/app'], function (myApp) {
                         record.playerId = record.data.playerId ? record.data.playerId : "" ;
                         record.playerName = record.data.playerName ? record.data.playerName : "";
                         record.realName = record.data.realName ? record.data.realName : "";
-                        record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp: "";
+                        record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
                         return record
                     }
                 );
@@ -3574,7 +3574,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.selectedSinglePlayer.sourceUrl && vm.selectedSinglePlayer.sourceUrl.length > 35) {
-                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl.substring(0,30) + "...";
+                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl.substring(0, 30) + "...";
                 } else {
                     vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl || null;
                 }
@@ -9579,6 +9579,7 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
             vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
             vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
+            vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
             $scope.safeApply();
         };
 
@@ -9827,7 +9828,8 @@ define(['js/app'], function (myApp) {
                     autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                     autoApproveLostThreshold: srcData.lostThreshold,
                     autoApproveProfitTimes: srcData.profitTimes,
-                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount
+                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
+                    autoApproveBonusProfitOffset: srcData.bonusProfitOffset
                 }
             };
             console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));

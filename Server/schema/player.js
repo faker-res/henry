@@ -319,7 +319,7 @@ var playerPostFindUpdate = function (result, bOne) {
     }
     //hide last 4 digits for qq
     if (result && result.qq) {
-        result.qq = result.qq.substring(0, (result.qq.length - 4)) + "****" ;
+        result.qq = result.qq.substring(0, (result.qq.length - 4)) + "****";
     }
 };
 
