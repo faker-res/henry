@@ -8,7 +8,7 @@ var Chance = require('chance');
 var chance = new Chance();
 var Q = require("q");
 var bcrypt = require('bcrypt');
-var captchapng = require('captchapng');
+var captchapng = require('./../modules/captchapng');
 var geoip = require('geoip-lite');
 var jwt = require('jsonwebtoken');
 var md5 = require('md5');
@@ -635,17 +635,16 @@ let dbPlayerInfo = {
             function (platform) {
                 if (platform) {
                     platformData = platform;
-                    // if (playerdata.name.substring(0, delimitedPrefix.length) === delimitedPrefix) {
-                    //    // Player name already contains expected platform prefix
-                    // }
 
-                    if (platformData.allowSamePhoneNumberToRegister === true) {
-                        return {isPhoneNumberValid: true};
+                    let delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
+                    if (!skipPrefix) {
+                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    }
+
+                    if ((platformData.playerNameMaxLength > 0 && playerdata.name.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && playerdata.name.length < platformData.playerNameMinLength)) {
+                        return {isPlayerNameValid: false};
                     } else {
-                        return dbPlayerInfo.isPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
-                            platform: playerdata.platform
-                        });
+                        return {isPlayerNameValid: true};
                     }
                 } else {
                     deferred.reject({name: "DBError", message: "No such platform"});
@@ -659,15 +658,30 @@ let dbPlayerInfo = {
                 });
             }
         ).then(
+            function (data) {
+                if (data.isPlayerNameValid) {
+                    if (platformData.allowSamePhoneNumberToRegister === true) {
+                        return {isPhoneNumberValid: true};
+                    } else {
+                        return dbPlayerInfo.isPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
+                            platform: playerdata.platform
+                        });
+                    }
+                } else {
+                    deferred.reject({name: "DBError", message: "Length of Player Name is not valid"});
+                }
+            }, function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Player Name length is not valid",
+                    error: error
+                });
+            }
+        ).then(
             //make sure phone number is unique
             function (data) {
                 if (data.isPhoneNumberValid) {
-                    var delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
-
-                    if (!skipPrefix) {
-                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
-                    }
-
                     return dbPlayerInfo.isPlayerNameValidToRegister({
                         name: playerdata.name,
                         platform: playerdata.platform
@@ -1312,7 +1326,7 @@ let dbPlayerInfo = {
      * @param {String}  query - The query string
      * @param {Object} updateData - The update data string
      */
-    updatePlayerPayment: function (query, updateData) {
+    updatePlayerPayment: function (query, updateData, skipSMSVerification) {
         let playerObj = null;
         let platformObjId;
         // Get platform
@@ -1345,7 +1359,7 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData) {
                     // Check if platform sms verification is required
-                    if (!platformData.requireSMSVerificationForPaymentUpdate) {
+                    if (!platformData.requireSMSVerificationForPaymentUpdate || skipSMSVerification) {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
@@ -2911,7 +2925,7 @@ let dbPlayerInfo = {
                         deferred.reject({
                             name: "DataError",
                             message: "Only new system user can login",
-                            code: constServerCode.INVALID_DATA
+                            code: constServerCode.NO_USER_FOUND
                         });
                         return;
                     }
@@ -2943,7 +2957,7 @@ let dbPlayerInfo = {
                     deferred.reject({
                         name: "DataError",
                         message: "Cannot find player",
-                        code: constServerCode.INVALID_USER_PASSWORD
+                        code: constServerCode.PLAYER_NAME_INVALID
                     });
                 }
             }
@@ -4743,6 +4757,18 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne(query).then(
             playerData => {
                 if (playerData) {
+                    return {isPlayerNameValid: false};
+                } else {
+                    return {isPlayerNameValid: true};
+                }
+            }
+        );
+    },
+
+    isPlayerNameLengthValid: function (playerName, platform) {
+        dbconfig.collection_platform.findOne({_id: platform}).then(
+            platformData => {
+                if ((platformData.playerNameMaxLength > 0 && playerName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && playerName.length < platformData.playerNameMinLength)) {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
@@ -9081,6 +9107,8 @@ let dbPlayerInfo = {
 
 
 };
+
+
 
 var proto = dbPlayerInfoFunc.prototype;
 proto = Object.assign(proto, dbPlayerInfo);

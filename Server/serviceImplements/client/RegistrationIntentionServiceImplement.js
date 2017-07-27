@@ -18,6 +18,8 @@ var RegistrationIntentionServiceImplement = function () {
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             data.ipAddress = forwardedIp[0].trim();
         }
+        delete data.password;
+        delete data.confirmPassword;
         WebSocketUtil.responsePromise(
             conn, wsFunc, data, dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI,
             [data, constProposalStatus.PENDING], isValidData, true, false, true
@@ -27,7 +29,6 @@ var RegistrationIntentionServiceImplement = function () {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS, data: res}, data);
                     self.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyRegistrationIntentionUpdate", res);
                 } else {
-                    conn.captchaCode = null;
                     wsFunc.response(conn, {
                         status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
                         errorMessage: localization.translate("Verification code invalid", conn.lang),

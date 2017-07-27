@@ -107,14 +107,17 @@ var dbPlayerTopUpRecord = {
                     query.depositMethod ? queryObj['data'] = {'depositMethod': query.depositMethod} : '';
                 } else if (query && query.mainTopupType == constPlayerTopUpType.WECHAT) {
                     str = constProposalType.PLAYER_WECHAT_TOP_UP
-                } else {
+                } else if (query && query.mainTopupType == constPlayerTopUpType.QUICKPAY) {
+                    str = constProposalType.PLAYER_QUICKPAY_TOP_UP
+                }else {
                     str = {
                         $in: [
-                                constProposalType.PLAYER_TOP_UP,
-                                constProposalType.PLAYER_ALIPAY_TOP_UP,
-                                constProposalType.PLAYER_MANUAL_TOP_UP,
-                                constProposalType.PLAYER_WECHAT_TOP_UP
-                            ]
+                            constProposalType.PLAYER_TOP_UP,
+                            constProposalType.PLAYER_ALIPAY_TOP_UP,
+                            constProposalType.PLAYER_MANUAL_TOP_UP,
+                            constProposalType.PLAYER_WECHAT_TOP_UP,
+                            constProposalType.PLAYER_QUICKPAY_TOP_UP
+                        ]
                     };
                     queryObj['$or'] = [];
                     query.topupType ? queryObj['$or'].push({
@@ -469,15 +472,17 @@ var dbPlayerTopUpRecord = {
                         platformId: player.platform
                     }).lean().then(
                         typeData => {
-                            if(typeData){
+                            if (typeData) {
                                 return dbconfig.collection_proposal.find({
                                     type: typeData._id,
-                                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.AUTOAUDIT,
-                                        constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.UNDETERMINED]},
+                                    status: {
+                                        $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.AUTOAUDIT,
+                                            constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.UNDETERMINED]
+                                    },
                                     "data.playerId": playerId
                                 }).sort({createTime: -1}).limit(1).lean();
                             }
-                            else{
+                            else {
                                 return [];
                             }
                         }
@@ -492,7 +497,7 @@ var dbPlayerTopUpRecord = {
                     if (bSinceLastConsumption && (latestConsumptionRecord && latestConsumptionRecord.createTime || lastPlayerWidthDraw && lastPlayerWidthDraw.createTime)) {
                         queryStartTime = latestConsumptionRecord && latestConsumptionRecord.createTime ? latestConsumptionRecord.createTime.getTime() : 0;
                     }
-                    if(lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime){
+                    if (lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime) {
                         queryStartTime = lastPlayerWidthDraw.createTime.getTime()
                     }
                     if (startTime && new Date(startTime).getTime() > queryStartTime) {
@@ -581,48 +586,7 @@ var dbPlayerTopUpRecord = {
             playerData => {
                 if (playerData && playerData.platform) {
                     player = playerData;
-                    var minTopUpAmount = playerData.platform.minTopUpAmount || 0;
-                    if (topupRequest.amount < minTopUpAmount) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_TOP_UP_FAIL,
-                            name: "DataError",
-                            errorMessage: "Top up amount is not enough"
-                        });
-                    }
-                    if (!playerData.permission || !playerData.permission.topupOnline) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_NO_PERMISSION,
-                            name: "DataError",
-                            errorMessage: "Player does not have online topup permission"
-                        });
-                    }
-                    //check player foridb topup type list
-                    if (player.forbidTopUpType && player.forbidTopUpType.indexOf(topupRequest.topupType) >= 0) {
-                        return Q.reject({name: "DataError", message: "Top up type is forbidden for this player"});
-                    }
-                    //check player merchant group
-                    if (!player.merchantGroup || !player.merchantGroup.merchants) {
-                        return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
-                    }
-                    var proposalData = Object.assign({}, topupRequest);
-                    proposalData.playerId = playerId;
-                    proposalData.playerObjId = playerData._id;
-                    proposalData.platformId = playerData.platform._id;
-                    proposalData.playerLevel = playerData.playerLevel;
-                    proposalData.platform = playerData.platform.platformId;
-                    proposalData.playerName = playerData.name;
-                    proposalData.creator = {
-                        type: 'player',
-                        name: playerData.name,
-                        id: playerId
-                    };
-                    var newProposal = {
-                        creator: proposalData.creator,
-                        data: proposalData,
-                        entryType: constProposalEntryType.CLIENT,
-                        userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                    };
-                    return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_TOP_UP, newProposal);
+                    return dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                 }
                 else {
                     return Q.reject({
@@ -631,6 +595,57 @@ var dbPlayerTopUpRecord = {
                         error: Error()
                     });
                 }
+            }
+        ).then(
+            isPlayerFirstTopUp => {
+                var minTopUpAmount;
+                if (isPlayerFirstTopUp) {
+                    minTopUpAmount = 1;
+                } else {
+                    minTopUpAmount = player.platform.minTopUpAmount || 0;
+                }
+
+                if (topupRequest.amount < minTopUpAmount) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_TOP_UP_FAIL,
+                        name: "DataError",
+                        errorMessage: "Top up amount is not enough"
+                    });
+                }
+                if (!player.permission || !player.permission.topupOnline) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        errorMessage: "Player does not have online topup permission"
+                    });
+                }
+                //check player foridb topup type list
+                if (player.forbidTopUpType && player.forbidTopUpType.indexOf(topupRequest.topupType) >= 0) {
+                    return Q.reject({name: "DataError", message: "Top up type is forbidden for this player"});
+                }
+                //check player merchant group
+                if (!player.merchantGroup || !player.merchantGroup.merchants) {
+                    return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
+                }
+                var proposalData = Object.assign({}, topupRequest);
+                proposalData.playerId = playerId;
+                proposalData.playerObjId = player._id;
+                proposalData.platformId = player.platform._id;
+                proposalData.playerLevel = player.playerLevel;
+                proposalData.platform = player.platform.platformId;
+                proposalData.playerName = player.name;
+                proposalData.creator = {
+                    type: 'player',
+                    name: player.name,
+                    id: playerId
+                };
+                var newProposal = {
+                    creator: proposalData.creator,
+                    data: proposalData,
+                    entryType: constProposalEntryType.CLIENT,
+                    userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                };
+                return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_TOP_UP, newProposal);
             }
         ).then(
             proposalData => {
@@ -737,73 +752,82 @@ var dbPlayerTopUpRecord = {
             playerData => {
                 if (playerData && playerData.platform && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
                     player = playerData;
-                    
-                    if (inputData.lastBankcardNo.length > 0 && fromFPMS) {
-                        let isCorrectBankAcc = player.bankCardGroup.banks.find((bankAcc)=>{
-                            return inputData.lastBankcardNo == bankAcc.slice(-(inputData.lastBankcardNo.length));
-                        });
-                        if(!isCorrectBankAcc){
-                            return Q.reject({
-                                status: constServerCode.PLAYER_TOP_UP_FAIL,
-                                name: "DataError",
-                                errorMessage: "Bank Account is not correct"
-                            });                 
-                        }
-                    }
 
-                    var minTopUpAmount = playerData.platform.minTopUpAmount || 0;
-                    if (inputData.amount < minTopUpAmount) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_TOP_UP_FAIL,
-                            name: "DataError",
-                            errorMessage: "Top up amount is not enough"
-                        });
-                    }
-
-                    if (!playerData.permission || !playerData.permission.topupManual) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_NO_PERMISSION,
-                            name: "DataError",
-                            errorMessage: "Player does not have manual topup permission"
-                        });
-                    }
-
-                    var proposalData = Object.assign({}, inputData);
-                    proposalData.playerId = playerId;
-                    proposalData.playerObjId = playerData._id;
-                    proposalData.platformId = playerData.platform._id;
-                    proposalData.playerLevel = playerData.playerLevel;
-                    proposalData.bankCardType = inputData.bankTypeId;
-                    proposalData.platform = playerData.platform.platformId;
-                    proposalData.playerName = playerData.name;
-                    proposalData.depositMethod = inputData.depositMethod;
-                    proposalData.realName = inputData.realName;
-                    proposalData.remark = inputData.remark || "";
-                    proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
-                    proposalData.creator = entryType == "ADMIN" ? {
-                        type: 'admin',
-                        name: adminName,
-                        id: adminId
-                    } : {
-                        type: 'player',
-                        name: playerData.name,
-                        id: playerId
-                    };
-                    var newProposal = {
-                        creator: proposalData.creator,
-                        data: proposalData,
-                        entryType: constProposalEntryType[entryType],
-                        userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                    };
-                    return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_MANUAL_TOP_UP, newProposal);
-                }
-                else {
+                    return dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
+                } else {
                     return Q.reject({
                         status: constServerCode.INVALID_DATA,
                         name: "DataError",
                         errorMessage: "Invalid player bankcard group data"
                     });
                 }
+            }
+        ).then(
+            isPlayerFirstTopUp => {
+                if (inputData.lastBankcardNo.length > 0 && fromFPMS) {
+                    let isCorrectBankAcc = player.bankCardGroup.banks.find((bankAcc) => {
+                        return inputData.lastBankcardNo == bankAcc.slice(-(inputData.lastBankcardNo.length));
+                    });
+                    if (!isCorrectBankAcc) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_TOP_UP_FAIL,
+                            name: "DataError",
+                            errorMessage: "Bank Account is not correct"
+                        });
+                    }
+                }
+
+                var minTopUpAmount;
+                if (isPlayerFirstTopUp) {
+                    minTopUpAmount = 1;
+                } else {
+                    minTopUpAmount = player.platform.minTopUpAmount || 0;
+                }
+
+                if (inputData.amount < minTopUpAmount) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_TOP_UP_FAIL,
+                        name: "DataError",
+                        errorMessage: "Top up amount is not enough"
+                    });
+                }
+
+                if (!player.permission || !player.permission.topupManual) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        errorMessage: "Player does not have manual topup permission"
+                    });
+                }
+
+                var proposalData = Object.assign({}, inputData);
+                proposalData.playerId = playerId;
+                proposalData.playerObjId = player._id;
+                proposalData.platformId = player.platform._id;
+                proposalData.playerLevel = player.playerLevel;
+                proposalData.bankCardType = inputData.bankTypeId;
+                proposalData.platform = player.platform.platformId;
+                proposalData.playerName = player.name;
+                proposalData.depositMethod = inputData.depositMethod;
+                proposalData.realName = inputData.realName;
+                proposalData.remark = inputData.remark || "";
+                proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
+                proposalData.creator = entryType == "ADMIN" ? {
+                    type: 'admin',
+                    name: adminName,
+                    id: adminId
+                } : {
+                    type: 'player',
+                    name: player.name,
+                    id: playerId
+                };
+                var newProposal = {
+                    creator: proposalData.creator,
+                    data: proposalData,
+                    entryType: constProposalEntryType[entryType],
+                    userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                };
+                return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_MANUAL_TOP_UP, newProposal);
             }
         ).then(
             proposalData => {
@@ -1308,56 +1332,63 @@ var dbPlayerTopUpRecord = {
                 playerData => {
                     if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
                         player = playerData;
-                        let minTopUpAmount = playerData.platform.minTopUpAmount || 0;
-                        if (amount < minTopUpAmount) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_TOP_UP_FAIL,
-                                name: "DataError",
-                                errorMessage: "Top up amount is not enough"
-                            });
-                        }
-                        if (!playerData.permission || !playerData.permission.alipayTransaction) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_NO_PERMISSION,
-                                name: "DataError",
-                                errorMessage: "Player does not have this permission"
-                            });
-                        }
-                        let proposalData = {};
-                        proposalData.playerId = playerId;
-                        proposalData.playerObjId = playerData._id;
-                        proposalData.platformId = playerData.platform._id;
-                        proposalData.playerLevel = playerData.playerLevel;
-                        proposalData.platform = playerData.platform.platformId;
-                        proposalData.playerName = playerData.name;
-                        proposalData.amount = Number(amount);
-                        proposalData.alipayName = alipayName;
-                        proposalData.alipayAccount = alipayAccount;
-                        proposalData.remark = remark;
-                        if (createTime) {
-                            proposalData.depositeTime = new Date(createTime);
-                        }
-                        proposalData.creator = entryType === "ADMIN" ? {
-                            type: 'admin',
-                            name: adminName,
-                            id: adminId
-                        } : {
-                            type: 'player',
-                            name: playerData.name,
-                            id: playerId
-                        };
-                        let newProposal = {
-                            creator: proposalData.creator,
-                            data: proposalData,
-                            entryType: constProposalEntryType[entryType],
-                            //createTime: createTime ? new Date(createTime) : new Date(),
-                            userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                        };
-                        return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
+                        return dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
                     }
+                }
+            ).then(
+                isPlayerFirstTopUp => {
+                    let minTopUpAmount = player.platform.minTopUpAmount || 0;
+                    if (isPlayerFirstTopUp) {
+                        minTopUpAmount = 1;
+                    }
+                    if (amount < minTopUpAmount) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_TOP_UP_FAIL,
+                            name: "DataError",
+                            errorMessage: "Top up amount is not enough"
+                        });
+                    }
+                    if (!player.permission || !player.permission.alipayTransaction) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            errorMessage: "Player does not have this permission"
+                        });
+                    }
+                    let proposalData = {};
+                    proposalData.playerId = playerId;
+                    proposalData.playerObjId = player._id;
+                    proposalData.platformId = player.platform._id;
+                    proposalData.playerLevel = player.playerLevel;
+                    proposalData.platform = player.platform.platformId;
+                    proposalData.playerName = player.name;
+                    proposalData.amount = Number(amount);
+                    proposalData.alipayName = alipayName;
+                    proposalData.alipayAccount = alipayAccount;
+                    proposalData.remark = remark;
+                    if (createTime) {
+                        proposalData.depositeTime = new Date(createTime);
+                    }
+                    proposalData.creator = entryType === "ADMIN" ? {
+                        type: 'admin',
+                        name: adminName,
+                        id: adminId
+                    } : {
+                        type: 'player',
+                        name: player.name,
+                        id: playerId
+                    };
+                    let newProposal = {
+                        creator: proposalData.creator,
+                        data: proposalData,
+                        entryType: constProposalEntryType[entryType],
+                        //createTime: createTime ? new Date(createTime) : new Date(),
+                        userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                    };
+                    return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
                 }
             ).then(
                 proposalData => {
@@ -1786,6 +1817,23 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             data => ({proposalId: proposalId})
+        );
+    },
+
+    isPlayerFirstTopUp: function (playerId) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                if (playerData) {
+                    return dbconfig.collection_playerTopUpRecord.findOne({playerId: playerData._id}).lean().then(
+                        record => {
+                            return record ? false : true;
+                        }
+                    );
+                }
+                else {
+                    return false;
+                }
+            }
         );
     }
 

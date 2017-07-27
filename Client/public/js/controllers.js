@@ -336,7 +336,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         '2': 'WechatQR',
         '3': 'AlipayQR',
         '4': 'WechatApp',
-        '5': 'AlipayApp'
+        '5': 'AlipayApp',
+        '6': 'FASTPAY',
+        '7': 'QQPAYQR'
     };
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
@@ -494,7 +496,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                 return;
             }
 
-            let url = "http://ms.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
+            let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
             let now = new Date();
             let formattedNow = $filter('date')(now, "yyyyMMdd");
             let firstLevelMd5 = convertToMD5(adminData.callerId + "");

@@ -29,7 +29,7 @@ let PlayerServiceImplement = function () {
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH) && (!data.realName || data.realName.match(/\d+/g) === null));
-        if (data.smsCode || (conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
+        if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -66,13 +66,13 @@ let PlayerServiceImplement = function () {
             if (data.qq && !data.email) {
                 data.email = data.qq + "@qq.com";
             }
-            let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
+            // let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
             conn.captchaCode = null;
             data.isOnline = true;
             let inputData = Object.assign({}, data);
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData], isValidData, true, true, true).then(
                 (playerData) => {
-                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(playerData, constProposalStatus.SUCCESS).then();
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
                     conn.playerObjId = playerData._id;
@@ -279,12 +279,6 @@ let PlayerServiceImplement = function () {
     this.login.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.password && data.platformId);
 
-        console.log("start checking conn.upgradeReq.headers=============================");
-        for (var i in conn.upgradeReq.headers) {
-            console.log("name: " + i);
-            console.log("value: " + conn.upgradeReq.headers[i]);
-        }
-        console.log("end checking conn.upgradeReq.headers=============================");
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -365,7 +359,7 @@ let PlayerServiceImplement = function () {
                         conn.playerObjId = null;
                         conn.captchaCode = null;
                         wsFunc.response(conn, {
-                            status: constServerCode.INVALID_USER_PASSWORD,
+                            status: error.code || constServerCode.INVALID_USER_PASSWORD,
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate("User not found OR Invalid Password", conn.lang),
                         }, data);
@@ -380,15 +374,6 @@ let PlayerServiceImplement = function () {
     this.loginPlayerPartner.expectsData = 'name: String, password: String, platformId: String';
     this.loginPlayerPartner.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.name && data.password && data.platformId);
-
-        console.log("start checking conn.upgradeReq.headers=============================");
-        for (let i in conn.upgradeReq.headers) {
-            if (conn.upgradeReq.headers.hasOwnProperty(i)) {
-                console.log("name: " + i);
-                console.log("value: " + conn.upgradeReq.headers[i]);
-            }
-        }
-        console.log("end checking conn.upgradeReq.headers=============================");
 
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
@@ -477,15 +462,6 @@ let PlayerServiceImplement = function () {
     this.loginPlayerPartnerWithSMS.expectsData = 'phoneNumber: String, smsCode: String, platformId: String';
     this.loginPlayerPartnerWithSMS.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.smsCode && data.platformId);
-
-        console.log("start checking conn.upgradeReq.headers=============================");
-        for (let i in conn.upgradeReq.headers) {
-            if (conn.upgradeReq.headers.hasOwnProperty(i)) {
-                console.log("name: " + i);
-                console.log("value: " + conn.upgradeReq.headers[i]);
-            }
-        }
-        console.log("end checking conn.upgradeReq.headers=============================");
 
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
@@ -816,8 +792,6 @@ let PlayerServiceImplement = function () {
     this.sendSMSCodeToPlayer.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
         let smsCode = parseInt(Math.random() * 9000 + 1000);
-        console.log('***conn.playerId', conn.playerId);
-        console.log('***conn.playerObjId', conn.playerObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId], isValidData, false, false, true);
     };
 

@@ -362,7 +362,7 @@ let dbPlayerReward = {
                     return dbConfig.collection_proposal.find({
                         type: typeData._id,
                         status: constProposalStatus.APPROVED
-                    }).sort({createTime: -1}).limit(3).lean();
+                    }).sort({createTime: -1}).limit(100).lean();
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find easter egg reward proposal type"});
@@ -370,8 +370,7 @@ let dbPlayerReward = {
             }
         ).then(
             proposalDatas => {
-                //todo:: temp test data
-                let res = [{username: "test1", amount: 1}, {username: "test2", amount: 3}];
+                let res = [];
                 if (proposalDatas && proposalDatas.length > 0) {
                     proposalDatas.forEach(
                         pData => {

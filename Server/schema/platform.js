@@ -95,6 +95,8 @@ var platformSchema = new Schema({
     autoApproveProfitTimes: {type: Number, default: 10},
     // Auto approve minimum withdrawal amount to trigger profit times checking
     autoApproveProfitTimesMinAmount: {type: Number, default: 2000},
+    // Auto approve abnormal bonus check offset
+    autoApproveBonusProfitOffset: {type: Number, default: 2000},
     //can apply multiple reward
     canMultiReward: {type: Boolean, default: false},
     // Auto check player level up
@@ -104,7 +106,11 @@ var platformSchema = new Schema({
     //only new system user can login
     onlyNewCanLogin: {type: Boolean, default: false},
     //if use locked credit
-    useLockedCredit: {type: Boolean, default: false}
+    useLockedCredit: {type: Boolean, default: false},
+    // maximum length for player name included platform prefix
+    playerNameMaxLength: {type: Number, default: 0},
+    // minimum length for player name included platform prefix
+    playerNameMinLength: {type: Number, default: 0}
 });
 
 //add platform id before save

@@ -648,6 +648,7 @@
   "WechatPay Group": "微信支付组",
   "WechatPay": "微信支付",
   "QuickPay": "秒付宝",
+  "QUICKPAY": "秒付宝",
   "QuickPay Name": "秒付宝名",
   "QuickPay Account": "秒付宝账户",
   "QuickPay Group": "秒付宝组",
@@ -1353,6 +1354,7 @@
   "TOPUPMANUAL": "手工存款",
   "TOPUPALIPAY": "支付宝存款",
   "TOPUPWECHAT": "微信存款",
+  "TOPUPQUICKPAY": "秒付宝存款",
   "TopUp Sum": "总充值额",
   "clientType": "客户类型",
   "merchantUseType": "商户号用途",
@@ -1676,6 +1678,7 @@
   "periodType": "周期类别",
   "providers": "提供商",
   "minTopUpAmount": "最小充值额",
+  "minFirstTimeTopUpAmount1": "最小首充额 1",
   "allowSameRealNameToRegister": "允许相同真实姓名前端开户",
   "allowSamePhoneNumberToRegister": "允许相同电话号码姓名前端开户",
   "platformBasic": "平台基础数据",
@@ -2113,5 +2116,10 @@
   "isPlayerInit": "玩家提交",
   "SOURCE_URL": "来源URL",
   "autoAuditTime": "自动审核：审核时间",
-  "STATE": "状态"
+  "STATE": "状态",
+  "playerNameMaxLength": "玩家用户名最大长度",
+  "playerNameMinLength": "玩家用户名最低长度",
+  "Profit Times": "盈利倍数（小于）",
+  "Profit Times Minimum Amount": "盈利倍数（最低触发值）",
+  "Abnormal Profit Offset": "异常输赢值宽限额"
 }

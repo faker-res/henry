@@ -2025,7 +2025,7 @@ define(['js/app'], function (myApp) {
                         record.playerId = record.data.playerId ? record.data.playerId : "" ;
                         record.name = record.data.name ? record.data.name : "";
                         record.realName = record.data.realName ? record.data.realName : "";
-                        record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp: "";
+                        record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
                         return record
                     }
                 );
@@ -3307,6 +3307,7 @@ define(['js/app'], function (myApp) {
         vm.getEncPhoneNumber = function (playerData) {
             return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
         }
+
         vm.showPlayerInfoModal = function (playerName) {
             vm.similarPlayersForPlayer = null;
             var watch = $scope.$watch(function () {
@@ -3490,12 +3491,12 @@ define(['js/app'], function (myApp) {
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
-                    playerId: data.playerId,
-                    name: data.name,
-                    nickName: data.nickName,
+                    playerId: playerObjId.playerId,
+                    name: playerObjId.name,
+                    nickName: playerObjId.nickName,
                     platformId: vm.selectedPlatform.data.platformId,
                     channel: $scope.channelList[0],
-                    hasPhone: data.phoneNumber
+                    hasPhone: playerObjId.phoneNumber
                 }
                 vm.sendSMSResult = {};
                 $scope.safeApply();
@@ -3572,6 +3573,12 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedSinglePlayer.partner) {
                         vm.selectedSinglePlayer.partnerName = vm.selectedSinglePlayer.partner.partnerName;
                     }
+                }
+
+                if (vm.selectedSinglePlayer.sourceUrl && vm.selectedSinglePlayer.sourceUrl.length > 35) {
+                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl.substring(0, 30) + "...";
+                } else {
+                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl || null;
                 }
 
                 $scope.safeApply();
@@ -3659,7 +3666,7 @@ define(['js/app'], function (myApp) {
             let editPlayer = vm.editPlayer;                  // ~ 6 fields
             let allPartner = vm.partnerIdObj;
             let allPlayerLevel = vm.allPlayerLvl;
-            // console.log("vm.editPlayer", vm.editPlayer);
+
             let option = {
                 $scope: $scope,
                 $compile: $compile,
@@ -5696,7 +5703,7 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 }, function (error) {
-                    vm.playerManualTopUp.responseMsg = error.error.errorMessage;
+                    vm.playerManualTopUp.responseMsg = $translate(error.error.errorMessage);
                     socketService.showErrorMessage(error.error.errorMessage);
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
@@ -9544,6 +9551,8 @@ define(['js/app'], function (myApp) {
         // announcement codes==============end===============================
         vm.getPlatformBasic = function () {
             vm.platformBasic = vm.platformBasic || {};
+            vm.platformBasic.playerNameMaxLength = vm.selectedPlatform.data.playerNameMaxLength;
+            vm.platformBasic.playerNameMinLength = vm.selectedPlatform.data.playerNameMinLength;
             vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
             vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
             vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
@@ -9572,6 +9581,7 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
             vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
             vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
+            vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
             $scope.safeApply();
         };
 
@@ -9799,7 +9809,9 @@ define(['js/app'], function (myApp) {
                     bonusCharges: srcData.bonusCharges,
                     requireLogInCaptcha: srcData.requireLogInCaptcha,
                     onlyNewCanLogin: srcData.onlyNewCanLogin,
-                    useLockedCredit: srcData.useLockedCredit
+                    useLockedCredit: srcData.useLockedCredit,
+                    playerNameMaxLength: srcData.playerNameMaxLength,
+                    playerNameMinLength: srcData.playerNameMinLength
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -9818,7 +9830,8 @@ define(['js/app'], function (myApp) {
                     autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                     autoApproveLostThreshold: srcData.lostThreshold,
                     autoApproveProfitTimes: srcData.profitTimes,
-                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount
+                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
+                    autoApproveBonusProfitOffset: srcData.bonusProfitOffset
                 }
             };
             console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));

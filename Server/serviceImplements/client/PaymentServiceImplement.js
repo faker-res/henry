@@ -37,10 +37,17 @@ var PaymentServiceImplement = function () {
 
     this.getTopupHistory.expectsData = '[startIndex]: Number, [requestCount]: Number';
     this.getTopupHistory.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && conn.playerId);
+        var isValidData = Boolean(data && conn.playerId && data.startTime && data.endTime);
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
+
+        let fourteenDayAgo = (new Date).setDate((new Date).getDate() - 14);
+
+        if (data && data.startTime && new Date(data.startTime) < new Date(fourteenDayAgo)) {
+            data.startTime = new Date(fourteenDayAgo);
+        }
+
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerTopUpHistory, [conn.playerId, data.topUpType, data.startTime, data.endTime, data.startIndex, data.requestCount, !data.sort, data.status], isValidData);
     };
 
@@ -302,6 +309,11 @@ var PaymentServiceImplement = function () {
     this.getQuickpayTopupRequestList.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getQuickpayTopupRequestList, [conn.playerId], isValidData);
+    };
+
+    this.isFirstTopUp.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.isPlayerFirstTopUp, [conn.playerId], isValidData);
     };
 
 };

@@ -25,7 +25,8 @@ define(['js/app'], function (myApp) {
             MANUAL: 1,
             ONLINE: 2,
             ALIPAY: 3,
-            WECHAT: 4
+            WECHAT: 4,
+            QUICKPAY: 5
         };
         vm.feedbackResultList = {
             NORMAL: "Normal",
@@ -926,7 +927,7 @@ define(['js/app'], function (myApp) {
                 // merchant: vm.queryTopup.merchant,
                 status: staArr,
                 index: newSearch ? 0 : (vm.queryTopup.index || 0),
-                limit: newSearch ? 10 : (vm.queryTopup.limit || 10),
+                limit: vm.queryTopup.limit || 10,
                 sortCol: vm.queryTopup.sortCol
             }
             // if (vm.queryTopup.status) {
@@ -1642,7 +1643,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate(),
                 },
                 index: newSearch ? 0 : (vm.playerDomain.index || 0),
-                limit: newSearch ? 10 : (vm.playerDomain.limit || 10),
+                limit: vm.playerDomain.limit || 10,
                 sortCol: vm.playerDomain.sortCol || {},
             }
             socketService.$socket($scope.AppSocket, 'getPlayerDomainReport', sendquery, function (data) {
@@ -1714,7 +1715,7 @@ define(['js/app'], function (myApp) {
                     acc2: vm.playerQuery.acc2.data('datetimepicker').getLocalDate()
                 },
                 index: newSearch ? 0 : (vm.playerQuery.index || 0),
-                limit: newSearch ? 10 : (vm.playerQuery.limit || 10),
+                limit: vm.playerQuery.limit || 10,
                 sortCol: vm.playerQuery.sortCol || {},
             }
             console.log('sendquery', sendquery);
