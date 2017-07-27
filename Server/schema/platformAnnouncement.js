@@ -16,7 +16,10 @@ var platformAnnouncement = new Schema({
 
     // When reach === 'conditional'
     // Condition(s) for who will see this announcement
-    reachCondition: {type: JSON, required: false}
+    reachCondition: {type: JSON, required: false},
+
+    // Annoucement sorting order
+    order: {type: Number, required: true}
 });
 
 module.exports = platformAnnouncement;

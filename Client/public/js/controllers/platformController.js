@@ -9877,6 +9877,7 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) return;
             $scope.$socketPromise('getPlatformAnnouncementsByPlatformId', {platformId: vm.selectedPlatform.data.platformId}).then(function (data) {
                 vm.allPlatformAnnouncements = data.data;
+                vm.allPlatformAnnouncements.sort((a, b) => a.order - b.order);
                 $scope.safeApply();
             }).done();
         };
