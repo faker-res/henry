@@ -2025,7 +2025,7 @@ define(['js/app'], function (myApp) {
                         record.playerId = record.data.playerId ? record.data.playerId : "" ;
                         record.playerName = record.data.playerName ? record.data.playerName : "";
                         record.realName = record.data.realName ? record.data.realName : "";
-                        record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp: "";
+                        record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
                         return record
                     }
                 );
@@ -3574,7 +3574,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.selectedSinglePlayer.sourceUrl && vm.selectedSinglePlayer.sourceUrl.length > 35) {
-                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl.substring(0,30) + "...";
+                    vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl.substring(0, 30) + "...";
                 } else {
                     vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl || null;
                 }

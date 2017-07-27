@@ -2117,8 +2117,8 @@
   "SOURCE_URL": "来源URL",
   "autoAuditTime": "自动审核：审核时间",
   "STATE": "状态",
-  "playerNameMaxLength":"玩家用户名最大长度",
-  "playerNameMinLength":"玩家用户名最低长度",
+  "playerNameMaxLength": "玩家用户名最大长度",
+  "playerNameMinLength": "玩家用户名最低长度",
   "Profit Times": "盈利倍数（小于）",
   "Profit Times Minimum Amount": "盈利倍数（最低触发值）",
   "Abnormal Profit Offset": "异常输赢值宽限额"
