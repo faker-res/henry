@@ -155,9 +155,7 @@ var roleChecker = {
         "getPlayerRetention": true,
         "getAllActions": true,
         "getAdminInfo": true,
-        "updateProposalTypeExpiryDuration": true,
-        "getPlayerLevelByPlatformId": true,
-        "getPlayerTrustLevelByPlatformId": true
+        "updateProposalTypeExpiryDuration": true
     },
 
     /**
