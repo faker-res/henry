@@ -422,6 +422,12 @@ var dbUtility = {
         }
     },
 
+    isCurrentSGTimePassed12PM: function () {
+        let hour = moment().tz('Asia/Singapore').toDate().getHours();
+
+        return hour >= 12;
+    },
+
     /**
      * Find one and update for query without shardkey
      * @param {Object} model
