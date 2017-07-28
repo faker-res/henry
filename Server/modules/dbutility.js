@@ -423,7 +423,7 @@ var dbUtility = {
     },
 
     isCurrentSGTimePassed12PM: function () {
-        let hour = moment().tz('Asia/Singapore').add(3, 'hours').toDate().getHours();
+        let hour = moment().tz('Asia/Singapore').toDate().getHours();
 
         return hour >= 12;
     },
