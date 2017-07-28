@@ -656,7 +656,7 @@ var dbPlayerTopUpRecord = {
                         platformId: player.platform.platformId,
                         userName: player.name,
                         realName: player.realName,
-                        ip: player.lastLoginIp,
+                        ip: player.lastLoginIp || "127.0.0.1",
                         topupType: topupRequest.topupType,
                         amount: topupRequest.amount,
                         groupMerchantList: player.merchantGroup.merchants,
