@@ -4,7 +4,7 @@
             .inlineBlk
                 label.control-label {{'Admin' | translate}}
                 //input.form-control(ng-model='vm.feedbackAdminQuery.admin', placeholder="{{'SEARCH' | translate}}")
-                select.form-control(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName for a in vm.departmentUsers')
+                select.form-control.feedbackOption(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName group by a.departmentName for a in vm.departmentUsers')
                     option(value="") {{'any' | translate}}
             .inlineBlk
                 label.control-label {{'PLAYER' | translate}}

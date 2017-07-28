@@ -186,6 +186,15 @@ function socketActionDepartment(socketIO, socket) {
             var isDataValid = Boolean(data && data.departmentId);
             socketUtil.emitter(self.socket, dbDepartment.getDepartmentTreeById, [data.departmentId], actionName, isDataValid);
         },
+        /**
+         * Get department tree data for departmentId With User Data
+         * @param {json} data - It has to contain departmentId
+         */
+        getDepartmentTreeByIdWithUser: function getDepartmentTreeByIdWithUser(data) {
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.departmentId);
+            socketUtil.emitter(self.socket, dbDepartment.getDepartmentTreeByIdWithUser, [data.departmentId], actionName, isDataValid);
+        },
 
         /**
          * Get departments data for platform

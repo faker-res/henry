@@ -436,6 +436,45 @@ var dbDepartment = {
         return deferred.promise;
     },
 
+    getDepartmentTreeByIdWithUser: function(departmentId){
+        var deferred = Q.defer();
+        dbconfig.collection_department.find()
+        .populate({path: 'users', model: dbconfig.collection_admin})
+        .then(
+            function(data){
+                if( data && data.length > 0 ){
+                    var allDepartments = {};
+                    //add all departments data to key map
+                    for( var i = 0; i < data.length; i++ ){
+                        allDepartments[data[i]._id] = data[i];
+                    }
+                    var departmentsTree = [];
+                    //build subtree for department
+                    for( var j = 0; j < data.length; j++ ){
+                        var department = data[j];
+                        var parent = department;
+                        while( parent ){
+                            if( String(parent._id) == departmentId ){
+                                departmentsTree.push(department);
+                                break;
+                            }
+                            else{
+                                parent = parent.parent ? allDepartments[parent.parent] : null;
+                            }
+                        }
+                    }
+                    deferred.resolve(departmentsTree);
+                }
+                else{
+                    deferred.reject({name: "DataError", message: "Can't find all departments"});
+                }
+            },
+            function(error){
+                deferred.reject({name: "DBError", message: "Failed to find all departments", error: error});
+            }
+        );
+        return deferred.promise;
+    },
     /**
      * get departments by platformId
      * @param {objectId} platformId - objectId for platform
