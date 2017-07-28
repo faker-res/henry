@@ -321,6 +321,10 @@ var playerPostFindUpdate = function (result, bOne) {
     if (result && result.qq) {
         result.qq = result.qq.substring(0, (result.qq.length - 4)) + "****";
     }
+    //hide last 4 digits for wechat
+    if (result && result.wechat) {
+        result.wechat = result.wechat.substring(0, (result.wechat.length - 4)) + "****";
+    }
 };
 
 // // example to get player phone number

@@ -1238,6 +1238,7 @@
   "Player Consumption Incentive": "玩家救援奖励",
   "Player Consumption Incentive Settlement": "结算玩家救援奖励",
   "Player Consumption Return Settlement": "结算玩家洗码",
+  "Player Level Up Settlement": "结算玩家升级",
   "PlayerConsumptionIncentiveSettlement": "结算玩家救援奖励",
   "PlayerConsumptionReturnSettlement": "结算玩家洗码",
   "PartnerCommissionSettlement": "代理佣金结算",
@@ -2125,5 +2126,6 @@
   "playerNameMinLength": "玩家用户名最低长度",
   "Profit Times": "盈利倍数（小于）",
   "Profit Times Minimum Amount": "盈利倍数（最低触发值）",
-  "Abnormal Profit Offset": "异常输赢值宽限额"
+  "Abnormal Profit Offset": "异常输赢值宽限额",
+  "ORDER": "排序"
 }

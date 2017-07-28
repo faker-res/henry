@@ -43,6 +43,8 @@ var dbPlatformAnnouncement = {
                 announcementQuery.platform = platform._id;
                 return dbPlatformAnnouncement.getPlatformAnnouncements(announcementQuery);
             }
+        ).then(
+            ann => ann.sort((a, b) => a.order - b.order)
         );
     },
 

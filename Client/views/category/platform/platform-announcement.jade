@@ -5,7 +5,8 @@ div(style="height:265px;overflow:auto;margin-bottom:5px")
                 tr
                     th(width="20%") {{'TITLE' | translate}}
                     th(width="45%") {{'CONTENT' | translate}}
-                    th(width="15%") {{'REACH' | translate}}
+                    th(width="10%") {{'REACH' | translate}}
+                    th(width="5%") {{'ORDER' | translate}}
                     th(width="20%") {{'DATE' | translate}}
             tbody
                 tr(ng-if="!vm.configTableAdd", ng-repeat="(i,ann) in vm.allPlatformAnnouncements", sn-selectable-model="vm.selectedPlatformAnnouncement", sn-selectable-value="ann", ng-click="vm.currentlyFocusedAnnouncement = ann; vm.previewPlatformAnnouncement()")
@@ -19,6 +20,8 @@ div(style="height:265px;overflow:auto;margin-bottom:5px")
                             option(value="players") {{"PLAYERS_ONLY" | translate}}
                             option(value="conditional") {{"CUSTOM" | translate}}
                     td
+                        input.form-control(ng-disabled="!vm.configTableEdit", ng-model="ann.order", required, title="{{ann.order}}")
+                    td
                         input.form-control(type="datetime", date-time, ng-disabled="!vm.configTableEdit", ng-model="ann.date", title="{{ann.date | date:'medium'}}")
                 tr(ng-if="vm.configTableAdd")
                     td
@@ -30,6 +33,8 @@ div(style="height:265px;overflow:auto;margin-bottom:5px")
                             option(value="all") {{"ALL" | translate}}
                             option(value="players") {{"PLAYERS_ONLY" | translate}}
                             option(value="conditional") {{"CUSTOM" | translate}}
+                    td
+                        input.form-control(ng-model="vm.newAnn.order", required)
                     td
                         input.form-control(type="datetime", date-time, ng-model="vm.newAnn.date")
 .pull-right

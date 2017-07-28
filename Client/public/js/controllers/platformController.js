@@ -664,6 +664,31 @@ define(['js/app'], function (myApp) {
                 });
         };
 
+        vm.startPlayerLevelUpSettlement = function ($event) {
+            vm.playerLevelUpSettlement = {
+                result: false,
+                status: 'ready'
+            }
+            $('#playerLevelUpSettlementtModal').modal('show');
+            $scope.safeApply();
+        }
+        vm.performPlayerLevelUpSettlement = function () {
+            vm.playerLevelUpSettlement.status = 'processing';
+            socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelUpSettlement',
+                {platformId: vm.selectedPlatform.id},
+                function (data) {
+                    console.log('playerLevelUpSettlement', data);
+                    vm.playerLevelUpSettlement.status = 'completed';
+                    vm.playerLevelUpSettlement.result = $translate('Success');
+                    $scope.safeApply();
+                }, function (err) {
+                    console.log('err', err);
+                    vm.playerLevelUpSettlement.status = 'completed';
+                    vm.playerLevelUpSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                    $scope.safeApply();
+                });
+        };
+
         vm.startPlatformPlayerConsumptionIncentiveSettlement = function ($event) {
             vm.playerConsumptionIncentiveSettlement = {
                 result: false,
@@ -2023,7 +2048,7 @@ define(['js/app'], function (myApp) {
                         record.createTime = vm.dateReformat(record.createTime);
                         record.statusName = $translate(record.status);
                         record.playerId = record.data.playerId ? record.data.playerId : "" ;
-                        record.playerName = record.data.playerName ? record.data.playerName : "";
+                        record.name = record.data.name ? record.data.name : "";
                         record.realName = record.data.realName ? record.data.realName : "";
                         record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
                         return record
@@ -2036,18 +2061,18 @@ define(['js/app'], function (myApp) {
                         {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                         {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
                         {'sortCol': 'data.playerId', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'data.playerName', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
                         {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
                         {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
-                        {'sortCol': 'phoneNumber', bSortable: true, 'aTargets': [7]},
+                        {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
                         // {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
                         {title: $translate('PROPOSAL_ID'), data: "proposalId"},
                         {title: $translate('STATUS'), data: "statusName"},
                         {title: $translate('PLAYERID'), data: "playerId"},
-                        {title: $translate('PLAYERNAME'), data: "playerName"},
+                        {title: $translate('PLAYERNAME'), data: "name"},
                         {title: $translate('REAL_NAME'), data: "realName"},
                         {title: $translate('IP_ADDRESS'), data: "lastLoginIp"},
                         {title: $translate('CREATETIME'), data: "createTime"},
@@ -2056,12 +2081,14 @@ define(['js/app'], function (myApp) {
                             data = data || '';
                             var playerObjId = row.data._id ? row.data._id: "";
                             var link = $('<div>', {});
-                            link.append($('<div>', {
-                                'class': 'fa fa-volume-control-phone',
-                                'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                'title': $translate("PHONE")
-                            }));
+                            if(row.data.phoneNumber && row.data.phoneNumber!=""){
+                                link.append($('<div>', {
+                                    'class': 'fa fa-volume-control-phone',
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    // 'data-row': JSON.stringify(row),
+                                    'title': $translate("PHONE")
+                                }));
+                            }
                             return link.prop('outerHTML')
                          }
                         }
@@ -3674,15 +3701,12 @@ define(['js/app'], function (myApp) {
                     playerId: selectedPlayer._id,
                     playerBeforeEditing: _.clone(editPlayer),
                     playerBeingEdited: _.clone(editPlayer),
-                    // partnerObjs: vm.partnerIdObj,
                     platformBankCardGroupList: vm.platformBankCardGroupList,
                     platformMerchantGroupList: vm.platformMerchantGroupList,
                     platformAlipayGroupList: vm.platformAlipayGroupList,
                     platformWechatPayGroupList: vm.platformWechatPayGroupList,
                     platformQuickPayGroupList: vm.platformQuickPayGroupList,
                     allPlayerTrustLvl: vm.allPlayerTrustLvl,
-                    // showPlayerBankCardId: vm.showPlayerBankCardId,
-                    // showPlayerMerchantId: vm.showPlayerMerchantId,
                     updateEditedPlayer: function () {
                         sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited);
                     },
@@ -3691,22 +3715,12 @@ define(['js/app'], function (myApp) {
                     },
                     duplicateNameFound: function () {
                         return vm.duplicateNameFound;
-                    },
-                    // partnerChanged: function () {
-                    //     if (vm.partnerChange) {
-                    //         $('#partnerInEditPlayer').text(vm.parterSelectedforPlayer ? vm.parterSelectedforPlayer.partnerName : '');
-                    //     }
-                    //     return vm.partnerChange;
-                    // },
+                    }
                 }
             };
 
             option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
             option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
-            // console.log("option.childScope.playerBeingEdited.smsSetting:", option.childScope.playerBeingEdited.smsSetting);
-            // option.childScope.showPartnerTable = function () {
-            //     return vm.showPartnerSelectModal(option.childScope.playerBeingEdited);
-            // };
             option.childScope.changeReferral = function () {
                 return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
             };
@@ -9875,6 +9889,7 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) return;
             $scope.$socketPromise('getPlatformAnnouncementsByPlatformId', {platformId: vm.selectedPlatform.data.platformId}).then(function (data) {
                 vm.allPlatformAnnouncements = data.data;
+                vm.allPlatformAnnouncements.sort((a, b) => a.order - b.order);
                 $scope.safeApply();
             }).done();
         };
