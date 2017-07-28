@@ -376,7 +376,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded("#operationTable", function () {
                     vm.commonInitTime(vm.queryOperation, '#operationReportQuery')
                     // vm.queryOperation.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, vm.topupTablePageChange);
-                })
+                });
                 $scope.safeApply();
             } else if (choice == "FULL_ATTENDANCE_REPORT") {
                 vm.rewardTypeName = 'FULL_ATTENDANCE';
@@ -479,7 +479,15 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
                     vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
                     vm.searchNewPlayerRecord(true);
-                })
+                });
+            } else if (choice == "WINRATE_REPORT") {
+                vm.winRateQuery = {};
+                vm.winRateSummaryData = {};
+                vm.winRateQuery.providerId = 'all';
+                utilService.actionAfterLoaded("#winRateTable", function () {
+                    vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
+                });
+                $scope.safeApply();
             } else if (choice == "PLAYERPARTNER_REPORT") {
                 vm.partnerQuery = {};
                 utilService.actionAfterLoaded("#playerPartnerTable", function () {
@@ -1625,6 +1633,42 @@ define(['js/app'], function (myApp) {
         }
 
         //////////////////// draw player table - end /////////////////
+
+        // Win Rate Report
+        vm.getWinRateReportData = function () {
+            let data = null;
+
+            // hide table and show 'loading'
+            $('#winRateTableSpin').show();
+            $('#winRateTable').hide();
+            $('#winRateSummaryTable').hide();
+
+            vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
+            vm.curWinRateQuery.providerId = vm.curWinRateQuery.providerId == "all" ? null : vm.curWinRateQuery.providerId;
+            vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
+
+            vm.curWinRateQuery.limit = 0;
+
+            vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
+            vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+
+            console.log('vm.curWinRateQuery', vm.curWinRateQuery);
+            socketService.$socket($scope.AppSocket, 'winRateReport', vm.curWinRateQuery, function (data) {
+                vm.winRateReportLoadingStatus = "";
+                $('#winRateTableSpin').hide();
+                $('#winRateTable').show();
+                $('#winRateSummaryTable').show();
+                console.log('win rate report data', data);
+                vm.winRateSummaryData = data.data;
+                $scope.safeApply();
+            }, function (err) {
+                $('#winRateTableSpin').hide();
+                vm.winRateReportLoadingStatus = err.message;
+                $scope.safeApply();
+            }, true);
+
+
+        };
 
         /////// player domain report
         vm.searchPlayerDomainRepport = function (newSearch) {

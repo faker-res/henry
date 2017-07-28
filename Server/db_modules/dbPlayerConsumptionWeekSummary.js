@@ -536,9 +536,11 @@ var dbPlayerConsumptionWeekSummary = {
      */
     calculatePlayerConsumptionReturn: function (playerData, platformData, eventData, bRequest) {
         let settleTime = eventData.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
-        // if (bRequest) {
-        //     settleTime = dbutility.getTodayConsumptionReturnSGTime();
-        // }
+        if (bRequest) {
+            if (dbutility.isCurrentSGTimePassed12PM()) {
+                settleTime = dbutility.getTodayConsumptionReturnSGTime();
+            }
+        }
         return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest);
     },
 
@@ -630,13 +632,19 @@ var dbPlayerConsumptionWeekSummary = {
     /**
      * Get consumption return amount for player based on event data
      * @param {ObjectId} platformId
-     * @param {json} eventData
+     * @param event
      * @param {ObjectId} proposalTypeId
      * @param {ObjectId} playerId
      * @param {Boolean} bDetail, if contain detailed player info
+     * @param bRequest
      */
     getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest) {
-        var settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
+        let settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekSGTime();
+        if (bRequest) {
+            if (dbutility.isCurrentSGTimePassed12PM()) {
+                settleTime = dbutility.getTodayConsumptionReturnSGTime();
+            }
+        }
         var eventData = event.param;
         var summaryDay = {$gte: settleTime.startTime};
         //if preview for settlement, only calculate for settlement time
