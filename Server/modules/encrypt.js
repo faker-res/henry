@@ -118,7 +118,7 @@ var encrypt = {
             query["partner"] = partner;
         }
         if (loginIps !== '') {
-            query["loginIps"] = loginIps;
+            query["loginIps"] = new RegExp('.*' + loginIps + '.*');
         }
 
         if (validCredit !== '') {
