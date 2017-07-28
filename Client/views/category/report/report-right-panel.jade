@@ -553,6 +553,46 @@
             label {{"Total" | translate}} {{vm.queryProposal.totalCount}} {{"records" | translate}}
             table#actionLogTable.common-table.display(style="width:100%;")
             #actionLogTablePage
+        div(ng-if='vm.showPageName=="WINRATE_REPORT"')
+            // 输赢报表
+            #winrateReportQuery.block-query.col-md-12.well
+                div
+                    label {{"Provider"|translate}}
+                    select.form-control(ng-model='vm.winRateQuery.providerId', style='max-width:300px', required)
+                        option(value="all") {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
+
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.getWinRateReportData()') {{'SEARCH' | translate}}
+                    span#winRateTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.winRateReportLoadingStatus}}
+            .clearfix
+            table#winRateTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+            table.common-table.simple-table#winRateSummaryTable(style='margin-top:10px;font-size:12px')
+                thead
+                    tr
+                        th {{'CONSUMPTION_PARTICIPANT' | translate}}
+                        th {{'TIMES_CONSUMED' | translate}}
+                        th {{'TOTAL_CONSUMPTION' | translate}}
+                        th {{'VALID_CONSUMPTION' | translate}}
+                        th {{'PLAYER_PROFIT_AMOUNT' | translate}}
+                        th {{'COMPANY_EARNING_RATIO' | translate}}
+                tbody
+                    tr
+                        td {{vm.winRateSummaryData.participantNumber}}
+                        td {{vm.winRateSummaryData.consumptionTimes}}
+                        td {{(vm.winRateSummaryData.totalAmount) | number : 2}}
+                        td {{(vm.winRateSummaryData.validAmount) | number : 2}}
+                        td {{(vm.winRateSummaryData.bonusAmount) | number : 2}}
+                        td {{(-vm.winRateSummaryData.bonusAmount/vm.winRateSummaryData.validAmount*100 || 0) | number : 2 }}%
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')
 script(src='js/lib/flot/jquery.flot.pie.min.js')

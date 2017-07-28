@@ -1619,6 +1619,63 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
+    winRateReport: function (startTime, endTime, providerId, platformId) {
+        const matchObj = {
+            createTime: {$gte: startTime, $lt: endTime},
+            platformId: ObjectId(platformId)
+        };
+
+        if (providerId && providerId !== 'all') {
+            matchObj.providerId = ObjectId(providerId);
+        }
+
+        let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj);
+
+        let consumptionTimesProm = dbconfig.collection_playerConsumptionRecord.find(matchObj).count();
+
+        let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id:null,
+                    total_amount: {$sum: "$amount"},
+                    validAmount: {$sum: "$validAmount"},
+                    bonusAmount: {$sum: "$bonusAmount"}
+                }
+            }
+        ]);
+
+        return Promise.all([participantsProm, consumptionTimesProm, totalAmountProm]).then(
+            data => {
+                let participantNumber = 0;
+                let consumptionTimes = 0;
+                let totalAmount = 0;
+                let validAmount = 0;
+                let bonusAmount = 0;
+                if (data && data[0] && data[1] && data[2]) {
+                    participantNumber = data[0].length;
+                    consumptionTimes = data[1];
+                    totalAmount = data[2][0].total_amount;
+                    validAmount = data[2][0].validAmount;
+                    bonusAmount = data[2][0].bonusAmount;
+                }
+
+                let returnData = {
+                    participantNumber: participantNumber,
+                    consumptionTimes: consumptionTimes,
+                    totalAmount: totalAmount,
+                    validAmount: validAmount,
+                    bonusAmount: bonusAmount
+                };
+
+                return returnData;
+            }
+        );
+
+    },
+
     markDuplicatedConsumptionRecords: dupsSummaries => {
         if (dupsSummaries.length > 0) {
             let markDupsProm = [];
