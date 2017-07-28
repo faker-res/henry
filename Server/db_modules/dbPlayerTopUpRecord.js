@@ -651,12 +651,13 @@ var dbPlayerTopUpRecord = {
             proposalData => {
                 if (proposalData) {
                     proposal = proposalData;
+                    let ip = player.lastLoginIp && player.lastLoginIp != 'undefined' ? player.lastLoginIp : "127.0.0.1";
                     var requestData = {
                         proposalId: proposalData.proposalId,
                         platformId: player.platform.platformId,
                         userName: player.name,
                         realName: player.realName,
-                        ip: player.lastLoginIp || "127.0.0.1",
+                        ip: ip,
                         topupType: topupRequest.topupType,
                         amount: topupRequest.amount,
                         groupMerchantList: player.merchantGroup.merchants,
