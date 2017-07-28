@@ -664,6 +664,31 @@ define(['js/app'], function (myApp) {
                 });
         };
 
+        vm.startPlayerLevelUpSettlement = function ($event) {
+            vm.playerLevelUpSettlement = {
+                result: false,
+                status: 'ready'
+            }
+            $('#playerLevelUpSettlementtModal').modal('show');
+            $scope.safeApply();
+        }
+        vm.performPlayerLevelUpSettlement = function () {
+            vm.playerLevelUpSettlement.status = 'processing';
+            socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelUpSettlement',
+                {platformId: vm.selectedPlatform.id},
+                function (data) {
+                    console.log('playerLevelUpSettlement', data);
+                    vm.playerLevelUpSettlement.status = 'completed';
+                    vm.playerLevelUpSettlement.result = $translate('Success');
+                    $scope.safeApply();
+                }, function (err) {
+                    console.log('err', err);
+                    vm.playerLevelUpSettlement.status = 'completed';
+                    vm.playerLevelUpSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                    $scope.safeApply();
+                });
+        };
+
         vm.startPlatformPlayerConsumptionIncentiveSettlement = function ($event) {
             vm.playerConsumptionIncentiveSettlement = {
                 result: false,
@@ -3676,15 +3701,12 @@ define(['js/app'], function (myApp) {
                     playerId: selectedPlayer._id,
                     playerBeforeEditing: _.clone(editPlayer),
                     playerBeingEdited: _.clone(editPlayer),
-                    // partnerObjs: vm.partnerIdObj,
                     platformBankCardGroupList: vm.platformBankCardGroupList,
                     platformMerchantGroupList: vm.platformMerchantGroupList,
                     platformAlipayGroupList: vm.platformAlipayGroupList,
                     platformWechatPayGroupList: vm.platformWechatPayGroupList,
                     platformQuickPayGroupList: vm.platformQuickPayGroupList,
                     allPlayerTrustLvl: vm.allPlayerTrustLvl,
-                    // showPlayerBankCardId: vm.showPlayerBankCardId,
-                    // showPlayerMerchantId: vm.showPlayerMerchantId,
                     updateEditedPlayer: function () {
                         sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited);
                     },
@@ -3693,22 +3715,12 @@ define(['js/app'], function (myApp) {
                     },
                     duplicateNameFound: function () {
                         return vm.duplicateNameFound;
-                    },
-                    // partnerChanged: function () {
-                    //     if (vm.partnerChange) {
-                    //         $('#partnerInEditPlayer').text(vm.parterSelectedforPlayer ? vm.parterSelectedforPlayer.partnerName : '');
-                    //     }
-                    //     return vm.partnerChange;
-                    // },
+                    }
                 }
             };
 
             option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
             option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
-            // console.log("option.childScope.playerBeingEdited.smsSetting:", option.childScope.playerBeingEdited.smsSetting);
-            // option.childScope.showPartnerTable = function () {
-            //     return vm.showPartnerSelectModal(option.childScope.playerBeingEdited);
-            // };
             option.childScope.changeReferral = function () {
                 return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
             };
