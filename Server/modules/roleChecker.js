@@ -155,9 +155,7 @@ var roleChecker = {
         "getPlayerRetention": true,
         "getAllActions": true,
         "getAdminInfo": true,
-        "updateProposalTypeExpiryDuration": true,
-        "getPlayerLevelByPlatformId": true,
-        "getPlayerTrustLevelByPlatformId": true
+        "updateProposalTypeExpiryDuration": true
     },
 
     /**
@@ -230,7 +228,8 @@ var roleChecker = {
                 PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
                 transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
                 PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
-                PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement']
+                PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement'],
+                PlayerLevelUpSettlement: ['startPlayerLevelUpSettlement']
             },
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
@@ -497,7 +496,8 @@ var roleChecker = {
                 PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],
                 PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
                 PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport'],
-                PLAYERDOMAIN_REPORT: ['getPlayerDomainReport']
+                PLAYERDOMAIN_REPORT: ['getPlayerDomainReport'],
+                WINRATE_REPORT: ['winRateReport']
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType'],

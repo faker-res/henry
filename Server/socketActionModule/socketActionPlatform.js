@@ -258,6 +258,16 @@ function socketActionPlatform(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbPlatform.startCalculatePlayerConsumptionIncentive, [ObjectId(data.platformId)], actionName, isValidData);
+        },
+
+         /**
+         * Start Player Level Up Settlement
+         * @param {json} data - It has to contain platformId
+         */
+        startPlatformPlayerLevelUpSettlement: function startPlatformPlayerLevelUpSettlement(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatform.startPlatformPlayerLevelUpSettlement, [ObjectId(data.platformId)], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;
