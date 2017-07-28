@@ -1537,7 +1537,7 @@ include modalGameCreditLog
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod')
-                                    option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i}}
+                                    option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
                             .form-group-col-md-6
                                 label.control-label {{'PROVINCE_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', required)
