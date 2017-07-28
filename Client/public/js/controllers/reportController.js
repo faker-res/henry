@@ -32,7 +32,8 @@ define(['js/app'], function (myApp) {
             NORMAL: "Normal",
             MISSED_CALL: "MissedCall",
             PLAYER_BUSY: "PlayerBusy",
-            OTHER: "Other"
+            OTHER: "Other",
+            LAST_CALL: "LastCall"
         };
 
         //get all platform data from server
