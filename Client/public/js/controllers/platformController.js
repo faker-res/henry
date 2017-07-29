@@ -64,7 +64,8 @@ define(['js/app'], function (myApp) {
             NORMAL: "Normal",
             MISSED_CALL: "MissedCall",
             PLAYER_BUSY: "PlayerBusy",
-            OTHER: "Other"
+            OTHER: "Other",
+            LAST_CALL: "LastCall"
         };
         vm.playerLvlPeriod = {
             NONE: "NONE",
@@ -7112,8 +7113,18 @@ define(['js/app'], function (myApp) {
             vm.feedbackAdminQuery.total = 0;
             let departmentID = vm.selectedPlatform.data.department;
             if (departmentID) {
-                socketService.$socket($scope.AppSocket, 'getDepartment', {_id: vm.selectedPlatform.data.department}, function (data) {
-                    vm.departmentUsers = data.data.users || [];
+                socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.selectedPlatform.data.department}, function (data) {
+                    var result = [];
+                    data.data.forEach(function(userData){
+                        userData.users.forEach(function(user){
+                            var singleRecord = {}
+                            singleRecord.departmentName = userData.departmentName;
+                            singleRecord.adminName = user.adminName;
+                            singleRecord._id = user._id;
+                            result.push(singleRecord);
+                        })
+                    });
+                    vm.departmentUsers = result;
                     $scope.safeApply();
                 });
             }

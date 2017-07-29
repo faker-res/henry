@@ -8,7 +8,8 @@ const constPlayerFeedbackResult = {
     MISSED_CALL: "MissedCall",
     //player is busy
     PLAYER_BUSY: "PlayerBusy",
-    OTHER: "Other"
+    OTHER: "Other",
+    LAST_CALL: "LastCall"
 };
 
 module.exports = constPlayerFeedbackResult;

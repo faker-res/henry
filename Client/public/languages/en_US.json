@@ -418,6 +418,7 @@
   "ForbidGame":"Banned From Game",
   "Forbid":"Banned",
   "MissedCall":"Missed Call",
+  "LastCall": "Last Call",
   "PlayerBusy":"Player Busy",
   "CREATE_TIME":"Create Time",
   "ALL_PROPOSAL":"All Proposal",
