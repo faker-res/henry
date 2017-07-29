@@ -226,12 +226,12 @@ var proposal = {
                     }
 
                     //for consumption return request, skip proposal flow
-                    if (proposalData.data && proposalData.data.bConsumptionReturnRequest) {
-                        bExecute = true;
-                        proposalData.noSteps = true;
-                        proposalData.process = null;
-                        proposalData.status = constProposalStatus.APPROVED;
-                    }
+                    // if (proposalData.data && proposalData.data.bConsumptionReturnRequest) {
+                    //     bExecute = true;
+                    //     proposalData.noSteps = true;
+                    //     proposalData.process = null;
+                    //     proposalData.status = constProposalStatus.APPROVED;
+                    // }
                     //check if player or partner has pending proposal for this type
                     let queryObj = {
                         type: proposalData.type,
