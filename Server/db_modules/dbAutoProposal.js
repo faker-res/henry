@@ -71,7 +71,12 @@ let dbAutoProposal = {
 
     processAutoProposals: (proposals, platformObj) => {
         if (proposals && proposals.length > 0) {
-            return Promise.all(proposals.map(proposal => checkProposalConsumption(proposal, platformObj)));
+            return Promise.all(proposals.map(proposal => {
+                // System log for selected proposals to auto audit
+                console.log('Processing auto audit proposals: ', proposal.proposalId);
+
+                return checkProposalConsumption(proposal, platformObj)
+            }));
         }
     },
 
