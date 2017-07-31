@@ -1823,7 +1823,7 @@ define(['js/app'], function (myApp) {
                                         console.log('banktype', data.data.data);
                                         data.data.data.forEach(item => {
                                             if (item && item.bankTypeId) {
-                                                vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
+                                                vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
                                             }
                                         })
                                     }
