@@ -519,6 +519,11 @@ var roleChecker = {
                 PLAYER_ALMOST_LEVELUP_REPORT: ['getPlayerAlmostLevelupReport'],
                 ACTIONLOG_REPORT: ['getActionLogPageReport']
             }
+        },
+        Monitor: {
+            Payment:{
+                Read: []
+            }
         }
     },
 
