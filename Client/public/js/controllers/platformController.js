@@ -747,6 +747,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initSendMultiMessage = function () {
+            vm.getSMSTemplate();
             vm.sendMultiMessage = {
                 totalCount: 0,
                 isTestPlayer: '',
@@ -785,13 +786,25 @@ define(['js/app'], function (myApp) {
             })
         }
 
+        vm.getSMSTemplate = function(){
+            vm.smsTemplate = [];
+            $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id, format:'sms'}).then(function (data) {
+                vm.smsTemplate = data.data;
+                console.log("vm.smsTemplate", vm.smsTemplate);
+            }).done();
+        }
+        vm.useSMSTemplate = function(){
+            vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
+            vm.messagesChange();
+
+        }
         vm.searchPlayersForSendingMessage = function (newSearch) {
             if (!vm.selectedPlatform) {
                 return;
             }
             $('#mutilplePlayerTable tbody tr').removeClass('selected');
             $('#mutilplePlayerTable tbody input[type="checkbox"]').prop("checked", vm.sendMultiMessage.checkAllRow);
-
+            vm.smsTplSelection = null;
             vm.sendMultiMessage = $.extend({}, vm.sendMultiMessage, {
                 checkAllRow: false,
                 numReceived: 0,
@@ -10542,6 +10555,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformMessageTemplates = function () {
+
                 if (!vm.selectedPlatform) return;
                 $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id}).then(function (data) {
                     vm.messageTemplatesForPlatform = data.data;
