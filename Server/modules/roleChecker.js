@@ -242,7 +242,7 @@ var roleChecker = {
                 ForbidTopupTypes: [],
                 AddFeedback: [],
                 FeedbackHistory: [],
-                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity'],
+                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral'],
                 EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal'],
                 PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
                 PaymentInformationHistory: ['getPaymentHistory'],
