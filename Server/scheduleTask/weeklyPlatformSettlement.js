@@ -179,11 +179,11 @@ var weeklyPlatformSettlement = {
             //         errArr.push(error);
             //         console.error(new Date(), "generateWeeklyPlatformSummaries failed!", error);
             //     }
-        ).then(
-            function () {
-                //return weeklyPlatformSettlement.startWeeklyPlatformRewardEventSettlement(platformId);
-                return platformRewardSettlement.startPlatformRewardEventSettlement(platformId, constSettlementPeriod.WEEKLY);
-            }
+            // ).then(
+            //     function () {
+            //         //return weeklyPlatformSettlement.startWeeklyPlatformRewardEventSettlement(platformId);
+            //         return platformRewardSettlement.startPlatformRewardEventSettlement(platformId, constSettlementPeriod.WEEKLY);
+            //     }
             // ).catch(
             //     function (error) {
             //         errArr.push(error);
