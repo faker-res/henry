@@ -9094,6 +9094,57 @@ let dbPlayerInfo = {
         )
     },
 
+    updatePlayerReferral: function(playerObjId, referralName) {
+        let player, referral;
+        dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            playerData => {
+                player  = playerData;
+                return dbconfig.collection_players.findOne({name: referralName}).lean();
+            },
+            error => {
+                return Q.reject({
+                    status: constServerCode.DATA_INVALID,
+                    name: "DataError",
+                    message: "Player not found.",
+                    error: error
+                });
+            }
+        ).then(
+            referralData => {
+                referral = referralData;
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {
+                        _id: player._id,
+                        platform: player.platform
+                    },
+                    {
+                        referral: referral._id
+                    }
+                ).lean();
+            },
+            error => {
+                return Q.reject({
+                    status: constServerCode.DATA_INVALID,
+                    name: "DataError",
+                    message: "Referral not found.",
+                    error: error
+                });
+            }
+        ).then(
+            data => {
+                return data;
+            },
+            error => {
+                return Q.reject({
+                    status: constServerCode.DB_ERROR,
+                    name: "DBError",
+                    message: "Player Update Failed.",
+                    error: error
+                });
+            }
+        );
+    },
+
     //todo::send sms to player with content ???
     sendSMStoPlayer: function (playerObjId, type, content) {
         dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
