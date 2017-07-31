@@ -792,6 +792,12 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.playerId && data.providerId && typeof(data.amount) === 'number');
             socketUtil.emitter(self.socket, dbPlayerInfo.transferAllPlayersCreditFromProvider, [data.platform, data.providerId, data.adminName], actionName, isValidData);
+        },
+
+        updatePlayerReferral: function updatePlayerReferral(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId && data.referral);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerReferral, [data.playerObjId, data.referral], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;
