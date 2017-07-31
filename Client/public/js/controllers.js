@@ -476,6 +476,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         $scope.phoneCall.toText = data.toText;
         $scope.phoneCall.platform = data.platform;
         $scope.phoneCall.phone = data.phone;
+        $scope.phoneCall.username = data.toText;
         $scope.getNewPhoneCaptha();
     }
     $scope.makePhoneCall = function () {
@@ -502,8 +503,8 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             let firstLevelMd5 = convertToMD5(adminData.callerId + "");
             let password = convertToMD5(firstLevelMd5 + formattedNow);
             //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
-            let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&Taskid=&isMessage=0&MessageUrl=&DID=";
-
+            let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+            
             $.ajax({
                 url: urlWithParams,
                 dataType: "jsonp",
