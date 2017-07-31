@@ -1920,6 +1920,9 @@
   "COMPANY_EARNING_RATIO": "公司获利比例",
   "PLAYER_PROFIT_AMOUNT": "输赢金额",
 
+  "Monitor": "监控",
+  "MONITOR": "监控",
+
   "player - create": "玩家开户",
   "createPlayerPartner": "玩家+推广渠道开户",
   "loginPlayerPartner": "玩家+推广渠道登录",
