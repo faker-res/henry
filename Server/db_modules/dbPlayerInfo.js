@@ -5703,7 +5703,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             function (data) {
                 if (data && data.platform) {
-                    return dbconfig.collection_playerLevel.find({platform: data.platform});
+                    return dbconfig.collection_playerLevel.find({platform: data.platform}).sort({value: 1}).lean();
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find player"});
