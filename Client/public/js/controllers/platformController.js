@@ -788,7 +788,7 @@ define(['js/app'], function (myApp) {
 
         vm.getSMSTemplate = function(){
             vm.smsTemplate = [];
-            $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id, format:'smsTemplate'}).then(function (data) {
+            $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id, format:'smstpl'}).then(function (data) {
                 vm.smsTemplate = data.data;
                 console.log("vm.smsTemplate", vm.smsTemplate);
             }).done();
@@ -796,7 +796,10 @@ define(['js/app'], function (myApp) {
         vm.useSMSTemplate = function(){
             vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
             vm.messagesChange();
+        }
 
+        vm.changeSMSTemplate = function(){
+            vm.smsPlayer.message = vm.smstpl ? vm.smstpl.content : '';
         }
         vm.searchPlayersForSendingMessage = function (newSearch) {
             if (!vm.selectedPlatform) {
@@ -3527,6 +3530,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
             // var rowData = JSON.parse(data);
             console.log(type, data);
+            vm.getSMSTemplate();
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
@@ -10602,6 +10606,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.createMessageTemplate = function () {
+
+                if(vm.editingMessageTemplate.format=='smstpl'){
+                    vm.editingMessageTemplate.type = vm.smsTitle;  
+                }
                 var templateData = vm.editingMessageTemplate;
                 templateData.platform = vm.selectedPlatform.id;
                 vm.resetToViewMessageTemplate();
@@ -10613,7 +10621,7 @@ define(['js/app'], function (myApp) {
             vm.saveMessageTemplate = function () {
                 var query = {_id: vm.editingMessageTemplate._id};
 
-                if(vm.editingMessageTemplate.format=='smsTemplate'){
+                if(vm.editingMessageTemplate.format=='smstpl'){
                     vm.editingMessageTemplate.type = vm.smsTitle;  
                 }
                 var updateData = vm.editingMessageTemplate;
@@ -10635,6 +10643,7 @@ define(['js/app'], function (myApp) {
                 vm.messageTemplateMode = 'view';
                 vm.displayedMessageTemplate = vm.selectedMessageTemplate;
                 vm.previewMessageTemplate();
+
             };
 
             function selectMessageWithId(targetId) {
@@ -10762,7 +10771,6 @@ define(['js/app'], function (myApp) {
 
             vm.previewMessageTemplate = function () {
                 var templateString = vm.displayedMessageTemplate && vm.displayedMessageTemplate.content || '';
-
                 var renderedTemplate = renderTemplate(templateString, exampleMetaData);
 
                 $('.messageTemplatePreview').hide();
