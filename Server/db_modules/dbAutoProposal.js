@@ -798,11 +798,24 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
 
         if (completeCycle && inTime && outTime) {
             let consumedAmt = outAmt - inAmt;
-            promBonusCheck.push([
-                Promise.resolve(transferLogs[i].transferId),
-                Promise.resolve(consumedAmt),
-                getPlayerConsumptionSummary(platformObj._id, playerId, inTime, outTime)
-            ]);
+            promBonusCheck.push(
+                getPlayerConsumptionSummary(platformObj._id, playerId, inTime, outTime).then(
+                    res => {
+                        let transferOutId = transferLogs[i].transferId;
+                        let transDifference = consumedAmt;
+                        let bonusAmt = res[0].bonusAmount;
+                        let profitDifference = bonusAmt - transDifference;
+
+                        if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
+                            || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
+                            abnormalities.push({
+                                en: "Abnormal Bonus (ID: " + transferOutId + ")",
+                                ch: "异常盈利 (ID: " + transferOutId + ")"
+                            });
+                        }
+                    }
+                )
+            );
             completeCycle = !completeCycle;
         }
     }
@@ -830,24 +843,7 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
         });
     }
 
-    return Promise.all(promBonusCheck.map(each => {
-        return Promise.all(each).then(
-            res => {
-                let transferOutId = res[0];
-                let transDifference = res[1];
-                let bonusAmt = res[2][0].bonusAmount;
-                let profitDifference = bonusAmt - transDifference;
-
-                if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
-                    || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
-                    abnormalities.push({
-                        en: "Abnormal Bonus (ID: " + transferOutId + ")",
-                        ch: "异常盈利 (ID: " + transferOutId + ")"
-                    });
-                }
-            }
-        )
-    })).then(
+    return Promise.all(promBonusCheck).then(
         res => abnormalities
     );
 
