@@ -46,7 +46,7 @@ var dbPlayerFeedback = {
         return dbconfig.collection_playerFeedback.find(query).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
     },
 
-    getAllPlayerFeedbacks: function (query, admin, player, index, limit, sortCol) {
+    getAllPlayerFeedbacks: function (query, admin, cs, player, index, limit, sortCol) {
         console.log("getAllPlayerFeedback db function has been reached");
         var adminArr = [];
         var playerArr = [];
@@ -102,7 +102,7 @@ var dbPlayerFeedback = {
                     });
                 }
 
-                return dbconfig.collection_admin.find({adminName: {$regex: ".*" + admin + ".*"}}).lean();
+                return dbconfig.collection_admin.find({adminName: {$regex: ".*" + cs + ".*"}}).lean();
             }
         ).then(
             data => {
@@ -116,7 +116,7 @@ var dbPlayerFeedback = {
                 }
                 if (adminArr.length > 0) {
                     query.adminId = {$in: adminArr};
-                } else if (adminArr.length == 0 && admin) {
+                } else if (adminArr.length == 0 && cs) {
                     return [];
                 }
 

@@ -44,7 +44,13 @@ function socketActionMessageTemplate (socketIO, socket) {
         getMessageTemplatesForPlatform: function getMessageTemplatesForPlatform (data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbMessageTemplate.getMessageTemplates, [{platform: data.platform}], actionName, isValidData);
+            var query = {};
+            if(data.format){
+                query = {platform: data.platform, format: data.format}
+            }else{
+                query = {platform: data.platform}
+            }
+            socketUtil.emitter(self.socket, dbMessageTemplate.getMessageTemplates, [query], actionName, isValidData);
         },
 
         /**

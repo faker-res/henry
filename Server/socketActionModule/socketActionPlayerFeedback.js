@@ -33,7 +33,7 @@ function socketActionPlayerFeedback(socketIO, socket) {
         getAllPlayerFeedbacks: function getAllPlayerFeedbacks(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query);
-            socketUtil.emitter(self.socket, dbPlayerFeedback.getAllPlayerFeedbacks, [data.query, data.admin, data.player, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerFeedback.getAllPlayerFeedbacks, [data.query, data.admin, data.cs, data.player, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
         getPlayerFeedbackReport: function getPlayerFeedbackReport(data) {
             var actionName = arguments.callee.name;
