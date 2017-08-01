@@ -788,7 +788,7 @@ define(['js/app'], function (myApp) {
 
         vm.getSMSTemplate = function(){
             vm.smsTemplate = [];
-            $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id, format:'smsTemplate'}).then(function (data) {
+            $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id, format:'smstpl'}).then(function (data) {
                 vm.smsTemplate = data.data;
                 console.log("vm.smsTemplate", vm.smsTemplate);
             }).done();
@@ -10587,6 +10587,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.createMessageTemplate = function () {
+
+                if(vm.editingMessageTemplate.format=='smstpl'){
+                    vm.editingMessageTemplate.type = vm.smsTitle;  
+                }
                 var templateData = vm.editingMessageTemplate;
                 templateData.platform = vm.selectedPlatform.id;
                 vm.resetToViewMessageTemplate();
@@ -10598,7 +10602,7 @@ define(['js/app'], function (myApp) {
             vm.saveMessageTemplate = function () {
                 var query = {_id: vm.editingMessageTemplate._id};
 
-                if(vm.editingMessageTemplate.format=='smsTemplate'){
+                if(vm.editingMessageTemplate.format=='smstpl'){
                     vm.editingMessageTemplate.type = vm.smsTitle;  
                 }
                 var updateData = vm.editingMessageTemplate;
@@ -10620,6 +10624,7 @@ define(['js/app'], function (myApp) {
                 vm.messageTemplateMode = 'view';
                 vm.displayedMessageTemplate = vm.selectedMessageTemplate;
                 vm.previewMessageTemplate();
+
             };
 
             function selectMessageWithId(targetId) {
@@ -10747,7 +10752,6 @@ define(['js/app'], function (myApp) {
 
             vm.previewMessageTemplate = function () {
                 var templateString = vm.displayedMessageTemplate && vm.displayedMessageTemplate.content || '';
-
                 var renderedTemplate = renderTemplate(templateString, exampleMetaData);
 
                 $('.messageTemplatePreview').hide();
