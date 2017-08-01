@@ -3834,6 +3834,13 @@ define(['js/app'], function (myApp) {
             delete updateData.smsSetting;
             delete updateData.receiveSMS;
 
+            var updateReferralName;
+            if (newPlayerData["referral"] != oldPlayerData["referral"]) {
+                updateReferralName = updateData.referralName;
+            }
+            delete updateData.referralName;
+            delete updateData.referral;
+
             if (!updateData.partner) {
                 delete updateData.partnerName;
             }
@@ -3845,8 +3852,6 @@ define(['js/app'], function (myApp) {
                 Object.keys(newPlayerData).forEach(function (key) {
                     if (newPlayerData[key] != oldPlayerData[key]) {
                         if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup") {
-                            //do nothing
-                        } else if (key == "referralName" && newPlayerData["referral"] == oldPlayerData["referral"]) {
                             //do nothing
                         } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                             //do nothing
@@ -3862,9 +3867,6 @@ define(['js/app'], function (myApp) {
                 if (updateData.playerLevel) {
                     updateData.oldLevelName = getPlayerLevelName(vm.editPlayer.playerLevel);
                     updateData.newLevelName = getPlayerLevelName(updateData.playerLevel);
-                }
-                if (!updateData.referral) {
-                    delete updateData.referralName;
                 }
 
                 // if (updateData.bankCardGroup == 'NULL') {
@@ -3919,6 +3921,15 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'updatePlayer', {
                     query: {_id: playerId},
                     updateData: updateSMS
+                }, function (updated) {
+                    console.log('updated', updated);
+                    vm.getPlatformPlayersData();
+                });
+            }
+            if (updateReferralName) {
+                socketService.$socket($scope.AppSocket, 'updatePlayerReferral', {
+                    playerObjId: playerId,
+                    referral: updateReferralName
                 }, function (updated) {
                     console.log('updated', updated);
                     vm.getPlatformPlayersData();

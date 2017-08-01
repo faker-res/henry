@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 
 var encrypt = require('./../modules/encrypt');
+var dbConfig = require('./../modules/dbproperties');
 var dbAdminInfo = require('./../db_modules/dbAdminInfo');
 var env = require('./../config/env');
 var jwtSecret = env.config().socketSecret;
@@ -256,6 +257,36 @@ router.post('/resetPassword', function (req, res, next) {
                 function () {
                     // NOTE: This is only secure if the socket is SSL encrypted.  The socket should be encrypted anyway for login.
                     res.json({success: true, username: doc.adminName, password: temporaryPassword, message: "Password reset, you may now log in."});
+                }
+            );
+        }
+    ).catch(
+        function (err) {
+            errorUtils.reportError(err);
+            res.json({success: false, error: {name: "UnexpectedError", message: String(err)}});
+        }
+    );
+});
+
+router.get('/getPlayerInfoByPhoneNumber', function (req, res, next) {
+    let phoneNumber = req.query.phoneNumber;
+    let platformId = req.query.platformId;
+
+    if (!phoneNumber || !platformId) {
+        res.json({success: false, error: {name: "DataError", message: "Missing parameter: resetPasswordToken"}});
+        return;
+    }
+
+    dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        function (doc) {
+            if (!doc) {
+                res.json({success: false, error: {name: "DataError", message: "No such platform"}});
+                return;
+            }
+
+            return dbConfig.collection_players.findOne({platform: doc._id, phoneNumber: phoneNumber}).then(
+                function (playerData) {
+                    res.json({success: true, username: playerData.name});
                 }
             );
         }

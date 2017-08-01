@@ -192,12 +192,13 @@ function checkProposalConsumption(proposal, platformObj) {
                 let creditChangeLogs = data[4];
                 return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
                     transferAbnormalities => {
-                        for (let i = 0; i < transferAbnormalities.length; i++) {
-                            abnormalMessage += transferAbnormalities[i].en + "; ";
-                            abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
-                            bTransferAbnormal = true;
+                        if (transferAbnormalities) {
+                            for (let i = 0; i < transferAbnormalities.length; i++) {
+                                abnormalMessage += transferAbnormalities[i].en + "; ";
+                                abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+                                bTransferAbnormal = true;
+                            }
                         }
-
                         return data;
                     }
                 )
@@ -207,6 +208,9 @@ function checkProposalConsumption(proposal, platformObj) {
         }
     ).then(
         data => {
+            // Debug log - Abnormal before calculate consumption
+            console.log('abnormalMessage:', abnormalMessage);
+
             let proposals, allProposals, playerData;
             let bNoBonusPermission = false;
             let bPendingPaymentInfo = false;
@@ -356,8 +360,14 @@ function checkProposalConsumption(proposal, platformObj) {
                 }
             }
 
+            // DEBUG LOG
+            console.log('countProposals', countProposals);
+
             Promise.all(proms).then(
                 () => {
+                    // DEBUG LOG
+                    console.log('checkResult.length', checkResult.length);
+
                     let isClearCycle = false;
                     let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
@@ -491,6 +501,9 @@ function checkProposalConsumption(proposal, platformObj) {
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
+
+                    // DEBUG LOG
+                    console.log('isApprove', isApprove);
 
                     // Check consumption approved or not
                     if (isApprove || isTypeEApproval) {
@@ -785,11 +798,24 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
 
         if (completeCycle && inTime && outTime) {
             let consumedAmt = outAmt - inAmt;
-            promBonusCheck.push([
-                Promise.resolve(transferLogs[i].transferId),
-                Promise.resolve(consumedAmt),
-                getPlayerConsumptionSummary(platformObj._id, playerId, inTime, outTime)
-            ]);
+            promBonusCheck.push(
+                getPlayerConsumptionSummary(platformObj._id, playerId, inTime, outTime).then(
+                    res => {
+                        let transferOutId = transferLogs[i].transferId;
+                        let transDifference = consumedAmt;
+                        let bonusAmt = res[0].bonusAmount;
+                        let profitDifference = bonusAmt - transDifference;
+
+                        if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
+                            || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
+                            abnormalities.push({
+                                en: "Abnormal Bonus (ID: " + transferOutId + ")",
+                                ch: "异常盈利 (ID: " + transferOutId + ")"
+                            });
+                        }
+                    }
+                )
+            );
             completeCycle = !completeCycle;
         }
     }
@@ -817,24 +843,7 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
         });
     }
 
-    return Promise.all(promBonusCheck.map(each => {
-        return Promise.all(each).then(
-            res => {
-                let transferOutId = res[0];
-                let transDifference = res[1];
-                let bonusAmt = res[2][0].bonusAmount;
-                let profitDifference = bonusAmt - transDifference;
-
-                if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
-                    || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
-                    abnormalities.push({
-                        en: "Abnormal Bonus (ID: " + transferOutId + ")",
-                        ch: "异常盈利 (ID: " + transferOutId + ")"
-                    });
-                }
-            }
-        )
-    })).then(
+    return Promise.all(promBonusCheck).then(
         res => abnormalities
     );
 

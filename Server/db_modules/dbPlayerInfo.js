@@ -1944,7 +1944,8 @@ let dbPlayerInfo = {
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
-                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
+                        constProposalStatus.APPROVED, constProposalStatus.REJECTED]}
                 });
 
             }, function (error) {
@@ -2394,7 +2395,7 @@ let dbPlayerInfo = {
                         },
                         "data.periodType": rewardData.periodType,
                         "data.playerObjId": playerData._id,
-                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.REJECTED]}
                     });
                 } else {
                     return deferred.resolve(false);
@@ -9092,6 +9093,57 @@ let dbPlayerInfo = {
                 return {size: data[0], data: data[1]}
             }
         )
+    },
+
+    updatePlayerReferral: function(playerObjId, referralName) {
+        let player, referral;
+        dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
+            playerData => {
+                player  = playerData;
+                return dbconfig.collection_players.findOne({name: referralName}).lean();
+            },
+            error => {
+                return Q.reject({
+                    status: constServerCode.DATA_INVALID,
+                    name: "DataError",
+                    message: "Player not found.",
+                    error: error
+                });
+            }
+        ).then(
+            referralData => {
+                referral = referralData;
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {
+                        _id: player._id,
+                        platform: player.platform
+                    },
+                    {
+                        referral: referral._id
+                    }
+                ).lean();
+            },
+            error => {
+                return Q.reject({
+                    status: constServerCode.DATA_INVALID,
+                    name: "DataError",
+                    message: "Referral not found.",
+                    error: error
+                });
+            }
+        ).then(
+            data => {
+                return data;
+            },
+            error => {
+                return Q.reject({
+                    status: constServerCode.DB_ERROR,
+                    name: "DBError",
+                    message: "Player Update Failed.",
+                    error: error
+                });
+            }
+        );
     },
 
     //todo::send sms to player with content ???
