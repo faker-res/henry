@@ -10,3 +10,8 @@
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#monitorCategory", href='#paymentMonitor')
                     h4.panel-title
                         label.text-success {{'PAYMENT_MONITOR' | translate}}
+                #paymentMonitor
+                    .panel-body
+                        div(ng-if="checkViewPermission('Monitor', 'Payment', 'Read')")
+                            li.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR}}" ng-click='vm.loadPage("PAYMENT_MONITOR")', ng-if="checkViewPermission('Monitor', 'Payment', 'Read')")
+                                text {{'PAYMENT_MONITOR' | translate}}

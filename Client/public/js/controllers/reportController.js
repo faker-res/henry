@@ -762,6 +762,7 @@ define(['js/app'], function (myApp) {
                 vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
                 vm.currentRewardTaskName = rewardNameWithoutReport;
             }
+
             if (vm.currentRewardCode) {
                 vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
                 vm.generalRewardProposalQuery.totalCount = 0;

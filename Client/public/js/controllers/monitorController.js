@@ -124,6 +124,18 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.loadPage = function (choice) {
+            vm.seleDataType[choice] = 'bg-bright';
+
+            switch (choice) {
+                case 'PAYMENT_MONITOR':
+                    // todo :: do something
+                    break;
+                default:
+                    // keeping this format just in case there will be other monitoring coming in
+            }
+        };
+
 
 
 
