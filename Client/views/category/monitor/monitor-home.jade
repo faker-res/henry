@@ -1,1 +1,3 @@
-div(ng-if="checkViewPermission('Monitor')") "This is something"
+div(ng-if="checkViewPermission('Monitor')")
+    .col-md-3(ng-if='!vm.hideLeftPanel')
+        include ./monitor-left-panel
