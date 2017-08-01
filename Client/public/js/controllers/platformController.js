@@ -7124,6 +7124,7 @@ define(['js/app'], function (myApp) {
         vm.initFeedbackAdmin = function (callback) {
             vm.feedbackAdminQuery = vm.feedbackAdminQuery || {};
             vm.feedbackAdminQuery.total = 0;
+            vm.feedbackAdminQuery.cs = '';
             let departmentID = vm.selectedPlatform.data.department;
             if (departmentID) {
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.selectedPlatform.data.department}, function (data) {
@@ -7186,6 +7187,9 @@ define(['js/app'], function (myApp) {
 
             if (vm.feedbackAdminQuery.admin && vm.feedbackAdminQuery.admin != 'all') {
                 sendQuery.admin = vm.feedbackAdminQuery.admin;
+            }
+            if(vm.feedbackAdminQuery.cs && vm.feedbackAdminQuery != ''){
+                sendQuery.cs = vm.feedbackAdminQuery.cs;
             }
             if (vm.feedbackAdminQuery.player) {
                 sendQuery.player = vm.feedbackAdminQuery.player;
