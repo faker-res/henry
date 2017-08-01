@@ -3251,7 +3251,10 @@ define(['js/app'], function (myApp) {
             var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
             obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
 
-            obj.endTime = utilService.createDatePicker(queryId + ' .endTime');
+            obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
+                    language: 'en',
+                    format: 'yyyy/MM/dd hh:mm:ss'
+                });
             obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayEndTime()));
         }
 
