@@ -9,7 +9,7 @@
                 label {{"MESSAGE_TEMPLATES" | translate}}
             .panel-body
                 ul.list-group.treeview(style="height: 430px; overflow-y: auto;")
-                    li.list-group-item(ng-repeat='(i,v) in vm.messageTemplatesForPlatform', ng-class='{active: vm.selectedMessageTemplate === v}', ng-click='vm.selectedMessageTemplate = v; vm.resetToViewMessageTemplate();')
+                    li.list-group-item(ng-repeat='(i,v) in vm.messageTemplatesForPlatform', ng-class='{active: vm.selectedMessageTemplate === v}', ng-click='vm.selectedMessageTemplate = v;vm.smsTitle=v.type; vm.resetToViewMessageTemplate();')
                         text {{v.type | translate }} ({{v.format}})
 
                 .btn-group.text-center(style="border-radius:9px",role="group")
@@ -29,20 +29,20 @@
                     label.text-danger {{"NO_MESSAGE_TEMPLATE_MESSAGE" | translate}}
                 form(name='messageTemplatesForm', ng-if='vm.displayedMessageTemplate')
                     #message-templates-scrolling-panel(style='max-height: 510px; overflow: auto; margin-bottom: 6px')
-                        .full-width-input-block
+                        .full-width-input-block(ng-if="vm.displayedMessageTemplate.format!='smstpl'")
                             label {{"MESSAGE_TEMPLATE_TYPE" | translate}}
-                            select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.type", ng-if="vm.displayedMessageTemplate.format!='smsTemplate'")
+                            select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.type")
                                 option(ng-repeat="(k, t) in vm.allMessageTypes", value="{{t}}") {{t | translate}}
-                        .full-width-input-block
+                        .full-width-input-block(ng-if="vm.displayedMessageTemplate.format=='smstpl'")
                             label {{"MESSAGE_TEMPLATE_TYPE" | translate}}
-                            input.form-control(style='width:100%;resize:none', type='text', ng-model='vm.smsTitle', ng-if="vm.displayedMessageTemplate.format=='smsTemplate'")
+                            input.form-control(ng-disabled="!vm.editingMessageTemplate",s type='text', ng-model='vm.smsTitle', ng-if="vm.displayedMessageTemplate.format=='smstpl'")
                         .full-width-input-block
                             label {{"MESSAGE_TEMPLATE_FORMAT" | translate}}
                             select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.format", required)
                                 option(value="email") Email
                                 option(value="sms") SMS
                                 option(value="internal") Internal Message
-                                option(value="smsTemplate") SMS Template
+                                option(value="smstpl") SMS Template
                         .well(style="margin-bottom: 0px;")
                             .full-width-input-block(ng-if="vm.displayedMessageTemplate.format === 'email'")
                                 label {{"MESSAGE_TEMPLATE_SENDER_EMAIL" | translate}}
@@ -52,7 +52,7 @@
                                 input.form-control(type="text", ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.subject", required)
                             div(style="width: 100%; margin-top: 4px")
                                 label {{"MESSAGE_TEMPLATE_CONTENT" | translate}}
-                                span.pull-right(ng-show='vm.displayedMessageTemplate.format!="sms" && vm.displayedMessageTemplate.format!="smsTemplate"')
+                                span.pull-right(ng-show='vm.displayedMessageTemplate.format!="sms" && vm.displayedMessageTemplate.format!="smstpl"')
                                     text {{"MESSAGE_TEMPLATE_INSERT_PARAMETER" | translate}}:&nbsp;
                                     select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.messageTemplateParameterToInsert", ng-change="vm.messageTemplateInsertParameter()",style="display: inline-block; width: 60%; margin-bottom: 4px")
                                         option(ng-repeat="(i, p) in vm.messageTemplateAllParams", value="{{p[0]}}") {{p[0] + ' (' + p[1] + ')'}}
