@@ -7238,7 +7238,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {
-                        title: $translate('ADMIN'),
+                        title: $translate('Customer Service Name'),
                         //data: "result",
                         render: function (data, type, row) {
                             return (row.adminId ? row.adminId.adminName : row.creator);

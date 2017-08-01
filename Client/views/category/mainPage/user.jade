@@ -211,7 +211,7 @@
                     .inlineBlk
                         label {{'Action' | translate}}
                         select.form-control(ng-model='vm.filterAction')
-                            option(ng-repeat='(i,v) in vm.allAdminActions', value='{{v}}') {{v}}
+                            option(ng-repeat='(i,v) in vm.allAdminActions track by $index', value='{{v}}') {{v}}
                             option(value='-1') {{'Unlimited' | translate}}
                     .inlineBlk
                         label {{'Limit' | translate}}
