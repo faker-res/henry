@@ -9,6 +9,27 @@ define(['js/app'], function (myApp) {
         // For debugging:
         window.monitorVM = vm;
 
+        // declare constant
+        vm.proposalStatusList = {
+            PREPENDING: "PrePending",
+            PENDING: "Pending",
+            PROCESSING: "Processing",
+            SUCCESS: "Success",
+            FAIL: "Fail",
+            CANCEL: "Cancel",
+            EXPIRED: "Expired",
+            UNDETERMINED: "Undetermined"
+        };
+        vm.topUpTypeList = {
+            MANUAL: 1,
+            ONLINE: 2,
+            ALIPAY: 3,
+            WECHAT: 4,
+            QUICKPAY: 5
+        };
+
+        vm.seleDataType = {};
+
         vm.setPlatform = function (platObj) {
             vm.operSelPlatform = false;
             vm.selectedPlatform = JSON.parse(platObj);
@@ -96,6 +117,11 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getProposalTypeOptionValue = function (proposalType) {
+            var result = utilService.getProposalGroupValue(proposalType);
+            return $translate(result);
+        };
+
         vm.getPlayerLevelByPlatformId = function (id) {
             socketService.$socket($scope.AppSocket, 'getPlayerLevelByPlatformId', {platformId: id}, function (data) {
                 vm.playerLvlData = {};
@@ -129,6 +155,8 @@ define(['js/app'], function (myApp) {
 
             switch (choice) {
                 case 'PAYMENT_MONITOR':
+                    vm.pageName = "Payment Monitor";
+                    vm.preparePaymentMonitorPage();
                     // todo :: do something
                     break;
                 default:
@@ -136,11 +164,111 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.preparePaymentMonitorPage = function () {
+            vm.paymentMonitorQuery = {};
+            vm.paymentMonitorQuery.totalCount = 0;
+            Promise.all([getMerchantList(), getMerchantTypeList()]).then(
+                data => {
+                    vm.merchants = data[0];
+                    vm.merchantTypes = data[1];
 
+                    vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
+                    vm.merchantNumbers = getMerchantNumbers(vm.merchants);
+                }
+            );
+
+            utilService.actionAfterLoaded("#paymentMonitorTablePage", function () {
+                vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery')
+                vm.paymentMonitorQuery.merchantType = null;
+                // vm.paymentMonitorQuery.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
+                //     vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorQuery", vm.searchTopupRecord)
+                // });
+                $scope.safeApply();
+            })
+
+        };
+
+        vm.commonInitTime = function (obj, queryId) {
+            if (!obj) return;
+            obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
+            var lastMonth = utilService.setNDaysAgo(new Date(), 1);
+            var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
+            obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
+
+            obj.endTime = utilService.createDatePicker(queryId + ' .endTime');
+            obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayEndTime()));
+        }
+
+
+
+
+
+        function getMerchantList() {
+            return new Promise(function (resolve) {
+                socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                    if (data.data && data.data.merchants) {
+                        resolve(data.data.merchants);
+                    }
+                }, function (error) {
+                    console.error('merchant list', error);
+                    resolve([]);
+                });
+            });
+        }
+
+        function getMerchantTypeList() {
+            return new Promise(function (resolve, reject) {
+                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                    if (data.data && data.data.merchantTypes) {
+                        resolve(data.data.merchantTypes);
+                    }
+                }, function (error) {
+                    console.error('merchant list', error);
+                    resolve([]);
+                });
+            });
+        }
+
+        function getMerchantGroups(merchants, merchantTypes) {
+            let merchantGroupList = {};
+            let merchantGroupNames = {};
+
+            merchants.forEach(item => {
+                if (item.status != 'DISABLED') {
+                    merchantGroupList[item.merchantTypeId] = merchantGroupList[item.merchantTypeId] || {list: []};
+                    merchantGroupList[item.merchantTypeId].list.push(item.merchantNo);
+                }
+            });
+
+            merchantTypes.forEach(mer => {
+                merchantGroupNames[mer.merchantTypeId] = mer.name;
+            });
+
+            let merchantGroups = [];
+            for (let merchantTypeId in merchantGroupList) {
+                let list = merchantGroupList[merchantTypeId];
+                let name = merchantGroupNames[merchantTypeId];
+                merchantGroups.push({
+                    name: name,
+                    list: list
+                });
+            }
+
+            return merchantGroups;
+        }
+
+        function getMerchantNumbers(merchants) {
+            let merchantNumbers = {};
+            merchants.forEach(merchant => {
+                merchantNumbers[merchant.merchantNo] = merchant.name;
+            });
+        }
 
 
 
         $scope.$on('$viewContentLoaded', function () {
+            vm.hideLeftPanel = false;
+
             setTimeout(function () {
                 vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
             });

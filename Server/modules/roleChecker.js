@@ -120,6 +120,7 @@ var roleChecker = {
         'getIncludedQuickPaysByQuickPayGroup': true,
         'getExcludedQuickPaysByQuickPayGroup': true,
         "updatePlatformQuickPayGroup": true,
+        "getMerchantList": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
