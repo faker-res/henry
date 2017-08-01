@@ -1944,7 +1944,8 @@ let dbPlayerInfo = {
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
-                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
+                        constProposalStatus.APPROVED, constProposalStatus.CANCEL, constProposalStatus.REJECTED]}
                 });
 
             }, function (error) {
@@ -2394,7 +2395,8 @@ let dbPlayerInfo = {
                         },
                         "data.periodType": rewardData.periodType,
                         "data.playerObjId": playerData._id,
-                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS,
+                            constProposalStatus.CANCEL, constProposalStatus.REJECTED]}
                     });
                 } else {
                     return deferred.resolve(false);
