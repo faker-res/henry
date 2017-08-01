@@ -118,7 +118,7 @@
 
             .tableRow
                 .tableCell(style='width:15%;')
-                    label {{"MessageTemplates" | translate}}:
+                    label {{"SMS Templates" | translate}}:
                 .tableCell(style='min-width:75%;text-align:left')
                     select.form-control(style='width:100%;resize:none',ng-click="vm.useSMSTemplate()", multiple="multiple" ng-model='vm.smsTplSelection' ng-options='a.type|translate for a in vm.smsTemplate')
                 .tableCell(style='width:20%;')

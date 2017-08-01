@@ -9,7 +9,7 @@
                 label {{"MESSAGE_TEMPLATES" | translate}}
             .panel-body
                 ul.list-group.treeview(style="height: 430px; overflow-y: auto;")
-                    li.list-group-item(ng-repeat='(i,v) in vm.messageTemplatesForPlatform', ng-class='{active: vm.selectedMessageTemplate === v}', ng-click='vm.selectedMessageTemplate = v; vm.resetToViewMessageTemplate();')
+                    li.list-group-item(ng-repeat='(i,v) in vm.messageTemplatesForPlatform', ng-class='{active: vm.selectedMessageTemplate === v}', ng-click='vm.selectedMessageTemplate = v;vm.smsTitle=v.type; vm.resetToViewMessageTemplate();')
                         text {{v.type | translate }} ({{v.format}})
 
                 .btn-group.text-center(style="border-radius:9px",role="group")
@@ -35,7 +35,7 @@
                                 option(ng-repeat="(k, t) in vm.allMessageTypes", value="{{t}}") {{t | translate}}
                         .full-width-input-block(ng-if="vm.displayedMessageTemplate.format=='smstpl'")
                             label {{"MESSAGE_TEMPLATE_TYPE" | translate}}
-                            input.form-control(style='',s type='text', ng-model='vm.smsTitle', ng-if="vm.displayedMessageTemplate.format=='smstpl'")
+                            input.form-control(ng-disabled="!vm.editingMessageTemplate",s type='text', ng-model='vm.smsTitle', ng-if="vm.displayedMessageTemplate.format=='smstpl'")
                         .full-width-input-block
                             label {{"MESSAGE_TEMPLATE_FORMAT" | translate}}
                             select.form-control(ng-disabled="!vm.editingMessageTemplate", ng-model="vm.displayedMessageTemplate.format", required)

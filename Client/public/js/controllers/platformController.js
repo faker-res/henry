@@ -796,7 +796,10 @@ define(['js/app'], function (myApp) {
         vm.useSMSTemplate = function(){
             vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
             vm.messagesChange();
+        }
 
+        vm.changeSMSTemplate = function(){
+            vm.smsPlayer.message = vm.smstpl ? vm.smstpl.content : '';
         }
         vm.searchPlayersForSendingMessage = function (newSearch) {
             if (!vm.selectedPlatform) {
@@ -3527,6 +3530,7 @@ define(['js/app'], function (myApp) {
         vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
             // var rowData = JSON.parse(data);
             console.log(type, data);
+            vm.getSMSTemplate();
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
