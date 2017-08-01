@@ -7,6 +7,29 @@ const constSystemParam = require("../const/constSystemParam.js");
 let dbApiLog = {
     createApiLog: function (conn, wsFunc, actionResult) {
         let playerObjId, actionName, ipAddress;
+
+        let actionToLog = [
+            "player - create",
+            "login",
+            "createPlayerPartner",
+            "loginPlayerPartner",
+            "updatePaymentInfo",
+            "updatePlayerPartnerPaymentInfo",
+            "updatePassword",
+            "updatePasswordPlayerPartner",
+            "updateSmsSetting",
+            "player - update",
+            "updatePhotoUrl",
+            "getLoginURL",
+            "modifyGamePassword",
+            "topUpIntention - add",
+            "topUpIntention - update",
+            "requestConsumeRebate",
+            "createFirstTopUpRewardProposal",
+            "applyProviderReward",
+            "applyRewardEvent"
+        ];
+
         if (['login','create'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') {
             playerObjId = actionResult._id;
         } else {
@@ -17,6 +40,11 @@ let dbApiLog = {
             actionName = wsFunc._service.name + " - " + wsFunc.name;
         } else {
             actionName = wsFunc.name;
+        }
+
+        if (!actionToLog.includes(actionName)) {
+            // do not log if the action is not in the list
+            return;
         }
 
         ipAddress = conn.upgradeReq.connection["remoteAddress"] || '';
@@ -31,6 +59,8 @@ let dbApiLog = {
             operationTime: new Date(),
             ipAddress: ipAddress
         };
+
+
 
         let apiLog = new dbConfig.collection_apiLog(logData);
         apiLog.save().then().catch(errorUtils.reportError);

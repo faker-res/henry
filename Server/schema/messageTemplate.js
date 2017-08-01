@@ -6,7 +6,7 @@ var messageTemplateSchema = new Schema({
     // Its human-readable ID.  Usually what it is used for, e.g. 'TopUp'
     type: {type: String, required: true, index: true},
     // Not actually the format, but the transport medium (the type of delivery).
-    format: {type: String, required: true, enum: ['email', 'sms', 'internal']},
+    format: {type: String, required: true, enum: ['email', 'sms', 'internal','smstpl']},
     // The actual contents, with parameters encoded by {{...}}.  The format (HTML or plaintext) is auto-detected at runtime.
     content: {type: String, required: true},
 
