@@ -268,9 +268,9 @@ router.post('/resetPassword', function (req, res, next) {
     );
 });
 
-router.get('/getPlayerInfoByPhoneNumber', function (req, res, next) {
-    let phoneNumber = req.query.phoneNumber;
-    let platformId = req.query.platformId;
+router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
+    let phoneNumber = req.body.phoneNumber;
+    let platformId = req.body.platformId;
 
     if (!phoneNumber || !platformId) {
         res.json({success: false, error: {name: "DataError", message: "Missing parameter: resetPasswordToken"}});
@@ -286,7 +286,7 @@ router.get('/getPlayerInfoByPhoneNumber', function (req, res, next) {
 
             return dbConfig.collection_players.findOne({platform: doc._id, phoneNumber: phoneNumber}).then(
                 function (playerData) {
-                    res.json({success: true, username: playerData.name});
+                    res.json({success: true, loginaname: playerData.name, phone: playerData.phoneNumber, createTime: playerData.registrationTime});
                 }
             );
         }
