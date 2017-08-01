@@ -788,7 +788,7 @@ define(['js/app'], function (myApp) {
 
         vm.getSMSTemplate = function(){
             vm.smsTemplate = [];
-            $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id, format:'sms'}).then(function (data) {
+            $scope.$socketPromise('getMessageTemplatesForPlatform', {platform: vm.selectedPlatform.id, format:'smsTemplate'}).then(function (data) {
                 vm.smsTemplate = data.data;
                 console.log("vm.smsTemplate", vm.smsTemplate);
             }).done();
@@ -7135,6 +7135,7 @@ define(['js/app'], function (myApp) {
         vm.initFeedbackAdmin = function (callback) {
             vm.feedbackAdminQuery = vm.feedbackAdminQuery || {};
             vm.feedbackAdminQuery.total = 0;
+            vm.feedbackAdminQuery.cs = '';
             let departmentID = vm.selectedPlatform.data.department;
             if (departmentID) {
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.selectedPlatform.data.department}, function (data) {
@@ -7197,6 +7198,9 @@ define(['js/app'], function (myApp) {
 
             if (vm.feedbackAdminQuery.admin && vm.feedbackAdminQuery.admin != 'all') {
                 sendQuery.admin = vm.feedbackAdminQuery.admin;
+            }
+            if(vm.feedbackAdminQuery.cs && vm.feedbackAdminQuery != ''){
+                sendQuery.cs = vm.feedbackAdminQuery.cs;
             }
             if (vm.feedbackAdminQuery.player) {
                 sendQuery.player = vm.feedbackAdminQuery.player;
@@ -10608,6 +10612,10 @@ define(['js/app'], function (myApp) {
 
             vm.saveMessageTemplate = function () {
                 var query = {_id: vm.editingMessageTemplate._id};
+
+                if(vm.editingMessageTemplate.format=='smsTemplate'){
+                    vm.editingMessageTemplate.type = vm.smsTitle;  
+                }
                 var updateData = vm.editingMessageTemplate;
                 vm.resetToViewMessageTemplate();
                 $scope.$socketPromise('updateMessageTemplate', {
