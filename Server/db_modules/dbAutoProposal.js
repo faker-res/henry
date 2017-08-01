@@ -188,6 +188,9 @@ function checkProposalConsumption(proposal, platformObj) {
                     initialAmount = transferInRec[0].amount;
                 }
 
+                // DEBUG LOG
+                console.log('initialAmount', initialAmount);
+
                 let transferLogs = data[1];
                 let creditChangeLogs = data[4];
                 return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
@@ -842,6 +845,9 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
             ch: "连续转出 (ID: " + multipleTransferOutId + ")"
         });
     }
+
+    // DEBUG LOG
+    console.log('abnormalities:', abnormalities);
 
     return Promise.all(promBonusCheck).then(
         res => abnormalities
