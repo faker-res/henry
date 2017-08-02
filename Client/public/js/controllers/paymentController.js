@@ -22,9 +22,9 @@ define(['js/app'], function (myApp) {
             FORBID: 3,
             BALCKLIST: 4,
             ATTENTION: 5,
-            WARINESS: 6
+            CANCELS: 6
         };
-        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION','WARINESS'];
+        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION','CANCELS'];
 
         ////////////////Mark::Platform functions//////////////////
         vm.updatePageTile = function () {
