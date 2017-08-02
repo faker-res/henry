@@ -8,7 +8,8 @@ const constPlayerStatus = {
     //player can't login
     FORBID: 3, //"Forbid"
     BALCKLIST: 4, //"BALCKLIST"
-    ATTENTION: 5 //"ATTENTION"
+    ATTENTION: 5, //"ATTENTION"
+    CANCELS: 6
 };
 
 module.exports = constPlayerStatus;
