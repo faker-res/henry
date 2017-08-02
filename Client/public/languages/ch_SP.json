@@ -1954,7 +1954,7 @@
   "getProviderList": "获取内容提供商(CP)列表",
   "transferToProvider": "将本地额度转出到CP账号的游戏额度",
   "transferFromProvider": "将游戏额度从CP账号转入到本地额度",
-  "getLoginURL": "获取登录游戏的URL",
+  "getLoginURL": "登陆游戏",
   "getTestLoginURL": "获取试玩游戏的URL",
   "getTestLoginURLWithOutUser": "获取试玩游戏的URL",
   "getGameUserInfo": "获取玩家游戏中的账户信息",
