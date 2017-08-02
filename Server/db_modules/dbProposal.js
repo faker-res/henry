@@ -2163,8 +2163,128 @@ var proposal = {
                 }
             }
         );
-    }
+    },
 
+    getPaymentMonitorResult: (data, index, limit) => {
+        let query = {};
+
+        // query
+        // if (data.proposalId) {
+        //     query.proposalId = data.proposalId;
+        // }
+
+        let sort = {createTime: -1};
+
+        limit = limit ? limit : 10;
+        index = index ? index : 0;
+
+        query["createTime"]["$gte"] = data.startTime ? data.startTime : null;
+        query["createTime"]["$lt"] = data.endTime ? data.endTime : null;
+
+
+        if (data.merchantNo && !data.merchantGroup) {
+            query['data.merchantNo'] = data.merchantNo;
+        }
+
+        if (!data.merchantNo && data.merchantGroup) {
+            query['data.merchantNo'] = {$in: data.merchantGroup};
+        }
+
+        if (data.merchantNo && data.merchantGroup) {
+            query['$and'] = [
+                {'data.merchantNo': {$in: [data.merchantNo]}},
+                {'data.merchantNo': {$in: data.merchantGroup}}
+            ]
+        }
+
+        if (data.orderId) {
+            query['data.requestId'] = data.orderId;
+        }
+
+        if (data.playerName) {
+            query['data.playerName'] = data.playerName;
+        }
+
+        let mainTopUpType;
+        switch (data.mainTopupType) {
+            case constPlayerTopUpType.ONLINE:
+                mainTopUpType = constProposalType.PLAYER_TOP_UP;
+                break;
+            case constPlayerTopUpType.ALIPAY:
+                mainTopUpType = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                break;
+            case constPlayerTopUpType.MANUAL:
+                mainTopUpType = constProposalType.PLAYER_MANUAL_TOP_UP;
+                break;
+            case constPlayerTopUpType.WECHAT:
+                mainTopUpType = constProposalType.PLAYER_WECHAT_TOP_UP;
+                break;
+            case constPlayerTopUpType.QUICKPAY:
+                mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
+                break;
+            default:
+                mainTopUpType = {
+                    $in: [
+                        constProposalType.PLAYER_TOP_UP,
+                        constProposalType.PLAYER_ALIPAY_TOP_UP,
+                        constProposalType.PLAYER_MANUAL_TOP_UP,
+                        constProposalType.PLAYER_WECHAT_TOP_UP,
+                        constProposalType.PLAYER_QUICKPAY_TOP_UP
+                    ]
+                };
+        }
+
+        if (data.topupType) {
+            query['data']['topupType'] = data.topupType;
+        }
+
+        if (data.depositMethod) {
+            query['data']['depositMethod'] = data.depositMethod;
+        }
+
+        let proposalCount, proposals;
+
+        // get all the relevant proposal
+        dbconfig.collection_proposalType.find({platformId: data.platformId, name: mainTopUpType}).lean().then(
+            proposalTypes => {
+                let typeIds = proposalTypes.map(type => {
+                    return type._id;
+                });
+
+                query.type = {$in: typeIds};
+
+                let proposalCountProm = dbconfig.collection_proposal.find(query).count();
+                let proposalsProm = dbconfig.collection_proposal.find(query).sort(sort).skip(index).limit(limit)
+                    .populate({path: 'type', model: dbconfig.collection_proposalType})
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players});
+                return Promise.all([proposalCountProm,proposalsProm]);
+            }
+        ).then(
+            proposalData => {
+                proposalCount = proposalData[0];
+                proposals = proposalData[1];
+
+
+
+                return insertRepeatCount(proposals);
+            }
+        )
+
+        // loop and calculate through each of them base on their merchantNo and playerId
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
 };
 
 /*
@@ -2237,6 +2357,86 @@ var proposal = {
  return isObjectId || looksLikeObjectId;
  }
  */
+function insertRepeatCount(proposals) {
+    return new Promise(function (resolve) {
+        if (!proposals || proposals.length === 0) {
+            resolve([]);
+        }
+
+        let merchantRepeatCount = {};
+        let playerRepeatCount = {};
+
+        asyncLoop(proposals.length, function (i, loop) {
+            let proposal = proposals[i];
+            // ***take note that it also have to handle when next or previous success doesn't exist
+            // check if its a success proposal
+            if (proposal.status === constProposalStatus.SUCCESS) {
+                // todo :: get success time
+                handleSuccessProposal(proposal)
+            } else {
+
+            }
+                // add 'succeed' into count and get into next loop
+            // check if mechantNo exist
+                // check if it succeed on the count
+                    // get the total failure count since earlier success (get the previous success and get the number of failure between this failure and previous success)
+                    // add the count into the proposal and the count object
+                // else
+                    // adjust the count number on object
+                    // add count into the proposal
+            // else
+                // check if there is next success
+                    // get the total failure between next success and previous success
+                    // get the total failure between this failure and previous success (to get self count)
+                    // add it into proposal and count obj
+                // else
+                    // get all total failure before previous success
+                    // get the total failure between this failure and previous success (to get self count)
+                    // add it into proposal and count obj
+            // get into next loop
+
+
+
+
+            loop();
+        });
+
+        function checkMerchant(proposal) {
+
+        }
+
+        function checkPlayer(proposal) {
+
+        }
+
+        function handleSuccessProposal(proposal) {
+            proposal.$merchantFailureStreak = '-';
+            proposal.$merchantFailureNo = '-';
+            proposal.$merchantFailureTimeGap = '-';
+            proposal.$merchantFailureStreak = '-';
+            proposal.$merchantFailureNo = '-';
+            proposal.$merchantFailureTimeGap = '-';
+
+
+        }
+
+        // function
+
+    });
+}
+
+function asyncLoop(count, func) {
+    let i = -1;
+
+    let loop = function () {
+        i++;
+        if (i >= count) {
+            return;
+        }
+        func(i, loop);
+    };
+    loop();
+}
 
 var proto = proposalFunc.prototype;
 proto = Object.assign(proto, proposal);

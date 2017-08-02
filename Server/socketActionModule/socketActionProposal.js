@@ -368,8 +368,19 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.setBonusProposalStatus, [data.proposalId, data.orderStatus, data.remark], actionName, isValidData);
         },
 
+        getPaymentMonitorResult: function getPaymentMonitorResult(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            let time = dbUtil.getYesterdaySGTime();
+            let startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            let endTime = data.endTime ? new Date(data.endTime) : time.endTime;
+            data.limit = data.limit || 10;
+            data.index = data.index || 0;
+
+        }
+
     };
     socketActionProposal.actions = this.actions;
-};
+}
 
 module.exports = socketActionProposal;
