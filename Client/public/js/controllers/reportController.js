@@ -1720,6 +1720,9 @@ define(['js/app'], function (myApp) {
                     {title: $translate('Partner'), data: "partner.partnerName"},
                     {title: $translate('LAST_ACCESS_TIME'), data: "registrationTime$"},
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
+                    {title: $translate('lastLoginIp'), data: "lastLoginIp"},
+                    {title: $translate('OS'), data: "userAgent[0].os"},
+                    {title: $translate('Browser'), data: "userAgent[0].browser"},
                     {title: $translate('Domain Name'), data: "domain"},
                     {title: $translate('URL'), data: "sourceUrl"}
                 ],
