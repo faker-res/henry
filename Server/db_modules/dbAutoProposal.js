@@ -806,7 +806,7 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
                     res => {
                         let transferOutId = transferLogs[i].transferId;
                         let transDifference = consumedAmt;
-                        let bonusAmt = res[0].bonusAmount;
+                        let bonusAmt = res && res[0] ? res[0].bonusAmount : 0;
                         let profitDifference = bonusAmt - transDifference;
 
                         if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
