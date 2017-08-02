@@ -10,13 +10,13 @@
                 //div
                 //    label &nbsp;
                 //    button.btn.btn-primary(ng-click='vm.resetTopupRecord()') {{'Reset' | translate}}
-                div
-                    label {{'STATUS' | translate}}
-                    select.form-control(ng-model='vm.paymentMonitorQuery.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList')
-                        option(value='') {{'any' | translate}}
-                div(style='max-width:125px')
-                    label {{'Proposal No' | translate}}
-                    input.form-control(type='text', ng-model='vm.paymentMonitorQuery.proposalID')
+                //div
+                //    label {{'STATUS' | translate}}
+                //    select.form-control(ng-model='vm.paymentMonitorQuery.status', ng-options='v as v | translate for (i,v) in vm.proposalStatusList')
+                //        option(value='') {{'any' | translate}}
+                //div(style='max-width:125px')
+                //    label {{'Proposal No' | translate}}
+                //    input.form-control(type='text', ng-model='vm.paymentMonitorQuery.proposalID')
                 div
                     label {{'topupType' | translate}}
                     select.form-control(ng-model='vm.paymentMonitorQuery.mainTopupType', required)
