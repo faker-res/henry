@@ -1685,8 +1685,7 @@ define(['js/app'], function (myApp) {
                     sourceUrl: vm.playerDomain.sourceUrl,
                     topUpTimes: vm.playerDomain.topUpTimes.value,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
-                    endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate(),
-                    lastLoginIp: vm.playerDomain.lastLoginIp
+                    endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate()
                 },
                 index: newSearch ? 0 : (vm.playerDomain.index || 0),
                 limit: vm.playerDomain.limit || 10,
