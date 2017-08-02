@@ -286,7 +286,7 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
 
             return dbConfig.collection_players.findOne({platform: doc._id, phoneNumber: phoneNumber}).then(
                 function (playerData) {
-                    res.json({success: true, loginaname: playerData.name, phone: playerData.phoneNumber, createTime: playerData.registrationTime});
+                    res.json({success: true, loginname: playerData.name, phone: playerData.phoneNumber, createTime: playerData.registrationTime});
                 }
             );
         }
