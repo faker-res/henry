@@ -1882,7 +1882,8 @@ define(['js/app'], function (myApp) {
                         }
                     }, blinkFreq);
                     var countDown = -1;
-                    var a = setInterval(function () {  
+                    clearInterval(vm.refreshInterval);
+                    vm.refreshInterval = setInterval(function () {
                         var item =$('#autoRefreshProposalFlag');
                         var isRefresh = item && item.length > 0 && item[0].checked;
                         var mark = $('#timeLeftRefreshOperation')[0];
