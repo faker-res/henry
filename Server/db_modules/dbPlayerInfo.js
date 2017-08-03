@@ -1956,7 +1956,7 @@ let dbPlayerInfo = {
                 if (data && data.length > 0) {
                     deferred.reject({
                         name: "DataError",
-                        message: "The player already has this reward. Not Valid for the reward."
+                        message: "Not Valid for the reward."
                     });
                     return true;
 
