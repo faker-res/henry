@@ -206,7 +206,7 @@ let dbPlayerInfo = {
                         let proms = [];
                         if (inputData.referral) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
-                            let referrralProm = dbconfig.collection_players.findOne({
+                            let referralProm = dbconfig.collection_players.findOne({
                                 name: referralName,
                                 platform: platformObjId
                             }).then(
@@ -225,7 +225,7 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
-                            proms.push(referrralProm);
+                            proms.push(referralProm);
                         }
                         if (inputData.partnerName) {
                             delete inputData.referral;
