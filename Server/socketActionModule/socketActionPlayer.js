@@ -766,7 +766,7 @@ function socketActionPlayer(socketIO, socket) {
         getPagedPlatformCreditTransferLog: function getPagedPlatformCreditTransferLog(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPlatform.getPagedPlatformCreditTransferLog, [data.startTime, data.endTime, data.provider, data.type, data.index, data.limit, data.sortCol, data.status, data.PlatformObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getPagedPlatformCreditTransferLog, [data.playerName, data.startTime, data.endTime, data.provider, data.type, data.index, data.limit, data.sortCol, data.status, data.PlatformObjId], actionName, isValidData);
         },
 
         requestClearProposalLimit: function requestClearProposalLimit(data) {
