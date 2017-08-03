@@ -206,7 +206,7 @@ let dbPlayerInfo = {
                         let proms = [];
                         if (inputData.referral) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
-                            let referrralProm = dbconfig.collection_players.findOne({
+                            let referralProm = dbconfig.collection_players.findOne({
                                 name: referralName,
                                 platform: platformObjId
                             }).then(
@@ -225,7 +225,7 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
-                            proms.push(referrralProm);
+                            proms.push(referralProm);
                         }
                         if (inputData.partnerName) {
                             delete inputData.referral;
@@ -1940,13 +1940,13 @@ let dbPlayerInfo = {
                 playerData = data;
                 // TODO  - proposal status check below
                 return dbconfig.collection_proposal.find({
-                    "data.platformId": data.platform,
+                    "data.platformId": data.platform._id,
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
                     status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
                         constProposalStatus.APPROVED, constProposalStatus.REJECTED]}
-                });
+                }).lean();
 
             }, function (error) {
                 deferred.reject({name: "DataError", message: "Can't find player data", error: error});

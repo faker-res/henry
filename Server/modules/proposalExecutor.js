@@ -227,7 +227,11 @@ var proposalExecutor = {
                     var usedRecords = [];
                     if (proposalData && proposalData.data) {
                         if (proposalData.data.topUpRecordIds) {
-                            usedRecords = proposalData.data.topUpRecordIds;
+                            if(proposalData.data.topUpRecordIds.constructor === Array) {
+                                usedRecords = proposalData.data.topUpRecordIds;
+                            } else {
+                                usedRecords.push(proposalData.data.topUpRecordIds);
+                            }
                         }
                         if (proposalData.data.topUpRecordId) {
                             usedRecords.push(proposalData.data.topUpRecordId);
