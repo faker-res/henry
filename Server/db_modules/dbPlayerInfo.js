@@ -205,7 +205,7 @@ let dbPlayerInfo = {
                         //find player referrer if there is any
                         let proms = [];
                         if (inputData.referral) {
-                            let referralName = platformPrefix + inputData.referral;
+                            let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
                             let referrralProm = dbconfig.collection_players.findOne({
                                 name: referralName,
                                 platform: platformObjId
