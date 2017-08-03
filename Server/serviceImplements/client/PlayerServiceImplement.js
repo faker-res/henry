@@ -886,11 +886,6 @@ let PlayerServiceImplement = function () {
     this.resetPasswordViaPhone.expectsData = 'platformId: String, password: String, smsCode: String, phoneNumber: String';
     this.resetPasswordViaPhone.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.platformId && data.phoneNumber && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
-        // console.error("conn.smsCode" + conn.smsCode);
-        // console.error("data.smsCode" + data.smsCode);
-        // console.error("conn.phoneNumber" + conn.phoneNumber);
-        // console.error("data.phoneNumber" + data.phoneNumber);
-        // WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPlayerPasswordByPhoneNumber, [data.phoneNumber, data.password, data.platformId, true], isValidData, false, false, true);
         if ((conn.smsCode && (conn.smsCode == data.smsCode) && (conn.phoneNumber == data.phoneNumber))) {
             WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPlayerPasswordByPhoneNumber, [data.phoneNumber, data.password, data.platformId, true], isValidData, false, false, true);
         }
@@ -902,6 +897,11 @@ let PlayerServiceImplement = function () {
                 data: null
             }, data);
         }
+    };
+
+    this.readMail.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId && data && data.mailObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.readMail, [conn.playerId, data.mailObjId], isValidData, false, false, true);
     };
 
 };

@@ -452,6 +452,13 @@
         this.playerService.getMailList.once(callback);
     };
 
+    proto.getMailList = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.playerService.getMailList.request(data);
+        this.playerService.getMailList.once(callback);
+    };
+
     proto.sendPlayerMailFromPlayerToPlayer = function(callback, requestData) {
         var data = requestData || {
                 recipientPlayerId: '4',
