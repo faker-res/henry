@@ -206,7 +206,7 @@ let dbPlayerInfo = {
                         let proms = [];
                         if (inputData.referral) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
-                            let referrralProm = dbconfig.collection_players.findOne({
+                            let referralProm = dbconfig.collection_players.findOne({
                                 name: referralName,
                                 platform: platformObjId
                             }).then(
@@ -225,7 +225,7 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
-                            proms.push(referrralProm);
+                            proms.push(referralProm);
                         }
                         if (inputData.partnerName) {
                             delete inputData.referral;
@@ -1940,13 +1940,13 @@ let dbPlayerInfo = {
                 playerData = data;
                 // TODO  - proposal status check below
                 return dbconfig.collection_proposal.find({
-                    "data.platformId": data.platform,
+                    "data.platformId": data.platform._id,
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
                     status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
                         constProposalStatus.APPROVED, constProposalStatus.REJECTED]}
-                });
+                }).lean();
 
             }, function (error) {
                 deferred.reject({name: "DataError", message: "Can't find player data", error: error});
@@ -7366,6 +7366,15 @@ let dbPlayerInfo = {
             .populate({path: "platform", model: dbconfig.collection_platform}).lean();
         return Q.all([playerProm, recordProm]).then(
             function (data) {
+                // Check player permission to apply this reward
+                if (data && data[0] && data[0].permission.PlayerTopUpReturn === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Player do not have permission for reward"
+                    });
+                }
+
                 //get player's platform reward event data
                 if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
                     player = data[0];
@@ -8741,6 +8750,15 @@ let dbPlayerInfo = {
         ).lean();
         return Q.all([playerProm, recordProm]).then(
             data => {
+                // Check player permission to apply this reward
+                if (data && data[0] && data[0].permission.PlayerDoubleTopUpReturn === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Player do not have permission for reward"
+                    });
+                }
+
                 //get player's platform reward event data
                 if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
                     player = data[0];

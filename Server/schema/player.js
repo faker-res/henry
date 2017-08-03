@@ -104,7 +104,9 @@ var playerSchema = new Schema({
         banReward: {type: Boolean, default: false},
         disableWechatPay: {type: Boolean, default: false},
         forbidPlayerConsumptionReturn: {type: Boolean, default: false},
-        forbidPlayerConsumptionIncentive: {type: Boolean, default: false}
+        forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
+        PlayerTopUpReturn: {type: Boolean, default: true},
+        PlayerDoubleTopUpReturn: {type: Boolean, default: true}
     },
 
     //country
