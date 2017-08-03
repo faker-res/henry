@@ -1944,6 +1944,9 @@ include modalGameCreditLog
                     .panel-body
                         #platformCreditTransferLog.adminLogQueryDiv
                             .inlineBlk
+                                label {{ 'playerName' | translate }}
+                                input.form-control(ng-model='vm.queryPlatformCreditTransferPlayerName')
+                            .inlineBlk
                                 label {{ 'START_DATE' | translate }}
                                 .startTime
                             .inlineBlk

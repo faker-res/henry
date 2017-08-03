@@ -1322,7 +1322,7 @@ var dbPlatform = {
         )
     },
 
-    getPagedPlatformCreditTransferLog: function (startTime, endTime, provider, type, index, limit, sortCol, status,platformObjId) {
+    getPagedPlatformCreditTransferLog: function (playerName, startTime, endTime, provider, type, index, limit, sortCol, status,platformObjId) {
         let queryObject = {};
         sortCol = sortCol || {createTime: -1};
         index = index || 0;
@@ -1331,6 +1331,7 @@ var dbPlatform = {
         let time1 = endTime ? new Date(endTime) : new Date();
         queryObject.createTime = {$gte: time0, $lt: time1};
         queryObject.platformObjId = platformObjId;
+        playerName ? queryObject.playerName = playerName : '';
 
         if (status) {
             queryObject.status = status;

@@ -1897,6 +1897,7 @@ define(['js/app'], function (myApp) {
             vm.queryPlatformCreditTransferStatus ? sendQuery.status = vm.queryPlatformCreditTransferStatus : '';
             vm.queryPlatformCreditTransferType ? sendQuery.type = vm.queryPlatformCreditTransferType : '';
             vm.queryPlatformCreditTransferProvider ? sendQuery.provider = vm.queryPlatformCreditTransferProvider : '';
+            vm.queryPlatformCreditTransferPlayerName ? sendQuery.playerName = vm.queryPlatformCreditTransferPlayerName : '';
 
             socketService.$socket($scope.AppSocket, "getPagedPlatformCreditTransferLog", sendQuery, function (data) {
                 vm.platformCreditTransferLogData = data.data.data;
