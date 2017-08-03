@@ -2677,14 +2677,20 @@ define(['js/app'], function (myApp) {
 
                             var link = $('<a>', {
                                 'class': 'playerPermissionPopover',
-                                'ng-click': "vm.permissionPlayer = " + JSON.stringify(row), // @todo: escaping issue
+                                'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
+                                + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
+                                + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
+                                + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
+                                + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;",
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'popover',
                                 'data-trigger': 'focus',
                                 'data-placement': 'bottom',
                                 'data-container': 'body',
                             });
-                            var perm = (row && row.permission) ? row.permission : {};
+
+                            let perm = (row && row.permission) ? row.permission : {};
+
                             link.append($('<i>', {
                                 'class': 'fa fa-gift margin-right-5 ' + (perm.applyBonus === true ? "text-primary" : "text-danger"),
                             }));
@@ -2697,9 +2703,12 @@ define(['js/app'], function (myApp) {
                             link.append($('<i>', {
                                 'class': 'fa fa-folder-open margin-right-5 ' + (perm.topupManual === true ? "text-primary" : "text-danger"),
                             }));
+
+                            // Inverted
                             link.append($('<i>', {
-                                'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === true ? "text-danger" : "text-primary"),
+                                'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
                             }));
+
                             link.append($('<img>', {
                                 'class': 'margin-right-5',
                                 'src': "images/icon/" + (perm.alipayTransaction === true ? "aliPayBlue.png" : "aliPayRed.png"),
@@ -3029,6 +3038,13 @@ define(['js/app'], function (myApp) {
                                 PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"}
                             };
                             $("#playerPermissionTable td").removeClass('hide');
+
+                            // Invert second render
+                            row.permission.banReward = !row.permission.banReward;
+                            row.permission.disableWechatPay = !row.permission.disableWechatPay;
+                            row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
+                            row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
+
                             $.each(vm.playerPermissionTypes, function (key, v) {
                                 if (row.permission && row.permission[key] === false) {
                                     $("#playerPermissionTable .permitOn." + key).addClass('hide');
@@ -3060,6 +3076,24 @@ define(['js/app'], function (myApp) {
                                 $submit.off('click');
                                 $(thisPopover + " .togglePlayer").off('click');
                                 $remark.off('input selectionchange propertychange');
+
+                                // Invert faked permission display
+                                if (changeObj.hasOwnProperty('banReward')) {
+                                    changeObj.banReward = !changeObj.banReward;
+                                }
+
+                                if (changeObj.hasOwnProperty('disableWechatPay')) {
+                                    changeObj.disableWechatPay = !changeObj.disableWechatPay;
+                                }
+
+                                if (changeObj.hasOwnProperty('forbidPlayerConsumptionReturn')) {
+                                    changeObj.forbidPlayerConsumptionReturn = !changeObj.forbidPlayerConsumptionReturn;
+                                }
+
+                                if (changeObj.hasOwnProperty('forbidPlayerConsumptionIncentive')) {
+                                    changeObj.forbidPlayerConsumptionIncentive = !changeObj.forbidPlayerConsumptionIncentive;
+                                }
+
                                 socketService.$socket($scope.AppSocket, 'updatePlayerPermission', {
                                     query: {
                                         platform: vm.permissionPlayer.platform,
