@@ -52,9 +52,9 @@ define(['js/app'], function (myApp) {
             FORBID: 3,
             BALCKLIST: 4,
             ATTENTION: 5,
-            WARINESS: 6
+            CANCELS: 6
         };
-        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'WARINESS'];
+        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS'];
         vm.depositMethodList = {
             Online: 1,
             ATM: 2,
@@ -7318,8 +7318,9 @@ define(['js/app'], function (myApp) {
                     "platformId": vm.selectedPlatform.id,
                     "index": 0,
                     "limit": 10,
+            };
 
-                }
+            vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {registrationTime: -1};
 
             var sendData = {
                 "platform": {
@@ -7328,7 +7329,8 @@ define(['js/app'], function (myApp) {
                     "limit": vm.advancedPartnerQueryObj.limit,
                     "sortCol": vm.advancedPartnerQueryObj.sortCol
                 }
-            }
+            };
+            console.log('sendData', sendData);
 
             socketService.$socket($scope.AppSocket, 'getPartnersByPlatform', sendData, success);
 
@@ -7374,7 +7376,9 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform.id,
                 query: vm.advancedPartnerQueryObj
             };
+            console.log('apiQuery', apiQuery);
             socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
+                console.log('partnerData', reply);
                 setPartnerTableData(reply.data.data);
                 vm.searchPartnerCount = reply.data.size;
                 vm.advancedPartnerQueryObj.pageObj.init({maxCount: reply.data.size}, true);
@@ -10904,13 +10908,6 @@ define(['js/app'], function (myApp) {
                     console.log('err', err);
                 });
         };
-        // vm.getAllDepositMethods = function () {
-        //     return $scope.$socketPromise('getDepositMethodList', {})
-        //         .then(function (data) {
-        //             console.log("vm.depositMethodList", data.data);
-        //             vm.depositMethodList = data.data;
-        //         });
-        // };
 
         vm.getAllRewardTypes = function () {
             return $scope.$socketPromise('getAllRewardTypes')
@@ -10919,90 +10916,6 @@ define(['js/app'], function (myApp) {
                     console.log("vm.allRewardTypes", vm.allRewardTypes);
                 });
         };
-
-        // vm.getAllRewardRule = function () {
-        //     return $scope.$socketPromise('getAllRewardRule', {})
-        //         .then(function (data) {
-        //             console.log("vm.rewardSrcList", data.data);
-        //             vm.rewardSrcList = data.data;
-        //         });
-        // };
-
-        // vm.getAllGameStatus = function () {
-        //     return $scope.$socketPromise('getAllGameStatus')
-        //         .then(function (data) {
-        //             vm.allGameStatusString = data.data;
-        //             var allStatus = data.data;
-        //             var keys = [];
-        //             for (var key in allStatus) {
-        //                 if (allStatus.hasOwnProperty(key)) { //to be safe
-        //                     keys.push(key);
-        //                 }
-        //             }
-        //             vm.allGameStatusKeys = keys;
-        //         });
-        // };
-
-        // vm.getPlayerStatusList = function () {
-        //     return $scope.$socketPromise('getPlayerStatusList')
-        //         .then(function (data) {
-        //             vm.allPlayersStatusString = data.data;
-        //             var allStatus = data.data;
-        //             var keys = [];
-        //             for (var key in allStatus) {
-        //                 if (allStatus.hasOwnProperty(key)) { //to be safe
-        //                     keys.push(key);
-        //                 }
-        //             }
-        //             vm.allPlayersStatusKeys = keys;
-        //         });
-        // };
-
-        // vm.getPartnerStatusList = function () {
-        //     return $scope.$socketPromise('getPartnerStatusList')
-        //         .then(function (data) {
-        //
-        //             vm.allPartnersStatusString = data.data;
-        //             var allStatus = data.data;
-        //             var keys = [];
-        //             for (var key in allStatus) {
-        //                 if (allStatus.hasOwnProperty(key)) {
-        //                     keys.push(key);
-        //                 }
-        //             }
-        //             console.log('\n\n\n\nallPartnersStatusString', keys);
-        //             vm.allPartnersStatusKeys = keys;
-        //         });
-        // };
-
-        // vm.getPlayerLvlPeriod = function () {
-        //     socketService.$socket($scope.AppSocket, 'getPlayerLvlPeriodConst', '', function (data) {
-        //         console.log('getPlayerLvlPeriodConst', data);
-        //         vm.playerLvlPeriod = data.data;
-        //         $scope.safeApply();
-        //     });
-        // }
-
-        // vm.getPartnerCommissionPeriodConst = function () {
-        //     if (vm.partnerCommissionPeriodConst) {
-        //         return
-        //     }
-        //     socketService.$socket($scope.AppSocket, 'getPartnerCommissionPeriodConst', '', function (data) {
-        //         console.log('getPartnerCommissionPeriodConst', data);
-        //         vm.partnerCommissionPeriodConst = data.data;
-        //         $scope.safeApply();
-        //     });
-        // };
-
-        // vm.getPartnerCommissionSettlementModeConst = () => {
-        //     if (vm.partnerCommissionSettlementModeConst) {
-        //         return
-        //     }
-        //     socketService.$socket($scope.AppSocket, 'getPartnerCommissionSettlementModeConst', '', function (data) {
-        //         vm.partnerCommissionSettlementModeConst = data.data;
-        //         $scope.safeApply();
-        //     });
-        // };
 
         vm.setValue = function (obj, key, val) {
             if (obj && key) {
@@ -11078,7 +10991,7 @@ define(['js/app'], function (myApp) {
                         if (!a.aaSorting[0]) return;
                         var sortCol = a.aaSorting[0][0];
                         var sortDire = a.aaSorting[0][1];
-                        var sortKey = a.aoColumns[sortCol].data
+                        var sortKey = a.aoColumns[sortCol].data;
                         // vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
                         if (sortKey) {
                             vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {};
@@ -11101,15 +11014,7 @@ define(['js/app'], function (myApp) {
                             vm.getAllGameTypes();
                             vm.getAllRewardTypes();
                             vm.loadPlatformData();
-                            // vm.preparePlayerFeedback();
-                            // vm.getAllGameStatus();
-                            // vm.getPlayerStatusList();
-                            // vm.getPartnerStatusList();
-                            // vm.getAllProposalExecutionType();
-                            // vm.getAllProposalRejectionType();
                             vm.getAllMessageTypes();
-                            // vm.getAllDepositMethods();
-                            // vm.getPlayerLvlPeriod();
                             vm.linkProvider();
                             $.getScript("dataSource/data.js").then(
                                 () => {
@@ -11153,18 +11058,6 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
-                    // socketService.$socket($scope.AppSocket, 'getAllTopUpType', {}, function (data) {
-                    //     vm.topUpTypeList = {};
-                    //     if (data.data) {
-                    //         $.each(data.data, function (i, v) {
-                    //             vm.topUpTypeList[v] = 'TOPUP' + i;
-                    //         })
-                    //     }
-                    //     console.log("getAllTopUpType", vm.topUpTypeList);
-                    //     $scope.safeApply();
-                    // }, function (err) {
-                    //     console.log("cannot get topup type", err);
-                    // });
 
                     // Get bank list from pmsAPI
                     socketService.$socket($scope.AppSocket, 'getBankTypeList', {},
