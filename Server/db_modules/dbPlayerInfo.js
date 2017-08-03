@@ -7366,6 +7366,15 @@ let dbPlayerInfo = {
             .populate({path: "platform", model: dbconfig.collection_platform}).lean();
         return Q.all([playerProm, recordProm]).then(
             function (data) {
+                // Check player permission to apply this reward
+                if (data && data[0] && data[0].permission.PlayerTopUpReturn === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Player do not have permission for reward"
+                    });
+                }
+
                 //get player's platform reward event data
                 if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
                     player = data[0];
@@ -8741,6 +8750,15 @@ let dbPlayerInfo = {
         ).lean();
         return Q.all([playerProm, recordProm]).then(
             data => {
+                // Check player permission to apply this reward
+                if (data && data[0] && data[0].permission.PlayerDoubleTopUpReturn === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Player do not have permission for reward"
+                    });
+                }
+
                 //get player's platform reward event data
                 if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
                     player = data[0];

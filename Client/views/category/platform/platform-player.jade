@@ -1174,10 +1174,10 @@ include modalGameCreditLog
                         i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
                         img(ng-show='v.imgType=="img"', src='{{v.src}}')
                     td {{key | translate}}
-                    td.permitOn(ng-class='vm.permissionPlayer.permission[key] ? "":"hide"', class='{{key}}')
+                    td.permitOn(ng-class='vm.permissionPlayer.permission[key] === false  ? "hide":""', class='{{key}}')
                         i.fa.fa-toggle-on.text-primary.margin-right-5.togglePlayer(data-which='{{key}}', data-on=true)
                         a.text-primary.togglePlayer(data-which='{{key}}', data-on=true) {{"ON" | translate}}
-                    td.permitOff(ng-class='vm.permissionPlayer.permission[key] ? "hide":""', class='{{key}}')
+                    td.permitOff(ng-class='vm.permissionPlayer.permission[key] === false ? "":"hide"', class='{{key}}')
                         i.fa.fa-toggle-off.text-danger.margin-right-5.togglePlayer(data-which='{{key}}', data-on=false)
                         a.text-danger.togglePlayer(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
         .textareaDetail.margin-top-bottom-small
