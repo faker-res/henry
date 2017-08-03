@@ -2689,9 +2689,6 @@ define(['js/app'], function (myApp) {
                                 'class': 'fa fa-gift margin-right-5 ' + (perm.applyBonus === true ? "text-primary" : "text-danger"),
                             }));
                             link.append($('<i>', {
-                                'class': 'fa fa-tint margin-right-5 ' + (perm.advanceConsumptionReward === true ? "text-primary" : "text-danger"),
-                            }));
-                            link.append($('<i>', {
                                 'class': 'fa fa-share-square margin-right-5 ' + (perm.transactionReward === true ? "text-primary" : "text-danger"),
                             }));
                             link.append($('<i>', {
@@ -2716,7 +2713,16 @@ define(['js/app'], function (myApp) {
                                 'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
                             }));
                             link.append($('<i>', {
-                                'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === true ? "text-danger" : "text-primary"),
+                                'class': 'fa fa-tint margin-right-5 ' + (perm.advanceConsumptionReward === true ? "text-primary" : "text-danger"),
+                            }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === false ? "text-primary" : "text-danger"),
+                            }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-plus-square margin-right-5 ' + (perm.PlayerTopUpReturn === false ? "text-danger" : "text-primary"),
+                            }));
+                            link.append($('<i>', {
+                                'class': 'fa fa-plus-square-o margin-right-5 ' + (perm.PlayerDoubleTopUpReturn === false ? "text-danger" : "text-primary"),
                             }));
                             return link.prop('outerHTML');
                         },
@@ -3010,7 +3016,6 @@ define(['js/app'], function (myApp) {
                             var row = JSON.parse(this.dataset.row);
                             vm.playerPermissionTypes = {
                                 applyBonus: {imgType: 'i', iconClass: "fa fa-gift"},
-                                advanceConsumptionReward: {imgType: 'i', iconClass: "fa fa-tint"},
                                 transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
                                 topupOnline: {imgType: 'i', iconClass: "fa fa-pencil-square"},
                                 topupManual: {imgType: 'i', iconClass: "fa fa-folder-open"},
@@ -3018,14 +3023,17 @@ define(['js/app'], function (myApp) {
                                 alipayTransaction: {imgType: 'img', src: "images/icon/aliPayBlue.png"},
                                 disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"},
                                 forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
-                                forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"}
+                                forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"},
+                                advanceConsumptionReward: {imgType: 'i', iconClass: "fa fa-tint"},
+                                PlayerTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square"},
+                                PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"}
                             };
                             $("#playerPermissionTable td").removeClass('hide');
                             $.each(vm.playerPermissionTypes, function (key, v) {
-                                if (row.permission && row.permission[key]) {
-                                    $("#playerPermissionTable .permitOff." + key).addClass('hide');
-                                } else {
+                                if (row.permission && row.permission[key] === false) {
                                     $("#playerPermissionTable .permitOn." + key).addClass('hide');
+                                } else {
+                                    $("#playerPermissionTable .permitOff." + key).addClass('hide');
                                 }
                             });
                             $scope.safeApply();
