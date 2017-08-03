@@ -74,7 +74,9 @@
                 "sendPlayerMailFromPlayerToAdmin",
                 "addClientSourceLog",
                 "resetPasswordViaPhone",
-                "getCreditInfo"
+                "getCreditInfo",
+                "readMail",
+                "getUnreadMail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
