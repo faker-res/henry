@@ -60,6 +60,12 @@ form(name="form_new_platform" ,novalidate)
     div.form-group.col-md-6
         label.control-label {{"PARTNER_INVITE" | translate}}
         input.form-control(type="text", ng-model="vm.showPlatform.partnerInvitationUrl")
+    div.form-group.col-md-6
+        label.control-label {{"PUSH_NOTIFICATION_APP_KEY" | translate}}
+        input.form-control(type="text", ng-model="vm.showPlatform.jiguangAppKey")
+    div.form-group.col-md-6
+        label.control-label {{"PUSH_NOTIFICATION_MASTER_KEY" | translate}}
+        input.form-control(type="text", ng-model="vm.showPlatform.jiguangMasterKey")
     //div.form-group.col-md-6
     //    label.control-label {{"SETTLEMENT" | translate}} {{"STATUS" | translate}}
     //    select.form-control(ng-model="vm.showPlatform.settlementStatus", ng-options='o for o in ["Ready", "DailySettlement", "WeeklySettlement"]')

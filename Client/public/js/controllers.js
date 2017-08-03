@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, $route, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
+angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
     //todo::disable console log for production
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
@@ -92,7 +92,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             });
 
             //console.log("route reload!");
-            //$route.reload();
+            //$state.reload();
 
             $scope.checkForExpiredPassword();
         }).on('disconnect', function () {
@@ -114,7 +114,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
 
         $scope.AppSocket.on('PermissionUpdate', function () {
             console.log("PermissionUpdate event");
-            authService.updateRoleDataFromServer($scope, $cookies, $route);
+            authService.updateRoleDataFromServer($scope, $cookies, $state);
         });
 
         // 6 seconds interval to poll server status and ping
@@ -504,7 +504,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             let password = convertToMD5(firstLevelMd5 + formattedNow);
             //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
             let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
-            
+
             $.ajax({
                 url: urlWithParams,
                 dataType: "jsonp",

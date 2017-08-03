@@ -234,7 +234,7 @@ define([], function () {
             }
         };
 
-        this.updateRoleDataFromServer = function ($scope, $cookies, $route) {
+        this.updateRoleDataFromServer = function ($scope, $cookies, $state) {
             $scope.AppSocket.emit("getFullAdminInfo", {adminName: this.adminName});
             var self = this;
             $scope.AppSocket.once("_getFullAdminInfo", function (data) {
@@ -250,7 +250,7 @@ define([], function () {
                     self.roleData = data.data.roles;
 
                     //force page refresh when permission changed
-                    $route.reload();
+                    $state.reload();
                 }
             });
         };
