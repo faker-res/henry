@@ -364,13 +364,13 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         3: "FORBID",
         4: "BALCKLIST",
         5: "ATTENTION",
-        CANCELS: 6,
-        CHEAT_NEW_ACCOUNT_REWARD: 7,
-        TOPUP_ATTENTION: 8,
-        HEDGING: 9,
-        TOPUP_BONUS_SPAM: 10,
-        MULTIPLE_ACCOUNT: 11,
-        BANNED: 12
+        6: "CANCELS",
+        7: "CHEAT_NEW_ACCOUNT_REWARD",
+        8: "TOPUP_ATTENTION",
+        9: "HEDGING",
+        10: "TOPUP_BONUS_SPAM",
+        11: "MULTIPLE_ACCOUNT",
+        12: "BANNED"
     };
 
     $scope.constPartnerStatus = {
