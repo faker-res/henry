@@ -26,7 +26,9 @@ var playerMailSchema = new Schema({
     createTime: {type: Date, default: Date.now},
 
     //if player has opened the mail
-    hasBeenRead: {type: Boolean, default: false}
+    hasBeenRead: {type: Boolean, default: false, index: true},
+    //if this mail has been deleted
+    bDelete: {type: Boolean, default: false, index: true}
 });
 
 module.exports = playerMailSchema;

@@ -9208,6 +9208,22 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    deleteAllMail: (playerId) => {
+        return dbconfig.collection_players.findOne({playerId: playerId}).then(
+            playerData => {
+                if( playerData ) {
+                    return dbconfig.collection_playerMail.update(
+                        {recipientId: playerData._id, bDelete: false},
+                        {bDelete: true}
+                    );
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid player data"});
+                }
+            }
+        );
     }
 
 };

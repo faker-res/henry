@@ -904,6 +904,16 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.readMail, [conn.playerId, data.mailObjId], isValidData, false, false, true);
     };
 
+    this.deleteAllMail.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.deleteAllMail, [conn.playerId], isValidData, false, false, true);
+    };
+
+    this.getUnreadMail.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getUnreadMail, [conn.playerId], isValidData, false, false, true);
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;
