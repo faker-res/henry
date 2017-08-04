@@ -6773,6 +6773,13 @@ let dbPlayerInfo = {
                                 playerStatus: playerData.status
                             });
                         }
+                    // } else if (playerData.status === constPlayerStatus.BANNED) {
+                    //     return Q.reject({
+                    //         status: constServerCode.PLAYER_IS_FORBIDDEN,
+                    //         name: "DataError",
+                    //         message: "Player is banned",
+                    //         playerStatus: playerData.status
+                    //     });
                     }
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {

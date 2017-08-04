@@ -130,6 +130,7 @@ var simplifiedChinese = {
     "Platform is not ready for settlement": "平台正在结算",
     "Payment is not available": "支付维护中",
     "Player is forbidden": "玩家被禁用",
+    "Player is banned": "玩家被封号",
     "Proposal not found or not in expired status.": "未找到提案或未过期.",
     "Referral player is expired for this reward": "推荐玩家已过期",
     "Invalid reward amount": "奖励数值无效",
