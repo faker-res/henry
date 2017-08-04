@@ -2374,7 +2374,9 @@ function insertRepeatCount(proposals) {
                 // todo :: get success time
                 handleSuccessProposal(proposal)
             } else {
-
+                // todo :: what the hell
+                handleFailureMerchant(proposal);
+                handleFailurePlayer(proposal);
             }
                 // add 'succeed' into count and get into next loop
             // check if mechantNo exist
@@ -2401,12 +2403,33 @@ function insertRepeatCount(proposals) {
             loop();
         });
 
-        function checkMerchant(proposal) {
+        function handleFailureMerchant(proposal) {
+            let merchantNo = proposal.data.merchantNo;
+            if (merchantRepeatCount.hasOwnProperty(merchantNo)) {
+                if (merchantRepeatCount[merchantNo].order === '-') {
+                    let previousSuccessTime = getRelevantSuccessTime('merchantNo', proposal, 'previous');
+                    let count = getTotalFailureCount('merchantNo', proposal, previousSuccessTime, proposal.createTime);
+                    merchantRepeatCount[merchantNo] = {
+                        order: count,
+                        total: count
+                    };
+                    proposal.$order = count;
+                    proposal.$total = count;
+                } else {
+                    // adjust the count number on object
+                    let
+                    // add count into the proposal
+                }
+            } else {
 
+            }
         }
 
-        function checkPlayer(proposal) {
+        function handleFailurePlayer(proposal) {
+            let playerName = proposal.data.playerName;
+            if (playerRepeatCount.hasOwnProperty(playerName)) {
 
+            }
         }
 
         function handleSuccessProposal(proposal) {
@@ -2417,7 +2440,15 @@ function insertRepeatCount(proposals) {
             proposal.$merchantFailureNo = '-';
             proposal.$merchantFailureTimeGap = '-';
 
+            merchantRepeatCount[proposal.data.merchantNo] = {
+                order: "-",
+                total: "-"
+            };
 
+            playerRepeatCount[proposal.data.playerName] = {
+                order: "-",
+                total: "-"
+            };
         }
 
         // function
