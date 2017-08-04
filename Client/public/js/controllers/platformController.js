@@ -359,6 +359,26 @@ define(['js/app'], function (myApp) {
             vm.jiguang.text = "";
 
             vm.pushNotification = function () {
+                if (vm.jiguang && !vm.jiguang.appKey) {
+                    alert("请先到编辑平台里设置推送API用的App Key。");
+                    return;
+                }
+
+                if (vm.jiguang && !vm.jiguang.masterKey) {
+                    alert("请先到编辑平台里设置推送API用的Master Key。");
+                    return;
+                }
+
+                if (vm.jiguang && !vm.jiguang.tittle) {
+                    alert("请先填写标题。");
+                    return;
+                }
+
+                if (vm.jiguang && !vm.jiguang.text) {
+                    alert("请先填写内容。");
+                    return;
+                }
+
                 socketService.$socket($scope.AppSocket, 'pushNotification', {
                     appKey: vm.jiguang.appKey,
                     masterKey: vm.jiguang.masterKey,
