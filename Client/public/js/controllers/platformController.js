@@ -52,9 +52,15 @@ define(['js/app'], function (myApp) {
                 FORBID: 3,
                 BALCKLIST: 4,
                 ATTENTION: 5,
-                CANCELS: 6
+                CANCELS: 6,
+                CHEAT_NEW_ACCOUNT_REWARD: 7,
+                TOPUP_ATTENTION: 8,
+                HEDGING: 9,
+                TOPUP_BONUS_SPAM: 10,
+                MULTIPLE_ACCOUNT: 11,
+                BANNED: 12
             };
-            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS'];
+            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED'];
             vm.depositMethodList = {
                 Online: 1,
                 ATM: 2,
@@ -3403,7 +3409,13 @@ define(['js/app'], function (myApp) {
                 var colorObj = {
                     NORMAL: '#337ab7',
                     FORBID: 'red',
-                    FORBID_GAME: 'orange'
+                    FORBID_GAME: 'orange',
+                    CHEAT_NEW_ACCOUNT_REWARD: 'orange',
+                    TOPUP_ATTENTION: 'orange',
+                    HEDGING: 'orange',
+                    TOPUP_BONUS_SPAM: 'orange',
+                    MULTIPLE_ACCOUNT: 'orange',
+                    BANNED: 'red'
                 }
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
                     $(v).find('a').eq(0).css('color', colorObj[statusKey]);
@@ -8076,7 +8088,13 @@ define(['js/app'], function (myApp) {
                 var colorObj = {
                     NORMAL: '#337ab7',
                     FORBID: 'red',
-                    FORBID_GAME: 'orange'
+                    FORBID_GAME: 'orange',
+                    CHEAT_NEW_ACCOUNT_REWARD: 'orange',
+                    TOPUP_ATTENTION: 'orange',
+                    HEDGING: 'orange',
+                    TOPUP_BONUS_SPAM: 'orange',
+                    MULTIPLE_ACCOUNT: 'orange',
+                    BANNED: 'red'
                 }
 
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
