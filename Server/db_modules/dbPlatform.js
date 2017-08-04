@@ -1254,6 +1254,33 @@ var dbPlatform = {
         return dbconfig.collection_playerMail.find(query).sort({createTime: -1}).limit(100);
     },
 
+    pushNotification: function (data) {
+        var appKey = data.appKey;
+        var masterKey = data.masterKey;
+        var tittle = data.tittle;
+        var text = data.text;
+        var JPush = require("../node_modules/jpush-sdk/lib/JPush/JPush.js");
+        var client = JPush.buildClient(appKey, masterKey);
+
+        client.push().setPlatform(JPush.ALL)
+            .setAudience(JPush.ALL)
+            // .setNotification(text, JPush.ios('ios alert', 'happy', 5))
+            .setNotification(text, JPush.ios(text), JPush.android(text, tittle, 1))
+            .setMessage('msg content')
+            .setOptions(null, 86400, null, true, null)
+            .send(function (err, res) {
+                if (err) {
+                    console.log(err.message);
+                    return err;
+                } else {
+                    console.log('Sendno: ' + res.sendno);
+                    console.log('Msg_id: ' + res.msg_id);
+                    console.log('res: ' + JSON.stringify(res));
+                    return res;
+                }
+            });
+    },
+
     sendSMS: function (adminObjId, adminName, data) {
         var collect = '', query = {};
         if (data && data.playerId) {
@@ -1322,7 +1349,7 @@ var dbPlatform = {
         )
     },
 
-    getPagedPlatformCreditTransferLog: function (playerName, startTime, endTime, provider, type, index, limit, sortCol, status,platformObjId) {
+    getPagedPlatformCreditTransferLog: function (playerName, startTime, endTime, provider, type, index, limit, sortCol, status, platformObjId) {
         let queryObject = {};
         sortCol = sortCol || {createTime: -1};
         index = index || 0;
@@ -1350,7 +1377,7 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true});
     },
 
-    startPlatformPlayerLevelUpSettlement:function(platform){
+    startPlatformPlayerLevelUpSettlement: function (platform) {
         return
     }
 };

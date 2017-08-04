@@ -85,7 +85,7 @@ define([], function () {
             if (!$skt.connected) {
                 reconnectSocket();
                 // @consider: Rather than failing immediately, it may be preferable to queue the request until the reconnection succeeds, or until a timeout is reached.
-                servi.showErrorMessage("Server can't be connected, please try again!");
+                servi.showErrorMessage($trans("Server can't be connected, please try again!"));
                 if (failFunc && typeof(failFunc) === 'function') {
                     return failFunc();
                 }
@@ -142,7 +142,15 @@ define([], function () {
                 } else {
                     if (data.error && (data.error.message || data.error.errorMessage)) {
                         console.error(retKey, data.error);
-                        self.showErrorMessage(data.error.message || data.error.errorMessage);
+                        self.showErrorMessage($trans(data.error.message || data.error.errorMessage));
+                        if (data.error.message) {
+                            data.error.originalMessage = data.error.message;
+                            data.error.message = $trans(data.error.message);
+                        }
+                        if (data.error.errorMessage) {
+                            data.error.originalMessage = data.error.errorMessage;
+                            data.error.errorMessage = $trans(data.error.errorMessage);
+                        }
                     }
                     if (failFunc && typeof(failFunc) === 'function') {
                         return failFunc(data);
