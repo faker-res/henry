@@ -68,7 +68,7 @@ var platformSchema = new Schema({
     //percentage charges of apply bonus
     bonusPercentageCharges: {type: Number, default: 0},
     //numbers of times apply bonus without charges
-    bonusCharges: {type:Number},
+    bonusCharges: {type: Number},
     //allow same real name to register? for frontEnd only, they still can register via office
     allowSameRealNameToRegister: {type: Boolean, default: true},
     // Platform-wide SMS Verification Setting, for create players and create partners
@@ -110,7 +110,9 @@ var platformSchema = new Schema({
     // maximum length for player name included platform prefix
     playerNameMaxLength: {type: Number, default: 0},
     // minimum length for player name included platform prefix
-    playerNameMinLength: {type: Number, default: 0}
+    playerNameMinLength: {type: Number, default: 0},
+    jiguangAppKey: {type: String},
+    jiguangMasterKey: {type: String}
 });
 
 //add platform id before save

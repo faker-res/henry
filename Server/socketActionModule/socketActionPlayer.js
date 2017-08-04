@@ -593,7 +593,7 @@ function socketActionPlayer(socketIO, socket) {
         applyManualTopUpRequest: function applyManualTopUpRequest(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod && data.lastBankcardNo && data.provinceId && data.cityId);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [data.playerId, data, "ADMIN", getAdminId(), getAdminName(),data.fromFPMS], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS], actionName, isValidData);
         },
         /**
          *  Get deposit methods
@@ -634,6 +634,13 @@ function socketActionPlayer(socketIO, socket) {
             var isValidData = Boolean(data && (data.senderId || data.recipientId));
             // It might be good to restrict the search to the admin's allowed platforms
             socketUtil.emitter(self.socket, dbPlatform.searchMailLog, [data], actionName, isValidData);
+        },
+
+        pushNotification: function pushNotification(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.appKey != null && data.masterKey != null && data.tittle != null && data.text != null);
+            console.log("pushNotification: " + JSON.stringify(data));
+            socketUtil.emitter(self.socket, dbPlatform.pushNotification, [data], actionName, isValidData);
         },
 
         sendSMSToPlayer: function sendSMSToPlayer(data) {
@@ -773,7 +780,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.username);
             let username = data.username || '';
-            socketUtil.emitter(self.socket, pmsAPI.payment_requestClearProposalLimits, [{username:username}], actionName, isValidData);
+            socketUtil.emitter(self.socket, pmsAPI.payment_requestClearProposalLimits, [{username: username}], actionName, isValidData);
         },
 
         getPlayerCreditsDaily: function getPlayerCreditsDaily(data) {

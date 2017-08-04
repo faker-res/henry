@@ -1,0 +1,15 @@
+.col-md-12
+    form
+        .form-group
+            label App Key
+            input.form-control(type="text",ng-model="vm.jiguang.appKey",disabled="disabled")
+        .form-group
+            label Master Key
+            input.form-control(type="text",ng-model="vm.jiguang.masterKey",disabled="disabled")
+        .form-group
+            label {{"PUSH_NOTIFICATION_TITTLE" | translate}}
+            input.form-control(type="text",ng-model="vm.jiguang.tittle")
+        .form-group
+            label {{"PUSH_NOTIFICATION_TEXT" | translate}}
+            textarea.form-control(ng-model="vm.jiguang.text")
+        .btn.btn-primary(ng-click="vm.pushNotification()") Send

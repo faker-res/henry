@@ -12,7 +12,6 @@
     "angular": "~1.5.11",
     "angular-cookies": "~1.5.11",
     "angular-local-storage": "~0.6.0",
-    "angular-route": "~1.5.11",
     "angular-translate": "~2.15.1",
     "angular-translate-loader-static-files": "~2.15.1",
     "angular-translate-loader-url": "~2.15.1",
@@ -22,6 +21,7 @@
     "Flot": "jquery-flot#^0.8.3",
     "bootstrap-treeview": "^1.2.0",
     "datatables.net-bs": "~1.10.15",
-    "multiple-select": "^1.2.1"
+    "multiple-select": "^1.2.1",
+    "angular-ui-router": "0.3.1"
   }
 }
