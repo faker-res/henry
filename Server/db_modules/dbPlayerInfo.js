@@ -7371,7 +7371,7 @@ let dbPlayerInfo = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",
-                        message: "Player do not have permission for reward"
+                        message: "Reward not applicable"
                     });
                 }
 
@@ -8755,7 +8755,7 @@ let dbPlayerInfo = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",
-                        message: "Player do not have permission for reward"
+                        message: "Reward not applicable"
                     });
                 }
 
