@@ -1259,7 +1259,7 @@ var dbPlatform = {
         var masterKey = data.masterKey;
         var tittle = data.tittle;
         var text = data.text;
-        var JPush = require("../node_modules/jpush-sdk/lib/JPush/JPush.js");
+        var JPush = require("jpush-sdk");
         var client = JPush.buildClient(appKey, masterKey);
 
         client.push().setPlatform(JPush.ALL)
