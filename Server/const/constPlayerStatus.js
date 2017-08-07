@@ -15,7 +15,8 @@ const constPlayerStatus = {
     HEDGING: 9,
     TOPUP_BONUS_SPAM: 10,
     MULTIPLE_ACCOUNT: 11,
-    BANNED: 12
+    BANNED: 12,
+    FORBID_ONLINE_TOPUP: 13
 
 };
 

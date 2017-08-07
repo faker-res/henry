@@ -483,6 +483,7 @@
   "approved": "已审批",
   "PROPOSAL_LIST": "提案列表",
   "TOP_UP_LIST": "充值列表",
+  "Apply Player Consumption Return InProgress": "申请奖励请求处理中...",
   "NEW_ACCOUNT": "新账户",
   "MON": "星期一",
   "TUE": "星期二",
@@ -1240,6 +1241,7 @@
   "TOPUP_ATTENTION": "存款留意",
   "HEDGING": "对冲投注",
   "TOPUP_BONUS_SPAM": "恶意提存款",
+  "FORBID_ONLINE_TOPUP": "禁在线充值",
   "MULTIPLE_ACCOUNT": "重复开户",
   "BANNED": "封帐号",
   "Player Top Up Return": "玩家充值奖励",
@@ -2146,5 +2148,6 @@
   "ORDER": "排序",
   "ATM": "提款机",
   "Incorrect data!": "数据输入错误",
-  "Server can't be connected, please try again!": "伺服器链接失败，请再尝试。"
+  "Server can't be connected, please try again!": "伺服器链接失败，请再尝试。",
+  "Recover": "恢复在处理"
 }

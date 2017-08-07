@@ -2765,7 +2765,11 @@ let dbPlayerInfo = {
                     return thisPlayer;
                 });
         }
-
+        
+        if(data.bankAccount){
+            data.bankAccount ? advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i') : null;
+        }
+        
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -2782,6 +2786,7 @@ let dbPlayerInfo = {
                 $and: [data]
             }
         }
+
 
         var a = dbconfig.collection_players
             .find(advancedQuery, {similarPlayers: 0})
@@ -9203,7 +9208,7 @@ let dbPlayerInfo = {
             playerData => {
                 if( playerData ){
                     return dbconfig.collection_playerMail.find(
-                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false}
+                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
                     ).lean();
                 }
             }
@@ -9224,7 +9229,23 @@ let dbPlayerInfo = {
                 }
             }
         );
-    }
+    },
+
+    deleteMail: (playerId, mailObjId) => {
+        return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
+            {path: "recipientId", model: dbconfig.collection_players }
+        ).then(
+            mailData => {
+                if( mailData && mailData.recipientId && mailData.recipientId.playerId == playerId ) {
+                    mailData.bDelete = true;
+                    return mailData.save();
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid Mail id"});
+                }
+            }
+        );
+    },
 
 };
 

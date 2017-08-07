@@ -33,7 +33,7 @@
                     label {{"LAST_ACCESS_TIME_START" | translate}}
                     .accStart
                 .inlineBlk
-                    label {{"REGISTRATION_TIME_END" | translate}}
+                    label {{"LAST_ACCESS_TIME_END" | translate}}
                     .accEnd
                 .inlineBlk
                     label {{"REGISTRATION_TIME_START" | translate}}
@@ -41,6 +41,9 @@
                 .inlineBlk
                     label {{"REGISTRATION_TIME_END" | translate}}
                     .regEnd
+                .inlineBlk
+                    label {{"bankAccount" | translate}}
+                    input.form-control(ng-model='vm.sendMultiMessage.bankAccount', style='width: 180px;')
                 //.inlineBlk
                     label {{"Length Per Page" | translate}}
                     input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')

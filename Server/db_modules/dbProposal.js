@@ -421,7 +421,8 @@ var proposal = {
                     type = constPlayerTopUpType.WECHAT;
                 }
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING ||
-                    proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING) && proposalData.data && proposalData.data.requestId == requestId) {
+                    proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
+                    || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.requestId == requestId) {
                     return proposalData;
                 }
                 else {
@@ -495,7 +496,7 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING
-                    || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
+                    || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
                     return proposalData;
                 }
                 else {

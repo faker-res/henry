@@ -58,9 +58,10 @@ define(['js/app'], function (myApp) {
                 HEDGING: 9,
                 TOPUP_BONUS_SPAM: 10,
                 MULTIPLE_ACCOUNT: 11,
-                BANNED: 12
+                BANNED: 12,
+                FORBID_ONLINE_TOPUP: 13
             };
-            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED'];
+            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP'];
             vm.depositMethodList = {
                 Online: 1,
                 ATM: 2,
@@ -897,6 +898,9 @@ define(['js/app'], function (myApp) {
                     } else {
                         playerQuery.topUpTimes = {"$lt": vm.sendMultiMessage.maxTopupTimes};
                     }
+                }
+                if (vm.sendMultiMessage.bankAccount) {
+                    playerQuery.bankAccount = vm.sendMultiMessage.bankAccount;
                 }
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
@@ -3435,7 +3439,8 @@ define(['js/app'], function (myApp) {
                     HEDGING: 'orange',
                     TOPUP_BONUS_SPAM: 'orange',
                     MULTIPLE_ACCOUNT: 'orange',
-                    BANNED: 'red'
+                    BANNED: 'red',
+                    FORBID_ONLINE_TOPUP: 'orange'
                 }
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
                     $(v).find('a').eq(0).css('color', colorObj[statusKey]);
@@ -4999,7 +5004,39 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
-
+            };
+            vm.applyPlayerReward = function () {
+                vm.applyXM = true;
+                let idArr = [];
+                if (vm.playerApplyRewardShow.topUpRecordIds) {
+                    $.each(vm.playerApplyRewardShow.topUpRecordIds, function (i, v) {
+                        if (v) {
+                            idArr.push(i);
+                        }
+                    })
+                }
+                let sendQuery = {
+                    code: vm.playerApplyRewardPara.code,
+                    playerId: vm.isOneSelectedPlayer().playerId,
+                    data: {
+                        topUpRecordId: vm.playerApplyRewardPara.topUpRecordId,
+                        topUpRecordIds: idArr,
+                        amount: vm.playerApplyRewardPara.amount,
+                        referralName: vm.playerApplyRewardPara.referralName
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
+                    console.log('sent', data);
+                    vm.applyXM = false;
+                    vm.playerApplyEventResult = data;
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                }, function (err) {
+                    vm.applyXM = false;
+                    vm.playerApplyEventResult = err;
+                    console.log(err);
+                    $scope.safeApply();
+                });
             };
             vm.repairTransaction = function () {
                 socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.isOneSelectedPlayer()._id}
@@ -5296,38 +5333,6 @@ define(['js/app'], function (myApp) {
 
                 $scope.safeApply();
             };
-
-            vm.applyPlayerReward = function () {
-                let idArr = [];
-                if (vm.playerApplyRewardShow.topUpRecordIds) {
-                    $.each(vm.playerApplyRewardShow.topUpRecordIds, function (i, v) {
-                        if (v) {
-                            idArr.push(i);
-                        }
-                    })
-                }
-                let sendQuery = {
-                    code: vm.playerApplyRewardPara.code,
-                    playerId: vm.isOneSelectedPlayer().playerId,
-                    data: {
-                        topUpRecordId: vm.playerApplyRewardPara.topUpRecordId,
-                        topUpRecordIds: idArr,
-                        amount: vm.playerApplyRewardPara.amount,
-                        referralName: vm.playerApplyRewardPara.referralName
-                    }
-                };
-                socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
-                    console.log('sent', data);
-                    vm.playerApplyEventResult = data;
-                    vm.getPlatformPlayersData();
-                    $scope.safeApply();
-                }, function (err) {
-                    vm.playerApplyEventResult = err;
-                    console.log(err);
-                    $scope.safeApply();
-                });
-            };
-
             vm.applyPreviousConsecutiveLoginReward = function () {
                 let sendQuery = {
                     code: vm.playerApplyRewardPara.code,
@@ -8114,7 +8119,8 @@ define(['js/app'], function (myApp) {
                     HEDGING: 'orange',
                     TOPUP_BONUS_SPAM: 'orange',
                     MULTIPLE_ACCOUNT: 'orange',
-                    BANNED: 'red'
+                    BANNED: 'red',
+                    FORBID_ONLINE_TOPUP: 'orange'
                 }
 
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
