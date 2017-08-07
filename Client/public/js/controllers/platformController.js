@@ -58,9 +58,10 @@ define(['js/app'], function (myApp) {
                 HEDGING: 9,
                 TOPUP_BONUS_SPAM: 10,
                 MULTIPLE_ACCOUNT: 11,
-                BANNED: 12
+                BANNED: 12,
+                FORBID_ONLINE_TOPUP: 13
             };
-            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED'];
+            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP'];
             vm.depositMethodList = {
                 Online: 1,
                 ATM: 2,
@@ -3435,7 +3436,8 @@ define(['js/app'], function (myApp) {
                     HEDGING: 'orange',
                     TOPUP_BONUS_SPAM: 'orange',
                     MULTIPLE_ACCOUNT: 'orange',
-                    BANNED: 'red'
+                    BANNED: 'red',
+                    FORBID_ONLINE_TOPUP: 'orange'
                 }
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
                     $(v).find('a').eq(0).css('color', colorObj[statusKey]);
@@ -8114,7 +8116,8 @@ define(['js/app'], function (myApp) {
                     HEDGING: 'orange',
                     TOPUP_BONUS_SPAM: 'orange',
                     MULTIPLE_ACCOUNT: 'orange',
-                    BANNED: 'red'
+                    BANNED: 'red',
+                    FORBID_ONLINE_TOPUP: 'orange'
                 }
 
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
