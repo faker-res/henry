@@ -1240,6 +1240,7 @@
   "TOPUP_ATTENTION": "存款留意",
   "HEDGING": "对冲投注",
   "TOPUP_BONUS_SPAM": "恶意提存款",
+  "FORBID_ONLINE_TOPUP": "禁在线充值",
   "MULTIPLE_ACCOUNT": "重复开户",
   "BANNED": "封帐号",
   "Player Top Up Return": "玩家充值奖励",

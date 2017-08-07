@@ -370,7 +370,8 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         9: "HEDGING",
         10: "TOPUP_BONUS_SPAM",
         11: "MULTIPLE_ACCOUNT",
-        12: "BANNED"
+        12: "BANNED",
+        13: "FORBID_ONLINE_TOPUP"
     };
 
     $scope.constPartnerStatus = {
