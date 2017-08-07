@@ -9208,7 +9208,7 @@ let dbPlayerInfo = {
             playerData => {
                 if( playerData ){
                     return dbconfig.collection_playerMail.find(
-                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false}
+                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
                     ).lean();
                 }
             }
@@ -9229,7 +9229,23 @@ let dbPlayerInfo = {
                 }
             }
         );
-    }
+    },
+
+    deleteMail: (playerId, mailObjId) => {
+        return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
+            {path: "recipientId", model: dbconfig.collection_players }
+        ).then(
+            mailData => {
+                if( mailData && mailData.recipientId && mailData.recipientId.playerId == playerId ) {
+                    mailData.bDelete = true;
+                    return mailData.save();
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid Mail id"});
+                }
+            }
+        );
+    },
 
 };
 

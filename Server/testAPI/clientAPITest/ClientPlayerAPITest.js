@@ -466,6 +466,13 @@
         this.playerService.readMail.once(callback);
     };
 
+    proto.deleteMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.playerService.deleteMail.request(data);
+        this.playerService.deleteMail.once(callback);
+    };
+
     proto.getUnreadMail = function(callback, requestData) {
         var data = requestData || {}
 
