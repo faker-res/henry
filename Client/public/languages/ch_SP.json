@@ -483,6 +483,7 @@
   "approved": "已审批",
   "PROPOSAL_LIST": "提案列表",
   "TOP_UP_LIST": "充值列表",
+  "Apply Player Consumption Return InProgress": "提前洗码请求处理中...",
   "NEW_ACCOUNT": "新账户",
   "MON": "星期一",
   "TUE": "星期二",
@@ -2132,4 +2133,5 @@
   "Abnormal Profit Offset": "异常输赢值宽限额",
   "ORDER": "排序",
   "ATM": "提款机"
+
 }

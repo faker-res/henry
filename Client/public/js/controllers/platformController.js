@@ -5181,6 +5181,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.applyPlayerReward = function () {
+            vm.applyXM = true;
             let idArr = [];
             if (vm.playerApplyRewardShow.topUpRecordIds) {
                 $.each(vm.playerApplyRewardShow.topUpRecordIds, function (i, v) {
@@ -5201,10 +5202,12 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
                 console.log('sent', data);
+                vm.applyXM = false;
                 vm.playerApplyEventResult = data;
                 vm.getPlatformPlayersData();
                 $scope.safeApply();
             }, function (err) {
+                vm.applyXM = false;
                 vm.playerApplyEventResult = err;
                 console.log(err);
                 $scope.safeApply();
