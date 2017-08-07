@@ -2785,7 +2785,7 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-tint margin-right-5 ' + (perm.advanceConsumptionReward === true ? "text-primary" : "text-danger"),
                                 }));
                                 link.append($('<i>', {
-                                    'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === false ? "text-primary" : "text-danger"),
+                                    'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === true ? "text-danger" : "text-primary"),
                                 }));
                                 link.append($('<i>', {
                                     'class': 'fa fa-plus-square margin-right-5 ' + (perm.PlayerTopUpReturn === false ? "text-danger" : "text-primary"),

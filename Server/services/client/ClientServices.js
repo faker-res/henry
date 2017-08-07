@@ -76,7 +76,8 @@
                 "resetPasswordViaPhone",
                 "getCreditInfo",
                 "readMail",
-                "getUnreadMail"
+                "getUnreadMail",
+                "deleteAllMail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
