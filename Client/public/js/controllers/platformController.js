@@ -899,6 +899,9 @@ define(['js/app'], function (myApp) {
                         playerQuery.topUpTimes = {"$lt": vm.sendMultiMessage.maxTopupTimes};
                     }
                 }
+                if (vm.sendMultiMessage.bankAccount) {
+                    playerQuery.bankAccount = vm.sendMultiMessage.bankAccount;
+                }
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
                     query: playerQuery,

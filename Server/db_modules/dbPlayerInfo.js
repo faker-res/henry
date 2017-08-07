@@ -2765,7 +2765,11 @@ let dbPlayerInfo = {
                     return thisPlayer;
                 });
         }
-
+        
+        if(data.bankAccount){
+            data.bankAccount ? advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i') : null;
+        }
+        
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -2782,6 +2786,7 @@ let dbPlayerInfo = {
                 $and: [data]
             }
         }
+
 
         var a = dbconfig.collection_players
             .find(advancedQuery, {similarPlayers: 0})
