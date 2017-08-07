@@ -44,9 +44,8 @@
                 label {{"topUpTimes" | translate}}
                 select.form-control(ng-model='vm.playerFeedbackQuery.topUpTimes', required)
                     option(value="-1") {{"N/A" | translate}}
-                    option(value=0) 0
-                    option(value=1) 1-2
-                    option(value=2) 3-?
+                    option(value=0) 0-1
+                    option(value=1) 2{{"above" | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.submitPlayerFeedbackQuery()') {{"SEARCH" | translate}}
 .row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')

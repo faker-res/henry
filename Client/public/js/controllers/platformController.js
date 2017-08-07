@@ -7187,18 +7187,14 @@ define(['js/app'], function (myApp) {
                 if (vm.playerFeedbackQuery.topUpTimes != "-1") {
                     switch (vm.playerFeedbackQuery.topUpTimes) {
                         case "0":
-                            sendQuery.topUpTimes = 0;
+                            sendQuery.topUpTimes = {
+                                $gte: 0,
+                                $lte: 1
+                            };
                             break;
                         case "1"://today
                             sendQuery.topUpTimes = {
-                                $gte: 1,
-                                $lte: 2
-                            };
-                            break;
-                        case "2":
-                            sendQuery.topUpTimes = {
-                                $gte: 3,
-                                // $lt: 100
+                                $gte: 2
                             };
                             break;
                     }

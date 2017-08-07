@@ -1694,6 +1694,7 @@
   "rewardAmount": "奖励额",
   "periodType": "周期类别",
   "providers": "提供商",
+  "above":"以上",
   "minTopUpAmount": "最小充值额",
   "minFirstTimeTopUpAmount1": "最小首充额 1",
   "allowSameRealNameToRegister": "允许相同真实姓名前端开户",
