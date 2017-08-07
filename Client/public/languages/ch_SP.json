@@ -2146,5 +2146,6 @@
   "ORDER": "排序",
   "ATM": "提款机",
   "Incorrect data!": "数据输入错误",
-  "Server can't be connected, please try again!": "伺服器链接失败，请再尝试。"
+  "Server can't be connected, please try again!": "伺服器链接失败，请再尝试。",
+  "Recover": "恢复在处理"
 }
