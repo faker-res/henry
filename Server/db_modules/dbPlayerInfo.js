@@ -2767,7 +2767,7 @@ let dbPlayerInfo = {
         }
         
         if(data.bankAccount){
-            data.bankAccount ? advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i') : null;
+            advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i');
         }
         
         if (data.email) {
