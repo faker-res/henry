@@ -2357,72 +2357,33 @@ var proposal = {
  return isObjectId || looksLikeObjectId;
  }
  */
+
+// lets do the most basic version, refactor later
 function insertRepeatCount(proposals) {
     return new Promise(function (resolve) {
         if (!proposals || proposals.length === 0) {
             resolve([]);
         }
 
-        let merchantRepeatCount = {};
-        let playerRepeatCount = {};
-
         asyncLoop(proposals.length, function (i, loop) {
             let proposal = proposals[i];
             // ***take note that it also have to handle when next or previous success doesn't exist
             // check if its a success proposal
             if (proposal.status === constProposalStatus.SUCCESS) {
-                // todo :: get success time
                 handleSuccessProposal(proposal)
             } else {
-                // todo :: what the hell
                 handleFailureMerchant(proposal);
                 handleFailurePlayer(proposal);
             }
-                // add 'succeed' into count and get into next loop
-            // check if mechantNo exist
-                // check if it succeed on the count
-                    // get the total failure count since earlier success (get the previous success and get the number of failure between this failure and previous success)
-                    // add the count into the proposal and the count object
-                // else
-                    // adjust the count number on object
-                    // add count into the proposal
-            // else
-                // check if there is next success
-                    // get the total failure between next success and previous success
-                    // get the total failure between this failure and previous success (to get self count)
-                    // add it into proposal and count obj
-                // else
-                    // get all total failure before previous success
-                    // get the total failure between this failure and previous success (to get self count)
-                    // add it into proposal and count obj
-            // get into next loop
-
-
-
-
             loop();
         });
 
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;
-            if (merchantRepeatCount.hasOwnProperty(merchantNo)) {
-                if (merchantRepeatCount[merchantNo].order === '-') {
-                    let previousSuccessTime = getRelevantSuccessTime('merchantNo', proposal, 'previous');
-                    let count = getTotalFailureCount('merchantNo', proposal, previousSuccessTime, proposal.createTime);
-                    merchantRepeatCount[merchantNo] = {
-                        order: count,
-                        total: count
-                    };
-                    proposal.$order = count;
-                    proposal.$total = count;
-                } else {
-                    // adjust the count number on object
-                    let
-                    // add count into the proposal
-                }
-            } else {
+            // find previous and next success of this merchantNo
+            // get the counts between proposal and merchantNo
+            // get the counts between previous and next
 
-            }
         }
 
         function handleFailurePlayer(proposal) {
@@ -2439,16 +2400,6 @@ function insertRepeatCount(proposals) {
             proposal.$merchantFailureStreak = '-';
             proposal.$merchantFailureNo = '-';
             proposal.$merchantFailureTimeGap = '-';
-
-            merchantRepeatCount[proposal.data.merchantNo] = {
-                order: "-",
-                total: "-"
-            };
-
-            playerRepeatCount[proposal.data.playerName] = {
-                order: "-",
-                total: "-"
-            };
         }
 
         // function
