@@ -2381,6 +2381,29 @@ function insertRepeatCount(proposals) {
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;
             // find previous and next success of this merchantNo
+            let prevSuccessProm = dbconfig.collection_proposal.find({
+                createTime: {$lte: proposal.data.createTime},
+                "data.merchantNo": proposal.data.merchantNo,
+                status: constProposalStatus.SUCCESS
+            }).sort({createTime: -1}).limit(1);
+            let nextSuccessProm = dbconfig.collection_proposal.find({
+                createTime: {$gte: proposal.data.createTime},
+                "data.merchantNo": proposal.data.merchantNo,
+                status: constProposalStatus.SUCCESS
+            }).sort({createTime: 1}).limit(1);
+
+            Promise.all([prevSuccessProm, nextSuccessProm]).then(
+                successData => {
+                    let prevSuccess = successData[0];
+                    let nextSuccess = successData[1];
+
+                    // todo :: when refactoring, can use these data to reduce the query needed
+
+
+
+
+                }
+            );
             // get the counts between proposal and merchantNo
             // get the counts between previous and next
 
@@ -2418,6 +2441,11 @@ function asyncLoop(count, func) {
         func(i, loop);
     };
     loop();
+}
+
+function getMinutesBetweenDates(startDate, endDate) {
+    var diff = endDate.getTime() - startDate.getTime();
+    return (diff / 60000);
 }
 
 var proto = proposalFunc.prototype;
