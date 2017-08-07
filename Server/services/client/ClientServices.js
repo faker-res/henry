@@ -77,7 +77,8 @@
                 "getCreditInfo",
                 "readMail",
                 "getUnreadMail",
-                "deleteAllMail"
+                "deleteAllMail",
+                "deleteMail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
