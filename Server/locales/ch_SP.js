@@ -130,6 +130,7 @@ var simplifiedChinese = {
     "Platform is not ready for settlement": "平台正在结算",
     "Payment is not available": "支付维护中",
     "Player is forbidden": "玩家被禁用",
+    "Player is banned": "玩家被封号",
     "Proposal not found or not in expired status.": "未找到提案或未过期.",
     "Referral player is expired for this reward": "推荐玩家已过期",
     "Invalid reward amount": "奖励数值无效",
@@ -167,7 +168,8 @@ var simplifiedChinese = {
     "Player is updating bank info": "玩家正在更新支付资料",
     "Cannot find bonus": "无法找到提款资料",
     "Update player credit failed": "更新玩家额度失败",
-    "Top up record is not the first top up record": "不符合优惠申请条件"
+    "Top up record is not the first top up record": "不符合优惠申请条件",
+    "Not Valid for the reward.": "不符合优惠申请条件"
     //todo::add missing messages here
 
     /*

@@ -55,7 +55,19 @@ var PartnerServiceImplement = function () {
             }
             conn.captchaCode = null;
             data.partnerName = data.name;
-            WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createPartnerAPI, [data], isValidData, false, false, true);
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.createPartnerAPI, [data], isValidData, true, false, true).then(
+                partnerData => {
+                    conn.partnerId = partnerData.partnerId;
+                    conn.partnerObjId = partnerData._id;
+                    var profile = {name: partnerData.name, password: partnerData.password};
+                    var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                    wsFunc.response(conn, {
+                        status: constServerCode.SUCCESS,
+                        data: partnerData,
+                        token: token,
+                    }, data);
+                }
+            );
         }
         else {
             conn.captchaCode = null;

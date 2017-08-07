@@ -73,9 +73,9 @@ var qaConfig = {
     mode: "qa",
     socketServerUrl : 'ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com',
     db: {
-        adminDBUrl: 'adminsinonet:passwordsinonet@ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:27017/admindb/',
-        playerDBUrl: 'playersinonet:passwordsinonet@ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:27017/playerdb/',
-        logsDBUrl: 'ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:27017/logsdb'
+        adminDBUrl: 'adminsinonet:passwordsinonet@ec2-54-254-216-189.ap-southeast-1.compute.amazonaws.com:27017/admindb/',
+        playerDBUrl: 'playersinonet:passwordsinonet@ec2-54-254-216-189.ap-southeast-1.compute.amazonaws.com:27017/playerdb/',
+        logsDBUrl: 'ec2-54-254-216-189.ap-southeast-1.compute.amazonaws.com:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'ec2-54-169-3-146.ap-southeast-1.compute.amazonaws.com',

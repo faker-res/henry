@@ -205,8 +205,8 @@ let dbPlayerInfo = {
                         //find player referrer if there is any
                         let proms = [];
                         if (inputData.referral) {
-                            let referralName = platformPrefix + inputData.referral;
-                            let referrralProm = dbconfig.collection_players.findOne({
+                            let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
+                            let referralProm = dbconfig.collection_players.findOne({
                                 name: referralName,
                                 platform: platformObjId
                             }).then(
@@ -225,7 +225,7 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
-                            proms.push(referrralProm);
+                            proms.push(referralProm);
                         }
                         if (inputData.partnerName) {
                             delete inputData.referral;
@@ -1940,13 +1940,13 @@ let dbPlayerInfo = {
                 playerData = data;
                 // TODO  - proposal status check below
                 return dbconfig.collection_proposal.find({
-                    "data.platformId": data.platform,
+                    "data.platformId": data.platform._id,
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
                     status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
                         constProposalStatus.APPROVED, constProposalStatus.REJECTED]}
-                });
+                }).lean();
 
             }, function (error) {
                 deferred.reject({name: "DataError", message: "Can't find player data", error: error});
@@ -1956,7 +1956,7 @@ let dbPlayerInfo = {
                 if (data && data.length > 0) {
                     deferred.reject({
                         name: "DataError",
-                        message: "The player already has this reward. Not Valid for the reward."
+                        message: "Not Valid for the reward."
                     });
                     return true;
 
@@ -2965,11 +2965,11 @@ let dbPlayerInfo = {
         ).then(
             isMatch => {
                 if (isMatch) {
-                    if (playerObj.status == constPlayerStatus.FORBID) {
+                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.CANCELS) {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
-                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                            code: (playerObj.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constPlayerStatus.CANCELS
                         });
                         return;
                     }
@@ -3244,11 +3244,11 @@ let dbPlayerInfo = {
                 if (data) {
                     playerObj = data;
 
-                    if (playerObj.status == constPlayerStatus.FORBID) {
+                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.CANCELS) {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
-                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                            code: (playerObj.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constServerCode.PLAYER_IS_CANCELLED
                         });
                         return;
                     }
@@ -6753,9 +6753,9 @@ let dbPlayerInfo = {
                     playerData = data[0];
                     gameData = data[1];
                     // check if the player is forbidden totally
-                    if (playerData.status == constPlayerStatus.FORBID) {
+                    if (playerData.status == constPlayerStatus.FORBID || playerData.status == constPlayerStatus.CANCELS) {
                         return Q.reject({
-                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            status: (playerData.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constServerCode.PLAYER_IS_CANCELLED,
                             name: "DataError",
                             message: "Player is forbidden",
                             playerStatus: playerData.status
@@ -6773,6 +6773,13 @@ let dbPlayerInfo = {
                                 playerStatus: playerData.status
                             });
                         }
+                    // } else if (playerData.status === constPlayerStatus.BANNED) {
+                    //     return Q.reject({
+                    //         status: constServerCode.PLAYER_IS_FORBIDDEN,
+                    //         name: "DataError",
+                    //         message: "Player is banned",
+                    //         playerStatus: playerData.status
+                    //     });
                     }
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
@@ -7366,6 +7373,15 @@ let dbPlayerInfo = {
             .populate({path: "platform", model: dbconfig.collection_platform}).lean();
         return Q.all([playerProm, recordProm]).then(
             function (data) {
+                // Check player permission to apply this reward
+                if (data && data[0] && data[0].permission.PlayerTopUpReturn === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Reward not applicable"
+                    });
+                }
+
                 //get player's platform reward event data
                 if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
                     player = data[0];
@@ -8741,6 +8757,15 @@ let dbPlayerInfo = {
         ).lean();
         return Q.all([playerProm, recordProm]).then(
             data => {
+                // Check player permission to apply this reward
+                if (data && data[0] && data[0].permission.PlayerDoubleTopUpReturn === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Reward not applicable"
+                    });
+                }
+
                 //get player's platform reward event data
                 if (data && data[0] && data[1] && !data[1].bDirty && String(data[1].playerId) == String(data[0]._id)) {
                     player = data[0];
@@ -9155,8 +9180,51 @@ let dbPlayerInfo = {
                 }
             }
         );
-    }
+    },
 
+    readMail: (playerId, mailObjId) => {
+        return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
+            {path: "recipientId", model: dbconfig.collection_players }
+        ).then(
+            mailData => {
+                if( mailData && mailData.recipientId && mailData.recipientId.playerId == playerId ) {
+                    mailData.hasBeenRead = true;
+                    return mailData.save();
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid Mail id"});
+                }
+            }
+        );
+    },
+
+    getUnreadMail: (playerId) => {
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                if( playerData ){
+                    return dbconfig.collection_playerMail.find(
+                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false}
+                    ).lean();
+                }
+            }
+        );
+    },
+
+    deleteAllMail: (playerId) => {
+        return dbconfig.collection_players.findOne({playerId: playerId}).then(
+            playerData => {
+                if( playerData ) {
+                    return dbconfig.collection_playerMail.update(
+                        {recipientId: playerData._id, bDelete: false},
+                        {bDelete: true}
+                    );
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid player data"});
+                }
+            }
+        );
+    }
 
 };
 

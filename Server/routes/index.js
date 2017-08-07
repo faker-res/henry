@@ -15,6 +15,7 @@ var errorUtils = require("../modules/errorUtils.js");
 
 var env = require("../config/env").config();
 var emailer = require('../modules/emailer');
+var rsaCrypto = require("../modules/rsaCrypto");
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -283,8 +284,14 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
                 res.json({success: false, error: {name: "DataError", message: "No such platform"}});
                 return;
             }
-
-            return dbConfig.collection_players.findOne({platform: doc._id, phoneNumber: phoneNumber}).then(
+            let encryptPhoneNumber = phoneNumber;
+            try {
+                encryptPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+            }
+            catch (error) {
+                console.log(error);
+            }
+            return dbConfig.collection_players.findOne({platform: doc._id, phoneNumber: {$in: [encryptPhoneNumber, phoneNumber]}}).then(
                 function (playerData) {
                     res.json({success: true, loginname: playerData.name, phone: playerData.phoneNumber, createTime: playerData.registrationTime});
                 }
