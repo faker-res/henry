@@ -9208,7 +9208,7 @@ let dbPlayerInfo = {
             playerData => {
                 if( playerData ){
                     return dbconfig.collection_playerMail.find(
-                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false}
+                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
                     ).lean();
                 }
             }
