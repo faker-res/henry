@@ -98,7 +98,7 @@ const dbPlayerMail = {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             function (data) {
                 if (data) {
-                    return dbconfig.collection_playerMail.find({recipientId: data._id});
+                    return dbconfig.collection_playerMail.find({recipientId: data._id, bDelete: false});
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Player is not found"});
