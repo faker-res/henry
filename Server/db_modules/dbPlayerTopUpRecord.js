@@ -765,18 +765,19 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             isPlayerFirstTopUp => {
-                if (inputData.lastBankcardNo.length > 0 && fromFPMS) {
-                    let isCorrectBankAcc = player.bankCardGroup.banks.find((bankAcc) => {
-                        return inputData.lastBankcardNo == bankAcc.slice(-(inputData.lastBankcardNo.length));
-                    });
-                    if (!isCorrectBankAcc) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_TOP_UP_FAIL,
-                            name: "DataError",
-                            errorMessage: "Bank Account is not correct"
-                        });
-                    }
-                }
+                //disable bankaccount check for now
+                // if (inputData.lastBankcardNo.length > 0 && fromFPMS) {
+                //     let isCorrectBankAcc = player.bankCardGroup.banks.find((bankAcc) => {
+                //         return inputData.lastBankcardNo == bankAcc.slice(-(inputData.lastBankcardNo.length));
+                //     });
+                //     if (!isCorrectBankAcc) {
+                //         return Q.reject({
+                //             status: constServerCode.PLAYER_TOP_UP_FAIL,
+                //             name: "DataError",
+                //             errorMessage: "Bank Account is not correct"
+                //         });
+                //     }
+                // }
 
                 var minTopUpAmount;
                 if (isPlayerFirstTopUp) {
