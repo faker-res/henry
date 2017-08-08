@@ -736,9 +736,8 @@ function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
 }
 
 function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, playerId) {
-
     if (transferLogs && transferLogs.length <= 0) {
-        return [];
+        return Promise.resolve(false);
     }
 
     let completeCycle = false;
