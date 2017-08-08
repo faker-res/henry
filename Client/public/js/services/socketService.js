@@ -85,7 +85,7 @@ define([], function () {
             if (!$skt.connected) {
                 reconnectSocket();
                 // @consider: Rather than failing immediately, it may be preferable to queue the request until the reconnection succeeds, or until a timeout is reached.
-                servi.showErrorMessage($trans("Server can't be connected, please try again!"));
+                servi.showErrorMessage("Server can't be connected, please try again! 伺服器连接失败，请再度尝试！");
                 if (failFunc && typeof(failFunc) === 'function') {
                     return failFunc();
                 }
