@@ -1226,6 +1226,60 @@
     </div>
 </div>
 
+<h3>Get unread mail (获取未读站内信)</h3>
+
+<div class="test-container">
+    <div>
+        <button data-api-name="getUnreadMail">Get</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>Read mail (读站内信)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Mail ObjectId
+            <input type="text" name="mailObjId">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="readMail">Read</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>Delete mail (删除站内信)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Mail ObjectId
+            <input type="text" name="mailObjId">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="deleteMail">Delete</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>Empty mail (清空站内信)</h3>
+
+<div class="test-container">
+    <div>
+        <button data-api-name="deleteAllMail">Delete</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {

@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 
 var encrypt = require('./../modules/encrypt');
+var dbConfig = require('./../modules/dbproperties');
 var dbAdminInfo = require('./../db_modules/dbAdminInfo');
 var env = require('./../config/env');
 var jwtSecret = env.config().socketSecret;
@@ -14,6 +15,7 @@ var errorUtils = require("../modules/errorUtils.js");
 
 var env = require("../config/env").config();
 var emailer = require('../modules/emailer');
+var rsaCrypto = require("../modules/rsaCrypto");
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -256,6 +258,42 @@ router.post('/resetPassword', function (req, res, next) {
                 function () {
                     // NOTE: This is only secure if the socket is SSL encrypted.  The socket should be encrypted anyway for login.
                     res.json({success: true, username: doc.adminName, password: temporaryPassword, message: "Password reset, you may now log in."});
+                }
+            );
+        }
+    ).catch(
+        function (err) {
+            errorUtils.reportError(err);
+            res.json({success: false, error: {name: "UnexpectedError", message: String(err)}});
+        }
+    );
+});
+
+router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
+    let phoneNumber = req.body.phoneNumber;
+    let platformId = req.body.platformId;
+
+    if (!phoneNumber || !platformId) {
+        res.json({success: false, error: {name: "DataError", message: "Missing parameter: phoneNumber or platformId"}});
+        return;
+    }
+
+    dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        function (doc) {
+            if (!doc) {
+                res.json({success: false, error: {name: "DataError", message: "No such platform"}});
+                return;
+            }
+            let encryptPhoneNumber = phoneNumber;
+            try {
+                encryptPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+            }
+            catch (error) {
+                console.log(error);
+            }
+            return dbConfig.collection_players.findOne({platform: doc._id, phoneNumber: {$in: [encryptPhoneNumber, phoneNumber]}}).then(
+                function (playerData) {
+                    res.json({success: true, loginname: playerData.name, phone: playerData.phoneNumber, createTime: playerData.registrationTime});
                 }
             );
         }

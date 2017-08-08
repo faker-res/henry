@@ -40,7 +40,8 @@ define(['js/app'], function (myApp) {
             CANCEL: "Cancel",
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
-            AUTOAUDIT: "AutoAudit"
+            AUTOAUDIT: "AutoAudit",
+            RECOVER: "Recover"
         };
         vm.depositMethodList = {
             Online: 1,
@@ -141,6 +142,7 @@ define(['js/app'], function (myApp) {
 
         vm.resetFilter = function () {
             vm.queryProposalId = "";
+            $('#autoRefreshProposalFlag')[0].checked = true;
 
             vm.queryProposalIdUpdate();
 
@@ -236,6 +238,7 @@ define(['js/app'], function (myApp) {
             }
         }
         vm.getOneProposal = function (callback) {
+            $('#autoRefreshProposalFlag').attr('checked', false);
             socketService.$socket($scope.AppSocket, "getPlatformProposal", {
                 platformId: vm.allPlatformId,
                 proposalId: vm.queryProposalId
@@ -273,6 +276,10 @@ define(['js/app'], function (myApp) {
                 $("#datetimepicker2").data('datetimepicker').setLocalDate(utilService.getTodayEndTime());
                 vm.loadProposalQueryData(true);
             }
+        }
+        vm.searchProposalByQuery = function (newSearch){
+            $('#autoRefreshProposalFlag').attr('checked', false);
+            vm.loadProposalQueryData(newSearch);
         }
         vm.loadProposalQueryData = function (newSearch, callback) {
             var selectedStatus = [];
@@ -1876,8 +1883,9 @@ define(['js/app'], function (myApp) {
                         }
                     }, blinkFreq);
                     var countDown = -1;
-                    var a = setInterval(function () {
-                        var item = $('#autoRefreshProposalFlag');
+                    clearInterval(vm.refreshInterval);
+                    vm.refreshInterval = setInterval(function () {
+                        var item =$('#autoRefreshProposalFlag');
                         var isRefresh = item && item.length > 0 && item[0].checked;
                         var mark = $('#timeLeftRefreshOperation')[0];
                         $(mark).parent().toggleClass('hidden', countDown < 0);

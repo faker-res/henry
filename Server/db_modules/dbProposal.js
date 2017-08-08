@@ -421,7 +421,8 @@ var proposal = {
                     type = constPlayerTopUpType.WECHAT;
                 }
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING ||
-                    proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING) && proposalData.data && proposalData.data.requestId == requestId) {
+                    proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
+                    || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.requestId == requestId) {
                     return proposalData;
                 }
                 else {
@@ -494,7 +495,8 @@ var proposal = {
     updateBonusProposal: function (proposalId, status, bonusId, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
-                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING) && proposalData.data && proposalData.data.bonusId == bonusId) {
+                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING
+                    || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
                     return proposalData;
                 }
                 else {
@@ -525,7 +527,8 @@ var proposal = {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark);
                 } else if (status == constProposalStatus.PENDING
                     || status == constProposalStatus.PROCESSING
-                    || status == constProposalStatus.UNDETERMINED) {
+                    || status == constProposalStatus.UNDETERMINED
+                    || status == constProposalStatus.RECOVER) {
                     return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                         proposalData => {
                             proposalData.status = status;

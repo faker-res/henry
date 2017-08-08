@@ -42,6 +42,12 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                         text {{'SEND' | translate}} {{'FAIL' | translate}}
                 .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
                     text.text-danger.blink {{"Sending" | translate}}
+
+        .row
+            div.form-group.col-md-12
+                label.control-label {{"SMS Templates" | translate}}
+                    select.form-control(style='width:100%;resize:none',ng-change="vm.changeSMSTemplate()", ng-model='vm.smstpl' ng-options='a.type|translate for a in vm.smsTemplate')
+                        option(value="")
         .row
             div.form-group.col-md-12
                 label.control-label {{"CONTENT" | translate}}

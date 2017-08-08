@@ -22,9 +22,16 @@ define(['js/app'], function (myApp) {
             FORBID: 3,
             BALCKLIST: 4,
             ATTENTION: 5,
-            WARINESS: 6
+            CANCELS: 6,
+            CHEAT_NEW_ACCOUNT_REWARD: 7,
+            TOPUP_ATTENTION: 8,
+            HEDGING: 9,
+            TOPUP_BONUS_SPAM: 10,
+            MULTIPLE_ACCOUNT: 11,
+            BANNED: 12,
+            FORBID_ONLINE_TOPUP: 13
         };
-        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION','WARINESS'];
+        vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP'];
 
         ////////////////Mark::Platform functions//////////////////
         vm.updatePageTile = function () {

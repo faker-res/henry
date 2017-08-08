@@ -33,7 +33,7 @@
                     label {{"LAST_ACCESS_TIME_START" | translate}}
                     .accStart
                 .inlineBlk
-                    label {{"REGISTRATION_TIME_END" | translate}}
+                    label {{"LAST_ACCESS_TIME_END" | translate}}
                     .accEnd
                 .inlineBlk
                     label {{"REGISTRATION_TIME_START" | translate}}
@@ -41,6 +41,9 @@
                 .inlineBlk
                     label {{"REGISTRATION_TIME_END" | translate}}
                     .regEnd
+                .inlineBlk
+                    label {{"bankAccount" | translate}}
+                    input.form-control(ng-model='vm.sendMultiMessage.bankAccount', style='width: 180px;')
                 //.inlineBlk
                     label {{"Length Per Page" | translate}}
                     input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')
@@ -67,7 +70,7 @@
                     input.form-control(style='width:100%;resize:none', type='text', ng-model='vm.sendMultiMessage.messageTitle')
                 .tableCell(style='width:20%;')
             .tableRow
-                .tableCell(style='width:10%;')
+                .tableCell(style='width:15%;')
                     label {{"CONTENT" | translate}}:
                 .tableCell(style='min-width:60%')
                     div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
@@ -83,8 +86,10 @@
                         label {{"Current channel allow" | translate}}:
                         text.text-danger &nbsp;{{vm.sendMultiMessage.channelMaxChar}}
                         label &nbsp;{{"characters/message" | translate}}
-                    br
+                    div
                     textarea.form-control(style='width:100%;resize:none', rows='5', ng-model='vm.sendMultiMessage.messageContent', ng-change='vm.messagesChange()')
+
+
                 .tableCell(style='width:20%;', ng-show='!vm.toPhoneNumber')
                     //label {{"SENDMESSAGENOTE" | translate}}
                     div
@@ -114,6 +119,10 @@
                         button.btn.btn-primary.btn-sm(ng-click="vm.sendSingleMessages()", ng-disabled="vm.sendMultiMessage.singleSendDisable") {{vm.sendMultiMessage.singleBtnText | translate}}
                         label.margin-left-5.text-danger(ng-show='vm.sendMultiMessage.singleSendResultText') {{vm.sendMultiMessage.singleSendResultText | translate}}
 
-
-
-
+            .tableRow
+                .tableCell(style='width:15%;')
+                    label {{"SMS Templates" | translate}}:
+                .tableCell(style='min-width:75%;text-align:left')
+                    select.form-control(style='width:100%;resize:none',ng-click="vm.useSMSTemplate()", multiple="multiple" ng-model='vm.smsTplSelection' ng-options='a.type|translate for a in vm.smsTemplate')
+                .tableCell(style='width:20%;')
+                    div

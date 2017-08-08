@@ -452,6 +452,34 @@
         this.playerService.getMailList.once(callback);
     };
 
+    proto.deleteAllMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.playerService.deleteAllMail.request(data);
+        this.playerService.deleteAllMail.once(callback);
+    };
+
+    proto.readMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.playerService.readMail.request(data);
+        this.playerService.readMail.once(callback);
+    };
+
+    proto.deleteMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.playerService.deleteMail.request(data);
+        this.playerService.deleteMail.once(callback);
+    };
+
+    proto.getUnreadMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.playerService.getUnreadMail.request(data);
+        this.playerService.getUnreadMail.once(callback);
+    };
+
     proto.sendPlayerMailFromPlayerToPlayer = function(callback, requestData) {
         var data = requestData || {
                 recipientPlayerId: '4',

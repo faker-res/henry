@@ -1174,10 +1174,10 @@ include modalGameCreditLog
                         i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
                         img(ng-show='v.imgType=="img"', src='{{v.src}}')
                     td {{key | translate}}
-                    td.permitOn(ng-class='vm.permissionPlayer.permission[key] ? "":"hide"', class='{{key}}')
+                    td.permitOn(ng-class='vm.permissionPlayer.permission[key] === false  ? "hide":""', class='{{key}}')
                         i.fa.fa-toggle-on.text-primary.margin-right-5.togglePlayer(data-which='{{key}}', data-on=true)
                         a.text-primary.togglePlayer(data-which='{{key}}', data-on=true) {{"ON" | translate}}
-                    td.permitOff(ng-class='vm.permissionPlayer.permission[key] ? "hide":""', class='{{key}}')
+                    td.permitOff(ng-class='vm.permissionPlayer.permission[key] === false ? "":"hide"', class='{{key}}')
                         i.fa.fa-toggle-off.text-danger.margin-right-5.togglePlayer(data-which='{{key}}', data-on=false)
                         a.text-danger.togglePlayer(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
         .textareaDetail.margin-top-bottom-small
@@ -1337,106 +1337,24 @@ include modalGameCreditLog
                         select.form-control.apiAction(ng-model='vm.playerApiLog.apiAction')
                             option(value='') {{'ALL' | translate}}
                             option(value="player - create") {{"玩家开户" | translate}}
+                            option(value="login") {{"login" | translate}}
                             option(value="createPlayerPartner") {{"玩家+推广渠道开户" | translate}}
                             option(value="loginPlayerPartner") {{"玩家+推广渠道登录" | translate}}
-                            option(value="logout") {{"注销" | translate}}
-                            option(value="logoutPlayerPartner") {{"玩家+推广渠道注销" | translate}}
-                            option(value="isLogin") {{"查看是否已登录" | translate}}
-                            option(value="player - get") {{"获取玩家基本信息" | translate}}
-                            option(value="getPlayerPartner") {{"获取玩家+推广渠道基本信息" | translate}}
                             option(value="updatePaymentInfo") {{"修改玩家的支付信息" | translate}}
                             option(value="updatePlayerPartnerPaymentInfo") {{"修改玩家+推广渠道的支付信息" | translate}}
                             option(value="updatePassword") {{"修改玩家登录密码" | translate}}
                             option(value="updatePasswordPlayerPartner") {{"修改玩家+推广渠道登录密码" | translate}}
                             option(value="updateSmsSetting") {{"设置短信通知" | translate}}
-                            option(value="authenticate") {{"链接验证" | translate}}
-                            option(value="authenticatePlayerPartner") {{"玩家+推广渠道链接验证" | translate}}
-                            option(value="getMailList") {{"获取玩家站内信" | translate}}
-                            option(value="notifyNewMail") {{"通知玩家有新的站内信" | translate}}
-                            option(value="getCredit") {{"获取玩家额度" | translate}}
-                            option(value="getCreditInfo") {{"获取玩家额度信息" | translate}}
-                            option(value="getCreditBalance") {{"获取玩家全额消费" | translate}}
                             option(value="player - update") {{"修改玩家信息" | translate}}
                             option(value="updatePhotoUrl") {{"修改玩家头像" | translate}}
-                            option(value="getPlayerDayStatus") {{"获取玩家当天状态" | translate}}
-                            option(value="getPlayerWeekStatus") {{"获取玩家本周状态" | translate}}
-                            option(value="getPlayerMonthStatus") {{"获取玩家本月状态" | translate}}
-                            option(value="sendPlayerMailFromPlayerToPlayer") {{"发送站内信给另一玩家" | translate}}
-                            option(value="sendPlayerMailFromPlayerToAdmin") {{"发送站内信给管理员" | translate}}
-                            option(value="getPlatformDetails") {{"获取平台信息" | translate}}
-                            option(value="getPlatformAnnouncements") {{"获取平台公告" | translate}}
-                            option(value="getGameTypeList") {{"获取游戏类型列表" | translate}}
-                            option(value="getGameList") {{"获取游戏列表" | translate}}
-                            option(value="getProviderList") {{"获取内容提供商(CP)列表" | translate}}
-                            option(value="transferToProvider") {{"将本地额度转出到CP账号的游戏额度" | translate}}
-                            option(value="transferFromProvider") {{"将游戏额度从CP账号转入到本地额度" | translate}}
-                            option(value="getLoginURL") {{"获取登录游戏的URL" | translate}}
-                            option(value="getTestLoginURL") {{"获取试玩游戏的URL" | translate}}
-                            option(value="getTestLoginURLWithOutUser") {{"获取试玩游戏的URL" | translate}}
-                            option(value="getGameUserInfo") {{"获取玩家游戏中的账户信息" | translate}}
+                            option(value="getLoginURL") {{"登陆游戏" | translate}}
                             option(value="modifyGamePassword") {{"修改游戏密码" | translate}}
-                            option(value="grabPlayerTransferRecords") {{"请求立即收录玩家的消费记录" | translate}}
-                            option(value="addFavoriteGame") {{"收藏游戏" | translate}}
-                            option(value="removeFavoriteGame") {{"删除收藏游戏" | translate}}
-                            option(value="getFavoriteGames") {{"获取收藏游戏" | translate}}
-                            option(value="getGameGroupList") {{"获取游戏分组列表" | translate}}
-                            option(value="getGameGroupInfo") {{"获取游戏分组信息" | translate}}
-                            option(value="getGameGroupTreeInfo") {{"获取游戏分组树信息" | translate}}
-                            option(value="searchGame") {{"查询游戏" | translate}}
-                            option(value="getProviderDetailList") {{"获取内容提供商详细(CP)列表" | translate}}
-                            option(value="getProviderStatus") {{"查询内容提供商(CP)状态" | translate}}
-                            option(value="notifyProviderStatusUpdate") {{"通知内容提供商状态更新" | translate}}
-                            option(value="getGameProviderCredit") {{"获取游戏提供商额度" | translate}}
-                            option(value="getTransferProgress") {{"获取额度转让进度" | translate}}
-                            option(value="searchGameByGroup") {{"根据游戏组查询游戏" | translate}}
-                            option(value="getGamePassword") {{"获取游戏密码" | translate}}
                             option(value="topUpIntention - add") {{"添加充值意向" | translate}}
                             option(value="topUpIntention - update") {{"修改充值意向" | translate}}
-                            option(value="getLastConsumptions") {{"获取最近消费记录" | translate}}
-                            option(value="consumption - search") {{"查询消费记录" | translate}}
-                            option(value="getLevel") {{"获取玩家等级" | translate}}
-                            option(value="getLevelReward") {{"获取等级优惠信息" | translate}}
-                            option(value="getAllLevel") {{"获取所有等级" | translate}}
-                            option(value="getRewardList") {{"获取奖励活动列表" | translate}}
-                            option(value="getRewardTask") {{"获取玩家奖励任务" | translate}}
                             option(value="requestConsumeRebate") {{"申请结算消费返点" | translate}}
-                            option(value="isValidForFirstTopUpReward") {{"是否符合首冲奖励条件" | translate}}
                             option(value="createFirstTopUpRewardProposal") {{"创建首冲奖励提案" | translate}}
                             option(value="applyProviderReward") {{"申请游戏提供商奖励" | translate}}
-                            option(value="getPlayerRewardList") {{"获取玩家奖励活动申请列表" | translate}}
-                            option(value="getConsumeRebateAmount") {{"获取消费返点额度" | translate}}
                             option(value="applyRewardEvent") {{"申请奖励活动" | translate}}
-                            option(value="getPlayerReferralList") {{"获取推荐玩家列表" | translate}}
-                            option(value="getConsecutiveLoginRewardDay") {{"获取玩家登陆累计天数" | translate}}
-                            option(value="applyBonus") {{"申请兑奖" | translate}}
-                            option(value="getBonusRequestList") {{"获取申请兑奖列表" | translate}}
-                            option(value="cancelBonusRequest") {{"取消申请兑奖" | translate}}
-                            option(value="getBonusList") {{"获取奖品列表" | translate}}
-                            option(value="getOnlineTopupType") {{"获取在线充值类型" | translate}}
-                            option(value="createOnlineTopupProposal") {{"在线充值" | translate}}
-                            option(value="requestManualTopup") {{"手工充值" | translate}}
-                            option(value="cancelManualTopupRequest") {{"取消手工充值" | translate}}
-                            option(value="delayManualTopupRequest") {{"延迟手工充值" | translate}}
-                            option(value="modifyManualTopupRequest") {{"更改手工充值" | translate}}
-                            option(value="getManualTopupRequestList") {{"获取手工充值申请列表" | translate}}
-                            option(value="manualTopupStatusNotify") {{"手工充值状态通知" | translate}}
-                            option(value="onlineTopupStatusNotify") {{"在线充值状态通知" | translate}}
-                            option(value="getTopupList") {{"充值记录列表" | translate}}
-                            option(value="getTopupHistory") {{"充值历史" | translate}}
-                            option(value="getProvinceList") {{"获取省份列表" | translate}}
-                            option(value="getCityList") {{"获取市列表" | translate}}
-                            option(value="getDistrictList") {{"获取区县列表" | translate}}
-                            option(value="getBankTypeList") {{"获取银行卡类型列表" | translate}}
-                            option(value="checkExpiredManualTopup") {{"手工订单超时后的再次确认请求" | translate}}
-                            option(value="getValidFirstTopUpRecordList") {{"获取符合首冲条件的充值记录" | translate}}
-                            option(value="getValidTopUpReturnRecordList") {{"获取符合充值返点的充值记录" | translate}}
-                            option(value="getValidTopUpRewardRecordList") {{"获取符合充值奖励的充值记录" | translate}}
-                            option(value="requestAlipayTopup") {{"支付宝充值" | translate}}
-                            option(value="cancelAlipayTopup") {{"取消支付宝充值" | translate}}
-                            option(value="getAlipayTopupRequestList") {{"获取手工充值申请列表" | translate}}
-                            option(value="requestWechatTopup") {{"微信充值" | translate}}
-                            option(value="cancelWechatTopup") {{"取消微信充值" | translate}}
-                            option(value="getPlayerWechatPayStatus") {{"微信充值状态" | translate}}
                     button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
                 div
                     label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
@@ -1808,7 +1726,10 @@ include modalGameCreditLog
                     label.text-danger {{'FAIL' | translate}}
                     label.form-control {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
             .modal-footer
+                label.text-success(ng-show="vm.applyXM") {{'Apply Player Consumption Return InProgress' | translate}}
+
                 button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult && vm.playerApplyRewardShow.manualSignConsecutiveLogin", ng-click='vm.applyPreviousConsecutiveLoginReward()') {{"PREVIOUS_CONSECUTIVE_LOGIN" | translate}}
+
                 button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult",ng-disabled='form_player_reward.$invalid || form_player_reward.$pristine || !vm.playerApplyRewardPara.code || (vm.playerApplyRewardShow.showReferral && !vm.playerApplyRewardPara.referPlayer)', ng-click='vm.applyPlayerReward()') {{'APPLY' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
 
@@ -2025,6 +1946,9 @@ include modalGameCreditLog
                 .panel.panel-primary
                     .panel-body
                         #platformCreditTransferLog.adminLogQueryDiv
+                            .inlineBlk
+                                label {{ 'playerName' | translate }}
+                                input.form-control(ng-model='vm.queryPlatformCreditTransferPlayerName')
                             .inlineBlk
                                 label {{ 'START_DATE' | translate }}
                                 .startTime

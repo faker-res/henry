@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, $route, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
+angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter) {
     //todo::disable console log for production
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
@@ -92,7 +92,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             });
 
             //console.log("route reload!");
-            //$route.reload();
+            //$state.reload();
 
             $scope.checkForExpiredPassword();
         }).on('disconnect', function () {
@@ -114,7 +114,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
 
         $scope.AppSocket.on('PermissionUpdate', function () {
             console.log("PermissionUpdate event");
-            authService.updateRoleDataFromServer($scope, $cookies, $route);
+            authService.updateRoleDataFromServer($scope, $cookies, $state);
         });
 
         // 6 seconds interval to poll server status and ping
@@ -363,7 +363,15 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         2: "FORBID_GAME",
         3: "FORBID",
         4: "BALCKLIST",
-        5: "ATTENTION"
+        5: "ATTENTION",
+        6: "CANCELS",
+        7: "CHEAT_NEW_ACCOUNT_REWARD",
+        8: "TOPUP_ATTENTION",
+        9: "HEDGING",
+        10: "TOPUP_BONUS_SPAM",
+        11: "MULTIPLE_ACCOUNT",
+        12: "BANNED",
+        13: "FORBID_ONLINE_TOPUP"
     };
 
     $scope.constPartnerStatus = {
@@ -476,6 +484,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         $scope.phoneCall.toText = data.toText;
         $scope.phoneCall.platform = data.platform;
         $scope.phoneCall.phone = data.phone;
+        $scope.phoneCall.username = data.toText;
         $scope.getNewPhoneCaptha();
     }
     $scope.makePhoneCall = function () {
@@ -502,7 +511,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             let firstLevelMd5 = convertToMD5(adminData.callerId + "");
             let password = convertToMD5(firstLevelMd5 + formattedNow);
             //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
-            let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+            let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
 
             $.ajax({
                 url: urlWithParams,

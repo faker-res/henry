@@ -227,7 +227,11 @@ var proposalExecutor = {
                     var usedRecords = [];
                     if (proposalData && proposalData.data) {
                         if (proposalData.data.topUpRecordIds) {
-                            usedRecords = proposalData.data.topUpRecordIds;
+                            if(proposalData.data.topUpRecordIds.constructor === Array) {
+                                usedRecords = proposalData.data.topUpRecordIds;
+                            } else {
+                                usedRecords.push(proposalData.data.topUpRecordIds);
+                            }
                         }
                         if (proposalData.data.topUpRecordId) {
                             usedRecords.push(proposalData.data.topUpRecordId);
@@ -1862,57 +1866,57 @@ var proposalExecutor = {
              * reject function for partner consumption return reward
              */
             rejectPlayerConsumptionReturn: function (proposalData, deferred) {
-                deferred.resolve("Proposal is rejected");
-                //
-                // //clean record or reset amount
-                // if (proposalData && proposalData.data && proposalData.data.summaryIds) {
-                //     dbconfig.collection_playerConsumptionSummary.find(
-                //         {_id: {$in: proposalData.data.summaryIds}}
-                //     ).lean().then(
-                //         summaryRecords => {
-                //             if (summaryRecords && summaryRecords.length > 0) {
-                //                 var summaryProms = summaryRecords.map(
-                //                     summary => {
-                //                         dbconfig.collection_playerConsumptionSummary.findOne({
-                //                             platformId: summary.platformId,
-                //                             playerId: summary.playerId,
-                //                             gameType: summary.gameType,
-                //                             summaryDay: summary.summaryDay,
-                //                             bDirty: false
-                //                         }).then(
-                //                             cleanRecord => {
-                //                                 if (cleanRecord) {
-                //                                     //recover amount
-                //                                     cleanRecord.amount = cleanRecord.amount + summary.amount;
-                //                                     cleanRecord.validAmount = cleanRecord.validAmount + summary.validAmount;
-                //                                     return cleanRecord.save().then(
-                //                                         () => dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id})
-                //                                     );
-                //                                 }
-                //                                 else {
-                //                                     //clean record
-                //                                     return dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id}).then(
-                //                                         () => {
-                //                                             summary.bDirty = false;
-                //                                             var newCleanRecord = new dbconfig.collection_playerConsumptionSummary(summary);
-                //                                             return newCleanRecord.save();
-                //                                         }
-                //                                     );
-                //                                 }
-                //                             }
-                //                         );
-                //                     }
-                //                 );
-                //                 return Q.all(summaryProms);
-                //             }
-                //         }
-                //     ).then(
-                //         () => deferred.resolve("Proposal is rejected")
-                //     );
-                // }
-                // else {
-                //     deferred.resolve("Proposal is rejected");
-                // }
+                // deferred.resolve("Proposal is rejected");
+
+                //clean record or reset amount
+                if (proposalData && proposalData.data && proposalData.data.summaryIds) {
+                    dbconfig.collection_playerConsumptionSummary.find(
+                        {_id: {$in: proposalData.data.summaryIds}}
+                    ).lean().then(
+                        summaryRecords => {
+                            if (summaryRecords && summaryRecords.length > 0) {
+                                var summaryProms = summaryRecords.map(
+                                    summary => {
+                                        dbconfig.collection_playerConsumptionSummary.findOne({
+                                            platformId: summary.platformId,
+                                            playerId: summary.playerId,
+                                            gameType: summary.gameType,
+                                            summaryDay: summary.summaryDay,
+                                            bDirty: false
+                                        }).then(
+                                            cleanRecord => {
+                                                if (cleanRecord) {
+                                                    //recover amount
+                                                    cleanRecord.amount = cleanRecord.amount + summary.amount;
+                                                    cleanRecord.validAmount = cleanRecord.validAmount + summary.validAmount;
+                                                    return cleanRecord.save().then(
+                                                        () => dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id})
+                                                    );
+                                                }
+                                                else {
+                                                    //clean record
+                                                    return dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id}).then(
+                                                        () => {
+                                                            summary.bDirty = false;
+                                                            var newCleanRecord = new dbconfig.collection_playerConsumptionSummary(summary);
+                                                            return newCleanRecord.save();
+                                                        }
+                                                    );
+                                                }
+                                            }
+                                        );
+                                    }
+                                );
+                                return Q.all(summaryProms);
+                            }
+                        }
+                    ).then(
+                        () => deferred.resolve("Proposal is rejected")
+                    );
+                }
+                else {
+                    deferred.resolve("Proposal is rejected");
+                }
             },
 
             /**

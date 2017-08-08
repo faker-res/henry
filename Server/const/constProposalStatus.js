@@ -12,7 +12,8 @@ const constProposalStatus = {
     FAIL: "Fail",
     CANCEL: "Cancel",
     EXPIRED: "Expired",
-    UNDETERMINED: "Undetermined"
+    UNDETERMINED: "Undetermined",
+    RECOVER: "Recover"
 };
 
 module.exports = constProposalStatus;
