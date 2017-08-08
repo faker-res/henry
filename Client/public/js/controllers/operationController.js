@@ -762,6 +762,15 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
+                        "title": $translate('topupType'),
+                        "data": "data.topupType",
+                        render: function (data, type, row) {
+                            let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
+                            return "<div>" + text + "</div>";
+                        },
+                        bSortable: true
+                    },
+                    {
                         "title": $translate('PRIORITY'),
                         "data": "priority$"
                     },
