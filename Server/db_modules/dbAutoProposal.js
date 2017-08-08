@@ -119,6 +119,7 @@ function checkProposalConsumption(proposal, platformObj) {
         }
     ).then(
         lastWithdrawDate => {
+            // settleTime of last withdraw proposal
             bFirstWithdraw = !lastWithdrawDate;
 
             let proposalQuery = {
@@ -188,9 +189,6 @@ function checkProposalConsumption(proposal, platformObj) {
                     initialAmount = transferInRec[0].amount;
                 }
 
-                // DEBUG LOG
-                console.log('initialAmount', initialAmount);
-
                 let transferLogs = data[1];
                 let creditChangeLogs = data[4];
                 return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
@@ -211,9 +209,6 @@ function checkProposalConsumption(proposal, platformObj) {
         }
     ).then(
         data => {
-            // Debug log - Abnormal before calculate consumption
-            console.log('abnormalMessage:', abnormalMessage);
-
             let proposals, allProposals, playerData;
             let bNoBonusPermission = false;
             let bPendingPaymentInfo = false;
@@ -363,14 +358,8 @@ function checkProposalConsumption(proposal, platformObj) {
                 }
             }
 
-            // DEBUG LOG
-            console.log('countProposals', countProposals);
-
             Promise.all(proms).then(
                 () => {
-                    // DEBUG LOG
-                    console.log('checkResult.length', checkResult.length);
-
                     let isClearCycle = false;
                     let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
@@ -403,17 +392,15 @@ function checkProposalConsumption(proposal, platformObj) {
                             bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
                         }
 
-                        //if (validConsumptionAmount != 0) {
                         // Check consumption for each cycle
-                        // User lost all bonus amount
                         if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
+                            // User lost all bonus amount
                             isApprove = true;
                             isClearCycle = true;
-                            // checkMsg += "All reward lost at " + checkResult[i].proposalId + ": Initial Reward " + initBonusAmount + ", Deficit " + bonusAmount + "; ";
-                            // checkMsgChinese += "所有奖励输光与提案 " + checkResult[i].proposalId + " ：初始奖励额度 " + initBonusAmount + " ，盈余 " + bonusAmount + "; ";
                         }
                         else if (validConsumptionAmount + lostThreshold < spendingAmount) {
                             isApprove = false;
+                            isClearCycle = false;
                             if (checkMsg == "") {
                                 checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
                                 checkMsgChinese += "提案 " + checkResult[i].proposalId + "：流水 " + validConsumptionAmount + " ，所需流水 " + spendingAmount + "; ";
@@ -425,12 +412,6 @@ function checkProposalConsumption(proposal, platformObj) {
                             isApprove = true;
                             isClearCycle = true;
                         }
-                        // }
-                        // else {
-                        //     // No consumption at this cycle, not approved
-                        //     isApprove = false;
-                        //     checkMsg += "No consumption for proposal " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                        // }
 
                         // Sum up bonus amount for overall profit calculation
                         totalBonusAmount += checkResult[i].bonusAmount;
@@ -504,9 +485,6 @@ function checkProposalConsumption(proposal, platformObj) {
                         canApprove = false;
                         // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
-
-                    // DEBUG LOG
-                    console.log('isApprove', isApprove);
 
                     // Check consumption approved or not
                     if (isApprove || isTypeEApproval) {
