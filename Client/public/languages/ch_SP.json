@@ -1936,12 +1936,15 @@
   "CONSUMPTION_PARTICIPANT": "参与投注人数",
   "COMPANY_EARNING_RATIO": "公司获利比例",
   "PLAYER_PROFIT_AMOUNT": "输赢金额",
+<<<<<<< HEAD
 
   "Monitor": "监控",
   "MONITOR": "监控",
   "PAYMENT_MONITOR": "支付监控",
   "Payment Monitor": "支付监控",
 
+=======
+>>>>>>> upstream/develop-1.1
   "player - create": "玩家开户",
   "createPlayerPartner": "玩家+推广渠道开户",
   "loginPlayerPartner": "玩家+推广渠道登录",
