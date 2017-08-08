@@ -906,7 +906,7 @@ let PlayerServiceImplement = function () {
 
     this.deleteAllMail.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.deleteAllMail, [conn.playerId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.deleteAllMail, [conn.playerId, data.hasBeenRead], isValidData, false, false, true);
     };
 
     this.deleteMail.onRequest = function (wsFunc, conn, data) {
