@@ -1251,7 +1251,8 @@ var proposalExecutor = {
                             bankAddress: player.bankAddress || "",
                             bankName: player.bankName || "",
                             phone: decryptedPhoneNo || "",
-                            email: player.email || ""
+                            email: player.email || "",
+                            loginName: player.name || ""
                         };
                         //console.log("bonus_applyBonus", message);
                         return pmsAPI.bonus_applyBonus(message).then(

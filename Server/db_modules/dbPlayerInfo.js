@@ -9215,12 +9215,16 @@ let dbPlayerInfo = {
         );
     },
 
-    deleteAllMail: (playerId) => {
+    deleteAllMail: (playerId, hasBeenRead) => {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             playerData => {
                 if( playerData ) {
+                    let qObj = {recipientId: playerData._id, bDelete: false};
+                    if(hasBeenRead !== undefined){
+                        qObj.hasBeenRead = Boolean(hasBeenRead);
+                    }
                     return dbconfig.collection_playerMail.update(
-                        {recipientId: playerData._id, bDelete: false},
+                        qObj,
                         {bDelete: true}
                     );
                 }

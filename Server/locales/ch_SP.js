@@ -138,7 +138,7 @@ var simplifiedChinese = {
     "Top up amount is not enough": "充值额度不够",
     "Player has too much valid credit": "玩家额度过多",
     "Player has applied for this reward": "玩家已申请过该奖励",
-    "Amount is not enough": "申请提款数量过少",
+    "Amount is not enough": "提款金额必须大于100元",
     "This proposal has been processed": "该提案已在处理中",
     "Invalid player bankcard group data": "玩家无可支付的银行卡",
     "Player does not have online topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",

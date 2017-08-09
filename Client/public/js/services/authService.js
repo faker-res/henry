@@ -186,7 +186,7 @@ define([], function () {
 
             var socketAction = actionName;
             var roles = self.roleData;
-            var aclForAction = self.allActions[socketAction];
+            var aclForAction = self.allActions ? self.allActions[socketAction] : null;
 
             // The following code is cloned from roleChecker.isValid():
 
