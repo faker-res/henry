@@ -319,7 +319,13 @@ function checkProposalConsumption(proposal, platformObj) {
                                     getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo)).then(
                                         record => {
                                             let curConsumption = 0, bonusAmount = 0;
-                                            let initBonusAmount = getProp.data.applyAmount + getProp.data.rewardAmount;
+                                            let initBonusAmount = 0;
+
+                                            if (getProp.type.executionType == "executePlayerTopUpReturn") {
+                                                initBonusAmount = getProp.data.rewardAmount;
+                                            } else {
+                                                initBonusAmount = getProp.data.applyAmount + getProp.data.rewardAmount;
+                                            }
 
                                             if (record && record[0]) {
                                                 curConsumption = record[0].validAmount;
@@ -439,51 +445,37 @@ function checkProposalConsumption(proposal, platformObj) {
                         checkMsg += " Denied: Single limit;";
                         checkMsgChinese += " 失败：单限;";
                         canApprove = false;
-                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
                         checkMsg += " Denied: Daily limit;";
                         checkMsgChinese += " 失败：日限;";
                         canApprove = false;
-                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
-                    if (proposal.data.playerStatus !== constPlayerStatus.NORMAL) {
+                    if (proposal.data.playerStatus !== constPlayerStatus.NORMAL || bNoBonusPermission) {
                         checkMsg += " Denied: Not allowed;";
                         checkMsgChinese += " 失败：禁提;";
                         canApprove = false;
-                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (bFirstWithdraw) {
                         checkMsg += " Denied: First withdrawal;";
                         checkMsgChinese += " 失败：首提;";
                         canApprove = false;
-                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (bTransferAbnormal) {
                         checkMsg += ' Denied: Abnormal Transfer;';
                         checkMsgChinese += ' 失败：转账异常;';
                         canApprove = false;
-                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
-                    }
-                    if (bNoBonusPermission) {
-                        checkMsg += ' Denied: No permission;';
-                        checkMsgChinese += ' 失败：无权限;';
-                        canApprove = false;
-                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
                     if (bPendingPaymentInfo) {
                         checkMsg += ' Denied: Rebank;';
                         checkMsgChinese += ' 失败：银改;';
                         canApprove = false;
-                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
-
                     if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
                         && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
                         checkMsg += ' Denied: Max profit times;';
                         checkMsgChinese += ' 失败：盈利十倍;';
                         canApprove = false;
-                        // sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
                     }
 
                     // Check consumption approved or not
