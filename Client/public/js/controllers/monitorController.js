@@ -67,14 +67,14 @@ define(['js/app'], function (myApp) {
         };
 
         vm.selectStoredPlatform = function () {
-            if (vm.platformList.length == 0) return;
+            if (vm.platformList.length === 0) return;
             let storedPlatform = $cookies.get("platform");
             let selectedPlatform = {};
 
             if (storedPlatform) {
                 vm.platformList.forEach(
                     platform => {
-                        if (platform.name == storedPlatform) {
+                        if (platform.name === storedPlatform) {
                             selectedPlatform = platform;
                         }
                     }
@@ -118,7 +118,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getProposalTypeOptionValue = function (proposalType) {
-            var result = utilService.getProposalGroupValue(proposalType);
+            let result = utilService.getProposalGroupValue(proposalType);
             return $translate(result);
         };
 
@@ -157,6 +157,21 @@ define(['js/app'], function (myApp) {
                 case 'PAYMENT_MONITOR':
                     vm.pageName = "Payment Monitor";
                     vm.preparePaymentMonitorPage();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     // todo :: do something
                     break;
                 default:
@@ -178,7 +193,7 @@ define(['js/app'], function (myApp) {
             );
 
             utilService.actionAfterLoaded("#paymentMonitorTablePage", function () {
-                vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery')
+                vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
                 vm.paymentMonitorQuery.merchantType = null;
                 // vm.paymentMonitorQuery.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
                 //     vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorQuery", vm.searchTopupRecord)
@@ -188,16 +203,72 @@ define(['js/app'], function (myApp) {
 
         };
 
+        // TODO:: work in progress
+        // vm.getPaymentMonitorRecord = function (isNewSearch) {
+        //     vm.paymentMonitorQuery.platformId = vm.curPlatformId;
+        //     $('#paymentMonitorTableSpin').show();
+        //
+        //     let sendObj = {
+        //         startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
+        //         endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
+        //         platformId: vm.paymentMonitorQuery.platformId,
+        //         orderId: vm.paymentMonitorQuery.orderId,
+        //         mainTopupType: vm.paymentMonitorQuery.mainTopupType,
+        //         topupType: vm.paymentMonitorQuery.topupType,
+        //         depositMethod: vm.paymentMonitorQuery.depositMethod,
+        //         merchantGroup: angular.fromJson(angular.toJson(vm.paymentMonitorQuery.merchantGroup)),
+        //         playerName: vm.paymentMonitorQuery.playerName,
+        //         index: newSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
+        //         limit: vm.paymentMonitorQuery.limit || 10,
+        //         sortCol: vm.paymentMonitorQuery.sortCol
+        //     };
+        //
+        //     vm.paymentMonitorQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo : null;
+        //
+        //     socketService.$socket($scope.AppSocket, 'getPaymentMonitorResult', sendObj, function (data) {
+        //         $('#paymentMonitorTableSpin').hide();
+        //         console.log('Payment Monitor Result', data);
+        //         vm.paymentMonitorQuery.totalCount = data.data.size;
+        //         $scope.safeApply();
+        //         vm.drawTopupReport(
+        //             data.data.data.map(item => {
+        //                 item.amount$ = parseFloat(item.data.amount).toFixed(2);
+        //                 item.status$ = $translate(item.status);
+        //                 item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
+        //                 if (item.type.name == 'PlayerTopUp') {
+        //                     //show detail topup type info for online topup.
+        //                     let typeID = item.data.topUpType || item.data.topupType
+        //                     item.topupTypeStr = typeID
+        //                         ? $translate(vm.topupTypeJson[typeID])
+        //                         : $translate("Unknown")
+        //                 } else {
+        //                     //show topup type for other types
+        //                     item.topupTypeStr = $translate(item.type.name)
+        //                 }
+        //                 item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+        //                 item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime);
+        //
+        //                 return item;
+        //             }), data.data.size, {amount: data.data.total}, newSearch
+        //         );
+        //     }, function (err) {
+        //         console.log(err);
+        //     }, true);
+        //
+        // };
+        //
+        // vm.drawPaymentRecordTable
+
         vm.commonInitTime = function (obj, queryId) {
             if (!obj) return;
             obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
-            var lastMonth = utilService.setNDaysAgo(new Date(), 1);
-            var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
+            let lastMonth = utilService.setNDaysAgo(new Date(), 1);
+            let lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
             obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
 
             obj.endTime = utilService.createDatePicker(queryId + ' .endTime');
             obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayEndTime()));
-        }
+        };
 
 
 
@@ -234,7 +305,7 @@ define(['js/app'], function (myApp) {
             let merchantGroupNames = {};
 
             merchants.forEach(item => {
-                if (item.status != 'DISABLED') {
+                if (item.status !== 'DISABLED') {
                     merchantGroupList[item.merchantTypeId] = merchantGroupList[item.merchantTypeId] || {list: []};
                     merchantGroupList[item.merchantTypeId].list.push(item.merchantNo);
                 }
