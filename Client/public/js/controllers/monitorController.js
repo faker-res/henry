@@ -204,60 +204,132 @@ define(['js/app'], function (myApp) {
         };
 
         // TODO:: work in progress
-        // vm.getPaymentMonitorRecord = function (isNewSearch) {
-        //     vm.paymentMonitorQuery.platformId = vm.curPlatformId;
-        //     $('#paymentMonitorTableSpin').show();
-        //
-        //     let sendObj = {
-        //         startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
-        //         endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
-        //         platformId: vm.paymentMonitorQuery.platformId,
-        //         orderId: vm.paymentMonitorQuery.orderId,
-        //         mainTopupType: vm.paymentMonitorQuery.mainTopupType,
-        //         topupType: vm.paymentMonitorQuery.topupType,
-        //         depositMethod: vm.paymentMonitorQuery.depositMethod,
-        //         merchantGroup: angular.fromJson(angular.toJson(vm.paymentMonitorQuery.merchantGroup)),
-        //         playerName: vm.paymentMonitorQuery.playerName,
-        //         index: newSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
-        //         limit: vm.paymentMonitorQuery.limit || 10,
-        //         sortCol: vm.paymentMonitorQuery.sortCol
-        //     };
-        //
-        //     vm.paymentMonitorQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo : null;
-        //
-        //     socketService.$socket($scope.AppSocket, 'getPaymentMonitorResult', sendObj, function (data) {
-        //         $('#paymentMonitorTableSpin').hide();
-        //         console.log('Payment Monitor Result', data);
-        //         vm.paymentMonitorQuery.totalCount = data.data.size;
-        //         $scope.safeApply();
-        //         vm.drawTopupReport(
-        //             data.data.data.map(item => {
-        //                 item.amount$ = parseFloat(item.data.amount).toFixed(2);
-        //                 item.status$ = $translate(item.status);
-        //                 item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
-        //                 if (item.type.name == 'PlayerTopUp') {
-        //                     //show detail topup type info for online topup.
-        //                     let typeID = item.data.topUpType || item.data.topupType
-        //                     item.topupTypeStr = typeID
-        //                         ? $translate(vm.topupTypeJson[typeID])
-        //                         : $translate("Unknown")
-        //                 } else {
-        //                     //show topup type for other types
-        //                     item.topupTypeStr = $translate(item.type.name)
-        //                 }
-        //                 item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-        //                 item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime);
-        //
-        //                 return item;
-        //             }), data.data.size, {amount: data.data.total}, newSearch
-        //         );
-        //     }, function (err) {
-        //         console.log(err);
-        //     }, true);
-        //
-        // };
-        //
-        // vm.drawPaymentRecordTable
+        vm.getPaymentMonitorRecord = function (isNewSearch) {
+            vm.paymentMonitorQuery.platformId = vm.curPlatformId;
+            $('#paymentMonitorTableSpin').show();
+
+            let sendObj = {
+                startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
+                platformId: vm.paymentMonitorQuery.platformId,
+                orderId: vm.paymentMonitorQuery.orderId,
+                mainTopupType: vm.paymentMonitorQuery.mainTopupType,
+                topupType: vm.paymentMonitorQuery.topupType,
+                depositMethod: vm.paymentMonitorQuery.depositMethod,
+                merchantGroup: angular.fromJson(angular.toJson(vm.paymentMonitorQuery.merchantGroup)),
+                playerName: vm.paymentMonitorQuery.playerName,
+                index: newSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
+                limit: vm.paymentMonitorQuery.limit || 10,
+                sortCol: vm.paymentMonitorQuery.sortCol
+            };
+
+            vm.paymentMonitorQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo : null;
+
+            socketService.$socket($scope.AppSocket, 'getPaymentMonitorResult', sendObj, function (data) {
+                $('#paymentMonitorTableSpin').hide();
+                console.log('Payment Monitor Result', data);
+                vm.paymentMonitorQuery.totalCount = data.data.size;
+                $scope.safeApply();
+                vm.drawPaymentRecordTable(
+                    data.data.data.map(item => {
+                        item.proposalId$ = item.proposalId.slice(-3);
+                        item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                        item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                        item.status$ = $translate(item.status);
+                        item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
+                        if (item.type.name == 'PlayerTopUp') {
+                            //show detail topup type info for online topup.
+                            let typeID = item.data.topUpType || item.data.topupType;
+                            item.topupTypeStr = typeID
+                                ? $translate(vm.topupTypeJson[typeID])
+                                : $translate("Unknown")
+                        } else {
+                            //show topup type for other types
+                            item.topupTypeStr = $translate(item.type.name)
+                        }
+                        item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime);
+
+                        return item;
+                    }), data.data.size, {amount: data.data.total}, isNewSearch
+                );
+            }, function (err) {
+                console.log(err);
+            }, true);
+
+        };
+
+        vm.drawPaymentRecordTable  = function (data, size, summary, newSearch) {
+            console.log('data', data);
+            let tableOptions = {
+                data: data,
+                "order": vm.queryTopup.aaSorting || [[0, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                    // {'sortCol': 'data.amount', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('proposalId'), data: 'proposalId$'},
+                    {title: $translate('Merchant No'), data: "merchantName"},
+                    {title: $translate('count'), data: "merchantCount$", sClass:'merchantCount'},
+
+
+
+                    {title: $translate('proposalId'), data: 'proposalId$'},
+                    {title: $translate('DINGDAN_ID'), data: "data.requestId"},
+                    // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
+                    {title: $translate('STATUS'), data: "status$"},
+                    // {title: $translate('ISNEWPLAYER'), data: null},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName"},
+                    {title: $translate('realName'), data: "data.playerObjId.realName", sClass: "sumText"},
+                    // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
+                    {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
+                    {title: $translate('Topup Type'), data: "topupTypeStr"},
+                    // {title: $translate('IP'), data: null},
+                    {title: $translate('START_TIME'), data: "startTime$"},
+                    {title: $translate('END_TIME'), data: "endTime$"},
+                    // {title: $translate('END_TIME'), data: null},
+                    // {title: $translate('REMARK'), data: null},
+                ],
+                "paging": false,
+                // dom: 'RZrtlp',
+                // fnDrawCallback: function (oSettings) {
+                //     var container = oSettings.nTable;
+                //     utilService.setupPopover({
+                //         context: container,
+                //         elem: '.telPopover',
+                //         content: function () {
+                //             vm.telphonePlayer = JSON.parse(this.dataset.row);
+                //             $scope.safeApply();
+                //             return $('#telPopover').html();
+                //         },
+                //         callback: function () {
+                //             $("button.playerMessage").on('click', function () {
+                //                 console.log('message', this);
+                //                 alert("will send message to " + vm.telphonePlayer.name);
+                //             });
+                //             $("button.playerTelephone").on('click', function () {
+                //                 alert("will call " + vm.telphonePlayer.name);
+                //             });
+                //         }
+                //     });
+                // },
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            // vm.topupTable = $('#topupTable').DataTable(tableOptions);
+
+            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
+
+            vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
+
+            $('#topupTable').off('order.dt');
+            $('#topupTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'queryTopup', vm.searchTopupRecord);
+            });
+            $('#topupTable').resize();
+        };
 
         vm.commonInitTime = function (obj, queryId) {
             if (!obj) return;
