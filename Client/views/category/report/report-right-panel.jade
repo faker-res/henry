@@ -23,7 +23,7 @@
                     select.form-control(ng-model='vm.queryTopup.mainTopupType', required)
                         option(value='') {{"any" | translate}}
                         option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
-                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:125px')
+                div(ng-show='!vm.queryTopup.mainTopupType || vm.queryTopup.mainTopupType=="2"',style='max-width:180px')
                     label {{'Online Topup Type' | translate}}
                     select.form-control(ng-model='vm.queryTopup.topupType')
                         option(value='') {{'any' | translate}}
