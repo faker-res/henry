@@ -237,12 +237,12 @@ define(['js/app'], function (myApp) {
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);
-                        item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
+                        item.merchantName = vm.merchantNumbers[item.data.merchantNo];
                         if (item.type.name == 'PlayerTopUp') {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType;
                             item.topupTypeStr = typeID
-                                ? $translate(vm.topupTypeJson[typeID])
+                                ? $translate(vm.topUpTypeList[typeID])
                                 : $translate("Unknown")
                         } else {
                             //show topup type for other types
@@ -384,6 +384,7 @@ define(['js/app'], function (myApp) {
             merchants.forEach(merchant => {
                 merchantNumbers[merchant.merchantNo] = merchant.name;
             });
+            return merchantNumbers;
         }
 
 
