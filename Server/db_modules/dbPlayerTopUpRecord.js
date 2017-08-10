@@ -84,7 +84,6 @@ var dbPlayerTopUpRecord = {
      * @param {Date} startTime,endTime - The date info
      */
     topupReport: function (query, index, limit, sortObj) {
-        // console.log('query', query);
         var queryObj = {
             createTime: {
                 $gte: query.startTime ? new Date(query.startTime) : new Date(0),
@@ -99,7 +98,6 @@ var dbPlayerTopUpRecord = {
                 var str = '';
                 if (query && query.mainTopupType == constPlayerTopUpType.ONLINE) {
                     str = constProposalType.PLAYER_TOP_UP;
-                    query.topupType ? queryObj['data'] = {'topupType': query.topupType} : '';
                 } else if (query && query.mainTopupType == constPlayerTopUpType.ALIPAY) {
                     str = constProposalType.PLAYER_ALIPAY_TOP_UP
                 } else if (query && query.mainTopupType == constPlayerTopUpType.MANUAL) {
@@ -158,6 +156,9 @@ var dbPlayerTopUpRecord = {
                 }
                 if (query.proposalNo) {
                     queryObj['proposalId'] = query.proposalNo
+                }
+                if (query.topupType) {
+                    queryObj['data.topupType'] = query.topupType
                 }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
