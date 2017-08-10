@@ -3688,14 +3688,22 @@ define(['js/app'], function (myApp) {
             vm.playerTableRowClicked = function (rowData) {
                 var deferred = Q.defer();
                 console.log('player', rowData);
+                vm.selectedPlayers = {};
+                vm.selectedPlayers[rowData._id] = rowData;
+                vm.selectedSinglePlayer = rowData;
+
                 var sendData = {_id: rowData._id};
                 socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     console.log('updated info');
-                    vm.selectedPlayers = {};
+                    if(player._id != vm.selectedSinglePlayer._id){
+                        console.log('click rowId is not equal to resultId');
+                        //the result should be same with the click , if some condition like network not stable ,
+                        //then we would rather use the pre-load data.
+                        return
+                    }
                     vm.selectedPlayers[player._id] = player;
                     vm.selectedSinglePlayer = player;
-
                     vm.editPlayer = {
                         name: vm.selectedSinglePlayer.name,
                         email: vm.selectedSinglePlayer.email,

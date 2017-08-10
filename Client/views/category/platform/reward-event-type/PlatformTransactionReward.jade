@@ -18,5 +18,5 @@
             input.form-control(type='number', min='0', percentage, style="width:calc(45% - 20px)", ng-model='vm.rewardParams.rewardPercentage', ng-disabled='vm.platformRewardShowEdit()', required)
     .full-width-input-block
         label {{vm.showRewardTypeData.params.params.maxRewardAmountPerDay.des | translate}}
-        span.percentage
-            input.form-control(type='number', min='0', percentage, style="width:calc(45% - 20px)", ng-model='vm.rewardParams.maxRewardAmountPerDay', ng-disabled='vm.platformRewardShowEdit()', required)
+        span
+            input.form-control(type='number', min='0', style="width:calc(45% - 20px)", ng-model='vm.rewardParams.maxRewardAmountPerDay', ng-disabled='vm.platformRewardShowEdit()', required)
