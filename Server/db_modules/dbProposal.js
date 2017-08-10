@@ -2274,6 +2274,7 @@ var proposal = {
             }
         ).then(
             proposals => {
+                console.log('.//',proposals)
                 return {total: proposalCount, data: proposals}
             }
         );
@@ -2363,6 +2364,7 @@ function insertRepeatCount(proposals, platformId) {
         }
 
         asyncLoop(proposals.length, function (i, loop) {
+            // console.log('x')
             let proposal = JSON.parse(JSON.stringify(proposals[i]));
             // if (!proposal.proposalId) {
             //     console.log('aaa', proposal)
@@ -2371,30 +2373,33 @@ function insertRepeatCount(proposals, platformId) {
             // ***take note that it also have to handle when next or previous success doesn't exist
             // check if its a success proposal
             if (proposal.status === constProposalStatus.SUCCESS) {
-                handleSuccessProposal(proposal)
+                handleSuccessProposal(proposal);
+                loop();
                 // console.log(proposal)
                 // console.log(proposals[i])
             } else {
                 getProposalTypesIdProm.then(
                     typeIdData => {
                         typeIds = typeIdData;
-                        return Promise.all([handleFailureMerchant(proposal),handleFailurePlayer(proposal)])
+                        return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
                         // handleFailureMerchant(proposal);
                         // handleFailurePlayer(proposal);
                         // console.log(proposal)
                     }
                 ).then(
-                    (t) => {
+                    () => {
                         // console.log('t0', t[0])
                         // console.log('t1', t[1])
-                        console.log(proposal)
+                        insertedProposals[i] = proposal;
+                        loop();
                     }
                 )
             }
-            insertedProposals[i] = proposal;
-            loop();
+
+
+        }, function returnResult() {
+            resolve(insertedProposals);
         });
-        return resolve(insertedProposals);
 
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;
@@ -2467,9 +2472,9 @@ function insertRepeatCount(proposals, platformId) {
                     // console.log('firstFailure',firstFailure.proposalId)
                     // console.log('proposal',proposal.proposalId)
                     if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
-                        proposal.$playerGapTime = 0;
+                        proposal.$merchantGapTime = 0;
                     } else {
-                        proposal.$playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                        proposal.$merchantGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
                     }
                     // console.log(proposal)
                     return proposal;
@@ -2550,8 +2555,8 @@ function insertRepeatCount(proposals, platformId) {
                     let currentCount = countData[1];
                     let firstFailure = countData[2];
 
-                    proposal.playerAllCount = allCount;
-                    proposal.playerCurrentCount = currentCount;
+                    proposal.$playerAllCount = allCount;
+                    proposal.$playerCurrentCount = currentCount;
                     // proposal.$playerGapTime = gapTime;
 
                     if(!firstFailure){
@@ -2563,9 +2568,9 @@ function insertRepeatCount(proposals, platformId) {
                     // console.log('firstFailure',firstFailure.proposalId)
                     // console.log('proposal',proposal.proposalId)
                     if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
-                        proposal.playerGapTime = 0;
+                        proposal.$playerGapTime = 0;
                     } else {
-                        proposal.playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                        proposal.$playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
                     }
                     return proposal;
                 }
@@ -2573,12 +2578,12 @@ function insertRepeatCount(proposals, platformId) {
         }
 
         function handleSuccessProposal(proposal) {
-            proposal['merchantFailureStreak'] = '-';
-            proposal['merchantFailureNo'] = '-';
-            proposal['merchantFailureTimeGap'] = '-';
-            proposal['playerFailureStreak'] = '-';
-            proposal['playerFailureNo'] = '-';
-            proposal['playerFailureTimeGap'] = '-';
+            proposal['$merchantFailureStreak'] = '-';
+            proposal['$merchantFailureNo'] = '-';
+            proposal['$merchantFailureTimeGap'] = '-';
+            proposal['$playerFailureStreak'] = '-';
+            proposal['$playerFailureNo'] = '-';
+            proposal['$playerFailureTimeGap'] = '-';
             // console.log('here', proposal)
         }
 
@@ -2605,12 +2610,15 @@ function getTopUpProposalTypeIds(platformId) {
     );
 }
 
-function asyncLoop(count, func) {
+function asyncLoop(count, func, callback) {
     let i = -1;
 
     let loop = function () {
         i++;
         if (i >= count) {
+            if (callback) {
+                callback();
+            }
             return;
         }
         func(i, loop);
@@ -2620,7 +2628,7 @@ function asyncLoop(count, func) {
 
 function getMinutesBetweenDates(startDate, endDate) {
     var diff = endDate.getTime() - startDate.getTime();
-    return (diff / 60000);
+    return Math.floor(diff / 60000);
 }
 
 var proto = proposalFunc.prototype;
