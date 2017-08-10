@@ -322,9 +322,11 @@ function checkProposalConsumption(proposal, platformObj) {
                                         record => {
                                             let curConsumption = 0, bonusAmount = 0;
                                             let initBonusAmount = 0;
+                                            let isIncludePreviousConsumption = false;
 
                                             if (getProp.type.executionType == "executePlayerTopUpReturn") {
                                                 initBonusAmount = getProp.data.rewardAmount;
+                                                isIncludePreviousConsumption = true;
                                             } else {
                                                 initBonusAmount = getProp.data.applyAmount + getProp.data.rewardAmount;
                                             }
@@ -348,7 +350,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 requiredConsumption: getProp.data.spendingAmount - applyAmount,
                                                 curConsumption: curConsumption,
                                                 bonusAmount: bonusAmount,
-                                                settleTime: new Date(queryDateFrom)
+                                                settleTime: new Date(queryDateFrom),
+                                                isIncludePreviousConsumption: isIncludePreviousConsumption
                                             });
 
                                         }
@@ -377,8 +380,9 @@ function checkProposalConsumption(proposal, platformObj) {
 
                     // Compare consumption and spendingAmount
                     for (let i = 0; i < checkResult.length; i++) {
-                        // reset the amounts if consumption > spending for next cycle
-                        if (isClearCycle) {
+                        // reset the amounts if consumption > spending or lost all credit in previous cycle
+                        // do not reset if this reward require previous top up's consumption
+                        if (isClearCycle && !checkResult[i].isIncludePreviousConsumption) {
                             validConsumptionAmount = 0;
                             spendingAmount = 0;
                             bonusAmount = 0;
