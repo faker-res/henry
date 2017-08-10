@@ -1941,6 +1941,8 @@
   "MONITOR": "监控",
   "PAYMENT_MONITOR": "支付监控",
   "Payment Monitor": "支付监控",
+  "merchantCount": "商户计数",
+  "playerCount": "玩家计数",
   
   "player - create": "玩家开户",
   "createPlayerPartner": "玩家+推广渠道开户",
