@@ -233,6 +233,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 vm.drawPaymentRecordTable(
                     data.data.data.map(item => {
+                        item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.proposalId$ = item.proposalId.slice(-3);
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
@@ -248,8 +249,8 @@ define(['js/app'], function (myApp) {
                             //show topup type for other types
                             item.topupTypeStr = $translate(item.type.name)
                         }
-                        item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime);
+                        item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
+                        item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
 
                         return item;
                     }), data.data.size, {amount: data.data.total}, isNewSearch
@@ -273,11 +274,11 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate('proposalId'), data: 'proposalId$'},
-                    {title: $translate('Merchant No'), data: "merchantName"},
+                    {title: $translate('Merchant No'), data: "merchantName", sClass:'merchantCount'},
                     {title: $translate('merchantCount'), data: "merchantCount$", sClass:'merchantCount'},
                     {title: $translate('STATUS'), data: "status$"},
-                    {title: $translate('PLAYER_NAME'), data: "data.playerName"},
-                    {title: $translate('realName'), data: "data.playerObjId.realName", sClass: "sumText"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass:'playerCount'},
+                    {title: $translate('realName'), data: "data.playerObjId.realName", sClass: "sumText playerCount"},
                     {title: $translate('playerCount'), data: "playerCount$", sClass:'playerCount'},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
                     {title: $translate('START_TIME'), data: "startTime$"},
@@ -285,29 +286,27 @@ define(['js/app'], function (myApp) {
                 ],
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    switch (true) {
-                        // to allow customize, turn these numbers to variable
-                        case (aData.$merchantAllCount > 5):
-                            $(nRow).addClass('merchantExceed');
-                            break;
-                        case (aData.$playerAllCount > 5):
-                            $(nRow).addClass('playerExceed');
-                            break;
-                        default:
+                    // to allow customization, turn these numbers to variable
+                    if (aData.$merchantAllCount >= 5) {
+                        $(nRow).addClass('merchantExceed');
+                    }
+
+                    if (aData.$playerAllCount >= 5) {
+                        $(nRow).addClass('playerExceed');
                     }
                 }
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
 
-            vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
+            vm.topupTable = utilService.createDatatableWithFooter('#paymentMonitorTable', tableOptions, {6: summary.amount});
 
             vm.paymentMonitorQuery.pageObj.init({maxCount: size}, newSearch);
 
-            $('#topupTable').off('order.dt');
-            $('#topupTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'queryTopup', vm.searchTopupRecord);
+            $('#paymentMonitorTable').off('order.dt');
+            $('#paymentMonitorTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'paymentMonitorQuery', vm.getPaymentMonitorRecord);
             });
-            $('#topupTable').resize();
+            $('#paymentMonitorTable').resize();
         };
 
         vm.commonInitTime = function (obj, queryId) {
@@ -319,6 +318,54 @@ define(['js/app'], function (myApp) {
 
             obj.endTime = utilService.createDatePicker(queryId + ' .endTime');
             obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayEndTime()));
+        };
+
+        vm.commonTableOption = {
+            dom: 'Zrtlp',
+            "autoWidth": true,
+            "scrollX": true,
+            // "scrollY": "455px",
+            columnDefs: [{targets: '_all', defaultContent: ' '}],
+            "scrollCollapse": true,
+            "destroy": true,
+            "paging": false,
+            //"dom": '<"top">rt<"bottom"ilp><"clear">Zlfrtip',
+            "language": {
+                "emptyTable": $translate("No data available in table"),
+            },
+        };
+
+        vm.commonSortChangeHandler = function (a, objName, searchFunc) {
+            if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
+            let sortCol = a.aaSorting[0][0];
+            let sortDire = a.aaSorting[0][1];
+            let temp = a.aoColumns[sortCol];
+            let sortKey = temp ? temp.sortCol : '';
+            // console.log(a, sortCol, sortKey);
+            vm[objName].aaSorting = a.aaSorting;
+            if (sortKey) {
+                vm[objName].sortCol = vm[objName].sortCol || {};
+                let preVal = vm[objName].sortCol[sortKey];
+                vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                if (vm[objName].sortCol[sortKey] != preVal) {
+                    vm[objName].sortCol = {};
+                    vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                    searchFunc.call(this);
+                }
+            }
+        };
+
+        vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+            var isChange = false;
+            if (pageSize != vm[objKey].limit) {
+                isChange = true;
+                vm[objKey].limit = pageSize;
+            }
+            if ((curP - 1) * pageSize != vm[objKey].index) {
+                isChange = true;
+                vm[objKey].index = (curP - 1) * pageSize;
+            }
+            if (isChange) return searchFunc.call(this);
         };
 
 
