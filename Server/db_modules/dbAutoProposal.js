@@ -162,7 +162,9 @@ function checkProposalConsumption(proposal, platformObj) {
                 creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
             }
 
-            let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).sort({createTime: -1}).lean();
+            let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).populate(
+                {path: "type", model: dbconfig.collection_proposalType}
+            ).sort({createTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
             let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
