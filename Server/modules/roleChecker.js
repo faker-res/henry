@@ -444,7 +444,7 @@ var roleChecker = {
         },
         Operation: {
             Proposal: {
-                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId'],
+                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId', "getQueryProposalsForAdminId"],
                 ProposalListRead: ['getAvailableProposalsForAdminId'],
                 ProposalListDetail: ['getAvailableProposalsForAdminId'],
                 ApproveProposal: ["updateProposalProcessStep"],
