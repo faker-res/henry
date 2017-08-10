@@ -2181,8 +2181,9 @@ var proposal = {
         limit = limit ? limit : 10;
         index = index ? index : 0;
 
-        query["createTime"]["$gte"] = data.startTime ? data.startTime : null;
-        query["createTime"]["$lt"] = data.endTime ? data.endTime : null;
+        query["createTime"] = {};
+        query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
+        query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
 
         if (data.merchantNo && !data.merchantGroup) {
@@ -2248,7 +2249,7 @@ var proposal = {
         let proposalCount, proposals;
 
         // get all the relevant proposal
-        dbconfig.collection_proposalType.find({platformId: data.platformId, name: mainTopUpType}).lean().then(
+        return dbconfig.collection_proposalType.find({platformId: data.platformId, name: mainTopUpType}).lean().then(
             proposalTypes => {
                 let typeIds = proposalTypes.map(type => {
                     return type._id;
@@ -2275,7 +2276,7 @@ var proposal = {
             proposals => {
                 return {total: proposalCount, data: proposals}
             }
-        );;
+        );
     }
 };
 
@@ -2355,88 +2356,130 @@ function insertRepeatCount(proposals, platformId) {
     return new Promise(function (resolve) {
         let typeIds = null;
         let getProposalTypesIdProm = typeIds ? Promise.resolve(typeIds) : getTopUpProposalTypeIds(platformId);
+        let insertedProposals = [];
 
         if (!proposals || proposals.length === 0) {
             resolve([]);
         }
 
         asyncLoop(proposals.length, function (i, loop) {
-            let proposal = proposals[i];
+            let proposal = JSON.parse(JSON.stringify(proposals[i]));
+            // if (!proposal.proposalId) {
+            //     console.log('aaa', proposal)
+            //     console.log('bbb', proposals[i])
+            // }
             // ***take note that it also have to handle when next or previous success doesn't exist
             // check if its a success proposal
             if (proposal.status === constProposalStatus.SUCCESS) {
                 handleSuccessProposal(proposal)
+                // console.log(proposal)
+                // console.log(proposals[i])
             } else {
                 getProposalTypesIdProm.then(
                     typeIdData => {
                         typeIds = typeIdData;
-                        handleFailureMerchant(proposal);
-                        handleFailurePlayer(proposal);
+                        return Promise.all([handleFailureMerchant(proposal),handleFailurePlayer(proposal)])
+                        // handleFailureMerchant(proposal);
+                        // handleFailurePlayer(proposal);
+                        // console.log(proposal)
+                    }
+                ).then(
+                    (t) => {
+                        // console.log('t0', t[0])
+                        // console.log('t1', t[1])
+                        console.log(proposal)
                     }
                 )
             }
+            insertedProposals[i] = proposal;
             loop();
         });
-        return proposals;
+        return resolve(insertedProposals);
 
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;
 
             let prevSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
-                createTime: {$lte: proposal.createTime},
+                createTime: {$lte: new Date(proposal.createTime)},
                 "data.merchantNo": merchantNo,
                 status: constProposalStatus.SUCCESS
             }).sort({createTime: -1}).limit(1);
             let nextSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
-                createTime: {$gte: proposal.createTime},
+                createTime: {$gte: new Date(proposal.createTime)},
                 "data.merchantNo": merchantNo,
                 status: constProposalStatus.SUCCESS
             }).sort({createTime: 1}).limit(1);
 
 
-            Promise.all([prevSuccessProm, nextSuccessProm]).then(
+            return Promise.all([prevSuccessProm, nextSuccessProm]).then(
                 successData => {
                     let prevSuccess = successData[0];
                     let nextSuccess = successData[1];
 
-                    let allCountProm = dbconfig.collection_proposal.find({
+                    let allCountQuery = {
+                        type: {$in: typeIds},
+                        "data.merchantNo": merchantNo
+                    };
+
+                    let currentCountQuery = {
                         type: {$in: typeIds},
                         createTime: {
-                            $gt: prevSuccess.createTime,
-                            $lt: nextSuccess.createTime
+                            $lte: new Date(proposal.createTime)
                         },
                         "data.merchantNo": merchantNo
-                    }).count();
+                    };
 
-                    let currentCountProm = dbconfig.collection_proposal.find({
+                    let firstInStreakQuery = {
                         type: {$in: typeIds},
-                        createTime: {
-                            $gt: prevSuccess.createTime,
-                            $lte: proposal.createTime
-                        },
                         "data.merchantNo": merchantNo
-                    }).count();
+                    };
 
-                    let gapTime = getMinutesBetweenDates(prevSuccess.createTime, proposal.createTime);
+                    if (prevSuccess[0]) {
+                        let prevSuccessCreateTime = new Date(prevSuccess[0].createTime);
+                        allCountQuery.createTime = {$gt: prevSuccessCreateTime};
+                        currentCountQuery.createTime.$gt = prevSuccessCreateTime;
+                        firstInStreakQuery.createTime = {$gt: prevSuccessCreateTime};
+                    }
 
-                    return Promise.all([allCountProm, currentCountProm, Promise.resolve(gapTime)]);
+                    if (nextSuccess[0]) {
+                        allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
+                        allCountQuery.createTime.$lte = nextSuccess.createTime;
+                    }
+                    // console.log('fIS',firstInStreakQuery);
+
+                    let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
+                    let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
+                    let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery);
+
+                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
                 }
             ).then(
                 countData => {
                     let allCount = countData[0];
                     let currentCount = countData[1];
-                    let gapTime = countData[2];
+                    let firstFailure = countData[2];
 
                     proposal.$merchantAllCount = allCount;
                     proposal.$merchantCurrentCount = currentCount;
-                    proposal.$merchantGapTime = gapTime;
+
+                    // console.log('firstFailure',firstFailure.proposalId)
+                    // console.log('proposal',proposal.proposalId)
+                    if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                        proposal.$playerGapTime = 0;
+                    } else {
+                        proposal.$playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                    }
+                    // console.log(proposal)
+                    return proposal;
                 }
+
             );
         }
 
         function handleFailurePlayer(proposal) {
+            // console.log(proposal)
             let playerName = proposal.data.playerName;
 
             let prevSuccessProm = dbconfig.collection_proposal.find({
@@ -2452,54 +2495,91 @@ function insertRepeatCount(proposals, platformId) {
                 status: constProposalStatus.SUCCESS
             }).sort({createTime: 1}).limit(1);
 
+            // for debug use, to delete todo
+            let fIS, pSuc;
 
-            Promise.all([prevSuccessProm, nextSuccessProm]).then(
+
+            return Promise.all([prevSuccessProm, nextSuccessProm]).then(
                 successData => {
                     let prevSuccess = successData[0];
                     let nextSuccess = successData[1];
 
-                    let allCountProm = dbconfig.collection_proposal.find({
+                    let allCountQuery = {
+                        type: {$in: typeIds},
+                        "data.playerName": playerName
+                    };
+
+                    let currentCountQuery = {
                         type: {$in: typeIds},
                         createTime: {
-                            $gt: prevSuccess.createTime,
-                            $lt: nextSuccess.createTime
+                            $lte: new Date(proposal.createTime)
                         },
                         "data.playerName": playerName
-                    }).count();
+                    };
 
-                    let currentCountProm = dbconfig.collection_proposal.find({
+                    let firstInStreakQuery = {
                         type: {$in: typeIds},
-                        createTime: {
-                            $gt: prevSuccess.createTime,
-                            $lte: proposal.createTime
-                        },
                         "data.playerName": playerName
-                    }).count();
+                    };
 
-                    let gapTime = getMinutesBetweenDates(prevSuccess.createTime, proposal.createTime);
+                    if (prevSuccess[0]) {
+                        let prevSuccessCreateTime = new Date(prevSuccess[0].createTime);
+                        allCountQuery.createTime = {$gt: prevSuccessCreateTime};
+                        currentCountQuery.createTime.$gt = prevSuccessCreateTime;
+                        firstInStreakQuery.createTime = {$gt: prevSuccessCreateTime};
+                    }
 
-                    return Promise.all([allCountProm, currentCountProm, Promise.resolve(gapTime)]);
+                    if (nextSuccess[0]) {
+                        allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
+                        allCountQuery.createTime.$lte = nextSuccess.createTime;
+                    }
+
+                    // for debug, to be delete todo
+                    fIS = firstInStreakQuery;
+                    pSuc = prevSuccess[0];
+
+                    let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
+                    let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
+                    let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery);
+
+                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
                 }
             ).then(
                 countData => {
                     let allCount = countData[0];
                     let currentCount = countData[1];
-                    let gapTime = countData[2];
+                    let firstFailure = countData[2];
 
-                    proposal.$playerAllCount = allCount;
-                    proposal.$playerCurrentCount = currentCount;
-                    proposal.$playerGapTime = gapTime;
+                    proposal.playerAllCount = allCount;
+                    proposal.playerCurrentCount = currentCount;
+                    // proposal.$playerGapTime = gapTime;
+
+                    if(!firstFailure){
+                        console.log('firstFailure', firstFailure)
+                        console.log('proposal',proposal)
+                        console.log('fIS',fIS)
+                        console.log('pSuc', pSuc)
+                    }
+                    // console.log('firstFailure',firstFailure.proposalId)
+                    // console.log('proposal',proposal.proposalId)
+                    if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                        proposal.playerGapTime = 0;
+                    } else {
+                        proposal.playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                    }
+                    return proposal;
                 }
             );
         }
 
         function handleSuccessProposal(proposal) {
-            proposal.$merchantFailureStreak = '-';
-            proposal.$merchantFailureNo = '-';
-            proposal.$merchantFailureTimeGap = '-';
-            proposal.$merchantFailureStreak = '-';
-            proposal.$merchantFailureNo = '-';
-            proposal.$merchantFailureTimeGap = '-';
+            proposal['merchantFailureStreak'] = '-';
+            proposal['merchantFailureNo'] = '-';
+            proposal['merchantFailureTimeGap'] = '-';
+            proposal['playerFailureStreak'] = '-';
+            proposal['playerFailureNo'] = '-';
+            proposal['playerFailureTimeGap'] = '-';
+            // console.log('here', proposal)
         }
 
     });

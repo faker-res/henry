@@ -376,7 +376,7 @@ function socketActionProposal(socketIO, socket) {
             data.endTime = data.endTime ? new Date(data.endTime) : time.endTime;
             data.limit = data.limit || 10;
             data.index = data.index || 0;
-            socketUtil.emitter(self.socket, dbPRoposal.getPaymentMonitorResult, [data, data.index, data.limit], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getPaymentMonitorResult, [data, data.index, data.limit], actionName, isValidData);
         }
 
     };

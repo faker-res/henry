@@ -523,7 +523,7 @@ var roleChecker = {
         },
         Monitor: {
             Payment:{
-                Read: []
+                Read: ['getPaymentMonitorResult']
             }
         }
     },

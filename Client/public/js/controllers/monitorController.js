@@ -195,9 +195,9 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded("#paymentMonitorTablePage", function () {
                 vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
                 vm.paymentMonitorQuery.merchantType = null;
-                // vm.paymentMonitorQuery.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
-                //     vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorQuery", vm.searchTopupRecord)
-                // });
+                vm.paymentMonitorQuery.pageObj = utilService.createPageForPagingTable("#paymentMonitorTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorQuery", vm.getPaymentMonitorRecord)
+                });
                 $scope.safeApply();
             })
 
@@ -218,12 +218,13 @@ define(['js/app'], function (myApp) {
                 depositMethod: vm.paymentMonitorQuery.depositMethod,
                 merchantGroup: angular.fromJson(angular.toJson(vm.paymentMonitorQuery.merchantGroup)),
                 playerName: vm.paymentMonitorQuery.playerName,
-                index: newSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
+                index: isNewSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
                 limit: vm.paymentMonitorQuery.limit || 10,
                 sortCol: vm.paymentMonitorQuery.sortCol
             };
 
             vm.paymentMonitorQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo : null;
+            console.log('sendObj', sendObj);
 
             socketService.$socket($scope.AppSocket, 'getPaymentMonitorResult', sendObj, function (data) {
                 $('#paymentMonitorTableSpin').hide();
@@ -254,7 +255,7 @@ define(['js/app'], function (myApp) {
                     }), data.data.size, {amount: data.data.total}, isNewSearch
                 );
             }, function (err) {
-                console.log(err);
+                console.error(err);
             }, true);
 
         };
@@ -263,7 +264,7 @@ define(['js/app'], function (myApp) {
             console.log('data', data);
             let tableOptions = {
                 data: data,
-                "order": vm.queryTopup.aaSorting || [[0, 'desc']],
+                "order": vm.paymentMonitorQuery.aaSorting || [[0, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                     // {'sortCol': 'data.amount', bSortable: true, 'aTargets': [6]},
@@ -273,56 +274,34 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate('proposalId'), data: 'proposalId$'},
                     {title: $translate('Merchant No'), data: "merchantName"},
-                    {title: $translate('count'), data: "merchantCount$", sClass:'merchantCount'},
-
-
-
-                    {title: $translate('proposalId'), data: 'proposalId$'},
-                    {title: $translate('DINGDAN_ID'), data: "data.requestId"},
-                    // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
+                    {title: $translate('merchantCount'), data: "merchantCount$", sClass:'merchantCount'},
                     {title: $translate('STATUS'), data: "status$"},
-                    // {title: $translate('ISNEWPLAYER'), data: null},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName"},
                     {title: $translate('realName'), data: "data.playerObjId.realName", sClass: "sumText"},
-                    // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
+                    {title: $translate('playerCount'), data: "playerCount$", sClass:'playerCount'},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
-                    {title: $translate('Topup Type'), data: "topupTypeStr"},
-                    // {title: $translate('IP'), data: null},
                     {title: $translate('START_TIME'), data: "startTime$"},
-                    {title: $translate('END_TIME'), data: "endTime$"},
-                    // {title: $translate('END_TIME'), data: null},
-                    // {title: $translate('REMARK'), data: null},
+                    {title: $translate('END_TIME'), data: "endTime$"}
                 ],
                 "paging": false,
-                // dom: 'RZrtlp',
-                // fnDrawCallback: function (oSettings) {
-                //     var container = oSettings.nTable;
-                //     utilService.setupPopover({
-                //         context: container,
-                //         elem: '.telPopover',
-                //         content: function () {
-                //             vm.telphonePlayer = JSON.parse(this.dataset.row);
-                //             $scope.safeApply();
-                //             return $('#telPopover').html();
-                //         },
-                //         callback: function () {
-                //             $("button.playerMessage").on('click', function () {
-                //                 console.log('message', this);
-                //                 alert("will send message to " + vm.telphonePlayer.name);
-                //             });
-                //             $("button.playerTelephone").on('click', function () {
-                //                 alert("will call " + vm.telphonePlayer.name);
-                //             });
-                //         }
-                //     });
-                // },
-            }
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    switch (true) {
+                        // to allow customize, turn these numbers to variable
+                        case (aData.$merchantAllCount > 5):
+                            $(nRow).addClass('merchantExceed');
+                            break;
+                        case (aData.$playerAllCount > 5):
+                            $(nRow).addClass('playerExceed');
+                            break;
+                        default:
+                    }
+                }
+            };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-            // vm.topupTable = $('#topupTable').DataTable(tableOptions);
 
             vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {6: summary.amount});
 
-            vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
+            vm.paymentMonitorQuery.pageObj.init({maxCount: size}, newSearch);
 
             $('#topupTable').off('order.dt');
             $('#topupTable').on('order.dt', function (event, a, b) {
