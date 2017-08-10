@@ -157,22 +157,6 @@ define(['js/app'], function (myApp) {
                 case 'PAYMENT_MONITOR':
                     vm.pageName = "Payment Monitor";
                     vm.preparePaymentMonitorPage();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    // todo :: do something
                     break;
                 default:
                     // keeping this format just in case there will be other monitoring coming in
@@ -268,7 +252,6 @@ define(['js/app'], function (myApp) {
                 "order": vm.paymentMonitorQuery.aaSorting || [[0, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    // {'sortCol': 'data.amount', bSortable: true, 'aTargets': [6]},
                     {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
@@ -324,12 +307,10 @@ define(['js/app'], function (myApp) {
             dom: 'Zrtlp',
             "autoWidth": true,
             "scrollX": true,
-            // "scrollY": "455px",
             columnDefs: [{targets: '_all', defaultContent: ' '}],
             "scrollCollapse": true,
             "destroy": true,
             "paging": false,
-            //"dom": '<"top">rt<"bottom"ilp><"clear">Zlfrtip',
             "language": {
                 "emptyTable": $translate("No data available in table"),
             },
@@ -341,7 +322,6 @@ define(['js/app'], function (myApp) {
             let sortDire = a.aaSorting[0][1];
             let temp = a.aoColumns[sortCol];
             let sortKey = temp ? temp.sortCol : '';
-            // console.log(a, sortCol, sortKey);
             vm[objName].aaSorting = a.aaSorting;
             if (sortKey) {
                 vm[objName].sortCol = vm[objName].sortCol || {};
