@@ -324,11 +324,11 @@ function checkProposalConsumption(proposal, platformObj) {
                                             let initBonusAmount = 0;
                                             let isIncludePreviousConsumption = false;
 
-                                            if (getProp.type.executionType == "executePlayerTopUpReturn") {
+                                            if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
                                                 initBonusAmount = getProp.data.rewardAmount;
                                                 isIncludePreviousConsumption = true;
                                             } else {
-                                                initBonusAmount = getProp.data.applyAmount + getProp.data.rewardAmount;
+                                                initBonusAmount = getProp.data.rewardAmount;
                                             }
 
                                             if (record && record[0]) {
