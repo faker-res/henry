@@ -2180,7 +2180,6 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-
         if (data.merchantNo && !data.merchantGroup) {
             query['data.merchantNo'] = data.merchantNo;
         }
@@ -2205,20 +2204,20 @@ var proposal = {
         }
 
         let mainTopUpType;
-        switch (data.mainTopupType) {
-            case constPlayerTopUpType.ONLINE:
+        switch (String(data.mainTopupType)) {
+            case constPlayerTopUpType.ONLINE.toString():
                 mainTopUpType = constProposalType.PLAYER_TOP_UP;
                 break;
-            case constPlayerTopUpType.ALIPAY:
+            case constPlayerTopUpType.ALIPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_ALIPAY_TOP_UP;
                 break;
-            case constPlayerTopUpType.MANUAL:
+            case constPlayerTopUpType.MANUAL.toString():
                 mainTopUpType = constProposalType.PLAYER_MANUAL_TOP_UP;
                 break;
-            case constPlayerTopUpType.WECHAT:
+            case constPlayerTopUpType.WECHAT.toString():
                 mainTopUpType = constProposalType.PLAYER_WECHAT_TOP_UP;
                 break;
-            case constPlayerTopUpType.QUICKPAY:
+            case constPlayerTopUpType.QUICKPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
                 break;
             default:
@@ -2234,11 +2233,11 @@ var proposal = {
         }
 
         if (data.topupType) {
-            query['data']['topupType'] = data.topupType;
+            query['data.topupType'] = data.topupType;
         }
 
         if (data.depositMethod) {
-            query['data']['depositMethod'] = data.depositMethod;
+            query['data.depositMethod'] = data.depositMethod;
         }
 
         let proposalCount, proposals;
