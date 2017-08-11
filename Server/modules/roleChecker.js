@@ -120,6 +120,7 @@ var roleChecker = {
         'getIncludedQuickPaysByQuickPayGroup': true,
         'getExcludedQuickPaysByQuickPayGroup': true,
         "updatePlatformQuickPayGroup": true,
+        "getMerchantList": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
@@ -229,7 +230,7 @@ var roleChecker = {
                 transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
                 PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
                 PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement'],
-                PlayerLevelUpSettlement: ['startPlayerLevelUpSettlement']
+                PlayerLevelUpSettlement: ['startPlatformPlayerLevelUpSettlement']
             },
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
@@ -444,7 +445,7 @@ var roleChecker = {
         },
         Operation: {
             Proposal: {
-                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId'],
+                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId', "getQueryProposalsForAdminId"],
                 ProposalListRead: ['getAvailableProposalsForAdminId'],
                 ProposalListDetail: ['getAvailableProposalsForAdminId'],
                 ApproveProposal: ["updateProposalProcessStep"],
@@ -520,6 +521,11 @@ var roleChecker = {
                 CREDIT_CHANGE_REPORT: ['queryCreditChangeLog'],
                 PLAYER_ALMOST_LEVELUP_REPORT: ['getPlayerAlmostLevelupReport'],
                 ACTIONLOG_REPORT: ['getActionLogPageReport']
+            }
+        },
+        Monitor: {
+            Payment:{
+                Read: ['getPaymentMonitorResult']
             }
         }
     },

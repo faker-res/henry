@@ -1375,10 +1375,6 @@ var dbPlatform = {
 
     updateAutoApprovalConfig: function (query, updateData) {
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true});
-    },
-
-    startPlatformPlayerLevelUpSettlement: function (platform) {
-        return
     }
 };
 

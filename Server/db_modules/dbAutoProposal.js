@@ -162,7 +162,9 @@ function checkProposalConsumption(proposal, platformObj) {
                 creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
             }
 
-            let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).sort({createTime: -1}).lean();
+            let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).populate(
+                {path: "type", model: dbconfig.collection_proposalType}
+            ).sort({settleTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
             let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
@@ -229,6 +231,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let isApprove = true, proms = [], repeatMsg = "", repeatMsgChinese = "";
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
+            let consumptionOffset = platformObj.autoApproveConsumptionOffset ? platformObj.autoApproveConsumptionOffset : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
             let dateTo = proposal.settleTime ? proposal.settleTime : proposal.createTime;
@@ -320,11 +323,13 @@ function checkProposalConsumption(proposal, platformObj) {
                                         record => {
                                             let curConsumption = 0, bonusAmount = 0;
                                             let initBonusAmount = 0;
+                                            let isIncludePreviousConsumption = false;
 
-                                            if (getProp.type.executionType == "executePlayerTopUpReturn") {
+                                            if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
                                                 initBonusAmount = getProp.data.rewardAmount;
+                                                isIncludePreviousConsumption = true;
                                             } else {
-                                                initBonusAmount = getProp.data.applyAmount + getProp.data.rewardAmount;
+                                                initBonusAmount = getProp.data.rewardAmount;
                                             }
 
                                             if (record && record[0]) {
@@ -346,7 +351,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 requiredConsumption: getProp.data.spendingAmount - applyAmount,
                                                 curConsumption: curConsumption,
                                                 bonusAmount: bonusAmount,
-                                                settleTime: new Date(queryDateFrom)
+                                                settleTime: new Date(queryDateFrom),
+                                                isIncludePreviousConsumption: isIncludePreviousConsumption
                                             });
 
                                         }
@@ -375,8 +381,9 @@ function checkProposalConsumption(proposal, platformObj) {
 
                     // Compare consumption and spendingAmount
                     for (let i = 0; i < checkResult.length; i++) {
-                        // reset the amounts if consumption > spending for next cycle
-                        if (isClearCycle) {
+                        // reset the amounts if consumption > spending or lost all credit in previous cycle
+                        // do not reset if this reward require previous top up's consumption
+                        if (isClearCycle && !checkResult[i].isIncludePreviousConsumption) {
                             validConsumptionAmount = 0;
                             spendingAmount = 0;
                             bonusAmount = 0;
@@ -399,12 +406,12 @@ function checkProposalConsumption(proposal, platformObj) {
                         }
 
                         // Check consumption for each cycle
-                        if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
+                        if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= lostThreshold) {
                             // User lost all bonus amount
                             isApprove = true;
                             isClearCycle = true;
                         }
-                        else if (validConsumptionAmount + lostThreshold < spendingAmount) {
+                        else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
                             isApprove = false;
                             isClearCycle = false;
                             if (checkMsg == "") {
