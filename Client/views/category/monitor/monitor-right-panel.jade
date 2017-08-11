@@ -1,0 +1,109 @@
+style.
+    .merchantExceed .merchantCount {
+        background-color: #C7EA46;
+    }
+    .playerExceed .playerCount {
+        background-color: #FFFF66;
+    }
+
+#monitorRightTable.panel.panel-danger(style='width:100%;display:inline-block')
+    .panel-heading
+        .pull-left(style='margin-top: -5px;')
+            a.fa.fa-chevron-circle-left.contractIcon(ng-show='!vm.hideLeftPanel', ng-click='vm.setPanel(true)')
+            a.fa.fa-chevron-circle-right.contractIcon(ng-show='vm.hideLeftPanel', ng-click='vm.setPanel(false)')
+        label {{vm.pageName | translate}}
+    .panel-body
+        div(ng-if='vm.pageName === "Payment Monitor"')
+            #paymentMonitorQuery.block-query.col-md-12.well
+                div
+                    label {{'topupType' | translate}}
+                    select.form-control(ng-model='vm.paymentMonitorQuery.mainTopupType', required)
+                        option(value='') {{"any" | translate}}
+                        option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
+                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+                    label {{'Online Topup Type' | translate}}
+                    select.form-control(ng-model='vm.paymentMonitorQuery.topupType')
+                        option(value='') {{'any' | translate}}
+                        option(value='1') 网银支付(NetPay)
+                        option(value='2') 微信扫码(WechatQR)
+                        option(value='3') 支付宝扫码(AlipayQR)
+                        option(value='4') 微信App支付(WechatApp)
+                        option(value='5') 支付宝App支付(AlipayApp)
+                        option(value='6') 快捷支付(FASTPAY)
+                        option(value='7') QQ扫码(QQPAYQR)
+                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+                    label {{'Merchant Group' | translate}}
+                    select.form-control(ng-model='vm.paymentMonitorQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroups')
+                        option(value='') {{'any' | translate}}
+                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+                    label {{'Merchant No' | translate}}
+                    select.form-control(ng-model='vm.paymentMonitorQuery.merchantNo',ng-options='index as name for (index, name) in vm.merchantNumbers')
+                        option(value='') {{'any' | translate}}
+                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+                    label {{'orderId' | translate}}
+                    input.form-control(type='text', ng-model='vm.paymentMonitorQuery.orderId')
+                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="1"',style='max-width:125px')
+                    label {{'depositMethod' | translate}}
+                    select.form-control(ng-model='vm.paymentMonitorQuery.depositMethod')
+                        option(value='') {{'any' | translate}}
+                        option(value='1') 网银转账(OnlineTransfer)
+                        option(value='2') 自动取款机(ATM)
+                        option(value='3') 柜台存款(Counter)
+                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+                    label {{'PLAYER_NAME' | translate}}
+                    input.form-control(type='text', ng-model='vm.paymentMonitorQuery.playerName')
+                div
+                    label.control-label {{'Start date' | translate}}
+                    .startTime
+                div
+                    label.control-label {{'End date' | translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-warning(ng-click='vm.resetTopUpMonitorQuery()') {{'Reset' | translate}}
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.getPaymentMonitorRecord(true)') {{'SEARCH' | translate}}
+                    span#paymentMonitorTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            .proposalMessage
+                text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastTopUpRefresh}}
+                label.text-danger.newProposalAlert
+                a(ng-click='vm.getPaymentMonitorRecord()')
+                    .fa.fa-refresh
+                .pull-right
+                    label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
+                        input#autoRefreshProposalFlag.margin-left-5(type='checkbox', checked)
+                    .inlineBlk.hidden
+                        text {{"Time left until next refresh" | translate}} :&nbsp;
+                        text#timeLeftRefreshOperation
+                        text s
+            label {{"Total" | translate}} {{vm.paymentMonitorQuery.totalCount}} {{"records" | translate}}
+            table#paymentMonitorTable.common-table.display(style="min-width:100% ;overflow: scroll")
+            #paymentMonitorTablePage
+#modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        //li(ng-if='vm.chartData')
+                        //    a(data-toggle="tab", href="#Workflow", ng-click="")
+                        //        .fa.fa-user
+                        //        | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            #ProposalDetail.tab-pane.fade.in.active
+                                include ./proposal-dialog-detail
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}

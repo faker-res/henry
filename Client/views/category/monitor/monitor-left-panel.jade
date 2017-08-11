@@ -1,0 +1,17 @@
+.panel.panel-primary
+    .panel-heading.padding-all-5
+        .panel-title.left-col
+            .fa.fa-cubes(ng-if='vm.selectedPlatform')
+            select.platform-select(ng-model='vm.selectedPlatformID', ng-change='vm.setPlatformById(vm.selectedPlatformID)', required)
+                option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatform._id==v._id') {{v.name}}
+    .panel-body.common-left-panel-body.leftPanel-vlist
+        #monitorCategory.panel-groupc
+            .panel.panel-default
+                .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#monitorCategory", href='#paymentMonitor')
+                    h4.panel-title
+                        label.text-success {{'PAYMENT_MONITOR' | translate}}
+                #paymentMonitor
+                    .panel-body
+                        div(ng-if="checkViewPermission('Monitor', 'Payment', 'Read')")
+                            li.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR}}" ng-click='vm.loadPage("PAYMENT_MONITOR")', ng-if="checkViewPermission('Monitor', 'Payment', 'Read')")
+                                text {{'PAYMENT_MONITOR' | translate}}
