@@ -203,14 +203,18 @@ define(['js/app'], function (myApp) {
             vm.paymentMonitorQuery.platformId = vm.curPlatformId;
             $('#paymentMonitorTableSpin').show();
 
+            if (vm.paymentMonitorQuery.mainTopupType === '0' || vm.paymentMonitorQuery.mainTopupType === '1' || vm.paymentMonitorQuery.mainTopupType === '3' || vm.paymentMonitorQuery.mainTopupType === '4' || vm.paymentMonitorQuery.mainTopupType === '5') {
+                vm.paymentMonitorQuery.topupType = '';
+                vm.paymentMonitorQuery.merchantGroup = '';
+                vm.paymentMonitorQuery.merchantNo = '';
+            }
+
             let sendObj = {
                 startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
                 platformId: vm.paymentMonitorQuery.platformId,
-                orderId: vm.paymentMonitorQuery.orderId,
                 mainTopupType: vm.paymentMonitorQuery.mainTopupType,
                 topupType: vm.paymentMonitorQuery.topupType,
-                depositMethod: vm.paymentMonitorQuery.depositMethod,
                 merchantGroup: angular.fromJson(angular.toJson(vm.paymentMonitorQuery.merchantGroup)),
                 playerName: vm.paymentMonitorQuery.playerName,
                 index: isNewSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
@@ -680,7 +684,7 @@ define(['js/app'], function (myApp) {
 
             let merchantGroups = [];
             for (let merchantTypeId in merchantGroupList) {
-                let list = merchantGroupList[merchantTypeId];
+                let list = merchantGroupList[merchantTypeId].list;
                 let name = merchantGroupNames[merchantTypeId];
                 merchantGroups.push({
                     name: name,
