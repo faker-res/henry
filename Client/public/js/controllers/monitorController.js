@@ -168,6 +168,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.preparePaymentMonitorPage = function () {
+            vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
             vm.paymentMonitorQuery = {};
             vm.paymentMonitorQuery.totalCount = 0;
             Promise.all([getMerchantList(), getMerchantTypeList()]).then(
@@ -194,6 +195,9 @@ define(['js/app'], function (myApp) {
 
         // TODO:: work in progress
         vm.getPaymentMonitorRecord = function (isNewSearch) {
+            if (isNewSearch) {
+                $('#autoRefreshProposalFlag').attr('checked', false);
+            }
             vm.paymentMonitorQuery.platformId = vm.curPlatformId;
             $('#paymentMonitorTableSpin').show();
 
@@ -259,9 +263,9 @@ define(['js/app'], function (myApp) {
             vm.paymentMonitorQuery.depositMethod = "";
             vm.paymentMonitorQuery.playerName = "";
             vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
-            $scope.safeApply();
             vm.getPaymentMonitorRecord(true);
-            
+            $('#autoRefreshProposalFlag')[0].checked = true;
+            $scope.safeApply();
         };
 
         vm.drawPaymentRecordTable  = function (data, size, summary, newSearch) {

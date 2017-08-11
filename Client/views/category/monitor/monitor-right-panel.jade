@@ -68,7 +68,7 @@ style.
                         i.fa.fa-spinner.fa-spin
             .clearfix
             .proposalMessage
-                text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.timeAllProposal}}
+                text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastTopUpRefresh}}
                 label.text-danger.newProposalAlert
                 a(ng-click='vm.getPaymentMonitorRecord()')
                     .fa.fa-refresh
