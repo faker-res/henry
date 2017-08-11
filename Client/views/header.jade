@@ -40,7 +40,7 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                     i.fa.fa-table
                     | {{ 'REPORT' | translate }}
             li(style="{{ checkViewPermission('Monitor')? 'display:block' : 'display:none'}}")
-                a(href='', name='report', ng-click="openHeaderPanel('monitor')")
+                a(href='', name='monitor', ng-click="openHeaderPanel('monitor')")
                     i.fa.fa-desktop
                     | {{ 'MONITOR' | translate }}
             //li(style="{{ checkViewPermission('Test', 'test')? 'display:block' : 'display:none'}}")
