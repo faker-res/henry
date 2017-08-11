@@ -231,6 +231,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let isApprove = true, proms = [], repeatMsg = "", repeatMsgChinese = "";
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
+            let consumptionOffset = platformObj.autoApproveConsumptionOffset ? platformObj.autoApproveConsumptionOffset : 0;
             let countProposals = 0;
             let isTypeEApproval = false;
             let dateTo = proposal.settleTime ? proposal.settleTime : proposal.createTime;
@@ -405,12 +406,12 @@ function checkProposalConsumption(proposal, platformObj) {
                         }
 
                         // Check consumption for each cycle
-                        if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= 0) {
+                        if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= lostThreshold) {
                             // User lost all bonus amount
                             isApprove = true;
                             isClearCycle = true;
                         }
-                        else if (validConsumptionAmount + lostThreshold < spendingAmount) {
+                        else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
                             isApprove = false;
                             isClearCycle = false;
                             if (checkMsg == "") {

@@ -10,9 +10,11 @@ let ObjectId = mongoose.Types.ObjectId;
 let constPlayerCreditTransferStatus = require('./../const/constPlayerCreditTransferStatus');
 let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommissionSettlementMode');
 
-let dbAutoProposal = require('./../db_modules/dbAutoProposal');
-let dbRewardEvent = require('./../db_modules/dbRewardEvent');
-let consumptionReturnEvent = require('./../scheduleTask/consumptionReturnEvent');
+const dbAutoProposal = require('./../db_modules/dbAutoProposal');
+const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
+const dbRewardEvent = require('./../db_modules/dbRewardEvent');
+
+const consumptionReturnEvent = require('./../scheduleTask/consumptionReturnEvent');
 
 function socketActionPlatform(socketIO, socket) {
 
@@ -267,7 +269,7 @@ function socketActionPlatform(socketIO, socket) {
         startPlatformPlayerLevelUpSettlement: function startPlatformPlayerLevelUpSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, dbPlatform.startPlatformPlayerLevelUpSettlement, [ObjectId(data.platformId)], actionName, isValidData);
+             socketUtil.emitter(self.socket, dbPlayerLevel.startPlatformPlayerLevelUpSettlement, [ObjectId(data.platformId)], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;
