@@ -3433,14 +3433,14 @@ define(['js/app'], function (myApp) {
                 var colorObj = {
                     NORMAL: '#337ab7',
                     FORBID: 'red',
-                    FORBID_GAME: 'orange',
-                    CHEAT_NEW_ACCOUNT_REWARD: 'orange',
-                    TOPUP_ATTENTION: 'orange',
-                    HEDGING: 'orange',
-                    TOPUP_BONUS_SPAM: 'orange',
-                    MULTIPLE_ACCOUNT: 'orange',
+                    FORBID_GAME: '#D2691E',
+                    CHEAT_NEW_ACCOUNT_REWARD: '#800000',
+                    TOPUP_ATTENTION: '#800000',
+                    HEDGING: '#800000',
+                    TOPUP_BONUS_SPAM: '#800000',
+                    MULTIPLE_ACCOUNT: '#800000',
                     BANNED: 'red',
-                    FORBID_ONLINE_TOPUP: 'orange'
+                    FORBID_ONLINE_TOPUP: '#800000'
                 }
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
                     $(v).find('a').eq(0).css('color', colorObj[statusKey]);
@@ -3688,14 +3688,22 @@ define(['js/app'], function (myApp) {
             vm.playerTableRowClicked = function (rowData) {
                 var deferred = Q.defer();
                 console.log('player', rowData);
+                vm.selectedPlayers = {};
+                vm.selectedPlayers[rowData._id] = rowData;
+                vm.selectedSinglePlayer = rowData;
+
                 var sendData = {_id: rowData._id};
                 socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     console.log('updated info');
-                    vm.selectedPlayers = {};
+                    if(player._id != vm.selectedSinglePlayer._id){
+                        console.log('click rowId is not equal to resultId');
+                        //the result should be same with the click , if some condition like network not stable ,
+                        //then we would rather use the pre-load data.
+                        return
+                    }
                     vm.selectedPlayers[player._id] = player;
                     vm.selectedSinglePlayer = player;
-
                     vm.editPlayer = {
                         name: vm.selectedSinglePlayer.name,
                         email: vm.selectedSinglePlayer.email,
@@ -8109,14 +8117,14 @@ define(['js/app'], function (myApp) {
                 var colorObj = {
                     NORMAL: '#337ab7',
                     FORBID: 'red',
-                    FORBID_GAME: 'orange',
-                    CHEAT_NEW_ACCOUNT_REWARD: 'orange',
-                    TOPUP_ATTENTION: 'orange',
-                    HEDGING: 'orange',
-                    TOPUP_BONUS_SPAM: 'orange',
-                    MULTIPLE_ACCOUNT: 'orange',
-                    BANNED: 'red',
-                    FORBID_ONLINE_TOPUP: 'orange'
+                    FORBID_GAME: '#D2691E',
+                    CHEAT_NEW_ACCOUNT_REWARD: '#800000',
+                    TOPUP_ATTENTION: '#800000',
+                    HEDGING: '#800000',
+                    TOPUP_BONUS_SPAM: '#800000',
+                    MULTIPLE_ACCOUNT: '#800000',
+                    BANNED: '#800000',
+                    FORBID_ONLINE_TOPUP: '#800000'
                 }
 
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
@@ -9780,6 +9788,7 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
                 vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
                 vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
+                vm.autoApprovalBasic.consumptionOffset = vm.selectedPlatform.data.autoApproveConsumptionOffset;
                 vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
                 vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
                 vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
@@ -10030,6 +10039,7 @@ define(['js/app'], function (myApp) {
                         autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
                         autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                         autoApproveLostThreshold: srcData.lostThreshold,
+                        autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
                         autoApproveBonusProfitOffset: srcData.bonusProfitOffset

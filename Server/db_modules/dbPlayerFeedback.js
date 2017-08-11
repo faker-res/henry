@@ -47,7 +47,6 @@ var dbPlayerFeedback = {
     },
 
     getAllPlayerFeedbacks: function (query, admin, cs, player, index, limit, sortCol) {
-        console.log("getAllPlayerFeedback db function has been reached");
         var adminArr = [];
         var playerArr = [];
         var returnedData = [];
@@ -226,6 +225,7 @@ var dbPlayerFeedback = {
 
     getPlayerFeedbackQuery: function (query, index) {
         index = index || 0;
+        query["$where"] = "this.lastAccessTime > this.lastFeedbackTime";
         var a = dbconfig.collection_players.find(query).skip(index).limit(1)
             .populate({path: "partner", model: dbconfig.collection_partner});
         var b = dbconfig.collection_players.find(query).count();

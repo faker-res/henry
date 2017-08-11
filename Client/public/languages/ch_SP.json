@@ -1917,7 +1917,8 @@
   "PLAYER_REGISTRATION_REWARD_REPORT": "注册彩金奖励报表",
   "Auto Approval Retry Count": "回圈次数",
   "Auto Approval Interval": "回圈等待时间",
-  "Lost Threshold": "流水宽限额",
+  "Lost Threshold": "流水输赢值宽限额",
+  "Consumption Offset": "流水宽限额",
   "todayTopUpAmount": "当日充值额",
   "todayBonusAmount": "当日投注额",
   "eventDescription": "奖励活动注解",
@@ -1932,6 +1933,7 @@
   "Incident": "事件",
   "Player API Log": "玩家事件记录",
   "new player list": "新开户名单",
+  "NewPlayerList": "新开户名单",
   "WINRATE_REPORT": "输赢报表",
   "CONSUMPTION_PARTICIPANT": "参与投注人数",
   "COMPANY_EARNING_RATIO": "公司获利比例",
@@ -2160,5 +2162,6 @@
   "ATM": "提款机",
   "Incorrect data!": "数据输入错误",
   "Server can't be connected, please try again!": "伺服器链接失败，请再尝试。",
-  "Recover": "恢复在处理"
+  "Recover": "恢复在处理",
+  "Max reward amount per day": "单日最高奖励额"
 }

@@ -961,7 +961,7 @@ define(['js/app'], function (myApp) {
             $('#proposalDataTable').empty();
             //no idea why is 7, and 7 is not working, so I change it to 8
             //lizhu: the number here indicates the data should be listed in N-th column
-            vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {10: (summary ? summary.amount : 0)});
+            vm.proposalTable = utilService.createDatatableWithFooter('#proposalDataTable', tableOptions, {11: summary.amount});
             // utilService.setDataTablePageInput('proposalDataTable', vm.proposalTable, $translate);
 
             //update select all in table

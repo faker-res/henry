@@ -174,7 +174,7 @@
             text {{"Platform Credit Transfer Log" | translate}}
             img.img-edit
 
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'newPlayerRecords')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.newPlayerList()', data-target='#modalNewPlayerList')
             text {{"new player list" | translate}}
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'TriggerAutoProposal')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.triggerAutoProposal()')

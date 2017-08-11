@@ -955,6 +955,13 @@ define(['js/app'], function (myApp) {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
                         item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
+                        item.merchantNo$ = item.data.merchantNo != null
+                        ? item.data.merchantNo
+                        : item.data.weChatAccount != null 
+                            ? item.data.weChatAccount 
+                            : item.data.alipayAccount != null
+                            ? item.data.alipayAccount
+                            : null;
                         if (item.type.name == 'PlayerTopUp') {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType
@@ -997,7 +1004,19 @@ define(['js/app'], function (myApp) {
                     {title: $translate('realName'), data: "data.playerObjId.realName", sClass: "sumText"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
-                    {title: $translate('Topup Type'), data: "topupTypeStr"},
+                    {"title": $translate('TYPE'), "data": "type",
+                        render: function (data, type, row) {
+                            var text = $translate(row.type ? row.type.name : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {title: $translate('topupType'), data: "data.topupType",
+                        render: function (data, type, row) {
+                            let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {"title": $translate('Merchant No'),"data": "merchantNo$"},   
                     // {title: $translate('IP'), data: null},
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {title: $translate('END_TIME'), data: "endTime$"},
