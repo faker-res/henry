@@ -388,8 +388,6 @@ function checkProposalConsumption(proposal, platformObj) {
                             spendingAmount = 0;
                             bonusAmount = 0;
                             initBonusAmount = 0;
-                            checkMsg = "";
-                            checkMsgChinese = "";
                         }
 
                         validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
@@ -410,6 +408,8 @@ function checkProposalConsumption(proposal, platformObj) {
                             // User lost all bonus amount
                             isApprove = true;
                             isClearCycle = true;
+                            checkMsg = "";
+                            checkMsgChinese = "";
                         }
                         else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
                             isApprove = false;
@@ -424,6 +424,8 @@ function checkProposalConsumption(proposal, platformObj) {
                             // reset from current cycle
                             isApprove = true;
                             isClearCycle = true;
+                            checkMsg = "";
+                            checkMsgChinese = "";
                         }
 
                         // Sum up bonus amount for overall profit calculation
