@@ -6,7 +6,6 @@ define(['js/app'], function (myApp) {
         let $translate = $filter('translate');
         let vm = this;
 
-        // For debugging:
         window.monitorVM = vm;
 
         // declare constant
@@ -26,6 +25,11 @@ define(['js/app'], function (myApp) {
             ALIPAY: 3,
             WECHAT: 4,
             QUICKPAY: 5
+        };
+        vm.getDepositMethodbyId = {
+            1: 'Online',
+            2: 'ATM',
+            3: 'Counter'
         };
 
         vm.seleDataType = {};
@@ -256,16 +260,58 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('proposalId'), data: 'proposalId$'},
-                    {title: $translate('Merchant No'), data: "merchantName", sClass:'merchantCount'},
-                    {title: $translate('merchantCount'), data: "merchantCount$", sClass:'merchantCount'},
-                    {title: $translate('STATUS'), data: "status$"},
-                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass:'playerCount'},
-                    {title: $translate('realName'), data: "data.playerObjId.realName", sClass: "sumText playerCount"},
-                    {title: $translate('playerCount'), data: "playerCount$", sClass:'playerCount'},
-                    {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
-                    {title: $translate('START_TIME'), data: "startTime$"},
-                    {title: $translate('END_TIME'), data: "endTime$"}
+                    {
+                        title: $translate('proposalId'),
+                        data: 'proposalId$',
+                        render: function (data, type, row) {
+                            let $link = $('<a>').text(data);
+                            // $link.attr('onclick', 'monitorVM.showProposalDetail('+row.proposalId+')');
+                            return $link.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('Merchant No'),
+                        data: "merchantName",
+                        sClass:'merchantCount'
+                    },
+                    {
+                        title: $translate('merchantCount'),
+                        data: "merchantCount$",
+                        sClass:'merchantCount'
+                    },
+                    {
+                        title: $translate('STATUS'),
+                        data: "status$"
+                    },
+                    {
+                        title:
+                        $translate('PLAYER_NAME'),
+                        data: "data.playerName",
+                        sClass:'playerCount'
+                    },
+                    {
+                        title: $translate('realName'),
+                        data: "data.playerObjId.realName",
+                        sClass: "sumText playerCount"
+                    },
+                    {
+                        title: $translate('playerCount'),
+                        data: "playerCount$",
+                        sClass:'playerCount'
+                    },
+                    {
+                        title: $translate('CREDIT'),
+                        data: "amount$",
+                        sClass: "sumFloat alignRight"
+                    },
+                    {
+                        title: $translate('START_TIME'),
+                        data: "startTime$"
+                    },
+                    {
+                        title: $translate('END_TIME'),
+                        data: "endTime$"
+                    }
                 ],
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -281,7 +327,7 @@ define(['js/app'], function (myApp) {
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
 
-            vm.topupTable = utilService.createDatatableWithFooter('#paymentMonitorTable', tableOptions, {6: summary.amount});
+            vm.topUpProposalTable = utilService.createDatatableWithFooter('#paymentMonitorTable', tableOptions, {6: summary.amount});
 
             vm.paymentMonitorQuery.pageObj.init({maxCount: size}, newSearch);
 
@@ -290,6 +336,124 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'paymentMonitorQuery', vm.getPaymentMonitorRecord);
             });
             $('#paymentMonitorTable').resize();
+
+            $('#paymentMonitorTable tbody').on('click', 'tr', vm.tableRowClicked);
+        };
+
+        vm.tableRowClicked = function (event) {
+            if (event.target.tagName == 'A') {
+                let data = vm.topUpProposalTable.row(this).data();
+                vm.proposalRowClicked(data);
+            }
+        };
+
+        vm.proposalRowClicked = function (data) {
+            if (!data) {
+                return;
+            }
+            vm.selectedProposal = data;
+            $('#modalProposal').modal();
+            $('#modalProposal').off('hidden.bs.modal');
+            $('#modalProposal').on('hidden.bs.modal', function () {
+                $('#modalProposal').off('hidden.bs.modal');
+                $('#proposalRemark').val('');
+            });
+
+            console.log('vm.selectedProposal', vm.selectedProposal);
+            vm.thisProposalSteps = [];
+            if (vm.selectedProposal.process != null && typeof vm.selectedProposal.process == 'object') {
+                socketService.$socket($scope.AppSocket, 'getFullProposalProcess', {_id: vm.selectedProposal.process._id}, function processSuccess(data){
+                    console.log('full proposal data', data);
+                    vm.thisProposalSteps = data.data.steps;
+                    vm.chartData = {};
+                    vm.chartData.nextNodeID = 10;
+                    let para = [$translate("START_PROPOSAL"), $translate("END_PROPOSAL"), $translate("FAIL_PROPOSAL")];
+                    vm.chartViewModel.setDefaultLabel(para);
+                    vm.chartViewModel.setEditable(false);
+                    $.each(data.data.steps, function (i, v) {
+                        if (v._id == data.data.currentStep) {
+                            vm.chartData.curStep = v.type;
+                            return false;
+                        }
+                    });
+                    vm.drawProcessSteps(data.data);
+                });
+            }
+
+            let proposalDetail = $.extend({}, vm.selectedProposal.data);
+            let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+            for (let i in proposalDetail) {
+                //remove objectIDs
+                if (checkForHexRegExp.test(proposalDetail[i])) {
+                    delete proposalDetail[i];
+                }
+                if (i == 'providers') {
+                    let temp = [];
+                    if( proposalDetail.providers ){
+                        proposalDetail.providers.map(item => {
+                            temp.push(item.name);
+                        });
+                        proposalDetail.providers = temp;
+                    }
+                }
+
+            }
+
+            vm.selectedProposalDetailForDisplay = $.extend({}, proposalDetail);
+
+            if (vm.selectedProposalDetailForDisplay['provinceId']) {
+                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['provinceId']}, function (data) {
+                    var text = data.data.province ? data.data.province.name : val;
+                    vm.selectedProposalDetailForDisplay['provinceId'] = text;
+                    $scope.safeApply();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountProvince']) {
+                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountProvince']}, function (data) {
+                    var text = data.data.province ? data.data.province.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountProvince'] = text;
+                    $scope.safeApply();
+                });
+            }
+
+            if (vm.selectedProposalDetailForDisplay['cityId']) {
+                socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['cityId']}, function (data) {
+                    var text = data.data.city ? data.data.city.name : val;
+                    vm.selectedProposalDetailForDisplay['cityId'] = text;
+                    $scope.safeApply();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountCity']) {
+                socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountCity']}, function (data) {
+                    var text = data.data.city ? data.data.city.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountCity'] = text;
+                    $scope.safeApply();
+                });
+            }
+
+            if (vm.selectedProposalDetailForDisplay['districtId']) {
+                socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['districtId']}, function (data) {
+                    var text = data.data.district ? data.data.district.name : val;
+                    vm.selectedProposalDetailForDisplay['districtId'] = text;
+                    $scope.safeApply();
+                });
+            }
+            if (vm.selectedProposalDetailForDisplay['bankAccountDistrict']) {
+                socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountDistrict']}, function (data) {
+                    var text = data.data.district ? data.data.district.name : val;
+                    vm.selectedProposalDetailForDisplay['bankAccountDistrict'] = text;
+                    $scope.safeApply();
+                });
+            }
+
+            delete vm.selectedProposalDetailForDisplay.creator;
+            delete vm.selectedProposalDetailForDisplay.platform;
+            delete vm.selectedProposalDetailForDisplay.partner;
+            delete vm.selectedProposalDetailForDisplay.playerObjId;
+            delete vm.selectedProposalDetailForDisplay.playerLevelName;
+            delete vm.selectedProposalDetailForDisplay.playerLevelValue;
+
+            $scope.safeApply();
         };
 
         vm.commonInitTime = function (obj, queryId) {
@@ -348,7 +512,96 @@ define(['js/app'], function (myApp) {
             if (isChange) return searchFunc.call(this);
         };
 
+        vm.dateReformat = function (data) {
+            return utilService.$getTimeFromStdTimeFormat(data);
+        };
 
+        vm.showProposalDetailField = function (obj, fieldName, val) {
+            if (!obj) return '';
+            let result = val ? val.toString() : (val === 0) ? "0" : "";
+            if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
+                result = val.phoneNumber;
+            } else if (obj.status === "Expired" && fieldName === "validTime") {
+                let $time = $('<div>', {
+                    class: 'inlineBlk margin-right-5'
+                }).text(utilService.getFormatTime(val));
+                let $btn = $('<button>', {
+                    class: 'btn common-button btn-primary delayTopupExpireDate',
+                    text: $translate('Delay'),
+                    'data-proposal': JSON.stringify(obj),
+                });
+                utilService.actionAfterLoaded(".delayTopupExpireDate", function () {
+                    $('#ProposalDetail .delayTopupExpireDate').off('click');
+                    $('#ProposalDetail .delayTopupExpireDate').on('click', function () {
+                        var $tr = $(this).closest('tr');
+                        vm.delayTopupExpirDate(obj, function (newData) {
+                            $tr.find('td:nth-child(2)').first().text(utilService.getFormatTime(newData.newValidTime));
+                            vm.needRefreshTable = true;
+                            $scope.safeApply();
+                        });
+                    })
+                });
+                result = $time.prop('outerHTML') + $btn.prop('outerHTML');
+            } else if (fieldName.indexOf('providerId') > -1 || fieldName.indexOf('targetProviders') > -1) {
+                result = val ? val.map(item => {
+                    return vm.getProviderText(item);
+                }) : '';
+                result = result.join(',');
+            } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
+                result = utilService.getFormatTime(val);
+            } else if (fieldName === 'bankAccountType') {
+                switch(parseInt(val)) {
+                    case 1:
+                        result = $translate('Credit Card');
+                        break;
+                    case 2:
+                        result = $translate('Debit Card');
+                        break;
+                    case 3:
+                        result = "储存卡";
+                        break;
+                    case 4:
+                        result = "储蓄卡";
+                        break;
+                    case 5:
+                        result = "商务理财卡";
+                        break;
+                    case 6:
+                        result = "工商银行一卡通";
+                        break;
+                    default:
+                        result = val;
+                        break;
+                }
+            } else if (fieldName == 'clientType') {
+                result = $translate($scope.merchantTargetDeviceJson[val]);
+            } else if (fieldName == 'merchantUseType') {
+                result = $translate($scope.merchantUseTypeJson[val])
+            } else if (fieldName == 'topupType') {
+                result = $translate($scope.merchantTopupTypeJson[val])
+            } else if (fieldName == 'periodType') {
+                result = $translate(firstTopUpPeriodTypeJson[val])
+            } else if (fieldName == 'playerId' && val && val.playerId && val.name) {
+                result = val.playerId;
+                vm.selectedProposalDetailForDisplay.playerName = val.name;
+            } else if (fieldName == 'bankTypeId' || fieldName == 'bankCardType' || fieldName == 'bankName') {
+                result = vm.allBankTypeList[val] || (val + " ! " + $translate("not in bank type list"));
+            } else if (fieldName == 'depositMethod') {
+                result = $translate(vm.getDepositMethodbyId[val])
+            } else if (fieldName === 'playerStatus') {
+                result = $translate($scope.constPlayerStatus[val]);
+            } else if (fieldName === 'proposalPlayerLevel') {
+                result = $translate(val);
+            } else if (fieldName === 'applyForDate') {
+                result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+            } else if (typeof(val) == 'object') {
+                result = JSON.stringify(val);
+            }
+            return $sce.trustAsHtml(result);
+        };
+
+
+        // vm.showProposalDetailField
 
 
 
@@ -418,9 +671,20 @@ define(['js/app'], function (myApp) {
 
         $scope.$on('$viewContentLoaded', function () {
             vm.hideLeftPanel = false;
+            vm.allBankTypeList = {};
 
             setTimeout(function () {
                 vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                    if (data && data.data && data.data.data) {
+                        console.log('banktype', data.data.data);
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                            }
+                        })
+                    }
+                });
             });
         });
     };
