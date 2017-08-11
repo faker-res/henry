@@ -9780,6 +9780,7 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
                 vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
                 vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
+                vm.autoApprovalBasic.consumptionOffset = vm.selectedPlatform.data.autoApproveConsumptionOffset;
                 vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
                 vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
                 vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
@@ -10030,6 +10031,7 @@ define(['js/app'], function (myApp) {
                         autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
                         autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                         autoApproveLostThreshold: srcData.lostThreshold,
+                        autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
                         autoApproveBonusProfitOffset: srcData.bonusProfitOffset

@@ -604,6 +604,11 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.lostThreshold}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.lostThreshold')
                             tr
+                                td {{'Consumption Offset' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.consumptionOffset}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.consumptionOffset')
+                            tr
                                 td {{'Profit Times' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.profitTimes}}
