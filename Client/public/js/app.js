@@ -316,30 +316,30 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                             return deferred.promise;
                         }
                     }
-                })
-                .state('testPage', {
-                    url: '/testPage',
-                    templateUrl: 'category/provider/test-home',
-                    controller: 'testRewardCtrl',
-                    controllerAs: 'vm',
-                    resolve: {
-                        load: function ($q, $rootScope) {
-                            var deferred = $q.defer();
-
-                            var dependencies = [
-                                "/js/controllers/testRewardController.js"
-                            ];
-
-                            require(dependencies, function () {
-                                $rootScope.$apply(function () {
-                                    deferred.resolve();
-                                });
-                            });
-
-                            return deferred.promise;
-                        }
-                    }
                 });
+                // .state('testPage', {
+                //     url: '/testPage',
+                //     templateUrl: 'category/provider/test-home',
+                //     controller: 'testRewardCtrl',
+                //     controllerAs: 'vm',
+                //     resolve: {
+                //         load: function ($q, $rootScope) {
+                //             var deferred = $q.defer();
+                //
+                //             var dependencies = [
+                //                 "/js/controllers/testRewardController.js"
+                //             ];
+                //
+                //             require(dependencies, function () {
+                //                 $rootScope.$apply(function () {
+                //                     deferred.resolve();
+                //                 });
+                //             });
+                //
+                //             return deferred.promise;
+                //         }
+                //     }
+                // });
 
             $urlRouterProvider.otherwise('/dashboard');
         }]);
