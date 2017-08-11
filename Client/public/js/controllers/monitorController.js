@@ -45,7 +45,7 @@ define(['js/app'], function (myApp) {
             vm.getRewardList();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
-            // vm.loadPage(vm.showPageName); // 5
+            vm.loadPage(vm.showPageName); // 5
             $scope.safeApply();
         };
 
@@ -54,6 +54,7 @@ define(['js/app'], function (myApp) {
             console.log("platObj:", platObj);
             vm.showPageName = '';
             vm.setPlatform(JSON.stringify(platObj));
+            $scope.safeApply();
         };
 
         vm.getPlatformByAdminId = function (adminId) {
@@ -155,6 +156,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.loadPage = function (choice) {
+            socketService.clearValue();
             vm.seleDataType[choice] = 'bg-bright';
 
             switch (choice) {
@@ -246,7 +248,7 @@ define(['js/app'], function (myApp) {
                         item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
 
                         return item;
-                    }), data.data.size, {amount: data.data.total}, isNewSearch
+                    }), data.data.size, {}, isNewSearch
                 );
             }, function (err) {
                 console.error(err);
@@ -286,6 +288,15 @@ define(['js/app'], function (myApp) {
                             let $link = $('<a>').text(data);
                             // $link.attr('onclick', 'monitorVM.showProposalDetail('+row.proposalId+')');
                             return $link.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TYPE'),
+                        data: "type",
+                        sClass:'merchantCount',
+                        render: function (data, type, row) {
+                            var text = $translate(row.type ? row.type.name : "");
+                            return "<div>" + text + "</div>";
                         }
                     },
                     {
@@ -348,7 +359,7 @@ define(['js/app'], function (myApp) {
 
             vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
 
-            vm.topUpProposalTable = utilService.createDatatableWithFooter('#paymentMonitorTable', tableOptions, {6: summary.amount});
+            vm.topUpProposalTable = utilService.createDatatableWithFooter('#paymentMonitorTable', tableOptions, {}, true);
 
             vm.paymentMonitorQuery.pageObj.init({maxCount: size}, newSearch);
 
