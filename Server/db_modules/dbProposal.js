@@ -380,7 +380,7 @@ var proposal = {
             .then(
                 proposalData => {
                     if(proposalData.data.phoneNumber){
-                        proposalData.data.phoneNumber = dbUtility.encodePhoneNum(record.data.phoneNumber);
+                        proposalData.data.phoneNumber = dbUtility.encodePhoneNum(proposalData.data.phoneNumber);
                     }
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
@@ -792,7 +792,7 @@ var proposal = {
                         data => {
                             data.map(item => function(item){
                                 if(item.data && item.data.phoneNumber){
-                                    item.data.phoneNumber = dbUtility.encodePhoneNum(record.data.phoneNumber);
+                                    item.data.phoneNumber = dbUtility.encodePhoneNum(item.data.phoneNumber);
                                 }
                                 return item;
                             });
@@ -1332,7 +1332,7 @@ var proposal = {
                                     for (var index in aggr) {
                                         var prom = getDoc(aggr[index].docId);
                                         if(prom.data && prom.data.phoneNumber){
-                                            prom.data.phoneNumber = dbUtility.encodePhoneNum(record.data.phoneNumber);
+                                            prom.data.phoneNumber = dbUtility.encodePhoneNum(prom.data.phoneNumber);
                                         }
                                         retData.push(prom);
                                     }
