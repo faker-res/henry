@@ -39,14 +39,18 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                 a(href='', name='report', ng-click="openHeaderPanel('report')")
                     i.fa.fa-table
                     | {{ 'REPORT' | translate }}
+            li(style="{{ checkViewPermission('Monitor')? 'display:block' : 'display:none'}}")
+                a(href='', name='report', ng-click="openHeaderPanel('monitor')")
+                    i.fa.fa-desktop
+                    | {{ 'MONITOR' | translate }}
             //li(style="{{ checkViewPermission('Test', 'test')? 'display:block' : 'display:none'}}")
             //    a(href='testPage')
             //        i.fa.fa-usd
             //        | {{ 'TEST' | translate }}
-            li(style="{{ checkViewPermission('Test', 'test')? 'display:block' : 'display:none'}}")
-                a(herf="" name='' ng-click="openTestPage()")
-                    i.fa.fa-usd
-                    | {{'API TEST PAGE' | translate }}
+            //li(style="{{ checkViewPermission('Test', 'test')? 'display:block' : 'display:none'}}")
+            //    a(herf="" name='' ng-click="openTestPage()")
+            //        i.fa.fa-usd
+            //        | {{'API TEST PAGE' | translate }}
         ul.navbar-right
             li(style='min-width:150px !important; font-size:0.7em; color:#ffffff;')
                 label.control-label {{"Server" | translate}}

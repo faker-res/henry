@@ -120,6 +120,7 @@ var roleChecker = {
         'getIncludedQuickPaysByQuickPayGroup': true,
         'getExcludedQuickPaysByQuickPayGroup': true,
         "updatePlatformQuickPayGroup": true,
+        "getMerchantList": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
@@ -520,6 +521,11 @@ var roleChecker = {
                 CREDIT_CHANGE_REPORT: ['queryCreditChangeLog'],
                 PLAYER_ALMOST_LEVELUP_REPORT: ['getPlayerAlmostLevelupReport'],
                 ACTIONLOG_REPORT: ['getActionLogPageReport']
+            }
+        },
+        Monitor: {
+            Payment:{
+                Read: ['getPaymentMonitorResult']
             }
         }
     },

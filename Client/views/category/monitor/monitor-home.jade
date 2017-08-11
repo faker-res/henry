@@ -1,0 +1,5 @@
+div(ng-if="checkViewPermission('Monitor')")
+    .col-md-3(ng-if='!vm.hideLeftPanel')
+        include ./monitor-left-panel
+    div(ng-class='vm.hideLeftPanel ? "col-md-12" : "col-md-9"', style='padding-left:5px')
+        include ./monitor-right-panel

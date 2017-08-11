@@ -1,0 +1,41 @@
+div
+    .titleBackground.margin-bottom-5.text-center {{'Basic' | translate}}
+    .label-value
+        label {{'TITLE' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.type.name || 'none'|translate}}
+    .label-value
+        label {{'STATUS' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.status || vm.selectedProposal.process.status || 'none' | translate}}
+    .label-value
+        label {{'PROPOSAL_NO' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.proposalId || 'none' | translate}}
+    .label-value
+        label {{'CREATOR' | translate}}&nbsp;:&nbsp;
+        label {{vm.selectedProposal.creator.name || 'System' | translate}}
+    .label-value
+        label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
+        label {{vm.dateReformat(vm.selectedProposal.createTime) || 'none'}}
+
+    //.titleBackground.margin-bottom-5.text-center {{'Proposal History Process' | translate}}
+    //div(ng-repeat='(i,v) in vm.thisProposalSteps', ng-show='v.operator')
+    //    .label-value
+    //        label {{'DEPARTMENT' | translate}}&nbsp;:&nbsp;
+    //        label {{v.department.departmentName || 'Unknown' | translate}}
+    //    .label-value
+    //        label {{'Operator' | translate}}&nbsp;:&nbsp;
+    //        label {{v.operator.adminName || 'Unknown' | translate}}
+    //    .label-value
+    //        label {{'OperationTime' | translate}}&nbsp;:&nbsp;
+    //        label {{vm.dateReformat(v.operationTime) || 'Unknown' | translate}}
+    //    .label-value(ng-show='v.memo')
+    //        label {{'remark' | translate}}&nbsp;:&nbsp;
+    //        label {{v.memo}}
+    //    hr
+div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
+    label {{'UPDATE_DETAIL' | translate}}
+    div(ng-switch-default)
+        table.table(style='width:100%')
+            tr(ng-repeat='(i,v) in vm.selectedProposalDetailForDisplay')
+                td {{ i | translate}}
+                td
+                    div(ng-bind-html='vm.showProposalDetailField(vm.selectedProposal,i,v)')
