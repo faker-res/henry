@@ -380,7 +380,7 @@ var proposal = {
             .then(
                 proposalData => {
                     if(proposalData.data.phoneNumber){
-                        proposalData.data.phoneNumber = dbUtility.encodePhoneNum(proposalData.data.phoneNumber);
+                        proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
                     }
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
@@ -792,7 +792,7 @@ var proposal = {
                         data => {
                             data.map(item => function(item){
                                 if(item.data && item.data.phoneNumber){
-                                    item.data.phoneNumber = dbUtility.encodePhoneNum(item.data.phoneNumber);
+                                    item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                 }
                                 return item;
                             });
@@ -892,7 +892,7 @@ var proposal = {
                 data.forEach(
                     record => {
                         if(record.data && record.data.phoneNumber){
-                            record.data.phoneNumber = dbUtility.encodePhoneNum(record.data.phoneNumber);
+                            record.data.phoneNumber = dbutility.encodePhoneNum(record.data.phoneNumber);
                         }
                         if (record.data && record.data.playerId && mongoose.Types.ObjectId.isValid(record.data.playerId)) {
                             proms.push(
@@ -1142,7 +1142,7 @@ var proposal = {
                             }
                             function encodePhoneNum(item){
                                 if(item.data && item.data.phoneNumber){
-                                    item.data.phoneNumber = dbUtility.encodePhoneNum(item.data.phoneNumber);
+                                    item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                 }
                                 return item;
                             }
@@ -1308,6 +1308,17 @@ var proposal = {
                                 .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                                 .populate({path: 'isLocked', model: dbconfig.collection_admin})
                                 .sort(sortCol).skip(index).limit(size).lean()
+                                .then(
+                                    pdata => {
+                                        pdata.map(item=> {
+                                            if(item.data && item.data.phoneNumber){
+                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                            }
+                                            return item
+                                        })
+
+                                        return pdata;
+                                })
                             :
                             dbconfig.collection_proposal.aggregate(
                                 {$match: queryObj},
@@ -1332,7 +1343,7 @@ var proposal = {
                                     for (var index in aggr) {
                                         var prom = getDoc(aggr[index].docId);
                                         if(prom.data && prom.data.phoneNumber){
-                                            prom.data.phoneNumber = dbUtility.encodePhoneNum(prom.data.phoneNumber);
+                                            prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
                                         }
                                         retData.push(prom);
                                     }
