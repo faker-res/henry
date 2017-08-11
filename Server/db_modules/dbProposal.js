@@ -379,6 +379,9 @@ var proposal = {
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .then(
                 proposalData => {
+                    if(proposalData.data.phoneNumber){
+                        proposalData.data.phoneNumber = dbUtility.encodePhoneNum(record.data.phoneNumber);
+                    }
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
@@ -784,7 +787,17 @@ var proposal = {
                     }).populate({
                         path: 'process',
                         model: dbconfig.collection_proposalProcess
-                    }).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM * 10).lean();
+                    }).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM * 10).lean()
+                    .then(
+                        data => {
+                            data.map(item => function(item){
+                                if(item.data && item.data.phoneNumber){
+                                    item.data.phoneNumber = dbUtility.encodePhoneNum(record.data.phoneNumber);
+                                }
+                                return item;
+                            });
+                        }
+                    )
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
@@ -878,6 +891,9 @@ var proposal = {
                 var proms = [];
                 data.forEach(
                     record => {
+                        if(record.data && record.data.phoneNumber){
+                            record.data.phoneNumber = dbUtility.encodePhoneNum(record.data.phoneNumber);
+                        }
                         if (record.data && record.data.playerId && mongoose.Types.ObjectId.isValid(record.data.playerId)) {
                             proms.push(
                                 dbconfig.collection_players.findOne({_id: record.data.playerId}, {
@@ -1124,8 +1140,14 @@ var proposal = {
                                     return info;
                                 })
                             }
-
+                            function encodePhoneNum(item){
+                                if(item.data && item.data.phoneNumber){
+                                    item.data.phoneNumber = dbUtility.encodePhoneNum(item.data.phoneNumber);
+                                }
+                                return item;
+                            }
                             var result = data.map(item => getPlayerLevel(item));
+                            result = data.map(item => encodePhoneNum(item));
                             return Q.all(result);
                         })
                     var b = dbconfig.collection_proposal.find(queryObj).count();
@@ -1309,6 +1331,9 @@ var proposal = {
 
                                     for (var index in aggr) {
                                         var prom = getDoc(aggr[index].docId);
+                                        if(prom.data && prom.data.phoneNumber){
+                                            prom.data.phoneNumber = dbUtility.encodePhoneNum(record.data.phoneNumber);
+                                        }
                                         retData.push(prom);
                                     }
                                     return Q.all(retData);
