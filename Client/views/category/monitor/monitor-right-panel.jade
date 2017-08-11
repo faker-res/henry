@@ -64,6 +64,18 @@ style.
                     span#paymentMonitorTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
+            .proposalMessage
+                text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.timeAllProposal}}
+                label.text-danger.newProposalAlert
+                a(ng-click='vm.getPaymentMonitorRecord()')
+                    .fa.fa-refresh
+                .pull-right
+                    label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
+                        input#autoRefreshProposalFlag.margin-left-5(type='checkbox', checked)
+                    .inlineBlk.hidden
+                        text {{"Time left until next refresh" | translate}} :&nbsp;
+                        text#timeLeftRefreshOperation
+                        text s
             label {{"Total" | translate}} {{vm.paymentMonitorQuery.totalCount}} {{"records" | translate}}
             table#paymentMonitorTable.common-table.display(style="min-width:100% ;overflow: scroll")
             #paymentMonitorTablePage

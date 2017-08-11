@@ -177,6 +177,7 @@ define(['js/app'], function (myApp) {
 
                     vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
                     vm.merchantNumbers = getMerchantNumbers(vm.merchants);
+                    vm.getPaymentMonitorRecord();
                 }
             );
 
@@ -326,6 +327,8 @@ define(['js/app'], function (myApp) {
                 }
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
 
             vm.topUpProposalTable = utilService.createDatatableWithFooter('#paymentMonitorTable', tableOptions, {6: summary.amount});
 
@@ -685,6 +688,28 @@ define(['js/app'], function (myApp) {
                         })
                     }
                 });
+
+                let countDown = -1;
+                clearInterval(vm.refreshInterval);
+                vm.refreshInterval = setInterval(function () {
+                    var item = $('#autoRefreshProposalFlag');
+                    var isRefresh = item && item.length > 0 && item[0].checked;
+                    var mark = $('#timeLeftRefreshOperation')[0];
+                    $(mark).parent().toggleClass('hidden', countDown < 0);
+                    if (isRefresh) {
+                        if (countDown < 0) {
+                            countDown = 11
+                        }
+                        if (countDown == 0) {
+                            vm.getPaymentMonitorRecord();
+                            countDown = 11;
+                        }
+                        countDown--;
+                        $(mark).text(countDown);
+                    } else {
+                        countDown = -1;
+                    }
+                }, 1000);
             });
         });
     };
