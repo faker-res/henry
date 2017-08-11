@@ -45,7 +45,8 @@
                 "getPartnerPlayersCommissionInfo",
                 "savePlayerCredit",
                 "markDuplicatedConsumptionRecords",
-                "processAutoProposals"
+                "processAutoProposals",
+                "performPlatformPlayerLevelUpSettlement"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

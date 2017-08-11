@@ -91,6 +91,8 @@ var platformSchema = new Schema({
     autoApproveRepeatDelay: {type: Number, default: 0},
     // Auto approve deficit offset
     autoApproveLostThreshold: {type: Number, default: 0},
+    // Auto approve consumption offset
+    autoApproveConsumptionOffset: {type: Number, default: 0},
     // Auto approve profit times (More than this amount will change to manual audit)
     autoApproveProfitTimes: {type: Number, default: 10},
     // Auto approve minimum withdrawal amount to trigger profit times checking
