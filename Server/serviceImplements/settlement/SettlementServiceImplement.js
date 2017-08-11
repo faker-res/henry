@@ -5,6 +5,7 @@ const dbAutoProposal = require('./../../db_modules/dbAutoProposal');
 const dbPlayerConsumptionDaySummary = require('./../../db_modules/dbPlayerConsumptionDaySummary');
 const dbPlayerConsumptionWeekSummary = require('./../../db_modules/dbPlayerConsumptionWeekSummary');
 const dbPlayerGameTypeConsumptionWeekSummary = require('./../../db_modules/dbPlayerGameTypeConsumptionWeekSummary');
+const dbPlayerLevel = require('./../../db_modules/dbPlayerLevel');
 const dbPlayerTopUpDaySummary = require('./../../db_modules/dbPlayerTopUpDaySummary');
 const dbPlayerTopUpWeekSummary = require('./../../db_modules/dbPlayerTopUpWeekSummary');
 const dbGameProviderPlayerDaySummary = require('./../../db_modules/dbGameProviderPlayerDaySummary');
@@ -212,6 +213,13 @@ var SettlementServiceImplement = function () {
         let isValidData = Boolean(data && data.proposals && data.platformObj);
         let args = [data.proposals, data.platformObj];
         WebSocketUtil.performAction(conn, wsFunc, data, dbAutoProposal.processAutoProposals, args, isValidData);
+    };
+
+    this.performPlatformPlayerLevelUpSettlement.onRequest = function (wsFunc, conn, data) {
+        console.log('onRequest');
+        let isValidData = Boolean(data && data.topUpRecords && data.platformObj);
+        let args = [data.topUpRecords, data.platformObj];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerLevel.performPlatformPlayerLevelUpSettlement, args, isValidData);
     };
 };
 
