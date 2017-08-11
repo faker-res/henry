@@ -250,6 +250,20 @@ define(['js/app'], function (myApp) {
 
         };
 
+        vm.resetTopUpMonitorQuery = function () {
+            vm.paymentMonitorQuery.mainTopupType = "";
+            vm.paymentMonitorQuery.topupType = "";
+            vm.paymentMonitorQuery.merchantGroup = "";
+            vm.paymentMonitorQuery.merchantNo = "";
+            vm.paymentMonitorQuery.orderId = "";
+            vm.paymentMonitorQuery.depositMethod = "";
+            vm.paymentMonitorQuery.playerName = "";
+            vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
+            $scope.safeApply();
+            vm.getPaymentMonitorRecord(true);
+            
+        };
+
         vm.drawPaymentRecordTable  = function (data, size, summary, newSearch) {
             console.log('data', data);
             let tableOptions = {

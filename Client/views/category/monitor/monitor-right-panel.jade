@@ -60,6 +60,9 @@ style.
                     .endTime
                 div
                     label &nbsp;
+                    button.btn.btn-warning(ng-click='vm.resetTopUpMonitorQuery()') {{'Reset' | translate}}
+                div
+                    label &nbsp;
                     button.btn.btn-success(ng-click='vm.getPaymentMonitorRecord(true)') {{'SEARCH' | translate}}
                     span#paymentMonitorTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
