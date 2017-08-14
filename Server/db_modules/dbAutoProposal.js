@@ -300,7 +300,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                             requiredConsumption: getProp.data.amount,
                                             curConsumption: curConsumption,
                                             bonusAmount: bonusAmount,
-                                            settleTime: new Date(queryDateFrom)
+                                            settleTime: new Date(queryDateFrom),
+                                            isTopUp: true
                                         });
                                     }
                                 )
@@ -375,6 +376,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     let isClearCycle = false;
                     let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
+                    let lastTopUpResult = {};
 
                     // Make sure the check result is in correct order
                     checkResult.sort((a, b) => a.settleTime.getTime() - b.settleTime.getTime());
@@ -383,7 +385,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     for (let i = 0; i < checkResult.length; i++) {
                         // reset the amounts if consumption > spending or lost all credit in previous cycle
                         // do not reset if this reward require previous top up's consumption
-                        if (isClearCycle && !checkResult[i].isIncludePreviousConsumption) {
+                        if (isClearCycle) {
                             validConsumptionAmount = 0;
                             spendingAmount = 0;
                             bonusAmount = 0;
@@ -403,6 +405,24 @@ function checkProposalConsumption(proposal, platformObj) {
                             bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
                         }
 
+                        // save current checkResult if it is top up
+                        if (checkResult[i].isTopUp) {
+                            lastTopUpResult = {
+                                curConsumption: checkResult[i].curConsumption,
+                                requiredConsumption: checkResult[i].requiredConsumption,
+                                initBonusAmount: checkResult[i].initBonusAmount,
+                                bonusAmount: checkResult[i].bonusAmount
+                            }
+                        }
+
+                        // include previous top up record result if required
+                        if (checkResult[i].isIncludePreviousConsumption) {
+                            validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
+                            spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
+                            initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
+                            bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
+                        }
+
                         // Check consumption for each cycle
                         if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= lostThreshold) {
                             // User lost all bonus amount
@@ -414,9 +434,6 @@ function checkProposalConsumption(proposal, platformObj) {
                         else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
                             isApprove = false;
                             isClearCycle = false;
-
-                            // Handling for remark after top up return reward
-                            checkMsg = checkResult[i].isIncludePreviousConsumption ? "" : checkResult[i].isIncludePreviousConsumption;
 
                             if (checkMsg == "") {
                                 checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
@@ -444,12 +461,10 @@ function checkProposalConsumption(proposal, platformObj) {
                         checkMsgChinese += "投注额不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
                     }
                     else {
-                        checkMsg = "";
-                        checkMsgChinese = "";
                         repeatMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese += "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
-                        checkMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
-                        checkMsgChinese += "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
+                        checkMsg = "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+                        checkMsgChinese = "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                     }
 
                     let canApprove = true;
