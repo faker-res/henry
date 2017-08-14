@@ -59,9 +59,14 @@ define(['js/app'], function (myApp) {
                 TOPUP_BONUS_SPAM: 10,
                 MULTIPLE_ACCOUNT: 11,
                 BANNED: 12,
-                FORBID_ONLINE_TOPUP: 13
+                FORBID_ONLINE_TOPUP: 13,
+                BAN_PLAYER_BONUS: 14
             };
-            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'LOGOFF', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP'];
+
+            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS',
+                'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM',
+                'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP', 'BAN_PLAYER_BONUS'];
+
             vm.depositMethodList = {
                 Online: 1,
                 ATM: 2,
@@ -3462,7 +3467,8 @@ define(['js/app'], function (myApp) {
                     TOPUP_BONUS_SPAM: '#800000',
                     MULTIPLE_ACCOUNT: '#800000',
                     BANNED: 'red',
-                    FORBID_ONLINE_TOPUP: '#800000'
+                    FORBID_ONLINE_TOPUP: '#800000',
+                    BAN_PLAYER_BONUS: '#800000'
                 }
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
                     $(v).find('a').eq(0).css('color', colorObj[statusKey]);
@@ -8163,7 +8169,8 @@ define(['js/app'], function (myApp) {
                     TOPUP_BONUS_SPAM: '#800000',
                     MULTIPLE_ACCOUNT: '#800000',
                     BANNED: '#800000',
-                    FORBID_ONLINE_TOPUP: '#800000'
+                    FORBID_ONLINE_TOPUP: '#800000',
+                    BAN_PLAYER_BONUS: '#800000'
                 }
 
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {

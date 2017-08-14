@@ -29,7 +29,8 @@ define(['js/app'], function (myApp) {
             TOPUP_BONUS_SPAM: 10,
             MULTIPLE_ACCOUNT: 11,
             BANNED: 12,
-            FORBID_ONLINE_TOPUP: 13
+            FORBID_ONLINE_TOPUP: 13,
+            BAN_PLAYER_BONUS: 14
         };
         vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'LOGOFF', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP'];
 
