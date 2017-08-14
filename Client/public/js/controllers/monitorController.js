@@ -234,6 +234,13 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.proposalId$ = item.proposalId.slice(-3);
+                        item.merchantNo$ = item.data.merchantNo != null
+                            ? item.data.merchantNo
+                            : item.data.weChatAccount != null
+                                ? item.data.weChatAccount
+                                : item.data.alipayAccount != null
+                                    ? item.data.alipayAccount
+                                    : null;
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);
@@ -304,8 +311,22 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('Merchant No'),
+                        title: $translate('topupType'),
+                        data: "data.topupType",
+                        sClass:'merchantCount',
+                        render: function (data, type, row) {
+                            let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : "";
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('Merchant'),
                         data: "merchantName",
+                        sClass:'merchantCount'
+                    },
+                    {
+                        title: $translate('Merchant No'),
+                        data: "merchantNo$",
                         sClass:'merchantCount'
                     },
                     {
@@ -350,11 +371,11 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     // to allow customization, turn these numbers to variable
-                    if (aData.$merchantAllCount >= 5) {
+                    if (aData.$merchantAllCount >= 10) {
                         $(nRow).addClass('merchantExceed');
                     }
 
-                    if (aData.$playerAllCount >= 5) {
+                    if (aData.$playerAllCount >= 4) {
                         $(nRow).addClass('playerExceed');
                     }
                 }
