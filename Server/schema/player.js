@@ -106,7 +106,9 @@ var playerSchema = new Schema({
         forbidPlayerConsumptionReturn: {type: Boolean, default: false},
         forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
         PlayerTopUpReturn: {type: Boolean, default: true},
-        PlayerDoubleTopUpReturn: {type: Boolean, default: true}
+        PlayerDoubleTopUpReturn: {type: Boolean, default: true},
+        forbidPlayerFromLogin: {type: Boolean, default: false},
+        forbidPlayerFromEnteringGame: {type: Boolean, default: false}
     },
 
     //country
