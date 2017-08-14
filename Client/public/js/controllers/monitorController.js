@@ -234,13 +234,17 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.proposalId$ = item.proposalId.slice(-3);
+                        
                         item.merchantNo$ = item.data.merchantNo != null
                             ? item.data.merchantNo
                             : item.data.weChatAccount != null
                                 ? item.data.weChatAccount
                                 : item.data.alipayAccount != null
                                     ? item.data.alipayAccount
-                                    : null;
+                                    : item.data.bankCardNo != null
+                                        ? item.data.bankCardNo
+                                        : null;
+
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);
@@ -371,11 +375,11 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     // to allow customization, turn these numbers to variable
-                    if (aData.$merchantAllCount >= 10) {
+                    if (aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
                         $(nRow).addClass('merchantExceed');
                     }
 
-                    if (aData.$playerAllCount >= 4) {
+                    if (aData.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
                         $(nRow).addClass('playerExceed');
                     }
                 }

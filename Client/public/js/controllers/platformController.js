@@ -52,16 +52,21 @@ define(['js/app'], function (myApp) {
                 FORBID: 3,
                 BALCKLIST: 4,
                 ATTENTION: 5,
-                CANCELS: 6,
+                LOGOFF: 6,
                 CHEAT_NEW_ACCOUNT_REWARD: 7,
                 TOPUP_ATTENTION: 8,
                 HEDGING: 9,
                 TOPUP_BONUS_SPAM: 10,
                 MULTIPLE_ACCOUNT: 11,
                 BANNED: 12,
-                FORBID_ONLINE_TOPUP: 13
+                FORBID_ONLINE_TOPUP: 13,
+                BAN_PLAYER_BONUS: 14
             };
-            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP'];
+
+            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS',
+                'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM',
+                'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP', 'BAN_PLAYER_BONUS'];
+
             vm.depositMethodList = {
                 Online: 1,
                 ATM: 2,
@@ -2744,7 +2749,9 @@ define(['js/app'], function (myApp) {
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
                                     + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
-                                    + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;",
+                                    + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;",                                    
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     'data-trigger': 'focus',
@@ -2795,6 +2802,12 @@ define(['js/app'], function (myApp) {
                                 }));
                                 link.append($('<i>', {
                                     'class': 'fa fa-plus-square-o margin-right-5 ' + (perm.PlayerDoubleTopUpReturn === false ? "text-danger" : "text-primary"),
+                                }));
+                                link.append($('<i>', {
+                                    'class': 'fa margin-right-5 ' + (perm.forbidPlayerFromLogin === true ? "fa-sign-out text-danger" : "fa-sign-in  text-primary"),
+                                }));
+                                link.append($('<i>', {
+                                    'class': 'fa fa-gamepad margin-right-5 ' + (perm.forbidPlayerFromEnteringGame === true ? "text-danger" : "text-primary"),
                                 }));
                                 return link.prop('outerHTML');
                             },
@@ -3098,7 +3111,9 @@ define(['js/app'], function (myApp) {
                                     forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"},
                                     advanceConsumptionReward: {imgType: 'i', iconClass: "fa fa-tint"},
                                     PlayerTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square"},
-                                    PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"}
+                                    PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"},
+                                    forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
+                                    forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
@@ -3107,6 +3122,8 @@ define(['js/app'], function (myApp) {
                                 row.permission.disableWechatPay = !row.permission.disableWechatPay;
                                 row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
                                 row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
+                                row.permission.forbidPlayerFromLogin = !row.permission.forbidPlayerFromLogin;
+                                row.permission.forbidPlayerFromEnteringGame = !row.permission.forbidPlayerFromEnteringGame;
 
                                 $.each(vm.playerPermissionTypes, function (key, v) {
                                     if (row.permission && row.permission[key] === false) {
@@ -3155,6 +3172,14 @@ define(['js/app'], function (myApp) {
 
                                     if (changeObj.hasOwnProperty('forbidPlayerConsumptionIncentive')) {
                                         changeObj.forbidPlayerConsumptionIncentive = !changeObj.forbidPlayerConsumptionIncentive;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('forbidPlayerFromLogin')) {
+                                        changeObj.forbidPlayerFromLogin = !changeObj.forbidPlayerFromLogin;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('forbidPlayerFromEnteringGame')) {
+                                        changeObj.forbidPlayerFromEnteringGame = !changeObj.forbidPlayerFromEnteringGame;
                                     }
 
                                     socketService.$socket($scope.AppSocket, 'updatePlayerPermission', {
@@ -3442,7 +3467,8 @@ define(['js/app'], function (myApp) {
                     TOPUP_BONUS_SPAM: '#800000',
                     MULTIPLE_ACCOUNT: '#800000',
                     BANNED: 'red',
-                    FORBID_ONLINE_TOPUP: '#800000'
+                    FORBID_ONLINE_TOPUP: '#800000',
+                    BAN_PLAYER_BONUS: '#800000'
                 }
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
                     $(v).find('a').eq(0).css('color', colorObj[statusKey]);
@@ -8143,7 +8169,8 @@ define(['js/app'], function (myApp) {
                     TOPUP_BONUS_SPAM: '#800000',
                     MULTIPLE_ACCOUNT: '#800000',
                     BANNED: '#800000',
-                    FORBID_ONLINE_TOPUP: '#800000'
+                    FORBID_ONLINE_TOPUP: '#800000',
+                    BAN_PLAYER_BONUS: '#800000'
                 }
 
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
@@ -9513,8 +9540,11 @@ define(['js/app'], function (myApp) {
                     case 'autoApproval':
                         vm.getAutoApprovalBasic();
                         break;
+                    case 'monitor':
+                        vm.getMonitorBasic();
+                        break;
                 }
-            }
+            };
 
             // If any of the levels are holding the old data structure, migrate them to the new data structure.
             // (This code can be removed in the future.)
@@ -9814,6 +9844,13 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getMonitorBasic = () => {
+                vm.monitorBasic = vm.monitorBasic || {};
+                vm.monitorBasic.monitorMerchantCount = vm.selectedPlatform.data.monitorMerchantCount;
+                vm.monitorBasic.monitorPlayerCount = vm.selectedPlatform.data.monitorPlayerCount;
+                $scope.safeApply();
+            };
+
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
                 vm.newPlayerLvl.platform = vm.selectedPlatform.id;
@@ -9920,6 +9957,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'autoApproval':
                         updateAutoApprovalConfig(vm.autoApprovalBasic);
+                        break;
+                    case 'monitor':
+                        updateMonitorBasic(vm.monitorBasic);
                         break;
                 }
             };
@@ -10068,6 +10108,19 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updateAutoApprovalConfig', sendData, function (data) {
                     console.log('update auto approval socket', JSON.stringify(data));
+                    vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateMonitorBasic(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        monitorMerchantCount: srcData.monitorMerchantCount,
+                        monitorPlayerCount: srcData.monitorPlayerCount
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
                 });
             }

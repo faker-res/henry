@@ -441,3 +441,29 @@ var param19Cursor = db.rewardParam.find({"name": type19});
 var param19 = param19Cursor.next();
 
 db.rewardType.insert({"name": type19, params: param19._id, des: "Player Easter Egg Reward"});
+
+//Player top up promo
+var type20 = "PlayerTopUpPromo";
+db.rewardParam.insert({
+    "name": type20, params: {
+        targetEnable: {type: "Boolean", des: "If target is enabled"},
+        providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
+        minTopUpAmount: {type: "Number", des: "Min top up amount"},
+        consumptionTimes: {type: "Number", des: "Required Consumption Amount Times"},
+        reward: {
+            type: "Table",
+            data: {
+                index: {type: "Number", des: "Index"},
+                topUpType: {type: "String", des: "Top Up Type"},
+                rewardDes: {type: "String", des: "Reward des"},
+                rewardPercentage: {type: "Number", des: "Percentage"}
+            },
+            des: "Reward parameter"
+        }
+    }
+});
+
+var param20Cursor = db.rewardParam.find({"name": type20});
+var param20 = param20Cursor.next();
+
+db.rewardType.insert({"name": type20, params: param20._id, des: "Player Top Up Promo"});
