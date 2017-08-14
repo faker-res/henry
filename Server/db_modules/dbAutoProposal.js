@@ -414,6 +414,10 @@ function checkProposalConsumption(proposal, platformObj) {
                         else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
                             isApprove = false;
                             isClearCycle = false;
+
+                            // Handling for remark after top up return reward
+                            checkMsg = checkResult[i].isIncludePreviousConsumption ? "" : checkResult[i].isIncludePreviousConsumption;
+
                             if (checkMsg == "") {
                                 checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
                                 checkMsgChinese += "提案 " + checkResult[i].proposalId + "：流水 " + validConsumptionAmount + " ，所需流水 " + spendingAmount + "; ";
