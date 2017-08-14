@@ -9533,8 +9533,11 @@ define(['js/app'], function (myApp) {
                     case 'autoApproval':
                         vm.getAutoApprovalBasic();
                         break;
+                    case 'monitor':
+                        vm.getMonitorBasic();
+                        break;
                 }
-            }
+            };
 
             // If any of the levels are holding the old data structure, migrate them to the new data structure.
             // (This code can be removed in the future.)
@@ -9834,6 +9837,13 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getMonitorBasic = () => {
+                vm.monitorBasic = vm.monitorBasic || {};
+                vm.monitorBasic.monitorMerchantCount = vm.selectedPlatform.data.monitorMerchantCount;
+                vm.monitorBasic.monitorPlayerCount = vm.selectedPlatform.data.monitorPlayerCount;
+                $scope.safeApply();
+            };
+
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
                 vm.newPlayerLvl.platform = vm.selectedPlatform.id;
@@ -9940,6 +9950,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'autoApproval':
                         updateAutoApprovalConfig(vm.autoApprovalBasic);
+                        break;
+                    case 'monitor':
+                        updateMonitorBasic(vm.monitorBasic);
                         break;
                 }
             };
@@ -10088,6 +10101,19 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updateAutoApprovalConfig', sendData, function (data) {
                     console.log('update auto approval socket', JSON.stringify(data));
+                    vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateMonitorBasic(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        monitorMerchantCount: srcData.monitorMerchantCount,
+                        monitorPlayerCount: srcData.monitorPlayerCount
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
                 });
             }
