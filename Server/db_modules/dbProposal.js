@@ -1234,7 +1234,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1327,10 +1327,11 @@ var proposal = {
                                 .then(
                                      pdata => {
                                          pdata.map(item=> {
-                                             if(item.data && item.data.phone){
+                                             // only displayPhoneNum equal true, encode the phone num
+                                             if(item.data && item.data.phone && !displayPhoneNum){
                                                  item.data.phone = dbutility.encodePhoneNum(item.data.phone);
                                              }
-                                             if(item.data && item.data.phoneNumber){
+                                             if(item.data && item.data.phoneNumber &&!displayPhoneNum){
                                                  item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                              }
                                              return item
@@ -1361,10 +1362,11 @@ var proposal = {
 
                                     for (var index in aggr) {
                                         var prom = getDoc(aggr[index].docId);
-                                        if(prom.data && prom.data.phone){
+                                        // only displayPhoneNum equal true, encode the phone num
+                                        if(prom.data && prom.data.phone && !displayPhoneNum){
                                              prom.data.phone = dbutility.encodePhoneNum(prom.data.phone);
                                          }
-                                        if(prom.data && prom.data.phoneNumber){
+                                        if(prom.data && prom.data.phoneNumber && !displayPhoneNum){
                                              prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
                                          }
                                         retData.push(prom);
@@ -2474,6 +2476,8 @@ function insertRepeatCount(proposals, platformId) {
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;
             let relevantTypeIds = merchantNo ? typeIds : [proposal.type];
+            let alipayAccount = proposal.data.alipayAccount ? proposal.data.alipayAccount : "";
+            let bankCardNoRegExp = proposal.data.bankCardNo ? new RegExp(proposal.data.bankCardNo.substring(0, 6)+".*"+proposal.data.bankCardNo.slice(-4))  : "";
 
             let prevSuccessQuery = {
                 type: {$in: relevantTypeIds},
@@ -2490,6 +2494,16 @@ function insertRepeatCount(proposals, platformId) {
             if (merchantNo) {
                 prevSuccessQuery["data.merchantNo"] = merchantNo;
                 nextSuccessQuery["data.merchantNo"] = merchantNo;
+            }
+
+            if (alipayAccount) {
+                prevSuccessQuery["data.alipayAccount"] = alipayAccount;
+                nextSuccessQuery["data.alipayAccount"] = alipayAccount;
+            }
+
+            if (bankCardNoRegExp) {
+                prevSuccessQuery["data.bankCardNo"] = bankCardNoRegExp;
+                nextSuccessQuery["data.bankCardNo"] = bankCardNoRegExp;
             }
 
             let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
@@ -2520,6 +2534,18 @@ function insertRepeatCount(proposals, platformId) {
                         allCountQuery["data.merchantNo"] = merchantNo;
                         currentCountQuery["data.merchantNo"] = merchantNo;
                         firstInStreakQuery["data.merchantNo"] = merchantNo;
+                    }
+
+                    if (alipayAccount) {
+                        allCountQuery["data.alipayAccount"] = alipayAccount;
+                        currentCountQuery["data.alipayAccount"] = alipayAccount;
+                        firstInStreakQuery["data.alipayAccount"] = alipayAccount;
+                    }
+
+                    if (bankCardNoRegExp) {
+                        allCountQuery["data.bankCardNo"] = bankCardNoRegExp;
+                        currentCountQuery["data.bankCardNo"] = bankCardNoRegExp;
+                        firstInStreakQuery["data.bankCardNo"] = bankCardNoRegExp;
                     }
 
                     if (prevSuccess[0]) {
