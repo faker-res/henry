@@ -234,6 +234,13 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.proposalId$ = item.proposalId.slice(-3);
+                        item.merchantNo$ = item.data.merchantNo != null
+                            ? item.data.merchantNo
+                            : item.data.weChatAccount != null
+                                ? item.data.weChatAccount
+                                : item.data.alipayAccount != null
+                                    ? item.data.alipayAccount
+                                    : null;
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);
@@ -302,6 +309,20 @@ define(['js/app'], function (myApp) {
                             var text = $translate(row.type ? row.type.name : "");
                             return "<div>" + text + "</div>";
                         }
+                    },
+                    {
+                        title: $translate('topupType'),
+                        data: "data.topupType",
+                        sClass:'merchantCount',
+                        render: function (data, type, row) {
+                            let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : "";
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('Merchant No'),
+                        data: "merchantNo$",
+                        sClass:'merchantCount'
                     },
                     {
                         title: $translate('Merchant No'),
