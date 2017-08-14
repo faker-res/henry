@@ -2356,29 +2356,62 @@ function insertRepeatCount(proposals, platformId) {
             resolve([]);
         }
 
-        asyncLoop(proposals.length, function (i, loop) {
-            let proposal = JSON.parse(JSON.stringify(proposals[i]));
-            if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
-                insertedProposals[i] = handleSuccessProposal(proposal);
-                loop();
-            } else {
-                getProposalTypesIdProm.then(
-                    typeIdData => {
-                        typeIds = typeIdData;
-                        return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
-                    }
-                ).then(
-                    () => {
-                        insertedProposals[i] = proposal;
-                        loop();
-                    }
-                )
+        let promises = [];
+
+        for (let i = 0; i < proposals.length; i++) {
+            let prom = new Promise(function (res) {
+                let proposal = JSON.parse(JSON.stringify(proposals[i]));
+                if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+                    insertedProposals[i] = handleSuccessProposal(proposal);
+                    res();
+                } else {
+                    getProposalTypesIdProm.then(
+                        typeIdData => {
+                            typeIds = typeIdData;
+                            return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+                        }
+                    ).then(
+                        () => {
+                            insertedProposals[i] = proposal;
+                            res();
+                        }
+                    )
+                }
+            });
+
+            promises.push(prom);
+        }
+
+        Promise.all(promises).then(
+            () => {
+                resolve(insertedProposals);
             }
+        );
 
-
-        }, function returnResult() {
-            resolve(insertedProposals);
-        });
+        // NOTE: async loop will probably be necessary if t
+        // asyncLoop(proposals.length, function (i, loop) {
+        //     let proposal = JSON.parse(JSON.stringify(proposals[i]));
+        //     if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+        //         insertedProposals[i] = handleSuccessProposal(proposal);
+        //         loop();
+        //     } else {
+        //         getProposalTypesIdProm.then(
+        //             typeIdData => {
+        //                 typeIds = typeIdData;
+        //                 return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+        //             }
+        //         ).then(
+        //             () => {
+        //                 insertedProposals[i] = proposal;
+        //                 loop();
+        //             }
+        //         )
+        //     }
+        //
+        //
+        // }, function returnResult() {
+        //     resolve(insertedProposals);
+        // });
 
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;
