@@ -52,7 +52,7 @@ define(['js/app'], function (myApp) {
                 FORBID: 3,
                 BALCKLIST: 4,
                 ATTENTION: 5,
-                CANCELS: 6,
+                LOGOFF: 6,
                 CHEAT_NEW_ACCOUNT_REWARD: 7,
                 TOPUP_ATTENTION: 8,
                 HEDGING: 9,
@@ -61,7 +61,7 @@ define(['js/app'], function (myApp) {
                 BANNED: 12,
                 FORBID_ONLINE_TOPUP: 13
             };
-            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'CANCELS', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP'];
+            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'LOGOFF', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP'];
             vm.depositMethodList = {
                 Online: 1,
                 ATM: 2,

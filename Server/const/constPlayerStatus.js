@@ -9,7 +9,7 @@ const constPlayerStatus = {
     FORBID: 3, //"Forbid"
     BALCKLIST: 4, //"BALCKLIST"
     ATTENTION: 5, //"ATTENTION"
-    CANCELS: 6,
+    LOGOFF: 6,
     CHEAT_NEW_ACCOUNT_REWARD: 7,
     TOPUP_ATTENTION: 8,
     HEDGING: 9,

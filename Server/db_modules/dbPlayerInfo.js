@@ -2971,11 +2971,11 @@ let dbPlayerInfo = {
         ).then(
             isMatch => {
                 if (isMatch) {
-                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.CANCELS) {
+                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.LOGOFF) {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
-                            code: (playerObj.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constPlayerStatus.CANCELS
+                            code: (playerObj.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constPlayerStatus.LOGOFF
                         });
                         return;
                     }
@@ -3250,7 +3250,7 @@ let dbPlayerInfo = {
                 if (data) {
                     playerObj = data;
 
-                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.CANCELS) {
+                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.LOGOFF) {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
@@ -6759,7 +6759,7 @@ let dbPlayerInfo = {
                     playerData = data[0];
                     gameData = data[1];
                     // check if the player is forbidden totally
-                    if (playerData.status == constPlayerStatus.FORBID || playerData.status == constPlayerStatus.CANCELS) {
+                    if (playerData.status == constPlayerStatus.FORBID || playerData.status == constPlayerStatus.LOGOFF) {
                         return Q.reject({
                             status: (playerData.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constServerCode.PLAYER_IS_CANCELLED,
                             name: "DataError",
