@@ -379,6 +379,13 @@ var proposal = {
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .then(
                 proposalData => {
+                    if(proposalData.data.phone){
+                        proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
+                    }
+                    if(proposalData.data.phoneNumber){
+                        proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
+                    }
+
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
@@ -784,7 +791,21 @@ var proposal = {
                     }).populate({
                         path: 'process',
                         model: dbconfig.collection_proposalProcess
-                    }).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM * 10).lean();
+                    }).sort({createTime: -1}).limit(constSystemParam.MAX_RECORD_NUM * 10).lean()
+                    .then(
+                        data => {
+                            data.map(item => function(item){
+                                if(item.data && item.data.phone){
+                                    item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                }
+                                if(item.data && item.data.phoneNumber){
+                                    item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                }
+
+                                return item;
+                            });
+                        }
+                    )
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find platform proposal types"});
@@ -878,6 +899,13 @@ var proposal = {
                 var proms = [];
                 data.forEach(
                     record => {
+                        if(record.data && record.data.phone){
+                            record.data.phone = dbutility.encodePhoneNum(record.data.phone);
+                        }
+                        if(record.data && record.data.phoneNumber){
+                            record.data.phoneNumber = dbutility.encodePhoneNum(record.data.phoneNumber);
+                        }
+
                         if (record.data && record.data.playerId && mongoose.Types.ObjectId.isValid(record.data.playerId)) {
                             proms.push(
                                 dbconfig.collection_players.findOne({_id: record.data.playerId}, {
@@ -1124,8 +1152,18 @@ var proposal = {
                                     return info;
                                 })
                             }
+                            function encodePhoneNum(item){
+                                 if(item.data && item.data.phone){
+                                     item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                 }
+                                 if(item.data && item.data.phoneNumber){
+                                     item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                 }
+                                 return item;
+                             }
 
                             var result = data.map(item => getPlayerLevel(item));
+                            result = data.map(item => encodePhoneNum(item));
                             return Q.all(result);
                         })
                     var b = dbconfig.collection_proposal.find(queryObj).count();
@@ -1286,6 +1324,20 @@ var proposal = {
                                 .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                                 .populate({path: 'isLocked', model: dbconfig.collection_admin})
                                 .sort(sortCol).skip(index).limit(size).lean()
+                                .then(
+                                     pdata => {
+                                         pdata.map(item=> {
+                                             if(item.data && item.data.phone){
+                                                 item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                             }
+                                             if(item.data && item.data.phoneNumber){
+                                                 item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
+                                             }
+                                             return item
+                                         })
+ 
+                                         return pdata;
+                                 })
                             :
                             dbconfig.collection_proposal.aggregate(
                                 {$match: queryObj},
@@ -1309,6 +1361,12 @@ var proposal = {
 
                                     for (var index in aggr) {
                                         var prom = getDoc(aggr[index].docId);
+                                        if(prom.data && prom.data.phone){
+                                             prom.data.phone = dbutility.encodePhoneNum(prom.data.phone);
+                                         }
+                                        if(prom.data && prom.data.phoneNumber){
+                                             prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
+                                         }
                                         retData.push(prom);
                                     }
                                     return Q.all(retData);
@@ -2356,29 +2414,62 @@ function insertRepeatCount(proposals, platformId) {
             resolve([]);
         }
 
-        asyncLoop(proposals.length, function (i, loop) {
-            let proposal = JSON.parse(JSON.stringify(proposals[i]));
-            if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
-                insertedProposals[i] = handleSuccessProposal(proposal);
-                loop();
-            } else {
-                getProposalTypesIdProm.then(
-                    typeIdData => {
-                        typeIds = typeIdData;
-                        return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
-                    }
-                ).then(
-                    () => {
-                        insertedProposals[i] = proposal;
-                        loop();
-                    }
-                )
+        let promises = [];
+
+        for (let i = 0; i < proposals.length; i++) {
+            let prom = new Promise(function (res) {
+                let proposal = JSON.parse(JSON.stringify(proposals[i]));
+                if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+                    insertedProposals[i] = handleSuccessProposal(proposal);
+                    res();
+                } else {
+                    getProposalTypesIdProm.then(
+                        typeIdData => {
+                            typeIds = typeIdData;
+                            return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+                        }
+                    ).then(
+                        () => {
+                            insertedProposals[i] = proposal;
+                            res();
+                        }
+                    )
+                }
+            });
+
+            promises.push(prom);
+        }
+
+        Promise.all(promises).then(
+            () => {
+                resolve(insertedProposals);
             }
+        );
 
-
-        }, function returnResult() {
-            resolve(insertedProposals);
-        });
+        // NOTE: async loop will probably be necessary if t
+        // asyncLoop(proposals.length, function (i, loop) {
+        //     let proposal = JSON.parse(JSON.stringify(proposals[i]));
+        //     if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+        //         insertedProposals[i] = handleSuccessProposal(proposal);
+        //         loop();
+        //     } else {
+        //         getProposalTypesIdProm.then(
+        //             typeIdData => {
+        //                 typeIds = typeIdData;
+        //                 return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+        //             }
+        //         ).then(
+        //             () => {
+        //                 insertedProposals[i] = proposal;
+        //                 loop();
+        //             }
+        //         )
+        //     }
+        //
+        //
+        // }, function returnResult() {
+        //     resolve(insertedProposals);
+        // });
 
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;
