@@ -234,13 +234,17 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.proposalId$ = item.proposalId.slice(-3);
+                        
                         item.merchantNo$ = item.data.merchantNo != null
                             ? item.data.merchantNo
                             : item.data.weChatAccount != null
                                 ? item.data.weChatAccount
                                 : item.data.alipayAccount != null
                                     ? item.data.alipayAccount
-                                    : null;
+                                    : item.data.bankCardNo != null
+                                        ? item.data.bankCardNo
+                                        : null;
+
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);
