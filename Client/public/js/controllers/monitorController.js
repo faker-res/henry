@@ -371,11 +371,11 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     // to allow customization, turn these numbers to variable
-                    if (aData.$merchantAllCount >= 5) {
+                    if (aData.$merchantAllCount >= 10) {
                         $(nRow).addClass('merchantExceed');
                     }
 
-                    if (aData.$playerAllCount >= 5) {
+                    if (aData.$playerAllCount >= 4) {
                         $(nRow).addClass('playerExceed');
                     }
                 }
