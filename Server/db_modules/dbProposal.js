@@ -2474,6 +2474,8 @@ function insertRepeatCount(proposals, platformId) {
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;
             let relevantTypeIds = merchantNo ? typeIds : [proposal.type];
+            let alipayAccount = proposal.data.alipayAccount ? proposal.data.alipayAccount : "";
+            let bankCardNoRegExp = proposal.data.bankCardNo ? new RegExp(proposal.data.bankCardNo.substring(0, 6)+".*"+proposal.data.bankCardNo.slice(-4))  : "";
 
             let prevSuccessQuery = {
                 type: {$in: relevantTypeIds},
@@ -2490,6 +2492,16 @@ function insertRepeatCount(proposals, platformId) {
             if (merchantNo) {
                 prevSuccessQuery["data.merchantNo"] = merchantNo;
                 nextSuccessQuery["data.merchantNo"] = merchantNo;
+            }
+
+            if (alipayAccount) {
+                prevSuccessQuery["data.alipayAccount"] = alipayAccount;
+                nextSuccessQuery["data.alipayAccount"] = alipayAccount;
+            }
+
+            if (bankCardNoRegExp) {
+                prevSuccessQuery["data.bankCardNo"] = bankCardNoRegExp;
+                nextSuccessQuery["data.bankCardNo"] = bankCardNoRegExp;
             }
 
             let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
@@ -2520,6 +2532,18 @@ function insertRepeatCount(proposals, platformId) {
                         allCountQuery["data.merchantNo"] = merchantNo;
                         currentCountQuery["data.merchantNo"] = merchantNo;
                         firstInStreakQuery["data.merchantNo"] = merchantNo;
+                    }
+
+                    if (alipayAccount) {
+                        allCountQuery["data.alipayAccount"] = alipayAccount;
+                        currentCountQuery["data.alipayAccount"] = alipayAccount;
+                        firstInStreakQuery["data.alipayAccount"] = alipayAccount;
+                    }
+
+                    if (bankCardNoRegExp) {
+                        allCountQuery["data.bankCardNo"] = bankCardNoRegExp;
+                        currentCountQuery["data.bankCardNo"] = bankCardNoRegExp;
+                        firstInStreakQuery["data.bankCardNo"] = bankCardNoRegExp;
                     }
 
                     if (prevSuccess[0]) {
