@@ -2180,7 +2180,6 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-
         if (data.merchantNo && !data.merchantGroup) {
             query['data.merchantNo'] = data.merchantNo;
         }
@@ -2205,20 +2204,20 @@ var proposal = {
         }
 
         let mainTopUpType;
-        switch (data.mainTopupType) {
-            case constPlayerTopUpType.ONLINE:
+        switch (String(data.mainTopupType)) {
+            case constPlayerTopUpType.ONLINE.toString():
                 mainTopUpType = constProposalType.PLAYER_TOP_UP;
                 break;
-            case constPlayerTopUpType.ALIPAY:
+            case constPlayerTopUpType.ALIPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_ALIPAY_TOP_UP;
                 break;
-            case constPlayerTopUpType.MANUAL:
+            case constPlayerTopUpType.MANUAL.toString():
                 mainTopUpType = constProposalType.PLAYER_MANUAL_TOP_UP;
                 break;
-            case constPlayerTopUpType.WECHAT:
+            case constPlayerTopUpType.WECHAT.toString():
                 mainTopUpType = constProposalType.PLAYER_WECHAT_TOP_UP;
                 break;
-            case constPlayerTopUpType.QUICKPAY:
+            case constPlayerTopUpType.QUICKPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
                 break;
             default:
@@ -2234,11 +2233,11 @@ var proposal = {
         }
 
         if (data.topupType) {
-            query['data']['topupType'] = data.topupType;
+            query['data.topupType'] = data.topupType;
         }
 
         if (data.depositMethod) {
-            query['data']['depositMethod'] = data.depositMethod;
+            query['data.depositMethod'] = data.depositMethod;
         }
 
         let proposalCount, proposals;
@@ -2357,29 +2356,62 @@ function insertRepeatCount(proposals, platformId) {
             resolve([]);
         }
 
-        asyncLoop(proposals.length, function (i, loop) {
-            let proposal = JSON.parse(JSON.stringify(proposals[i]));
-            if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
-                insertedProposals[i] = handleSuccessProposal(proposal);
-                loop();
-            } else {
-                getProposalTypesIdProm.then(
-                    typeIdData => {
-                        typeIds = typeIdData;
-                        return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
-                    }
-                ).then(
-                    () => {
-                        insertedProposals[i] = proposal;
-                        loop();
-                    }
-                )
+        let promises = [];
+
+        for (let i = 0; i < proposals.length; i++) {
+            let prom = new Promise(function (res) {
+                let proposal = JSON.parse(JSON.stringify(proposals[i]));
+                if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+                    insertedProposals[i] = handleSuccessProposal(proposal);
+                    res();
+                } else {
+                    getProposalTypesIdProm.then(
+                        typeIdData => {
+                            typeIds = typeIdData;
+                            return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+                        }
+                    ).then(
+                        () => {
+                            insertedProposals[i] = proposal;
+                            res();
+                        }
+                    )
+                }
+            });
+
+            promises.push(prom);
+        }
+
+        Promise.all(promises).then(
+            () => {
+                resolve(insertedProposals);
             }
+        );
 
-
-        }, function returnResult() {
-            resolve(insertedProposals);
-        });
+        // NOTE: async loop will probably be necessary if t
+        // asyncLoop(proposals.length, function (i, loop) {
+        //     let proposal = JSON.parse(JSON.stringify(proposals[i]));
+        //     if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+        //         insertedProposals[i] = handleSuccessProposal(proposal);
+        //         loop();
+        //     } else {
+        //         getProposalTypesIdProm.then(
+        //             typeIdData => {
+        //                 typeIds = typeIdData;
+        //                 return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+        //             }
+        //         ).then(
+        //             () => {
+        //                 insertedProposals[i] = proposal;
+        //                 loop();
+        //             }
+        //         )
+        //     }
+        //
+        //
+        // }, function returnResult() {
+        //     resolve(insertedProposals);
+        // });
 
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;

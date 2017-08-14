@@ -39,17 +39,14 @@ style.
                     label {{'Merchant No' | translate}}
                     select.form-control(ng-model='vm.paymentMonitorQuery.merchantNo',ng-options='index as name for (index, name) in vm.merchantNumbers')
                         option(value='') {{'any' | translate}}
-                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
-                    label {{'orderId' | translate}}
-                    input.form-control(type='text', ng-model='vm.paymentMonitorQuery.orderId')
-                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="1"',style='max-width:125px')
-                    label {{'depositMethod' | translate}}
-                    select.form-control(ng-model='vm.paymentMonitorQuery.depositMethod')
-                        option(value='') {{'any' | translate}}
-                        option(value='1') 网银转账(OnlineTransfer)
-                        option(value='2') 自动取款机(ATM)
-                        option(value='3') 柜台存款(Counter)
-                div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
+                //div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="1"',style='max-width:125px')
+                //    label {{'depositMethod' | translate}}
+                //    select.form-control(ng-model='vm.paymentMonitorQuery.depositMethod')
+                //        option(value='') {{'any' | translate}}
+                //        option(value='1') 网银转账(OnlineTransfer)
+                //        option(value='2') 自动取款机(ATM)
+                //        option(value='3') 柜台存款(Counter)
+                div(style='max-width:125px')
                     label {{'PLAYER_NAME' | translate}}
                     input.form-control(type='text', ng-model='vm.paymentMonitorQuery.playerName')
                 div
