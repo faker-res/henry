@@ -379,9 +379,13 @@ var proposal = {
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .then(
                 proposalData => {
+                    if(proposalData.data.phone){
+                        proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
+                    }
                     if(proposalData.data.phoneNumber){
                         proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
                     }
+
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
@@ -791,9 +795,13 @@ var proposal = {
                     .then(
                         data => {
                             data.map(item => function(item){
+                                if(item.data && item.data.phone){
+                                    item.data.phone = dbutility.encodePhoneNum(item.data.phone);
+                                }
                                 if(item.data && item.data.phoneNumber){
                                     item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                 }
+
                                 return item;
                             });
                         }
@@ -891,9 +899,13 @@ var proposal = {
                 var proms = [];
                 data.forEach(
                     record => {
+                        if(record.data && record.data.phone){
+                            record.data.phone = dbutility.encodePhoneNum(record.data.phone);
+                        }
                         if(record.data && record.data.phoneNumber){
                             record.data.phoneNumber = dbutility.encodePhoneNum(record.data.phoneNumber);
                         }
+
                         if (record.data && record.data.playerId && mongoose.Types.ObjectId.isValid(record.data.playerId)) {
                             proms.push(
                                 dbconfig.collection_players.findOne({_id: record.data.playerId}, {
