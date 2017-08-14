@@ -1140,14 +1140,7 @@ var proposal = {
                                     return info;
                                 })
                             }
-                            function encodePhoneNum(item){
-                                if(item.data && item.data.phoneNumber){
-                                    item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                }
-                                return item;
-                            }
                             var result = data.map(item => getPlayerLevel(item));
-                            result = data.map(item => encodePhoneNum(item));
                             return Q.all(result);
                         })
                     var b = dbconfig.collection_proposal.find(queryObj).count();
@@ -1308,17 +1301,6 @@ var proposal = {
                                 .populate({path: 'data.providers', model: dbconfig.collection_gameProvider})
                                 .populate({path: 'isLocked', model: dbconfig.collection_admin})
                                 .sort(sortCol).skip(index).limit(size).lean()
-                                .then(
-                                    pdata => {
-                                        pdata.map(item=> {
-                                            if(item.data && item.data.phoneNumber){
-                                                item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
-                                            }
-                                            return item
-                                        })
-
-                                        return pdata;
-                                })
                             :
                             dbconfig.collection_proposal.aggregate(
                                 {$match: queryObj},
@@ -1342,9 +1324,6 @@ var proposal = {
 
                                     for (var index in aggr) {
                                         var prom = getDoc(aggr[index].docId);
-                                        if(prom.data && prom.data.phoneNumber){
-                                            prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
-                                        }
                                         retData.push(prom);
                                     }
                                     return Q.all(retData);
