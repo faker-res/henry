@@ -1234,7 +1234,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1327,10 +1327,11 @@ var proposal = {
                                 .then(
                                      pdata => {
                                          pdata.map(item=> {
-                                             if(item.data && item.data.phone){
+                                             // only displayPhoneNum equal true, encode the phone num
+                                             if(item.data && item.data.phone && !displayPhoneNum){
                                                  item.data.phone = dbutility.encodePhoneNum(item.data.phone);
                                              }
-                                             if(item.data && item.data.phoneNumber){
+                                             if(item.data && item.data.phoneNumber &&!displayPhoneNum){
                                                  item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                              }
                                              return item
@@ -1361,10 +1362,11 @@ var proposal = {
 
                                     for (var index in aggr) {
                                         var prom = getDoc(aggr[index].docId);
-                                        if(prom.data && prom.data.phone){
+                                        // only displayPhoneNum equal true, encode the phone num
+                                        if(prom.data && prom.data.phone && !displayPhoneNum){
                                              prom.data.phone = dbutility.encodePhoneNum(prom.data.phone);
                                          }
-                                        if(prom.data && prom.data.phoneNumber){
+                                        if(prom.data && prom.data.phoneNumber && !displayPhoneNum){
                                              prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
                                          }
                                         retData.push(prom);

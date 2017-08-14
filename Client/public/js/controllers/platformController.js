@@ -2091,7 +2091,8 @@ define(['js/app'], function (myApp) {
                     // entryType: vm.queryProposalEntryType,
                     size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
                     index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
-                    sortCol: vm.newPlayerRecords.sortCol || null
+                    sortCol: vm.newPlayerRecords.sortCol || null,
+                    displayPhoneNum:true
 
                 }
                 if (selectedStatus && selectedStatus != "") {
@@ -2160,10 +2161,11 @@ define(['js/app'], function (myApp) {
                                     data = data || '';
                                     var playerObjId = row.data._id ? row.data._id : "";
                                     var link = $('<div>', {});
+
                                     if (row.data.phoneNumber && row.data.phoneNumber != "") {
                                         link.append($('<div>', {
                                             'class': 'fa fa-volume-control-phone',
-                                            'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                            'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
                                             // 'data-row': JSON.stringify(row),
                                             'title': $translate("PHONE")
                                         }));
@@ -3637,6 +3639,23 @@ define(['js/app'], function (myApp) {
             vm.sendMessageToPlayerBtn = function (type, data) {
                 vm.telphonePlayer = data;
                 $('#messagePlayerModal').modal('show');
+            }
+            vm.callNewPlayerBtn = function(phoneNumber, data){
+
+                vm.getSMSTemplate();
+                var phoneCall = {
+                    playerId: data.playerId,
+                    name: data.name,
+                    toText: data.playerName ? data.playerName : data.name,
+                    platform: "jinshihao",
+                    loadingNumber: true,
+                }
+                $scope.initPhoneCall(phoneCall);
+
+                $scope.phoneCall.phone = phoneNumber;
+                $scope.phoneCall.loadingNumber = false;
+                $scope.safeApply();
+                $('#phoneCallModal').modal('show');
             }
             vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
                 // var rowData = JSON.parse(data);
