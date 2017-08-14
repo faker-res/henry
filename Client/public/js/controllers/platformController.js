@@ -2742,7 +2742,9 @@ define(['js/app'], function (myApp) {
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
                                     + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
-                                    + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;",
+                                    + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;",                                    
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     'data-trigger': 'focus',
@@ -2793,6 +2795,12 @@ define(['js/app'], function (myApp) {
                                 }));
                                 link.append($('<i>', {
                                     'class': 'fa fa-plus-square-o margin-right-5 ' + (perm.PlayerDoubleTopUpReturn === false ? "text-danger" : "text-primary"),
+                                }));
+                                link.append($('<i>', {
+                                    'class': 'fa margin-right-5 ' + (perm.forbidPlayerFromLogin === true ? "fa-sign-out text-danger" : "fa-sign-in  text-primary"),
+                                }));
+                                link.append($('<i>', {
+                                    'class': 'fa fa-gamepad margin-right-5 ' + (perm.forbidPlayerFromEnteringGame === true ? "text-danger" : "text-primary"),
                                 }));
                                 return link.prop('outerHTML');
                             },
@@ -3096,7 +3104,9 @@ define(['js/app'], function (myApp) {
                                     forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"},
                                     advanceConsumptionReward: {imgType: 'i', iconClass: "fa fa-tint"},
                                     PlayerTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square"},
-                                    PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"}
+                                    PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"},
+                                    forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
+                                    forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
@@ -3105,6 +3115,8 @@ define(['js/app'], function (myApp) {
                                 row.permission.disableWechatPay = !row.permission.disableWechatPay;
                                 row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
                                 row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
+                                row.permission.forbidPlayerFromLogin = !row.permission.forbidPlayerFromLogin;
+                                row.permission.forbidPlayerFromEnteringGame = !row.permission.forbidPlayerFromEnteringGame;
 
                                 $.each(vm.playerPermissionTypes, function (key, v) {
                                     if (row.permission && row.permission[key] === false) {
@@ -3153,6 +3165,14 @@ define(['js/app'], function (myApp) {
 
                                     if (changeObj.hasOwnProperty('forbidPlayerConsumptionIncentive')) {
                                         changeObj.forbidPlayerConsumptionIncentive = !changeObj.forbidPlayerConsumptionIncentive;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('forbidPlayerFromLogin')) {
+                                        changeObj.forbidPlayerFromLogin = !changeObj.forbidPlayerFromLogin;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('forbidPlayerFromEnteringGame')) {
+                                        changeObj.forbidPlayerFromEnteringGame = !changeObj.forbidPlayerFromEnteringGame;
                                     }
 
                                     socketService.$socket($scope.AppSocket, 'updatePlayerPermission', {

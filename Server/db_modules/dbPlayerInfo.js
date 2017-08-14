@@ -2971,11 +2971,12 @@ let dbPlayerInfo = {
         ).then(
             isMatch => {
                 if (isMatch) {
-                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.LOGOFF) {
+                    console.log(playerObj);
+                    if (playerObj.permission.forbidPlayerFromLogin) {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
-                            code: (playerObj.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constPlayerStatus.LOGOFF
+                            code: constServerCode.PLAYER_IS_FORBIDDEN 
                         });
                         return;
                     }
@@ -3250,11 +3251,11 @@ let dbPlayerInfo = {
                 if (data) {
                     playerObj = data;
 
-                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.LOGOFF) {
+                    if (playerObj.permission.forbidPlayerFromLogin) {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
-                            code: (playerObj.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constServerCode.PLAYER_IS_CANCELLED
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
                         });
                         return;
                     }
@@ -6755,13 +6756,14 @@ let dbPlayerInfo = {
         }).lean();
         return Q.all([playerProm, gameProm]).then(
             data => {
+                console.log(playerData);
                 if (data && data[0] && data[1] && data[1].provider) {
                     playerData = data[0];
                     gameData = data[1];
                     // check if the player is forbidden totally
-                    if (playerData.status == constPlayerStatus.FORBID || playerData.status == constPlayerStatus.LOGOFF) {
+                    if (playerData.permission.forbidPlayerFromLogin) {
                         return Q.reject({
-                            status: (playerData.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constServerCode.PLAYER_IS_CANCELLED,
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
                             name: "DataError",
                             message: "Player is forbidden",
                             playerStatus: playerData.status
@@ -6769,7 +6771,7 @@ let dbPlayerInfo = {
                     }
                     // check if the player is ban for particular game - in other words
                     // check if the provider of login game is in the forbidden list
-                    else if (playerData.status === constPlayerStatus.FORBID_GAME) {
+                    else if (playerData.permission.forbidPlayerFromEnteringGame) {
                         var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
                         if (isForbidden) {
                             return Q.reject({
