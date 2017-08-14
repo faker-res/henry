@@ -16,8 +16,8 @@ const constPlayerStatus = {
     TOPUP_BONUS_SPAM: 10,
     MULTIPLE_ACCOUNT: 11,
     BANNED: 12,
-    FORBID_ONLINE_TOPUP: 13
-
+    FORBID_ONLINE_TOPUP: 13,
+    BAN_PLAYER_BONUS: 14
 };
 
 module.exports = constPlayerStatus;

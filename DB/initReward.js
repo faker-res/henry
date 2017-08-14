@@ -442,7 +442,7 @@ var param19 = param19Cursor.next();
 
 db.rewardType.insert({"name": type19, params: param19._id, des: "Player Easter Egg Reward"});
 
-//Player easter egg reward
+//Player top up promo
 var type20 = "PlayerTopUpPromo";
 db.rewardParam.insert({
     "name": type20, params: {
