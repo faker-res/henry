@@ -320,13 +320,13 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('Merchant No'),
-                        data: "merchantNo$",
+                        title: $translate('Merchant'),
+                        data: "merchantName",
                         sClass:'merchantCount'
                     },
                     {
                         title: $translate('Merchant No'),
-                        data: "merchantName",
+                        data: "merchantNo$",
                         sClass:'merchantCount'
                     },
                     {
