@@ -75,6 +75,12 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.setPanel = function (isSet) {
+            vm.hideLeftPanel = isSet;
+            $cookies.put("reportShowLeft", vm.hideLeftPanel);
+            $scope.safeApply();
+        };
+
         vm.selectStoredPlatform = function () {
             if (vm.platformList.length === 0) return;
             let storedPlatform = $cookies.get("platform");
