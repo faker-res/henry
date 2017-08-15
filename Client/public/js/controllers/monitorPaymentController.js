@@ -162,9 +162,8 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.loadPage = function (choice) {
+        vm.loadPage = function () {
             socketService.clearValue();
-            vm.seleDataType[choice] = 'bg-bright';
             vm.preparePaymentMonitorPage();
 
         };
@@ -753,7 +752,7 @@ define(['js/app'], function (myApp) {
                         if (countDown < 0) {
                             countDown = 11
                         }
-                        if (countDown == 0) {
+                        if (countDown === 0) {
                             vm.getPaymentMonitorRecord();
                             countDown = 11;
                         }
@@ -761,6 +760,9 @@ define(['js/app'], function (myApp) {
                         $(mark).text(countDown);
                     } else {
                         countDown = -1;
+                    }
+                    if (window.location.pathname != '/monitor/payment') {
+                        clearInterval(vm.refreshInterval);
                     }
                 }, 1000);
             });
