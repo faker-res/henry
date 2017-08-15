@@ -1328,6 +1328,29 @@ var dbPlatform = {
         );
     },
 
+    sendNewPlayerSMS: function (adminObjId, adminName, data) {
+
+        var sendObj = {
+            tel: data.hasPhone,
+            channel: data.channel,
+            platformId: data.platformId,
+            message: data.message,
+            delay: data.delay
+        };
+        var recipientName = data.name || '';
+        return smsAPI.sending_sendMessage(sendObj).then(
+            retData => {
+                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platform, 'success');
+                return retData;
+            },
+            retErr => {
+                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platform, 'failure', retErr);
+                return Q.reject({message: retErr, data: data});
+            }
+        );
+
+    },
+
     searchSMSLog: function (data, index, limit) {
         index = index || 0;
         limit = limit || constSystemParam.MAX_RECORD_NUM;

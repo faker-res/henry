@@ -461,6 +461,20 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             }
         }
     }
+    $scope.sendSMSToNewPlayer = function (src, callback) {
+        socketService.$socket($scope.AppSocket, 'sentSMSToNewPlayer', src, onSuccess, onFail, true);
+        function onSuccess(data) {
+            if (callback) {
+                callback.call(this, data);
+            }
+        }
+
+        function onFail(error) {
+            if (callback) {
+                callback.call(this, error);
+            }
+        }
+    }
     // phone call related....
     $scope.getNewPhoneCaptha = function () {
         $scope.phoneCall.random = Math.random();
