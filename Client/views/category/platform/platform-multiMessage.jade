@@ -67,11 +67,11 @@
                 .tableCell(style='width:10%;')
                     label {{"TITLE" | translate}}:
                 .tableCell(style='min-width:60%')
-                    input.form-control(style='width:100%;resize:none', type='text', ng-model='vm.sendMultiMessage.messageTitle')
+                    input.form-control(style='width:100%;resize:none', type='text', ng-model='vm.sendMultiMessage.messageTitle', placeholder='{{"Please Type Your Title" | translate}}')
                 .tableCell(style='width:20%;')
             .tableRow
                 .tableCell(style='width:15%;')
-                    label {{"CONTENT" | translate}}:
+                    label *{{"CONTENT" | translate}}:
                 .tableCell(style='min-width:60%')
                     div.inline-block(ng-hide='vm.sendMultiMessage.messageType==="mail"')
                         label {{"Word Count" | translate}}:
@@ -87,7 +87,7 @@
                         text.text-danger &nbsp;{{vm.sendMultiMessage.channelMaxChar}}
                         label &nbsp;{{"characters/message" | translate}}
                     div
-                    textarea.form-control(style='width:100%;resize:none', rows='5', ng-model='vm.sendMultiMessage.messageContent', ng-change='vm.messagesChange()')
+                    textarea.form-control(style='width:100%;resize:none', rows='5', ng-model='vm.sendMultiMessage.messageContent', ng-change='vm.messagesChange()', placeholder='{{"Please Type Your Message" | translate}}')
 
 
                 .tableCell(style='width:20%;', ng-show='!vm.toPhoneNumber')
