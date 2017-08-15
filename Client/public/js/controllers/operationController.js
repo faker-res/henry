@@ -308,7 +308,7 @@ define(['js/app'], function (myApp) {
                 startDate: startTime.getLocalDate(),
                 endDate: newEndTime,
                 entryType: vm.queryProposalEntryType,
-                size: newSearch ? 10 : (vm.queryProposal.limit || 10),
+                size: vm.queryProposal.limit || 10,
                 index: newSearch ? 0 : (vm.queryProposal.index || 0),
                 sortCol: vm.queryProposal.sortCol
             };
