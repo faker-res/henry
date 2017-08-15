@@ -13,5 +13,6 @@
                 #paymentMonitor
                     .panel-body
                         div(ng-if="checkViewPermission('Monitor', 'Payment', 'Read')")
-                            li.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR}}" ng-click='vm.loadPage("PAYMENT_MONITOR")', ng-if="checkViewPermission('Monitor', 'Payment', 'Read')")
-                                text {{'PAYMENT_MONITOR' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR}}" /*ng-click='vm.loadPage("PAYMENT_MONITOR")'*/, ng-if="checkViewPermission('Monitor', 'Payment', 'Read')")
+                                a(href="/monitor/payment")
+                                    text {{'PAYMENT_MONITOR' | translate}}
