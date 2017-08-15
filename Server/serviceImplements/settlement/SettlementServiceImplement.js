@@ -216,9 +216,8 @@ var SettlementServiceImplement = function () {
     };
 
     this.performPlatformPlayerLevelUpSettlement.onRequest = function (wsFunc, conn, data) {
-        console.log('onRequest');
-        let isValidData = Boolean(data && data.topUpRecords && data.platformObj);
-        let args = [data.topUpRecords, data.platformObj];
+        let isValidData = Boolean(data && data.playerObjIds && data.levels);
+        let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerLevel.performPlatformPlayerLevelUpSettlement, args, isValidData);
     };
 };
