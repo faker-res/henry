@@ -6,7 +6,9 @@ define(['js/app'], function (myApp) {
         let $translate = $filter('translate');
         let vm = this;
 
-        window.monitorVM = vm;
+        window.mPVM = vm;
+        // vm.pp = $scope.$parent.vm.selectStoredPlatform; // it work
+        // console.log('mVM', monitorVM) // it work
 
         // declare constant
         vm.proposalStatusList = {
@@ -34,9 +36,14 @@ define(['js/app'], function (myApp) {
 
         vm.seleDataType = {};
 
-        vm.setPlatform = function (platObj) {
-            vm.operSelPlatform = false;
-            vm.selectedPlatform = JSON.parse(platObj);
+        $scope.$on('setPlatform', function() {
+            vm.setPlatform();
+        });
+
+        vm.setPlatform = function () {
+            // vm.operSelPlatform = false;
+            // vm.selectedPlatform = JSON.parse(platObj);
+            vm.selectedPlatform = $scope.$parent.vm.selectedPlatform;
             vm.curPlatformId = vm.selectedPlatform._id;
             vm.allProviders = {};
             vm.getPlatformProvider(vm.selectedPlatform._id);
@@ -49,50 +56,50 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
-        vm.setPlatformById = function (id) {
-            let platObj = vm.platformList.filter(p => p._id === id)[0];
-            console.log("platObj:", platObj);
-            vm.showPageName = '';
-            vm.setPlatform(JSON.stringify(platObj));
-            $scope.safeApply();
-        };
-
-        vm.getPlatformByAdminId = function (adminId) {
-            return new Promise(function (resolve) {
-                socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: adminId}, function (data) {
-                    vm.platformList = data.data;
-                    console.log("platformList", vm.platformList);
-                    $scope.safeApply();
-                    resolve();
-                }, function (err) {
-                    console.error(err);
-                    resolve();
-                });
-            });
-        };
-
-        vm.selectStoredPlatform = function () {
-            if (vm.platformList.length === 0) return;
-            let storedPlatform = $cookies.get("platform");
-            let selectedPlatform = {};
-
-            if (storedPlatform) {
-                vm.platformList.forEach(
-                    platform => {
-                        if (platform.name === storedPlatform) {
-                            selectedPlatform = platform;
-                        }
-                    }
-                );
-            } else {
-                selectedPlatform = vm.platformList[0];
-            }
-
-            vm.selectedPlatform = selectedPlatform;
-            vm.selectedPlatformID = selectedPlatform._id;
-            vm.setPlatform(JSON.stringify(selectedPlatform));
-            $scope.safeApply();
-        };
+        // vm.setPlatformById = function (id) {
+        //     let platObj = vm.platformList.filter(p => p._id === id)[0];
+        //     console.log("platObj:", platObj);
+        //     vm.showPageName = '';
+        //     vm.setPlatform(JSON.stringify(platObj));
+        //     $scope.safeApply();
+        // };
+        //
+        // vm.getPlatformByAdminId = function (adminId) {
+        //     return new Promise(function (resolve) {
+        //         socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: adminId}, function (data) {
+        //             vm.platformList = data.data;
+        //             console.log("platformList", vm.platformList);
+        //             $scope.safeApply();
+        //             resolve();
+        //         }, function (err) {
+        //             console.error(err);
+        //             resolve();
+        //         });
+        //     });
+        // };
+        //
+        // vm.selectStoredPlatform = function () {
+        //     if (vm.platformList.length === 0) return;
+        //     let storedPlatform = $cookies.get("platform");
+        //     let selectedPlatform = {};
+        //
+        //     if (storedPlatform) {
+        //         vm.platformList.forEach(
+        //             platform => {
+        //                 if (platform.name === storedPlatform) {
+        //                     selectedPlatform = platform;
+        //                 }
+        //             }
+        //         );
+        //     } else {
+        //         selectedPlatform = vm.platformList[0];
+        //     }
+        //
+        //     vm.selectedPlatform = selectedPlatform;
+        //     vm.selectedPlatformID = selectedPlatform._id;
+        //     vm.setPlatform(JSON.stringify(selectedPlatform));
+        //     $scope.safeApply();
+        // };
 
         vm.getPlatformProvider = function (id) {
             if (!id) return;
@@ -163,6 +170,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.preparePaymentMonitorPage = function () {
+            $('#autoRefreshProposalFlag')[0].checked = true;
             vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
             vm.paymentMonitorQuery = {};
             vm.paymentMonitorQuery.totalCount = 0;
@@ -188,7 +196,6 @@ define(['js/app'], function (myApp) {
 
         };
 
-        // TODO:: work in progress
         vm.getPaymentMonitorRecord = function (isNewSearch) {
             if (isNewSearch) {
                 $('#autoRefreshProposalFlag').attr('checked', false);
@@ -201,6 +208,7 @@ define(['js/app'], function (myApp) {
                 vm.paymentMonitorQuery.merchantGroup = '';
                 vm.paymentMonitorQuery.merchantNo = '';
             }
+            console.log(vm.paymentMonitorQuery.startTime.keys)
 
             let sendObj = {
                 startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
@@ -227,18 +235,20 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.proposalId$ = item.proposalId.slice(-3);
-                        item.merchantNo$ = item.data.merchantNo != null
+                        item.merchantNo$ = item.data.merchantNo
                             ? item.data.merchantNo
-                            : item.data.weChatAccount != null
+                            : item.data.weChatAccount
                             ? item.data.weChatAccount
-                            : item.data.alipayAccount != null
+                            : item.data.alipayAccount
                             ? item.data.alipayAccount
+                            : item.data.bankCardNo
+                            ? item.data.bankCardNo
                             : null;
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);
                         item.merchantName = vm.merchantNumbers[item.data.merchantNo];
-                        if (item.type.name == 'PlayerTopUp') {
+                        if (item.type.name === 'PlayerTopUp') {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType;
                             item.topupTypeStr = typeID
@@ -362,12 +372,11 @@ define(['js/app'], function (myApp) {
                 ],
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    // to allow customization, turn these numbers to variable
-                    if (aData.$merchantAllCount >= 5) {
+                    if (aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
                         $(nRow).addClass('merchantExceed');
                     }
 
-                    if (aData.$playerAllCount >= 5) {
+                    if (aData.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
                         $(nRow).addClass('playerExceed');
                     }
                 }
@@ -721,7 +730,7 @@ define(['js/app'], function (myApp) {
             vm.allBankTypeList = {};
 
             setTimeout(function () {
-                vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
+                // vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
                 socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                     if (data && data.data && data.data.data) {
                         console.log('banktype', data.data.data);
