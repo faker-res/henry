@@ -6772,15 +6772,15 @@ let dbPlayerInfo = {
                     // check if the player is ban for particular game - in other words
                     // check if the provider of login game is in the forbidden list
                     else if (playerData.permission.forbidPlayerFromEnteringGame) {
-                        var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
-                        if (isForbidden) {
+                        // var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
+                        // if (isForbidden) {
                             return Q.reject({
                                 name: "DataError",
                                 status: constServerCode.PLAYER_IS_FORBIDDEN,
                                 message: "Player is forbidden to the game",
                                 playerStatus: playerData.status
                             });
-                        }
+                        // }
                     // } else if (playerData.status === constPlayerStatus.BANNED) {
                     //     return Q.reject({
                     //         status: constServerCode.PLAYER_IS_FORBIDDEN,
@@ -6918,7 +6918,7 @@ let dbPlayerInfo = {
                     if (data) {
                         playerData = data;
                         platformData = data.platform;
-                        if (playerData.status != constPlayerStatus.NORMAL && playerData.status != constPlayerStatus.ATTENTION) {
+                        if (playerData.permission.forbidPlayerFromEnteringGame) {
                             return Q.reject({
                                 name: "DataError",
                                 message: "Player is not enable",
