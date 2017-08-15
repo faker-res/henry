@@ -6174,7 +6174,7 @@ let dbPlayerInfo = {
                         //         errorMessage: "Player does not have this permission"
                         //     });
                         // }
-                        if (playerData.bankName == null || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
+                        if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
                             || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
