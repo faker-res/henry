@@ -8,7 +8,7 @@ require(
     [
         'js/app',
         'js/config',
-        'js/services/routeResolver',
+        //'js/services/routeResolver',
         'js/services/authService',
         'js/services/socketService',
         'js/services/utilService'

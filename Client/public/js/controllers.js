@@ -90,7 +90,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                     $("#wrapper").show();
                 }, 100);
             });
-
+            socketService.setAppSocket($scope.AppSocket);
             //console.log("route reload!");
             //$state.reload();
 

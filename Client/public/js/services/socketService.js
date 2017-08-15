@@ -15,6 +15,14 @@ define([], function () {
             $trans = func ? func : null;
         }
 
+        this.appSocket = null;
+        this.setAppSocket = function (socket) {
+            this.appSocket = socket;
+        }
+        this.getAppSocket = function () {
+            return this.appSocket
+        };
+
         //////////////////////////message handler//////////////////////////////////
         this.showErrorMessage = function (message) {
             console.error(message);
