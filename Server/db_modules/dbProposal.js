@@ -1234,7 +1234,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum) {//need
         platformId = Array.isArray(platformId) ?platformId :[platformId];
 
         //check proposal without process
@@ -1284,6 +1284,9 @@ var proposal = {
                             },
                             status: {$in: statusArr}
                         };
+                        if (userName){
+                            queryObj['data.name'] = userName;
+                        }
                         if (relateUser) {
                             // queryObj["data.playerName"] = relateUser;
                             queryObj["$and"] = [];
@@ -1331,7 +1334,7 @@ var proposal = {
                                              if(item.data && item.data.phone && !displayPhoneNum){
                                                  item.data.phone = dbutility.encodePhoneNum(item.data.phone);
                                              }
-                                             if(item.data && item.data.phoneNumber &&!displayPhoneNum){
+                                             if(item.data && item.data.phoneNumber && !displayPhoneNum){
                                                  item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                              }
                                              return item
@@ -1339,7 +1342,7 @@ var proposal = {
  
                                          return pdata;
                                  })
-                            :
+                                :
                             dbconfig.collection_proposal.aggregate(
                                 {$match: queryObj},
                                 {

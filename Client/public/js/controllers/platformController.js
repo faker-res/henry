@@ -845,6 +845,7 @@ define(['js/app'], function (myApp) {
                 }).then(function (data) {
                     vm.smsTemplate = data.data;
                     console.log("vm.smsTemplate", vm.smsTemplate);
+                    $scope.safeApply();
                 }).done();
             }
             vm.useSMSTemplate = function () {
@@ -2086,7 +2087,8 @@ define(['js/app'], function (myApp) {
                     type: ["PlayerRegistrationIntention"],
                     startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
                     endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
-                    relateUser: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerName : null,
+                    name: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerName : null,
+                    relateUser: null,
                     relatePlayerId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerId : null,
                     // entryType: vm.queryProposalEntryType,
                     size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
@@ -2166,7 +2168,12 @@ define(['js/app'], function (myApp) {
                                         link.append($('<div>', {
                                             'class': 'fa fa-volume-control-phone',
                                             'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                            // 'data-row': JSON.stringify(row),
+                                            'title': $translate("PHONE")
+                                        }));
+                                        link.append($('<div>', {
+                                            'class': 'fa fa-comment',
+                                            'style':'padding-left:15px',
+                                            'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
                                             'title': $translate("PHONE")
                                         }));
                                     }
@@ -3657,6 +3664,20 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 $('#phoneCallModal').modal('show');
             }
+            vm.smsNewPlayerBtn = function(phoneNumber, data){
+                vm.getSMSTemplate();
+                vm.smsPlayer = {
+                    playerId: data.playerId,
+                    name: data.name,
+                    nickName: data.nickName || '',
+                    platformId: vm.selectedPlatform.data.platformId,
+                    channel: $scope.channelList[0],
+                    hasPhone: phoneNumber
+                }
+                vm.sendSMSResult = {};
+                $scope.safeApply();
+                $('#smsPlayerModal').modal('show');
+            }
             vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
                 // var rowData = JSON.parse(data);
                 console.log(type, data);
@@ -3698,10 +3719,18 @@ define(['js/app'], function (myApp) {
             }
             vm.sendSMSToPlayer = function () {
                 vm.sendSMSResult = {sent: "sending"};
-                return $scope.sendSMSToPlayer(vm.smsPlayer, function (data) {
-                    vm.sendSMSResult = {sent: true, result: data.success};
-                    $scope.safeApply();
-                });
+
+                if(vm.smsPlayer.playerId==''){
+                    return $scope.sendSMSToNewPlayer(vm.smsPlayer, function (data) {
+                        vm.sendSMSResult = {sent: true, result: data.success};
+                        $scope.safeApply();
+                    });
+                }else{
+                    return $scope.sendSMSToPlayer(vm.smsPlayer, function (data) {
+                        vm.sendSMSResult = {sent: true, result: data.success};
+                        $scope.safeApply();
+                    });
+                }
             }
             //player datatable row click handler
             vm.playerTableRowClicked = function (rowData) {

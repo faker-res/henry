@@ -654,6 +654,17 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.sendSMS, [adminObjId, adminName, data], actionName, isValidData);
         },
 
+        sentSMSToNewPlayer: function sentSMSToNewPlayer(data) {
+            var actionName = arguments.callee.name;
+            var adminObjId = getAdminId();
+            var adminName = getAdminName();
+            var isValidData = Boolean(data && data.channel != null && (data.platformId != null ) && data.message && adminObjId && adminName);
+            if (data) {
+                data.delay = data.delay || 0;
+            }
+            socketUtil.emitter(self.socket, dbPlatform.sendNewPlayerSMS, [adminObjId, adminName, data], actionName, isValidData);
+        },
+
         searchSMSLog: function searchSMSLog(data) {
             var actionName = arguments.callee.name;
             // Optional: status, startTime, endTime
