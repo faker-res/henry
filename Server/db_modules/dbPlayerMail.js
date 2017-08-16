@@ -51,18 +51,16 @@ const dbPlayerMail = {
         });
     },
     sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content) {
-        let players = dbconfig.collection_players.find({
-                    platform: ObjectId(platformId)
-        })
-        return Q.all(players).then((users)=>{
-            var playerIds = [];
-            for(user in users){
-                if(users[user]._id){
-                    playerIds.push(users[user]._id);
+        return dbconfig.collection_players.find({ platform: ObjectId(platformId)})
+            .then((users)=>{
+                var playerIds = [];
+                for(user in users){
+                    if(users[user]._id){
+                        playerIds.push(users[user]._id);
+                    }
                 }
-            }
-            let result = dbPlayerMail.sendPlayerMailFromAdminToPlayer(platformId, adminId, adminName, playerIds, title, content);
-            return Q.all(result);
+                let result = dbPlayerMail.sendPlayerMailFromAdminToPlayer(platformId, adminId, adminName, playerIds, title, content);
+                return result;
         });
     },
     sendPlayerMailFromPlayerTo: function (senderPlayer, recipientType, recipientObjId, title, content) {
