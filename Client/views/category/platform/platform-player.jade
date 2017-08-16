@@ -1468,6 +1468,9 @@ include modalGameCreditLog
                                 label.control-label {{'DISTRICT_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.districtId', ng-disabled='vm.freezeZoneSelection')
                                     option(ng-repeat='(i,v) in vm.districtList', value='{{v.id}}') {{v.name}}
+                            .form-group-col-md-6
+                                label {{'DEPOSITE_TIME' | translate}}
+                                .createTime
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerManualTopUp.submitted') {{'Submitted' | translate}}
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_manual_topup.$invalid || form_manual_topup.$pristine || (vm.existingManualTopup && !vm.existingManualTopup.isCanceled)',ng-show='!vm.playerManualTopUp.submitted', ng-click='vm.applyPlayerManualTopUp()') {{'APPLY' | translate}}

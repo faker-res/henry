@@ -5966,7 +5966,8 @@ define(['js/app'], function (myApp) {
                     provinceId: vm.playerManualTopUp.provinceId,
                     cityId: vm.playerManualTopUp.cityId,
                     districtId: vm.playerManualTopUp.districtId,
-                    fromFPMS: true
+                    fromFPMS: true,
+                    createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate()
                 };
                 vm.playerManualTopUp.submitted = true;
                 $scope.safeApply();
@@ -6952,6 +6953,10 @@ define(['js/app'], function (myApp) {
                     console.log(data.data);
                     vm.existingManualTopup = data.data ? data.data : false;
                     $scope.safeApply();
+                });
+                utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
+                    vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
+                    vm.playerManualTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                 });
                 $scope.safeApply();
             };
