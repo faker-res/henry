@@ -6,7 +6,8 @@ const constSystemParam = require("../const/constSystemParam.js");
 const Q = require("q");
 var smsAPI = require('../externalAPI/smsAPI');
 var dbLogger = require('./../modules/dbLogger');
-
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 
 const dbPlayerMail = {
@@ -49,7 +50,21 @@ const dbPlayerMail = {
             }
         });
     },
-
+    sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content) {
+        let players = dbconfig.collection_players.find({
+                    platform: ObjectId(platformId)
+        })
+        return Q.all(players).then((users)=>{
+            var playerIds = [];
+            for(user in users){
+                if(users[user]._id){
+                    playerIds.push(users[user]._id);
+                }
+            }
+            let result = dbPlayerMail.sendPlayerMailFromAdminToPlayer(platformId, adminId, adminName, playerIds, title, content);
+            return Q.all(result);
+        });
+    },
     sendPlayerMailFromPlayerTo: function (senderPlayer, recipientType, recipientObjId, title, content) {
         return dbPlayerMail.createPlayerMail({
             platformId: senderPlayer.platform,
