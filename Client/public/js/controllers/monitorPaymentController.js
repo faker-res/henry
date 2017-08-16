@@ -36,7 +36,7 @@ define(['js/app'], function (myApp) {
 
         vm.seleDataType = {};
 
-        $scope.$on('setPlatform', function() {
+        $scope.$on('setPlatform', function () {
             vm.setPlatform();
         });
 
@@ -724,7 +724,13 @@ define(['js/app'], function (myApp) {
         }
 
 
-        $scope.$on('$viewContentLoaded', function () {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
+        $scope.$on(eventName, function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
 

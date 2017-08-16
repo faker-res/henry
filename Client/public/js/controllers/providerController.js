@@ -376,13 +376,13 @@ define(['js/app'], function (myApp) {
                 console.log('expenserecords', data);
                 vm.gameExpenseQuery.loading = false;
                 var tableData = data.data.data ? data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.validAmount$ = item.validAmount.toFixed(2);
-                        item.amount$ = item.amount.toFixed(2);
-                        item.bonusAmount$ = item.bonusAmount.toFixed(2);
-                        item.commissionAmount$ = item.commissionAmount.toFixed(2);
-                        return item;
-                    }) : [];
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.validAmount$ = item.validAmount.toFixed(2);
+                    item.amount$ = item.amount.toFixed(2);
+                    item.bonusAmount$ = item.bonusAmount.toFixed(2);
+                    item.commissionAmount$ = item.commissionAmount.toFixed(2);
+                    return item;
+                }) : [];
                 vm.gameExpenseQuery.totalCount = data.data.count || 0;
                 var summary = data.data.summary || {};
                 var tableOptions = {
@@ -486,13 +486,13 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPagedGameProviderConsumptionRecord', queryData, function (data) {
                 vm.providerExpenseTableLoading = false;
                 var tableData = data.data.data ? data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.validAmount$ = item.validAmount.toFixed(2);
-                        item.amount$ = item.amount.toFixed(2);
-                        item.bonusAmount$ = item.bonusAmount.toFixed(2);
-                        item.commissionAmount$ = item.commissionAmount.toFixed(2);
-                        return item;
-                    }) : [];
+                    item.createTime$ = vm.dateReformat(item.createTime);
+                    item.validAmount$ = item.validAmount.toFixed(2);
+                    item.amount$ = item.amount.toFixed(2);
+                    item.bonusAmount$ = item.bonusAmount.toFixed(2);
+                    item.commissionAmount$ = item.commissionAmount.toFixed(2);
+                    return item;
+                }) : [];
                 vm.expenseQuery.totalCount = data.data.count || 0;
                 var summary = data.data.summary || {};
                 var tableOptions = {
@@ -915,7 +915,13 @@ define(['js/app'], function (myApp) {
                 }
             }
         }
-        $scope.$on('$viewContentLoaded', function () {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
+        $scope.$on(eventName, function (e, d) {
             setTimeout(
                 function () {
                     vm.getAllProvider();

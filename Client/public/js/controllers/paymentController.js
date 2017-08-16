@@ -444,7 +444,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.playerToGroupFilter = function (newSearch, which, id) {
-            console.log("playerToGroupFilter",newSearch,which,id);
+            console.log("playerToGroupFilter", newSearch, which, id);
             if (!which) {
                 which = vm.playerToGroupFilterObj.which;
             }
@@ -497,7 +497,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawPlayerAttachTable = function (newSearch, data, size) {
-            console.log("drawPlayerAttachTable",data);
+            console.log("drawPlayerAttachTable", data);
             let tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
                 data: data,
                 columnDefs: [
@@ -1145,7 +1145,7 @@ define(['js/app'], function (myApp) {
         }
 
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
-    
+
         /////////////////////////////////////// QuickPay Group start  /////////////////////////////////////////////////
         vm.QuickPayGroupTabClicked = function () {
 
@@ -1182,7 +1182,7 @@ define(['js/app'], function (myApp) {
                 displayName: vm.newQuickPayGroup.displayName
             }
             socketService.$socket($scope.AppSocket, 'addPlatformQuickPayGroup', sendData, function (data) {
-                console.log("addPlatformQuickPayGroup",data.data);
+                console.log("addPlatformQuickPayGroup", data.data);
                 vm.loadQuickPayGroupData();
                 $scope.safeApply();
             })
@@ -1236,7 +1236,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             })
         }
-        
+
         vm.initRenameQuickPayGroup = function () {
             vm.newQuickPayGroup = {};
             vm.newQuickPayGroup.name = vm.SelectedQuickPayGroupNode.name;
@@ -1311,7 +1311,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
         }
-        
+
         vm.submitAddPlayersToQuickPayGroup = function () {
             var playerArr = [], data = vm.attachPlayerTable.rows('.selected').data();
 
@@ -1335,7 +1335,7 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'addAllPlayersToQuickPayGroup', sendData, function (data) {
                 if (data.data) {
-                    console.log("submitAddAllPlayersToQuickPayGroup",data.data);
+                    console.log("submitAddAllPlayersToQuickPayGroup", data.data);
                     if (data.data.quickPayGroup == vm.SelectedQuickPayGroupNode._id && data.data.platform == vm.selectedPlatform.id) {
                         vm.addAllPlayerToQuickPayResult = 'found ' + data.data.n + ' modified ' + data.data.nModified;
                     } else {
@@ -1594,7 +1594,13 @@ define(['js/app'], function (myApp) {
         // };
         ////////////////Mark::$viewContentLoaded function//////////////////
         //##Mark content loaded function
-        $scope.$on('$viewContentLoaded', function () {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
+        $scope.$on(eventName, function (e, d) {
 
             setTimeout(
                 function () {
