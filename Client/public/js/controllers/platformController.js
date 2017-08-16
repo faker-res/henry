@@ -9077,10 +9077,9 @@ define(['js/app'], function (myApp) {
 
                 console.log('vm.rewardParams', vm.rewardParams);
                 $scope.safeApply();
-            }
+            };
+
             vm.platformRewardTypeChanged = function () {
-                // vm.rewardParams = {};
-                //vm.rewardCondition = {};
                 $.each(vm.allRewardTypes, function (i, v) {
                     if (v._id === vm.showRewardTypeId) {
                         vm.showRewardTypeData = v;
@@ -9091,12 +9090,20 @@ define(['js/app'], function (myApp) {
 
                 const onCreationForm = vm.platformRewardPageName === 'newReward';
 
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                    vm.platformProvider = data.data.gameProviders;
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("cannot get gameProvider", data);
+                });
+
                 // Initialise the models with some default values
                 // and grab any required external data (e.g. for select box lists)
 
                 if (onCreationForm) {
                     vm.rewardCondition = {};
                     vm.rewardParams = {};
+                    vm.rewardParams.reward = vm.rewardParams.reward || [];
                 }
 
                 console.log('platformID', vm.selectedPlatform.id);
