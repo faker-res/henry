@@ -815,6 +815,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.realName = inputData.realName;
                 proposalData.remark = inputData.remark || "";
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
+                proposalData.createTime = inputData.createTime || "";
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -872,6 +873,11 @@ var dbPlayerTopUpRecord = {
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : []
                     };
+                    if( fromFPMS ){
+                        let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                        requestData.depositTime = cTimeString || "";
+                    }
                     // console.log("requestData", requestData);
                     return pmsAPI.payment_requestManualBankCard(requestData);
                 }
