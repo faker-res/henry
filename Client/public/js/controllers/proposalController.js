@@ -210,10 +210,16 @@ define(['js/app'], function (myApp) {
             socketService.setProposalNodeData();
             $scope.safeApply();
         }
-        $scope.$on('$viewContentLoaded', function () {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
+        $scope.$on(eventName, function (e, d) {
 
             setTimeout(
-                function(){
+                function () {
                     vm.loadProposalTypeData();
                     vm.loadAlldepartment();
 
@@ -348,12 +354,12 @@ define(['js/app'], function (myApp) {
             var newNodeDataModel = {
                 name: vm.tempNewNodeName,
                 id: nextNodeID++,
-                x: 150+(nextNodeID%3)*10,
-                y: 150+(nextNodeID%3)*10,
-                departmentData: {id: vm.tempDepartmentID, name: vm.tempDepartmentName, label:$translate("DEPARTMENT")},
+                x: 150 + (nextNodeID % 3) * 10,
+                y: 150 + (nextNodeID % 3) * 10,
+                departmentData: {id: vm.tempDepartmentID, name: vm.tempDepartmentName, label: $translate("DEPARTMENT")},
                 //departmentName: vm.tempNewNodeDepartment.departmentName,
                 //roleName: vm.tempNewNodeRole.roleName,
-                roleData: {id: vm.tempRoleID, name: vm.tempRoleName, label:$translate("ROLE")},
+                roleData: {id: vm.tempRoleID, name: vm.tempRoleName, label: $translate("ROLE")},
                 inputConnectors: [
                     {
                         name: "X"
@@ -415,7 +421,7 @@ define(['js/app'], function (myApp) {
         //
         vm.deleteSelected = function () {
             vm.chartViewModel.deleteSelected();
-            vm.proposalChanged=true;
+            vm.proposalChanged = true;
         };
 
         vm.saveProcess = function () {
@@ -519,8 +525,12 @@ define(['js/app'], function (myApp) {
                 id: nextNodeID++,
                 x: startX,
                 y: startY,
-                departmentData: {id: data.department._id, name: data.department.departmentName, label:$translate("DEPARTMENT")},
-                roleData: {id: data.role._id, name: data.role.roleName, label:$translate("ROLE")},
+                departmentData: {
+                    id: data.department._id,
+                    name: data.department.departmentName,
+                    label: $translate("DEPARTMENT")
+                },
+                roleData: {id: data.role._id, name: data.role.roleName, label: $translate("ROLE")},
                 inputConnectors: [
                     {
                         name: "X"
@@ -541,10 +551,10 @@ define(['js/app'], function (myApp) {
             newNode.select();
 
             startY += 150;
-            if(startY>=550){
-                $('#flowChart').height(startY+50);
+            if (startY >= 550) {
+                $('#flowChart').height(startY + 50);
                 //console.log('vm.chartViewModel',vm.chartViewModel);
-                vm.chartViewModel.points[1].data.y=startY;
+                vm.chartViewModel.points[1].data.y = startY;
             } else {
                 $('#flowChart').height(550);
             }
