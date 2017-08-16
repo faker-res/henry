@@ -1978,7 +1978,13 @@ define(['js/app'], function (myApp) {
 
 ////////////////Mark::$viewContentLoaded function//////////////////
 //##Mark content loaded function
-        $scope.$on('$viewContentLoaded', function () {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
+        $scope.$on(eventName, function (e, d) {
 
             vm.getAllProvider();
             setTimeout(

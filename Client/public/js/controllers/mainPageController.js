@@ -1456,7 +1456,13 @@ define(['js/app'], function (myApp) {
             }
             //##Mark local functions
 
-            $scope.$on('$viewContentLoaded', function () {
+            // $scope.$on('$viewContentLoaded', function () {
+            var eventName = "$viewContentLoaded";
+            if (!$scope.AppSocket) {
+                eventName = "socketConnected";
+                $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+            }
+            $scope.$on(eventName, function (e, d) {
                 setTimeout(
                     function () {
                         $scope.$parent.location = $location.path();

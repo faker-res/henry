@@ -49,7 +49,7 @@ define(['js/app'], function (myApp) {
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage(vm.showPageName);
-            $scope.$broadcast ('setPlatform');
+            $scope.$broadcast('setPlatform');
             $scope.safeApply();
         };
 
@@ -738,8 +738,13 @@ define(['js/app'], function (myApp) {
         // }
 
 
-
-        $scope.$on('$viewContentLoaded', function () {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
+        $scope.$on(eventName, function (e, d) {
             vm.hideLeftPanel = false;
             // vm.allBankTypeList = {};
 

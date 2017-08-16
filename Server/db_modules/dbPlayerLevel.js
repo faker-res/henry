@@ -47,7 +47,7 @@ let dbPlayerLevelInfo = {
         return dbconfig.collection_playerLevel.remove({_id:playerLevelObjId});
     },
 
-    startPlatformPlayerLevelUpSettlement: (platformObjId) => {
+    startPlatformPlayerLevelSettlement: (platformObjId, upOrDown) => {
         let lastMonth = dbUtil.getLastMonthSGTime();
 
         return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
@@ -72,12 +72,13 @@ let dbPlayerLevelInfo = {
                             stream: stream,
                             batchSize: constSystemParam.BATCH_SIZE,
                             makeRequest: function (result, request) {
-                                request("player", "performPlatformPlayerLevelUpSettlement", {
+                                request("player", "performPlatformPlayerLevelSettlement", {
                                     playerObjIds: result[0].playerObjIds,
                                     platformObjId: platformObjId,
                                     levels: levels,
                                     startTime: lastMonth.startTime,
-                                    endTime: lastMonth.endTime
+                                    endTime: lastMonth.endTime,
+                                    upOrDown: upOrDown
                                 });
                             }
                         }
@@ -94,12 +95,13 @@ let dbPlayerLevelInfo = {
      * @param levels
      * @param startTime
      * @param endTime
+     * @param {Boolean} upOrDown - True: Level up; False: Level Down
      * @returns {Promise.<boolean>}
      */
-    performPlatformPlayerLevelUpSettlement: (playerObjIds, platformObjId, levels, startTime, endTime) => {
+    performPlatformPlayerLevelSettlement: (playerObjIds, platformObjId, levels, startTime, endTime, upOrDown) => {
         let promsArr = [];
         playerObjIds.map(player => {
-            promsArr.push(dbPlayerLevelInfo.processPlayerLevelMigration(player, platformObjId, levels, startTime, endTime));
+            promsArr.push(dbPlayerLevelInfo.processPlayerLevelMigration(player, platformObjId, levels, startTime, endTime, upOrDown));
         });
 
         return Promise.all(promsArr);
@@ -112,8 +114,9 @@ let dbPlayerLevelInfo = {
      * @param levels
      * @param startTime
      * @param endTime
+     * @param {Boolean} upOrDown - True: Level up; False: Level Down
      */
-    processPlayerLevelMigration: (playerObjId, platformObjId, levels, startTime, endTime) => {
+    processPlayerLevelMigration: (playerObjId, platformObjId, levels, startTime, endTime, upOrDown) => {
         let playerProm = dbconfig.collection_players.findOne({_id: playerObjId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
 
@@ -240,51 +243,54 @@ let dbPlayerLevelInfo = {
                 else {
                     // Player with level more than 0 and has no top up or consumption
                     levelObjId = playerData.playerLevel.value > 0 ? levels[0]._id : null;
+                    levelDownObj = levels[0];
                 }
 
                 if (levelObjId) {
-                    // Perform the level migration
-                    return dbconfig.collection_players.findOneAndUpdate(
-                        {_id: playerData._id, platform: playerData.platform},
-                        {playerLevel: levelObjId/*, dailyTopUpSum: 0, dailyConsumptionSum: 0*/},
-                        {new: false}
-                    ).then(
-                        oldPlayerRecord => {
-                            // Should we give the player a reward for this level up?
-                            //console.log(`Player has upgraded from level ${oldPlayerRecord.playerLevel} to ${levelObjId}`);
-                            if (String(oldPlayerRecord.playerLevel) === String(levelObjId)) {
-                                // The player document was already on the desired level!
-                                // This can happen if two migration checks are made in parallel.
-                                // In this case we won't give the reward, because it will be given by the other check.
-                                //return;
-                            } else {
-                                // Check if player has already received this reward
-                                return dbconfig.collection_proposal.findOne({
-                                    'data.playerObjId': playerData._id,
-                                    'data.platformObjId': playerData.platform,
-                                    'data.levelValue': levelUpObj.value
-                                }).lean();
-                            }
-                        }
-                    ).then(
-                        rewardProposal => {
-                            if (!rewardProposal) {
-                                if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
-                                    let proposalData = {
-                                        rewardAmount: levelUpObj.reward.bonusCredit,
-                                        isRewardTask: levelUpObj.reward.isRewardTask,
-                                        levelValue: levelUpObj.value,
-                                        levelName: levelUpObj.name,
-                                        playerObjId: playerData._id,
-                                        playerName: playerData.name,
-                                        playerId: playerData.playerId,
-                                        platformObjId: playerData.platform
-                                    };
-                                    return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
+                    if ((upOrDown && levelUpObj) || (!upOrDown && levelDownObj)) {
+                        // Perform the level migration
+                        return dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerData._id, platform: playerData.platform},
+                            {playerLevel: levelObjId/*, dailyTopUpSum: 0, dailyConsumptionSum: 0*/},
+                            {new: false}
+                        ).then(
+                            oldPlayerRecord => {
+                                // Should we give the player a reward for this level up?
+                                //console.log(`Player has upgraded from level ${oldPlayerRecord.playerLevel} to ${levelObjId}`);
+                                if (String(oldPlayerRecord.playerLevel) === String(levelObjId)) {
+                                    // The player document was already on the desired level!
+                                    // This can happen if two migration checks are made in parallel.
+                                    // In this case we won't give the reward, because it will be given by the other check.
+                                    //return;
+                                } else {
+                                    // Check if player has already received this reward
+                                    return dbconfig.collection_proposal.findOne({
+                                        'data.playerObjId': playerData._id,
+                                        'data.platformObjId': playerData.platform,
+                                        'data.levelValue': upOrDown ? levelUpObj.value : levelDownObj.value
+                                    }).lean();
                                 }
                             }
-                        }
-                    );
+                        ).then(
+                            rewardProposal => {
+                                if (!rewardProposal) {
+                                    if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
+                                        let proposalData = {
+                                            rewardAmount: levelUpObj.reward.bonusCredit,
+                                            isRewardTask: levelUpObj.reward.isRewardTask,
+                                            levelValue: levelUpObj.value,
+                                            levelName: levelUpObj.name,
+                                            playerObjId: playerData._id,
+                                            playerName: playerData.name,
+                                            playerId: playerData.playerId,
+                                            platformObjId: playerData.platform
+                                        };
+                                        return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
+                                    }
+                                }
+                            }
+                        );
+                    }
                 }
             }
         );

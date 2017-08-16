@@ -46,7 +46,7 @@
                 "savePlayerCredit",
                 "markDuplicatedConsumptionRecords",
                 "processAutoProposals",
-                "performPlatformPlayerLevelUpSettlement"
+                "performPlatformPlayerLevelSettlement"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
