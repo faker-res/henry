@@ -1,23 +1,37 @@
 .well
-    .full-width-input-block
-        label {{vm.showRewardTypeData.params.params.reward.data.index.des | translate}}
-        input.form-control(type='number', min=0, ng-model='vm.rewardParams.index', ng-disabled='vm.platformRewardShowEdit()')
+    label {{vm.showRewardTypeData.params.params.reward.des | translate}}
+    table.paddingTbl(style='min-width:100%')
+        thead
+            tr
+                th {{vm.showRewardTypeData.params.params.reward.data.index.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.topUpType.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.rewardDes.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.rewardPercentage.des | translate}}
+                th action
+        tbody
+            tr(ng-repeat='(i,data) in vm.rewardParams.reward')
+                td
+                    text(ng-if="vm.platformRewardPageName=='showReward'") {{data.index}}
+                    input(ng-if="vm.platformRewardPageName!=='showReward'", type='number', ng-model='data.index', style='min-width:100%')
+                td
+                    text(ng-if="vm.platformRewardPageName=='showReward'") {{data.topUpType}}
+                    select.form-control(ng-model='vm.rewardParams.topUpType', ng-disabled='vm.platformRewardShowEdit()', required)
+                        option(value='1') 网银支付(NetPay)
+                        option(value='2') 微信扫码(WechatQR)
+                        option(value='3') 支付宝扫码(AlipayQR)
+                        option(value='4') 微信App支付(WechatApp)
+                        option(value='5') 支付宝App支付(AlipayApp)
+                        option(value='6') 快捷支付(FASTPAY)
+                        option(value='7') QQ扫码(QQPAYQR)
+                td
+                    text(ng-if="vm.platformRewardPageName=='showReward'") {{data.rewardDes}}
+                    input(ng-if="vm.platformRewardPageName!=='showReward'", ng-model='data.rewardDes', style='min-width:100%')
+                td
+                    text(ng-if="vm.platformRewardPageName=='showReward'") {{data.rewardPercentage}}
+                    input(ng-if="vm.platformRewardPageName!=='showReward'", type='number', ng-model='data.rewardPercentage', style='min-width:100%')
 
-    .full-width-input-block
-        label {{vm.showRewardTypeData.params.params.reward.data.topUpType.des | translate}}
-        select.form-control(ng-model='vm.rewardParams.topUpType', ng-disabled='vm.platformRewardShowEdit()', required)
-            option(value='1') 网银支付(NetPay)
-            option(value='2') 微信扫码(WechatQR)
-            option(value='3') 支付宝扫码(AlipayQR)
-            option(value='4') 微信App支付(WechatApp)
-            option(value='5') 支付宝App支付(AlipayApp)
-            option(value='6') 快捷支付(FASTPAY)
-            option(value='7') QQ扫码(QQPAYQR)
-
-    .full-width-input-block
-        label {{vm.showRewardTypeData.params.params.reward.data.rewardDes.des | translate}}
-        input.form-control(ng-model='vm.rewardParams.rewardDes', ng-disabled='vm.platformRewardShowEdit()')
-
-    .full-width-input-block
-        label {{vm.showRewardTypeData.params.params.reward.data.rewardPercentage.des | translate}}
-        input.form-control(type='number', min=0, ng-model='vm.rewardParams.rewardPercentage', ng-disabled='vm.platformRewardShowEdit()' )
+                td.text-center
+                    i.fa.fa-minus.text-danger(ng-click='vm.updateRewardInEdit("remove",rowIndex)')
+            tr
+                td.text-center(colspan=3)
+                    i.fa.fa-plus.text-success(ng-click='vm.updateRewardInEdit("add",{})')
