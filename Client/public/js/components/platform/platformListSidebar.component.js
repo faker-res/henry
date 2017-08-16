@@ -11,7 +11,6 @@ function platformListSidebarController($scope, $cookies, socketService, authServ
     var vm = this;
     // Called when component is ready, see below
     vm.$onInit = function () {
-        console.log("aaaaaaaaa");
         loadPlatformData();
     };
 
