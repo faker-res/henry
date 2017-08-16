@@ -59,8 +59,7 @@ const dbPlayerMail = {
                         playerIds.push(users[user]._id);
                     }
                 }
-                let result = dbPlayerMail.sendPlayerMailFromAdminToPlayer(platformId, adminId, adminName, playerIds, title, content);
-                return result;
+                return dbPlayerMail.sendPlayerMailFromAdminToPlayer(platformId, adminId, adminName, playerIds, title, content);
         });
     },
     sendPlayerMailFromPlayerTo: function (senderPlayer, recipientType, recipientObjId, title, content) {
