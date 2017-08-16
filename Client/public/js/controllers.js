@@ -82,6 +82,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         // }, 1000000);
 
         $scope.AppSocket.on('connect', function () {
+            $scope.$broadcast('socketConnected', 'socketConnected');
             console.log('Management server connected');
             authService.getAllActions($scope.AppSocket, function () {
                 //todo::temp fix, should show view after angular translate are fully configured
@@ -156,7 +157,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             })
         }
     };
-    $scope.connectSocket();
+    //$scope.connectSocket();
 
     //init messages
     $scope.errorMessages = [];
@@ -830,7 +831,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     };
 
     $location.path();
-    $scope.$on('$viewContentLoaded', function () {
+    $scope.$on('childControllerLoaded', function () {
+        console.log('Start connecting Management server');
+        $scope.connectSocket();
         setTimeout(
             function () {
                 if (!$scope.AppSocket.connected) {

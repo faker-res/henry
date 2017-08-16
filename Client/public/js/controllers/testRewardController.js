@@ -41,7 +41,13 @@ define(['js/app'], function (myApp) {
             return deferred.promise;
         };
 
-        $scope.$on('$viewContentLoaded', function () {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
+        $scope.$on(eventName, function (e, d) {
             Q.all(
                 [vm.getAllRewardTypes(), vm.getAllPlatforms()]
             ).then(
@@ -195,7 +201,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'createPlayerTopUpIntentRecord', recordData, function (data) {
                 vm.tutRecord = data.data;
                 console.log("vm.tutRecord", vm.tutRecord);
-            }, function(error){
+            }, function (error) {
                 console.log(error);
             });
         };

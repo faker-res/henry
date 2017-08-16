@@ -277,7 +277,7 @@ define(['js/app'], function (myApp) {
                 vm.loadProposalQueryData(true);
             }
         }
-        vm.searchProposalByQuery = function (newSearch){
+        vm.searchProposalByQuery = function (newSearch) {
             $('#autoRefreshProposalFlag').attr('checked', false);
             vm.loadProposalQueryData(newSearch);
         }
@@ -463,7 +463,7 @@ define(['js/app'], function (myApp) {
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
             } else if (fieldName == 'bankAccountType') {
-                switch(parseInt(val)) {
+                switch (parseInt(val)) {
                     case 1:
                         result = $translate('Credit Card');
                         break;
@@ -501,37 +501,37 @@ define(['js/app'], function (myApp) {
                 result = vm.allBankTypeList[val] || (val + " ! " + $translate("not in bank type list"));
             } else if (fieldName == 'depositMethod') {
                 result = $translate(vm.getDepositMethodbyId[val])
-            // } else if (fieldName == 'provinceId' || fieldName == 'bankAccountProvince') {
-            //     var $id = $('<text>').text(val);
-            //     var $name = $('<text>', {
-            //         class: 'margin-left-5 proposalProvinceId',
-            //     });
-            //     socketService.$socket($scope.AppSocket, "getProvince", {provinceId: val}, function (data) {
-            //         var text = data.data.province ? data.data.province.name : val;
-            //         $("#ProposalDetail .proposalProvinceId").text(text);
-            //     });
-            //     result = $id.prop('outerHTML') + $name.prop('outerHTML');
-            // } else if (fieldName == 'cityId' || fieldName == 'bankAccountCity') {
-            //     var $id = $('<text>').text(val);
-            //     var $name = $('<text>', {
-            //         class: 'margin-left-5 proposalCityId',
-            //     });
-            //     socketService.$socket($scope.AppSocket, "getCity", {cityId: val}, function (data) {
-            //         var text = data.data.city ? data.data.city.name : val;
-            //         $("#ProposalDetail .proposalCityId").text(text);
-            //     });
-            //     result = $id.prop('outerHTML') + $name.prop('outerHTML');
-            // } else if (fieldName == 'districtId' || fieldName == 'bankAccountDistrict') {
-            //     var $id = $('<text>').text(val);
-            //     var $name = $('<text>', {
-            //         class: 'margin-left-5 proposalDistrictId',
-            //     });
-            //     socketService.$socket($scope.AppSocket, "getDistrict", {districtId: val}, function (data) {
-            //         console.log('data', data);
-            //         var text = data.data.district ? data.data.district.name : val;
-            //         $("#ProposalDetail .proposalDistrictId").text(text);
-            //     });
-            //     result = $id.prop('outerHTML') + $name.prop('outerHTML');
+                // } else if (fieldName == 'provinceId' || fieldName == 'bankAccountProvince') {
+                //     var $id = $('<text>').text(val);
+                //     var $name = $('<text>', {
+                //         class: 'margin-left-5 proposalProvinceId',
+                //     });
+                //     socketService.$socket($scope.AppSocket, "getProvince", {provinceId: val}, function (data) {
+                //         var text = data.data.province ? data.data.province.name : val;
+                //         $("#ProposalDetail .proposalProvinceId").text(text);
+                //     });
+                //     result = $id.prop('outerHTML') + $name.prop('outerHTML');
+                // } else if (fieldName == 'cityId' || fieldName == 'bankAccountCity') {
+                //     var $id = $('<text>').text(val);
+                //     var $name = $('<text>', {
+                //         class: 'margin-left-5 proposalCityId',
+                //     });
+                //     socketService.$socket($scope.AppSocket, "getCity", {cityId: val}, function (data) {
+                //         var text = data.data.city ? data.data.city.name : val;
+                //         $("#ProposalDetail .proposalCityId").text(text);
+                //     });
+                //     result = $id.prop('outerHTML') + $name.prop('outerHTML');
+                // } else if (fieldName == 'districtId' || fieldName == 'bankAccountDistrict') {
+                //     var $id = $('<text>').text(val);
+                //     var $name = $('<text>', {
+                //         class: 'margin-left-5 proposalDistrictId',
+                //     });
+                //     socketService.$socket($scope.AppSocket, "getDistrict", {districtId: val}, function (data) {
+                //         console.log('data', data);
+                //         var text = data.data.district ? data.data.district.name : val;
+                //         $("#ProposalDetail .proposalDistrictId").text(text);
+                //     });
+                //     result = $id.prop('outerHTML') + $name.prop('outerHTML');
             } else if (fieldName === 'playerStatus') {
                 result = $translate($scope.constPlayerStatus[val]);
             } else if (fieldName === 'proposalPlayerLevel') {
@@ -652,12 +652,12 @@ define(['js/app'], function (myApp) {
                     v.creditAmount$ = (v.data.amount != null)
                         ? parseFloat(v.data.amount).toFixed(2)
                         : (v.data.rewardAmount != null
-                            ? parseFloat(v.data.rewardAmount).toFixed(2)
-                            : v.data.commissionAmount != null
-                                ? parseFloat(v.data.commissionAmount).toFixed(2)
-                                : v.data.negativeProfitAmount != null
-                                    ? parseFloat(v.data.negativeProfitAmount).toFixed(2)
-                                    : $translate("N/A"));
+                        ? parseFloat(v.data.rewardAmount).toFixed(2)
+                        : v.data.commissionAmount != null
+                        ? parseFloat(v.data.commissionAmount).toFixed(2)
+                        : v.data.negativeProfitAmount != null
+                        ? parseFloat(v.data.negativeProfitAmount).toFixed(2)
+                        : $translate("N/A"));
                     if (v.data.updateAmount != null) {
                         v.creditAmount$ = parseFloat(v.data.updateAmount).toFixed(2);
                     }
@@ -675,9 +675,9 @@ define(['js/app'], function (myApp) {
                     // });
                     v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
                     v.merchantNo$ = v.data.merchantNo != null
-                    ? v.data.merchantNo
-                    : v.data.weChatAccount != null 
-                        ? v.data.weChatAccount 
+                        ? v.data.merchantNo
+                        : v.data.weChatAccount != null
+                        ? v.data.weChatAccount
                         : v.data.alipayAccount != null
                         ? v.data.alipayAccount
                         : null;
@@ -686,21 +686,21 @@ define(['js/app'], function (myApp) {
             });
 
             // Plug-in to sort signed numbers
-            jQuery.extend( jQuery.fn.dataTableExt.oSort, {
-                "signed-num-asc": function ( a, b ) {
+            jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+                "signed-num-asc": function (a, b) {
                     a = a == 0 ? Infinity : a;
                     b = b == 0 ? Infinity : b;
 
                     return ((a < b) ? -1 : ((a > b) ? 1 : 0));
                 },
 
-                "signed-num-desc": function ( a, b ) {
+                "signed-num-desc": function (a, b) {
                     a = a == 0 ? -Infinity : a;
                     b = b == 0 ? -Infinity : b;
 
                     return ((a < b) ? 1 : ((a > b) ? -1 : 0));
                 }
-            } );
+            });
 
             let tableOptions = {
                 data: tableData,
@@ -748,7 +748,7 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('Merchant No'),
                         "data": "merchantNo$"
-                    },                      
+                    },
                     {
                         "title": $translate('MAIN_TYPE'),
                         "data": "mainType$"
@@ -1132,7 +1132,7 @@ define(['js/app'], function (myApp) {
                 }
                 if (i == 'providers') {
                     var temp = [];
-                    if( proposalDetail.providers ){
+                    if (proposalDetail.providers) {
                         proposalDetail.providers.map(item => {
                             temp.push(item.name);
                         });
@@ -1289,7 +1289,6 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             })
         };
-
 
 
         vm.changeStatusToPendingFromAutoAudit = function () {
@@ -1788,7 +1787,13 @@ define(['js/app'], function (myApp) {
             return result;
         }
 
-        $scope.$on('$viewContentLoaded', function () {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
+        $scope.$on(eventName, function (e, d) {
             setTimeout(
                 function () {
                     vm.blinkAllProposal = false;
@@ -1894,7 +1899,7 @@ define(['js/app'], function (myApp) {
                     var countDown = -1;
                     clearInterval(vm.refreshInterval);
                     vm.refreshInterval = setInterval(function () {
-                        var item =$('#autoRefreshProposalFlag');
+                        var item = $('#autoRefreshProposalFlag');
                         var isRefresh = item && item.length > 0 && item[0].checked;
                         var mark = $('#timeLeftRefreshOperation')[0];
                         $(mark).parent().toggleClass('hidden', countDown < 0);

@@ -11,7 +11,6 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
         'myApp.filters',
         'myApp.services',
         'myApp.directives',
-        'myApp.components',
         'ngCookies',
         'pascalprecht.translate',
         'flowChart',
@@ -136,29 +135,6 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
-                // .state('platform.pushnotification', {
-                //     url: '/pushnotification',
-                //     templateUrl: 'category/platform/platform-push-notification',
-                //     controller: 'pushNotificationCtrl',
-                //     controllerAs: 'vm',
-                //     resolve: {
-                //         load: function ($q, $rootScope) {
-                //             var deferred = $q.defer();
-                //
-                //             var dependencies = [
-                //                 "/js/controllers/pushNotificationController.js"
-                //             ];
-                //
-                //             require(dependencies, function () {
-                //                 $rootScope.$apply(function () {
-                //                     deferred.resolve();
-                //                 });
-                //             });
-                //
-                //             return deferred.promise;
-                //         }
-                //     }
-                // })
                 .state('payment', {
                     url: '/payment',
                     templateUrl: 'category/payment/payment-home',
@@ -320,29 +296,6 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
-                .state('platform2', {
-                    url: '/platform2',
-                    templateUrl: 'category/platform2/platform-home',
-                    controller: 'platform2Ctrl',
-                    controllerAs: 'vm',
-                    resolve: {
-                        load: function ($q, $rootScope) {
-                            var deferred = $q.defer();
-
-                            var dependencies = [
-                                "/js/controllers/platform2Controller.js"
-                            ];
-
-                            require(dependencies, function () {
-                                $rootScope.$apply(function () {
-                                    deferred.resolve();
-                                });
-                            });
-
-                            return deferred.promise;
-                        }
-                    }
-                });
             // .state('testPage', {
             //     url: '/testPage',
             //     templateUrl: 'category/provider/test-home',

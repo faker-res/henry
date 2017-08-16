@@ -349,7 +349,13 @@ define(['js/app'], function (myApp) {
         ////////////////////////////////end common function ///////////////////////
 
 
-        $scope.$on('$viewContentLoaded', function () {
+        // $scope.$on('$viewContentLoaded', function () {
+        var eventName = "$viewContentLoaded";
+        if (!$scope.AppSocket) {
+            eventName = "socketConnected";
+            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+        }
+        $scope.$on(eventName, function (e, d) {
             setTimeout(
                 function () {
                     socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
@@ -360,7 +366,7 @@ define(['js/app'], function (myApp) {
                         } else {
                             var storedPlatform = $cookies.get("platform");
                             if (storedPlatform) {
-                                if(storedPlatform === '_allPlatform') {
+                                if (storedPlatform === '_allPlatform') {
                                     storedPlatform = vm.platformList[0].name;
                                 }
 
