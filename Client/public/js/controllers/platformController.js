@@ -15,6 +15,7 @@ define(['js/app'], function (myApp) {
             vm.updatePlatform = {};
             vm.editPlayer = {};
             vm.editPartner = {};
+            vm.merchantTopupTypeJson = $scope.merchantTopupTypeJson;
 
             // constants declaration
             vm.allPlayerCreditTransferStatus = {
@@ -89,7 +90,8 @@ define(['js/app'], function (myApp) {
                 1: 'TOPUPMANUAL',
                 2: 'TOPUPONLINE',
                 3: 'TOPUPALIPAY',
-                4: 'TOPUPWECHAT'
+                4: 'TOPUPWECHAT',
+                5: 'TOPUPQUICKPAY'
             };
             vm.allSettlePeriod = {
                 DAILY: 1,
@@ -9255,6 +9257,29 @@ define(['js/app'], function (myApp) {
                         console.warn("Could not reorder:", rewardType);
                     }
                 } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
+                    vm.rewardParams.reward = vm.rewardParams.reward || [];
+                    vm.allGames = [];
+
+                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                        vm.platformProvider = data.data.gameProviders;
+                        $scope.safeApply();
+                    }, function (data) {
+                        console.log("cannot get gameProvider", data);
+                    });
+
+                    //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                    if (vm.rewardParams.provider) {
+                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                            vm.allGames = data.data;
+                            console.log('ok', vm.allGames);
+                            $scope.safeApply();
+                        }, function (data) {
+                            console.log("created not", data);
+                            //vm.rewardTabClicked();
+                        });
+                    }
+                    $scope.safeApply();
+                } else if (vm.showRewardTypeData.name === "PlayerTopUpPromo") {
                     vm.rewardParams.reward = vm.rewardParams.reward || [];
                     vm.allGames = [];
 
