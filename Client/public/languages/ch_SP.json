@@ -2168,5 +2168,7 @@
   "Incorrect data!": "数据输入错误",
   "Server can't be connected, please try again!": "伺服器链接失败，请再尝试。",
   "Recover": "恢复在处理",
-  "Max reward amount per day": "单日最高奖励额"
+  "Max reward amount per day": "单日最高奖励额",
+  "Please Type Your Title": "请输入标题",
+  "Please Type Your Message": "请填入内容"
 }

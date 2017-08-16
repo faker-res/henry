@@ -90,7 +90,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                     $("#wrapper").show();
                 }, 100);
             });
-
+            socketService.setAppSocket($scope.AppSocket);
             //console.log("route reload!");
             //$state.reload();
 
@@ -449,6 +449,20 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     }
     $scope.sendSMSToPlayer = function (src, callback) {
         socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', src, onSuccess, onFail, true);
+        function onSuccess(data) {
+            if (callback) {
+                callback.call(this, data);
+            }
+        }
+
+        function onFail(error) {
+            if (callback) {
+                callback.call(this, error);
+            }
+        }
+    }
+    $scope.sendSMSToNewPlayer = function (src, callback) {
+        socketService.$socket($scope.AppSocket, 'sentSMSToNewPlayer', src, onSuccess, onFail, true);
         function onSuccess(data) {
             if (callback) {
                 callback.call(this, data);
