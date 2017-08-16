@@ -774,6 +774,32 @@ define(['js/app'], function (myApp) {
                     });
             };
 
+            vm.startPlayerConsecutiveConsumptionSettlement = function ($event) {
+                vm.playerConsecutiveConsumptionSettlement = {
+                    result: false,
+                    status: 'ready'
+                };
+                $('#playerConsecutiveConsumptionSettlementModal').modal('show');
+                $scope.safeApply();
+            };
+
+            vm.performPlayerConsecutiveConsumptionSettlement = function () {
+                vm.playerConsecutiveConsumptionSettlement.status = 'processing';
+                socketService.$socket($scope.AppSocket, 'startPlayerConsecutiveConsumptionSettlement',
+                    {platformId: vm.selectedPlatform.id},
+                    function (data) {
+                        console.log('playerConsecutiveConsumptionSettlement', data);
+                        vm.playerConsecutiveConsumptionSettlement.status = 'completed';
+                        vm.playerConsecutiveConsumptionSettlement.result = $translate('Success');
+                        $scope.safeApply();
+                    }, function (err) {
+                        console.log('err', err);
+                        vm.playerConsecutiveConsumptionSettlement.status = 'completed';
+                        vm.playerConsecutiveConsumptionSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                        $scope.safeApply();
+                    });
+            };
+
             vm.initTransferAllPlayersCreditFromProvider = function ($event) {
                 $('#modalTransferOutAllPlayerCreditFromGameProvider').modal('show');
                 $scope.safeApply();
