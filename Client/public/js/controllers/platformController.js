@@ -721,27 +721,28 @@ define(['js/app'], function (myApp) {
                     });
             };
 
-            vm.startPlayerLevelUpSettlement = function ($event) {
-                vm.playerLevelUpSettlement = {
+            vm.startPlayerLevelSettlement = function ($event) {
+                vm.playerLevelSettlement = {
                     result: false,
                     status: 'ready'
                 }
-                $('#playerLevelUpSettlementtModal').modal('show');
+                $('#playerLevelSettlementModal').modal('show');
                 $scope.safeApply();
-            }
-            vm.performPlayerLevelUpSettlement = function () {
-                vm.playerLevelUpSettlement.status = 'processing';
-                socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelUpSettlement',
-                    {platformId: vm.selectedPlatform.id},
+            };
+
+            vm.performPlayerLevelSettlement = function (upOrDown) {
+                vm.playerLevelSettlement.status = 'processing';
+                socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
+                    {platformId: vm.selectedPlatform.id, upOrDown: upOrDown},
                     function (data) {
-                        console.log('playerLevelUpSettlement', data);
-                        vm.playerLevelUpSettlement.status = 'completed';
-                        vm.playerLevelUpSettlement.result = $translate('Success');
+                        console.log('playerLevelSettlement', data);
+                        vm.playerLevelSettlement.status = 'completed';
+                        vm.playerLevelSettlement.result = $translate('Success');
                         $scope.safeApply();
                     }, function (err) {
                         console.log('err', err);
-                        vm.playerLevelUpSettlement.status = 'completed';
-                        vm.playerLevelUpSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                        vm.playerLevelSettlement.status = 'completed';
+                        vm.playerLevelSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
                         $scope.safeApply();
                     });
             };

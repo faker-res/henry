@@ -230,7 +230,7 @@ var roleChecker = {
                 transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
                 PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
                 PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement'],
-                PlayerLevelUpSettlement: ['startPlatformPlayerLevelUpSettlement']
+                PlayerLevelUpSettlement: ['startPlatformPlayerLevelSettlement']
             },
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
