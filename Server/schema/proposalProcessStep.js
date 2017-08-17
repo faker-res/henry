@@ -25,5 +25,7 @@ var proposalProcessStepSchema = new Schema({
     createTime: {type: Date, default: Date.now, index: true}
 });
 
+proposalProcessStepSchema.index({createTime: 1, department: 1, role: 1, status: 1});
+
 module.exports = proposalProcessStepSchema;
 
