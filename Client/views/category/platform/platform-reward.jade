@@ -100,6 +100,8 @@
                     include ./reward-event-type/PlayerEasterEggReward
                 div(ng-if='vm.showRewardTypeData.name=="PlayerTopUpPromo"')
                     include ./reward-event-type/PlayerTopUpPromo
+                div(ng-if='vm.showRewardTypeData.name=="PlayerConsecutiveConsumptionReward"')
+                    include ./reward-event-type/PlayerConsecutiveConsumptionReward
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.

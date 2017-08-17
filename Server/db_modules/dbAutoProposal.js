@@ -421,7 +421,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
                         // include previous top up record result if required
                         if (checkResult[i].isIncludePreviousConsumption) {
-                            currentProposal = lastTopUpResult.proposalId;
+                            currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
                             validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
                             spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
                             initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
