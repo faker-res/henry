@@ -46,7 +46,10 @@
                 "savePlayerCredit",
                 "markDuplicatedConsumptionRecords",
                 "processAutoProposals",
-                "performPlatformPlayerLevelUpSettlement"
+                "performPlatformPlayerLevelUpSettlement",
+                "sendPlayerMailFromAdminToAllPlayers",
+                "sendPlayerMailFromAdminToPlayer"
+
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

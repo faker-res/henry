@@ -9,6 +9,7 @@ var dbLogger = require('./../modules/dbLogger');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
+const SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 const dbPlayerMail = {
 
@@ -51,16 +52,34 @@ const dbPlayerMail = {
         });
     },
     sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content) {
-        return dbconfig.collection_players.find({ platform: ObjectId(platformId)})
-            .then((users)=>{
-                var playerIds = [];
-                for(user in users){
-                    if(users[user]._id){
-                        playerIds.push(users[user]._id);
+        let stream = dbconfig.collection_players.find({ platform: ObjectId(platformId)}).cursor({batchSize: 10000});
+        let balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            return balancer.processStream(
+                {
+                    stream: stream,
+                    batchSize: constSystemParam.BATCH_SIZE,
+                    makeRequest: function (users, request) {
+
+                        var playerIds = [];
+                        for(user in users){
+                            if(users[user]._id){
+                                playerIds.push(users[user]._id);
+                            }
+                        }
+                        request("player", "sendPlayerMailFromAdminToPlayer", {
+                            platformId: platformId,
+                            adminId: adminId,
+                            adminName: adminName,
+                            playerIds: playerIds,
+                            title:title,
+                            content:content
+                        });
                     }
                 }
-                return dbPlayerMail.sendPlayerMailFromAdminToPlayer(platformId, adminId, adminName, playerIds, title, content);
+            );
         });
+
     },
     sendPlayerMailFromPlayerTo: function (senderPlayer, recipientType, recipientObjId, title, content) {
         return dbPlayerMail.createPlayerMail({
