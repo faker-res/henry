@@ -4896,7 +4896,7 @@ let dbPlayerInfo = {
                             status = proposals[i].status;
                         }
                         else {
-                            status = proposals[i].process.status;
+                            status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
                         res.push(
                             {
