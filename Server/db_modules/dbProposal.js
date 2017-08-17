@@ -2480,7 +2480,16 @@ function insertRepeatCount(proposals, platformId) {
             let merchantNo = proposal.data.merchantNo;
             let relevantTypeIds = merchantNo ? typeIds : [proposal.type];
             let alipayAccount = proposal.data.alipayAccount ? proposal.data.alipayAccount : "";
-            let bankCardNoRegExp = proposal.data.bankCardNo ? new RegExp(proposal.data.bankCardNo.substring(0, 6)+".*"+proposal.data.bankCardNo.slice(-4))  : "";
+            let bankCardNoRegExp;
+
+            if (proposal.data.bankCardNo) {
+                let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+                bankCardNoRegExp = [
+                    {"data.bankCardNo": bankCardNoRegExpA},
+                    {"data.bankCardNo": bankCardNoRegExpB}
+                ];
+            }
 
             let prevSuccessQuery = {
                 type: {$in: relevantTypeIds},
@@ -2504,9 +2513,9 @@ function insertRepeatCount(proposals, platformId) {
                 nextSuccessQuery["data.alipayAccount"] = alipayAccount;
             }
 
-            if (bankCardNoRegExp) {
-                prevSuccessQuery["data.bankCardNo"] = bankCardNoRegExp;
-                nextSuccessQuery["data.bankCardNo"] = bankCardNoRegExp;
+            if (proposal.data.bankCardNo) {
+                prevSuccessQuery["$and"] = bankCardNoRegExp;
+                nextSuccessQuery["$and"] = bankCardNoRegExp;
             }
 
             let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
@@ -2547,10 +2556,10 @@ function insertRepeatCount(proposals, platformId) {
                         firstInStreakQuery["data.alipayAccount"] = alipayAccount;
                     }
 
-                    if (bankCardNoRegExp) {
-                        allCountQuery["data.bankCardNo"] = bankCardNoRegExp;
-                        currentCountQuery["data.bankCardNo"] = bankCardNoRegExp;
-                        firstInStreakQuery["data.bankCardNo"] = bankCardNoRegExp;
+                    if (proposal.data.bankCardNo) {
+                        allCountQuery["$and"] = bankCardNoRegExp;
+                        currentCountQuery["$and"] = bankCardNoRegExp;
+                        firstInStreakQuery["$and"] = bankCardNoRegExp;
                     }
 
                     if (prevSuccess[0]) {
@@ -2597,7 +2606,7 @@ function insertRepeatCount(proposals, platformId) {
                     proposal.$merchantAllCount = allCount;
                     proposal.$merchantCurrentCount = currentCount;
 
-                    if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                    if (!firstFailure || firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
                         proposal.$merchantGapTime = 0;
                     } else {
                         proposal.$merchantGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
