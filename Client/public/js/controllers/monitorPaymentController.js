@@ -288,10 +288,10 @@ define(['js/app'], function (myApp) {
             console.log('data', data);
             let tableOptions = {
                 data: data,
-                "order": vm.paymentMonitorQuery.aaSorting || [[0, 'desc']],
+                "order": vm.paymentMonitorQuery.aaSorting || [[11, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [11]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [

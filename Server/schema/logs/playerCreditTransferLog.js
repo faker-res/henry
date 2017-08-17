@@ -6,7 +6,7 @@ var playerCreditTransferLogSchema = new Schema({
     //Player Id
     playerObjId: {type: Schema.ObjectId, required: true, index: true},
     //platform
-    platformObjId: {type: Schema.ObjectId},
+    platformObjId: {type: Schema.ObjectId, index: true},
     //Player name
     playerName: {type: String},
     //admin name
@@ -26,7 +26,7 @@ var playerCreditTransferLogSchema = new Schema({
     // locked amount
     lockedAmount: {type: Number, default: 0},
     //create time
-    createTime: {type: Date, default: Date.now},
+    createTime: {type: Date, default: Date.now, index: true},
     //API response data
     apiRes: JSON,
     // any additional JSON data
@@ -36,5 +36,7 @@ var playerCreditTransferLogSchema = new Schema({
     //if this log has been used
     bUsed: {type: Boolean}
 });
+
+playerCreditTransferLogSchema.index({createTime: 1, platformObjId: 1});
 
 module.exports = playerCreditTransferLogSchema;
