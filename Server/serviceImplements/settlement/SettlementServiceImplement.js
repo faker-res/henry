@@ -15,6 +15,7 @@ const dbPlatform = require('./../../db_modules/dbPlatform');
 const dbPartner = require('./../../db_modules/dbPartner');
 const dbRewardTask = require('./../../db_modules/dbRewardTask');
 const dbRewardEvent = require('./../../db_modules/dbRewardEvent');
+const dbPlayerMail = require("./../../db_modules/dbPlayerMail");
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -220,10 +221,14 @@ var SettlementServiceImplement = function () {
         let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerLevel.performPlatformPlayerLevelSettlement, args, isValidData);
     };
+    this.sendPlayerMailFromAdminToPlayer.onRequest = function(wsFunc, conn, data){
+        let isValidData =  Boolean(data && data.platformId && data.adminId && data.adminName && data.playerIds && data.title && data.content);
+        let args = [data.platformId, data.adminId, data.adminName, data.playerIds, data.title, data.content];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendPlayerMailFromAdminToPlayer, args, isValidData);
+    };
 };
 
 let proto = SettlementServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = SettlementServiceImplement;
 
 module.exports = SettlementServiceImplement;
-
