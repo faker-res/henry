@@ -4,9 +4,9 @@ var Schema = mongoose.Schema;
 // Player credit change log
 var playerClientSourceLogSchema = new Schema ({
     //platform Id
-    platformId: String,
+    platformId: {type: String, index: true},
     //Player name
-    playerName: String,
+    playerName: {type: String, index: true},
     //domain name
     domain: String,
     //to store additional data
@@ -18,7 +18,7 @@ var playerClientSourceLogSchema = new Schema ({
     //access type
     accessType: String,
     // Date of action
-    createTime: {type: Date, default: Date.now}
+    createTime: {type: Date, default: Date.now, index: true}
 });
 
 module.exports = playerClientSourceLogSchema;

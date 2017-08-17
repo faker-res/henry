@@ -52,6 +52,8 @@ proposalSchema.index({"data.playerId": 1});
 proposalSchema.index({"data.playerObjId": 1});
 proposalSchema.index({"data.partnerName": 1});
 proposalSchema.index({"data.eventCode": 1});
+proposalSchema.index({"data.validTime": 1});
+proposalSchema.index({mainType: 1, type: 1, status: 1});
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId
  proposalSchema.pre('validate', function (next) {
