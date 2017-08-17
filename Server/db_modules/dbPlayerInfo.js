@@ -1518,7 +1518,7 @@ let dbPlayerInfo = {
         ).then(
             function (res) {
                 if (res) {
-                    dbLogger.createCreditChangeLog(playerId, platformId, amount, type, operatorId, data);
+                    dbLogger.createCreditChangeLog(playerId, platformId, amount, type, res.validCredit, operatorId, data);
                     deferred.resolve(res);
                 }
                 else {
