@@ -2512,6 +2512,8 @@ function insertRepeatCount(proposals, platformId) {
             let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
             let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1);
 
+            // for debug usage
+            let pS, nS, fISQ;
 
             return Promise.all([prevSuccessProm, nextSuccessProm]).then(
                 successData => {
@@ -2563,6 +2565,11 @@ function insertRepeatCount(proposals, platformId) {
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
                     }
 
+                    // for debug usage
+                    pS = prevSuccess[0];
+                    nS = nextSuccess[0];
+                    fISQ = firstInStreakQuery;
+
                     let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
                     let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
                     let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery);
@@ -2574,6 +2581,18 @@ function insertRepeatCount(proposals, platformId) {
                     let allCount = countData[0];
                     let currentCount = countData[1];
                     let firstFailure = countData[2];
+
+                    // for debug usage
+                    if (!firstFailure) {
+                        console.log('t54lwtMaus')
+                        console.log('proposal |||', proposal)
+                        console.log('firstFailure |||', firstFailure)
+                        console.log('prevSuccess |||', pS)
+                        console.log('nextSuccess |||', nS)
+                        console.log('firstInStreakQuery |||', fISQ)
+                        console.log('prevSuccessQuery |||', prevSuccessQuery)
+                        console.log('nextSuccessQuery |||', nextSuccessQuery)
+                    }
 
                     proposal.$merchantAllCount = allCount;
                     proposal.$merchantCurrentCount = currentCount;

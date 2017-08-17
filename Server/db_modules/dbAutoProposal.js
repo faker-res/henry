@@ -164,7 +164,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).populate(
                 {path: "type", model: dbconfig.collection_proposalType}
-            ).sort({settleTime: -1}).lean();
+            ).sort({settleTime: -1, createTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
             let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
@@ -421,7 +421,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
                         // include previous top up record result if required
                         if (checkResult[i].isIncludePreviousConsumption) {
-                            currentProposal = lastTopUpResult.proposalId;
+                            currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
                             validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
                             spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
                             initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;

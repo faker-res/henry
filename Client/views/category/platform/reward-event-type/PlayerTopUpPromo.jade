@@ -14,8 +14,8 @@
                     text(ng-if="vm.platformRewardPageName=='showReward'") {{data.index}}
                     input(ng-if="vm.platformRewardPageName!=='showReward'", type='number', ng-model='data.index', style='min-width:100%')
                 td
-                    text(ng-if="vm.platformRewardPageName=='showReward'") {{data.topUpType}}
-                    select.form-control(ng-model='vm.rewardParams.topUpType', ng-disabled='vm.platformRewardShowEdit()', required)
+                    text(ng-if="vm.platformRewardPageName=='showReward'")
+                    select.form-control(ng-model='data.topUpType', ng-disabled='vm.platformRewardShowEdit()', required)
                         option(value='1') 网银支付(NetPay)
                         option(value='2') 微信扫码(WechatQR)
                         option(value='3') 支付宝扫码(AlipayQR)
