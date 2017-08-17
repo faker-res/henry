@@ -234,7 +234,7 @@ define(['js/app'], function (myApp) {
                 vm.drawPaymentRecordTable(
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                        item.proposalId$ = item.proposalId.slice(-3);
+                        // item.proposalId$ = item.proposalId.slice(-3);
                         item.merchantNo$ = item.data.merchantNo
                             ? item.data.merchantNo
                             : item.data.weChatAccount
@@ -297,10 +297,10 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {
                         title: $translate('proposalId'),
-                        data: 'proposalId$',
+                        data: 'proposalId',
                         render: function (data, type, row) {
-                            let $link = $('<a>').text(data);
-                            // $link.attr('onclick', 'monitorVM.showProposalDetail('+row.proposalId+')');
+                            let data$ = data.slice(-3);
+                            let $link = $('<a>').text(data$);
                             return $link.prop('outerHTML');
                         }
                     },
