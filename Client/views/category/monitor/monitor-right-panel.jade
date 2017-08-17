@@ -15,28 +15,3 @@ style.
         label {{vm.pageName | translate}}
     .panel-body
         ui-view
-#modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                span
-                    ul.nav.nav-tabs
-                        li
-                            label {{vm.selectedProposal.type.name | translate}}
-                        li.active
-                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
-                                .fa.fa-user
-                                | {{ 'DETAIL' | translate }}
-                        //li(ng-if='vm.chartData')
-                        //    a(data-toggle="tab", href="#Workflow", ng-click="")
-                        //        .fa.fa-user
-                        //        | {{ 'WORKFLOW' | translate }}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .tab-content
-                            #ProposalDetail.tab-pane.fade.in.active
-                                include ./proposal-dialog-detail
-            .modal-footer
-                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
