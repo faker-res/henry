@@ -48,8 +48,8 @@
                 "processAutoProposals",
                 "performPlatformPlayerLevelUpSettlement",
                 "sendPlayerMailFromAdminToAllPlayers",
-                "sendPlayerMailFromAdminToPlayer"
-
+                "sendPlayerMailFromAdminToPlayer",
+                "performPlatformPlayerLevelSettlement"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

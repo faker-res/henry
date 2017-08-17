@@ -82,7 +82,9 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         // }, 1000000);
 
         $scope.AppSocket.on('connect', function () {
+            $scope.$broadcast('socketConnected', 'socketConnected');
             console.log('Management server connected');
+            initPage();
             authService.getAllActions($scope.AppSocket, function () {
                 //todo::temp fix, should show view after angular translate are fully configured
                 setTimeout(function () {
@@ -90,7 +92,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
                     $("#wrapper").show();
                 }, 100);
             });
-
+            socketService.setAppSocket($scope.AppSocket);
             //console.log("route reload!");
             //$state.reload();
 
@@ -156,7 +158,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
             })
         }
     };
-    $scope.connectSocket();
+    //$scope.connectSocket();
 
     //init messages
     $scope.errorMessages = [];
@@ -364,14 +366,15 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         3: "FORBID",
         4: "BALCKLIST",
         5: "ATTENTION",
-        6: "CANCELS",
+        6: "LOGOFF",
         7: "CHEAT_NEW_ACCOUNT_REWARD",
         8: "TOPUP_ATTENTION",
         9: "HEDGING",
         10: "TOPUP_BONUS_SPAM",
         11: "MULTIPLE_ACCOUNT",
         12: "BANNED",
-        13: "FORBID_ONLINE_TOPUP"
+        13: "FORBID_ONLINE_TOPUP",
+        14: "BAN_PLAYER_BONUS"
     };
 
     $scope.constPartnerStatus = {
@@ -829,55 +832,56 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     };
 
     $location.path();
-    $scope.$on('$viewContentLoaded', function () {
-        setTimeout(
-            function () {
-                if (!$scope.AppSocket.connected) {
-                    $("#pageWrapper").html('<i class="fa fa-spin fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>');
-                }
-
-                var location = $location.path().slice(1);
-                $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('active');
-                $translate(location).then(
-                    data => {
-                        window.document.title = data
-                    }
-                );
-                $scope.langKey = $cookies.get(authService.cookieLanguageKey);
-                $scope.isShowConsole = true;
-                $scope.getGeneralDataTableOption = {
-                    "paging": true,
-                    dom: 'tpl',
-                    "aaSorting": [],
-                    destroy: true,
-                    "scrollX": true,
-                    sScrollY: 350,
-                    scrollCollapse: true,
-                    lengthMenu: [
-                        [10, 25, 50, -1],
-                        ['10', '25', '50', $translate('Show All')]
-                    ],
-                };
-                $scope.serverStatus = {};
-                $scope.AppSocket.emit('getAPIServerStatus', {});
-
-                // Get API server status response
-                $scope.AppSocket.on('_getAPIServerStatus', function (data) {
-                    if (($scope.serverStatus.server != $scope.AppSocket.connected) || ($scope.serverStatus.cpServer != data.cpms) || ($scope.serverStatus.pServer != data.pms)) {
-                        $scope.serverStatus.server = $scope.AppSocket.connected;
-                        $scope.serverStatus.cpServer = data.cpms;
-                        $scope.serverStatus.pServer = data.pms;
-                        $scope.safeApply();
-                    }
-                });
-
-                $scope.getChannelList();
-                $scope.phoneCall = {};
-                utilService.initTranslate($filter('translate'));
-                socketService.initTranslate($filter('translate'));
-            }, 10
-        );
+    $scope.$on('childControllerLoaded', function () {
+        console.log('Start connecting Management server');
+        $scope.connectSocket();
     });
+
+    function initPage() {
+        if (!$scope.AppSocket.connected) {
+            $("#pageWrapper").html('<i class="fa fa-spin fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>');
+        }
+
+        var location = $location.path().slice(1);
+        $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('active');
+        $translate(location).then(
+            data => {
+                window.document.title = data
+            }
+        );
+        $scope.langKey = $cookies.get(authService.cookieLanguageKey);
+        $scope.isShowConsole = true;
+        $scope.getGeneralDataTableOption = {
+            "paging": true,
+            dom: 'tpl',
+            "aaSorting": [],
+            destroy: true,
+            "scrollX": true,
+            sScrollY: 350,
+            scrollCollapse: true,
+            lengthMenu: [
+                [10, 25, 50, -1],
+                ['10', '25', '50', $translate('Show All')]
+            ],
+        };
+        $scope.serverStatus = {};
+        $scope.AppSocket.emit('getAPIServerStatus', {});
+
+        // Get API server status response
+        $scope.AppSocket.on('_getAPIServerStatus', function (data) {
+            if (($scope.serverStatus.server != $scope.AppSocket.connected) || ($scope.serverStatus.cpServer != data.cpms) || ($scope.serverStatus.pServer != data.pms)) {
+                $scope.serverStatus.server = $scope.AppSocket.connected;
+                $scope.serverStatus.cpServer = data.cpms;
+                $scope.serverStatus.pServer = data.pms;
+                $scope.safeApply();
+            }
+        });
+
+        $scope.getChannelList();
+        $scope.phoneCall = {};
+        utilService.initTranslate($filter('translate'));
+        socketService.initTranslate($filter('translate'));
+    }
 
     $scope.presentActionLog = function () {
         socketService.$socket($scope.AppSocket, 'getAdminActionLog', {

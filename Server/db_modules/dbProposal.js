@@ -2243,7 +2243,6 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-
         if (data.merchantNo && !data.merchantGroup) {
             query['data.merchantNo'] = data.merchantNo;
         }
@@ -2268,20 +2267,20 @@ var proposal = {
         }
 
         let mainTopUpType;
-        switch (data.mainTopupType) {
-            case constPlayerTopUpType.ONLINE:
+        switch (String(data.mainTopupType)) {
+            case constPlayerTopUpType.ONLINE.toString():
                 mainTopUpType = constProposalType.PLAYER_TOP_UP;
                 break;
-            case constPlayerTopUpType.ALIPAY:
+            case constPlayerTopUpType.ALIPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_ALIPAY_TOP_UP;
                 break;
-            case constPlayerTopUpType.MANUAL:
+            case constPlayerTopUpType.MANUAL.toString():
                 mainTopUpType = constProposalType.PLAYER_MANUAL_TOP_UP;
                 break;
-            case constPlayerTopUpType.WECHAT:
+            case constPlayerTopUpType.WECHAT.toString():
                 mainTopUpType = constProposalType.PLAYER_WECHAT_TOP_UP;
                 break;
-            case constPlayerTopUpType.QUICKPAY:
+            case constPlayerTopUpType.QUICKPAY.toString():
                 mainTopUpType = constProposalType.PLAYER_QUICKPAY_TOP_UP;
                 break;
             default:
@@ -2297,11 +2296,11 @@ var proposal = {
         }
 
         if (data.topupType) {
-            query['data']['topupType'] = data.topupType;
+            query['data.topupType'] = data.topupType;
         }
 
         if (data.depositMethod) {
-            query['data']['depositMethod'] = data.depositMethod;
+            query['data.depositMethod'] = data.depositMethod;
         }
 
         let proposalCount, proposals;
@@ -2420,33 +2419,77 @@ function insertRepeatCount(proposals, platformId) {
             resolve([]);
         }
 
-        asyncLoop(proposals.length, function (i, loop) {
-            let proposal = JSON.parse(JSON.stringify(proposals[i]));
-            if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
-                insertedProposals[i] = handleSuccessProposal(proposal);
-                loop();
-            } else {
-                getProposalTypesIdProm.then(
-                    typeIdData => {
-                        typeIds = typeIdData;
-                        return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
-                    }
-                ).then(
-                    () => {
-                        insertedProposals[i] = proposal;
-                        loop();
-                    }
-                )
+        let promises = [];
+
+        for (let i = 0; i < proposals.length; i++) {
+            let prom = new Promise(function (res) {
+                let proposal = JSON.parse(JSON.stringify(proposals[i]));
+                if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+                    insertedProposals[i] = handleSuccessProposal(proposal);
+                    res();
+                } else {
+                    getProposalTypesIdProm.then(
+                        typeIdData => {
+                            typeIds = typeIdData;
+                            return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+                        }
+                    ).then(
+                        () => {
+                            insertedProposals[i] = proposal;
+                            res();
+                        }
+                    )
+                }
+            });
+
+            promises.push(prom);
+        }
+
+        Promise.all(promises).then(
+            () => {
+                resolve(insertedProposals);
             }
+        );
 
-
-        }, function returnResult() {
-            resolve(insertedProposals);
-        });
+        // NOTE: async loop will probably be necessary if t
+        // asyncLoop(proposals.length, function (i, loop) {
+        //     let proposal = JSON.parse(JSON.stringify(proposals[i]));
+        //     if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
+        //         insertedProposals[i] = handleSuccessProposal(proposal);
+        //         loop();
+        //     } else {
+        //         getProposalTypesIdProm.then(
+        //             typeIdData => {
+        //                 typeIds = typeIdData;
+        //                 return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+        //             }
+        //         ).then(
+        //             () => {
+        //                 insertedProposals[i] = proposal;
+        //                 loop();
+        //             }
+        //         )
+        //     }
+        //
+        //
+        // }, function returnResult() {
+        //     resolve(insertedProposals);
+        // });
 
         function handleFailureMerchant(proposal) {
             let merchantNo = proposal.data.merchantNo;
             let relevantTypeIds = merchantNo ? typeIds : [proposal.type];
+            let alipayAccount = proposal.data.alipayAccount ? proposal.data.alipayAccount : "";
+            let bankCardNoRegExp;
+
+            if (proposal.data.bankCardNo) {
+                let bankCardNoRegExpA = new RegExp(proposal.data.bankCardNo.substring(0, 6) + ".*");
+                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
+                bankCardNoRegExp = [
+                    {"data.bankCardNo": bankCardNoRegExpA},
+                    {"data.bankCardNo": bankCardNoRegExpB}
+                ];
+            }
 
             let prevSuccessQuery = {
                 type: {$in: relevantTypeIds},
@@ -2465,9 +2508,21 @@ function insertRepeatCount(proposals, platformId) {
                 nextSuccessQuery["data.merchantNo"] = merchantNo;
             }
 
+            if (alipayAccount) {
+                prevSuccessQuery["data.alipayAccount"] = alipayAccount;
+                nextSuccessQuery["data.alipayAccount"] = alipayAccount;
+            }
+
+            if (proposal.data.bankCardNo) {
+                prevSuccessQuery["$and"] = bankCardNoRegExp;
+                nextSuccessQuery["$and"] = bankCardNoRegExp;
+            }
+
             let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
             let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1);
 
+            // for debug usage
+            let pS, nS, fISQ;
 
             return Promise.all([prevSuccessProm, nextSuccessProm]).then(
                 successData => {
@@ -2495,6 +2550,18 @@ function insertRepeatCount(proposals, platformId) {
                         firstInStreakQuery["data.merchantNo"] = merchantNo;
                     }
 
+                    if (alipayAccount) {
+                        allCountQuery["data.alipayAccount"] = alipayAccount;
+                        currentCountQuery["data.alipayAccount"] = alipayAccount;
+                        firstInStreakQuery["data.alipayAccount"] = alipayAccount;
+                    }
+
+                    if (proposal.data.bankCardNo) {
+                        allCountQuery["$and"] = bankCardNoRegExp;
+                        currentCountQuery["$and"] = bankCardNoRegExp;
+                        firstInStreakQuery["$and"] = bankCardNoRegExp;
+                    }
+
                     if (prevSuccess[0]) {
                         let prevSuccessCreateTime = new Date(prevSuccess[0].createTime);
                         allCountQuery.createTime = {$gt: prevSuccessCreateTime};
@@ -2506,6 +2573,11 @@ function insertRepeatCount(proposals, platformId) {
                         allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
                     }
+
+                    // for debug usage
+                    pS = prevSuccess[0];
+                    nS = nextSuccess[0];
+                    fISQ = firstInStreakQuery;
 
                     let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
                     let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
@@ -2519,10 +2591,22 @@ function insertRepeatCount(proposals, platformId) {
                     let currentCount = countData[1];
                     let firstFailure = countData[2];
 
+                    // for debug usage
+                    if (!firstFailure) {
+                        console.log('t54lwtMaus')
+                        console.log('proposal |||', proposal)
+                        console.log('firstFailure |||', firstFailure)
+                        console.log('prevSuccess |||', pS)
+                        console.log('nextSuccess |||', nS)
+                        console.log('firstInStreakQuery |||', fISQ)
+                        console.log('prevSuccessQuery |||', prevSuccessQuery)
+                        console.log('nextSuccessQuery |||', nextSuccessQuery)
+                    }
+
                     proposal.$merchantAllCount = allCount;
                     proposal.$merchantCurrentCount = currentCount;
 
-                    if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                    if (!firstFailure || firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
                         proposal.$merchantGapTime = 0;
                     } else {
                         proposal.$merchantGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));

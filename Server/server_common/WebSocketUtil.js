@@ -38,7 +38,9 @@ var WebSocketUtility = {
                     return;
                 }
                 // Log the error in detail, so a developer can reproduce it and resolve it.
-                console.error("Error while performing action '" + (wsFunc && wsFunc.name) + "' with args:", errorUtils.stringifyIfPossible(args));
+                if( wsFunc && wsFunc.name != "authenticate" ){
+                    console.error("Error while performing action '" + (wsFunc && wsFunc.name) + "' with args:", errorUtils.stringifyIfPossible(args));
+                }
                 WebSocketUtility.errorHandler(error);
             }
         ).done();

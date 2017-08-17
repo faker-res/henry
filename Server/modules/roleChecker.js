@@ -231,7 +231,8 @@ var roleChecker = {
                 transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
                 PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
                 PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement'],
-                PlayerLevelUpSettlement: ['startPlatformPlayerLevelUpSettlement']
+                PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
+                PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement']
             },
             "Player": {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
@@ -360,7 +361,8 @@ var roleChecker = {
                 ValidActiveUpdate: ['updatePartnerLevelConfig'],
                 PartnerCommission: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig'],
                 platformBasic: [],
-                autoApproval: ['updateAutoApprovalConfig']
+                autoApproval: ['updateAutoApprovalConfig'],
+                Monitor: []
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],

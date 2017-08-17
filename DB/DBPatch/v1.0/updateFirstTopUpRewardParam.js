@@ -234,3 +234,53 @@ var param19Cursor = db.rewardParam.find({"name": type19});
 var param19 = param19Cursor.next();
 
 db.rewardType.insert({"name": type19, params: param19._id, des: "Player Easter Egg Reward"});
+
+//Player Top Up Promo
+var type20 = "PlayerTopUpPromo";
+db.rewardParam.insert({
+    "name": type20, params: {
+        targetEnable: {type: "Boolean", des: "If target is enabled"},
+        providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
+        minTopUpAmount: {type: "Number", des: "Min top up amount"},
+        consumptionTimes: {type: "Number", des: "Required Consumption Amount Times"},
+        reward: {
+            type: "Table",
+            data: {
+                index: {type: "Number", des: "Index"},
+                topUpType: {type: "String", des: "Top Up Type"},
+                rewardDes: {type: "String", des: "Reward des"},
+                rewardPercentage: {type: "Number", des: "Percentage"}
+            },
+            des: "Reward parameter"
+        }
+    }
+});
+
+var param20Cursor = db.rewardParam.find({"name": type20});
+var param20 = param20Cursor.next();
+
+db.rewardType.insert({"name": type20, params: param20._id, des: "Player Top Up Promo"});
+
+//Player Top Up Promo
+var type21 = "PlayerConsecutiveConsumptionReward";
+db.rewardParam.insert({
+    "name": type21, params: {
+        targetEnable: {type: "Boolean", des: "If target is enabled"},
+        providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
+        reward: {
+            type: "Table",
+            data: {
+                index: {type: "Number", des: "Index"},
+                minConsumptionAmount: {type: "String", des: "Minimal total consumption amount"},
+                rewardAmount: {type: "Number", des: "Reward amount"},
+                spendingTimes: {type: "Number", des: "Consumption amount times"}
+            },
+            des: "Reward parameter"
+        }
+    }
+});
+
+var param21Cursor = db.rewardParam.find({"name": type21});
+var param21 = param21Cursor.next();
+
+db.rewardType.insert({"name": type21, params: param21._id, des: "Player Consecutive Consumption Reward"});

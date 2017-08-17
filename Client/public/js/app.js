@@ -63,27 +63,6 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                     service: $provide.service
                 };
 
-            //Define routes - controllers will be loaded dynamically
-            // var route = routeResolverProvider.route;
-
-            // $routeProvider.// when('/dashboard', {
-            // //     templateUrl: 'category/dashboard/dashboard',
-            // //     //controller: 'dashboardCtrl'
-            // // }).
-            // when('/dashboard', route.resolve('category/dashboard/main', 'dashboardCtrl', 'dashboardController', 'vm')).
-            // when('/mainPage', route.resolve('category/mainPage/main', 'mainPageCtrl', 'mainPageController', 'vm')).
-            // // when('/proposal', route.resolve('category/proposal/proposal-home', 'proposalCtrl', 'proposalController', 'vm')).
-            // when('/platform', route.resolve('category/platform/platform-home', 'platformCtrl', 'platformController', 'vm')).
-            // when('/payment', route.resolve('category/payment/payment-home', 'paymentCtrl', 'paymentController', 'vm')).
-            // when('/provider', route.resolve('category/provider/provider-home', 'providerCtrl', 'providerController', 'vm')).
-            // when('/operation', route.resolve('category/operation/operation-home', 'operationCtrl', 'operationController', 'vm')).
-            // // when('/reward', route.resolve('category/reward/reward-home', 'rewardCtrl', 'rewardController', 'vm')).
-            // when('/analysis', route.resolve('category/analysis/analysis-home', 'analysisCtrl', 'analysisController', 'vm')).
-            // when('/report', route.resolve('category/report/report-home', 'reportCtrl', 'reportController', 'vm')).
-            // when('/testPage', route.resolve('category/testPage/test-home', 'testRewardCtrl', 'testRewardController', 'vm')).
-            // otherwise({
-            //     redirectTo: '/dashboard'
-            // });
             $locationProvider.html5Mode(true);
 
             $stateProvider
@@ -156,29 +135,6 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
-                // .state('platform.pushnotification', {
-                //     url: '/pushnotification',
-                //     templateUrl: 'category/platform/platform-push-notification',
-                //     controller: 'pushNotificationCtrl',
-                //     controllerAs: 'vm',
-                //     resolve: {
-                //         load: function ($q, $rootScope) {
-                //             var deferred = $q.defer();
-                //
-                //             var dependencies = [
-                //                 "/js/controllers/pushNotificationController.js"
-                //             ];
-                //
-                //             require(dependencies, function () {
-                //                 $rootScope.$apply(function () {
-                //                     deferred.resolve();
-                //                 });
-                //             });
-                //
-                //             return deferred.promise;
-                //         }
-                //     }
-                // })
                 .state('payment', {
                     url: '/payment',
                     templateUrl: 'category/payment/payment-home',
@@ -317,17 +273,17 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
-                .state('testPage', {
-                    url: '/testPage',
-                    templateUrl: 'category/provider/test-home',
-                    controller: 'testRewardCtrl',
+                .state('monitor.payment', {
+                    url: '/payment',
+                    templateUrl: 'category/monitor/monitor-payment',
+                    controller: 'monitorPaymentCtrl',
                     controllerAs: 'vm',
                     resolve: {
                         load: function ($q, $rootScope) {
                             var deferred = $q.defer();
 
                             var dependencies = [
-                                "/js/controllers/testRewardController.js"
+                                "/js/controllers/monitorPaymentController.js"
                             ];
 
                             require(dependencies, function () {
@@ -339,7 +295,30 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                             return deferred.promise;
                         }
                     }
-                });
+                })
+            // .state('testPage', {
+            //     url: '/testPage',
+            //     templateUrl: 'category/provider/test-home',
+            //     controller: 'testRewardCtrl',
+            //     controllerAs: 'vm',
+            //     resolve: {
+            //         load: function ($q, $rootScope) {
+            //             var deferred = $q.defer();
+            //
+            //             var dependencies = [
+            //                 "/js/controllers/testRewardController.js"
+            //             ];
+            //
+            //             require(dependencies, function () {
+            //                 $rootScope.$apply(function () {
+            //                     deferred.resolve();
+            //                 });
+            //             });
+            //
+            //             return deferred.promise;
+            //         }
+            //     }
+            // });
 
             $urlRouterProvider.otherwise('/dashboard');
         }]);

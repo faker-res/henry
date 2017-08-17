@@ -20,7 +20,7 @@ var PaymentServiceImplement = function () {
         if (data) {
             data.amount = Number(data.amount);
         }
-        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount);
+        var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount));
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [conn.playerId, data, merchantUseType, clientType], isValidData);
@@ -104,7 +104,7 @@ var PaymentServiceImplement = function () {
         if (data) {
             data.amount = Number(data.amount);
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && data.provinceId && data.cityId);
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && data.provinceId && data.cityId && Number.isInteger(data.amount));
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
@@ -121,7 +121,7 @@ var PaymentServiceImplement = function () {
         if (data) {
             data.amount = Number(data.amount);
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName);
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount));
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [conn.playerId, data.amount, data.alipayName, data.alipayAccount, "CLIENT"], isValidData);
     };
 
@@ -130,7 +130,7 @@ var PaymentServiceImplement = function () {
         if (data) {
             data.amount = Number(data.amount);
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0);
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && Number.isInteger(data.amount));
         // if ([10, 20, 50, 100].indexOf(data.amount) < 0) {
         //     isValidData = false;
         // }

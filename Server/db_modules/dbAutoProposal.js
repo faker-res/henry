@@ -164,7 +164,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).populate(
                 {path: "type", model: dbconfig.collection_proposalType}
-            ).sort({settleTime: -1}).lean();
+            ).sort({settleTime: -1, createTime: -1}).lean();
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
             let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
@@ -300,7 +300,8 @@ function checkProposalConsumption(proposal, platformObj) {
                                             requiredConsumption: getProp.data.amount,
                                             curConsumption: curConsumption,
                                             bonusAmount: bonusAmount,
-                                            settleTime: new Date(queryDateFrom)
+                                            settleTime: new Date(queryDateFrom),
+                                            isTopUp: true
                                         });
                                     }
                                 )
@@ -375,6 +376,8 @@ function checkProposalConsumption(proposal, platformObj) {
                     let isClearCycle = false;
                     let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
+                    let lastTopUpResult = {};
+                    let currentProposal = null;
 
                     // Make sure the check result is in correct order
                     checkResult.sort((a, b) => a.settleTime.getTime() - b.settleTime.getTime());
@@ -383,14 +386,14 @@ function checkProposalConsumption(proposal, platformObj) {
                     for (let i = 0; i < checkResult.length; i++) {
                         // reset the amounts if consumption > spending or lost all credit in previous cycle
                         // do not reset if this reward require previous top up's consumption
-                        if (isClearCycle && !checkResult[i].isIncludePreviousConsumption) {
+                        if (isClearCycle) {
                             validConsumptionAmount = 0;
                             spendingAmount = 0;
                             bonusAmount = 0;
                             initBonusAmount = 0;
-                            checkMsg = "";
-                            checkMsgChinese = "";
                         }
+
+                        currentProposal = checkResult[i].proposalId;
 
                         validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
                         spendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
@@ -405,18 +408,41 @@ function checkProposalConsumption(proposal, platformObj) {
                             bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
                         }
 
+                        // save current checkResult if it is top up
+                        if (checkResult[i].isTopUp) {
+                            lastTopUpResult = {
+                                proposalId: checkResult[i].proposalId,
+                                curConsumption: checkResult[i].curConsumption,
+                                requiredConsumption: checkResult[i].requiredConsumption,
+                                initBonusAmount: checkResult[i].initBonusAmount,
+                                bonusAmount: checkResult[i].bonusAmount
+                            }
+                        }
+
+                        // include previous top up record result if required
+                        if (checkResult[i].isIncludePreviousConsumption) {
+                            currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
+                            validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
+                            spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
+                            initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
+                            bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
+                        }
+
                         // Check consumption for each cycle
                         if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= lostThreshold) {
                             // User lost all bonus amount
                             isApprove = true;
                             isClearCycle = true;
+                            checkMsg = "";
+                            checkMsgChinese = "";
                         }
                         else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
                             isApprove = false;
                             isClearCycle = false;
+
                             if (checkMsg == "") {
-                                checkMsg += "Insufficient consumption at " + checkResult[i].proposalId + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                                checkMsgChinese += "提案 " + checkResult[i].proposalId + "：流水 " + validConsumptionAmount + " ，所需流水 " + spendingAmount + "; ";
+                                checkMsg += "LOW Bet from " + currentProposal + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+                                checkMsgChinese += "提案 " + currentProposal + "：流水 " + validConsumptionAmount + " ，所需流水 " + spendingAmount + "; ";
                             }
                         }
                         else {
@@ -424,6 +450,8 @@ function checkProposalConsumption(proposal, platformObj) {
                             // reset from current cycle
                             isApprove = true;
                             isClearCycle = true;
+                            checkMsg = "";
+                            checkMsgChinese = "";
                         }
 
                         // Sum up bonus amount for overall profit calculation
@@ -438,12 +466,10 @@ function checkProposalConsumption(proposal, platformObj) {
                         checkMsgChinese += "投注额不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
                     }
                     else {
-                        checkMsg = "";
-                        checkMsgChinese = "";
                         repeatMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese += "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
-                        checkMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
-                        checkMsgChinese += "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
+                        checkMsg = "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+                        checkMsgChinese = "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
                     }
 
                     let canApprove = true;

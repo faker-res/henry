@@ -1518,7 +1518,7 @@ let dbPlayerInfo = {
         ).then(
             function (res) {
                 if (res) {
-                    dbLogger.createCreditChangeLog(playerId, platformId, amount, type, operatorId, data);
+                    dbLogger.createCreditChangeLog(playerId, platformId, amount, type, res.validCredit, operatorId, data);
                     deferred.resolve(res);
                 }
                 else {
@@ -2971,11 +2971,12 @@ let dbPlayerInfo = {
         ).then(
             isMatch => {
                 if (isMatch) {
-                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.CANCELS) {
+                    console.log(playerObj);
+                    if (playerObj.permission.forbidPlayerFromLogin) {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
-                            code: (playerObj.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constPlayerStatus.CANCELS
+                            code: constServerCode.PLAYER_IS_FORBIDDEN 
                         });
                         return;
                     }
@@ -3250,11 +3251,11 @@ let dbPlayerInfo = {
                 if (data) {
                     playerObj = data;
 
-                    if (playerObj.status == constPlayerStatus.FORBID || playerObj.status == constPlayerStatus.CANCELS) {
+                    if (playerObj.permission.forbidPlayerFromLogin) {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
-                            code: (playerObj.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constServerCode.PLAYER_IS_CANCELLED
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
                         });
                         return;
                     }
@@ -4895,7 +4896,7 @@ let dbPlayerInfo = {
                             status = proposals[i].status;
                         }
                         else {
-                            status = proposals[i].process.status;
+                            status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
                         res.push(
                             {
@@ -6173,7 +6174,7 @@ let dbPlayerInfo = {
                         //         errorMessage: "Player does not have this permission"
                         //     });
                         // }
-                        if (playerData.bankName == null || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
+                        if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
                             || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
@@ -6755,13 +6756,14 @@ let dbPlayerInfo = {
         }).lean();
         return Q.all([playerProm, gameProm]).then(
             data => {
+                console.log(playerData);
                 if (data && data[0] && data[1] && data[1].provider) {
                     playerData = data[0];
                     gameData = data[1];
                     // check if the player is forbidden totally
-                    if (playerData.status == constPlayerStatus.FORBID || playerData.status == constPlayerStatus.CANCELS) {
+                    if (playerData.permission.forbidPlayerFromLogin) {
                         return Q.reject({
-                            status: (playerData.status == constPlayerStatus.FORBID) ? constServerCode.PLAYER_IS_FORBIDDEN : constServerCode.PLAYER_IS_CANCELLED,
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
                             name: "DataError",
                             message: "Player is forbidden",
                             playerStatus: playerData.status
@@ -6769,16 +6771,16 @@ let dbPlayerInfo = {
                     }
                     // check if the player is ban for particular game - in other words
                     // check if the provider of login game is in the forbidden list
-                    else if (playerData.status === constPlayerStatus.FORBID_GAME) {
-                        var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
-                        if (isForbidden) {
+                    else if (playerData.permission.forbidPlayerFromEnteringGame) {
+                        // var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
+                        // if (isForbidden) {
                             return Q.reject({
                                 name: "DataError",
                                 status: constServerCode.PLAYER_IS_FORBIDDEN,
                                 message: "Player is forbidden to the game",
                                 playerStatus: playerData.status
                             });
-                        }
+                        // }
                     // } else if (playerData.status === constPlayerStatus.BANNED) {
                     //     return Q.reject({
                     //         status: constServerCode.PLAYER_IS_FORBIDDEN,
@@ -6916,7 +6918,7 @@ let dbPlayerInfo = {
                     if (data) {
                         playerData = data;
                         platformData = data.platform;
-                        if (playerData.status != constPlayerStatus.NORMAL && playerData.status != constPlayerStatus.ATTENTION) {
+                        if (playerData.permission.forbidPlayerFromEnteringGame) {
                             return Q.reject({
                                 name: "DataError",
                                 message: "Player is not enable",

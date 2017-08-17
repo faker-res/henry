@@ -162,7 +162,7 @@ const dbPlayerMail = {
     },
 
     sendVerificationCodeToNumber: function (telNum, code, platformId) {
-        let lastMin = moment().subtract(2, 'minutes');
+        let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
         let template = null;
@@ -244,8 +244,6 @@ const dbPlayerMail = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
                 platformObjId = platform._id;
-                console.log('***playerId', playerId)
-                console.log('***platformObjId', platformObjId)
                 return dbconfig.collection_players.findOne({
                     playerId: playerId,
                     platform: platformObjId
@@ -256,7 +254,6 @@ const dbPlayerMail = {
             }
         ).then(
             player => {
-                console.log('***player', player)
                 return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId);
             },
             error => {
