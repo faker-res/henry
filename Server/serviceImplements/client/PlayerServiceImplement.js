@@ -289,7 +289,7 @@ let PlayerServiceImplement = function () {
         var ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua], isValidData, true, true, true).then(
             function (playerData) {
-                if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
+                if (conn.noOfAttempt >= constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
                         conn.isAuth = true;
                     } else {
