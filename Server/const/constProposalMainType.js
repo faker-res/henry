@@ -58,6 +58,7 @@ const constProposalMainType = {
     "PlayerConsecutiveLoginReward": constMainType.REWARD,
     "PlayerEasterEggReward": constMainType.REWARD,
     "PlayerTopUpPromo": constMainType.REWARD,
+    "PlayerConsecutiveConsumptionReward": constMainType.REWARD,
 
     //BONUS
     "PlayerBonus": constMainType.BONUS,

@@ -270,6 +270,16 @@ function socketActionPlatform(socketIO, socket) {
              let actionName = arguments.callee.name;
              let isValidData = Boolean(data && data.platformId);
              socketUtil.emitter(self.socket, dbPlayerLevel.startPlatformPlayerLevelSettlement, [ObjectId(data.platformId), data.upOrDown], actionName, isValidData);
+         },
+
+        /**
+         * Start Player Level Settlement
+         * @param {json} data - It has to contain platformId
+         */
+        startPlayerConsecutiveConsumptionSettlement: function startPlayerConsecutiveConsumptionSettlement(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatform.startPlayerConsecutiveConsumptionSettlement, [ObjectId(data.platformId)], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;

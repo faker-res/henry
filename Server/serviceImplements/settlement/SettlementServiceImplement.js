@@ -220,6 +220,12 @@ var SettlementServiceImplement = function () {
         let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerLevel.performPlatformPlayerLevelSettlement, args, isValidData);
     };
+
+    this.calculatePlatformConsecutiveConsumptionForPlayers.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.recSummary && data.eventData);
+        let args = [data.recSummary, data.eventData];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.calculatePlatformConsecutiveConsumptionForPlayers, args, isValidData);
+    };
 };
 
 let proto = SettlementServiceImplement.prototype = Object.create(PlayerService.prototype);
