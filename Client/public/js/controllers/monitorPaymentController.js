@@ -243,6 +243,8 @@ define(['js/app'], function (myApp) {
                             ? item.data.alipayAccount
                             : item.data.bankCardNo
                             ? item.data.bankCardNo
+                            : item.data.accountNo
+                            ? item.data.accountNo
                             : null;
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";

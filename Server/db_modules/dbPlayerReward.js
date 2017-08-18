@@ -9,6 +9,7 @@ const constServerCode = require('../const/constServerCode');
 
 const dbProposal = require('./../db_modules/dbProposal');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
+const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 
 const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
@@ -530,6 +531,50 @@ let dbPlayerReward = {
                 }
             );
         },
+
+    getTopUpPromoList: (playerId, clientType) => {
+        let topUpTypeData;
+
+        return new Promise(function (resolve, reject) {
+            let topUpTypeDataProm = dbPlayerInfo.getOnlineTopupType(playerId, 1, clientType);
+            let playerDataProm = dbConfig.collection_players.findOne({playerId: playerId}).lean();
+            let rewardTypeProm = dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_TOP_UP_PROMO});
+            Promise.all([topUpTypeDataProm, playerDataProm, rewardTypeProm]).then(
+                data => {
+                    topUpTypeData = data[0];
+                    let playerData = data[1];
+                    let rewardTypeData = data[2];
+
+                    return dbConfig.collection_rewardEvent.find({type: rewardTypeData._id, platform: playerData.platform}).sort({_id: -1}).limit(1).lean();
+                }
+            ).then(
+                rewardEventData => {
+                    let promotions = rewardEventData[0].param.reward;
+                    let promotionLength = promotions.length;
+                    let topUpTypeDataLength = topUpTypeData.length;
+
+                    for (let i = 0; i < topUpTypeDataLength; i++) {
+                        // let topUpType = topUpTypeData[i];
+                        for (let j = 0; j < promotionLength; j++) {
+                            // let promotion = promotions[j];
+                            if (Number(topUpTypeData[i].type) === Number(promotions[j].topUpType)) {
+                                topUpTypeData[i].rewardPercentage = promotions[j].rewardPercentage;
+                                topUpTypeData[i].rewardDes = promotions[j].rewardDes;
+                                topUpTypeData[i].index = promotions[j].index;
+                                break;
+                            }
+                        }
+                    }
+
+                    resolve(topUpTypeData);
+                }
+            ).catch(
+                error => {
+                    reject(error);
+                }
+            )
+        });
+    }
 };
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {

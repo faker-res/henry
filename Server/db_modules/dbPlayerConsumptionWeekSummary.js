@@ -278,7 +278,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 }
 
                                 // If return reward amount larger than 1, create proposal
-                                var bReturn = Boolean(returnAmount >= 1);
+                                var bReturn = true; //Boolean(returnAmount >= 1);
                                 if (bRequest) {
                                     //todo:: move the 100 here to system param
                                     bReturn = Boolean(returnAmount >= 100);
@@ -296,8 +296,8 @@ var dbPlayerConsumptionWeekSummary = {
                                             playerId: playerData.playerId,
                                             eventName: eventData.name,
                                             eventCode: eventData.code,
-                                            rewardAmount: returnAmount < 1 ? 0 : returnAmount,
-                                            spendingAmount: returnAmount < 1 ? 0 : returnAmount,
+                                            rewardAmount: returnAmount < 0.01 ? 0 : returnAmount,
+                                            spendingAmount: returnAmount < 0.01 ? 0 : returnAmount,
                                             returnDetail: returnDetail,
                                             summaryIds: summaryIds,
                                             bConsumptionReturnRequest: bRequest,

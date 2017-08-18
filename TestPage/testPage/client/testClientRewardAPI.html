@@ -241,6 +241,20 @@
     </div>
 </div>
 
+<h3>GET TOP UP PROMOTION LIST  (获取在线充值优惠)</h3>
+<div class="test-container">
+    <div>
+        <label>Client Type
+            <input name="clientType">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="getTopUpPromoList">Get Top Up Promotion List</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

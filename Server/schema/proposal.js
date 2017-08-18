@@ -91,19 +91,4 @@ proposalSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('p
  });
  */
 
-proposalSchema.post('find', function (result) {
-    if (result && result.length > 0) {
-        for (var i = 0; i < result.length; i++) {
-            //hide middle 4 digits for email
-            if (result[i].status != constProposalStatus.PENDING && result[i].data && result[i].data.bankCardNo) {
-                // var startIndex = Math.max(Math.floor((result[i].data.bankCardNo.length - 4) / 2), 0);
-                // result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, startIndex) + "****" + result[i].data.bankCardNo.substr(startIndex + 4);
-                result[i].data.bankCardNo = dbutility.encodeBankAcc(result[i].data.bankCardNo);
-                // result[i].data.bankCardNo = result[i].data.bankCardNo.substr(0, 6) + "****" + result[i].data.bankCardNo.slice(-4);
-            }
-        }
-        return result;
-    }
-});
-
 module.exports = proposalSchema;
