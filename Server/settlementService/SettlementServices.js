@@ -46,10 +46,8 @@
                 "savePlayerCredit",
                 "markDuplicatedConsumptionRecords",
                 "processAutoProposals",
-                "performPlatformPlayerLevelUpSettlement",
                 "sendPlayerMailFromAdminToAllPlayers",
                 "sendPlayerMailFromAdminToPlayer",
-                "performPlatformPlayerLevelSettlement",
                 "performPlatformPlayerLevelSettlement",
                 "calculatePlatformConsecutiveConsumptionForPlayers"
             ];
