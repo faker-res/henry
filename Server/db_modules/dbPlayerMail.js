@@ -52,7 +52,7 @@ const dbPlayerMail = {
         });
     },
     sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content) {
-        let stream = dbconfig.collection_players.find({ platform: ObjectId(platformId)}).cursor({batchSize: 10000});
+        let stream = dbconfig.collection_players.find({platform: ObjectId(platformId)}).cursor({batchSize: 10000});
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
             return balancer.processStream(
@@ -62,8 +62,8 @@ const dbPlayerMail = {
                     makeRequest: function (users, request) {
 
                         var playerIds = [];
-                        for(user in users){
-                            if(users[user]._id){
+                        for (user in users) {
+                            if (users[user]._id) {
                                 playerIds.push(users[user]._id);
                             }
                         }
@@ -72,8 +72,8 @@ const dbPlayerMail = {
                             adminId: adminId,
                             adminName: adminName,
                             playerIds: playerIds,
-                            title:title,
-                            content:content
+                            title: title,
+                            content: content
                         });
                     }
                 }
