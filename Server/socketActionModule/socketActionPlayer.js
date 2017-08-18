@@ -816,6 +816,15 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId && data.referral);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerReferral, [data.playerObjId, data.referral], actionName, isValidData);
+        },
+        getBonusRequestList: function getBonusRequestList(data){
+            var isValidData = Boolean(data);
+            let actionName = arguments.callee.name;
+            data = data || {};
+            data.startIndex = data.startIndex || 0;
+            data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.playerId, data.startIndex, data.requestCount, data.startTime, data.endTime, data.status, !data.sort], actionName, isValidData);
+
         }
     };
     socketActionPlayer.actions = this.actions;

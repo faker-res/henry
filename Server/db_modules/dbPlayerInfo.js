@@ -6339,6 +6339,62 @@ let dbPlayerInfo = {
             );
     },
 
+
+    getAllAppliedBonusList: function ( platformId, startIndex, count, startTime, endTime, status, sort) {
+
+            var seq = sort ? -1 : 1;
+
+            return dbconfig.collection_proposalType.findOne({
+                // platformId: platformId,
+                name: constProposalType.PLAYER_BONUS
+            })
+            .then(function(typeData){
+                var queryObj = {
+                    type: typeData._id
+                };
+                if (status) {
+                    queryObj.status = status;
+                }
+                if (startTime || endTime) {
+                    queryObj.createTime = {};
+                }
+                if (startTime) {
+                    queryObj.createTime["$gte"] = new Date(startTime);
+                }
+                if (endTime) {
+                    queryObj.createTime["$lte"] = new Date(endTime);
+                }
+                var countProm = dbconfig.collection_proposal.find(queryObj).count();
+                var proposalProm = dbconfig.collection_proposal.find(queryObj).sort({createTime: seq}).skip(startIndex).limit(count).lean();
+
+                return Q.all([proposalProm, countProm]).then(
+                    data => {
+                        if (data && data[0] && data[1]) {
+                            return {
+                                stats: {
+                                    totalCount: data[1],
+                                    startIndex: startIndex,
+                                    requestCount: count
+                                },
+                                records: data[0]
+                            }
+                        }
+                        else {
+                            return {
+                                stats: {
+                                    totalCount: data[1] || 0,
+                                    startIndex: startIndex,
+                                    requestCount: count
+                                },
+                                records: []
+                            }
+                        }
+                    }
+                );
+            })
+
+    },
+
     /*
      * Get applied bonus list
      */

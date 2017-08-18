@@ -9,7 +9,7 @@ define(['js/app'], function (myApp) {
         var vm = this;
 
         vm.getDashboardData = function (numDays, after) {
-            var queryDone = [false, false, false, false];
+            var queryDone = [false, false, false, false, false];
             var sendData = {
                 // startDate: new Date(new Date().setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), numDays)))),
                 startDate: utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), numDays)),
@@ -56,6 +56,11 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
 
+            sendData.platformId = vm.platformID;
+            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data) {
+                console.log('data', data)
+            });
+
             if (numDays == 0) {
                 socketService.$socket($scope.AppSocket, 'getPlayerConsumptionSumForAllPlatform', sendData, function success(data) {
                     // console.log('allplayersconsumption', data);
@@ -67,7 +72,7 @@ define(['js/app'], function (myApp) {
                     $('.day .spendAmount .number').html(totalConsumption.toFixed(2));
                     utilService.fitText('.day .spendAmount .number');
 
-                    queryDone[2] = true;
+                    queryDone[3] = true;
                     $scope.safeApply();
                 });
             } else if (numDays == 7) {
@@ -80,7 +85,7 @@ define(['js/app'], function (myApp) {
 
                     $('.week .spendAmount .number').html(totalConsumption.toFixed(2));
                     utilService.fitText('.week .spendAmount .number');
-                    queryDone[2] = true;
+                    queryDone[3] = true;
                     $scope.safeApply();
                 });
             }
@@ -97,7 +102,7 @@ define(['js/app'], function (myApp) {
                 } else if (numDays == 7) {
                     $('.week .newUser .number').html(totalNum);
                 }
-                queryDone[3] = true;
+                queryDone[4] = true;
                 $scope.safeApply();
             });
             callback();

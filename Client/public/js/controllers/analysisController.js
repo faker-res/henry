@@ -273,9 +273,39 @@ define(['js/app'], function (myApp) {
                     }
                 });
             });
-
-
         };
+
+        vm.searchBonusList = function(){
+
+            
+            socketService.$socket($scope.AppSocket, 'getBonusRequestList', {"startIndex":0, "requestCount":100, "startTime":new Date("2017-06-01T02:00"),"endTime":new Date("2017-08-01T02:00"),"status":"Success"}, function success(data1) {
+                console.log('allActivePlayers', data1);
+                var data = data1.data.filter(function (obj) {
+                    return (obj._id);
+                }).map(function (obj) {
+                    return {label: vm.setGraphName(obj._id.name), data: obj.number};
+                }).sort(function (a, b) {
+                    return b.data - a.data;
+                })
+
+                socketService.$plotPie(placeholder, data, {}, 'activePlayerPieClickData');
+
+                var placeholderBar = "#bar-all-activePlayer";
+                socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(data), vm.newOptions, vm.getXlabelsFromdata(data));
+
+                var listen = $scope.$watch(function () {
+                    return socketService.getValue('activePlayerPieClickData');
+                }, function (newV, oldV) {
+                    if (newV !== oldV) {
+                        vm.allPlatformActivePie = newV.series.label;
+                        console.log('pie clicked', newV);
+                        if (vm.showPageName !== "PLATFORM_OVERVIEW") {
+                            listen();
+                        }
+                    }
+                });
+            });
+        }
         vm.plotAllPlatformNewPlayerPie = function () {
             var placeholder = "#pie-all-newPlayer";
             var sendData = {

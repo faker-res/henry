@@ -24,6 +24,8 @@ script(src='js/lib/flot/jquery.flot.time.min.js')
                                 div
                             .topupAmount
                                 div
+                            .bonusAmount
+                                div
                             .spendAmount
                                 div
                             .newUser
@@ -33,6 +35,8 @@ script(src='js/lib/flot/jquery.flot.time.min.js')
                             .onlineNum
                                 div
                             .topupAmount
+                                div
+                            .bonusAmount
                                 div
                             .spendAmount
                                 div
@@ -50,6 +54,10 @@ script(src='js/lib/flot/jquery.flot.time.min.js')
                         label.form-control
                             .text-center  {{'TOP_UP' | translate}}
                         #topupLine.dashboardChart
+                    .col-md-3
+                        label.form-control
+                            .text-center  {{'Bonus' | translate}}
+                        #bonusLine.dashboardChart
                     .col-md-3
                         label.form-control
                             .text-center  {{'Consumption' | translate}}
