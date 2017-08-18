@@ -171,6 +171,12 @@
         this.rewardService.getConsecutiveLoginRewardDay.once(callback);
     };
 
+    proto.getTopUpPromoList = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getTopUpPromoList.request(data);
+        this.rewardService.getTopUpPromoList.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {
