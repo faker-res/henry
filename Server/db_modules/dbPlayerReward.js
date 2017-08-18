@@ -471,8 +471,65 @@ let dbPlayerReward = {
                 return res;
             }
         );
-    }
+    },
 
+    applyConsecutiveConsumptionReward:
+        (playerObjId, consumptionAmount, eventData, adminInfo) => {
+            let playerObj = {};
+            let rewardParam = null;
+            let rewardAmount = 0;
+
+            return dbConfig.collection_players.findOne({_id: playerObjId}).populate(
+                {path: "platform", model: dbConfig.collection_platform}
+            ).then(
+                playerData => {
+                    if (playerData && playerData.platform && playerData.permission.playerConsecutiveConsumptionReward) {
+                        playerObj = playerData;
+                        eventData.param.reward.forEach(
+                            reward => {
+                                if (consumptionAmount >= reward.minConsumptionAmount) {
+                                    rewardParam = reward;
+                                    rewardAmount = reward.rewardAmount;
+                                }
+                            }
+                        );
+
+                        // create reward proposal
+                        let proposalData = {
+                            type: eventData.executeProposal,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerObj.playerId
+                                },
+                            data: {
+                                playerObjId: playerObj._id,
+                                playerId: playerObj.playerId,
+                                playerName: playerObj.name,
+                                realName: playerObj.realName,
+                                platformObjId: playerObj.platform._id,
+                                rewardAmount: rewardAmount,
+                                spendingAmount: rewardAmount * Number(rewardParam.spendingTimes),
+                                applyAmount: 0,
+                                amount: rewardAmount,
+                                eventId: eventData._id,
+                                eventName: eventData.name,
+                                eventCode: eventData.code,
+                                eventDescription: eventData.description,
+                                providers: eventData.param.providers,
+                                useConsumption: eventData.param.useConsumption,
+                                useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
+                            },
+                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                            userType: constProposalUserType.PLAYERS
+                        };
+
+                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                    }
+                }
+            );
+        },
 };
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {

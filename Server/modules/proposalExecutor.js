@@ -143,6 +143,7 @@ var proposalExecutor = {
             this.executions.executePlayerEasterEggReward.des = "Player Easter Egg Reward";
             this.executions.executePlayerQuickpayTopUp.des = "Player Quickpay Top Up";
             this.executions.executePlayerTopUpPromo.des = "Player Top Up Promo";
+            this.executions.executePlayerConsecutiveConsumptionReward.des = "Player Consecutive Consumption Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -185,6 +186,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerEasterEggReward.des = "Reject Player Easter Egg Reward";
             this.rejections.rejectPlayerQuickpayTopUp.des = "Reject Player Quickpay Top Up";
             this.rejections.rejectPlayerTopUpPromo.des = "Reject Player Top Up Promo";
+            this.rejections.rejectPlayerConsecutiveConsumptionReward.des = "Reject Player Consecutive Consumption Reward";
 
         },
 
@@ -1699,7 +1701,17 @@ var proposalExecutor = {
              */
             executePlayerRegistrationIntention:function (proposalData, deferred) {
                  deferred.resolve(proposalData);
-            }
+            },
+
+            executePlayerConsecutiveConsumptionReward: function (proposalData, deferred) {
+                //verify data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
+                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSECUTIVE_CONSUMPTION_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect partner consumption return proposal data"});
+                }
+            },
         },
 
         /**
@@ -2207,6 +2219,10 @@ var proposalExecutor = {
              * reject create player intention proposal
              */
             rejectPlayerRegistrationIntention: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerConsecutiveConsumptionReward: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             }
         }
