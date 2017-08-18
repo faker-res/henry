@@ -142,6 +142,9 @@
 
             this.getGameList = new sinonet.WebSocketAsyncFunction("getGameList");
             this.addFunction(this.getGameList);
+
+            this.syncGameImage = new sinonet.WebSocketAsyncFunction("syncGameImage");
+            this.addFunction(this.syncGameImage);
         };
 
         GameService.prototype = Object.create(sinonet.WebSocketService.prototype);
