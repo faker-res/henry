@@ -726,12 +726,7 @@ define(['js/app'], function (myApp) {
 
 
         // $scope.$on('$viewContentLoaded', function () {
-        var eventName = "$viewContentLoaded";
-        if (!$scope.AppSocket) {
-            eventName = "socketConnected";
-            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
-        }
-        $scope.$on(eventName, function (e, d) {
+        $scope.$on("monitorController:socketConnected", function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
 

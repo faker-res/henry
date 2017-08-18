@@ -100,7 +100,7 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
                     if (data.token && data.adminName) {
                         var exp = new Date();
                         //set token expiration time to be 5 hours from now(the same time on server)
-                        exp.setSeconds(exp.getSeconds() + 60 * 60 * 5);
+                        exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
 
                         authService.storeAuth($cookies, localStorageService, data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
                         setTimeout(
@@ -211,7 +211,7 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
                 beforeSend: () => {
                     sendTime = (new Date()).getTime();
                 },
-                success: function(){
+                success: function () {
                     receiveTime = (new Date()).getTime();
                     latency = receiveTime - sendTime;
                     WSCONFIG[server].latency = latency;
@@ -224,7 +224,7 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
                     WSCONFIG[server].isAvailable = true;
                     $scope.$apply();
                 },
-                error: function(data) {
+                error: function (data) {
                     WSCONFIG[server].isAvailable = false;
                 }
             });
