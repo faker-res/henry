@@ -20,6 +20,7 @@ const constProposalMainType = {
     "UpdatePlayerBankInfo": constMainType.UPDATE_PLAYER,
     "ManualUnlockPlayerReward": constMainType.UPDATE_PLAYER,
     "PlayerRegistrationIntention":constMainType.UPDATE_PLAYER,
+    "PlayerLevelMigration": constMainType.UPDATE_PLAYER,
 
     //UPDATE_PARTNER
     "UpdatePartnerBankInfo": constMainType.UPDATE_PARTNER,
