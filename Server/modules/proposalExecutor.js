@@ -144,6 +144,7 @@ var proposalExecutor = {
             this.executions.executePlayerQuickpayTopUp.des = "Player Quickpay Top Up";
             this.executions.executePlayerTopUpPromo.des = "Player Top Up Promo";
             this.executions.executePlayerConsecutiveConsumptionReward.des = "Player Consecutive Consumption Reward";
+            this.executions.executePlayerLevelMigration.des = "Player Level Migration";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -187,7 +188,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerQuickpayTopUp.des = "Reject Player Quickpay Top Up";
             this.rejections.rejectPlayerTopUpPromo.des = "Reject Player Top Up Promo";
             this.rejections.rejectPlayerConsecutiveConsumptionReward.des = "Reject Player Consecutive Consumption Reward";
-
+            this.rejections.rejectPlayerLevelMigration.des = "Reject Player Level Migration";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1354,7 +1355,26 @@ var proposalExecutor = {
                     }
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect player top up return proposal data"});
+                    deferred.reject({name: "DataError", message: "Incorrect player level up reward proposal data"});
+                }
+            },
+
+            /**
+             * execution function for player level migration proposal type
+             */
+            executePlayerLevelMigration: function (proposalData, deferred) {
+                //create reward task for related player
+                //verify data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId) {
+                    // Perform the level migration
+                    dbconfig.collection_players.findOneAndUpdate(
+                        {_id: proposalData.data.playerObjId, platform: proposalData.data.platformObjId},
+                        {playerLevel: proposalData.data.levelObjId},
+                        {new: false}
+                    ).then(deferred.resolve, deferred.reject);
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player level migration proposal data"});
                 }
             },
 
@@ -2223,6 +2243,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerConsecutiveConsumptionReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerLevelMigration: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             }
         }
