@@ -272,7 +272,7 @@ let dbPlayerLevelInfo = {
                         }
                     ).then(
                         rewardProp => {
-                            if (rewardProp) {
+                            if (!rewardProp) {
                                 if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
                                     proposalData.rewardAmount = levelUpObj.reward.bonusCredit;
                                     proposalData.isRewardTask = levelUpObj.reward.isRewardTask;
