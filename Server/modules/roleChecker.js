@@ -131,6 +131,7 @@ var roleChecker = {
         'applyForGameProviderReward': true,
         'sendPlayerMailFromPlayerToAdmin': true,
         'sendPlayerMailFromPlayerToPlayer': true,
+        'sendPlayerMailFromAdminToAllPlayers': true,
         'playerLogout': true,
         'getMailList': true,
 

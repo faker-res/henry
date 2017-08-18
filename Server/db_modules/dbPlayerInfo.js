@@ -1518,7 +1518,7 @@ let dbPlayerInfo = {
         ).then(
             function (res) {
                 if (res) {
-                    dbLogger.createCreditChangeLog(playerId, platformId, amount, type, operatorId, data);
+                    dbLogger.createCreditChangeLog(playerId, platformId, amount, type, res.validCredit, operatorId, data);
                     deferred.resolve(res);
                 }
                 else {
@@ -4896,7 +4896,7 @@ let dbPlayerInfo = {
                             status = proposals[i].status;
                         }
                         else {
-                            status = proposals[i].process.status;
+                            status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
                         res.push(
                             {

@@ -28,6 +28,7 @@ const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 var dbRewardType = require("../db_modules/dbRewardType.js");
 var dbRewardEvent = require("../db_modules/dbRewardEvent.js");
 var dbRewardLog = require("../db_modules/dbRewardLog.js");
+var dbPlayerReward = require("../db_modules/dbPlayerReward")
 var errorUtils = require('./errorUtils');
 var dbPartner = require("../db_modules/dbPartner");
 var constProposalEntryType = require("../const/constProposalEntryType");
@@ -141,6 +142,7 @@ var proposalExecutor = {
             this.executions.executePlayerRegistrationIntention.des = "Player Registration Intention";
             this.executions.executePlayerEasterEggReward.des = "Player Easter Egg Reward";
             this.executions.executePlayerQuickpayTopUp.des = "Player Quickpay Top Up";
+            this.executions.executePlayerTopUpPromo.des = "Player Top Up Promo";
             this.executions.executePlayerConsecutiveConsumptionReward.des = "Player Consecutive Consumption Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
@@ -183,6 +185,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerRegistrationIntention.des = "Reject Player Registration Intention";
             this.rejections.rejectPlayerEasterEggReward.des = "Reject Player Easter Egg Reward";
             this.rejections.rejectPlayerQuickpayTopUp.des = "Reject Player Quickpay Top Up";
+            this.rejections.rejectPlayerTopUpPromo.des = "Reject Player Top Up Promo";
             this.rejections.rejectPlayerConsecutiveConsumptionReward.des = "Reject Player Consecutive Consumption Reward";
 
         },
@@ -787,6 +790,8 @@ var proposalExecutor = {
                                 }
                             );
                         }
+                        dbPlayerReward.applyPlayerTopUpPromo(proposalData);
+
                         deferred.resolve(proposalData);
                     },
                     function (error) {
@@ -1680,6 +1685,17 @@ var proposalExecutor = {
                 }
             },
 
+            executePlayerTopUpPromo: function (proposalData, deferred) {
+                dbPlayerInfo.updatePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.amount, proposalData.type.name, proposalData.data.playerName, proposalData.data).then(
+                    successData => {
+                        deferred.resolve(successData);
+                    },
+                    error => {
+                        deferred.reject(error);
+                    }
+                );
+            },
+
             /**
              * execution function for player intention proposal
              */
@@ -2193,6 +2209,10 @@ var proposalExecutor = {
                         });
                     }
                 );
+            },
+
+            rejectPlayerTopUpPromo: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
             },
 
             /**

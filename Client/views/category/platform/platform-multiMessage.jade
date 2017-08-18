@@ -102,8 +102,13 @@
                     div(ng-hide='vm.sendMultiMessage.messageType==="mail"')
                         label {{"Channel" | translate}} :&nbsp;
                         select(ng-model='vm.sendMultiMessage.channel', ng-options='a for a in channelList')
+                    div
+                        label {{'Sent to all Players' | translate}}
+                        input(type='checkbox', ng-model='vm.isSentToAll', ng-init="false", ng-click='vm.sentMailToAllPlayers()')
+
                     div(ng-if="checkViewPermission('Platform', 'groupMessage', 'SendGroupMessage')")
-                        button.btn.btn-primary.btn-sm(ng-click="vm.sendMessages()", ng-disabled='!vm.sendMultiMessage.messageContent || !vm.sendMultiMessage.numRecipient || vm.sendMultiMessage.sendInitiated || !vm.sendMultiMessage.channel') {{vm.sendMultiMessage.sendBtnText}}
+                        button.btn.btn-primary.btn-sm(ng-click="vm.sendMessages()", ng-disabled='!vm.sendMultiMessage.messageContent || !vm.sendMultiMessage.numRecipient || vm.sendMultiMessage.sendInitiated') {{vm.sendMultiMessage.sendBtnText}}
+
                     div(ng-show='vm.sendMultiMessage.numReceived+vm.sendMultiMessage.numFailed')
                         div
                             label {{'Received' | translate}} :&nbsp;

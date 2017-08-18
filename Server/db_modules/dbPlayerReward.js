@@ -197,6 +197,96 @@ let dbPlayerReward = {
         );
     },
 
+    applyPlayerTopUpPromo: (topUpProposalData) => {
+        return new Promise(function (resolve) {
+            let rewardEventQuery = {
+                platform: topUpProposalData.data.platformId
+            };
+
+            dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_TOP_UP_PROMO}).lean().then(
+                rewardTypeData => {
+                    let rewardEventQuery = {
+                        platform: topUpProposalData.data.platformId,
+                        type: rewardTypeData._id,
+                        validStartTime: {$lte: topUpProposalData.createTime},
+                        validEndTime: {$gte: topUpProposalData.createTime}
+                    };
+
+                    return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+                }
+            ).then(
+                promoEvents => {
+                    if (!promoEvents || promoEvents.length <= 0) {
+                        // there is no promotion event going on
+                        return;
+                    }
+
+                    let promoEventDetail, promotionDetail;
+                    for (let i = 0; i < promoEvents.length; i++) {
+                        let promoEvent = promoEvents[i];
+                        for (let j = 0; j < promoEvent.param.reward.length; j++) {
+                            let promotion = promoEvent.param.reward[j];
+
+                            if (Number(promotion.topUpType) === Number(topUpProposalData.data.topupType)) {
+                                promotionDetail = promotion;
+                                promoEventDetail = promoEvent;
+                            }
+
+                            if (promotionDetail) {
+                                break;
+                            }
+                        }
+
+                        if (promoEventDetail) {
+                            break;
+                        }
+                    }
+
+                    if (!promotionDetail) {
+                        // there is no relevant promotion
+                        return;
+                    }
+
+                    let rewardAmount = (Number(topUpProposalData.data.amount) * promotionDetail.rewardPercentage / 100);
+
+                    let proposalData = {
+                        type: promoEventDetail.executeProposal,
+
+                        data: {
+                            playerObjId: topUpProposalData.data.playerObjId,
+                            playerId: topUpProposalData.data.playerId,
+                            playerName: topUpProposalData.data.playerName,
+                            platformId: topUpProposalData.data.platformId,
+                            platform: topUpProposalData.data.platform,
+                            rewardAmount: rewardAmount,
+                            spendingAmount: 0,
+                            applyAmount: 0,
+                            amount: rewardAmount,
+                            eventId: promoEventDetail._id,
+                            eventName: promoEventDetail.name,
+                            eventCode: promoEventDetail.code,
+                            eventDescription: promoEventDetail.description
+                        },
+                        entryType: constProposalEntryType.SYSTEM,
+                        userType: constProposalUserType.PLAYERS
+                    };
+
+                    return dbProposal.createProposalWithTypeId(promoEventDetail.executeProposal, proposalData);
+                }
+            ).then(
+                proposalData => {
+                    resolve(proposalData);
+                }
+            ).catch(
+                error => {
+                    resolve(error);
+                }
+            );
+
+        });
+
+    },
+
     applyEasterEggReward: (playerId, code, adminInfo) => {
         let playerObj = {};
         let eventData = {};

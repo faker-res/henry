@@ -1051,6 +1051,11 @@ define(['js/app'], function (myApp) {
                     $('#mutilplePlayerTable').resize();
                 }, 100);
             }
+            function resetAllSelection(){
+                $('#mutilplePlayerTable tbody tr').removeClass('selected');
+                $('#mutilplePlayerTable tbody input[type="checkbox"]').prop("checked", vm.sendMultiMessage.checkAllRow);
+                vm.sendMultiMessage.numRecipient = 'All';
+            }
             function resetMultiMessageStatus() {
                 vm.sendMultiMessage.sendInitiated = false;
                 vm.sendMultiMessage.sendCompleted = false;
@@ -1066,6 +1071,9 @@ define(['js/app'], function (myApp) {
                 vm.sendMultiMessage.wordCount = vm.sendMultiMessage.messageContent.length;
                 vm.sendMultiMessage.numUsedMessage = Math.ceil(vm.sendMultiMessage.wordCount / vm.sendMultiMessage.channelMaxChar);
                 resetMultiMessageStatus();
+            }
+            vm.sentMailToAllPlayers = function(){
+                resetAllSelection();
             }
             vm.sendMessages = function () {
                 // console.log(vm.sendMultiMessage.tableObj.rows('.selected').data());
@@ -1124,9 +1132,19 @@ define(['js/app'], function (myApp) {
                         title: vm.sendMultiMessage.messageTitle,
                         content: vm.sendMultiMessage.messageContent
                     };
-
-                    $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
-
+                    
+                    if(vm.isSentToAll){
+                        socketService.$socket($scope.AppSocket, 'sendPlayerMailFromAdminToAllPlayers',sendData, function (data) {
+                            console.log(data);
+                            vm.sendMultiMessage.sendCompleted = true;
+                            vm.sendMultiMessage.messageTitle = "";
+                            vm.sendMultiMessage.messageContent = "";
+                            updateMultiMessageButton();
+                            $scope.safeApply();
+                        })
+                    }else{
+                        $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
+                    }
                 }
 
 
