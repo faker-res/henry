@@ -10,5 +10,8 @@ let WSCONFIG = {
     },
     "pccw": {
         "socketURL": "papi-pccw.fpms8.me:9000",
+    },
+    "lan": {
+        "socketURL": "papi-lan.fpms8.me:9000",
     }
 };
