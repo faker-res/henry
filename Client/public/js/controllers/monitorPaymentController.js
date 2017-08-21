@@ -768,6 +768,9 @@ define(['js/app'], function (myApp) {
                     if (window.location.pathname != '/monitor/payment') {
                         clearInterval(vm.refreshInterval);
                     }
+                    else if (!vm.paymentMonitorQuery) {
+                        vm.loadPage();
+                    }
                 }, 1000);
             });
         });
