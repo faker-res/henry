@@ -276,7 +276,6 @@ var creditChangeTypeStrings = [
     "rejectPlayerBonus",
     "Purchase",
     "applyFirstTopUpReward:ProposalFailedRefund",
-    "PlayerBonus",
     "applyTopUpReturn:ProposalFailedRefund",
     "applyPlayerTopUpReward:Deduction",
     "applyPlayerTopUpReward:ProposalFailedRefund",
@@ -285,9 +284,8 @@ var creditChangeTypeStrings = [
     "rejectGameProviderReward",
     "rejectFirstTopUp",
     "rejectPlayerTopUpReturn",
-    "rejectPlayerBonus",
     "rejectPlayerTopUpReward",
     "rejectPlayerDoubleTopUpReward",
     "PlayerBonus:resetCredit",
-    "Reward"
+    "Reward",
 ];
