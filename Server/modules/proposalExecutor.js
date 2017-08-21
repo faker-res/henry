@@ -1753,7 +1753,7 @@ var proposalExecutor = {
             rejectUpdatePlayerCredit: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
                     //todo::add more reasons here, ex:cancel request
-                    return proposalExecutor.refundPlayer(proposalData, -proposalData.data.updateAmount, "rejectUpdatePlayerCredit")
+                    return proposalExecutor.refundPlayer(proposalData, -proposalData.data.updateAmount, constPlayerCreditChangeType.REJECT_UPDATE_PLAYER_CREDIT)
                         .then(
                             res => deferred.resolve("Proposal is rejected"),
                             error => deferred.reject(error)
@@ -1865,7 +1865,7 @@ var proposalExecutor = {
              */
             rejectGameProviderReward: function (proposalData, deferred) {
                 //todo::send reject reason to player
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectGameProviderReward").then(deferred.resolve, deferred.reject);
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_GAME_PROVIDER_REWARD).then(deferred.resolve, deferred.reject);
             },
 
             /**
@@ -1874,7 +1874,7 @@ var proposalExecutor = {
             rejectFirstTopUp: function (proposalData, deferred) {
                 //todo::send reject reason to player
                 //clean top up records that are used for application
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectFirstTopUp").then(
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_FIRST_TOP_UP).then(
                     () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
                 );
 
@@ -2050,7 +2050,7 @@ var proposalExecutor = {
              */
             rejectPlayerTopUpReturn: function (proposalData, deferred) {
                 //clean top up records that are used for application
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectPlayerTopUpReturn").then(
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_TOP_UP_RETURN).then(
                     () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
                 );
             },
@@ -2090,7 +2090,7 @@ var proposalExecutor = {
 
                     // return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
                     proposalData.data.creditCharge = proposalData.data.creditCharge || 0;
-                    return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, "rejectPlayerBonus")
+                    return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, constPlayerCreditChangeType.REJECT_PLAYER_BONUS)
                         .then(
                             res => deferred.resolve("Proposal is rejected"),
                             error => deferred.reject(error)
@@ -2155,7 +2155,7 @@ var proposalExecutor = {
              * reject function for player top up reward
              */
             rejectPlayerTopUpReward: function (proposalData, deferred) {
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectPlayerTopUpReward").then(
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_TOP_UP_REWARD).then(
                     () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
                 );
             },
@@ -2207,7 +2207,7 @@ var proposalExecutor = {
 
             rejectPlayerDoubleTopUpReward: function (proposalData, deferred) {
                 //clean top up records that are used for application
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectPlayerDoubleTopUpReward").then(
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_DOUBLE_TOP_UP_REWARD).then(
                     () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
                 );
             },
