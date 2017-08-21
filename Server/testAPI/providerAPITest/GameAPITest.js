@@ -147,6 +147,32 @@
         });
     };
 
+    proto.syncGameImage = function(callback, requestData) {
+        var data = requestData ||
+            {
+                "games": [{
+                    "platformId": 1,
+                    "gameId": "01A61989-4B4B-4205-BF97-1D6F4364E657",
+                    "imgAddr": "http://images.pms8.me/cpms/1eadb799-fc30-4230-adcb-38d6ba1863ab.png"
+                }, {
+                    "platformId": 2,
+                    "gameId": "01A61989-4B4B-4205-BF97-1D6F4364E657",
+                    "imgAddr": "http://images.pms8.me/cpms/510613c4-5103-497d-8a5e-a5ff8d679468.png"
+                }, {
+                    "platformId": 7,
+                    "gameId": "01538B18-C522-4E1C-B9AA-FD1199726008",
+                    "imgAddr": "http://images.pms8.me/cpms/62584ee1-d5b7-47ca-9b21-2c000c9734f1.jpg"
+                }]
+            };
+        this._service.syncGameImage.request(data);
+        var self = this;
+        this._service.syncGameImage.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = GameAPITest;
     } else {

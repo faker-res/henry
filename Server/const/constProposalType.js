@@ -43,7 +43,9 @@ const constProposalType = {
     PLAYER_REGISTRATION_INTENTION: "PlayerRegistrationIntention",
     PLAYER_EASTER_EGG_REWARD: "PlayerEasterEggReward",
     PLAYER_QUICKPAY_TOP_UP: "PlayerQuickpayTopUp",
-    PLAYER_TOP_UP_PROMO: "PlayerTopUpPromo"
+    PLAYER_TOP_UP_PROMO: "PlayerTopUpPromo",
+    PLAYER_LEVEL_MIGRATION: "PlayerLevelMigration",
+    PLAYER_CONSECUTIVE_CONSUMPTION_REWARD: "PlayerConsecutiveConsumptionReward"
 };
 
 module.exports = constProposalType;

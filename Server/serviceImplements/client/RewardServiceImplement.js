@@ -98,6 +98,12 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getConsecutiveLoginRewardDay, [conn.playerId, data.code], isValidData);
     };
 
+    this.getTopUpPromoList.expectsData = 'clientType: Number';
+    this.getTopUpPromoList.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.clientType && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getTopUpPromoList, [conn.playerId, data.clientType], isValidData);
+    };
+
     this.getEasterEggPlayerInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getEasterEggPlayerInfo, [data.platformId], isValidData, false, false, true);

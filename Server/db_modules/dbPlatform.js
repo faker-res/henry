@@ -1,5 +1,8 @@
 "use strict";
 
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+
 var env = require('../config/env').config();
 var dbconfig = require('./../modules/dbproperties');
 var constPartnerLevel = require('./../const/constPartnerLevel');
@@ -17,12 +20,10 @@ var pmsAPI = require('../externalAPI/pmsAPI');
 var cpmsAPI = require('../externalAPI/cpmsAPI');
 var smsAPI = require('../externalAPI/smsAPI');
 var Q = require("q");
-var mongoose = require('mongoose');
 var crypto = require('crypto');
 var externalUtil = require("../externalAPI/externalUtil.js");
 var dbUtility = require('./../modules/dbutility');
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
-var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var rsaCrypto = require("../modules/rsaCrypto");
 var dbRewardEvent = require("../db_modules/dbRewardEvent");
@@ -37,6 +38,8 @@ const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
 const constSystemParam = require('../const/constSystemParam');
+
+const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -1099,6 +1102,76 @@ var dbPlatform = {
             }
         )
     },
+
+    /**
+     * calculate platform player consumption incentive reward
+     * @param platformId
+     * @param event
+     * @param proposalTypeId
+     */
+    startPlayerConsecutiveConsumptionSettlement: function (platformId) {
+        let yerTime = dbUtility.getYesterdayConsumptionReturnSGTime();
+        let minConsumptionAmount = null;
+        let allowedProviders;
+
+        //get platform consecutive consumption reward event data and rule data
+        return dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_CONSECUTIVE_CONSUMPTION_REWARD).then(
+            eventData => {
+                if (eventData && eventData.param && eventData.executeProposal) {
+                    // get minimum amount of consumption records to get to reduce query cost
+                    if (eventData.param.reward && eventData.param.reward.length > 0) {
+                        // Make sure the reward index is in correct order
+                        eventData.param.reward.sort((a, b) => a.index - b.index);
+                        minConsumptionAmount = eventData.param.reward[0].minConsumptionAmount;
+                        allowedProviders = eventData.param.providers.map(providerObjId => ObjectId(providerObjId));
+                    }
+
+                    let stream = dbconfig.collection_playerConsumptionRecord.aggregate(
+                        {
+                            $match: {
+                                platformId: platformId,
+                                createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
+                                providerId: {$in: allowedProviders}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: '$playerId',
+                                amount: {$sum: '$amount'}
+                            }
+                        }
+                    ).cursor({batchSize: 10000}).allowDiskUse(true).exec();
+
+                    let balancer = new SettlementBalancer();
+                    return balancer.initConns().then(function () {
+                        return balancer.processStream(
+                            {
+                                stream: stream,
+                                batchSize: constSystemParam.BATCH_SIZE,
+                                makeRequest: function (recSummary, request) {
+                                    request("player", "calculatePlatformConsecutiveConsumptionForPlayers", {
+                                        recSummary: recSummary,
+                                        eventData: eventData
+                                    });
+                                }
+                            }
+                        );
+                    });
+                }
+                else {
+                    //platform doesn't have this reward event
+                    return Q.resolve(false);
+                }
+            }
+        );
+    },
+
+    calculatePlatformConsecutiveConsumptionForPlayers:
+        (recSummary, eventData) => {
+            if (recSummary && recSummary.length > 0) {
+                return Promise.all(recSummary.map(summ => dbPlayerReward.applyConsecutiveConsumptionReward(summ._id, summ.amount, eventData)));
+            }
+        },
 
     getPlatformConsumptionReturnDetail: function (platformObjId, period) {
         var settleTime = dbUtility.getYesterdayConsumptionReturnSGTime();

@@ -6799,12 +6799,12 @@ let dbPlayerInfo = {
                         });
                     }
 
-                    let providerEnabled = true;
-                    let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
-
-                    if (providerInfo) {
-                        providerEnabled = providerInfo.isEnabled;
-                    }
+                    // let providerEnabled = true;
+                    // let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
+                    //
+                    // if (providerInfo) {
+                    //     providerEnabled = providerInfo.isEnabled;
+                    // }
 
                     // Added checking for platform level disable game provider
                     if (gameData.provider.status != constProviderStatus.NORMAL) {

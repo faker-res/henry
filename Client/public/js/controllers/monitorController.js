@@ -783,6 +783,7 @@ define(['js/app'], function (myApp) {
                 //     }
                 // }, 1000);
             });
+            $scope.$broadcast('monitorController:socketConnected', 'monitorController:socketConnected');
         });
     };
 

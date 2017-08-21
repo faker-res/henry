@@ -553,7 +553,21 @@ var dbGame = {
                 }
             }
         );
+    },
+
+    syncGameImage: (games) => {
+        const gameProms = games.map(
+            game => {
+                let paramName = "images." + game.platformId;
+                let updateObj = {
+                };
+                updateObj[paramName] = game.imgAddr;
+                return dbconfig.collection_game.findOneAndUpdate({gameId: game.gameId}, updateObj);
+            }
+        );
+        return Q.all(gameProms);
     }
+
 };
 
 var proto = dbGameFunc.prototype;

@@ -46,10 +46,10 @@
                 "savePlayerCredit",
                 "markDuplicatedConsumptionRecords",
                 "processAutoProposals",
-                "performPlatformPlayerLevelUpSettlement",
                 "sendPlayerMailFromAdminToAllPlayers",
                 "sendPlayerMailFromAdminToPlayer",
-                "performPlatformPlayerLevelSettlement"
+                "performPlatformPlayerLevelSettlement",
+                "calculatePlatformConsecutiveConsumptionForPlayers"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

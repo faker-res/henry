@@ -24,7 +24,7 @@ function socketActionPlayerMail (socketIO, socket) {
          * Send a message to all players from the current admin
          *  @param {json} data - data has to contain query and updateData
          */
-        sendPlayerMailFromAdminToAllPlayers: function sendPlayerMailFromAdminToAllPlayers (data) {
+        sendPlayerMailFromAdminToAllPlayers: function sendPlayerMailFromAdminToAllPlayers(data) {
             var actionName = arguments.callee.name;
             var adminObjId = self.socket.decoded_token._id;
             var isValidData = Boolean(data && data.platformId && data.adminName && (data.title || data.content));
