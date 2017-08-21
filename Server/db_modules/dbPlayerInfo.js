@@ -1717,7 +1717,7 @@ let dbPlayerInfo = {
         var time1 = endTime ? new Date(endTime) : new Date();
         queryObject.operationTime = {$gte: time0, $lt: time1};
         var a = dbconfig.collection_creditChangeLog.find(queryObject).count();
-        var b = dbconfig.collection_creditChangeLog.find(queryObject).sort(sortCol).skip(index).limit(limit);
+        var b = dbconfig.collection_creditChangeLog.find(queryObject).sort(sortCol).skip(index).limit(limit).lean();
         var c = dbconfig.collection_proposal.find({
             "data.playerObjId": ObjectId(query.playerId),
             createTime: {
@@ -1725,8 +1725,17 @@ let dbPlayerInfo = {
                 $lt: time1
             }
         }).lean();
+        var totalProm = dbconfig.collection_creditChangeLog.aggregate([
+            {
+                $match: queryObject,
+            },
+            {
+                $group: { _id: null, totalChange: {$sum: "$amount"} }
+            }
+        ]);
+
         var logThatHaveNoProposal = ['TransferIn', 'TransferOut'];
-        return Q.all([a, b, c]).then(
+        return Q.all([a, b, c, totalProm]).then(
             data => {
                 data[1].forEach(
                     (result) => {
@@ -1743,8 +1752,9 @@ let dbPlayerInfo = {
                             });
                             result.data.proposalId = temp[0] ? temp[0].proposalId : "";
                         }
-                    });
-                return {total: data[0], data: data[1]};
+                    }
+                );
+                return {total: data[0], data: data[1], totalChanged: data[3][0] ? data[3][0].totalChange : 0};
             })
     },
 
