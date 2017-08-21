@@ -1,0 +1,477 @@
+<div class="padding-all-5">
+    <div class="panel panel-primary">
+        <div class="panel-heading padding-all-5">
+            <div class="panel-title left-col">
+                <div class="fa fa-cubes"></div>
+                <text>&nbsp;{{"PLATFORM" | translate}}</text><a id="platformRefresh" style="font-size:1.7em" ng-click="vm.loadPlatformData();vm.syncPlatform()" class="fa fa-refresh pull-right"></a>
+            </div>
+        </div>
+        <div class="panel-body common-left-panel-body">
+            <div class="search-box margin-top-bottom-small">
+                <div ng-click="vm.searchPlatform()" class="fa fa-search pull-right margin-all-5"></div>
+                <input type="text" placeholder="{{&quot;SEARCH_HERE&quot; | translate}}" ng-model="vm.platformSearchText" ng-change="vm.rebuildPlatformListDebounced()" class="span input-sm"/>
+            </div>
+            <p></p>
+            <div id="platformTree" style="height: 400px;"></div>
+            <div id="platformDetail" class="margin-top-bottom-small">
+                <table style="width:100%;font-size:16px" class="platformDetailClass">
+                    <tr>
+                        <td style="width:10%">{{'ID' | translate}}</td>
+                        <td style="width:40%">{{vm.selectedPlatform.data.platformId}}</td>
+                        <td style="width:10%">
+                            <div title="{{'OPERATION_DEPARTMENT' | translate}}" class="fa fa-share-alt"></div>
+                        </td>
+                        <td style="width:40%">{{vm.getDepartNamebyId(vm.selectedPlatform.data.department)}}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div title="{{'PLATFORM_PREFIX' | translate}}" class="fa fa-arrow-circle-o-right"></div>
+                        </td>
+                        <td>{{vm.selectedPlatform.data.prefix}}</td>
+                        <td>
+                            <div title="{{'TELPHONE' | translate}}" class="fa fa-phone"></div>
+                        </td>
+                        <td>{{vm.selectedPlatform.data.csPhone}}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div title="{{'WEIXIN' | translate}}" class="fa fa-weixin"></div>
+                        </td>
+                        <td>{{vm.selectedPlatform.data.csWeixin}}</td>
+                        <td>
+                            <div title="QQ" class="fa fa-qq"></div>
+                        </td>
+                        <td>{{vm.selectedPlatform.data.csQQ}}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div title="{{&quot;DAILY_SETTLE_TIME&quot; | translate}}" class="fa fa-clock-o"></div>
+                        </td>
+                        <td><span class="noWrap">{{vm.getHourName(vm.selectedPlatform.data.dailySettlementHour)}}&nbsp;:&nbsp;</span><span class="noWrap">{{vm.getMinName(vm.selectedPlatform.data.dailySettlementMinute)}}</span></td>
+                        <td>
+                            <div title="{{&quot;WEEKLY_SETTLE_TIME&quot; | translate}}" class="fa fa-calendar"></div>
+                        </td>
+                        <td><span class="noWrap">{{vm.getDayName(vm.selectedPlatform.data.weeklySettlementDay)}},&nbsp;</span><span class="noWrap">{{vm.getHourName(vm.selectedPlatform.data.weeklySettlementHour)}}&nbsp;:&nbsp;</span><span class="noWrap">{{vm.getMinName(vm.selectedPlatform.data.weeklySettlementMinute)}}</span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">{{'PLATFORM_CODE' | translate}}&nbsp;:&nbsp;{{vm.selectedPlatform.data.code | translate}}</td>
+                        <td colspan="2"><span>{{'AUTO_SETTLEMENT' | translate}}&nbsp;:&nbsp;<span style="vertical-align:baseline" ng-if="vm.selectedPlatform.data.canAutoSettlement">{{'Yes' | translate}}</span><span style="vertical-align:baseline" ng-if="!vm.selectedPlatform.data.canAutoSettlement">{{'No' | translate}}</span></span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td colspan="2"><span>{{'SMS_VERIFICATION' | translate}}&nbsp;:&nbsp;<span style="vertical-align:baseline" ng-if="vm.selectedPlatform.data.requireSMSVerification">{{'Yes' | translate}}</span><span style="vertical-align:baseline" ng-if="!vm.selectedPlatform.data.requireSMSVerification">{{'No' | translate}}</span></span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td colspan="2"><span>{{'SMS_VERIFICATION_FOR_PASSWORD_UPDATE' | translate}}&nbsp;:&nbsp;<span style="vertical-align:baseline" ng-if="vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate">{{'Yes' | translate}}</span><span style="vertical-align:baseline" ng-if="!vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate">{{'No' | translate}}</span></span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td colspan="2"><span>{{'SMS_VERIFICATION_FOR_PAYMENT_UPDATE' | translate}}&nbsp;:&nbsp;<span style="vertical-align:baseline" ng-if="vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate">{{'Yes' | translate}}</span><span style="vertical-align:baseline" ng-if="!vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate">{{'No' | translate}}</span></span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <text>{{'SETTLEMENT_STATUS' | translate}}&nbsp;:&nbsp;</text>
+                            <div style="margin-bottom:0" class="inlineBlk">
+                                <div ng-show="vm.selectedPlatform.data.settlementStatus==&quot;Ready&quot;" class="text-success"><i class="fa fa-circle"></i></div>
+                                <div ng-show="vm.selectedPlatform.data.settlementStatus==&quot;DailyError&quot;" class="text-danger"><i class="fa fa-circle margin-right-5"></i></div>
+                                <div ng-show="vm.selectedPlatform.data.settlementStatus==&quot;WeeklyError&quot;" class="text-danger"><i class="fa fa-circle margin-right-5"></i></div>
+                            </div>
+                        </td>
+                        <td colspan="2">
+                            <div ng-show="vm.selectedPlatform.data.settlementStatus==&quot;DailyError&quot;" class="text-danger">
+                                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;DailySettlement&quot;)" ng-disabled="!vm.selectedPlatform &amp;&amp; vm.platformSettlement.processing" data-toggle="modal" ng-click="vm.dailySettlement(null, true)" class="btn common-button-sm">
+                                    <text>{{"Retry Daily Settlement" | translate}}</text>
+                                </button>
+                            </div>
+                            <div ng-show="vm.selectedPlatform.data.settlementStatus==&quot;WeeklyError&quot;" class="text-danger">
+                                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;WeeklySettlement&quot;)" ng-disabled="!vm.selectedPlatform &amp;&amp; vm.platformSettlement.processing" data-toggle="modal" ng-click="vm.weeklySettlement(null, true)" class="btn common-button-sm">
+                                    <text>{{"Retry Weekly Settlement" | translate}}</text>
+                                </button>
+                            </div><i ng-if="vm.platformSettlement.processing" class="fa fa-spinner fa-spin"></i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <text>{{'LAST_DAILY_SETTLEMENT_TIME' | translate}}</text>
+                        </td>
+                        <td colspan="2">
+                            <text>{{vm.dateReformat(vm.selectedPlatform.data.lastDailySettlementTime)}}</text>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <text>{{'LAST_WEEKLY_SETTLEMENT_TIME' | translate}}</text>
+                        </td>
+                        <td colspan="2">
+                            <text>{{vm.dateReformat(vm.selectedPlatform.data.lastWeeklySettlementTime)}}</text>
+                        </td>
+                    </tr>
+                </table>
+                <!--#platformDetail.platformDetailClass.panel.panel-green(ng-if='vm.selectedPlatform')
+                div
+                    .fa.fa-2x {{'ID' | translate}}
+                    span {{vm.selectedPlatform.data.platformId}}
+                div
+                    .fa.fa-2x.fa-share-alt(title="{{'OPERATION_DEPARTMENT' | translate}}")
+                    span {{vm.getDepartNamebyId(vm.selectedPlatform.data.department)}}
+                div
+                    .fa.fa-2x.fa-arrow-circle-o-right(title="{{'PLATFORM_PREFIX' | translate}}")
+                    span {{vm.selectedPlatform.data.prefix}}
+                div
+                    .fa.fa-2x.fa-clock-o(title='{{"DAILY_SETTLE_TIME" | translate}}')
+                    span {{vm.getHourName(vm.selectedPlatform.data.dailySettlementHour)}}&nbsp;:&nbsp;
+                    span {{vm.getMinName(vm.selectedPlatform.data.dailySettlementMinute)}}
+                div
+                    .fa.fa-2x.fa-calendar(title='{{"WEEKLY_SETTLE_TIME" | translate}}')
+                    span {{vm.getDayName(vm.selectedPlatform.data.weeklySettlementDay)}}&nbsp;,&nbsp;
+                    span {{vm.getHourName(vm.selectedPlatform.data.weeklySettlementHour)}}&nbsp;:&nbsp;
+                    span {{vm.getMinName(vm.selectedPlatform.data.weeklySettlementMinute)}}
+                -->
+            </div>
+            <div class="btn-group text-center margin-small">
+                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;,&quot;Create&quot;)" data-toggle="modal" data-target="#modalCreatePlatform" ng-click="vm.initPlatform(true);vm.getAllDepartmentData();vm.clearShowPlatform();" class="btn btn-primary common-button">
+                    <text>{{"CREATE" | translate}}</text><img class="img-create"/>
+                </button>
+                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;Delete&quot;)" ng-disabled="!vm.selectedPlatform" data-toggle="modal" data-target="#modalDeletePlatform" ng-click="vm.initPlatform(false)" class="btn btn-primary common-button">
+                    <text>{{"DELETE" | translate}}</text><img class="img-delete"/>
+                </button>
+                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;Edit&quot;)" ng-disabled="!vm.selectedPlatform" data-toggle="modal" data-target="#modalUpdatePlatform" ng-click="vm.initPlatform(true);vm.getAllDepartmentData();vm.befreUpdatePlatform()" class="btn btn-primary common-button">
+                    <text>{{"EDIT" | translate}}</text><img class="img-edit"/>
+                </button>
+                <button ng-show="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;DailySettlement&quot;) &amp;&amp; !vm.selectedPlatform.data.canAutoSettlement &amp;&amp; vm.showDailySettlement" ng-disabled="!vm.selectedPlatform" data-toggle="modal" ng-click="vm.settlementModal(&quot;Daily Settlement&quot;)" class="btn btn-primary common-button">
+                    <text>{{"Daily Settlement" | translate}}</text><img class="img-edit"/>
+                </button>
+                <button ng-show="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;WeeklySettlement&quot;) &amp;&amp; !vm.selectedPlatform.data.canAutoSettlement &amp;&amp; vm.showWeeklySettlement" ng-disabled="!vm.selectedPlatform" data-toggle="modal" ng-click="vm.settlementModal(&quot;Weekly Settlement&quot;)" class="btn btn-primary common-button">
+                    <text>{{"Weekly Settlement" | translate}}</text><img class="img-edit"/>
+                </button>
+                <!--button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "RewardSettlement")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", ng-click='vm.weeklyRewardSettlement()')
+                text {{"Reward Settlement" | translate}}
+                img.img-edit
+                -->
+                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;SettlementHistory&quot;)" ng-disabled="!vm.selectedPlatform" ng-click="vm.prepareSettlementHistory()" class="btn btn-primary common-button">
+                    <text>{{"Settlement History" | translate}}</text><img class="img-edit"/>
+                </button>
+                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;PartnerCommissionSettlement&quot;)" ng-disabled="!vm.selectedPlatform" ng-click="vm.startPlatformPartnerCommissionSettlement($event)" class="btn btn-primary common-button">
+                    <text>{{"Partner Commission Settlement" | translate}}</text><img class="img-edit"/>
+                </button>
+                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;PlayerConsumptionIncentiveSettlement&quot;)" ng-disabled="!vm.selectedPlatform" ng-click="vm.startPlatformPlayerConsumptionIncentiveSettlement($event)" class="btn btn-primary common-button">
+                    <text>{{"Player Consumption Incentive Settlement" | translate}}</text><img class="img-edit"/>
+                </button>
+                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;PlayerConsumptionReturnSettlement&quot;)" ng-disabled="!vm.selectedPlatform" ng-click="vm.startPlatformPlayerConsumptionReturnSettlement($event)" class="btn btn-primary common-button">
+                    <text>{{"Player Consumption Return Settlement" | translate}}</text><img class="img-edit"/>
+                </button>
+                <button ng-if="checkViewPermission(&quot;Platform&quot;,&quot;Platform&quot;, &quot;PlayerLevelUpSettlement&quot;)" ng-disabled="!vm.selectedPlatform" ng-click="vm.startPlayerLevelUpSettlement($event)" class="btn btn-primary common-button">
+                    <text>{{"Player Level Up Settlement" | translate}}</text><img class="img-edit"/>
+                </button>
+                <!--button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Delete")',ng-disabled="!vm.selectedPlatform", ng-click='vm.transferAllCreditOut()')-->
+                <!--    text {{"TRANSFER_OUT_FROM_AGMG" | translate}}-->
+                <!--    img.img-edit-->
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modalCreatePlatform" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="myModalLabel" aria-hidden="true" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" data-dismiss="modal" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{"CREATE_PLATFORM" | translate}}</h4>
+            </div>
+            <div class="modal-body">
+                <div class="panel-body">
+                    <div class="well">
+                        <div class="row">
+                            <!--include ./platform-detail-form-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" ng-disabled="form_new_platform.$invalid" ng-click="vm.createNewPlatform();" class="btn btn-primary common-button">{{"CREATE" | translate}}</button>
+                <button data-dismiss="modal" class="btn btn-warning common-button">{{"CANCEL" | translate}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modalDeletePlatform" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="myModalLabel" aria-hidden="true" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" data-dismiss="modal" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{"DELETE_PLATFORM" | translate}}</h4>
+            </div>
+            <div class="modal-body">
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <div class="well">
+                            <p>
+                            <div id="WarningIcon" class="fa fa-exclamation-triangle"></div>
+                            <label class="margin-right-5">{{"DELETE_PLATFORM_MESSAGE" | translate}}</label><strong class="text-danger">{{vm.selectedPlatform.text}} ?</strong>
+                            </p>
+                        </div>
+                        <div class="well">
+                            <div class="row">
+                                <!--include ./platform-detail-form-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" ng-click="vm.deletePlatform();" class="btn btn-primary common-button">{{"CONFIRM" | translate}}</button>
+                <button data-dismiss="modal" class="btn btn-warning common-button">{{"CANCEL" | translate}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modalUpdatePlatform" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="myModalLabel" aria-hidden="true" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" data-dismiss="modal" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{"EDIT_PLATFORM" | translate}}</h4>
+            </div>
+            <div class="modal-body">
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <div class="well">
+                            <div class="row">
+                                <!--include ./platform-detail-form-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" ng-disabled="form_update_platform.$invalid" ng-click="vm.updatePlatformAction();" class="btn btn-primary common-button">{{"UPDATE" | translate}}</button>
+                <button data-dismiss="modal" class="btn btn-warning common-button">{{"CANCEL" | translate}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modalPlatformSettlementHistory" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="myModalLabel" aria-hidden="true" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" data-dismiss="modal" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{vm.selectedPlatform.text}} {{"Settle" | translate}}</h4>
+            </div>
+            <div class="modal-body">
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <div class="col-md-12 block-query well">
+                            <div>
+                                <label class="margin-right-5">{{'Settlement Interval' | translate}}</label>
+                                <select ng-model="vm.queryPara.modalPlatformSettlementHistory.interval" ng-options="a | translate for a in [&quot;daily&quot;,&quot;weekly&quot;]" class="form-control"></select>
+                            </div>
+                            <div>
+                                <label>{{"Start date"|translate}}</label>
+                                <div class="startTime"></div>
+                            </div>
+                            <div>
+                                <label>{{"End date"|translate}}</label>
+                                <div class="endTime"></div>
+                            </div>
+                            <div>
+                                <label>&nbsp;</label>
+                                <button ng-click="vm.getSettlementHistory()" class="btn common-button btn-primary">{{'SEARCH' | translate}}</button>
+                            </div>
+                            <hr/>
+                            <table id="platformSettlementHistoryTbl" style="width:100%" class="common-table display">
+                                <thead>
+                                <tr>
+                                    <th>{{"SETTLEMENT" | translate}} {{'TIME' | translate}}</th>
+                                    <th>{{"CREATE_TIME" | translate}}</th>
+                                    <th>{{'RESULT' | translate}}</th>
+                                    <th style="width:50%">{{'DETAIL' | translate}}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="(i,v) in vm.platformSettlementHis">
+                                    <td>{{vm.dateReformat(v.settlementTime)}}</td>
+                                    <td>{{vm.dateReformat(v.createTime)}}</td>
+                                    <td>{{v.result ? "Success" : "Failure" | translate}}</td>
+                                    <td style="width:50%;word-break:break-all" class="wordWrap">{{v.data}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" class="btn btn-success common-button">{{"CONFIRM" | translate}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modalPlatformSettlement" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="myModalLabel" aria-hidden="true" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" data-dismiss="modal" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{vm.settlementType | translate}} : {{vm.selectedPlatform.text}}</h4>
+            </div>
+            <div class="modal-body">
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <div class="col-md-12">
+                            <label>{{vm.settlementType | translate}}</label>&nbsp;<i id="platformSettlementLoadingIcon" class="fa fa-spin fa-spinner"></i>
+                        </div>
+                        <div class="col-md-12">
+                            <table id="settlementTable" style="width:100%" class="common-table display"></table>
+                        </div>
+                        <div class="col-md-12">
+                            <center>
+                                <label>{{'Total' | translate}} {{'CONSUMPTIONAMOUNT' | translate}}:</label>
+                                <text>&nbsp;{{vm.settlementTableTotals.totalConsumption}}</text>&nbsp;
+                                <label>{{'Total' | translate}} {{'RETURNAMOUNT' | translate}}:</label>
+                                <text>&nbsp;{{vm.settlementTableTotals.totalReturn}}</text>
+                            </center>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div style="width:initial" ng-if="vm.platformSettlement.message" class="form-control inlineBlk">
+                    <div class="text-danger">{{vm.platformSettlement.message | translate}}</div>
+                </div>
+                <button ng-if="vm.platformSettlement.message==&quot;Success&quot;" data-dismiss="modal" ng-click="vm.loadPlatformData()" class="btn btn-success common-button">{{'CONFIRMATION' | translate}}</button>
+                <button ng-if="vm.platformSettlement.message!=&quot;Success&quot;" ng-click="vm.performSettlement()" ng-disabled="vm.platformSettlement.processing" class="btn btn-success common-button">{{vm.settlementType | translate}}<i ng-if="vm.platformSettlement.processing" class="fa fa-spin fa-spinner text-danger fa-2x"></i></button>
+                <button ng-if="vm.platformSettlement.message!=&quot;Success&quot;" data-dismiss="modal" class="btn btn-warning common-button">{{"CLOSE" | translate}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="partnerCommissionSettlementModal" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="myModalLabel" aria-hidden="true" style="width:50%;margin-left:20%" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" data-dismiss="modal" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{"SETTLEMENT" | translate}} : {{vm.selectedPlatform.text}}</h4>
+            </div>
+            <div class="modal-body">
+                <label>{{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?</label>
+            </div>
+            <div class="modal-footer">
+                <div style="width:initial" ng-if="vm.partnerCommissionSettlement.status==&quot;completed&quot;" class="form-control inlineBlk">
+                    <div class="text-danger">{{vm.partnerCommissionSettlement.result | translate}}</div>
+                </div>
+                <button data-dismiss="modal" class="btn btn-warning common-button">{{'CLOSE' | translate}}</button>
+                <button ng-if="vm.partnerCommissionSettlement.status==&quot;ready&quot;" ng-click="vm.performPartnerCommissionSetlement()" class="btn btn-success common-button">{{'CONFIRM' | translate}}</button><i ng-if="vm.partnerCommissionSettlement.status==&quot;processing&quot;" class="fa fa-spin fa-spinner text-danger fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modalTransferOutAllPlayerCreditFromGameProvider" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" class="modal fade">
+    <div style="width:70%;" class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" ng-click="vm.closeCreditTransferLog(&quot;#modalTransferOutAllPlayerCreditFromGameProvider&quot;)" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{'Transfer Out All Players Credit From Providers' | translate}}</h4>
+            </div>
+            <div class="modal-body">
+                <button ng-disabled="vm.transferAllCredit.isProcessing" ng-click="vm.transferAllCreditToPlayer()" class="common-button margin-right-5 btn btn-success">{{'Transfer All from Providers' | translate}}</button>
+                <button ng-disabled="vm.fixPlayerRewardAmount.rewardInfo.length &gt; 0 || vm.fixPlayerRewardAmount.isProcessing" ng-click="vm.sendFixPlayerRewardAmount()" class="common-button margin-right-5 btn btn-success">{{'Fix Player RewardAmount' | translate}}</button>
+                <label id="fixedRewardAmountResult" class="margin-left-5"></label>
+                <label ng-show="vm.creditTransfer.needClose" class="pull-right blink">{{'Please close the dialog to refresh the data.' | translate}}</label>
+                <table class="simple-table">
+                    <thead>
+                    <tr>
+                        <th>{{'PROVIDER' | translate}}</th>
+                        <th>{{'PROVIDER_ID' | translate}}</th>
+                        <th>{{'CREDIT' | translate}}</th>
+                        <th>{{'TRANSFER' | translate}}</th>
+                    </tr>
+                    </thead>
+                    <tbody style="max-height:500px;overflow-y:auto">
+                    <tr ng-repeat="(i,v) in vm.platformProviderList">
+                        <td>{{v.name}}</td>
+                        <td>{{v.providerId}}</td>
+                        <td><i ng-if="!vm.playerCredit[v.providerId]" class="fa fa-spinner fa-spin"></i>
+                            <text ng-if="vm.playerCredit[v.providerId]">{{vm.playerCredit[v.providerId].gameCredit}}</text>
+                        </td>
+                        <td ng-if="!vm.transferAllCredit.isProcessing" class="prov{{v.providerId}}"><i ng-if="!vm.playerCredit[v.providerId]" class="fa fa-spinner fa-spin"></i>
+                            <div ng-if="vm.playerCredit[v.providerId]">
+                                <div ng-show="!vm.creditTransfer.transferResult">
+                                    <label ng-show="vm.playerCredit[v.providerId].gameCredit&gt;=1" class="radio-inline">{{'from Provider' | translate}}
+                                        <input type="radio" data-provider="{{v}}" name="credit_transfer_type" ng-click="vm.transferCreditFromProviderClicked(v.providerId)" value="in" class="pull-left relative"/>
+                                    </label>
+                                    <label ng-show="vm.creditTransfer.showValidCredit + vm.creditTransfer.showRewardAmount&gt;=1" class="radio-inline">{{'to Provider' | translate}}
+                                        <input type="radio" data-provider="{{v}}" name="credit_transfer_type" ng-click="vm.transferCreditToProviderClicked(v.providerId)" value="out" class="pull-left relative"/>
+                                    </label>
+                                </div>
+                                <p></p>
+                                <div ng-show="vm.creditTransfer.focusProvider==v.providerId">
+                                    <div ng-show="!vm.creditTransfer.transferResult">
+                                        <button ng-click="vm.confirmCreditTransfer(v.providerId)" class="common-button margin-right-5 btn btn-success">{{'CONFIRM' | translate}}</button>
+                                        <button ng-click="vm.closeCreditTransferLog(&quot;#modalTransferOutAllPlayerCreditFromGameProvider&quot;)" class="common-button margin-right-5 btn btn-warning">{{'CANCEL' | translate}}</button><i ng-show="vm.creditTransfer.isProcessing" class="fa fa-spin fa-spinner text-danger"></i>
+                                    </div>
+                                    <div ng-show="vm.creditTransfer.transferResult">
+                                        <button ng-click="vm.closeCreditTransferLog(&quot;#modalTransferOutAllPlayerCreditFromGameProvider&quot;)" class="common-button margin-right-5 btn btn-success">{{'OK' | translate}}</button>
+                                        <label>{{vm.creditTransfer.transferResult | translate}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td ng-if="vm.transferAllCredit.isProcessing" class="prov{{v.providerId}}">
+                            <text class="text-danger">{{vm.transferAllCredit[v.providerId].text | translate}}</text><i ng-if="vm.transferAllCredit[v.providerId].finished== false" class="fa fa-spinner fa-spin"></i>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="playerConsumptionReturnSettlementModal" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="myModalLabel" aria-hidden="true" style="width:50%;margin-left:20%" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" data-dismiss="modal" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{"Player Consumption Return Settlement" | translate}} : {{vm.selectedPlatform.text}}</h4>
+            </div>
+            <div class="modal-body">
+                <label>{{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?</label>
+            </div>
+            <div class="modal-footer">
+                <div style="width:initial" ng-if="vm.playerConsumptionReturnSettlement.status==&quot;completed&quot;" class="form-control inlineBlk">
+                    <div class="text-danger">{{vm.playerConsumptionReturnSettlement.result | translate}}</div>
+                </div>
+                <button data-dismiss="modal" class="btn btn-warning common-button">{{'CLOSE' | translate}}</button>
+                <button ng-if="vm.playerConsumptionReturnSettlement.status==&quot;ready&quot;" ng-click="vm.performPlayerConsumptionReturnSettlement()" class="btn btn-success common-button">{{'CONFIRM' | translate}}</button><i ng-if="vm.playerConsumptionReturnSettlement.status==&quot;processing&quot;" class="fa fa-spin fa-spinner text-danger fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="playerConsumptionIncentiveSettlementModal" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="myModalLabel" aria-hidden="true" style="width:50%;margin-left:20%" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" data-dismiss="modal" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{"Player Consumption Incentive Settlement" | translate}} : {{vm.selectedPlatform.text}}</h4>
+            </div>
+            <div class="modal-body">
+                <label>{{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?</label>
+            </div>
+            <div class="modal-footer">
+                <div style="width:initial" ng-if="vm.playerConsumptionIncentiveSettlement.status==&quot;completed&quot;" class="form-control inlineBlk">
+                    <div class="text-danger">{{vm.playerConsumptionIncentiveSettlement.result | translate}}</div>
+                </div>
+                <button data-dismiss="modal" class="btn btn-warning common-button">{{'CLOSE' | translate}}</button>
+                <button ng-if="vm.playerConsumptionIncentiveSettlement.status==&quot;ready&quot;" ng-click="vm.performPlayerConsumptionIncentiveSettlement()" class="btn btn-success common-button">{{'CONFIRM' | translate}}</button><i ng-if="vm.playerConsumptionIncentiveSettlement.status==&quot;processing&quot;" class="fa fa-spin fa-spinner text-danger fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="playerLevelUpSettlementtModal" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="myModalLabel" aria-hidden="true" style="width:50%;margin-left:20%" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><a type="button" data-dismiss="modal" class="fa fa-times close"></a>
+                <h4 class="modal-title">{{"Player Level Up Settlement" | translate}} : {{vm.selectedPlatform.text}}</h4>
+            </div>
+            <div class="modal-body">
+                <label>{{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?</label>
+            </div>
+            <div class="modal-footer">
+                <div style="width:initial" ng-if="vm.playerConsumptionReturnSettlement.status==&quot;completed&quot;" class="form-control inlineBlk">
+                    <div class="text-danger">{{vm.playerLevelUpSettlement.result | translate}}</div>
+                </div>
+                <button data-dismiss="modal" class="btn btn-warning common-button">{{'CLOSE' | translate}}</button>
+                <button ng-if="vm.playerLevelUpSettlement.status==&quot;ready&quot;" ng-click="vm.performPlayerLevelUpSettlement()" class="btn btn-success common-button">{{'CONFIRM' | translate}}</button><i ng-if="vm.playerLevelUpSettlement.status==&quot;processing&quot;" class="fa fa-spin fa-spinner text-danger fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>

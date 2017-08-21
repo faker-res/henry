@@ -221,10 +221,16 @@ var SettlementServiceImplement = function () {
         let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerLevel.performPlatformPlayerLevelSettlement, args, isValidData);
     };
-    this.sendPlayerMailFromAdminToPlayer.onRequest = function(wsFunc, conn, data){
-        let isValidData =  Boolean(data && data.platformId && data.adminId && data.adminName && data.playerIds && data.title && data.content);
+    this.sendPlayerMailFromAdminToPlayer.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.adminId && data.adminName && data.playerIds && data.title && data.content);
         let args = [data.platformId, data.adminId, data.adminName, data.playerIds, data.title, data.content];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendPlayerMailFromAdminToPlayer, args, isValidData);
+    };
+
+    this.calculatePlatformConsecutiveConsumptionForPlayers.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.recSummary && data.eventData);
+        let args = [data.recSummary, data.eventData];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.calculatePlatformConsecutiveConsumptionForPlayers, args, isValidData);
     };
 };
 

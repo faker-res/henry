@@ -540,6 +540,8 @@ define(['js/app'], function (myApp) {
                 result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
+            } else if (fieldName === "upOrDown") {
+                result = $translate(val);
             }
             return $sce.trustAsHtml(result);
         };

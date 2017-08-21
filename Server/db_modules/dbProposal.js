@@ -2522,7 +2522,7 @@ function insertRepeatCount(proposals, platformId) {
             let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1);
 
             // for debug usage
-            let pS, nS, fISQ;
+            // let pS, nS, fISQ;
 
             return Promise.all([prevSuccessProm, nextSuccessProm]).then(
                 successData => {
@@ -2575,13 +2575,13 @@ function insertRepeatCount(proposals, platformId) {
                     }
 
                     // for debug usage
-                    pS = prevSuccess[0];
-                    nS = nextSuccess[0];
-                    fISQ = firstInStreakQuery;
+                    // pS = prevSuccess[0];
+                    // nS = nextSuccess[0];
+                    // fISQ = firstInStreakQuery;
 
                     let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
                     let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
-                    let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery);
+                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).sort({createTime: 1}).limit(1);
 
                     return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
                 }
@@ -2589,19 +2589,19 @@ function insertRepeatCount(proposals, platformId) {
                 countData => {
                     let allCount = countData[0];
                     let currentCount = countData[1];
-                    let firstFailure = countData[2];
+                    let firstFailure = countData[2][0];
 
                     // for debug usage
-                    if (!firstFailure) {
-                        console.log('t54lwtMaus')
-                        console.log('proposal |||', proposal)
-                        console.log('firstFailure |||', firstFailure)
-                        console.log('prevSuccess |||', pS)
-                        console.log('nextSuccess |||', nS)
-                        console.log('firstInStreakQuery |||', fISQ)
-                        console.log('prevSuccessQuery |||', prevSuccessQuery)
-                        console.log('nextSuccessQuery |||', nextSuccessQuery)
-                    }
+                    // if (!firstFailure) {
+                    //     console.log('t54lwtMaus')
+                    //     console.log('proposal |||', proposal)
+                    //     console.log('firstFailure |||', firstFailure)
+                    //     console.log('prevSuccess |||', pS)
+                    //     console.log('nextSuccess |||', nS)
+                    //     console.log('firstInStreakQuery |||', fISQ)
+                    //     console.log('prevSuccessQuery |||', prevSuccessQuery)
+                    //     console.log('nextSuccessQuery |||', nextSuccessQuery)
+                    // }
 
                     proposal.$merchantAllCount = allCount;
                     proposal.$merchantCurrentCount = currentCount;

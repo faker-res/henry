@@ -32,7 +32,7 @@ app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(methodOverride());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {maxage: 43200}));
 
 var env = process.env.NODE_ENV || 'local';
 
@@ -84,7 +84,7 @@ var storage = multer.diskStorage(
 );
 var upload = multer(
     {
-        storage : storage
+        storage: storage
     }
 );
 

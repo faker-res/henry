@@ -243,6 +243,8 @@ define(['js/app'], function (myApp) {
                             ? item.data.alipayAccount
                             : item.data.bankCardNo
                             ? item.data.bankCardNo
+                            : item.data.accountNo
+                            ? item.data.accountNo
                             : null;
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
@@ -726,12 +728,7 @@ define(['js/app'], function (myApp) {
 
 
         // $scope.$on('$viewContentLoaded', function () {
-        var eventName = "$viewContentLoaded";
-        if (!$scope.AppSocket) {
-            eventName = "socketConnected";
-            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
-        }
-        $scope.$on(eventName, function (e, d) {
+        $scope.$on("monitorController:socketConnected", function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
 
@@ -770,6 +767,9 @@ define(['js/app'], function (myApp) {
                     }
                     if (window.location.pathname != '/monitor/payment') {
                         clearInterval(vm.refreshInterval);
+                    }
+                    else if (!vm.paymentMonitorQuery) {
+                        vm.loadPage();
                     }
                 }, 1000);
             });

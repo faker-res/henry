@@ -250,7 +250,8 @@
                 "applyRewardEvent",
                 "getPlayerReferralList",
                 "getConsecutiveLoginRewardDay",
-                "getEasterEggPlayerInfo"
+                "getEasterEggPlayerInfo",
+                "getTopUpPromoList"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

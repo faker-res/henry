@@ -1051,7 +1051,8 @@ define(['js/app'], function (myApp) {
                     $('#mutilplePlayerTable').resize();
                 }, 100);
             }
-            function resetAllSelection(){
+
+            function resetAllSelection() {
                 $('#mutilplePlayerTable tbody tr').removeClass('selected');
                 $('#mutilplePlayerTable tbody input[type="checkbox"]').prop("checked", vm.sendMultiMessage.checkAllRow);
                 vm.sendMultiMessage.numRecipient = 'All';
@@ -1072,7 +1073,7 @@ define(['js/app'], function (myApp) {
                 vm.sendMultiMessage.numUsedMessage = Math.ceil(vm.sendMultiMessage.wordCount / vm.sendMultiMessage.channelMaxChar);
                 resetMultiMessageStatus();
             }
-            vm.sentMailToAllPlayers = function(){
+            vm.sentMailToAllPlayers = function () {
                 resetAllSelection();
             }
             vm.sendMessages = function () {
@@ -1132,9 +1133,9 @@ define(['js/app'], function (myApp) {
                         title: vm.sendMultiMessage.messageTitle,
                         content: vm.sendMultiMessage.messageContent
                     };
-                    
-                    if(vm.isSentToAll){
-                        socketService.$socket($scope.AppSocket, 'sendPlayerMailFromAdminToAllPlayers',sendData, function (data) {
+
+                    if (vm.isSentToAll) {
+                        socketService.$socket($scope.AppSocket, 'sendPlayerMailFromAdminToAllPlayers', sendData, function (data) {
                             console.log(data);
                             vm.sendMultiMessage.sendCompleted = true;
                             vm.sendMultiMessage.messageTitle = "";
@@ -1142,7 +1143,7 @@ define(['js/app'], function (myApp) {
                             updateMultiMessageButton();
                             $scope.safeApply();
                         })
-                    }else{
+                    } else {
                         $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
                     }
                 }
@@ -2879,6 +2880,9 @@ define(['js/app'], function (myApp) {
                                 link.append($('<i>', {
                                     'class': 'fa fa-gamepad margin-right-5 ' + (perm.forbidPlayerFromEnteringGame === true ? "text-danger" : "text-primary"),
                                 }));
+                                link.append($('<i>', {
+                                    'class': 'fa fa-forward margin-right-5 ' + (perm.playerConsecutiveConsumptionReward === false ? "text-danger" : "text-primary"),
+                                }));
                                 return link.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
@@ -3184,6 +3188,7 @@ define(['js/app'], function (myApp) {
                                     PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"},
                                     forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
                                     forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
+                                    playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"}
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
