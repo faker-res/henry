@@ -1511,6 +1511,7 @@ let dbPlayerInfo = {
      * @param {json} data - details
      */
     updatePlayerCredit: function (playerId, platformId, amount, type, operatorId, data) {
+        // note: use constPlayerCreditChangeType for 'type' parameter
         var deferred = Q.defer();
         dbconfig.collection_players.findOneAndUpdate(
             {_id: playerId, platform: platformId},
@@ -1869,7 +1870,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data) {
-                    dbLogger.createCreditChangeLog(playerId, platformId, amount, "Purchase", data.validCredit);
+                    dbLogger.createCreditChangeLog(playerId, platformId, amount, constPlayerCreditChangeType.PURCHASE, data.validCredit);
                     var recordData = {
                         playerId: playerId,
                         platformId: platformId,
@@ -2348,7 +2349,7 @@ let dbPlayerInfo = {
 
         return deferred.promise.catch(
             error => Q.resolve().then(
-                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyFirstTopUpReward:ProposalFailedRefund", error)
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_FIRST_TOP_UP_REWARD_REFUND, error)
             ).then(
                 () => Q.reject(error)
             )
@@ -6093,7 +6094,7 @@ let dbPlayerInfo = {
                 {new: true}
             ).then(
                 resetPlayer => {
-                    dbLogger.createCreditChangeLog(playerObjId, platformObjId, credit, "PlayerBonus:resetCredit", resetPlayer.validCredit, null, error);
+                    dbLogger.createCreditChangeLog(playerObjId, platformObjId, credit, constPlayerCreditChangeType.PLAYER_BONUS_RESET_CREDIT, resetPlayer.validCredit, null, error);
                     if (error) {
                         return Q.reject(error);
                     }
@@ -7571,7 +7572,7 @@ let dbPlayerInfo = {
             }
         ).catch(
             error => Q.resolve().then(
-                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyTopUpReturn:ProposalFailedRefund", error)
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_TOP_UP_RETURN_REFUND, error)
             ).then(
                 () => Q.reject(error)
             )
@@ -8023,7 +8024,7 @@ let dbPlayerInfo = {
 
                 // All conditions have been satisfied.
                 deductionAmount = record.amount;
-                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerTopUpReward:Deduction", record).then(
+                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, constPlayerCreditChangeType.TOP_UP_REWARD_DEDUCTION, record).then(
                     function () {
                         bDoneDeduction = true;
 
@@ -8098,7 +8099,7 @@ let dbPlayerInfo = {
             }
         ).catch(
             error => Q.resolve().then(
-                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyPlayerTopUpReward:ProposalFailedRefund", error)
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_TOP_UP_REWARD_REFUND, error)
             ).then(
                 () => Q.reject(error)
             )
@@ -9001,7 +9002,7 @@ let dbPlayerInfo = {
             }
         ).catch(
             error => Q.resolve().then(
-                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyPlayerTopUpReward:ProposalFailedRefund", error)
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_TOP_UP_REWARD_REFUND, error)
             ).then(
                 () => Q.reject(error)
             )
@@ -9080,7 +9081,7 @@ let dbPlayerInfo = {
                 if (player.validCredit < 0) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(
-                        () => dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, "deductedBelowZeroRefund", data)
+                        () => dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
                     ).then(
                         () => Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
