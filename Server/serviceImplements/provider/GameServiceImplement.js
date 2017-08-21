@@ -56,6 +56,11 @@ var GameServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data,dbGame.getProviderGames, [data.providerId], isValidData);
     };
 
+    this.syncGameImage.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.games);
+        WebSocketUtil.performAction(conn, wsFunc, data,dbGame.syncGameImage, [data.games], isValidData);
+    };
+
 };
 
 var proto = GameServiceImplement.prototype = Object.create(GameService.prototype);
