@@ -37,6 +37,7 @@ define(['js/app'], function (myApp) {
 
                         vm.initSearchParameter('allNewPlayer', true, 4);
                         vm.initSearchParameter('allPlayerConsumption', true, 4);
+                        vm.initSearchParameter('allPlayerBonus', true, 4);
                         vm.initSearchParameter('allPlayerTopup', true, 4);
                         vm.initSearchParameter('allApiResponseTime', true, 1);
 
@@ -276,11 +277,18 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchBonusList = function(){
+            var placeholder = "#pie-all-bonusAmount";
+            var sendData = {
+                startTime: vm.queryPara.allPlayerBonus.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.queryPara.allPlayerBonus.endTime.data('datetimepicker').getLocalDate(),
+                startIndex:0,
+                requestCount:20000,
+                status:'Success'
+            };
 
-            
-            socketService.$socket($scope.AppSocket, 'getBonusRequestList', {"startIndex":0, "requestCount":100, "startTime":new Date("2017-06-01T02:00"),"endTime":new Date("2017-08-01T02:00"),"status":"Success"}, function success(data1) {
+            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data1) {
                 console.log('allActivePlayers', data1);
-                var data = data1.data.filter(function (obj) {
+                var data = data1.data.records.filter(function (obj) {
                     return (obj._id);
                 }).map(function (obj) {
                     return {label: vm.setGraphName(obj._id.name), data: obj.number};

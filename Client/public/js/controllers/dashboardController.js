@@ -58,7 +58,17 @@ define(['js/app'], function (myApp) {
 
             sendData.platformId = vm.platformID;
             socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data) {
-                console.log('data', data)
+                console.log('data', data);
+                var totalBonus = 0;
+                if (numDays == 0){
+                    $('.day .bonusAmount .number').html(totalBonus.toFixed(2));
+                    utilService.fitText('.day .bonusAmount .number');
+                } else if(numDays == 7){
+                    $('.week .bonusAmount .number').html(totalBonus.toFixed(2));
+                    utilService.fitText('.week .bonusAmount .number');
+                }
+                queryDone[2] = true;
+                $scope.safeApply();
             });
 
             if (numDays == 0) {
@@ -224,7 +234,37 @@ define(['js/app'], function (myApp) {
                         callback();
                     }
                 });
-            }
+
+            socketService.$socket($scope.AppSocket, 'countPlayerBonusAllPlatform', sendData, function success(data) {
+                var placeholder = '#bonusLine';
+                vm.setGraphHeight(placeholder);
+                var graphOptions = $.extend({}, vm.graphOptions);
+                graphOptions.yaxes = [{
+                    position: 'left',
+                    axisLabel: $translate('AMOUNT'),
+                }];
+                console.log('countPlayerBonusAllPlatform', data);
+                var playerData = data.data;
+                // sendData.startDate = new Date("2017-06-05T00:00:00.000Z");
+                // sendData.endDate = new Date("2017-06-12T00:00:00.000Z");
+                var nowDate = new Date(sendData.startDate);
+                var graphData = [];
+                var newPlayerObjData = {};
+                for (var i = 0; i < playerData.length; i++) {
+                    newPlayerObjData[playerData[i]._id.date] = playerData[i].number;
+                }
+                do {
+                    var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
+                    graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
+                    nowDate.setDate(nowDate.getDate() + 1);
+                } while (nowDate <= sendData.endDate);
+
+                socketService.$plotLine(placeholder, [{
+                    // label: $translate('New Players'),
+                    data: graphData
+                }], graphOptions);
+                vm.bindHover(null, placeholder);
+            });
 
             socketService.$socket($scope.AppSocket, 'countNewPlayerAllPlatform', sendData, function success(data) {
                 var placeholder = '#newPlayerLine';
@@ -256,6 +296,7 @@ define(['js/app'], function (myApp) {
                 vm.bindHover(null, placeholder);
             });
         }
+  }
         vm.getOperationData = function () {
             socketService.$socket($scope.AppSocket, 'getAllPlatformAvailableProposalsForAdminId', {
                 adminId: authService.adminId,
@@ -390,6 +431,7 @@ define(['js/app'], function (myApp) {
                             if (authService.checkViewPermission('Dashboard', 'Platform', 'Read')) {
                                 $('#penalModel').clone().removeClass('hide').insertAfter('.onlineNum div');
                                 $('#penalModel').clone().removeClass('hide').insertAfter('.topupAmount div');
+                                $('#penalModel').clone().removeClass('hide').insertAfter('.bonusAmount div');
                                 $('#penalModel').clone().removeClass('hide').insertAfter('.spendAmount div');
                                 $('#penalModel').clone().removeClass('hide').insertAfter('.newUser div');
 
@@ -405,6 +447,12 @@ define(['js/app'], function (myApp) {
                                 // $('.topupAmount .panel-width').addClass('col-md-3');
                                 $('.topupAmount .typeIcon').addClass('fa-dollar');
                                 $('.topupAmount .which').html($translate('Topup Amount'));
+
+                                //day topupamount
+                                $('.bonusAmount .panel').addClass('panel-info');
+                                // $('.topupAmount .panel-width').addClass('col-md-3');
+                                $('.bonusAmount .typeIcon').addClass('fa-dollar');
+                                $('.bonusAmount .which').html($translate('Bonus Amount'));
 
                                 //spend amount
                                 $('.spendAmount .panel').addClass('panel-yellow');

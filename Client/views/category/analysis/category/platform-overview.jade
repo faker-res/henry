@@ -129,10 +129,10 @@
 .section
     .row
         .titlePic
-            .title "BONUS"
-                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#allPlayerTopupAnalysis .block-query","allPlayerTopup")')
-                        text.pull-left.margin-right-5 {{vm.optionText.allPlayerTopup | translate}}
-    #allPlayerTopupAnalysis
+            .title BONUS
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#allPlayerBonusAnalysis .block-query","allPlayerBonus")')
+                        text.pull-left.margin-right-5 {{vm.optionText.allPlayerBonus | translate}}
+    #allPlayerBonusAnalysis
         .col-md-12.block-query.well(style='margin-bottom:3px;')
             div
                 label {{"Start date"|translate}}
@@ -147,11 +147,11 @@
             .col-md-5
                 .panel.panel-default.leftPanel(style='padding-bottom:5px')
                     .pieChart
-                        #pie-all-topUpAmount
+                        #pie-all-bonusAmount
             .col-md-7
                 .panel.panel-default.rightPanel
                     #bar-all-topUpAmount.barChart
-                    label {{vm.allPlatformTopUpPie}}
+                    label {{vm.allPlatformBonusPie}}
 
 
 .clearfix

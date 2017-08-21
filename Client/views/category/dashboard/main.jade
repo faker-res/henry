@@ -18,7 +18,7 @@ script(src='js/lib/flot/jquery.flot.time.min.js')
                 .panel-heading
                     h1(style='border-bottom: 1px solid #eee') {{vm.platformName}}
                 .panel-body
-                    .dashboardDiv
+                    .dashboardDiv.col-md-12
                         .day
                             .onlineNum
                                 div
@@ -30,7 +30,8 @@ script(src='js/lib/flot/jquery.flot.time.min.js')
                                 div
                             .newUser
                                 div
-                    .dashboardDiv
+
+                    .dashboardDiv.col-md-12
                         .week
                             .onlineNum
                                 div
@@ -79,7 +80,7 @@ script(src='js/lib/flot/jquery.flot.time.min.js')
                             div
 
 #penalModel.dashboardPanel.hide
-    .panel-width.col-md-3
+    .panel-width.col-md-2
         .panel
             .panel-heading
                 .row
