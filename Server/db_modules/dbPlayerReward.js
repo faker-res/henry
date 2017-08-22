@@ -481,7 +481,10 @@ let dbPlayerReward = {
             let rewardAmount = 0;
             let yerTime = dbUtility.getYesterdayConsumptionReturnSGTime();
 
-            return dbConfig.collection_players.findOne({_id: playerObjId}).populate(
+            return dbConfig.collection_players.findOne({
+                _id: playerObjId,
+                isNewSystem: true
+            }).populate(
                 {path: "platform", model: dbConfig.collection_platform}
             ).then(
                 playerData => {
@@ -541,6 +544,7 @@ let dbPlayerReward = {
     applyPacketRainReward: (playerId, code, adminInfo) => {
         let playerObj = {};
         let eventData = {};
+        let todayTime = dbUtility.getTodaySGTime();
 
         return dbConfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbConfig.collection_platform}
@@ -548,82 +552,65 @@ let dbPlayerReward = {
             playerData => {
                 if (playerData && playerData.platform) {
                     playerObj = playerData;
-                    return dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform._id, constRewardType.PLAYER_EASTER_EGG_REWARD, code);
+
+                    //check if player is valid for reward
+                    if (playerObj.permission.PlayerPacketRainReward === false) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            message: "Reward not applicable"
+                        });
+                    }
+
+                    let promEvent = dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform._id, constRewardType.PLAYER_EASTER_EGG_REWARD, code);
+                    let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
+                        {
+                            $match: {
+                                playerId: playerData._id,
+                                platformId: playerData.platform,
+                                createTime: {$gte: inputDate.startTime, $lt: inputDate.endTime}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: {playerId: "$playerId", platformId: "$platformId"},
+                                amount: {$sum: "$amount"}
+                            }
+                        }
+                    ).then(
+                        summary => {
+                            if (summary && summary[0]) {
+                                return summary[0].amount;
+                            }
+                            else {
+                                // No topup record will return 0
+                                return 0;
+                            }
+                        }
+                    );
+
+                    return Promise.all([promEvent, promTopUp]);
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid player data"});
                 }
             }
         ).then(
-            eventObj => {
-                if (eventObj && eventObj.param && eventObj.param.reward) {
-                    eventData = eventObj;
+            data => {
+                eventData = data[0];
+                let topUpSum = data[1];
 
-                    //check if player is valid for reward
-                    //find player's easter egg reward
-                    return dbConfig.collection_proposalType.findOne({
-                        name: constProposalType.PLAYER_EASTER_EGG_REWARD,
-                        platformId: playerObj.platform._id
-                    }).lean().then(
-                        typeData => {
-                            if (typeData) {
-                                return dbConfig.collection_proposal.find({
-                                    type: typeData._id,
-                                    "data.playerName": playerObj.name,
-                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING]},
-                                }).sort({createTime: -1}).limit(1).lean();
-                            }
-                            else {
-                                return Q.reject({name: "DataError", message: "Cannot find "});
-                            }
-                        }
-                    ).then(
-                        proposalsData => {
-                            let lastRewardTime = dbUtility.getTodaySGTime().startTime;
-                            if (proposalsData && proposalsData[0]) {
-                                lastRewardTime = proposalsData[0].createTime;
-                            }
-                            return dbConfig.collection_playerTopUpRecord.findOne({
-                                playerId: playerObj._id,
-                                createTime: {$gte: lastRewardTime},
-                                amount: {$gte: eventData.param.minTopUpAmount}
-                            }).lean();
-                        }
-                    );
-                }
-                else {
-                    return Q.reject({
-                        status: constServerCode.REWARD_EVENT_INVALID,
-                        name: "DataError",
-                        message: "Cannot find player easter egg event data for platform"
-                    });
-                }
-            }
-        ).then(
-            record => {
-                if (record && !playerObj.applyingEasterEgg) {
-                    //update player easter egg lock
-                    return dbConfig.collection_players.findOneAndUpdate(
-                        {_id: playerObj._id, platform: playerObj.platform._id},
-                        {applyingEasterEgg: true}
-                    ).lean();
-                }
-                else {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                        name: "DataError",
-                        message: "Player does not match the condition for this reward"
-                    });
-                }
-            }
-        ).then(
-            playerData => {
-                if (playerData && !playerData.applyingEasterEgg) {
-                    playerObj = playerData;
+                if (eventData && eventData.param && eventData.param.reward) {
                     //calculate player reward amount
                     let totalProbability = 0;
                     eventData.param.reward.forEach(
                         eReward => {
+                            if (topUpSum >= eReward.data.minTopUpAmount) {
+                                totalProbability = 0;
+                                totalProbability += eReward.data.ratio1.probability ? eReward.data.ratio1.probability : 0;
+                                totalProbability += eReward.data.ratio2.probability ? eReward.data.ratio2.probability : 0;
+                                totalProbability += eReward.data.ratio3.probability ? eReward.data.ratio3.probability : 0;
+                            }
                             totalProbability += eReward.probability;
                         }
                     );
