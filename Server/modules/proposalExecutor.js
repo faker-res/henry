@@ -820,6 +820,7 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
+                        dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
                         deferred.resolve(proposalData);
                     },
                     function (error) {
