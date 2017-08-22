@@ -378,6 +378,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
                     let lastTopUpResult = {};
                     let currentProposal = null;
+                    let devCheckMsg = "";
 
                     // Make sure the check result is in correct order
                     checkResult.sort((a, b) => a.settleTime.getTime() - b.settleTime.getTime());
@@ -400,8 +401,6 @@ function checkProposalConsumption(proposal, platformObj) {
 
                         totalConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
                         totalSpendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
-
-                        // checkMsg += "ProposalId:" + checkResult[i].proposalId + " requiredConsumption:" + checkResult[i].requiredConsumption + ", ";
 
                         if (checkResult[i].initBonusAmount) {
                             initBonusAmount += checkResult[i].initBonusAmount ? checkResult[i].initBonusAmount : 0;
@@ -456,6 +455,10 @@ function checkProposalConsumption(proposal, platformObj) {
 
                         // Sum up bonus amount for overall profit calculation
                         totalBonusAmount += checkResult[i].bonusAmount;
+
+                        // dev log for debugging auto audit
+                        devCheckMsg += currentProposal + ": " + "Bonus: " + bonusAmount + "/" + initBonusAmount + ", Consumption: " + validConsumptionAmount + "/" + spendingAmount
+                            + ", isClearCycle:" + isClearCycle + "; ";
                     }
 
                     if ((validConsumptionAmount + lostThreshold) < spendingAmount) {
@@ -514,7 +517,7 @@ function checkProposalConsumption(proposal, platformObj) {
                     // Check consumption approved or not
                     if (isApprove || isTypeEApproval) {
                         if (!canApprove) {
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                         } else {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：流水 " + validConsumptionAmount + "，所需流水 " + spendingAmount;
@@ -557,10 +560,10 @@ function checkProposalConsumption(proposal, platformObj) {
                             // Check if player is VIP - Passed
                             if (proposal.data.proposalPlayerLevelValue == 0) {
                                 //sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
-                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
+                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                             } else {
                                 //sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
-                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
+                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                             }
                         }
 
@@ -646,7 +649,7 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
     );
 }
 
-function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese) {
+function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -668,7 +671,8 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                         'data.detail': abnormalMessage ? abnormalMessage : "",
                         'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
                         'data.autoAuditRepeatMsg': repeatMsg,
-                        'data.autoAuditRepeatMsgChinese': repeatMsgChinese
+                        'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
+                        'data.devCheckMsg': devCheckMsg
                     }).then();
                 }
                 else {

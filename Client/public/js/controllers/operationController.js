@@ -1189,12 +1189,14 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            // Remove fields for detail viewing
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;
             delete vm.selectedProposalDetailForDisplay.partner;
             delete vm.selectedProposalDetailForDisplay.playerObjId;
             delete vm.selectedProposalDetailForDisplay.playerLevelName;
             delete vm.selectedProposalDetailForDisplay.playerLevelValue;
+            delete vm.selectedProposalDetailForDisplay.devCheckMsg;
             // delete vm.selectedProposalDetailForDisplay.remark;
             function canCancelProposal(proposal) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;
