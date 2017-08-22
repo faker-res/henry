@@ -490,6 +490,7 @@ let dbPlayerReward = {
             let playerObj = {};
             let rewardParam = null;
             let rewardAmount = 0;
+            let yerTime = dbUtility.getYesterdayConsumptionReturnSGTime();
 
             return dbConfig.collection_players.findOne({_id: playerObjId}).populate(
                 {path: "platform", model: dbConfig.collection_platform}
@@ -506,42 +507,192 @@ let dbPlayerReward = {
                             }
                         );
 
-                        // create reward proposal
-                        let proposalData = {
-                            type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: playerObj.name,
-                                    id: playerObj.playerId
+                        if (rewardParam && rewardAmount) {
+                            // create reward proposal
+                            let proposalData = {
+                                type: eventData.executeProposal,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: playerObj.name,
+                                        id: playerObj.playerId
+                                    },
+                                data: {
+                                    playerObjId: playerObj._id,
+                                    playerId: playerObj.playerId,
+                                    playerName: playerObj.name,
+                                    realName: playerObj.realName,
+                                    platformObjId: playerObj.platform._id,
+                                    rewardAmount: rewardAmount,
+                                    spendingAmount: rewardAmount * Number(rewardParam.spendingTimes),
+                                    applyAmount: 0,
+                                    consumptionAmount: consumptionAmount,
+                                    amount: rewardAmount,
+                                    settlementStartTime: yerTime.startTime,
+                                    settlementEndTime: yerTime.endTime,
+                                    eventId: eventData._id,
+                                    eventName: eventData.name,
+                                    eventCode: eventData.code,
+                                    eventDescription: eventData.description,
+                                    providers: eventData.param.providers,
+                                    useConsumption: eventData.param.useConsumption,
+                                    useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
                                 },
-                            data: {
-                                playerObjId: playerObj._id,
-                                playerId: playerObj.playerId,
-                                playerName: playerObj.name,
-                                realName: playerObj.realName,
-                                platformObjId: playerObj.platform._id,
-                                rewardAmount: rewardAmount,
-                                spendingAmount: rewardAmount * Number(rewardParam.spendingTimes),
-                                applyAmount: 0,
-                                amount: rewardAmount,
-                                eventId: eventData._id,
-                                eventName: eventData.name,
-                                eventCode: eventData.code,
-                                eventDescription: eventData.description,
-                                providers: eventData.param.providers,
-                                useConsumption: eventData.param.useConsumption,
-                                useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
-                            },
-                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                            userType: constProposalUserType.PLAYERS
-                        };
+                                entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                userType: constProposalUserType.PLAYERS
+                            };
 
-                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                            return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                        }
                     }
                 }
             );
         },
+
+    applyPacketRainReward: (playerId, code, adminInfo) => {
+        let playerObj = {};
+        let eventData = {};
+
+        return dbConfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbConfig.collection_platform}
+        ).then(
+            playerData => {
+                if (playerData && playerData.platform) {
+                    playerObj = playerData;
+                    return dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform._id, constRewardType.PLAYER_EASTER_EGG_REWARD, code);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            eventObj => {
+                if (eventObj && eventObj.param && eventObj.param.reward) {
+                    eventData = eventObj;
+
+                    //check if player is valid for reward
+                    //find player's easter egg reward
+                    return dbConfig.collection_proposalType.findOne({
+                        name: constProposalType.PLAYER_EASTER_EGG_REWARD,
+                        platformId: playerObj.platform._id
+                    }).lean().then(
+                        typeData => {
+                            if (typeData) {
+                                return dbConfig.collection_proposal.find({
+                                    type: typeData._id,
+                                    "data.playerName": playerObj.name,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING]},
+                                }).sort({createTime: -1}).limit(1).lean();
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Cannot find "});
+                            }
+                        }
+                    ).then(
+                        proposalsData => {
+                            let lastRewardTime = dbUtility.getTodaySGTime().startTime;
+                            if (proposalsData && proposalsData[0]) {
+                                lastRewardTime = proposalsData[0].createTime;
+                            }
+                            return dbConfig.collection_playerTopUpRecord.findOne({
+                                playerId: playerObj._id,
+                                createTime: {$gte: lastRewardTime},
+                                amount: {$gte: eventData.param.minTopUpAmount}
+                            }).lean();
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "Cannot find player easter egg event data for platform"
+                    });
+                }
+            }
+        ).then(
+            record => {
+                if (record && !playerObj.applyingEasterEgg) {
+                    //update player easter egg lock
+                    return dbConfig.collection_players.findOneAndUpdate(
+                        {_id: playerObj._id, platform: playerObj.platform._id},
+                        {applyingEasterEgg: true}
+                    ).lean();
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player does not match the condition for this reward"
+                    });
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData && !playerData.applyingEasterEgg) {
+                    playerObj = playerData;
+                    //calculate player reward amount
+                    let totalProbability = 0;
+                    eventData.param.reward.forEach(
+                        eReward => {
+                            totalProbability += eReward.probability;
+                        }
+                    );
+                    let pNumber = Math.floor(Math.random() * totalProbability);
+                    //minimum one reward
+                    let rewardAmount = 1;
+                    let startPro = 0;
+                    eventData.param.reward.forEach(
+                        eReward => {
+                            if (pNumber >= startPro && pNumber <= (startPro + eReward.probability)) {
+                                rewardAmount = eReward.rewardAmount;
+                            }
+                            startPro += eReward.probability;
+                        }
+                    );
+
+                    // create reward proposal
+                    let proposalData = {
+                        type: eventData.executeProposal,
+                        creator: adminInfo ? adminInfo :
+                            {
+                                type: 'player',
+                                name: playerObj.name,
+                                id: playerId
+                            },
+                        data: {
+                            playerObjId: playerObj._id,
+                            playerId: playerObj.playerId,
+                            playerName: playerObj.name,
+                            realName: playerObj.realName,
+                            platformObjId: playerObj.platform._id,
+                            rewardAmount: rewardAmount,
+                            spendingAmount: rewardAmount * Number(eventData.param.consumptionTimes),
+                            applyAmount: 0,
+                            amount: rewardAmount,
+                            eventId: eventData._id,
+                            eventName: eventData.name,
+                            eventCode: eventData.code,
+                            eventDescription: eventData.description,
+                            providers: eventData.param.providers,
+                            useConsumption: eventData.param.useConsumption,
+                            useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
+                        },
+                        entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                        userType: constProposalUserType.PLAYERS
+                    };
+                    return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "Player does not match the condition for this reward"
+                    });
+                }
+            }
+        );
+    },
 
     getTopUpPromoList: (playerId, clientType) => {
         let topUpTypeData, aliPayLimitData;
