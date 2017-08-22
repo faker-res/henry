@@ -427,8 +427,6 @@ function checkProposalConsumption(proposal, platformObj) {
                             bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
                         }
 
-                        devCheckMsg += currentProposal + ": " + "Bonus: " + bonusAmount + "/" + initBonusAmount + ", Consumption: " + validConsumptionAmount + "/" + spendingAmount + "; ";
-
                         // Check consumption for each cycle
                         if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= lostThreshold) {
                             // User lost all bonus amount
@@ -457,6 +455,10 @@ function checkProposalConsumption(proposal, platformObj) {
 
                         // Sum up bonus amount for overall profit calculation
                         totalBonusAmount += checkResult[i].bonusAmount;
+
+                        // dev log for debugging auto audit
+                        devCheckMsg += currentProposal + ": " + "Bonus: " + bonusAmount + "/" + initBonusAmount + ", Consumption: " + validConsumptionAmount + "/" + spendingAmount
+                            + ", isClearCycle:" + isClearCycle + "; ";
                     }
 
                     if ((validConsumptionAmount + lostThreshold) < spendingAmount) {
