@@ -198,7 +198,13 @@ let dbPlayerReward = {
         );
     },
 
-    applyPlayerTopUpPromo: (topUpProposalData) => {
+    /*
+     * player apply for consecutive login reward
+     * @param {Object} topUpProposalData
+     * @param {String} type (e.g. 'online', 'aliPay')
+     */
+    applyPlayerTopUpPromo: (topUpProposalData, type) => {
+        type = type || 'online';
         return new Promise(function (resolve) {
             let rewardEventQuery = {
                 platform: topUpProposalData.data.platformId
@@ -228,9 +234,13 @@ let dbPlayerReward = {
                         for (let j = 0; j < promoEvent.param.reward.length; j++) {
                             let promotion = promoEvent.param.reward[j];
 
-                            if (Number(promotion.topUpType) === Number(topUpProposalData.data.topupType)) {
-                                promotionDetail = promotion;
-                                promoEventDetail = promoEvent;
+                            switch (true) {
+                                case (type === 'online' && Number(promotion.topUpType) === Number(topUpProposalData.data.topupType)):
+                                case (type === 'aliPay' && Number(promotion.topUpType) === 99):
+                                    promotionDetail = promotion;
+                                    promoEventDetail = promoEvent;
+                                    break;
+                                default:
                             }
 
                             if (promotionDetail) {
