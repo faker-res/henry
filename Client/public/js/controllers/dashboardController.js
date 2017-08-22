@@ -56,10 +56,16 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
 
+            //only query the success bonus proposal
             sendData.platformId = vm.platformID;
+            sendData.status = 'Success';
             socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data) {
-                console.log('data', data);
                 var totalBonus = 0;
+                var records = data.data.records;
+                for(var d in records){
+                    totalBonus += records[d].data.amount || 0;
+                }
+
                 if (numDays == 0){
                     $('.day .bonusAmount .number').html(totalBonus.toFixed(2));
                     utilService.fitText('.day .bonusAmount .number');
@@ -234,7 +240,7 @@ define(['js/app'], function (myApp) {
                         callback();
                     }
                 });
-
+            
             socketService.$socket($scope.AppSocket, 'countPlayerBonusAllPlatform', sendData, function success(data) {
                 var placeholder = '#bonusLine';
                 vm.setGraphHeight(placeholder);
@@ -251,7 +257,12 @@ define(['js/app'], function (myApp) {
                 var graphData = [];
                 var newPlayerObjData = {};
                 for (var i = 0; i < playerData.length; i++) {
-                    newPlayerObjData[playerData[i]._id.date] = playerData[i].number;
+                    var amountSum = 0;
+                    var numbers = playerData[i].number;
+                    for(var d in numbers){
+                        amountSum += numbers[d].data.amount;
+                    }
+                    newPlayerObjData[playerData[i]._id.date] = amountSum;
                 }
                 do {
                     var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());

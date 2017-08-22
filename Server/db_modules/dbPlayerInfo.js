@@ -6415,16 +6415,22 @@ let dbPlayerInfo = {
     getAllAppliedBonusList: function ( platformId, startIndex, count, startTime, endTime, status, sort) {
 
             var seq = sort ? -1 : 1;
-
-            return dbconfig.collection_proposalType.findOne({
-                // platformId: platformId,
+            console.log(platformId);
+            return dbconfig.collection_proposalType.find({
                 name: constProposalType.PLAYER_BONUS
             })
             .then(function(typeData){
-                console.log(status)
+                console.log(typeData)
+
+                var bonusIds = [];
+                for(var type in typeData){
+                    bonusIds.push(typeData[type]._id);
+                }
+
                 var queryObj = {
-                    type: typeData._id
+                    type: {$in: bonusIds}
                 };
+
                 if (status) {
                     queryObj.status = status;
                 }
@@ -6437,7 +6443,8 @@ let dbPlayerInfo = {
                 if (endTime) {
                     queryObj.createTime["$lte"] = new Date(endTime);
                 }
-                console.log(queryObj.createTime);
+
+                console.log(queryObj);
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
                 var proposalProm = dbconfig.collection_proposal.find(queryObj).lean();
 

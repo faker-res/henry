@@ -281,8 +281,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 startTime: vm.queryPara.allPlayerBonus.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryPara.allPlayerBonus.endTime.data('datetimepicker').getLocalDate(),
-                startIndex:0,
-                requestCount:20000,
+                platformId:vm.selectedPlatform._id,
                 status:'Success'
             };
 
@@ -291,18 +290,18 @@ define(['js/app'], function (myApp) {
                 var data = data1.data.records.filter(function (obj) {
                     return (obj._id);
                 }).map(function (obj) {
-                    return {label: vm.setGraphName(obj._id.name), data: obj.number};
+                    return {label: vm.setGraphName(obj._id), data: obj.data.amount};
                 }).sort(function (a, b) {
                     return b.data - a.data;
                 })
 
-                socketService.$plotPie(placeholder, data, {}, 'activePlayerPieClickData');
+                socketService.$plotPie(placeholder, data, {}, 'playerBonusPieClickData');
 
-                var placeholderBar = "#bar-all-activePlayer";
+                var placeholderBar = "#bar-all-bonusAmount";
                 socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(data), vm.newOptions, vm.getXlabelsFromdata(data));
 
                 var listen = $scope.$watch(function () {
-                    return socketService.getValue('activePlayerPieClickData');
+                    return socketService.getValue('playerBonusPieClickData');
                 }, function (newV, oldV) {
                     if (newV !== oldV) {
                         vm.allPlatformActivePie = newV.series.label;
