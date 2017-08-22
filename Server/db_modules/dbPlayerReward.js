@@ -479,6 +479,7 @@ let dbPlayerReward = {
             let playerObj = {};
             let rewardParam = null;
             let rewardAmount = 0;
+            let yerTime = dbUtility.getYesterdayConsumptionReturnSGTime();
 
             return dbConfig.collection_players.findOne({_id: playerObjId}).populate(
                 {path: "platform", model: dbConfig.collection_platform}
@@ -513,7 +514,10 @@ let dbPlayerReward = {
                                 rewardAmount: rewardAmount,
                                 spendingAmount: rewardAmount * Number(rewardParam.spendingTimes),
                                 applyAmount: 0,
+                                consumptionAmount: consumptionAmount,
                                 amount: rewardAmount,
+                                settlementStartTime: yerTime.startTime,
+                                settlementEndTime: yerTime.endTime,
                                 eventId: eventData._id,
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
