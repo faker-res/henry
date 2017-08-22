@@ -407,24 +407,16 @@ function checkProposalConsumption(proposal, platformObj) {
                             bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
                         }
 
-                        // save current checkResult if it is top up
-                        if (checkResult[i].isTopUp) {
-                            lastTopUpResult = {
-                                proposalId: checkResult[i].proposalId,
-                                curConsumption: checkResult[i].curConsumption,
-                                requiredConsumption: checkResult[i].requiredConsumption,
-                                initBonusAmount: checkResult[i].initBonusAmount,
-                                bonusAmount: checkResult[i].bonusAmount
-                            }
-                        }
-
                         // include previous top up record result if required
                         if (checkResult[i].isIncludePreviousConsumption) {
                             currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
-                            validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
-                            spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
-                            initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
-                            bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
+
+                            if (lastTopUpResult && lastTopUpResult.isCleared) {
+                                validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
+                                spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
+                                initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
+                                bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
+                            }
                         }
 
                         // Check consumption for each cycle
@@ -455,6 +447,18 @@ function checkProposalConsumption(proposal, platformObj) {
 
                         // Sum up bonus amount for overall profit calculation
                         totalBonusAmount += checkResult[i].bonusAmount;
+
+                        // save current checkResult if it is top up
+                        if (checkResult[i].isTopUp) {
+                            lastTopUpResult = {
+                                proposalId: checkResult[i].proposalId,
+                                curConsumption: checkResult[i].curConsumption,
+                                requiredConsumption: checkResult[i].requiredConsumption,
+                                initBonusAmount: checkResult[i].initBonusAmount,
+                                bonusAmount: checkResult[i].bonusAmount,
+                                isCleared: isClearCycle
+                            }
+                        }
 
                         // dev log for debugging auto audit
                         devCheckMsg += currentProposal + ": " + "Bonus: " + bonusAmount + "/" + initBonusAmount + ", Consumption: " + validConsumptionAmount + "/" + spendingAmount
