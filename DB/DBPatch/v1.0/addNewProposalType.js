@@ -1,6 +1,6 @@
 /*
  * how to use:
- * mongo --eval "var type='PlayerLevelMigration';" addNewProposalType.js
+ * mongo --eval "var type='PlayerPacketRainReward';" addNewProposalType.js
  */
 
 var db = db.getSiblingDB("admindb");

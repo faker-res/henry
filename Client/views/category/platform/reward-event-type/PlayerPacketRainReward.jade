@@ -1,0 +1,71 @@
+.well
+    .full-width-input-block
+        label {{vm.showRewardTypeData.params.params.dailyApplyLimit.des | translate}}
+        input.form-control(type='number', ng-model='vm.rewardParams.dailyApplyLimit', ng-disabled='vm.platformRewardShowEdit()')
+
+    label {{vm.showRewardTypeData.params.params.reward.des | translate}}
+    table.table.common-table
+        thead
+            tr
+                th {{vm.showRewardTypeData.params.params.reward.data.minConsumptionAmount.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.ratio1.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.ratio2.des | translate}}
+                th {{vm.showRewardTypeData.params.params.reward.data.ratio3.des | translate}}
+                th(ng-if='!vm.platformRewardShowEdit()')
+        tbody
+            tr(ng-repeat='(rowIndex,rowdata) in vm.rewardParams.reward')
+                td
+                    input.form-control.inlineBlk(type='number', ng-model='vm.rewardParams.reward[rowIndex].minTopUpAmount', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    table
+                        tr
+                            td.percentage
+                                input.form-control.inlineBlk(type='number', ng-model='vm.rewardParams.reward[rowIndex].data.ratio1.probability', ng-disabled='vm.platformRewardShowEdit()')
+                            td
+                                input.form-control.inlineBlk(type='number', ng-model='vm.rewardParams.reward[rowIndex].data.ratio1.rewardAmount', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    table
+                        tr
+                            td.percentage
+                                input.form-control.inlineBlk(type='number', ng-model='vm.rewardParams.reward[rowIndex].data.ratio2.probability', ng-disabled='vm.platformRewardShowEdit()')
+                            td
+                                input.form-control.inlineBlk(type='number', ng-model='vm.rewardParams.reward[rowIndex].data.ratio2.rewardAmount', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    table
+                        tr
+                            td.percentage
+                                input.form-control.inlineBlk(type='number', ng-model='vm.rewardParams.reward[rowIndex].data.ratio3.probability', ng-disabled='vm.platformRewardShowEdit()')
+                            td
+                                input.form-control.inlineBlk(type='number', ng-model='vm.rewardParams.reward[rowIndex].data.ratio3.rewardAmount', ng-disabled='vm.platformRewardShowEdit()')
+                td(ng-if='!vm.platformRewardShowEdit()')
+                    i.fa.fa-minus(ng-click='vm.updateRewardInEdit("remove",rowIndex)')
+
+                // Placeholder for new entry
+                tr(ng-if='!vm.platformRewardShowEdit()')
+                    td(colspan=9) {{'ADD' | translate}}
+                tr(ng-if='!vm.platformRewardShowEdit()')
+                    td
+                        input.form-control(type='number', ng-model='vm.tempNewRewardEntry.minTopUpAmount')
+                    td
+                        table
+                            tr
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.tempNewRewardEntry.data.ratio1.probability', ng-disabled='vm.platformRewardShowEdit()')
+                                td
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.tempNewRewardEntry.data.ratio1.rewardAmount', ng-disabled='vm.platformRewardShowEdit()')
+                    td
+                        table
+                            tr
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.tempNewRewardEntry.data.ratio2.probability', ng-disabled='vm.platformRewardShowEdit()')
+                                td
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.tempNewRewardEntry.data.ratio2.rewardAmount', ng-disabled='vm.platformRewardShowEdit()')
+                    td
+                        table
+                            tr
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.tempNewRewardEntry.data.ratio3.probability', ng-disabled='vm.platformRewardShowEdit()')
+                                td
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.tempNewRewardEntry.data.ratio3.rewardAmount', ng-disabled='vm.platformRewardShowEdit()')
+                    td
+                        i.fa.fa-plus(ng-click='vm.updateRewardInEdit("add",vm.tempNewRewardEntry);vm.tempNewRewardEntry={}')

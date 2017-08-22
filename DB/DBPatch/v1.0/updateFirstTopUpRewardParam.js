@@ -261,7 +261,7 @@ var param20 = param20Cursor.next();
 
 db.rewardType.insert({"name": type20, params: param20._id, des: "Player Top Up Promo"});
 
-//Player Top Up Promo
+//Player Consecutive Consumption Reward
 var type21 = "PlayerConsecutiveConsumptionReward";
 db.rewardParam.insert({
     "name": type21, params: {
@@ -284,3 +284,41 @@ var param21Cursor = db.rewardParam.find({"name": type21});
 var param21 = param21Cursor.next();
 
 db.rewardType.insert({"name": type21, params: param21._id, des: "Player Consecutive Consumption Reward"});
+
+//Player Packet Rain Reward
+var type22 = "PlayerPacketRainReward";
+db.rewardParam.insert({
+    "name": type22, params: {
+        dailyApplyLimit: {type: "Boolean", des: "Daily apply limit"},
+        reward: {
+            type: "Table",
+            data: {
+                minTopUpAmount: {type: "String", des: "Minimal top up amount"},
+                ratio1: {
+                    type: "Array",
+                    probability: {type: "Number", des: "Probability"},
+                    rewardAmount: {type: "Number", des: "Reward amount"},
+                    des: "Reward amount"
+                },
+                ratio2: {
+                    type: "Array",
+                    probability: {type: "Number", des: "Probability"},
+                    rewardAmount: {type: "Number", des: "Reward amount"},
+                    des: "Reward amount"
+                },
+                ratio3: {
+                    type: "Array",
+                    probability: {type: "Number", des: "Probability"},
+                    rewardAmount: {type: "Number", des: "Reward amount"},
+                    des: "Reward amount"
+                },
+            },
+            des: "Reward parameter"
+        }
+    }
+});
+
+var param22Cursor = db.rewardParam.find({"name": type22});
+var param22 = param22Cursor.next();
+
+db.rewardType.insert({"name": type22, params: param22._id, des: "Player Packet Rain Reward"});
