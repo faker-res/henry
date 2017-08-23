@@ -2202,5 +2202,6 @@
   "Max reward amount per day": "单日最高奖励额",
   "Please Type Your Title": "请输入标题",
   "Please Type Your Message": "请填入内容",
-  "Sent to all Players": "发送至所有用户"
+  "Sent to all Players": "发送至所有用户",
+  "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀"
 }

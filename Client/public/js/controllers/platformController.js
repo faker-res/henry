@@ -3899,6 +3899,7 @@ define(['js/app'], function (myApp) {
             vm.prepareCreatePlayer = function () {
                 vm.newPlayer = {};
                 vm.duplicateNameFound = false;
+                vm.euPrefixNotExist = false;
                 $('.referralValidTrue').hide();
                 $('.referralValidFalse').hide();
                 vm.newPlayer.domain = window.location.hostname;
@@ -3933,10 +3934,19 @@ define(['js/app'], function (myApp) {
 
             vm.checkPlayerNameValidity = function (name, form, type) {
                 if (!name) return;
+                vm.euPrefixNotExist = false;
                 if (type == 'edit' && name == vm.selectedSinglePlayer.name) {
                     vm.duplicateNameFound = false;
                     return;
                 }
+
+                if (type !== 'edit' && vm.selectedPlatform.data.name === "EU8" && name && name.charAt(0) !== "e") {
+                    vm.euPrefixNotExist = true;
+                }
+                form.$setValidity('euPrefixNotExist', !vm.euPrefixNotExist);
+                $scope.safeApply();
+
+
                 socketService.$socket($scope.AppSocket, 'checkPlayerNameValidity', {
                     platform: vm.selectedPlatform.id,
                     name: name
@@ -3946,7 +3956,7 @@ define(['js/app'], function (myApp) {
                     } else if (data && data.data.isPlayerNameValid) {
                         vm.duplicateNameFound = false;
                     }
-                    form.$setValidity('usedPlayerName', !vm.duplicateNameFound)
+                    form.$setValidity('usedPlayerName', !vm.duplicateNameFound);
                     $scope.safeApply();
                 }, function (err) {
                     console.log('err', err);
