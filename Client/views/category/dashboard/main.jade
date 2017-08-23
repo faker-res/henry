@@ -18,43 +18,52 @@ script(src='js/lib/flot/jquery.flot.time.min.js')
                 .panel-heading
                     h1(style='border-bottom: 1px solid #eee') {{vm.platformName}}
                 .panel-body
-                    .dashboardDiv
+                    .dashboardDiv.col-md-12
                         .day
-                            .onlineNum
+                            .onlineNum.statTXT
                                 div
-                            .topupAmount
+                            .topupAmount.statTXT
                                 div
-                            .spendAmount
+                            .bonusAmount.statTXT
                                 div
-                            .newUser
+                            .spendAmount.statTXT
                                 div
-                    .dashboardDiv
+                            .newUser.statTXT
+                                div
+
+                    .dashboardDiv.col-md-12
                         .week
-                            .onlineNum
+                            .onlineNum.statTXT
                                 div
-                            .topupAmount
+                            .topupAmount.statTXT
                                 div
-                            .spendAmount
+                            .bonusAmount.statTXT
                                 div
-                            .newUser
+                            .spendAmount.statTXT
+                                div
+                            .newUser.statTXT
                                 div
             .panel(ng-if="checkViewPermission('Dashboard', 'Statistics','Read')")
                 .panel-heading
                     h1(style='border-bottom: 1px solid #eee') {{'Statistics Data' | translate}}
                 .panel-body
-                    .col-md-3
+                    .col-md-3.statGraph
                         label.form-control
                             .text-center {{'Login Player' | translate}}
                         #onlinePlayerLine.dashboardChart
-                    .col-md-3
+                    .col-md-3.statGraph
                         label.form-control
                             .text-center  {{'TOP_UP' | translate}}
                         #topupLine.dashboardChart
-                    .col-md-3
+                    .col-md-3.statGraph
+                        label.form-control
+                            .text-center  {{'BonusAmount' | translate}}
+                        #bonusLine.dashboardChart
+                    .col-md-3.statGraph
                         label.form-control
                             .text-center  {{'Consumption' | translate}}
                         #consumptionLine.dashboardChart
-                    .col-md-3
+                    .col-md-3.statGraph
                         label.form-control
                             .text-center  {{'New Players' | translate}}
                         #newPlayerLine.dashboardChart
@@ -63,15 +72,15 @@ script(src='js/lib/flot/jquery.flot.time.min.js')
                     h1(style='border-bottom: 1px solid #eee') {{'Operation Data' | translate}}
                 .panel-body
                     .dashboardDiv
-                        .proposal
+                        .proposal.operateStat
                             div
-                        .rewardRequest
+                        .rewardRequest.operateStat
                             div
-                        .rewardAmount
+                        .rewardAmount.operateStat
                             div
 
 #penalModel.dashboardPanel.hide
-    .panel-width.col-md-3
+    .panel-width
         .panel
             .panel-heading
                 .row

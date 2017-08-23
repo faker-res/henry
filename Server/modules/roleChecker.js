@@ -121,6 +121,7 @@ var roleChecker = {
         'getExcludedQuickPaysByQuickPayGroup': true,
         "updatePlatformQuickPayGroup": true,
         "getMerchantList": true,
+        "getBonusRequestList": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
@@ -170,7 +171,7 @@ var roleChecker = {
     linkedViews: {
         Dashboard: {
             Platform: {
-                Read: ['countLoginPlayerbyPlatformWeek', 'getTopUpTotalAmountForAllPlatform', 'getPlayerConsumptionSumForAllPlatform', 'countNewPlayers']
+                Read: ['countLoginPlayerbyPlatformWeek', 'getTopUpTotalAmountForAllPlatform',  'getPlayerConsumptionSumForAllPlatform', 'getBonusRequestList', 'countNewPlayers']
             },
             Operation: {
                 Read: ['getAllPlatformAvailableProposalsForAdminId', 'getAllRewardProposal']
@@ -485,9 +486,11 @@ var roleChecker = {
                 NewPlayer: ['countNewPlayerbyPlatform', 'countNewPlayers'],
                 ActivePlayer: ['countActivePlayerbyPlatform', 'countActivePlayerALLPlatform'],
                 PlayerRetention: ['getPlayerRetention'],
+                Bonus: ['getBonusRequestList'],
                 ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery'],
                 ConsumptionInterval: ['getConsumptionIntervalData'],
                 ClientSource: [],
+
             }
         },
         Report: {

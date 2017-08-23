@@ -126,6 +126,35 @@
                     label {{vm.allPlatformTopUpPie}}
 
 .clearfix
+.section
+    .row
+        .titlePic
+            .title BONUS
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#allPlayerBonusAnalysis .block-query","allPlayerBonus")')
+                        text.pull-left.margin-right-5 {{vm.optionText.allPlayerBonus | translate}}
+    #allPlayerBonusAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotAllPlatformPlayerBonusPie()') {{'SEARCH' | translate}}
+        .row
+            .col-md-5
+                .panel.panel-default.leftPanel(style='padding-bottom:5px')
+                    .pieChart
+                        #pie-all-bonusAmount
+            .col-md-7
+                .panel.panel-default.rightPanel
+                    #bar-all-bonusAmount.barChart
+                    label {{vm.allPlatformBonusPie}}
+
+
+.clearfix
 .section(ng-show="checkViewPermission('Analysis','Analysis','ApiResponseTime')")
     .row
         .titlePic
