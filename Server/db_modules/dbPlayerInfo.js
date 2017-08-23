@@ -5793,6 +5793,46 @@ let dbPlayerInfo = {
         );
     },
 
+    countDailyPlayerBonusByPlatform: function(platformId, startDate, endDate){
+
+        return dbconfig.collection_proposalType.findOne({
+            platformId: platformId,
+            name: constProposalType.PLAYER_BONUS
+        })
+        .then(function(typeData){
+            var queryObj = {
+                type: typeData._id
+            };
+            queryObj.status = 'Success';
+            if (startDate || endDate) {
+                queryObj.createTime = {};
+            }
+            if (startDate) {
+                queryObj.createTime["$gte"] = new Date(startDate);
+            }
+            if (endDate) {
+                queryObj.createTime["$lte"] = new Date(endDate);
+            }
+            var proposalProm = dbconfig.collection_proposal.find(queryObj).sort({createTime: 1}).lean();
+
+            return Q.all([proposalProm]).then(
+                data => {
+                    var i = 0;
+                    var res = data.map(
+                        dayData => {
+                            var date = dbUtility.getLocalTimeString(dayData.createTime, "YYYY-MM-DD");
+                            return {
+                                _id: {date: date},
+                                number: dayData
+                            }
+                        }
+                    );
+                    return res;
+                }
+            );
+        });
+    },
+
     /* 
      * Get new player count 
      */
@@ -6369,6 +6409,71 @@ let dbPlayerInfo = {
                     }
                 }
             );
+    },
+
+
+    getAllAppliedBonusList: function ( platformId, startIndex, count, startTime, endTime, status, sort) {
+            var seq = sort ? -1 : 1;
+            console.log(platformId);
+            return dbconfig.collection_proposalType.find({
+                name: constProposalType.PLAYER_BONUS
+            })
+            .then(function(typeData){
+                console.log(typeData)
+
+                var bonusIds = [];
+                for(var type in typeData){
+                    bonusIds.push(typeData[type]._id);
+                }
+
+                var queryObj = {
+                    type: {$in: bonusIds}
+                };
+
+                if (status) {
+                    queryObj.status = status;
+                }
+                if (startTime || endTime) {
+                    queryObj.createTime = {};
+                }
+                if (startTime) {
+                    queryObj.createTime["$gte"] = new Date(startTime);
+                }
+                if (endTime) {
+                    queryObj.createTime["$lte"] = new Date(endTime);
+                }
+
+                console.log(queryObj);
+                var countProm = dbconfig.collection_proposal.find(queryObj).count();
+                var proposalProm = dbconfig.collection_proposal.find(queryObj).lean();
+
+                return Q.all([proposalProm, countProm]).then(
+                    data => {
+                        console.log(data);
+                        if (data && data[0] && data[1]) {
+                            return {
+                                stats: {
+                                    totalCount: data[1],
+                                    startIndex: startIndex,
+                                    requestCount: count
+                                },
+                                records: data[0]
+                            }
+                        }
+                        else {
+                            return {
+                                stats: {
+                                    totalCount: data[1] || 0,
+                                    startIndex: startIndex,
+                                    requestCount: count
+                                },
+                                records: []
+                            }
+                        }
+                    }
+                );
+            })
+
     },
 
     /*

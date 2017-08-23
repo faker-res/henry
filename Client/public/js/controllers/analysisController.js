@@ -37,6 +37,7 @@ define(['js/app'], function (myApp) {
 
                         vm.initSearchParameter('allNewPlayer', true, 4);
                         vm.initSearchParameter('allPlayerConsumption', true, 4);
+                        vm.initSearchParameter('allPlayerBonus', true, 4);
                         vm.initSearchParameter('allPlayerTopup', true, 4);
                         vm.initSearchParameter('allApiResponseTime', true, 1);
 
@@ -273,9 +274,45 @@ define(['js/app'], function (myApp) {
                     }
                 });
             });
-
-
         };
+
+        vm.plotAllPlatformPlayerBonusPie = function(){
+            var placeholder = "#pie-all-bonusAmount";
+            var sendData = {
+                startDate: vm.queryPara.allPlayerBonus.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.allPlayerBonus.endTime.data('datetimepicker').getLocalDate(),
+                platformId:vm.selectedPlatform._id,
+                status:'Success'
+            };
+
+            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data1) {
+                console.log('allActivePlayers', data1);
+                var data = data1.data.records.filter(function (obj) {
+                    return (obj._id);
+                }).map(function (obj) {
+                    return {label: vm.setGraphName(obj._id), data: obj.data.amount};
+                }).sort(function (a, b) {
+                    return b.data - a.data;
+                })
+
+                socketService.$plotPie(placeholder, data, {}, 'playerBonusPieClickData');
+
+                var placeholderBar = "#bar-all-bonusAmount";
+                socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(data), vm.newOptions, vm.getXlabelsFromdata(data));
+
+                var listen = $scope.$watch(function () {
+                    return socketService.getValue('playerBonusPieClickData');
+                }, function (newV, oldV) {
+                    if (newV !== oldV) {
+                        vm.allPlatformActivePie = newV.series.label;
+                        console.log('pie clicked', newV);
+                        if (vm.showPageName !== "PLATFORM_OVERVIEW") {
+                            listen();
+                        }
+                    }
+                });
+            });
+        }
         vm.plotAllPlatformNewPlayerPie = function () {
             var placeholder = "#pie-all-newPlayer";
             var sendData = {
