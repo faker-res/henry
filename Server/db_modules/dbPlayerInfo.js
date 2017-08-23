@@ -5781,21 +5781,16 @@ let dbPlayerInfo = {
             if (endDate) {
                 queryObj.createTime["$lte"] = new Date(endDate);
             }
-            var proposalProm = dbconfig.collection_proposal.find(queryObj).sort({createTime: 1}).lean();
-
+            var proposalProm = dbconfig.collection_proposal.aggregate([
+                {$match:queryObj},
+                {$group:{
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createTime" } },
+                    number:{$sum:'$data.amount'}
+                }}
+            ])
             return Q.all([proposalProm]).then(
                 data => {
-                    var i = 0;
-                    var res = data.map(
-                        dayData => {
-                            var date = dbUtility.getLocalTimeString(dayData.createTime, "YYYY-MM-DD");
-                            return {
-                                _id: {date: date},
-                                number: dayData
-                            }
-                        }
-                    );
-                    return res;
+                    return data[0]
                 }
             );
         });
@@ -6411,9 +6406,14 @@ let dbPlayerInfo = {
                     queryObj.createTime["$lte"] = new Date(endTime);
                 }
 
-                console.log(queryObj);
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
-                var proposalProm = dbconfig.collection_proposal.find(queryObj).lean();
+                var proposalProm = dbconfig.collection_proposal.aggregate([
+                    {$match:queryObj},
+                    {$group:{
+                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createTime" } },
+                        amount:{$sum:'$data.amount'}
+                    }}
+                ])
 
                 return Q.all([proposalProm, countProm]).then(
                     data => {
