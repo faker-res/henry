@@ -327,17 +327,17 @@ table.dataTable thead .sorting:after {
 }
 
 .panel-yellow {
-    border-color: #f0ad4e;
+    border-color: #f39c12;
 }
 
 .panel-yellow .panel-heading {
-    border-color: #f0ad4e;
+    border-color: #f39c12;
     color: #fff;
-    background-color: #f0ad4e;
+    background-color: #f39c12;
 }
 
 .panel-yellow a {
-    color: #f0ad4e;
+    color: #f39c12;
 }
 
 .panel-yellow a:hover {
@@ -345,17 +345,17 @@ table.dataTable thead .sorting:after {
 }
 
 .panel-purple {
-    border-color: #7B68EE;
+    border-color: #4B0082;
 }
 
 .panel-purple .panel-heading {
-    border-color: #7B68EE;
+    border-color: #4B0082;
     color: #fff;
-    background-color: #7B68EE;
+    background-color: #4B0082;
 }
 
 .panel-purple a {
-    color: #7B68EE;
+    color: #4B0082;
 }
 
 .panel-purple a:hover {

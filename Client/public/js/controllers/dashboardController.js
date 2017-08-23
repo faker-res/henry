@@ -449,7 +449,7 @@ define(['js/app'], function (myApp) {
 
                                 //day current online number
                                 $('.onlineNum .panel').addClass('panel-green');
-                                $('.onlineNum .panel-width').addClass('col-md-3');
+                                // $('.onlineNum .panel-width').addClass('col-md-3');
                                 $('.onlineNum .typeIcon').addClass('fa-smile-o');
                                 $('.onlineNum .which').html($translate('Online Players'));
 
