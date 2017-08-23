@@ -1275,8 +1275,29 @@ let dbPlayerInfo = {
         ).then(
             isMatch => {
                 if (isMatch) {
-                    playerObj.password = newPassword;
-                    return playerObj.save();
+                    let deferred = Q.defer();
+                    bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+                        if (err) {
+                            deferred.reject(err);
+                            return;
+                        }
+                        bcrypt.hash(newPassword, salt, function (err, hash) {
+                            if (err) {
+                                deferred.reject(err);
+                                return;
+                            }
+                            // player.password = hash;
+                            // next();
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: playerObj._id, platform: playerObj.platform}, {password: hash}
+                            ).then(
+                                deferred.resolve, deferred.reject
+                            );
+                        });
+                    });
+                    // playerObj.password = newPassword;
+                    // return playerObj.save();
+                    return deferred.promise;
                 }
                 else {
                     return Q.reject({
