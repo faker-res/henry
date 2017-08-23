@@ -5781,7 +5781,6 @@ let dbPlayerInfo = {
             if (endDate) {
                 queryObj.createTime["$lte"] = new Date(endDate);
             }
-            // var countProm = dbconfig.collection_proposal.find(queryObj).count();
             var proposalProm = dbconfig.collection_proposal.find(queryObj).sort({createTime: 1}).lean();
 
             return Q.all([proposalProm]).then(
@@ -5800,35 +5799,6 @@ let dbPlayerInfo = {
                 }
             );
         });
-
-        // var proms = [];
-        // var dayStartTime = startDate;
-        // while (dayStartTime.getTime() < endDate.getTime()) {
-        //     var dayEndTime = new Date(dayStartTime.getTime() + 24 * 60 * 60 * 1000);
-        //     var matchObj = {
-        //         platform: platformId,
-        //         registrationTime: {$gte: dayStartTime, $lt: dayEndTime},
-        //     };
-        //     proms.push(
-        //         dbconfig.collection_proposal.find(matchObj).count()
-        //     );
-        //     dayStartTime = dayEndTime;
-        // }
-        // return Q.all(proms).then(
-        //     data => {
-        //         var i = 0;
-        //         var res = data.map(
-        //             dayData => {
-        //                 var date = dbUtility.getLocalTimeString(dbUtility.getDayStartTime(new Date(startDate.getTime() + (i++) * 24 * 60 * 60 * 1000)), "YYYY-MM-DD");
-        //                 return {
-        //                     _id: {date: date},
-        //                     number: dayData
-        //                 }
-        //             }
-        //         );
-        //         return res;
-        //     }
-        // );
     },
 
     /* 
