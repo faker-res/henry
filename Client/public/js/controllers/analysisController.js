@@ -276,11 +276,11 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.searchBonusList = function(){
+        vm.plotAllPlatformPlayerBonusPie = function(){
             var placeholder = "#pie-all-bonusAmount";
             var sendData = {
-                startTime: vm.queryPara.allPlayerBonus.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.queryPara.allPlayerBonus.endTime.data('datetimepicker').getLocalDate(),
+                startDate: vm.queryPara.allPlayerBonus.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.allPlayerBonus.endTime.data('datetimepicker').getLocalDate(),
                 platformId:vm.selectedPlatform._id,
                 status:'Success'
             };

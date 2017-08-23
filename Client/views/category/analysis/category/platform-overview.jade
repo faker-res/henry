@@ -142,12 +142,12 @@
                 .endTime
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-click='vm.searchBonusList()') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-click='vm.plotAllPlatformPlayerBonusPie()') {{'SEARCH' | translate}}
         .row
             .col-md-5
                 .panel.panel-default.leftPanel(style='padding-bottom:5px')
                     .pieChart
-                        #pie-all-bonusAmount(style="height:630px")
+                        #pie-all-bonusAmount
             .col-md-7
                 .panel.panel-default.rightPanel
                     #bar-all-bonusAmount.barChart

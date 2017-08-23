@@ -831,7 +831,7 @@ function socketActionPlayer(socketIO, socket) {
             data = data || {};
             data.startIndex = data.startIndex || 0;
             data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.startIndex, data.requestCount, data.startTime, data.endTime, data.status, !data.sort], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.startIndex, data.requestCount, data.startDate, data.endDate, data.status, !data.sort], actionName, isValidData);
 
         }
     };

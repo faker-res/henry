@@ -460,10 +460,10 @@ define(['js/app'], function (myApp) {
                                 $('.topupAmount .which').html($translate('Topup Amount'));
 
                                 //day topupamount
-                                $('.bonusAmount .panel').addClass('panel-info');
+                                $('.bonusAmount .panel').addClass('panel-purple');
                                 // $('.topupAmount .panel-width').addClass('col-md-3');
                                 $('.bonusAmount .typeIcon').addClass('fa-dollar');
-                                $('.bonusAmount .which').html($translate('Bonus Amount'));
+                                $('.bonusAmount .which').html($translate('BonusAmount'));
 
                                 //spend amount
                                 $('.spendAmount .panel').addClass('panel-yellow');

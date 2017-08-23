@@ -5771,9 +5771,7 @@ let dbPlayerInfo = {
             var queryObj = {
                 type: typeData._id
             };
-            // if (status) {
-                queryObj.status = 'Success';
-            // }
+            queryObj.status = 'Success';
             if (startDate || endDate) {
                 queryObj.createTime = {};
             }
@@ -5784,14 +5782,14 @@ let dbPlayerInfo = {
                 queryObj.createTime["$lte"] = new Date(endDate);
             }
             // var countProm = dbconfig.collection_proposal.find(queryObj).count();
-            var proposalProm = dbconfig.collection_proposal.find(queryObj).sort({createTime: -1}).lean();
+            var proposalProm = dbconfig.collection_proposal.find(queryObj).sort({createTime: 1}).lean();
 
             return Q.all([proposalProm]).then(
                 data => {
                     var i = 0;
                     var res = data.map(
                         dayData => {
-                            var date = dbUtility.getLocalTimeString(dbUtility.getDayStartTime(new Date(startDate.getTime() + (i++) * 24 * 60 * 60 * 1000)), "YYYY-MM-DD");
+                            var date = dbUtility.getLocalTimeString(dayData.createTime, "YYYY-MM-DD");
                             return {
                                 _id: {date: date},
                                 number: dayData
@@ -6413,7 +6411,6 @@ let dbPlayerInfo = {
 
 
     getAllAppliedBonusList: function ( platformId, startIndex, count, startTime, endTime, status, sort) {
-
             var seq = sort ? -1 : 1;
             console.log(platformId);
             return dbconfig.collection_proposalType.find({
