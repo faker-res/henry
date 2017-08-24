@@ -117,6 +117,25 @@ var platformSchema = new Schema({
     monitorMerchantCount: {type: Number, default: 10},
     // the count that trigger the failing alert in payment monitor for player
     monitorPlayerCount: {type: Number, default: 4},
+    // player value score relevant settings
+    playerValueConfig: {
+        // criteria score criteria ratio
+        criteriaScoreRatio: {
+            topUpTimes: {type: Number, default: 10},
+            gameTypeCount: {type: Number, default: 10},
+            credibilityRemark: {type: Number, default: 60},
+            playerLevel: {type: Number, default: 10},
+            winRatio: {type: Number, default: 10},
+        },
+        // top up times criteria score configuration
+        topUpTimesScores: {type: JSON, default: {0: 0, 1: 1}},
+        // played game types count criteria score configuration
+        gameTypeCountScores: {type: JSON, default: {0: 0, 1: 1}},
+        // win ratio criteria score configuration
+        winRatioScores: {type: JSON, default: {0: 10, 30: 8, 40: 5, 60: 4, 70: 2, 75: 1, 80: 0}},
+        // default score for credibility remark criteria
+        credibilityScoreDefault: {type: Number, default: 5}
+    },
     jiguangAppKey: {type: String},
     jiguangMasterKey: {type: String}
 });
