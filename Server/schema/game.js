@@ -35,7 +35,9 @@ var gameSchema = new Schema({
     //1: flash, 2: html5
     playGameType: {type: String},
     //progressive game code
-    progressivegamecode: {type: String}
+    progressivegamecode: {type: String},
+    //game images
+    images: {type: JSON}
 });
 
 //game is unique by provider and code

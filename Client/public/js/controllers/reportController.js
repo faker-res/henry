@@ -3507,7 +3507,9 @@ define(['js/app'], function (myApp) {
                         '2': 'WechatQR',
                         '3': 'AlipayQR',
                         '4': 'WechatApp',
-                        '5': 'AlipayApp'
+                        '5': 'AlipayApp',
+                        '6': 'FASTPAY',
+                        '7': 'QQPAYQR'
                     };
                 }
             );

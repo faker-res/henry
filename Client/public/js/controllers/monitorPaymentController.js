@@ -234,7 +234,6 @@ define(['js/app'], function (myApp) {
                 vm.drawPaymentRecordTable(
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                        // item.proposalId$ = item.proposalId.slice(-3);
                         item.merchantNo$ = item.data.merchantNo
                             ? item.data.merchantNo
                             : item.data.weChatAccount
@@ -243,11 +242,20 @@ define(['js/app'], function (myApp) {
                             ? item.data.alipayAccount
                             : item.data.bankCardNo
                             ? item.data.bankCardNo
+                            : item.data.accountNo
+                            ? item.data.accountNo
                             : null;
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);
                         item.merchantName = vm.merchantNumbers[item.data.merchantNo];
+
+                        if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
+                            let msgSplit = item.data.msg.split(" 单号:");
+                            item.merchantName = msgSplit[0];
+                            item.merchantNo$ = msgSplit[1];
+                        }
+
                         if (item.type.name === 'PlayerTopUp') {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType;
@@ -726,12 +734,7 @@ define(['js/app'], function (myApp) {
 
 
         // $scope.$on('$viewContentLoaded', function () {
-        var eventName = "$viewContentLoaded";
-        if (!$scope.AppSocket) {
-            eventName = "socketConnected";
-            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
-        }
-        $scope.$on(eventName, function (e, d) {
+        $scope.$on("monitorController:socketConnected", function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
 
@@ -770,6 +773,9 @@ define(['js/app'], function (myApp) {
                     }
                     if (window.location.pathname != '/monitor/payment') {
                         clearInterval(vm.refreshInterval);
+                    }
+                    else if (!vm.paymentMonitorQuery) {
+                        vm.loadPage();
                     }
                 }, 1000);
             });

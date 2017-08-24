@@ -143,6 +143,8 @@ var proposalExecutor = {
             this.executions.executePlayerEasterEggReward.des = "Player Easter Egg Reward";
             this.executions.executePlayerQuickpayTopUp.des = "Player Quickpay Top Up";
             this.executions.executePlayerTopUpPromo.des = "Player Top Up Promo";
+            this.executions.executePlayerConsecutiveConsumptionReward.des = "Player Consecutive Consumption Reward";
+            this.executions.executePlayerLevelMigration.des = "Player Level Migration";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -185,7 +187,8 @@ var proposalExecutor = {
             this.rejections.rejectPlayerEasterEggReward.des = "Reject Player Easter Egg Reward";
             this.rejections.rejectPlayerQuickpayTopUp.des = "Reject Player Quickpay Top Up";
             this.rejections.rejectPlayerTopUpPromo.des = "Reject Player Top Up Promo";
-
+            this.rejections.rejectPlayerConsecutiveConsumptionReward.des = "Reject Player Consecutive Consumption Reward";
+            this.rejections.rejectPlayerLevelMigration.des = "Reject Player Level Migration";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -817,6 +820,7 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
+                        dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
                         deferred.resolve(proposalData);
                     },
                     function (error) {
@@ -1352,7 +1356,26 @@ var proposalExecutor = {
                     }
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect player top up return proposal data"});
+                    deferred.reject({name: "DataError", message: "Incorrect player level up reward proposal data"});
+                }
+            },
+
+            /**
+             * execution function for player level migration proposal type
+             */
+            executePlayerLevelMigration: function (proposalData, deferred) {
+                //create reward task for related player
+                //verify data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId) {
+                    // Perform the level migration
+                    dbconfig.collection_players.findOneAndUpdate(
+                        {_id: proposalData.data.playerObjId, platform: proposalData.data.platformObjId},
+                        {playerLevel: proposalData.data.levelObjId},
+                        {new: false}
+                    ).then(deferred.resolve, deferred.reject);
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player level migration proposal data"});
                 }
             },
 
@@ -1699,7 +1722,17 @@ var proposalExecutor = {
              */
             executePlayerRegistrationIntention:function (proposalData, deferred) {
                  deferred.resolve(proposalData);
-            }
+            },
+
+            executePlayerConsecutiveConsumptionReward: function (proposalData, deferred) {
+                //verify data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
+                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSECUTIVE_CONSUMPTION_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect partner consumption return proposal data"});
+                }
+            },
         },
 
         /**
@@ -1721,7 +1754,7 @@ var proposalExecutor = {
             rejectUpdatePlayerCredit: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
                     //todo::add more reasons here, ex:cancel request
-                    return proposalExecutor.refundPlayer(proposalData, -proposalData.data.updateAmount, "rejectUpdatePlayerCredit")
+                    return proposalExecutor.refundPlayer(proposalData, -proposalData.data.updateAmount, constPlayerCreditChangeType.REJECT_UPDATE_PLAYER_CREDIT)
                         .then(
                             res => deferred.resolve("Proposal is rejected"),
                             error => deferred.reject(error)
@@ -1833,7 +1866,7 @@ var proposalExecutor = {
              */
             rejectGameProviderReward: function (proposalData, deferred) {
                 //todo::send reject reason to player
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectGameProviderReward").then(deferred.resolve, deferred.reject);
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_GAME_PROVIDER_REWARD).then(deferred.resolve, deferred.reject);
             },
 
             /**
@@ -1842,7 +1875,7 @@ var proposalExecutor = {
             rejectFirstTopUp: function (proposalData, deferred) {
                 //todo::send reject reason to player
                 //clean top up records that are used for application
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectFirstTopUp").then(
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_FIRST_TOP_UP).then(
                     () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
                 );
 
@@ -2018,7 +2051,7 @@ var proposalExecutor = {
              */
             rejectPlayerTopUpReturn: function (proposalData, deferred) {
                 //clean top up records that are used for application
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectPlayerTopUpReturn").then(
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_TOP_UP_RETURN).then(
                     () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
                 );
             },
@@ -2058,7 +2091,7 @@ var proposalExecutor = {
 
                     // return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
                     proposalData.data.creditCharge = proposalData.data.creditCharge || 0;
-                    return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, "rejectPlayerBonus")
+                    return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, constPlayerCreditChangeType.REJECT_PLAYER_BONUS)
                         .then(
                             res => deferred.resolve("Proposal is rejected"),
                             error => deferred.reject(error)
@@ -2123,7 +2156,7 @@ var proposalExecutor = {
              * reject function for player top up reward
              */
             rejectPlayerTopUpReward: function (proposalData, deferred) {
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectPlayerTopUpReward").then(
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_TOP_UP_REWARD).then(
                     () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
                 );
             },
@@ -2175,7 +2208,7 @@ var proposalExecutor = {
 
             rejectPlayerDoubleTopUpReward: function (proposalData, deferred) {
                 //clean top up records that are used for application
-                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, "rejectPlayerDoubleTopUpReward").then(
+                proposalExecutor.refundPlayerApplyAmountIfNeeded(proposalData, constPlayerCreditChangeType.REJECT_PLAYER_DOUBLE_TOP_UP_REWARD).then(
                     () => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject)
                 );
             },
@@ -2207,6 +2240,14 @@ var proposalExecutor = {
              * reject create player intention proposal
              */
             rejectPlayerRegistrationIntention: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerConsecutiveConsumptionReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerLevelMigration: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             }
         }

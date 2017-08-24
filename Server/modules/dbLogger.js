@@ -36,6 +36,7 @@ var dbLogger = {
      * @param {Object} data - details
      */
     createCreditChangeLog: function (playerId, platformId, amount, type, curAmount, operatorId, data) {
+        // note: use constPlayerCreditChangeType for the 'type' parameter
         if (curAmount < 0) {
             curAmount = 0;
         }
@@ -48,6 +49,10 @@ var dbLogger = {
             operatorId: operatorId ? operatorId : null,
             data: data ? data : null
         };
+
+        // remove extra info on credit change log data
+        delete logData.data.devCheckMsg;
+
         var record = new dbconfig.collection_creditChangeLog(logData);
         record.save().then().catch(err => errorSavingLog(err, logData));
     },

@@ -530,8 +530,8 @@ let dbPlayerInfo = {
         let func = (fieldName == 'phoneNumber')
             ? dbUtility.encodePhoneNum
             : ((fieldName == 'bankAccount')
-            ? dbUtility.encodeBankAcc
-            : null);
+                ? dbUtility.encodeBankAcc
+                : null);
         return Q.resolve(prom1).then(results => {
             let prom = [];
             let similarPlayersArray = [];
@@ -1275,8 +1275,29 @@ let dbPlayerInfo = {
         ).then(
             isMatch => {
                 if (isMatch) {
-                    playerObj.password = newPassword;
-                    return playerObj.save();
+                    let deferred = Q.defer();
+                    bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+                        if (err) {
+                            deferred.reject(err);
+                            return;
+                        }
+                        bcrypt.hash(newPassword, salt, function (err, hash) {
+                            if (err) {
+                                deferred.reject(err);
+                                return;
+                            }
+                            // player.password = hash;
+                            // next();
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: playerObj._id, platform: playerObj.platform}, {password: hash}
+                            ).then(
+                                deferred.resolve, deferred.reject
+                            );
+                        });
+                    });
+                    // playerObj.password = newPassword;
+                    // return playerObj.save();
+                    return deferred.promise;
                 }
                 else {
                     return Q.reject({
@@ -1511,6 +1532,7 @@ let dbPlayerInfo = {
      * @param {json} data - details
      */
     updatePlayerCredit: function (playerId, platformId, amount, type, operatorId, data) {
+        // note: use constPlayerCreditChangeType for 'type' parameter
         var deferred = Q.defer();
         dbconfig.collection_players.findOneAndUpdate(
             {_id: playerId, platform: platformId},
@@ -1716,7 +1738,7 @@ let dbPlayerInfo = {
         var time1 = endTime ? new Date(endTime) : new Date();
         queryObject.operationTime = {$gte: time0, $lt: time1};
         var a = dbconfig.collection_creditChangeLog.find(queryObject).count();
-        var b = dbconfig.collection_creditChangeLog.find(queryObject).sort(sortCol).skip(index).limit(limit);
+        var b = dbconfig.collection_creditChangeLog.find(queryObject).sort(sortCol).skip(index).limit(limit).lean();
         var c = dbconfig.collection_proposal.find({
             "data.playerObjId": ObjectId(query.playerId),
             createTime: {
@@ -1724,8 +1746,17 @@ let dbPlayerInfo = {
                 $lt: time1
             }
         }).lean();
+        var totalProm = dbconfig.collection_creditChangeLog.aggregate([
+            {
+                $match: queryObject,
+            },
+            {
+                $group: {_id: null, totalChange: {$sum: "$amount"}}
+            }
+        ]);
+
         var logThatHaveNoProposal = ['TransferIn', 'TransferOut'];
-        return Q.all([a, b, c]).then(
+        return Q.all([a, b, c, totalProm]).then(
             data => {
                 data[1].forEach(
                     (result) => {
@@ -1742,8 +1773,9 @@ let dbPlayerInfo = {
                             });
                             result.data.proposalId = temp[0] ? temp[0].proposalId : "";
                         }
-                    });
-                return {total: data[0], data: data[1]};
+                    }
+                );
+                return {total: data[0], data: data[1], totalChanged: data[3][0] ? data[3][0].totalChange : 0};
             })
     },
 
@@ -1869,7 +1901,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data) {
-                    dbLogger.createCreditChangeLog(playerId, platformId, amount, "Purchase", data.validCredit);
+                    dbLogger.createCreditChangeLog(playerId, platformId, amount, constPlayerCreditChangeType.PURCHASE, data.validCredit);
                     var recordData = {
                         playerId: playerId,
                         platformId: platformId,
@@ -1944,8 +1976,10 @@ let dbPlayerInfo = {
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
-                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
-                        constProposalStatus.APPROVED, constProposalStatus.REJECTED]}
+                    status: {
+                        $in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
+                            constProposalStatus.APPROVED, constProposalStatus.REJECTED]
+                    }
                 }).lean();
 
             }, function (error) {
@@ -2348,7 +2382,7 @@ let dbPlayerInfo = {
 
         return deferred.promise.catch(
             error => Q.resolve().then(
-                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyFirstTopUpReward:ProposalFailedRefund", error)
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_FIRST_TOP_UP_REWARD_REFUND, error)
             ).then(
                 () => Q.reject(error)
             )
@@ -2766,11 +2800,11 @@ let dbPlayerInfo = {
                     return thisPlayer;
                 });
         }
-        
-        if(data.bankAccount){
+
+        if (data.bankAccount) {
             advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i');
         }
-        
+
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -2976,7 +3010,7 @@ let dbPlayerInfo = {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
-                            code: constServerCode.PLAYER_IS_FORBIDDEN 
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
                         });
                         return;
                     }
@@ -3604,9 +3638,9 @@ let dbPlayerInfo = {
         let deferred = Q.defer();
         let prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform});
+                .populate({path: "platform", model: dbconfig.collection_platform});
         let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         let playerData = null;
         let providerData = null;
@@ -4034,9 +4068,9 @@ let dbPlayerInfo = {
         var playerObj = {};
         var prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform});
+                .populate({path: "platform", model: dbconfig.collection_platform});
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
@@ -4830,6 +4864,9 @@ let dbPlayerInfo = {
         }
         if (endTime) {
             queryObject.createTime = {$lt: new Date(endTime)};
+        }
+        if (startTime && endTime) {
+            queryObject.createTime = {$gte: new Date(startTime), $lt: new Date(endTime)};
         }
 
         return dbconfig.collection_players.findOne({playerId: playerId}).catch(
@@ -5761,13 +5798,13 @@ let dbPlayerInfo = {
         );
     },
 
-    countDailyPlayerBonusByPlatform: function(platformId, startDate, endDate){
+    countDailyPlayerBonusByPlatform: function (platformId, startDate, endDate) {
 
         return dbconfig.collection_proposalType.findOne({
             platformId: platformId,
             name: constProposalType.PLAYER_BONUS
         })
-        .then(function(typeData){
+        .then(function (typeData) {
             var queryObj = {
                 type: typeData._id
             };
@@ -5782,11 +5819,13 @@ let dbPlayerInfo = {
                 queryObj.createTime["$lte"] = new Date(endDate);
             }
             var proposalProm = dbconfig.collection_proposal.aggregate([
-                {$match:queryObj},
-                {$group:{
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createTime" } },
-                    number:{$sum:'$data.amount'}
-                }}
+                {$match: queryObj},
+                {
+                    $group: {
+                        _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
+                        number: {$sum: '$data.amount'}
+                    }
+                }
             ])
             return Q.all([proposalProm]).then(
                 data => {
@@ -6128,7 +6167,7 @@ let dbPlayerInfo = {
                 {new: true}
             ).then(
                 resetPlayer => {
-                    dbLogger.createCreditChangeLog(playerObjId, platformObjId, credit, "PlayerBonus:resetCredit", resetPlayer.validCredit, null, error);
+                    dbLogger.createCreditChangeLog(playerObjId, platformObjId, credit, constPlayerCreditChangeType.PLAYER_BONUS_RESET_CREDIT, resetPlayer.validCredit, null, error);
                     if (error) {
                         return Q.reject(error);
                     }
@@ -6375,17 +6414,17 @@ let dbPlayerInfo = {
     },
 
 
-    getAllAppliedBonusList: function ( platformId, startIndex, count, startTime, endTime, status, sort) {
-            var seq = sort ? -1 : 1;
-            console.log(platformId);
-            return dbconfig.collection_proposalType.find({
-                name: constProposalType.PLAYER_BONUS
-            })
-            .then(function(typeData){
+    getAllAppliedBonusList: function (platformId, startIndex, count, startTime, endTime, status, sort) {
+        var seq = sort ? -1 : 1;
+        console.log(platformId);
+        return dbconfig.collection_proposalType.find({
+            name: constProposalType.PLAYER_BONUS
+        })
+            .then(function (typeData) {
                 console.log(typeData)
 
                 var bonusIds = [];
-                for(var type in typeData){
+                for (var type in typeData) {
                     bonusIds.push(typeData[type]._id);
                 }
 
@@ -6410,10 +6449,12 @@ let dbPlayerInfo = {
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
                 var proposalProm = dbconfig.collection_proposal.aggregate([
                     {$match: queryObj},
-                    {$group:{
-                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createTime" } },
-                        amount:{$sum:'$data.amount'}
-                    }}
+                    {
+                        $group: {
+                            _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
+                            amount: {$sum: '$data.amount'}
+                        }
+                    }
                 ])
 
                 return Q.all([proposalProm, countProm]).then(
@@ -6880,20 +6921,20 @@ let dbPlayerInfo = {
                     else if (playerData.permission.forbidPlayerFromEnteringGame) {
                         // var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
                         // if (isForbidden) {
-                            return Q.reject({
-                                name: "DataError",
-                                status: constServerCode.PLAYER_IS_FORBIDDEN,
-                                message: "Player is forbidden to the game",
-                                playerStatus: playerData.status
-                            });
+                        return Q.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Player is forbidden to the game",
+                            playerStatus: playerData.status
+                        });
                         // }
-                    // } else if (playerData.status === constPlayerStatus.BANNED) {
-                    //     return Q.reject({
-                    //         status: constServerCode.PLAYER_IS_FORBIDDEN,
-                    //         name: "DataError",
-                    //         message: "Player is banned",
-                    //         playerStatus: playerData.status
-                    //     });
+                        // } else if (playerData.status === constPlayerStatus.BANNED) {
+                        //     return Q.reject({
+                        //         status: constServerCode.PLAYER_IS_FORBIDDEN,
+                        //         name: "DataError",
+                        //         message: "Player is banned",
+                        //         playerStatus: playerData.status
+                        //     });
                     }
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
@@ -6905,12 +6946,12 @@ let dbPlayerInfo = {
                         });
                     }
 
-                    let providerEnabled = true;
-                    let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
-
-                    if (providerInfo) {
-                        providerEnabled = providerInfo.isEnabled;
-                    }
+                    // let providerEnabled = true;
+                    // let providerInfo = playerData.platform.gameProviderInfo[String(gameData.provider._id)];
+                    //
+                    // if (providerInfo) {
+                    //     providerEnabled = providerInfo.isEnabled;
+                    // }
 
                     // Added checking for platform level disable game provider
                     if (gameData.provider.status != constProviderStatus.NORMAL) {
@@ -7677,7 +7718,7 @@ let dbPlayerInfo = {
             }
         ).catch(
             error => Q.resolve().then(
-                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyTopUpReturn:ProposalFailedRefund", error)
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_TOP_UP_RETURN_REFUND, error)
             ).then(
                 () => Q.reject(error)
             )
@@ -8129,7 +8170,7 @@ let dbPlayerInfo = {
 
                 // All conditions have been satisfied.
                 deductionAmount = record.amount;
-                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerTopUpReward:Deduction", record).then(
+                return dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, constPlayerCreditChangeType.TOP_UP_REWARD_DEDUCTION, record).then(
                     function () {
                         bDoneDeduction = true;
 
@@ -8204,7 +8245,7 @@ let dbPlayerInfo = {
             }
         ).catch(
             error => Q.resolve().then(
-                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyPlayerTopUpReward:ProposalFailedRefund", error)
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_TOP_UP_REWARD_REFUND, error)
             ).then(
                 () => Q.reject(error)
             )
@@ -9107,7 +9148,7 @@ let dbPlayerInfo = {
             }
         ).catch(
             error => Q.resolve().then(
-                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, "applyPlayerTopUpReward:ProposalFailedRefund", error)
+                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_TOP_UP_REWARD_REFUND, error)
             ).then(
                 () => Q.reject(error)
             )
@@ -9186,7 +9227,7 @@ let dbPlayerInfo = {
                 if (player.validCredit < 0) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(
-                        () => dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, "deductedBelowZeroRefund", data)
+                        () => dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
                     ).then(
                         () => Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -9234,11 +9275,11 @@ let dbPlayerInfo = {
         )
     },
 
-    updatePlayerReferral: function(playerObjId, referralName) {
+    updatePlayerReferral: function (playerObjId, referralName) {
         let player, referral;
         dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
             playerData => {
-                player  = playerData;
+                player = playerData;
                 return dbconfig.collection_players.findOne({name: referralName}).lean();
             },
             error => {
@@ -9298,10 +9339,10 @@ let dbPlayerInfo = {
 
     readMail: (playerId, mailObjId) => {
         return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
-            {path: "recipientId", model: dbconfig.collection_players }
+            {path: "recipientId", model: dbconfig.collection_players}
         ).then(
             mailData => {
-                if( mailData && mailData.recipientId && mailData.recipientId.playerId == playerId ) {
+                if (mailData && mailData.recipientId && mailData.recipientId.playerId == playerId) {
                     mailData.hasBeenRead = true;
                     return mailData.save();
                 }
@@ -9315,7 +9356,7 @@ let dbPlayerInfo = {
     getUnreadMail: (playerId) => {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
-                if( playerData ){
+                if (playerData) {
                     return dbconfig.collection_playerMail.find(
                         {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
                     ).lean();
@@ -9327,9 +9368,9 @@ let dbPlayerInfo = {
     deleteAllMail: (playerId, hasBeenRead) => {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             playerData => {
-                if( playerData ) {
+                if (playerData) {
                     let qObj = {recipientId: playerData._id, bDelete: false};
-                    if(hasBeenRead !== undefined){
+                    if (hasBeenRead !== undefined) {
                         qObj.hasBeenRead = Boolean(hasBeenRead);
                     }
                     return dbconfig.collection_playerMail.update(
@@ -9346,10 +9387,10 @@ let dbPlayerInfo = {
 
     deleteMail: (playerId, mailObjId) => {
         return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
-            {path: "recipientId", model: dbconfig.collection_players }
+            {path: "recipientId", model: dbconfig.collection_players}
         ).then(
             mailData => {
-                if( mailData && mailData.recipientId && mailData.recipientId.playerId == playerId ) {
+                if (mailData && mailData.recipientId && mailData.recipientId.playerId == playerId) {
                     mailData.bDelete = true;
                     return mailData.save();
                 }
@@ -9361,7 +9402,6 @@ let dbPlayerInfo = {
     },
 
 };
-
 
 
 var proto = dbPlayerInfoFunc.prototype;

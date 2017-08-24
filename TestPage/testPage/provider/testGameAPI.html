@@ -223,6 +223,14 @@
     </div>
 </div>
 
+<h3>Sync game images (同步游戏图片)</h3>
+<div class="test-container">
+    <button id="syncGameImage" data-api-name="syncGameImage">Get</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/provider/ProviderServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/providerAPITest/GameAPITest', 'testAPI/providerAPITest/ConnectionAPITest'],
             function (ProviderServices, WebSocketClient, TestHelper, GameAPITest, connectionAPITest) {
