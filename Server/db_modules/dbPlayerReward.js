@@ -704,6 +704,7 @@ let dbPlayerReward = {
 
                     if (aliPayLimitData) {
                         aliPayLimitData.type = 99;
+                        aliPayLimitData.status = aliPayLimitData.bValid ? 1 : 2;
                         topUpTypeData.push(aliPayLimitData)
                     }
 
