@@ -58,7 +58,7 @@ define(['js/app'], function (myApp) {
 
             //only query the success bonus proposal
             sendData.platformId = vm.platformID;
-            sendData.status = 'Success';
+            sendData.status = ['Success','Approved'];
             socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data) {
                 var totalBonus = 0;
                 var records = data.data.records;
