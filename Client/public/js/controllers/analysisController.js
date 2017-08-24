@@ -183,6 +183,11 @@ define(['js/app'], function (myApp) {
                             vm.drawPlayerCreditLine('PLAYER_TOPUP');
                         });
                         break;
+                    case "BONUS_AMOUNT":
+                        vm.initSearchParameter('bonusAmount', 'day', 3, function () {
+                            vm.drawPlayerBonusAmount('BONUS_AMOUNT');
+                        });
+                        break;
                     case "CLIENT_SOURCE":
                         vm.initSearchParameter('clientSource', true, 3, function () {
                             vm.initClientSourcePara(vm.getClientSourceData);
@@ -290,7 +295,7 @@ define(['js/app'], function (myApp) {
                 var data = data1.data.records.filter(function (obj) {
                     return (obj._id);
                 }).map(function (obj) {
-                    return {label: vm.setGraphName(obj._id), data: obj.data.amount};
+                    return {label: vm.setGraphName(obj._id), data: obj.amount};
                 }).sort(function (a, b) {
                     return b.data - a.data;
                 })
@@ -1812,6 +1817,35 @@ define(['js/app'], function (myApp) {
             a.columns.adjust().draw();
         }
         //player credit end =======================================================
+
+        //bonus amount 
+        vm.drawPlayerBonusAmount = function (type) {
+            var opt = '';
+            if (type == 'PLAYER_EXPENSES') {
+                opt = 'consumption';
+            } else if (type == 'PLAYER_TOPUP') {
+                opt = 'topup';
+            }
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.bonusAmount.periodText,
+                type: opt,
+                startDate: vm.queryPara.bonusAmount.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.bonusAmount.endTime.data('datetimepicker').getLocalDate(),
+                status:['Approved','Success']
+            }
+
+            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function (data) {
+                vm.playerCreditData = data.data;
+                console.log('vm.playerCreditData', vm.playerCreditData);
+                // $scope.safeApply();
+                return vm.drawPlayerCreditGraph(vm.playerCreditData, sendData);
+            }, function (data) {
+                console.log("player credit data not", data);
+            });
+        }
+
+
 
         //client source start =======================================
         vm.initClientSourcePara = function (callback) {

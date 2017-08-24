@@ -5771,7 +5771,7 @@ let dbPlayerInfo = {
             var queryObj = {
                 type: typeData._id
             };
-            queryObj.status = 'Success';
+            queryObj.status = {$in: ['Success','Approved']};
             if (startDate || endDate) {
                 queryObj.createTime = {};
             }
@@ -6394,8 +6394,9 @@ let dbPlayerInfo = {
                 };
 
                 if (status) {
-                    queryObj.status = status;
+                    queryObj.status = {$in: status}
                 }
+                
                 if (startTime || endTime) {
                     queryObj.createTime = {};
                 }
@@ -6408,7 +6409,7 @@ let dbPlayerInfo = {
 
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
                 var proposalProm = dbconfig.collection_proposal.aggregate([
-                    {$match:queryObj},
+                    {$match: queryObj},
                     {$group:{
                         _id: { $dateToString: { format: "%Y-%m-%d", date: "$createTime" } },
                         amount:{$sum:'$data.amount'}

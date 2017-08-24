@@ -44,6 +44,8 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'PLAYER_TOPUP' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','ClientSource')",ng-click='vm.loadPage("CLIENT_SOURCE")')
                     a  {{'CLIENT_SOURCE' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','BONUS_AMOUNT')",ng-click='vm.loadPage("BONUS_AMOUNT")')
+                    a  {{'BonusAmount' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','ConsumptionInterval')",ng-click='vm.loadPage("CONSUMPTION_INTERVAL")')
                     a  {{'CONSUMPTION_INTERVAL' | translate}}
                 //li(ng-click='vm.loadPage("GAME_ANALYSIS")')
@@ -81,8 +83,11 @@ div(ng-if="checkViewPermission('Analysis')")
                 include category/player-credit
             div(ng-if='vm.showPageName=="PLAYER_TOPUP"')
                 include category/player-credit
+            div(ng-if='vm.showPageName=="BONUS_AMOUNT"')
+                include category/bonus-amount
             div(ng-if='vm.showPageName=="CLIENT_SOURCE"')
                 include category/client-source
+
             div(ng-if='vm.showPageName=="CONSUMPTION_INTERVAL"')
                 include category/consumption-interval
             div(ng-if='vm.showPageName==""')
