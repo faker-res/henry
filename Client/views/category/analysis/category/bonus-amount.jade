@@ -1,0 +1,41 @@
+.section
+    .row
+        .titlePic
+            .title
+                text {{vm.showPageName | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#bonusAmountAnalysis .block-query","bonusAmount")')
+                        text.pull-left.margin-right-5 {{vm.optionText.bonusAmount | translate}}
+    #bonusAmountAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.bonusAmount.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            //div
+            //    label {{"Start date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.bonusAmount.startTime')
+            //div
+            //    label {{"End date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.bonusAmount.endTime')
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.drawPlayerBonusAmount(vm.showPageName)') {{'SEARCH' | translate}}
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-bonusAmount.lineChart.graphDiv
+            .col-md-6
+                .graph
+                    table#bonusAmountAnalysisTable.display.tableDiv(style='min-width:100%')
+
+p(ng-init="vm.loadPageFunc(vm.showPageName)")
