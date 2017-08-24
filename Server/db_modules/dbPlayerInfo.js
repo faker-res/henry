@@ -6439,11 +6439,9 @@ let dbPlayerInfo = {
                     queryObj.createTime = {};
                 }
                 if (startTime) {
-                    startTime = new Date(startTime).getTime()
                     queryObj.createTime["$gte"] = dbUtility.getDayStartTime(new Date(startTime))
                 }
                 if (endTime) {
-                    endTime = new Date(endTime).getTime()
                     queryObj.createTime["$lte"] = dbUtility.getDayStartTime(new Date(endTime))
                 }
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
