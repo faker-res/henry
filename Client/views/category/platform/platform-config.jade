@@ -28,7 +28,10 @@
                         span {{"Auto Approval Setting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "monitor"}', ng-click='vm.configTabClicked("monitor")')
                         span {{"Monitor Setting" | translate}}
-
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "playerValue"}', ng-click='vm.configTabClicked("playerValue")')
+                        span {{"Player Value" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "credibility"}', ng-click='vm.configTabClicked("credibility")')
+                        span {{"Player Credibility" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
