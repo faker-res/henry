@@ -5804,35 +5804,35 @@ let dbPlayerInfo = {
             platformId: platformId,
             name: constProposalType.PLAYER_BONUS
         })
-            .then(function (typeData) {
-                var queryObj = {
-                    type: typeData._id
-                };
-                queryObj.status = 'Success';
-                if (startDate || endDate) {
-                    queryObj.createTime = {};
-                }
-                if (startDate) {
-                    queryObj.createTime["$gte"] = new Date(startDate);
-                }
-                if (endDate) {
-                    queryObj.createTime["$lte"] = new Date(endDate);
-                }
-                var proposalProm = dbconfig.collection_proposal.aggregate([
-                    {$match: queryObj},
-                    {
-                        $group: {
-                            _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
-                            number: {$sum: '$data.amount'}
-                        }
+        .then(function (typeData) {
+            var queryObj = {
+                type: typeData._id
+            };
+            queryObj.status = {$in: ['Success','Approved']};
+            if (startDate || endDate) {
+                queryObj.createTime = {};
+            }
+            if (startDate) {
+                queryObj.createTime["$gte"] = new Date(startDate);
+            }
+            if (endDate) {
+                queryObj.createTime["$lte"] = new Date(endDate);
+            }
+            var proposalProm = dbconfig.collection_proposal.aggregate([
+                {$match: queryObj},
+                {
+                    $group: {
+                        _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
+                        number: {$sum: '$data.amount'}
                     }
-                ])
-                return Q.all([proposalProm]).then(
-                    data => {
-                        return data[0]
-                    }
-                );
-            });
+                }
+            ])
+            return Q.all([proposalProm]).then(
+                data => {
+                    return data[0]
+                }
+            );
+        });
     },
 
     /* 
@@ -6433,8 +6433,9 @@ let dbPlayerInfo = {
                 };
 
                 if (status) {
-                    queryObj.status = status;
+                    queryObj.status = {$in: status}
                 }
+                
                 if (startTime || endTime) {
                     queryObj.createTime = {};
                 }
