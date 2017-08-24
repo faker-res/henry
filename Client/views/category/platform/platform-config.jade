@@ -659,6 +659,32 @@
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("monitor")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("monitor")') {{"CONFIRM" | translate}}
 
+                div(ng-if='vm.selectedConfigTab=="playerValue"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'criteria' | translate}}
+                                th {{'ratio' | translate}}
+                        tbody
+                            tr
+                                td {{'TOP_UP_TIMES' | translate}}
+                                td
+                                    //text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorMerchantCount}}
+                                    //input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorMerchantCount')
+                            tr
+                                td {{'Game Type Count' | translate}}
+                                td
+                                    //text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorPlayerCount}}
+                                    //input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorPlayerCount')
+                            tr
+                                td {{'Player Credibility' | translate}}
+                                td
+                            tr
+                                td {{'Player Level' | translate}}
+                                td
+                            tr
+                                td {{'bonusAmount1' | translate}}
+                                td
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")
