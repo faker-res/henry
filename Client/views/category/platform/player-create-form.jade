@@ -4,6 +4,7 @@ form(name="form_new_player", novalidate)
 			label.control-label *{{"PLAYER_NAME" | translate}}
 			input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.newPlayer.name", ng-change='vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player)', required)
 			span.help-block(style='color: #b94a48', ng-show='vm.duplicateNameFound') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
+			span.help-block(style='color: #b94a48', ng-show='vm.euPrefixNotExist') {{'PLAYER_NAME' | translate}}&nbsp;{{'EU8 account must start with "e"' | translate}}
 		.form-group.col-md-6
 			label.control-label {{"EMAIL" | translate}}
 			input.form-control(type="email", name="email", placeholder='{{"winner@qq.com"}}', ng-model="vm.newPlayer.email")
