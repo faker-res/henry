@@ -5813,10 +5813,10 @@ let dbPlayerInfo = {
                 queryObj.createTime = {};
             }
             if (startDate) {
-                queryObj.createTime["$gte"] = new Date(startDate);
+                queryObj.createTime["$gte"] = dbUtility.getDayStartTime(new Date(startDate));
             }
             if (endDate) {
-                queryObj.createTime["$lte"] = new Date(endDate);
+                queryObj.createTime["$lte"] = dbUtility.getDayStartTime(new Date(endDate));
             }
             var proposalProm = dbconfig.collection_proposal.aggregate([
                 {$match: queryObj},
@@ -6421,7 +6421,6 @@ let dbPlayerInfo = {
             name: constProposalType.PLAYER_BONUS
         })
             .then(function (typeData) {
-                console.log(typeData)
 
                 var bonusIds = [];
                 for (var type in typeData) {
@@ -6440,12 +6439,13 @@ let dbPlayerInfo = {
                     queryObj.createTime = {};
                 }
                 if (startTime) {
-                    queryObj.createTime["$gte"] = new Date(startTime);
+                    startTime = new Date(startTime).getTime()
+                    queryObj.createTime["$gte"] = dbUtility.getDayStartTime(new Date(startTime))
                 }
                 if (endTime) {
-                    queryObj.createTime["$lte"] = new Date(endTime);
+                    endTime = new Date(endTime).getTime()
+                    queryObj.createTime["$lte"] = dbUtility.getDayStartTime(new Date(endTime))
                 }
-
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
                 var proposalProm = dbconfig.collection_proposal.aggregate([
                     {$match: queryObj},

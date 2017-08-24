@@ -44,7 +44,7 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'PLAYER_TOPUP' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','ClientSource')",ng-click='vm.loadPage("CLIENT_SOURCE")')
                     a  {{'CLIENT_SOURCE' | translate}}
-                li(ng-if="checkViewPermission('Analysis','Analysis','BONUS_AMOUNT')",ng-click='vm.loadPage("BONUS_AMOUNT")')
+                li(ng-if="checkViewPermission('Analysis','Analysis','BonusAmount')",ng-click='vm.loadPage("BONUS_AMOUNT")')
                     a  {{'BonusAmount' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','ConsumptionInterval')",ng-click='vm.loadPage("CONSUMPTION_INTERVAL")')
                     a  {{'CONSUMPTION_INTERVAL' | translate}}
