@@ -530,8 +530,8 @@ let dbPlayerInfo = {
         let func = (fieldName == 'phoneNumber')
             ? dbUtility.encodePhoneNum
             : ((fieldName == 'bankAccount')
-            ? dbUtility.encodeBankAcc
-            : null);
+                ? dbUtility.encodeBankAcc
+                : null);
         return Q.resolve(prom1).then(results => {
             let prom = [];
             let similarPlayersArray = [];
@@ -1751,7 +1751,7 @@ let dbPlayerInfo = {
                 $match: queryObject,
             },
             {
-                $group: { _id: null, totalChange: {$sum: "$amount"} }
+                $group: {_id: null, totalChange: {$sum: "$amount"}}
             }
         ]);
 
@@ -1976,8 +1976,10 @@ let dbPlayerInfo = {
                     "data.playerId": data.playerId,
                     "data.periodType": '0',
                     type: proposalType,
-                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
-                        constProposalStatus.APPROVED, constProposalStatus.REJECTED]}
+                    status: {
+                        $in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
+                            constProposalStatus.APPROVED, constProposalStatus.REJECTED]
+                    }
                 }).lean();
 
             }, function (error) {
@@ -2798,11 +2800,11 @@ let dbPlayerInfo = {
                     return thisPlayer;
                 });
         }
-        
-        if(data.bankAccount){
+
+        if (data.bankAccount) {
             advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i');
         }
-        
+
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -3008,7 +3010,7 @@ let dbPlayerInfo = {
                         deferred.reject({
                             name: "DataError",
                             message: "Player is not enable",
-                            code: constServerCode.PLAYER_IS_FORBIDDEN 
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
                         });
                         return;
                     }
@@ -3636,9 +3638,9 @@ let dbPlayerInfo = {
         let deferred = Q.defer();
         let prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform});
+                .populate({path: "platform", model: dbconfig.collection_platform});
         let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         let playerData = null;
         let providerData = null;
@@ -4066,9 +4068,9 @@ let dbPlayerInfo = {
         var playerObj = {};
         var prom0 = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform});
+                .populate({path: "platform", model: dbconfig.collection_platform});
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
@@ -4862,6 +4864,9 @@ let dbPlayerInfo = {
         }
         if (endTime) {
             queryObject.createTime = {$lt: new Date(endTime)};
+        }
+        if (startTime && endTime) {
+            queryObject.createTime = {$gte: new Date(startTime), $lt: new Date(endTime)};
         }
 
         return dbconfig.collection_players.findOne({playerId: playerId}).catch(
@@ -5793,39 +5798,41 @@ let dbPlayerInfo = {
         );
     },
 
-    countDailyPlayerBonusByPlatform: function(platformId, startDate, endDate){
+    countDailyPlayerBonusByPlatform: function (platformId, startDate, endDate) {
 
         return dbconfig.collection_proposalType.findOne({
             platformId: platformId,
             name: constProposalType.PLAYER_BONUS
         })
-        .then(function(typeData){
-            var queryObj = {
-                type: typeData._id
-            };
-            queryObj.status = 'Success';
-            if (startDate || endDate) {
-                queryObj.createTime = {};
-            }
-            if (startDate) {
-                queryObj.createTime["$gte"] = new Date(startDate);
-            }
-            if (endDate) {
-                queryObj.createTime["$lte"] = new Date(endDate);
-            }
-            var proposalProm = dbconfig.collection_proposal.aggregate([
-                {$match:queryObj},
-                {$group:{
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createTime" } },
-                    number:{$sum:'$data.amount'}
-                }}
-            ])
-            return Q.all([proposalProm]).then(
-                data => {
-                    return data[0]
+            .then(function (typeData) {
+                var queryObj = {
+                    type: typeData._id
+                };
+                queryObj.status = 'Success';
+                if (startDate || endDate) {
+                    queryObj.createTime = {};
                 }
-            );
-        });
+                if (startDate) {
+                    queryObj.createTime["$gte"] = new Date(startDate);
+                }
+                if (endDate) {
+                    queryObj.createTime["$lte"] = new Date(endDate);
+                }
+                var proposalProm = dbconfig.collection_proposal.aggregate([
+                    {$match: queryObj},
+                    {
+                        $group: {
+                            _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
+                            number: {$sum: '$data.amount'}
+                        }
+                    }
+                ])
+                return Q.all([proposalProm]).then(
+                    data => {
+                        return data[0]
+                    }
+                );
+            });
     },
 
     /* 
@@ -6407,17 +6414,17 @@ let dbPlayerInfo = {
     },
 
 
-    getAllAppliedBonusList: function ( platformId, startIndex, count, startTime, endTime, status, sort) {
-            var seq = sort ? -1 : 1;
-            console.log(platformId);
-            return dbconfig.collection_proposalType.find({
-                name: constProposalType.PLAYER_BONUS
-            })
-            .then(function(typeData){
+    getAllAppliedBonusList: function (platformId, startIndex, count, startTime, endTime, status, sort) {
+        var seq = sort ? -1 : 1;
+        console.log(platformId);
+        return dbconfig.collection_proposalType.find({
+            name: constProposalType.PLAYER_BONUS
+        })
+            .then(function (typeData) {
                 console.log(typeData)
 
                 var bonusIds = [];
-                for(var type in typeData){
+                for (var type in typeData) {
                     bonusIds.push(typeData[type]._id);
                 }
 
@@ -6440,11 +6447,13 @@ let dbPlayerInfo = {
 
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
                 var proposalProm = dbconfig.collection_proposal.aggregate([
-                    {$match:queryObj},
-                    {$group:{
-                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createTime" } },
-                        amount:{$sum:'$data.amount'}
-                    }}
+                    {$match: queryObj},
+                    {
+                        $group: {
+                            _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
+                            amount: {$sum: '$data.amount'}
+                        }
+                    }
                 ])
 
                 return Q.all([proposalProm, countProm]).then(
@@ -6911,20 +6920,20 @@ let dbPlayerInfo = {
                     else if (playerData.permission.forbidPlayerFromEnteringGame) {
                         // var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
                         // if (isForbidden) {
-                            return Q.reject({
-                                name: "DataError",
-                                status: constServerCode.PLAYER_IS_FORBIDDEN,
-                                message: "Player is forbidden to the game",
-                                playerStatus: playerData.status
-                            });
+                        return Q.reject({
+                            name: "DataError",
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            message: "Player is forbidden to the game",
+                            playerStatus: playerData.status
+                        });
                         // }
-                    // } else if (playerData.status === constPlayerStatus.BANNED) {
-                    //     return Q.reject({
-                    //         status: constServerCode.PLAYER_IS_FORBIDDEN,
-                    //         name: "DataError",
-                    //         message: "Player is banned",
-                    //         playerStatus: playerData.status
-                    //     });
+                        // } else if (playerData.status === constPlayerStatus.BANNED) {
+                        //     return Q.reject({
+                        //         status: constServerCode.PLAYER_IS_FORBIDDEN,
+                        //         name: "DataError",
+                        //         message: "Player is banned",
+                        //         playerStatus: playerData.status
+                        //     });
                     }
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
@@ -9265,11 +9274,11 @@ let dbPlayerInfo = {
         )
     },
 
-    updatePlayerReferral: function(playerObjId, referralName) {
+    updatePlayerReferral: function (playerObjId, referralName) {
         let player, referral;
         dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
             playerData => {
-                player  = playerData;
+                player = playerData;
                 return dbconfig.collection_players.findOne({name: referralName}).lean();
             },
             error => {
@@ -9329,10 +9338,10 @@ let dbPlayerInfo = {
 
     readMail: (playerId, mailObjId) => {
         return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
-            {path: "recipientId", model: dbconfig.collection_players }
+            {path: "recipientId", model: dbconfig.collection_players}
         ).then(
             mailData => {
-                if( mailData && mailData.recipientId && mailData.recipientId.playerId == playerId ) {
+                if (mailData && mailData.recipientId && mailData.recipientId.playerId == playerId) {
                     mailData.hasBeenRead = true;
                     return mailData.save();
                 }
@@ -9346,7 +9355,7 @@ let dbPlayerInfo = {
     getUnreadMail: (playerId) => {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
-                if( playerData ){
+                if (playerData) {
                     return dbconfig.collection_playerMail.find(
                         {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
                     ).lean();
@@ -9358,9 +9367,9 @@ let dbPlayerInfo = {
     deleteAllMail: (playerId, hasBeenRead) => {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             playerData => {
-                if( playerData ) {
+                if (playerData) {
                     let qObj = {recipientId: playerData._id, bDelete: false};
-                    if(hasBeenRead !== undefined){
+                    if (hasBeenRead !== undefined) {
                         qObj.hasBeenRead = Boolean(hasBeenRead);
                     }
                     return dbconfig.collection_playerMail.update(
@@ -9377,10 +9386,10 @@ let dbPlayerInfo = {
 
     deleteMail: (playerId, mailObjId) => {
         return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
-            {path: "recipientId", model: dbconfig.collection_players }
+            {path: "recipientId", model: dbconfig.collection_players}
         ).then(
             mailData => {
-                if( mailData && mailData.recipientId && mailData.recipientId.playerId == playerId ) {
+                if (mailData && mailData.recipientId && mailData.recipientId.playerId == playerId) {
                     mailData.bDelete = true;
                     return mailData.save();
                 }
@@ -9392,7 +9401,6 @@ let dbPlayerInfo = {
     },
 
 };
-
 
 
 var proto = dbPlayerInfoFunc.prototype;
