@@ -8394,7 +8394,7 @@ let dbPlayerInfo = {
                                             message: "Invalid Data"
                                         });
                                     }
-                                    console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn", layerId, data.topUpRecordId, code);
+                                    console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn", playerId, data.topUpRecordId, code);
                                     return dbPlayerInfo.applyTopUpReturn(playerId, data.topUpRecordId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
