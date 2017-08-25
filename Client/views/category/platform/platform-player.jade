@@ -1131,13 +1131,13 @@ include modalGameCreditLog
                                             text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_PROVINCE' | translate}}
-                                            text {{vm.showProvinceStr}}
+                                            text {{vm.showProvinceStr ? vm.showProvinceStr : 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_CITY' | translate}}
-                                            text {{vm.showCityStr}}
+                                            text {{vm.showCityStr ? vm.showCityStr : 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'BANK_ACCOUNT_DISTRICT' | translate}}
-                                            text {{vm.showDistrictStr}}
+                                            text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{'Bank Address' | translate}}
                                             text {{vm.selectedSinglePlayer.bankAddress || 'Unknown' | translate}}

@@ -3631,24 +3631,35 @@ define(['js/app'], function (myApp) {
                         vm.showCityStr = '';
                         vm.showDistrictStr = '';
                         $scope.getProvinceStr(vm.selectedSinglePlayer.bankAccountProvince).then(data => {
-                            vm.showProvinceStr = data.data.province ? data.data.province.name : vm.selectedSinglePlayer.bankAccountProvince;
+                            if (data.data.province) {
+                                vm.showProvinceStr = data.data.province.name;
+                                $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
+                                    if (data.data.city) {
+                                        vm.showCityStr = data.data.city.name;
+                                        $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
+                                            vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
+                                            $scope.safeApply();
+                                        }, err => {
+                                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
+                                            $scope.safeApply();
+                                        });
+                                    }
+                                    else {
+                                        vm.showCityStr = vm.selectedSinglePlayer.bankAccountCity;
+                                    }
+                                    vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
+                                    $scope.safeApply();
+                                }, err => {
+                                    vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
+                                    $scope.safeApply();
+                                });
+                            }
+                            else {
+                                vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince;
+                            }
                             $scope.safeApply();
                         }, err => {
                             vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince || $translate("Unknown");
-                            $scope.safeApply();
-                        });
-                        $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
-                            vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
-                            $scope.safeApply();
-                        }, err => {
-                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
-                            $scope.safeApply();
-                        });
-                        $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
-                            vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
-                            $scope.safeApply();
-                        }, err => {
-                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
                             $scope.safeApply();
                         });
 
