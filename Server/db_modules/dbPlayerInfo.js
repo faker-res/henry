@@ -7722,7 +7722,8 @@ let dbPlayerInfo = {
                     }
                 );
             }
-        ).catch(
+        ).then(
+            data => data,
             error => {
                 return Q.resolve().then(
                     () => {
