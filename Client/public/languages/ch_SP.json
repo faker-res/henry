@@ -1957,6 +1957,7 @@
   "isPrevious": "是否为补签",
   "Player Consecutive Login Reward": "累计签到奖励",
   "Player Consecutive Consumption Reward": "智勇冲关奖励",
+  "Player Packet Rain Reward": "红包雨奖励",
   "PlayerConsecutiveConsumptionReward": "智勇冲关奖励",
   "playerConsecutiveConsumptionReward": "智勇冲关奖励",
   "Incident": "事件",
@@ -1967,7 +1968,7 @@
   "CONSUMPTION_PARTICIPANT": "参与投注人数",
   "COMPANY_EARNING_RATIO": "公司获利比例",
   "PLAYER_PROFIT_AMOUNT": "输赢金额",
-
+  "Daily apply limit": "每日可申请次数",
   "Monitor": "监控",
   "Monitor Setting": "监控设置",
   "monitor": "监控",
