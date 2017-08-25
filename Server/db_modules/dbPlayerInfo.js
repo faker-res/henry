@@ -70,6 +70,7 @@ let dbProposal = require('./../db_modules/dbProposal');
 let dbProposalType = require('./../db_modules/dbProposalType');
 let dbRewardEvent = require('./../db_modules/dbRewardEvent');
 let dbRewardTask = require('./../db_modules/dbRewardTask');
+let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
 
 let PLATFORM_PREFIX_SEPARATOR = '';
 
@@ -300,6 +301,7 @@ let dbPlayerInfo = {
                         model: dbconfig.collection_playerLevel
                     }).lean().then(
                         pdata => {
+                            dbPlayerCredibility.calculatePlayerValue(data._id);
                             pdata.name = pdata.name.replace(platformPrefix, "");
                             pdata.platformId = platformId;
                             return pdata;
@@ -1859,6 +1861,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                dbPlayerCredibility.calculatePlayerValue(playerId);
                 deferred.resolve(data && data[0]);
             },
             function (error) {
@@ -5249,6 +5252,8 @@ let dbPlayerInfo = {
                             {new: false}
                         ).then(
                             oldPlayerRecord => {
+                                // calculate player value
+                                dbPlayerCredibility.calculatePlayerValue(data._id);
                                 // Should we give the player a reward for this level up?
                                 //console.log(`Player has upgraded from level ${oldPlayerRecord.playerLevel} to ${levelObjId}`);
                                 if (String(oldPlayerRecord.playerLevel) === String(levelObjId)) {
@@ -9390,6 +9395,23 @@ let dbPlayerInfo = {
             }
         );
     },
+
+    updatePlayerCredibilityRemark: (platformObjId, playerObjId, remarks) => {
+        return dbconfig.collection_players.findOneAndUpdate(
+            {
+                _id: playerObjId,
+                platform: platformObjId
+            },
+            {
+                credibilityRemarks: remarks
+            }
+        ).lean().then(
+            playerData => {
+                dbPlayerCredibility.calculatePlayerValue(playerData._id);
+                return playerData;
+            }
+        );
+    }
 
 };
 

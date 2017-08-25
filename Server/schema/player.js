@@ -225,7 +225,11 @@ var playerSchema = new Schema({
     //is new system user
     isNewSystem: {type: Boolean},
     //adding easter egg
-    applyingEasterEgg: {type: Boolean, default: false}
+    applyingEasterEgg: {type: Boolean, default: false},
+    // credibility remarks
+    credibilityRemarks: [{type: ObjectId, ref: 'playerCredibilityRemark'}],
+    // player value score
+    valueScore: {type: Number, default: 0}
 });
 
 //record is unique by name and platform

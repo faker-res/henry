@@ -833,7 +833,13 @@ function socketActionPlayer(socketIO, socket) {
             data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
             socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.startIndex, data.requestCount, data.startDate, data.endDate, data.status, !data.sort], actionName, isValidData);
 
-        }
+        },
+
+        updatePlayerCredibilityRemark: function updatePlayerCredibilityRemark(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.remarks);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.platformObjId, data.playerObjId, data.remarks], actionName, isValidData);
+        },
     };
     socketActionPlayer.actions = this.actions;
 }

@@ -22,6 +22,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const constProposalType = require('./../const/constProposalType');
 const constProposalStatus = require('./../const/constProposalStatus');
+const dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility')
 
 let dbUtility = require('./../modules/dbutility');
 
@@ -402,6 +403,8 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             function (data) {
+                // calculate player value score
+                dbPlayerCredibility.calculatePlayerValue(data._id);
                 //ensure credit balance isn't less than 0
                 if (record) {
                     var creditProm = dbconfig.collection_players.findOneAndUpdate(
