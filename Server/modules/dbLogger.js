@@ -36,6 +36,7 @@ var dbLogger = {
      * @param {Object} data - details
      */
     createCreditChangeLog: function (playerId, platformId, amount, type, curAmount, operatorId, data) {
+        // note: use constPlayerCreditChangeType for the 'type' parameter
         if (curAmount < 0) {
             curAmount = 0;
         }

@@ -234,7 +234,6 @@ define(['js/app'], function (myApp) {
                 vm.drawPaymentRecordTable(
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                        // item.proposalId$ = item.proposalId.slice(-3);
                         item.merchantNo$ = item.data.merchantNo
                             ? item.data.merchantNo
                             : item.data.weChatAccount
@@ -250,6 +249,13 @@ define(['js/app'], function (myApp) {
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);
                         item.merchantName = vm.merchantNumbers[item.data.merchantNo];
+
+                        if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
+                            let msgSplit = item.data.msg.split(" 单号:");
+                            item.merchantName = msgSplit[0];
+                            item.merchantNo$ = msgSplit[1];
+                        }
+
                         if (item.type.name === 'PlayerTopUp') {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType;
@@ -767,6 +773,9 @@ define(['js/app'], function (myApp) {
                     }
                     if (window.location.pathname != '/monitor/payment') {
                         clearInterval(vm.refreshInterval);
+                    }
+                    else if (!vm.paymentMonitorQuery) {
+                        vm.loadPage();
                     }
                 }, 1000);
             });

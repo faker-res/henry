@@ -440,6 +440,14 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.countDailyNewPlayerByPlatform, [platform, startTime, endTime], actionName, isValidData);
         },
 
+        countPlayerBonusAllPlatform: function countPlayerBonusAllPlatform(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            var platform = data.platform ? ObjectId(data.platform) : 'all';
+            socketUtil.emitter(self.socket, dbPlayerInfo.countDailyPlayerBonusByPlatform, [platform, startTime, endTime], actionName, isValidData);
+        },
         /**
          * Get active player count
          * @param {json} data - data contains _id
@@ -816,6 +824,15 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId && data.referral);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerReferral, [data.playerObjId, data.referral], actionName, isValidData);
+        },
+        getBonusRequestList: function getBonusRequestList(data){
+            var isValidData = Boolean(data);
+            let actionName = arguments.callee.name;
+            data = data || {};
+            data.startIndex = data.startIndex || 0;
+            data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.startIndex, data.requestCount, data.startDate, data.endDate, data.status, !data.sort], actionName, isValidData);
+
         }
     };
     socketActionPlayer.actions = this.actions;

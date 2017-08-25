@@ -3903,6 +3903,7 @@ define(['js/app'], function (myApp) {
             vm.prepareCreatePlayer = function () {
                 vm.newPlayer = {};
                 vm.duplicateNameFound = false;
+                vm.euPrefixNotExist = false;
                 $('.referralValidTrue').hide();
                 $('.referralValidFalse').hide();
                 vm.newPlayer.domain = window.location.hostname;
@@ -3937,10 +3938,19 @@ define(['js/app'], function (myApp) {
 
             vm.checkPlayerNameValidity = function (name, form, type) {
                 if (!name) return;
+                vm.euPrefixNotExist = false;
                 if (type == 'edit' && name == vm.selectedSinglePlayer.name) {
                     vm.duplicateNameFound = false;
                     return;
                 }
+
+                if (type !== 'edit' && vm.selectedPlatform.data.name === "EU8" && name && name.charAt(0) !== "e") {
+                    vm.euPrefixNotExist = true;
+                }
+                form.$setValidity('euPrefixNotExist', !vm.euPrefixNotExist);
+                $scope.safeApply();
+
+
                 socketService.$socket($scope.AppSocket, 'checkPlayerNameValidity', {
                     platform: vm.selectedPlatform.id,
                     name: name
@@ -3950,7 +3960,7 @@ define(['js/app'], function (myApp) {
                     } else if (data && data.data.isPlayerNameValid) {
                         vm.duplicateNameFound = false;
                     }
-                    form.$setValidity('usedPlayerName', !vm.duplicateNameFound)
+                    form.$setValidity('usedPlayerName', !vm.duplicateNameFound);
                     $scope.safeApply();
                 }, function (err) {
                     console.log('err', err);
@@ -4463,12 +4473,13 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, "getPagedPlayerCreditChangeLogs", sendQuery, function (data) {
                     vm.playerCreditChangeLogs = vm.processCreditChangeLogData(data.data.data);
                     vm.playerCreditChangeLog.totalCount = data.data.total || 0;
+                    vm.playerCreditChangeLog.totalChanged = data.data.totalChanged || 0;
                     vm.playerCreditChangeLog.loading = false;
-                    vm.drawPagedCreditChangeQueryTable(vm.playerCreditChangeLogs, vm.playerCreditChangeLog.totalCount, newSearch);
+                    vm.drawPagedCreditChangeQueryTable(vm.playerCreditChangeLogs, vm.playerCreditChangeLog.totalCount, vm.playerCreditChangeLog.totalChanged, newSearch);
                 })
             };
 
-            vm.drawPagedCreditChangeQueryTable = function (data, size, newSearch) {
+            vm.drawPagedCreditChangeQueryTable = function (data, size, totalChangedAmount, newSearch) {
                 let tableData = data.map(item => {
                     item.createTime$ = vm.dateReformat(item.operationTime);
                     item.operationType$ = $translate(item.operationType);
@@ -4498,8 +4509,8 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('CREATE_TIME'), data: 'createTime$'},
                         {'title': $translate('Type'), data: 'operationType$', sClass: "wordWrap width10Per"},
                         {'title': $translate('PROPOSAL_ID'), data: 'proposalId$', sClass: "tbodyNoWrap"},
-                        {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "wordWrap"},
-                        {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "tbodyNoWrap"},
+                        {'title': $translate('Before Amount'), data: 'beforeAmount', sClass: "sumText wordWrap"},
+                        {'title': $translate('CHANGE_AMOUNT'), data: 'amount', sClass: "sumFloat tbodyNoWrap"},
                         {'title': $translate('CUR_AMOUNT'), data: 'curAmount', sClass: "tbodyNoWrap"},
                         {
                             'title': $translate('Before UnlockedAmount'),
@@ -4516,7 +4527,7 @@ define(['js/app'], function (myApp) {
                     ],
                     paging: false,
                 });
-                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {});
+                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {4: totalChangedAmount});
                 vm.playerCreditChangeLog.pageObj.init({maxCount: size}, newSearch);
 
                 $('#playerCreditChangeLogTable').off('order.dt');

@@ -2653,3 +2653,20 @@ input[type='number'].leftALignNumber {
 #messagePlayerModal.modal.in .modal-dialog {
     width: 60%
 }
+
+
+.statTXT{
+    display:inline-block;
+    width:19.5%;
+    margin-right:5px;
+}
+
+.statGraph{
+    width:20%;
+}
+
+.operateStat{
+    width:20%;
+    display:inline-block;
+    margin-right:10px;
+}
