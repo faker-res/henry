@@ -8,11 +8,21 @@ var logsdb = 'mongodb://' + env.db.logsDBUrl;
 function createConnection(dbURL, callback) {
     // Database connect options
     var options = {
-        replset: {socketOptions: {keepAlive: 1, connectTimeoutMS: 30000}},
+        replset: {
+            socketOptions: {
+                keepAlive: 1,
+                connectTimeoutMS: 30000,
+                socketTimeoutMS: 60000
+            }
+        },
         server: {
             reconnectTries: Number.MAX_VALUE,
             reconnectInterval: 5000,
-            socketOptions: {keepAlive: 1, connectTimeoutMS: 30000}
+            socketOptions: {
+                keepAlive: 1,
+                connectTimeoutMS: 30000,
+                socketTimeoutMS: 60000
+            }
         }
     };
 
