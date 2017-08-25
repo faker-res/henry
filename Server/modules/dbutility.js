@@ -181,7 +181,10 @@ var dbUtility = {
         }
         return returnedStr;
     },
-
+    getLocalTime: function (date, format) {
+        var date = moment(date, 'YYYY-MM-DD HH:mm').tz('Asia/Singapore');
+        return date.toDate()
+    },
     getDayStartTime: function (date) {
         return date ? moment(date).tz('Asia/Singapore').startOf('day').toDate() : null;
     },
