@@ -7640,7 +7640,7 @@ let dbPlayerInfo = {
                 if (player.platform.useLockedCredit) {
                     creditProm = dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record);
                 }
-                creditProm.then(
+                return creditProm.then(
                     function (bDeduct) {
                         console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn3");
                         bDoneDeduction = bDeduct;
@@ -9094,7 +9094,7 @@ let dbPlayerInfo = {
                 if (player.platform.useLockedCredit) {
                     dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyPlayerDoubleTopUpReward:Deduction", record);
                 }
-                creditProm.then(
+                return creditProm.then(
                     function (bDeduct) {
                         bDoneDeduction = bDeduct;
                         var proposalData = {
