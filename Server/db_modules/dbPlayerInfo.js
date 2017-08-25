@@ -7526,6 +7526,7 @@ let dbPlayerInfo = {
             .populate({path: "platform", model: dbconfig.collection_platform}).lean();
         return Q.all([playerProm, recordProm]).then(
             function (data) {
+                console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn1");
                 // Check player permission to apply this reward
                 if (data && data[0] && data[0].permission.PlayerTopUpReturn === false) {
                     return Q.reject({
@@ -7578,6 +7579,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn2");
                 if (!data) {
                     return Q.reject({
                         status: constServerCode.REWARD_EVENT_INVALID,
@@ -7640,6 +7642,7 @@ let dbPlayerInfo = {
                 }
                 creditProm.then(
                     function (bDeduct) {
+                        console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn3");
                         bDoneDeduction = bDeduct;
 
                         var proposalData = {
@@ -7681,6 +7684,7 @@ let dbPlayerInfo = {
                             {new: true}
                         ).then(
                             data => {
+                                console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn4");
                                 if (data && data.bDirty) {
                                     return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
                                         data => data,
@@ -7691,6 +7695,7 @@ let dbPlayerInfo = {
                                                 message: "Create player top up return proposal failed",
                                                 data: proposalData
                                             });
+                                            console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn5");
                                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                                 {
                                                     _id: record._id,
@@ -8389,6 +8394,7 @@ let dbPlayerInfo = {
                                             message: "Invalid Data"
                                         });
                                     }
+                                    console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn", layerId, data.topUpRecordId, code);
                                     return dbPlayerInfo.applyTopUpReturn(playerId, data.topUpRecordId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
