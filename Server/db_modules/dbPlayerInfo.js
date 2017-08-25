@@ -5813,10 +5813,10 @@ let dbPlayerInfo = {
                 queryObj.createTime = {};
             }
             if (startDate) {
-                queryObj.createTime["$gte"] = dbUtility.getDayStartTime(new Date(startDate));
+                queryObj.createTime["$gte"] =dbUtility.getLocalTime(new Date(startDate));
             }
             if (endDate) {
-                queryObj.createTime["$lte"] = dbUtility.getDayStartTime(new Date(endDate));
+                queryObj.createTime["$lte"] =dbUtility.getLocalTime(new Date(endDate));
             }
             var proposalProm = dbconfig.collection_proposal.aggregate([
                 {$match: queryObj},
@@ -6439,10 +6439,10 @@ let dbPlayerInfo = {
                     queryObj.createTime = {};
                 }
                 if (startTime) {
-                    queryObj.createTime["$gte"] = dbUtility.getDayStartTime(new Date(startTime))
+                    queryObj.createTime["$gte"] = dbUtility.getLocalTime(new Date(startTime))
                 }
                 if (endTime) {
-                    queryObj.createTime["$lte"] = dbUtility.getDayStartTime(new Date(endTime))
+                    queryObj.createTime["$lte"] = dbUtility.getLocalTime(new Date(endTime))
                 }
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
                 var proposalProm = dbconfig.collection_proposal.aggregate([
@@ -8314,7 +8314,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
                         constRewardType.FULL_ATTENDANCE,
                         constRewardType.GAME_PROVIDER_REWARD,
-                        constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD
+                        constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
+                        constRewardType.PLAYER_PACKET_RAIN_REWARD,
                     ];
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
@@ -8417,6 +8418,9 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_EASTER_EGG_REWARD:
                                     return dbPlayerReward.applyEasterEggReward(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_PACKET_RAIN_REWARD:
+                                    return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
                                     break;
                                 default:
                                     return Q.reject({
