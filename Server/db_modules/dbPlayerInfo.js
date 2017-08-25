@@ -5804,35 +5804,35 @@ let dbPlayerInfo = {
             platformId: platformId,
             name: constProposalType.PLAYER_BONUS
         })
-        .then(function (typeData) {
-            var queryObj = {
-                type: typeData._id
-            };
-            queryObj.status = {$in: ['Success','Approved']};
-            if (startDate || endDate) {
-                queryObj.createTime = {};
-            }
-            if (startDate) {
-                queryObj.createTime["$gte"] =dbUtility.getLocalTime(new Date(startDate));
-            }
-            if (endDate) {
-                queryObj.createTime["$lte"] =dbUtility.getLocalTime(new Date(endDate));
-            }
-            var proposalProm = dbconfig.collection_proposal.aggregate([
-                {$match: queryObj},
-                {
-                    $group: {
-                        _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
-                        number: {$sum: '$data.amount'}
+            .then(function (typeData) {
+                var queryObj = {
+                    type: typeData._id
+                };
+                queryObj.status = {$in: ['Success', 'Approved']};
+                if (startDate || endDate) {
+                    queryObj.createTime = {};
+                }
+                if (startDate) {
+                    queryObj.createTime["$gte"] = dbUtility.getLocalTime(new Date(startDate));
+                }
+                if (endDate) {
+                    queryObj.createTime["$lte"] = dbUtility.getLocalTime(new Date(endDate));
+                }
+                var proposalProm = dbconfig.collection_proposal.aggregate([
+                    {$match: queryObj},
+                    {
+                        $group: {
+                            _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
+                            number: {$sum: '$data.amount'}
+                        }
                     }
-                }
-            ])
-            return Q.all([proposalProm]).then(
-                data => {
-                    return data[0]
-                }
-            );
-        });
+                ])
+                return Q.all([proposalProm]).then(
+                    data => {
+                        return data[0]
+                    }
+                );
+            });
     },
 
     /* 
@@ -6434,7 +6434,7 @@ let dbPlayerInfo = {
                 if (status) {
                     queryObj.status = {$in: status}
                 }
-                
+
                 if (startTime || endTime) {
                     queryObj.createTime = {};
                 }
@@ -7684,10 +7684,13 @@ let dbPlayerInfo = {
                             {new: true}
                         ).then(
                             data => {
-                                console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn4");
+                                console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn4", data);
                                 if (data && data.bDirty) {
                                     return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
-                                        data => data,
+                                        data => {
+                                            console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn6", data);
+                                            return data;
+                                        },
                                         error => {
                                             //clean top up record if create proposal failed
                                             console.error({
