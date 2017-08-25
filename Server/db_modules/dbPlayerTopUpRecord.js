@@ -514,7 +514,7 @@ var dbPlayerTopUpRecord = {
                             queryObj.topUpType = parseInt(topUpType);
                         }
                         else{
-                            queryObj.topUpType = {$ne: parseInt(topUpType)};
+                            queryObj.topUpType = {$ne: 2};
                         }
                     }
                     if (queryStartTime || queryEndTime) {
