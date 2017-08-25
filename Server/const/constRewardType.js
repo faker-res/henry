@@ -22,7 +22,8 @@ const constRewardType = {
     PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward",
     PLAYER_EASTER_EGG_REWARD: "PlayerEasterEggReward",
     PLAYER_TOP_UP_PROMO: "PlayerTopUpPromo",
-    PLAYER_CONSECUTIVE_CONSUMPTION_REWARD: "PlayerConsecutiveConsumptionReward"
+    PLAYER_CONSECUTIVE_CONSUMPTION_REWARD: "PlayerConsecutiveConsumptionReward",
+    PLAYER_PACKET_RAIN_REWARD: "PlayerPacketRainReward"
 };
 
 module.exports = constRewardType;

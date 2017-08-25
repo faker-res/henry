@@ -8314,7 +8314,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_DOUBLE_TOP_UP_REWARD,
                         constRewardType.FULL_ATTENDANCE,
                         constRewardType.GAME_PROVIDER_REWARD,
-                        constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD
+                        constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
+                        constRewardType.PLAYER_PACKET_RAIN_REWARD,
                     ];
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
@@ -8417,6 +8418,9 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_EASTER_EGG_REWARD:
                                     return dbPlayerReward.applyEasterEggReward(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_PACKET_RAIN_REWARD:
+                                    return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
                                     break;
                                 default:
                                     return Q.reject({

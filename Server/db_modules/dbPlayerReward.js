@@ -573,18 +573,18 @@ let dbPlayerReward = {
                         });
                     }
 
-                    let promEvent = dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform._id, constRewardType.PLAYER_EASTER_EGG_REWARD, code);
+                    let promEvent = dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform._id, constRewardType.PLAYER_PACKET_RAIN_REWARD, code);
                     let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
                         {
                             $match: {
                                 playerId: playerData._id,
-                                platformId: playerData.platform,
-                                createTime: {$gte: inputDate.startTime, $lt: inputDate.endTime}
+                                platformId: playerData.platform._id,
+                                createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                             }
                         },
                         {
                             $group: {
-                                _id: {playerId: "$playerId", platformId: "$platformId"},
+                                _id: {playerId: "$playerId"},
                                 amount: {$sum: "$amount"}
                             }
                         }
@@ -599,8 +599,25 @@ let dbPlayerReward = {
                             }
                         }
                     );
+                    let todayPropsProm = dbConfig.collection_proposalType.findOne({
+                        name: constProposalType.PLAYER_PACKET_RAIN_REWARD,
+                        platformId: playerObj.platform._id
+                    }).lean().then(
+                        typeData => {
+                            if (typeData) {
+                                return dbConfig.collection_proposal.find({
+                                    type: typeData._id,
+                                    "data.playerObjId": playerObj._id,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING]},
+                                }).lean();
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Cannot find reward"});
+                            }
+                        }
+                    );
 
-                    return Promise.all([promEvent, promTopUp]);
+                    return Promise.all([promEvent, promTopUp, todayPropsProm]);
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid player data"});
@@ -610,31 +627,62 @@ let dbPlayerReward = {
             data => {
                 eventData = data[0];
                 let topUpSum = data[1];
+                let todayPacketCount = data[2].length;
 
-                if (eventData && eventData.param && eventData.param.reward) {
+                // Check if reward data is valid
+                // Check if player has take more than allowed packet today
+                if (eventData && eventData.param && eventData.param.reward
+                    && eventData.param.dailyApplyLimit && todayPacketCount < eventData.param.dailyApplyLimit) {
                     //calculate player reward amount
+                    let rewardAmount = 0;
                     let totalProbability = 0;
+                    let curMinTopUpAmount = 0;
+                    let curReward = null;
+                    let combination = [];
+
                     eventData.param.reward.forEach(
                         eReward => {
-                            if (topUpSum >= eReward.data.minTopUpAmount) {
+                            if (topUpSum >= eReward.minTopUpAmount && eReward.minTopUpAmount > curMinTopUpAmount) {
+                                curMinTopUpAmount = eReward.minTopUpAmount;
+                                curReward = eReward;
                                 totalProbability = 0;
+                                combination = [];
                                 totalProbability += eReward.data.ratio1.probability ? eReward.data.ratio1.probability : 0;
+                                combination.push({
+                                    totalProbability: totalProbability,
+                                    rewardAmount: eReward.data.ratio1.rewardAmount
+                                });
                                 totalProbability += eReward.data.ratio2.probability ? eReward.data.ratio2.probability : 0;
+                                combination.push({
+                                    totalProbability: totalProbability,
+                                    rewardAmount: eReward.data.ratio2.rewardAmount
+                                });
                                 totalProbability += eReward.data.ratio3.probability ? eReward.data.ratio3.probability : 0;
+                                combination.push({
+                                    totalProbability: totalProbability,
+                                    rewardAmount: eReward.data.ratio3.rewardAmount
+                                });
                             }
-                            totalProbability += eReward.probability;
                         }
                     );
+
+                    // Player's top up amount is not enough for this reward
+                    if (!curReward) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                            name: "DataError",
+                            message: "Player does not match the condition for this reward"
+                        })
+                    }
+
                     let pNumber = Math.floor(Math.random() * totalProbability);
-                    //minimum one reward
-                    let rewardAmount = 1;
-                    let startPro = 0;
-                    eventData.param.reward.forEach(
+
+                    combination.some(
                         eReward => {
-                            if (pNumber >= startPro && pNumber <= (startPro + eReward.probability)) {
+                            if (pNumber <= eReward.totalProbability) {
                                 rewardAmount = eReward.rewardAmount;
                             }
-                            startPro += eReward.probability;
+                            return rewardAmount;
                         }
                     );
 
@@ -654,16 +702,10 @@ let dbPlayerReward = {
                             realName: playerObj.realName,
                             platformObjId: playerObj.platform._id,
                             rewardAmount: rewardAmount,
-                            spendingAmount: rewardAmount * Number(eventData.param.consumptionTimes),
-                            applyAmount: 0,
-                            amount: rewardAmount,
                             eventId: eventData._id,
                             eventName: eventData.name,
                             eventCode: eventData.code,
-                            eventDescription: eventData.description,
-                            providers: eventData.param.providers,
-                            useConsumption: eventData.param.useConsumption,
-                            useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
+                            eventDescription: eventData.description
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS

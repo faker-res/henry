@@ -2883,6 +2883,9 @@ define(['js/app'], function (myApp) {
                                 link.append($('<i>', {
                                     'class': 'fa fa-forward margin-right-5 ' + (perm.playerConsecutiveConsumptionReward === false ? "text-danger" : "text-primary"),
                                 }));
+                                link.append($('<i>', {
+                                    'class': 'fa fa-umbrella margin-right-5 ' + (perm.PlayerPacketRainReward === false ? "text-danger" : "text-primary"),
+                                }));
                                 return link.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
@@ -3188,7 +3191,8 @@ define(['js/app'], function (myApp) {
                                     PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"},
                                     forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
                                     forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
-                                    playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"}
+                                    playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"},
+                                    PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"}
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
