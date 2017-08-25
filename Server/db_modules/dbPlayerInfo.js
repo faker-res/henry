@@ -7684,7 +7684,7 @@ let dbPlayerInfo = {
                             {new: true}
                         ).then(
                             data => {
-                                console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn4", data);
+                                console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn4", data, record);
                                 if (data && data.bDirty) {
                                     return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
                                         data => {
@@ -7723,11 +7723,19 @@ let dbPlayerInfo = {
                 );
             }
         ).catch(
-            error => Q.resolve().then(
-                () => bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_TOP_UP_RETURN_REFUND, error)
-            ).then(
-                () => Q.reject(error)
-            )
+            error => {
+                return Q.resolve().then(
+                    () => {
+                        console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn7", error);
+                        return bDoneDeduction && dbPlayerInfo.refundPlayerCredit(player._id, player.platform, +deductionAmount, constPlayerCreditChangeType.APPLY_TOP_UP_RETURN_REFUND, error)
+                    }
+                ).then(
+                    () => {
+                        console.log("@@@@@@@@@@@@@@@@@@ applyTopUpReturn8");
+                        return Q.reject(error)
+                    }
+                )
+            }
         );
     },
 
