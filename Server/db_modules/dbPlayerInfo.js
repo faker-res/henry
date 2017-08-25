@@ -5813,10 +5813,10 @@ let dbPlayerInfo = {
                 queryObj.createTime = {};
             }
             if (startDate) {
-                queryObj.createTime["$gte"] = dbUtility.getDayStartTime(new Date(startDate));
+                queryObj.createTime["$gte"] =dbUtility.getLocalTime(new Date(startDate));
             }
             if (endDate) {
-                queryObj.createTime["$lte"] = dbUtility.getDayStartTime(new Date(endDate));
+                queryObj.createTime["$lte"] =dbUtility.getLocalTime(new Date(endDate));
             }
             var proposalProm = dbconfig.collection_proposal.aggregate([
                 {$match: queryObj},
@@ -6439,10 +6439,10 @@ let dbPlayerInfo = {
                     queryObj.createTime = {};
                 }
                 if (startTime) {
-                    queryObj.createTime["$gte"] = dbUtility.getDayStartTime(new Date(startTime))
+                    queryObj.createTime["$gte"] = dbUtility.getLocalTime(new Date(startTime))
                 }
                 if (endTime) {
-                    queryObj.createTime["$lte"] = dbUtility.getDayStartTime(new Date(endTime))
+                    queryObj.createTime["$lte"] = dbUtility.getLocalTime(new Date(endTime))
                 }
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
                 var proposalProm = dbconfig.collection_proposal.aggregate([
