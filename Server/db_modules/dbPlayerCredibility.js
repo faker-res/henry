@@ -79,7 +79,7 @@ let dbPlayerCredibility = {
         return new Promise( (resolve, reject) => {
             for (let winRatio in scores) {
                 if (scores.hasOwnProperty(winRatio)) {
-                    if (!isNumber(winRatio) || !isNumber(scores[winRatio])) {
+                    if ((!isNumber(winRatio) || !isNumber(scores[winRatio])) && (winRatio !== "default")) {
                         reject({
                             name: "DataError",
                             message: "There are non-numeric value on either winRatio or the score"

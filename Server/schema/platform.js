@@ -132,7 +132,7 @@ var platformSchema = new Schema({
         // played game types count criteria score configuration
         gameTypeCountScores: {type: JSON, default: {0: 0, 1: 1}},
         // win ratio criteria score configuration
-        winRatioScores: {type: JSON, default: {0: 10, 30: 8, 40: 5, 60: 4, 70: 2, 75: 1, 80: 0}},
+        winRatioScores: {type: JSON, default: {"default": 0, '-300':10, '-100': 8, '-50': 5, '-20': 2, '0': -1, '20': -2, '50': -5, '100': -10}},
         // default score for credibility remark criteria
         credibilityScoreDefault: {type: Number, default: 5}
     },
