@@ -301,7 +301,6 @@ let dbPlayerInfo = {
                         model: dbconfig.collection_playerLevel
                     }).lean().then(
                         pdata => {
-                            dbPlayerCredibility.calculatePlayerValue(data._id);
                             pdata.name = pdata.name.replace(platformPrefix, "");
                             pdata.platformId = platformId;
                             return pdata;
@@ -1861,7 +1860,6 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
-                dbPlayerCredibility.calculatePlayerValue(playerId);
                 deferred.resolve(data && data[0]);
             },
             function (error) {
@@ -5252,8 +5250,6 @@ let dbPlayerInfo = {
                             {new: false}
                         ).then(
                             oldPlayerRecord => {
-                                // calculate player value
-                                dbPlayerCredibility.calculatePlayerValue(data._id);
                                 // Should we give the player a reward for this level up?
                                 //console.log(`Player has upgraded from level ${oldPlayerRecord.playerLevel} to ${levelObjId}`);
                                 if (String(oldPlayerRecord.playerLevel) === String(levelObjId)) {
@@ -9407,7 +9403,7 @@ let dbPlayerInfo = {
             }
         ).lean().then(
             playerData => {
-                dbPlayerCredibility.calculatePlayerValue(playerData._id);
+                // dbPlayerCredibility.calculatePlayerValue(playerData._id);
                 return playerData;
             }
         );

@@ -403,8 +403,6 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             function (data) {
-                // calculate player value score
-                dbPlayerCredibility.calculatePlayerValue(data._id);
                 //ensure credit balance isn't less than 0
                 if (record) {
                     var creditProm = dbconfig.collection_players.findOneAndUpdate(
