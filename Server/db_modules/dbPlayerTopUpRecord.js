@@ -510,7 +510,12 @@ var dbPlayerTopUpRecord = {
                         playerId: player._id
                     };
                     if (topUpType) {
-                        queryObj.topUpType = parseInt(topUpType);
+                        if(topUpType == 2){
+                            queryObj.topUpType = parseInt(topUpType);
+                        }
+                        else{
+                            queryObj.topUpType = {$ne: 2};
+                        }
                     }
                     if (queryStartTime || queryEndTime) {
                         queryObj.createTime = {};
@@ -1158,11 +1163,13 @@ var dbPlayerTopUpRecord = {
                             case constPlayerTopUpType.ONLINE:
                                 queryObj.name = constProposalType.PLAYER_TOP_UP;
                                 break;
+                            case constPlayerTopUpType.MANUAL:
+                                queryObj.name = {
+                                    $in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_ALIPAY_TOP_UP, constProposalType.PLAYER_WECHAT_TOP_UP]
+                                };
+                                break;
                             case constPlayerTopUpType.ALIPAY:
                                 queryObj.name = constProposalType.PLAYER_ALIPAY_TOP_UP;
-                                break;
-                            case constPlayerTopUpType.MANUAL:
-                                queryObj.name = constProposalType.PLAYER_MANUAL_TOP_UP;
                                 break;
                             case constPlayerTopUpType.WECHAT:
                                 queryObj.name = constProposalType.PLAYER_WECHAT_TOP_UP;
@@ -1176,7 +1183,7 @@ var dbPlayerTopUpRecord = {
                         queryObj.name = {
                             $in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_TOP_UP,
                                 constProposalType.PLAYER_ALIPAY_TOP_UP, constProposalType.PLAYER_WECHAT_TOP_UP]
-                        }
+                        };
                     }
                     return dbconfig.collection_proposalType.find(queryObj).lean();
                 }
