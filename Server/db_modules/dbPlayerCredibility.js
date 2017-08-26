@@ -211,7 +211,7 @@ let dbPlayerCredibility = {
                     let topUpTimesScore = calculateTopUpTimesScore(platform.playerValueConfig.topUpTimesScores, player.topUpTimes);//) * platform.playerValueConfig.criteriaScoreRatio.topUpTimes;
                     let gameTypeScore = calculateGameTypeCountScore(platform.playerValueConfig.gameTypeCountScores, gameTypeCount);
                     let remarkScore = calculateRemarksScore(platform.playerValueConfig.credibilityScoreDefault, playerRemarks);
-                    let playerLevelScore = playerLevel.playerValueScore;
+                    let playerLevelScore = playerLevel.playerValueScore || 2;
                     let winRatioScore = consumptionSummary
                         ? calculateWinRatioScore(platform.playerValueConfig.winRatioScores, consumptionSummary.totalConsumption, consumptionSummary.totalBonus)
                         : calculateWinRatioScore(platform.playerValueConfig.winRatioScores, 0, 0);
@@ -291,11 +291,11 @@ let dbPlayerCredibility = {
         }
 
         function calculateTotalScore(ratios, topUpTimesScore, gameTypeScore, remarkScore, playerLevelScore, winRatioScore) {
-            return (topUpTimesScore * ratios.topUpTimes)
+            return ((topUpTimesScore * ratios.topUpTimes)
                 + (gameTypeScore * ratios.gameTypeCount)
                 + (remarkScore * ratios.credibilityRemark)
                 + (playerLevelScore * ratios.playerLevel)
-                + (winRatioScore * ratios.winRatio);
+                + (winRatioScore * ratios.winRatio)) / 100;
         }
     }
 };

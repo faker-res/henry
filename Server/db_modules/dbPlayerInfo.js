@@ -2822,26 +2822,6 @@ let dbPlayerInfo = {
         }
 
 
-        var a = dbconfig.collection_players
-            .find(advancedQuery, {similarPlayers: 0})
-            .sort(sortObj).skip(index).limit(limit)
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-            .populate({path: "partner", model: dbconfig.collection_partner})
-            .lean().then(
-                playerData => {
-                    var players = [];
-                    for (var ind in playerData) {
-                        if (playerData[ind]) {
-                            var newInfo = getRewardData(playerData[ind]);
-                            players.push(Q.resolve(newInfo));
-                        }
-                    }
-                    return Q.all(players)
-                }
-            );
-        var b = dbconfig.collection_players
-            .find({platform: platformId, $and: [data]}).count();
-
         return dbconfig.collection_players
             .find(advancedQuery, {similarPlayers: 0})
             .sort(sortObj).skip(index).limit(limit).lean().then(
@@ -2856,6 +2836,25 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
+                var a = dbconfig.collection_players
+                    .find(advancedQuery, {similarPlayers: 0})
+                    .sort(sortObj).skip(index).limit(limit)
+                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                    .populate({path: "partner", model: dbconfig.collection_partner})
+                    .lean().then(
+                        playerData => {
+                            var players = [];
+                            for (var ind in playerData) {
+                                if (playerData[ind]) {
+                                    var newInfo = getRewardData(playerData[ind]);
+                                    players.push(Q.resolve(newInfo));
+                                }
+                            }
+                            return Q.all(players)
+                        }
+                    );
+                var b = dbconfig.collection_players
+                    .find({platform: platformId, $and: [data]}).count();
                 return Q.all([a, b]);
             }
         ).then(
