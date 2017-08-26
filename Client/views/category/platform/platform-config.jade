@@ -660,6 +660,7 @@
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("monitor")') {{"CONFIRM" | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="playerValue"')
+                    h4 {{'Player Score Ratio' | translate}}
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -685,6 +686,60 @@
                             tr
                                 td {{'bonusAmount1' | translate}}
                                 td
+
+                    br
+                    h4 {{'Top Up Times Score' | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'MIN_TOPUP_TIMES' | translate}}
+                                th {{'Score' | translate}}
+                                th(ng-if='vm.configTableEdit')
+                        tbody
+                            tr(ng-repeat='score in vm.playerValueBasic.topUpTimesScores')
+                                td
+                                    input.form-control(type='number', ng-model='score.key')
+                                td
+                                    input.form-control(type='number', ng-model='score.value')
+                                td(ng-if='vm.configTableEdit')
+                                    i.fa.fa-minus(ng-click='vm.updateRewardInEdit("remove",rowIndex)')
+
+                            //Placeholder for new entry
+                            tr(ng-if='vm.configTableEdit')
+                                td(colspan=3) {{'ADD' | translate}}
+                            tr(ng-if='vm.configTableEdit')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempNewTopUpScoreEntry.minTopUpTimes')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempNewTopUpScoreEntry.score')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updatePlayerValueConfigInEdit("add", "topUpScore", vm.tempNewTopUpScoreEntry);vm.tempNewTopUpScoreEntry={}')
+                            //tr
+                            //    td {{'TOP_UP_TIMES' | translate}}
+                            //    td
+                            //        //text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorMerchantCount}}
+                            //        //input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorMerchantCount')
+                            //tr
+                            //    td {{'Game Type Count' | translate}}
+                            //    td
+                            //        //text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorPlayerCount}}
+                            //        //input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorPlayerCount')
+                            //tr
+                            //    td {{'Player Credibility' | translate}}
+                            //    td
+                            //tr
+                            //    td {{'Player Level' | translate}}
+                            //    td
+                            //tr
+                            //    td {{'bonusAmount1' | translate}}
+                            //    td
+
+                    br
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'PlayerValue')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("PlayerValue")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("PlayerValue")') {{"CONFIRM" | translate}}
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")

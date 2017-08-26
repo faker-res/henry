@@ -31,6 +31,12 @@ let dbPlayerCredibility = {
         return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, updateData).lean();
     },
 
+    /**
+     *
+     * @param platformObjId
+     * @param {JSON} scores : Combination of key and value
+     * @returns {Promise}
+     */
     updateTopUpTimesScores: (platformObjId, scores) => {
         return new Promise( (resolve, reject) => {
             for (let topUpCount in scores) {

@@ -9515,6 +9515,21 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
+                if (type == 'add') {
+                    console.log('vm.updatePlayerValueConfigInEdit data', data);
+                    switch (configType) {
+                        case 'topUpScore':
+                            vm.playerValueBasic.topUpTimesScores[data.minTopupTimes] = data.score;
+                            break;
+                    }
+                    console.log('vm.playerValueBasic.topUpTimesScores', vm.playerValueBasic.topUpTimesScores);
+
+                } else if (type == 'remove') {
+                    vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
+                }
+            };
+
             vm.topupProviderChange = function (provider, checked) {
                 if (!provider) {
                     return;
@@ -9702,6 +9717,7 @@ define(['js/app'], function (myApp) {
                         vm.getMonitorBasic();
                         break;
                     case 'playerValue':
+                        vm.getPlayerValueBasic();
                         break;
                     case 'credibility':
                         break;
@@ -10013,6 +10029,19 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getPlayerValueBasic = () => {
+                vm.playerValueBasic = vm.playerValueBasic || {
+                    criteriaScoreRatio: {},
+                    topUpTimesScores: {}
+                };
+                vm.playerValueBasic.criteriaScoreRatio = vm.selectedPlatform.data.playerValueConfig.criteriaScoreRatio;
+                vm.playerValueBasic.topUpTimesScores = vm.selectedPlatform.data.playerValueConfig.topUpTimesScores;
+
+                console.log('vm.playerValueBasic', vm.playerValueBasic);
+
+                $scope.safeApply();
+            };
+
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
                 vm.newPlayerLvl.platform = vm.selectedPlatform.id;
@@ -10123,6 +10152,8 @@ define(['js/app'], function (myApp) {
                     case 'monitor':
                         updateMonitorBasic(vm.monitorBasic);
                         break;
+                    case 'PlayerLevel':
+
                 }
             };
 
@@ -10283,6 +10314,19 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updatePlayerLevelConfig(srcData) {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    updateData: {
+                        monitorMerchantCount: srcData.monitorMerchantCount,
+                        monitorPlayerCount: srcData.monitorPlayerCount
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updateTopUpTimesScores', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
                 });
             }
