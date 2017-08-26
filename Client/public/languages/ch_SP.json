@@ -1979,6 +1979,10 @@
   "playerCount": "玩家计数",
   "merchantNo": "商户号",
   "proposalPlayerLevelValue": "玩家提案值",
+  "Player Value": "玩家价值",
+  "Player Credibility": "玩家信用",
+  "ratio": "占比",
+  "criteria": "项目",
   
   "player - create": "玩家开户",
   "createPlayerPartner": "玩家+推广渠道开户",

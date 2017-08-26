@@ -39,6 +39,9 @@ var playerLevelSchema = new Schema({
         requiredUnlockAmount: {type: Number, default: 0}
     },
 
+    // used for player value calculation
+    playerValueScore: {type: Number, default: 2},
+
     //if player of this level can apply for consumption return
     canApplyConsumptionReturn: {type: Boolean}
 });
