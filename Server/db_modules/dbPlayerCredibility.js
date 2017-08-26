@@ -267,6 +267,8 @@ let dbPlayerCredibility = {
 
         function calculateWinRatioScore (scores, totalConsumption, totalBonus) {
             let ratio;
+            let defaultScore = scores.default || 0;
+            delete scores.default;
             if (!Number(totalBonus) || !Number(totalConsumption)) {
                 ratio = 0;
             } else {
@@ -281,7 +283,7 @@ let dbPlayerCredibility = {
                 }
             }
 
-            return scores[validMinRatio] || 0;
+            return scores[validMinRatio] || defaultScore;
         }
 
         function calculateTotalScore(ratios, topUpTimesScore, gameTypeScore, remarkScore, playerLevelScore, winRatioScore) {
