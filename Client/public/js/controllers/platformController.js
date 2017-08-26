@@ -9701,6 +9701,10 @@ define(['js/app'], function (myApp) {
                     case 'monitor':
                         vm.getMonitorBasic();
                         break;
+                    case 'playerValue':
+                        break;
+                    case 'credibility':
+                        break;
                 }
             };
 
