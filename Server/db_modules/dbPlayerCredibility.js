@@ -204,6 +204,10 @@ let dbPlayerCredibility = {
                     let playerRemarks = data[3];
                     let consumptionSummary = data[4][0];
 
+                    if (!platform.playerValueConfig) {
+                        return {};
+                    }
+
                     let topUpTimesScore = calculateTopUpTimesScore(platform.playerValueConfig.topUpTimesScores, player.topUpTimes);//) * platform.playerValueConfig.criteriaScoreRatio.topUpTimes;
                     let gameTypeScore = calculateGameTypeCountScore(platform.playerValueConfig.gameTypeCountScores, gameTypeCount);
                     let remarkScore = calculateRemarksScore(platform.playerValueConfig.credibilityScoreDefault, playerRemarks);

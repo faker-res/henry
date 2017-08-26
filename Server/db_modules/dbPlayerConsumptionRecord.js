@@ -22,7 +22,6 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const constProposalType = require('./../const/constProposalType');
 const constProposalStatus = require('./../const/constProposalStatus');
-const dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility')
 
 let dbUtility = require('./../modules/dbutility');
 

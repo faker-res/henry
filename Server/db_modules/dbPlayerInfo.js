@@ -2841,14 +2841,31 @@ let dbPlayerInfo = {
             );
         var b = dbconfig.collection_players
             .find({platform: platformId, $and: [data]}).count();
-        return Q.all([a, b]).then(
+
+        return dbconfig.collection_players
+            .find(advancedQuery, {similarPlayers: 0})
+            .sort(sortObj).skip(index).limit(limit).lean().then(
+            players => {
+                let calculatePlayerValueProms = [];
+                for (let i = 0; i < players.length; i++) {
+                    let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                    calculatePlayerValueProms.push(calculateProm);
+                }
+                return Promise.all(calculatePlayerValueProms);
+
+            }
+        ).then(
+            () => {
+                return Q.all([a, b]);
+            }
+        ).then(
             data => {
                 return {data: data[0], size: data[1]}
             },
             err => {
                 return {error: err};
             }
-        )
+        );
     },
 
     getPagePlayerByAdvanceQueryWithTopupTimes: function (platformId, data, index, limit, sortObj) {
