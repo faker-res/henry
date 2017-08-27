@@ -5804,6 +5804,7 @@ let dbPlayerInfo = {
             platformId: platformId,
             name: constProposalType.PLAYER_BONUS
         })
+
             .then(function (typeData) {
                 var queryObj = {
                     type: typeData._id
@@ -5813,10 +5814,10 @@ let dbPlayerInfo = {
                     queryObj.createTime = {};
                 }
                 if (startDate) {
-                    queryObj.createTime["$gte"] = dbUtility.getLocalTime(new Date(startDate));
+                    queryObj.createTime["$gte"] = new Date(startDate);
                 }
                 if (endDate) {
-                    queryObj.createTime["$lte"] = dbUtility.getLocalTime(new Date(endDate));
+                    queryObj.createTime["$lte"] = new Date(endDate);
                 }
                 var proposalProm = dbconfig.collection_proposal.aggregate([
                     {$match: queryObj},
@@ -6137,6 +6138,52 @@ let dbPlayerInfo = {
             }
         )
     },
+    /*
+     * Get bonus amount from each platform
+     */
+    countBonusAmountALLPlatform: function (startTime, endTime) {
+
+        return dbconfig.collection_proposalType.find({
+            name: constProposalType.PLAYER_BONUS
+        })
+        .then(function (typeData) {
+            
+            var bonusIds = [];
+            for (var type in typeData) {
+                bonusIds.push(ObjectId(typeData[type]._id));
+            }
+
+            var queryObj = {
+                type: {$in: bonusIds}
+            };
+            queryObj.status = {$in: ['Success','Approved']};
+
+            if (startDate || endDate) {
+                queryObj.createTime = {};
+            }
+            if (startTime) {
+                queryObj.createTime["$gte"] = new Date(startTime);
+            }
+            if (endTime) {
+                queryObj.createTime["$lte"] = new Date(endTime);
+            }
+            var proposalProm = dbconfig.collection_proposal.aggregate([
+                {$match: queryObj},
+            {
+                $group: {
+                    _id: "$platformId",
+                    number: {$sum: "$data.amount"}
+                }
+            }
+            ])
+            return Q.all([proposalProm]).then(
+                data => {
+                    return data[0]
+                }
+            );
+        });
+    },
+
 
     /*
      * Get bonus list
@@ -6416,15 +6463,13 @@ let dbPlayerInfo = {
 
     getAllAppliedBonusList: function (platformId, startIndex, count, startTime, endTime, status, sort) {
         var seq = sort ? -1 : 1;
-        console.log(platformId);
         return dbconfig.collection_proposalType.find({
             name: constProposalType.PLAYER_BONUS
         })
             .then(function (typeData) {
-
                 var bonusIds = [];
                 for (var type in typeData) {
-                    bonusIds.push(typeData[type]._id);
+                    bonusIds.push(ObjectId(typeData[type]._id));
                 }
 
                 var queryObj = {
@@ -6439,11 +6484,12 @@ let dbPlayerInfo = {
                     queryObj.createTime = {};
                 }
                 if (startTime) {
-                    queryObj.createTime["$gte"] = dbUtility.getLocalTime(new Date(startTime))
+                    queryObj.createTime["$gte"] = new Date(startTime)
                 }
                 if (endTime) {
-                    queryObj.createTime["$lte"] = dbUtility.getLocalTime(new Date(endTime))
+                    queryObj.createTime["$lte"] = new Date(endTime)
                 }
+                console.log(queryObj.createTime)
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
                 var proposalProm = dbconfig.collection_proposal.aggregate([
                     {$match: queryObj},
@@ -6523,7 +6569,12 @@ let dbPlayerInfo = {
                     }
 
                     var countProm = dbconfig.collection_proposal.find(queryObj).count();
-                    var proposalProm = dbconfig.collection_proposal.find(queryObj).sort({createTime: seq}).skip(startIndex).limit(count).lean();
+                    var proposalProm = dbconfig.collection_proposal.find(queryObj)
+                    .populate({
+                            path: "platform",
+                            model: dbconfig.collection_platform
+                    })
+                    .sort({createTime: seq}).skip(startIndex).limit(count).lean();
 
                     return Q.all([proposalProm, countProm]).then(
                         data => {
