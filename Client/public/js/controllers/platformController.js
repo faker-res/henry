@@ -10383,7 +10383,6 @@ define(['js/app'], function (myApp) {
                     deleteRemarks.push({_id: vm.removedRemarkId[i]});
                 }
 
-                console.log(updateRemarks)
                 $scope.$socketPromise('updateCredibilityRemarksInBulk', {
                     platformObjId: vm.selectedPlatform.data._id,
                     addRemarks: addRemarks,
