@@ -1,153 +1,153 @@
 let dbconfig = require('./../modules/dbproperties');
 
 let dbPlayerCredibility = {
-    updateScoreConfig: (platformObjId, data) => {
-        let updateData = {};
-
-        if (data.topUpTimes) {
-            updateData["playerValueConfig.criteriaScoreRatio.topUpTimes"] = data.topUpTimes;
-        }
-
-        if (data.gameTypeCount) {
-            updateData["playerValueConfig.criteriaScoreRatio.gameTypeCount"] = data.gameTypeCount;
-        }
-
-        if (data.credibilityRemark) {
-            updateData["playerValueConfig.criteriaScoreRatio.credibilityRemark"] = data.credibilityRemark;
-        }
-
-        if (data.playerLevel) {
-            updateData["playerValueConfig.criteriaScoreRatio.playerLevel"] = data.playerLevel;
-        }
-
-        if (data.winRatio) {
-            updateData["playerValueConfig.criteriaScoreRatio.winRatio"] = data.winRatio;
-        }
-
-        if (data.credibilityScoreDefault) {
-            updateData["playerValueConfig.credibilityScoreDefault"] = data.credibilityScoreDefault;
-        }
-
-        return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, updateData).lean();
-    },
-
-    updateTopUpTimesScores: (platformObjId, scores) => {
-        return new Promise( (resolve, reject) => {
-            let existingName = [];
-            for (let i = 0; i < scores.length; i++) {
-                if (!isNumber(scores[i].name) && scores[i].name < 0) {
-                    reject({
-                        name: "DataError",
-                        message: "Top up times have to be a positive number."
-                    });
-                    return;
-                }
-
-                if (!isNumber(scores[i].score)) {
-                    reject({
-                        name: "DataError",
-                        message: "Score have to be a number."
-                    });
-                    return;
-                }
-
-                if (existingName.indexOf(scores[i].name) !== -1) {
-                    reject({
-                        name: "DataError",
-                        message: "There are duplicated value of top up times in the setting."
-                    });
-                    return;
-                }
-
-                existingName.push(scores[i].name);
-            }
-
-            let updateData = {
-                "playerValueConfig.topUpTimesScores": scores
-            };
-
-            resolve(dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, updateData).lean());
-        });
-    },
-
-    updateGameTypeCountScores: (platformObjId, scores) => {
-        return new Promise( (resolve, reject) => {
-            let existingName = [];
-            for (let i = 0; i < scores.length; i++) {
-                if (!isNumber(scores[i].name) && scores[i].name < 0) {
-                    reject({
-                        name: "DataError",
-                        message: "Game type count have to be a positive number."
-                    });
-                    return;
-                }
-
-                if (!isNumber(scores[i].score)) {
-                    reject({
-                        name: "DataError",
-                        message: "Score have to be a number."
-                    });
-                    return;
-                }
-
-                if (existingName.indexOf(scores[i].name) !== -1) {
-                    reject({
-                        name: "DataError",
-                        message: "There are duplicated value of game type count in the setting."
-                    });
-                    return;
-                }
-
-                existingName.push(scores[i].name);
-            }
-
-            let updateData = {
-                "playerValueConfig.gameTypeCountScores": scores
-            };
-
-            resolve(dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, updateData).lean());
-        });
-    },
-
-    updateWinRatioScores: (platformObjId, scores) => {
-        return new Promise( (resolve, reject) => {
-            let existingName = [];
-            for (let i = 0; i < scores.length; i++) {
-                if (!isNumber(scores[i].name && scores[i].name !== "default")) {
-                    reject({
-                        name: "DataError",
-                        message: "Win ratio have to be a number."
-                    });
-                    return;
-                }
-
-                if (!isNumber(scores[i].score)) {
-                    reject({
-                        name: "DataError",
-                        message: "Score have to be a number."
-                    });
-                    return;
-                }
-
-                if (existingName.indexOf(scores[i].name) !== -1) {
-                    reject({
-                        name: "DataError",
-                        message: "There are duplicated value of win ratio in the setting."
-                    });
-                    return;
-                }
-
-                existingName.push(scores[i].name);
-            }
-
-            let updateData = {
-                "playerValueConfig.winRatioScores": scores
-            };
-
-            resolve(dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, updateData).lean());
-        });
-    },
-
+    // updateScoreConfig: (platformObjId, data) => {
+    //     let updateData = {};
+    //
+    //     if (data.topUpTimes) {
+    //         updateData["playerValueConfig.criteriaScoreRatio.topUpTimes"] = data.topUpTimes;
+    //     }
+    //
+    //     if (data.gameTypeCount) {
+    //         updateData["playerValueConfig.criteriaScoreRatio.gameTypeCount"] = data.gameTypeCount;
+    //     }
+    //
+    //     if (data.credibilityRemark) {
+    //         updateData["playerValueConfig.criteriaScoreRatio.credibilityRemark"] = data.credibilityRemark;
+    //     }
+    //
+    //     if (data.playerLevel) {
+    //         updateData["playerValueConfig.criteriaScoreRatio.playerLevel"] = data.playerLevel;
+    //     }
+    //
+    //     if (data.winRatio) {
+    //         updateData["playerValueConfig.criteriaScoreRatio.winRatio"] = data.winRatio;
+    //     }
+    //
+    //     if (data.credibilityScoreDefault) {
+    //         updateData["playerValueConfig.credibilityScoreDefault"] = data.credibilityScoreDefault;
+    //     }
+    //
+    //     return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, updateData).lean();
+    // },
+    //
+    // updateTopUpTimesScores: (platformObjId, scores) => {
+    //     return new Promise( (resolve, reject) => {
+    //         let existingName = [];
+    //         for (let i = 0; i < scores.length; i++) {
+    //             if (!isNumber(scores[i].name) && scores[i].name < 0) {
+    //                 reject({
+    //                     name: "DataError",
+    //                     message: "Top up times have to be a positive number."
+    //                 });
+    //                 return;
+    //             }
+    //
+    //             if (!isNumber(scores[i].score)) {
+    //                 reject({
+    //                     name: "DataError",
+    //                     message: "Score have to be a number."
+    //                 });
+    //                 return;
+    //             }
+    //
+    //             if (existingName.indexOf(scores[i].name) !== -1) {
+    //                 reject({
+    //                     name: "DataError",
+    //                     message: "There are duplicated value of top up times in the setting."
+    //                 });
+    //                 return;
+    //             }
+    //
+    //             existingName.push(scores[i].name);
+    //         }
+    //
+    //         let updateData = {
+    //             "playerValueConfig.topUpTimesScores": scores
+    //         };
+    //
+    //         resolve(dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, updateData).lean());
+    //     });
+    // },
+    //
+    // updateGameTypeCountScores: (platformObjId, scores) => {
+    //     return new Promise( (resolve, reject) => {
+    //         let existingName = [];
+    //         for (let i = 0; i < scores.length; i++) {
+    //             if (!isNumber(scores[i].name) && scores[i].name < 0) {
+    //                 reject({
+    //                     name: "DataError",
+    //                     message: "Game type count have to be a positive number."
+    //                 });
+    //                 return;
+    //             }
+    //
+    //             if (!isNumber(scores[i].score)) {
+    //                 reject({
+    //                     name: "DataError",
+    //                     message: "Score have to be a number."
+    //                 });
+    //                 return;
+    //             }
+    //
+    //             if (existingName.indexOf(scores[i].name) !== -1) {
+    //                 reject({
+    //                     name: "DataError",
+    //                     message: "There are duplicated value of game type count in the setting."
+    //                 });
+    //                 return;
+    //             }
+    //
+    //             existingName.push(scores[i].name);
+    //         }
+    //
+    //         let updateData = {
+    //             "playerValueConfig.gameTypeCountScores": scores
+    //         };
+    //
+    //         resolve(dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, updateData).lean());
+    //     });
+    // },
+    //
+    // updateWinRatioScores: (platformObjId, scores) => {
+    //     return new Promise( (resolve, reject) => {
+    //         let existingName = [];
+    //         for (let i = 0; i < scores.length; i++) {
+    //             if (!isNumber(scores[i].name && scores[i].name !== "default")) {
+    //                 reject({
+    //                     name: "DataError",
+    //                     message: "Win ratio have to be a number."
+    //                 });
+    //                 return;
+    //             }
+    //
+    //             if (!isNumber(scores[i].score)) {
+    //                 reject({
+    //                     name: "DataError",
+    //                     message: "Score have to be a number."
+    //                 });
+    //                 return;
+    //             }
+    //
+    //             if (existingName.indexOf(scores[i].name) !== -1) {
+    //                 reject({
+    //                     name: "DataError",
+    //                     message: "There are duplicated value of win ratio in the setting."
+    //                 });
+    //                 return;
+    //             }
+    //
+    //             existingName.push(scores[i].name);
+    //         }
+    //
+    //         let updateData = {
+    //             "playerValueConfig.winRatioScores": scores
+    //         };
+    //
+    //         resolve(dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, updateData).lean());
+    //     });
+    // },
+    //
     updatePlayerLevelScores: (platformObjId, scores) => {
         return new Promise( (resolve, reject) => {
             dbconfig.collection_playerLevel.find({platform: platformObjId}).lean().then(
@@ -179,11 +179,16 @@ let dbPlayerCredibility = {
         });
     },
 
+    updatePlayerValueConfig: (platformObjId, config) => {
+        return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, config).lean();
+    },
+
     getCredibilityRemarks: platformObjId => {
         return dbconfig.collection_playerCredibilityRemark.find({platform: platformObjId}).lean().exec();
     },
 
     addCredibilityRemark: (platformObjId, name, score) => {
+        console.log('score', score)
         let remark = dbconfig.collection_playerCredibilityRemark({
             platform: platformObjId,
             name: name,
@@ -193,6 +198,8 @@ let dbPlayerCredibility = {
     },
 
     updateCredibilityRemark: (platformObjId, remarkObjId, name, score) => {
+
+        console.log('score', score)
         let query = {
             platform: platformObjId,
             _id: remarkObjId
@@ -204,6 +211,26 @@ let dbPlayerCredibility = {
         };
 
         return dbconfig.collection_playerCredibilityRemark.findOneAndUpdate(query, updateData).lean();
+    },
+
+    updateCredibilityRemarksInBulk: (platformObjId, addRemarks, updateRemarks, deleteRemarks) => {
+        let proms = [];
+        for (let i = 0; i < addRemarks.length; i++) {
+            let addRemarkProm = dbPlayerCredibility.addCredibilityRemark(platformObjId, addRemarks[i].name, addRemarks[i].score);
+            proms.push(addRemarkProm);
+        }
+
+        for (let i = 0; i < updateRemarks.length; i++) {
+            let updateRemarkProm = dbPlayerCredibility.updateCredibilityRemark(platformObjId, updateRemarks[i]._id, updateRemarks[i].name, updateRemarks[i].score);
+            proms.push(updateRemarkProm);
+        }
+
+        for (let i = 0; i < deleteRemarks.length; i++) {
+            let deleteRemarkProm = dbPlayerCredibility.deleteCredibilityRemark(platformObjId, deleteRemarks[i]._id);
+            proms.push(deleteRemarkProm);
+        }
+
+        return Promise.all(proms);
     },
 
     deleteCredibilityRemark: (platformObjId, remarkObjId) => {
