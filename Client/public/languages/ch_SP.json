@@ -1806,7 +1806,6 @@
   "Player Top Up Reward": "玩家充值大冒险奖励",
   "NEWACCOUNT_REPORT": "开户统计报表",
   "PLAYERPARTNER_REPORT": "推广渠道其用户来源报表",
-  "Minimal top up amount": "本身充值限额",
   "ClearProposalLimit": "取消提案次数限制",
   "smsSetting": "短信设置",
   "Search referral": "查找被推荐玩家",
@@ -2204,5 +2203,6 @@
   "Please Type Your Title": "请输入标题",
   "Please Type Your Message": "请填入内容",
   "Sent to all Players": "发送至所有用户",
-  "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀"
+  "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀",
+  "PlayerPacketRainReward": "红包雨"
 }
