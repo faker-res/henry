@@ -833,9 +833,21 @@ function socketActionPlayer(socketIO, socket) {
             data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
             var startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endDate = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.startIndex, data.requestCount, startDate, endDate, data.status, !data.sort], actionName, isValidData);
-
+            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platform, data.startIndex, data.requestCount, startDate, endDate, data.status, !data.sort], actionName, isValidData);
+        },
+        getAnalysisBonusRequestList: function getAnalysisBonusRequestList(data){
+            console.log(data);
+            var isValidData = Boolean(data);
+            let actionName = arguments.callee.name;
+            data = data || {};
+            data.startIndex = data.startIndex || 0;
+            data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
+            var startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endDate = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.countBonusAmountALLPlatform,   [startDate, endDate, !data.sort], actionName, isValidData);
         }
+
+
     };
     socketActionPlayer.actions = this.actions;
 }

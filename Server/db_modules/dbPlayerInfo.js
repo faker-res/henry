@@ -5800,15 +5800,27 @@ let dbPlayerInfo = {
 
     countDailyPlayerBonusByPlatform: function (platformId, startDate, endDate) {
 
-        return dbconfig.collection_proposalType.findOne({
+        return dbconfig.collection_proposalType.find({
             platformId: platformId,
             name: constProposalType.PLAYER_BONUS
         })
 
             .then(function (typeData) {
+
+                var bonusIds = [];
+                if(Array.isArray(typeData)){
+                    for (var type in typeData) {
+                        bonusIds.push(ObjectId(typeData[type]._id));
+                    }
+                }else{
+                    bonusIds.push(typeData['_id']);
+                }
                 var queryObj = {
-                    type: typeData._id
+                    type: {$in: bonusIds}
                 };
+                if(platformId){
+                    queryObj['data.platformId']= ObjectId(platformId);
+                }
                 queryObj.status = {$in: ['Success', 'Approved']};
                 if (startDate || endDate) {
                     queryObj.createTime = {};
@@ -6145,7 +6157,7 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_proposalType.find({
             name: constProposalType.PLAYER_BONUS
-        })
+        }).populate({path: "platformId", model: dbconfig.collection_platform})
         .then(function (typeData) {
             
             var bonusIds = [];
@@ -6158,7 +6170,7 @@ let dbPlayerInfo = {
             };
             queryObj.status = {$in: ['Success','Approved']};
 
-            if (startDate || endDate) {
+            if (startTime || endTime) {
                 queryObj.createTime = {};
             }
             if (startTime) {
@@ -6167,11 +6179,12 @@ let dbPlayerInfo = {
             if (endTime) {
                 queryObj.createTime["$lte"] = new Date(endTime);
             }
+            console.log(queryObj)
             var proposalProm = dbconfig.collection_proposal.aggregate([
                 {$match: queryObj},
             {
                 $group: {
-                    _id: "$platformId",
+                    _id: "$data.platformId",
                     number: {$sum: "$data.amount"}
                 }
             }
@@ -6463,23 +6476,28 @@ let dbPlayerInfo = {
 
     getAllAppliedBonusList: function (platformId, startIndex, count, startTime, endTime, status, sort) {
         var seq = sort ? -1 : 1;
-        return dbconfig.collection_proposalType.find({
+        return dbconfig.collection_proposalType.findOne({
+            platformId:platformId,
             name: constProposalType.PLAYER_BONUS
         })
             .then(function (typeData) {
                 var bonusIds = [];
-                for (var type in typeData) {
-                    bonusIds.push(ObjectId(typeData[type]._id));
+                if(Array.isArray(typeData)){
+                    for (var type in typeData) {
+                        bonusIds.push(ObjectId(typeData[type]._id));
+                    }
+                }else{
+                    bonusIds.push(typeData['_id']);
                 }
-
                 var queryObj = {
                     type: {$in: bonusIds}
                 };
-
+                if(platformId){
+                    queryObj['data.platformId']= ObjectId(platformId);
+                }
                 if (status) {
                     queryObj.status = {$in: status}
-                }
-
+                };
                 if (startTime || endTime) {
                     queryObj.createTime = {};
                 }
@@ -6499,7 +6517,8 @@ let dbPlayerInfo = {
                             amount: {$sum: '$data.amount'}
                         }
                     }
-                ])
+
+                ]).sort({'_id':1})
 
                 return Q.all([proposalProm, countProm]).then(
                     data => {

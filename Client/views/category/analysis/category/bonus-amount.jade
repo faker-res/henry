@@ -1,10 +1,9 @@
 .section
     .row
         .titlePic
-            .title
-                text {{vm.showPageName | translate}}
+            .title {{"BonusAmount" | translate}}
                 .pull-right
-                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#bonusAmountAnalysis .block-query","bonusAmount")')
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#bonusAmountAnalysis .block-query","bonusAmountAnalysis")')
                         text.pull-left.margin-right-5 {{vm.optionText.bonusAmount | translate}}
     #bonusAmountAnalysis
         .col-md-12.block-query.well(style='margin-bottom:3px;')

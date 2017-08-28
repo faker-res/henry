@@ -286,16 +286,17 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 startDate: vm.queryPara.allPlayerBonus.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.allPlayerBonus.endTime.data('datetimepicker').getLocalDate(),
-                platformId:vm.selectedPlatform._id,
+                platformId:vm.selectedPlatform ?vm.selectedPlatform._id:null,
                 status:['Success','Approved']
             };
 
-            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data1) {
-                console.log('allActivePlayers', data1);
-                var data = data1.data.records.filter(function (obj) {
+            socketService.$socket($scope.AppSocket, 'getAnalysisBonusRequestList', sendData, function success(data1) {
+                console.log('getAnalysisBonusRequestList', data1);
+                var data = data1.data.filter(function (obj) {
                     return (obj._id);
                 }).map(function (obj) {
-                    return {label: vm.setGraphName(obj._id), data: obj.amount};
+                    var platformName = vm.platformList.filter(function( item ){ return item._id == obj._id})
+                    return {label: vm.setGraphName(platformName[0]['platformName']), data: obj.number};
                 }).sort(function (a, b) {
                     return b.data - a.data;
                 })
@@ -1827,7 +1828,7 @@ define(['js/app'], function (myApp) {
                 opt = 'topup';
             }
             var sendData = {
-                platformId: vm.selectedPlatform._id,
+                platform: vm.selectedPlatform._id,
                 period: vm.queryPara.bonusAmount.periodText,
                 type: opt,
                 startDate: vm.queryPara.bonusAmount.startTime.data('datetimepicker').getLocalDate(),
