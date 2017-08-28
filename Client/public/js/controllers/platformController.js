@@ -9520,7 +9520,10 @@ define(['js/app'], function (myApp) {
                     console.log('vm.updatePlayerValueConfigInEdit data', data);
                     switch (configType) {
                         case 'topUpScore':
-                            vm.playerValueBasic.topUpTimesScores[data.minTopupTimes] = data.score;
+                            vm.playerValueBasic.topUpTimesScores.push({name: data.minTopUpTimes, score: data.score});
+                            break;
+                        case 'gameTypeScore':
+                            vm.playerValueBasic.gameTypeCountScores.push({name: data.name, score: data.score});
                             break;
                     }
                     console.log('vm.playerValueBasic.topUpTimesScores', vm.playerValueBasic.topUpTimesScores);
@@ -10030,12 +10033,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlayerValueBasic = () => {
-                vm.playerValueBasic = vm.playerValueBasic || {
-                    criteriaScoreRatio: {},
-                    topUpTimesScores: {}
-                };
+                vm.playerValueBasic = vm.playerValueBasic || {};
                 vm.playerValueBasic.criteriaScoreRatio = vm.selectedPlatform.data.playerValueConfig.criteriaScoreRatio;
                 vm.playerValueBasic.topUpTimesScores = vm.selectedPlatform.data.playerValueConfig.topUpTimesScores;
+                vm.playerValueBasic.gameTypeCountScores = vm.selectedPlatform.data.playerValueConfig.gameTypeCountScores;
+                vm.playerValueBasic.winRatioScores = vm.selectedPlatform.data.playerValueConfig.winRatioScores;
+                vm.playerValueBasic.credibilityScoreDefault = vm.selectedPlatform.data.playerValueConfig.credibilityScoreDefault;
 
                 console.log('vm.playerValueBasic', vm.playerValueBasic);
 
@@ -10152,8 +10155,9 @@ define(['js/app'], function (myApp) {
                     case 'monitor':
                         updateMonitorBasic(vm.monitorBasic);
                         break;
-                    case 'PlayerLevel':
-
+                    case 'PlayerValue':
+                        updatePlayerValueConfig(vm.playerValueBasic.topUpTimesScores);
+                        break;
                 }
             };
 
@@ -10318,7 +10322,7 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            function updatePlayerLevelConfig(srcData) {
+            function updatePlayerValueConfig(srcData) {
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
                     updateData: {

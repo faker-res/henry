@@ -698,9 +698,9 @@
                         tbody
                             tr(ng-repeat='score in vm.playerValueBasic.topUpTimesScores')
                                 td
-                                    input.form-control(type='number', ng-model='score.key')
+                                    input.form-control(type='number', ng-model='score.name')
                                 td
-                                    input.form-control(type='number', ng-model='score.value')
+                                    input.form-control(type='number', ng-model='score.score')
                                 td(ng-if='vm.configTableEdit')
                                     i.fa.fa-minus(ng-click='vm.updateRewardInEdit("remove",rowIndex)')
 
@@ -733,6 +733,61 @@
                             //tr
                             //    td {{'bonusAmount1' | translate}}
                             //    td
+                    br
+                    h4 {{'Game Type Count Score' | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'Game Type Count' | translate}}
+                                th {{'Score' | translate}}
+                                th(ng-if='vm.configTableEdit')
+                        tbody
+                            tr(ng-repeat='score in vm.playerValueBasic.gameTypeCountScores')
+                                td
+                                    input.form-control(type='number', ng-model='score.name')
+                                td
+                                    input.form-control(type='number', ng-model='score.score')
+                                td(ng-if='vm.configTableEdit')
+                                    i.fa.fa-minus(ng-click='vm.updateRewardInEdit("remove",rowIndex)')
+
+                            //Placeholder for new entry
+                            tr(ng-if='vm.configTableEdit')
+                                td(colspan=3) {{'ADD' | translate}}
+                            tr(ng-if='vm.configTableEdit')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempGameTypeScores.name')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempGameTypeScores.score')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updatePlayerValueConfigInEdit("add", "gameTypeCount", vm.tempNewTopUpScoreEntry);vm.tempNewTopUpScoreEntry={}')
+
+                    br
+                    h4 {{'Win Ratio Score' | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'Win Ratio' | translate}}
+                                th {{'Score' | translate}}
+                                th(ng-if='vm.configTableEdit')
+                        tbody
+                            tr(ng-repeat='score in vm.playerValueBasic.winRatioScores')
+                                td
+                                    input.form-control(type='number', ng-model='score.name')
+                                td
+                                    input.form-control(type='number', ng-model='score.score')
+                                td(ng-if='vm.configTableEdit')
+                                    i.fa.fa-minus(ng-click='vm.updateRewardInEdit("remove",rowIndex)')
+
+                            //Placeholder for new entry
+                            tr(ng-if='vm.configTableEdit')
+                                td(colspan=3) {{'ADD' | translate}}
+                            tr(ng-if='vm.configTableEdit')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempWinRatioScores.name')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempWinRatioScores.score')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updatePlayerValueConfigInEdit("add", "WinRatio", vm.tempWinRatioScores);vm.tempWinRatioScores={}')
 
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'PlayerValue')", ng-click='vm.configTableEdit=!vm.configTableEdit')
