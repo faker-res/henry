@@ -133,11 +133,11 @@ var platformSchema = new Schema({
         gameTypeCountScores: {type: JSON, default: [{name:0, score:0}, {name:1, score:1}]},
         // win ratio criteria score configuration
         winRatioScores: {type: JSON, default: [
-            { "name": -100, "score": 8 },
-            { "name": -20, "score": 2 },
-            { "name": 0, "score": -1 },
-            { "name": 20, "score": -2 },
-            { "name": 100, "score": -10 }
+            {"name": -100, "score": 8},
+            {"name": -20, "score": 2},
+            {"name": 0, "score": -1},
+            {"name": 20, "score": -2},
+            {"name": 100, "score": -10}
         ]},
         // default score for credibility remark criteria
         credibilityScoreDefault: {type: Number, default: 5}

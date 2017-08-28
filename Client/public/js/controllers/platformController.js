@@ -10085,7 +10085,7 @@ define(['js/app'], function (myApp) {
 
             vm.updateRemarkInEdit = (type, action, data) => {
                 let remarks;
-                switch(type) {
+                switch (type) {
                     case "positive":
                         remarks = vm.positiveRemarks;
                         break;
@@ -10096,7 +10096,7 @@ define(['js/app'], function (myApp) {
                         remarks = vm.neutralRemarks;
                 }
 
-                switch(action) {
+                switch (action) {
                     case "add":
                         remarks.push(data);
                         break;
