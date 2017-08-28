@@ -11516,6 +11516,7 @@ define(['js/app'], function (myApp) {
                                 vm.loadPlatformData();
                                 vm.getAllMessageTypes();
                                 vm.linkProvider();
+                                vm.getCredibilityRemarks();
                                 $.getScript("dataSource/data.js").then(
                                     () => {
                                         $scope.creditChangeTypeStrings = creditChangeTypeStrings.sort(function (a, b) {
