@@ -188,7 +188,6 @@ let dbPlayerCredibility = {
     },
 
     addCredibilityRemark: (platformObjId, name, score) => {
-        console.log('score', score)
         let remark = dbconfig.collection_playerCredibilityRemark({
             platform: platformObjId,
             name: name,
@@ -198,8 +197,6 @@ let dbPlayerCredibility = {
     },
 
     updateCredibilityRemark: (platformObjId, remarkObjId, name, score) => {
-
-        console.log('score', score)
         let query = {
             platform: platformObjId,
             _id: remarkObjId
@@ -381,8 +378,8 @@ let dbPlayerCredibility = {
     }
 };
 
-function isNumber(n) {
-    return !isNaN(parseFloat(n))
-}
+// function isNumber(n) {
+//     return !isNaN(parseFloat(n))
+// }
 
 module.exports = dbPlayerCredibility;

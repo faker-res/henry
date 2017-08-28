@@ -685,6 +685,81 @@
                             tr
                                 td {{'bonusAmount1' | translate}}
                                 td
+
+                div(ng-if='vm.selectedConfigTab=="credibility"')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("credibility")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("credibility")') {{"CONFIRM" | translate}}
+                    div.row(style="overflow-x: auto; white-space: nowrap;")
+                        div.col-md-5(style="display: inline-block; float:none;margin-left:8px;")
+                            .well.row
+                                label {{"REDUCE_SCORE" | translate}}
+                                table.paddingTbl(style='min-width:100%')
+                                    thead
+                                        tr
+                                            th {{"remark" | translate}}
+                                            th {{"score" | translate}}
+                                            th {{"ACTION" | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i, data) in vm.negativeRemarks')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.name}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.name')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.score}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("negative", "update", data._id)')
+                                            td.text-center
+                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("negative", "remove", data._id)', width='20%')
+                                        tr.text-center
+                                            td.text-center(colspan=3)
+                                                i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("negative", "add", {})')
+
+                        div.col-md-5(style="display: inline-block; float:none;")
+                            .well
+                                label {{"ADD_SCORE" | translate}}
+                                table.paddingTbl(style='min-width:100%')
+                                    thead
+                                        tr
+                                            th {{"remark" | translate}}
+                                            th {{"score" | translate}}
+                                            th {{"ACTION" | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i, data) in vm.positiveRemarks')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.name}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.name')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.score}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("positive", "update", data._id)')
+                                            td.text-center
+                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("positive", "remove", data._id)')
+                                        tr.text-center
+                                            td.text-center(colspan=3)
+                                                i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("positive", "add", {})')
+                        div.col-md-5(style="display: inline-block; float:none")
+                            .well
+                                label {{"REMINDER" | translate}}
+                                table.paddingTbl(style='min-width:100%')
+                                    thead
+                                        tr
+                                            th {{"remark" | translate}}
+                                            th {{"score" | translate}}
+                                            th {{"ACTION" | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i, data) in vm.neutralRemarks')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.name}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.name')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.score}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
+                                            td.text-center
+                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("neutral", "remove", data._id)')
+                                        tr.text-center
+                                            td.text-center(colspan=3)
+                                                i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("neutral", "add", {})')
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")
