@@ -39,16 +39,33 @@ let dbPlayerCredibility = {
      */
     updateTopUpTimesScores: (platformObjId, scores) => {
         return new Promise( (resolve, reject) => {
-            for (let topUpCount in scores) {
-                if (scores.hasOwnProperty(topUpCount)) {
-                    if (!isNumber(topUpCount) || !isNumber(scores[topUpCount])) {
-                        reject({
-                            name: "DataError",
-                            message: "There are non-numeric value on either topUpCount or the score"
-                        });
-                        return;
-                    }
+            let existingName = [];
+            for (let i = 0; i < scores.length; i++) {
+                if (!isNumber(scores[i].name) && scores[i].name < 0) {
+                    reject({
+                        name: "DataError",
+                        message: "Top up times have to be a positive number."
+                    });
+                    return;
                 }
+
+                if (!isNumber(scores[i].score)) {
+                    reject({
+                        name: "DataError",
+                        message: "Score have to be a number."
+                    });
+                    return;
+                }
+
+                if (existingName.indexOf(scores[i].name) !== -1) {
+                    reject({
+                        name: "DataError",
+                        message: "There are duplicated value of top up times in the setting."
+                    });
+                    return;
+                }
+
+                existingName.push(scores[i].name);
             }
 
             let updateData = {
@@ -61,16 +78,33 @@ let dbPlayerCredibility = {
 
     updateGameTypeCountScores: (platformObjId, scores) => {
         return new Promise( (resolve, reject) => {
-            for (let gameTypeCount in scores) {
-                if (scores.hasOwnProperty(gameTypeCount)) {
-                    if (!isNumber(gameTypeCount) || !isNumber(scores[gameTypeCount])) {
-                        reject({
-                            name: "DataError",
-                            message: "There are non-numeric value on either gameTypeCount or the score"
-                        });
-                        return;
-                    }
+            let existingName = [];
+            for (let i = 0; i < scores.length; i++) {
+                if (!isNumber(scores[i].name) && scores[i].name < 0) {
+                    reject({
+                        name: "DataError",
+                        message: "Game type count have to be a positive number."
+                    });
+                    return;
                 }
+
+                if (!isNumber(scores[i].score)) {
+                    reject({
+                        name: "DataError",
+                        message: "Score have to be a number."
+                    });
+                    return;
+                }
+
+                if (existingName.indexOf(scores[i].name) !== -1) {
+                    reject({
+                        name: "DataError",
+                        message: "There are duplicated value of game type count in the setting."
+                    });
+                    return;
+                }
+
+                existingName.push(scores[i].name);
             }
 
             let updateData = {
@@ -83,16 +117,33 @@ let dbPlayerCredibility = {
 
     updateWinRatioScores: (platformObjId, scores) => {
         return new Promise( (resolve, reject) => {
-            for (let winRatio in scores) {
-                if (scores.hasOwnProperty(winRatio)) {
-                    if ((!isNumber(winRatio) || !isNumber(scores[winRatio])) && (winRatio !== "default")) {
-                        reject({
-                            name: "DataError",
-                            message: "There are non-numeric value on either winRatio or the score"
-                        });
-                        return;
-                    }
+            let existingName = [];
+            for (let i = 0; i < scores.length; i++) {
+                if (!isNumber(scores[i].name && scores[i].name !== "default")) {
+                    reject({
+                        name: "DataError",
+                        message: "Win ratio have to be a number."
+                    });
+                    return;
                 }
+
+                if (!isNumber(scores[i].score)) {
+                    reject({
+                        name: "DataError",
+                        message: "Score have to be a number."
+                    });
+                    return;
+                }
+
+                if (existingName.indexOf(scores[i].name) !== -1) {
+                    reject({
+                        name: "DataError",
+                        message: "There are duplicated value of win ratio in the setting."
+                    });
+                    return;
+                }
+
+                existingName.push(scores[i].name);
             }
 
             let updateData = {
@@ -108,20 +159,19 @@ let dbPlayerCredibility = {
             dbconfig.collection_playerLevel.find({platform: platformObjId}).lean().then(
                 playerLevels => {
                     let proms = [];
-                    for (let playerLevelName in scores) {
-                        //
-                        if (scores.hasOwnProperty(playerLevelName)) {
-                            for (let i = 0; i < playerLevels.length; i++) {
-                                if (playerLevels[i].name === playerLevelName) {
-                                    let updateProm = dbconfig.collection_playerLevel.findOneAndUpdate(
-                                        {platform: platformObjId, _id: playerLevels[i]._id},
-                                        {playerValueScore: scores[playerLevelName]}
-                                    ).lean();
-                                    proms.push(updateProm);
-                                }
+                    for (let i = 0; i < scores.length; i++) {
+                        for (let j = 0; j < playerLevels.length; j++) {
+                            if (scores[i].name === playerLevels[j].name) {
+                                let updateProm = dbconfig.collection_playerLevel.findOneAndUpdate(
+                                    {platform: platformObjId, _id: playerLevels[j]._id},
+                                    {playerValueScore: scores.score[i]}
+                                ).lean();
+                                proms.push(updateProm);
+                                break;
                             }
                         }
                     }
+
                     resolve(Promise.all(proms));
                 },
                 error => {
@@ -210,10 +260,14 @@ let dbPlayerCredibility = {
                     let playerRemarks = data[3];
                     let consumptionSummary = data[4][0];
 
+                    if (!platform.playerValueConfig) {
+                        return {};
+                    }
+
                     let topUpTimesScore = calculateTopUpTimesScore(platform.playerValueConfig.topUpTimesScores, player.topUpTimes);//) * platform.playerValueConfig.criteriaScoreRatio.topUpTimes;
                     let gameTypeScore = calculateGameTypeCountScore(platform.playerValueConfig.gameTypeCountScores, gameTypeCount);
                     let remarkScore = calculateRemarksScore(platform.playerValueConfig.credibilityScoreDefault, playerRemarks);
-                    let playerLevelScore = playerLevel.playerValueScore;
+                    let playerLevelScore = playerLevel.playerValueScore || 2;
                     let winRatioScore = consumptionSummary
                         ? calculateWinRatioScore(platform.playerValueConfig.winRatioScores, consumptionSummary.totalConsumption, consumptionSummary.totalBonus)
                         : calculateWinRatioScore(platform.playerValueConfig.winRatioScores, 0, 0);
@@ -239,28 +293,30 @@ let dbPlayerCredibility = {
 
         function calculateTopUpTimesScore (scores, topUpTimes) {
             let validTopUpCount = -1;
-            for (let topUpCount in scores) {
-                if (scores.hasOwnProperty(topUpCount)) {
-                    if (Number(topUpCount) > Number(validTopUpCount) && Number(topUpCount) <= Number(topUpTimes)) {
-                        validTopUpCount = topUpCount;
-                    }
+            let score = 0;
+
+            for (let i = 0; i < scores.length; i++) {
+                if (Number(scores[i].name) > Number(validTopUpCount) && Number(scores[i].name) <= Number(topUpTimes)) {
+                    validTopUpCount = scores[i].name;
+                    score = scores[i].score;
                 }
             }
 
-            return scores[validTopUpCount] || 0;
+            return score;
         }
 
         function calculateGameTypeCountScore (scores, gameTypeCount) {
             let validGameTypes = -1;
-            for (let minCount in scores) {
-                if (scores.hasOwnProperty(minCount)) {
-                    if (Number(minCount) > Number(validGameTypes) && Number(minCount) <= Number(gameTypeCount)) {
-                        validGameTypes = minCount;
-                    }
+            let score = 0;
+
+            for (let i = 0; i < scores.length; i++) {
+                if (Number(scores[i].name) > Number(validGameTypes) && Number(scores[i].name) <= Number(gameTypeCount)) {
+                    validGameTypes = scores[i].name;
+                    score = scores[i].score;
                 }
             }
 
-            return scores[validGameTypes] || 0;
+            return score;
         }
 
         function calculateRemarksScore (defaultScore, remarks) {
@@ -273,31 +329,33 @@ let dbPlayerCredibility = {
 
         function calculateWinRatioScore (scores, totalConsumption, totalBonus) {
             let ratio;
-            let defaultScore = scores.default || 0;
             delete scores.default;
-            if (!Number(totalBonus) || !Number(totalConsumption)) {
+            if (!Number(totalBonus) || !Number(totalConsumption) || Number(totalConsumption) === 0) {
                 ratio = 0;
             } else {
                 ratio = Number(totalBonus) / Number(totalConsumption) * 100;
             }
-            let validMinRatio = -300;
-            for (let minRatio in scores) {
-                if (scores.hasOwnProperty(minRatio)) {
-                    if (Number(minRatio) > Number(validMinRatio) && Number(minRatio) <= Number(ratio)) {
-                        validMinRatio = minRatio;
-                    }
+
+            let defaultScore = 0;
+            let score = null;
+            let validMinRatio = -Infinity;
+
+            for (let i = 0; i < scores.length; i++) {
+                if (Number(scores[i].name) > Number(validMinRatio) && Number(scores[i].name) <= Number(ratio)) {
+                    validMinRatio = scores[i].name;
+                    score = scores[i].score;
                 }
             }
 
-            return scores[validMinRatio] || defaultScore;
+            return score || defaultScore;
         }
 
         function calculateTotalScore(ratios, topUpTimesScore, gameTypeScore, remarkScore, playerLevelScore, winRatioScore) {
-            return (topUpTimesScore * ratios.topUpTimes)
+            return ((topUpTimesScore * ratios.topUpTimes)
                 + (gameTypeScore * ratios.gameTypeCount)
                 + (remarkScore * ratios.credibilityRemark)
                 + (playerLevelScore * ratios.playerLevel)
-                + (winRatioScore * ratios.winRatio);
+                + (winRatioScore * ratios.winRatio)) / 100;
         }
     }
 };
