@@ -593,7 +593,7 @@ let dbPlayerInfo = {
 
         // Player name and password should be alphanumeric and between 6 to 20 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        let chineseRegex = /^[\u4E00-\u9FA5]{0,}$/;
+        let chineseRegex = /^[\u4E00-\u9FA5\u00B7]{0,}$/;
 
         if (env.mode !== "local" && env.mode !== "qa") {
             // ignore for unit test
@@ -614,20 +614,11 @@ let dbPlayerInfo = {
                 });
             }
 
-
-            // if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
-            //     return Q.reject({
-            //         status: constServerCode.PLAYER_NAME_INVALID,
-            //         name: "DBError",
-            //         message: "Realname should be chinese character"
-            //     });
-            // }
-
-            if ((playerdata.realName && playerdata.realName.match(/\d+/g) != null)) {
+            if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
-                    message: "Realname should not include digit"
+                    message: "Realname should be chinese character"
                 });
             }
         }
