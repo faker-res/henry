@@ -1806,7 +1806,6 @@
   "Player Top Up Reward": "玩家充值大冒险奖励",
   "NEWACCOUNT_REPORT": "开户统计报表",
   "PLAYERPARTNER_REPORT": "推广渠道其用户来源报表",
-  "Minimal top up amount": "本身充值限额",
   "ClearProposalLimit": "取消提案次数限制",
   "smsSetting": "短信设置",
   "Search referral": "查找被推荐玩家",
@@ -1995,7 +1994,7 @@
   "Player Credibility": "玩家信用",
   "ratio": "占比",
   "criteria": "项目",
-  
+
   "player - create": "玩家开户",
   "createPlayerPartner": "玩家+推广渠道开户",
   "loginPlayerPartner": "玩家+推广渠道登录",
@@ -2227,5 +2226,6 @@
   "ADD_SCORE": "加分",
   "REMINDER": "提醒",
   "score": "分数",
-  "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀"
+  "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀",
+  "PlayerPacketRainReward": "红包雨"
 }

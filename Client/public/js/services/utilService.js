@@ -671,6 +671,8 @@ define([], function () {
                 case "PlayerConsecutiveLoginReward":
                 case "PlayerEasterEggReward":
                 case "PlayerTopUpPromo":
+                case "PlayerPacketRainReward":
+                case "PlayerConsecutiveConsumptionReward":
                     return $trans("Reward Proposal");
                 case "PlayerConsumptionReturnFix":
                     return $trans("ReturnFix Proposal");

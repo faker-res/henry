@@ -831,7 +831,9 @@ function socketActionPlayer(socketIO, socket) {
             data = data || {};
             data.startIndex = data.startIndex || 0;
             data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.startIndex, data.requestCount, data.startDate, data.endDate, data.status, !data.sort], actionName, isValidData);
+            var startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endDate = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.startIndex, data.requestCount, startDate, endDate, data.status, !data.sort], actionName, isValidData);
 
         },
 
