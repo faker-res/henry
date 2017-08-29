@@ -289,6 +289,7 @@ define(['js/app'], function (myApp) {
                 vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
                 vm.platformSettlement = {};
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
+                vm.getCredibilityRemarks();
 
                 //load partner
                 utilService.actionAfterLoaded("#partnerTablePage", function () {
@@ -2923,6 +2924,21 @@ define(['js/app'], function (myApp) {
                         {title: $translate("EMAIL"), visible: false, data: "email", advSearch: true},
                         {title: $translate("LOGIN_IP"), visible: false, data: "loginIps", advSearch: true},
                         {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
+                        {
+                            title: $translate("CREDIBILITY_REMARK"),
+                            visible: false,
+                            data: "credibilityRemarks",
+                            advSearch: true,
+                            filterConfig: {
+                                type: "multi",
+                                options: vm.credibilityRemarks.map(function (remark) {
+                                    return {
+                                        value: remark._id,
+                                        text: remark.name
+                                    };
+                                })
+                            }
+                        },
                         // {
                         //     visible: false,
                         //     title: $translate('PLAYER_TYPE'),
@@ -3414,6 +3430,21 @@ define(['js/app'], function (myApp) {
                                     getQueryFunction(config, filterConfig, "lastAccessTime", queryValue, false);
                                 }
                             }
+                            else if (filterConfig && filterConfig.type === "multi") {
+                                let values = [];
+                                let options = this && this.options;
+                                for (let i = 0; i < options.length; i++) {
+                                    let option = options[i];
+                                    if (option.selected && option.text !== "—") {
+                                        values.push(option.value || option.text);
+                                    }
+                                }
+
+                                if (values.length === 0) {
+                                    values = null;
+                                }
+                                getQueryFunction(config, filterConfig, fieldName, values, false);
+                            }
                             else {
                                 queryValue = this.value;
                                 getQueryFunction(config, filterConfig, fieldName, queryValue, false);
@@ -3487,7 +3518,6 @@ define(['js/app'], function (myApp) {
                 }
                 else {
                     if (currentQueryValues[fieldName] !== queryValue) {
-
                         currentQueryValues[fieldName] = queryValue;
                         config.queryFunction(currentQueryValues);
                     }
@@ -3498,6 +3528,16 @@ define(['js/app'], function (myApp) {
                 if (filterConfig && filterConfig.type === 'dropdown') {
                     var select = $('<select>');
                     var options = filterConfig.options.slice(0);
+                    options.unshift({value: "", html: '&mdash;'});
+                    options.forEach(function (option) {
+                        $('<option>', option).appendTo(select);
+                    });
+                    return select;
+                }
+
+                if (filterConfig && filterConfig.type === 'multi') {
+                    let select = $('<select multiple>');
+                    let options = filterConfig.options.slice(0);
                     options.unshift({value: "", html: '&mdash;'});
                     options.forEach(function (option) {
                         $('<option>', option).appendTo(select);
@@ -11546,6 +11586,7 @@ define(['js/app'], function (myApp) {
                         vm.phonePattern = /^[0-9]{8,18}$/;
                         vm.showPlatformList = true;
                         // vm.allGameStatusString = {};
+                        vm.credibilityRemarks = [];
                         vm.gameStatus = {};
                         vm.gameSmallShow = {};
                         vm.gameGroupClickable = {
@@ -11622,7 +11663,6 @@ define(['js/app'], function (myApp) {
                                 vm.loadPlatformData();
                                 vm.getAllMessageTypes();
                                 vm.linkProvider();
-                                vm.getCredibilityRemarks();
                                 $.getScript("dataSource/data.js").then(
                                     () => {
                                         $scope.creditChangeTypeStrings = creditChangeTypeStrings.sort(function (a, b) {
