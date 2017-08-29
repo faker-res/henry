@@ -1,3 +1,6 @@
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+
 let dbconfig = require('./../modules/dbproperties');
 
 let dbPlayerCredibility = {
@@ -180,7 +183,7 @@ let dbPlayerCredibility = {
     },
 
     updatePlayerValueConfig: (platformObjId, config) => {
-        return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId}, config).lean();
+        return dbconfig.collection_platform.findOneAndUpdate({_id: ObjectId(platformObjId)}, {playerValueConfig: config}).lean();
     },
 
     getCredibilityRemarks: platformObjId => {

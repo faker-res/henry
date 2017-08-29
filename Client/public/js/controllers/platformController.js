@@ -9517,7 +9517,6 @@ define(['js/app'], function (myApp) {
 
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
-                    console.log('vm.updatePlayerValueConfigInEdit data', data);
                     switch (configType) {
                         case 'topUpScore':
                             vm.playerValueBasic.topUpTimesScores.push({name: data.minTopUpTimes, score: data.score});
@@ -9525,11 +9524,12 @@ define(['js/app'], function (myApp) {
                         case 'gameTypeScore':
                             vm.playerValueBasic.gameTypeCountScores.push({name: data.name, score: data.score});
                             break;
+                        case 'WinRatio':
+                            vm.playerValueBasic.winRatioScores.push({name: data.name, score: data.score});
+                            break;
                     }
-                    console.log('vm.playerValueBasic.topUpTimesScores', vm.playerValueBasic.topUpTimesScores);
-
                 } else if (type == 'remove') {
-                    vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
+                    configType.splice(data, 1);
                 }
             };
 
@@ -10040,9 +10040,6 @@ define(['js/app'], function (myApp) {
                 vm.playerValueBasic.gameTypeCountScores = vm.selectedPlatform.data.playerValueConfig.gameTypeCountScores;
                 vm.playerValueBasic.winRatioScores = vm.selectedPlatform.data.playerValueConfig.winRatioScores;
                 vm.playerValueBasic.credibilityScoreDefault = vm.selectedPlatform.data.playerValueConfig.credibilityScoreDefault;
-
-                console.log('vm.playerValueBasic', vm.playerValueBasic);
-
                 $scope.safeApply();
             };
 
@@ -10242,7 +10239,7 @@ define(['js/app'], function (myApp) {
                         updateMonitorBasic(vm.monitorBasic);
                         break;
                     case 'PlayerValue':
-                        updatePlayerValueConfig(vm.playerValueBasic.topUpTimesScores);
+                        updatePlayerValueConfig(vm.playerValueBasic);
                         break;
                     case 'credibility':
                         updateCredibilityRemark();
@@ -10414,12 +10411,9 @@ define(['js/app'], function (myApp) {
             function updatePlayerValueConfig(srcData) {
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
-                    updateData: {
-                        monitorMerchantCount: srcData.monitorMerchantCount,
-                        monitorPlayerCount: srcData.monitorPlayerCount
-                    }
+                    playerValueConfig: srcData
                 };
-                socketService.$socket($scope.AppSocket, 'updateTopUpTimesScores', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'updatePlayerValueConfig', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
                 });
             }
