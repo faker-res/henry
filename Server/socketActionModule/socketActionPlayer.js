@@ -856,9 +856,12 @@ function socketActionPlayer(socketIO, socket) {
             var startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endDate = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.countBonusAmountALLPlatform,   [startDate, endDate, !data.sort], actionName, isValidData);
-        }
-
-
+        },
+        updatePlayerCredibilityRemark: function updatePlayerCredibilityRemark(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.remarks);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.platformObjId, data.playerObjId, data.remarks], actionName, isValidData);
+        },
     };
     socketActionPlayer.actions = this.actions;
 }

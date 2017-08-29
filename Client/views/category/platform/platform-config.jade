@@ -28,7 +28,10 @@
                         span {{"Auto Approval Setting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "monitor"}', ng-click='vm.configTabClicked("monitor")')
                         span {{"Monitor Setting" | translate}}
-
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "playerValue"}', ng-click='vm.configTabClicked("playerValue")')
+                        span {{"Player Value" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "credibility"}', ng-click='vm.configTabClicked("credibility")')
+                        span {{"Player Credibility" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -656,6 +659,244 @@
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("monitor")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("monitor")') {{"CONFIRM" | translate}}
 
+                div(ng-if='vm.selectedConfigTab=="playerValue"')
+                    h4 {{'General Settings' | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'criteria' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'Default Credibility Score' | translate}}
+                                td
+                                    input.form-control(type='number', ng-model='vm.playerValueBasic.credibilityScoreDefault', ng-disabled='!vm.configTableEdit')
+
+                    br
+                    h4 {{'Player Score Ratio' | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'criteria' | translate}}
+                                th {{'ratio' | translate}}
+                        tbody
+                            tr
+                                td {{'TOP_UP_TIMES' | translate}}
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.playerValueBasic.criteriaScoreRatio.topUpTimes', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Game Type Count' | translate}}
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.playerValueBasic.criteriaScoreRatio.gameTypeCount', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Player Credibility' | translate}}
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.playerValueBasic.criteriaScoreRatio.credibilityRemark', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Player Level' | translate}}
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.playerValueBasic.criteriaScoreRatio.playerLevel', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Win Ratio' | translate}}
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.playerValueBasic.criteriaScoreRatio.winRatio', ng-disabled='!vm.configTableEdit')
+
+                    br
+                    h4 {{'Top Up Times Score' | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'MIN_TOPUP_TIMES' | translate}}
+                                th {{'Score' | translate}}
+                                th(ng-if='vm.configTableEdit')
+                        tbody
+                            tr(ng-repeat='score in vm.playerValueBasic.topUpTimesScores')
+                                td
+                                    input.form-control(type='number', ng-model='score.name', ng-disabled='!vm.configTableEdit')
+                                td
+                                    input.form-control(type='number', ng-model='score.score', ng-disabled='!vm.configTableEdit')
+                                td(ng-if='vm.configTableEdit')
+                                    i.fa.fa-minus(ng-click='vm.updatePlayerValueConfigInEdit("remove", vm.playerValueBasic.topUpTimesScores, $index)')
+
+                            //Placeholder for new entry
+                            tr(ng-if='vm.configTableEdit')
+                                td(colspan=3) {{'ADD' | translate}}
+                            tr(ng-if='vm.configTableEdit')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempNewTopUpScoreEntry.minTopUpTimes')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempNewTopUpScoreEntry.score')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updatePlayerValueConfigInEdit("add", "topUpScore", vm.tempNewTopUpScoreEntry);vm.tempNewTopUpScoreEntry={}')
+                            //tr
+                            //    td {{'TOP_UP_TIMES' | translate}}
+                            //    td
+                            //        //text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorMerchantCount}}
+                            //        //input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorMerchantCount')
+                            //tr
+                            //    td {{'Game Type Count' | translate}}
+                            //    td
+                            //        //text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorPlayerCount}}
+                            //        //input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorPlayerCount')
+                            //tr
+                            //    td {{'Player Credibility' | translate}}
+                            //    td
+                            //tr
+                            //    td {{'Player Level' | translate}}
+                            //    td
+                            //tr
+                            //    td {{'bonusAmount1' | translate}}
+                            //    td
+                    br
+                    h4 {{'Game Type Count Score' | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'Game Type Count' | translate}}
+                                th {{'Score' | translate}}
+                                th(ng-if='vm.configTableEdit')
+                        tbody
+                            tr(ng-repeat='score in vm.playerValueBasic.gameTypeCountScores')
+                                td
+                                    input.form-control(type='number', ng-model='score.name', ng-disabled='!vm.configTableEdit')
+                                td
+                                    input.form-control(type='number', ng-model='score.score', ng-disabled='!vm.configTableEdit')
+                                td(ng-if='vm.configTableEdit')
+                                    i.fa.fa-minus(ng-click='vm.updatePlayerValueConfigInEdit("remove", vm.playerValueBasic.gameTypeCountScores, $index)')
+
+                            //Placeholder for new entry
+                            tr(ng-if='vm.configTableEdit')
+                                td(colspan=3) {{'ADD' | translate}}
+                            tr(ng-if='vm.configTableEdit')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempGameTypeScores.name')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempGameTypeScores.score')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updatePlayerValueConfigInEdit("add", "gameTypeScore", vm.tempGameTypeScores);vm.tempGameTypeScores={}')
+
+                    br
+                    h4 {{'Player Level Score' | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'Player Level' | translate}}
+                                th {{'Score' | translate}}
+                        tbody
+                            tr(ng-repeat='playerLevel in vm.allPlayerLvl')
+                                td {{ playerLevel.name }}
+                                td
+                                    input.form-control(type='number', ng-model='playerLevel.playerValueScore', ng-disabled='!vm.configTableEdit')
+
+                    br
+                    h4 {{'Win Ratio Score' | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'Win Ratio' | translate}}
+                                th {{'Score' | translate}}
+                                th(ng-if='vm.configTableEdit')
+                        tbody
+                            tr(ng-repeat='score in vm.playerValueBasic.winRatioScores')
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='score.name', ng-disabled='!vm.configTableEdit')
+                                td
+                                    input.form-control(type='number', ng-model='score.score', ng-disabled='!vm.configTableEdit')
+                                td(ng-if='vm.configTableEdit')
+                                    i.fa.fa-minus(ng-click='vm.updatePlayerValueConfigInEdit("remove", vm.playerValueBasic.winRatioScores, $index)')
+
+                            //Placeholder for new entry
+                            tr(ng-if='vm.configTableEdit')
+                                td(colspan=3) {{'ADD' | translate}}
+                            tr(ng-if='vm.configTableEdit')
+                                td.percentage
+                                    input.form-control.inlineBlk(type='number', ng-model='vm.tempWinRatioScores.name')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempWinRatioScores.score')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updatePlayerValueConfigInEdit("add", "WinRatio", vm.tempWinRatioScores);vm.tempWinRatioScores={}')
+
+                    br
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'PlayerValue')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("PlayerValue")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("PlayerValue")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="credibility"')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("credibility")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("credibility")') {{"CONFIRM" | translate}}
+                    div.row(style="overflow-x: auto; white-space: nowrap;")
+                        div.col-md-5(style="display: inline-block; float:none;margin-left:8px;")
+                            .well.row
+                                label {{"REDUCE_SCORE" | translate}}
+                                table.paddingTbl(style='min-width:100%')
+                                    thead
+                                        tr
+                                            th {{"remark" | translate}}
+                                            th {{"score" | translate}}
+                                            th {{"ACTION" | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i, data) in vm.negativeRemarks')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.name}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.name')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.score}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("negative", "update", data._id)')
+                                            td.text-center
+                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("negative", "remove", data._id)')
+                                        tr.text-center
+                                            td.text-center(colspan=3)
+                                                i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("negative", "add", {})')
+
+                        div.col-md-5(style="display: inline-block; float:none;")
+                            .well
+                                label {{"ADD_SCORE" | translate}}
+                                table.paddingTbl(style='min-width:100%')
+                                    thead
+                                        tr
+                                            th {{"remark" | translate}}
+                                            th {{"score" | translate}}
+                                            th {{"ACTION" | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i, data) in vm.positiveRemarks')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.name}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.name')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.score}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("positive", "update", data._id)')
+                                            td.text-center
+                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("positive", "remove", data._id)')
+                                        tr.text-center
+                                            td.text-center(colspan=3)
+                                                i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("positive", "add", {})')
+                        div.col-md-5(style="display: inline-block; float:none")
+                            .well
+                                label {{"REMINDER" | translate}}
+                                table.paddingTbl(style='min-width:100%')
+                                    thead
+                                        tr
+                                            th {{"remark" | translate}}
+                                            th {{"score" | translate}}
+                                            th {{"ACTION" | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i, data) in vm.neutralRemarks')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.name}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.name')
+                                            td
+                                                text(ng-if="!vm.configTableEdit") {{data.score}}
+                                                input(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
+                                            td.text-center
+                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("neutral", "remove", data._id)')
+                                        tr.text-center
+                                            td.text-center(colspan=3)
+                                                i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("neutral", "add", {})')
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")

@@ -283,7 +283,7 @@ var roleChecker = {
                 playerDailyCreditLog :['playerCreditDailyLog'],
                 playerApiLog: ['getPlayerApiLog'],
                 rewardTaskLog: ['getPlayerRewardTask'],
-
+                UpdatePlayerCredibility: ['updatePlayerCredibilityRemark']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
@@ -363,7 +363,9 @@ var roleChecker = {
                 PartnerCommission: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig'],
                 platformBasic: [],
                 autoApproval: ['updateAutoApprovalConfig'],
-                Monitor: []
+                Monitor: [],
+                PlayerValue: [],
+                Credibility: []
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
