@@ -63,6 +63,7 @@ var encrypt = {
         var domain = data.hasOwnProperty('domain') ? data.domain : "";
         var partner = data.hasOwnProperty('partner') ? data.partner : "";
         var loginIps = data.hasOwnProperty('loginIps') ? data.loginIps : "";
+        var credibilityRemarks = data.hasOwnProperty('credibilityRemarks') ? data.credibilityRemarks : "";
 
 
         var query = {};
@@ -119,6 +120,9 @@ var encrypt = {
         }
         if (loginIps !== '') {
             query["loginIps"] = new RegExp('.*' + loginIps + '.*');
+        }
+        if (credibilityRemarks) {
+            query["credibilityRemarks"] = {$all: credibilityRemarks};
         }
 
         if (validCredit !== '') {
