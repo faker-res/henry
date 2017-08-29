@@ -287,7 +287,7 @@ define(['js/app'], function (myApp) {
                 startDate: vm.queryPara.allPlayerBonus.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.allPlayerBonus.endTime.data('datetimepicker').getLocalDate(),
                 platformId:vm.selectedPlatform._id,
-                status:['Success','Approved']
+                status: ['Success', 'Approved']
             };
 
             socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data1) {
