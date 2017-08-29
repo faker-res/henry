@@ -13,6 +13,7 @@ let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommi
 const dbAutoProposal = require('./../db_modules/dbAutoProposal');
 const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
+let dbPlayerCredibility = require('../db_modules/dbPlayerCredibility')
 
 const consumptionReturnEvent = require('./../scheduleTask/consumptionReturnEvent');
 
@@ -280,9 +281,80 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbPlatform.startPlayerConsecutiveConsumptionSettlement, [ObjectId(data.platformId)], actionName, isValidData);
-        }
+        },
+
+        // updateScoreConfig: function updateScoreConfig(data) {
+        //     let actionName = arguments.callee.name;
+        //     let isValidData = Boolean(data && data.platformObjId);
+        //     socketUtil.emitter(self.socket, dbPlayerCredibility.updateScoreConfig, [data.platformObjId, data], actionName, isValidData);
+        // },
+        //
+        // updateTopUpTimesScores: function updateTopUpTimesScores(data) {
+        //     let actionName = arguments.callee.name;
+        //     let isValidData = Boolean(data && data.platformObjId);
+        //     socketUtil.emitter(self.socket, dbPlayerCredibility.updateTopUpTimesScores, [data.platformObjId, data], actionName, isValidData);
+        // },
+        //
+        // updateGameTypeCountScores: function updateGameTypeCountScores(data) {
+        //     let actionName = arguments.callee.name;
+        //     let isValidData = Boolean(data && data.platformObjId);
+        //     socketUtil.emitter(self.socket, dbPlayerCredibility.updateGameTypeCountScores, [data.platformObjId, data], actionName, isValidData);
+        // },
+        //
+        // updateWinRatioScores: function updateWinRatioScores(data) {
+        //     let actionName = arguments.callee.name;
+        //     let isValidData = Boolean(data && data.platformObjId);
+        //     socketUtil.emitter(self.socket, dbPlayerCredibility.updateWinRatioScores, [data.platformObjId, data], actionName, isValidData);
+        // },
+
+        updatePlayerLevelScores: function updatePlayerLevelScores(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.updatePlayerLevelScores, [data.platformObjId, data], actionName, isValidData);
+        },
+
+        updatePlayerValueConfig: function updatePlayerValueConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerValueConfig);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.updatePlayerValueConfig, [data.platformObjId, data.playerValueConfig], actionName, isValidData);
+        },
+
+        getCredibilityRemarks: function getCredibilityRemarks(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.getCredibilityRemarks, [data.platformObjId], actionName, isValidData);
+        },
+
+        addCredibilityRemark: function addCredibilityRemark(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.name && data.score);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.addCredibilityRemark, [data.platformObjId, data.name, data.score], actionName, isValidData);
+        },
+
+        updateCredibilityRemark: function updateCredibilityRemark(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.remarkObjId && data.name && data.score);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.updateCredibilityRemark, [data.platformObjId, data.remarkObjId, data.name, data.score], actionName, isValidData);
+        },
+
+        deleteCredibilityRemark: function deleteCredibilityRemark(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.remarkObjId);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.deleteCredibilityRemark, [data.platformObjId, data.remarkObjId], actionName, isValidData);
+        },
+
+        updateCredibilityRemarksInBulk: function updateCredibilityRemarksInBulk(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            let addRemarks = data.addRemarks || [];
+            let updateRemarks = data.updateRemarks || [];
+            let deleteRemarks = data.deleteRemarks || [];
+            socketUtil.emitter(self.socket, dbPlayerCredibility.updateCredibilityRemarksInBulk, [data.platformObjId, addRemarks, updateRemarks, deleteRemarks], actionName, isValidData);
+        },
+
+
     };
     socketActionPlatform.actions = this.actions;
-};
+}
 
 module.exports = socketActionPlatform;

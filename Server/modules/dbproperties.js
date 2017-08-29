@@ -134,6 +134,9 @@ let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 let platformQuickPayGroupSchema = require('./../schema/platformQuickPayGroup');
 let platformQuickPayGroupModel = db_admin.model('platformQuickPayGroup', platformQuickPayGroupSchema, 'platformQuickPayGroup');
 
+let playerCredibilityRemarkSchema = require('../schema/playerCredibilityRemark');
+let playerCredibilityRemarkModel = db_admin.model('playerCredibilityRemark', playerCredibilityRemarkSchema, 'playerCredibilityRemark');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -309,6 +312,7 @@ var dbProperties = {
     collection_playerFeedback: playerFeedbackModel,
     collection_playerLoginRecord: playerLoginRecordModel,
     collection_playerLevelConsumptionLevel: playerLevelConsumptionLimitModel,
+    collection_playerCredibilityRemark: playerCredibilityRemarkModel,
 
     collection_apiUser: apiUserModel,
     collection_platform: platformModel,

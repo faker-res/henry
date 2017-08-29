@@ -363,7 +363,9 @@ var roleChecker = {
                 PartnerCommission: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig'],
                 platformBasic: [],
                 autoApproval: ['updateAutoApprovalConfig'],
-                Monitor: []
+                Monitor: [],
+                PlayerValue: [],
+                Credibility: []
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
