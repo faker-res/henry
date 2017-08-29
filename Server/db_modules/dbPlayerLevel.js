@@ -6,6 +6,7 @@ const dbconfig = require('./../modules/dbproperties');
 const dbProposal = require('./../db_modules/dbProposal');
 const dbUtil = require('./../modules/dbutility');
 
+const constProposalStatus = require('../const/constProposalStatus');
 const constProposalType = require('../const/constProposalType');
 const constSystemParam = require('./../const/constSystemParam');
 
@@ -259,7 +260,8 @@ let dbPlayerLevelInfo = {
                                 return dbconfig.collection_proposal.findOne({
                                     'data.playerObjId': playerData._id,
                                     'data.platformObjId': playerData.platform,
-                                    'data.levelValue': levelUpObj.value
+                                    'data.levelValue': levelUpObj.value,
+                                    status: constProposalStatus.SUCCESS
                                 }).lean();
                             }
                         }

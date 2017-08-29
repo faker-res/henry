@@ -593,7 +593,7 @@ let dbPlayerInfo = {
 
         // Player name and password should be alphanumeric and between 6 to 20 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        let chineseRegex = /^[\u4E00-\u9FA5\u00B7]{0,}$/;
+        let chineseRegex = /^[\u4E00-\u9FA5\u00B7\u0020]{0,}$/;
 
         if (env.mode !== "local" && env.mode !== "qa") {
             // ignore for unit test
