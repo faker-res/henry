@@ -1833,10 +1833,9 @@ define(['js/app'], function (myApp) {
                 type: opt,
                 startDate: vm.queryPara.bonusAmount.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.bonusAmount.endTime.data('datetimepicker').getLocalDate(),
-                status:['Approved','Success']
             }
 
-            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function (data) {
+            socketService.$socket($scope.AppSocket, 'getAnalysisSingleBonusRequestList', sendData, function (data) {
                 vm.playerBonusData = data.data;
                 console.log('vm.playerBonusData', vm.playerBonusData);
                 // $scope.safeApply();
@@ -1850,35 +1849,9 @@ define(['js/app'], function (myApp) {
             var playerCreditObjData = {};
 
             var graphData = [];
-            var startFrom = new Date(sendData.startDate).getTime();
-            var endTo = new Date(sendData.endDate).getTime();
-
-            var betweenDay = (endTo - startFrom)/ (60*60*24*1000);
-            var period = [];
-
-            for(var i=0; i<=betweenDay; i++){
-                var date = new Date(startFrom);
-                var yy = date.getFullYear();
-                var mm = ("0"+(date.getMonth()+1)).substr(-2);
-                var dd = ("0"+date.getDate()).substr(-2);
-
-                period.push(yy+'-'+mm+'-'+dd);
-                startFrom += 60*60*24*1000;
-            }
-
-            period.map(record =>{
-                var bonusDate = srcData.records.filter(function(item){
-                    return item._id == record;
-                })
-
-                if(bonusDate.length>0){
-                    graphData.push([new Date(bonusDate[0]._id), bonusDate[0].amount]);
-                }else{
-                    graphData.push([new Date(record), 0]);
-                }
-
+            srcData.map(item => {
+                graphData.push([new Date(item._id), item.number])
             })
-
             var newOptions = {};
             // var nowDate = new Date(sendData.startDate);
             var xText = '';

@@ -5847,7 +5847,80 @@ let dbPlayerInfo = {
                 );
             });
     },
+    countDailyPlayerBonusBySinglePlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                };
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
 
+        return dbconfig.collection_proposalType.find({
+            platformId: platformId,
+            name: constProposalType.PLAYER_BONUS
+        })
+
+            .then(function (typeData) {
+
+                var bonusIds = [];
+                if(Array.isArray(typeData)){
+                    for (var type in typeData) {
+                        bonusIds.push(ObjectId(typeData[type]._id));
+                    }
+                }else{
+                    bonusIds.push(typeData['_id']);
+                }
+                var queryObj = {
+                    type: {$in: bonusIds}
+                };
+
+                queryObj['status'] = {$in: ['Success', 'Approved']};
+
+                while (dayStartTime.getTime() < endDate.getTime()) {
+                    var dayEndTime = getNextDate.call(this, dayStartTime);
+
+                    queryObj["createTime"] = {$gte: new Date(dayStartTime), $lt: new Date(dayEndTime)};
+                    if (platformId != 'all') {
+                        queryObj['data.platformId']= ObjectId(platformId);
+                    }
+                    proms.push(dbconfig.collection_proposal.find(queryObj));
+                    dayStartTime = dayEndTime;
+                }
+
+                return Q.all(proms).then(data => {
+                    var tempDate = startDate;
+                    console.log(data);
+                    var res = data.map(dayData => {
+                        if(dayData[0]){
+                            var obj = {_id: tempDate, number: dayData[0]['data']['amount']};
+                        }else{
+                            var obj = {_id: tempDate, number: 0};
+                        }
+
+                        tempDate = getNextDate(tempDate);
+                        return obj;
+                    });
+                    return res;
+                });
+            });
+    },
     /* 
      * Get new player count 
      */
