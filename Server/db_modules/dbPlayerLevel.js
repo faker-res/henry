@@ -54,14 +54,14 @@ let dbPlayerLevelInfo = {
             levels => {
                 let stream = dbconfig.collection_players.find(
                     {platform: platformObjId}
-                ).cursor({batchSize: 10000}).allowDiskUse(true).exec();
+                ).cursor({batchSize: 10000});
 
                 let balancer = new SettlementBalancer();
                 return balancer.initConns().then(function () {
                     return balancer.processStream(
                         {
                             stream: stream,
-                            batchSize: constSystemParam.BATCH_SIZE,
+                            batchSize: constSystemParam.BATCH_SIZE*10,
                             makeRequest: function (playerIdObjs, request) {
                                 request("player", "performPlatformPlayerLevelSettlement", {
                                     playerObjIds: playerIdObjs.map(function (playerIdObj) {
