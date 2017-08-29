@@ -145,6 +145,7 @@ var proposalExecutor = {
             this.executions.executePlayerTopUpPromo.des = "Player Top Up Promo";
             this.executions.executePlayerConsecutiveConsumptionReward.des = "Player Consecutive Consumption Reward";
             this.executions.executePlayerLevelMigration.des = "Player Level Migration";
+            this.executions.executePlayerPacketRainReward.des = "Player Packet Rain Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -189,6 +190,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerTopUpPromo.des = "Reject Player Top Up Promo";
             this.rejections.rejectPlayerConsecutiveConsumptionReward.des = "Reject Player Consecutive Consumption Reward";
             this.rejections.rejectPlayerLevelMigration.des = "Reject Player Level Migration";
+            this.rejections.rejectPlayerPacketRainReward.des = "Reject Player Packet Rain Reward";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1733,6 +1735,16 @@ var proposalExecutor = {
                     deferred.reject({name: "DataError", message: "Incorrect partner consumption return proposal data"});
                 }
             },
+
+            executePlayerPacketRainReward: function (proposalData, deferred) {
+                //verify data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
+                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_PACKET_RAIN_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player packet rain proposal data"});
+                }
+            },
         },
 
         /**
@@ -2248,6 +2260,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerLevelMigration: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerPacketRainReward: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             }
         }

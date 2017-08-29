@@ -183,6 +183,11 @@ define(['js/app'], function (myApp) {
                             vm.drawPlayerCreditLine('PLAYER_TOPUP');
                         });
                         break;
+                    case "BONUS_AMOUNT":
+                        vm.initSearchParameter('bonusAmount', 'day', 3, function () {
+                            vm.drawPlayerBonusAmount('BONUS_AMOUNT');
+                        });
+                        break;
                     case "CLIENT_SOURCE":
                         vm.initSearchParameter('clientSource', true, 3, function () {
                             vm.initClientSourcePara(vm.getClientSourceData);
@@ -282,7 +287,7 @@ define(['js/app'], function (myApp) {
                 startDate: vm.queryPara.allPlayerBonus.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.allPlayerBonus.endTime.data('datetimepicker').getLocalDate(),
                 platformId:vm.selectedPlatform._id,
-                status:'Success'
+                status: ['Success', 'Approved']
             };
 
             socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data1) {
@@ -290,7 +295,7 @@ define(['js/app'], function (myApp) {
                 var data = data1.data.records.filter(function (obj) {
                     return (obj._id);
                 }).map(function (obj) {
-                    return {label: vm.setGraphName(obj._id), data: obj.data.amount};
+                    return {label: vm.setGraphName(obj._id), data: obj.amount};
                 }).sort(function (a, b) {
                     return b.data - a.data;
                 })
@@ -1812,6 +1817,122 @@ define(['js/app'], function (myApp) {
             a.columns.adjust().draw();
         }
         //player credit end =======================================================
+
+        //bonus amount 
+        vm.drawPlayerBonusAmount = function (type) {
+            var opt = '';
+            if (type == 'PLAYER_EXPENSES') {
+                opt = 'consumption';
+            } else if (type == 'PLAYER_TOPUP') {
+                opt = 'topup';
+            }
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.bonusAmount.periodText,
+                type: opt,
+                startDate: vm.queryPara.bonusAmount.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.bonusAmount.endTime.data('datetimepicker').getLocalDate(),
+                status:['Approved','Success']
+            }
+
+            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function (data) {
+                vm.playerBonusData = data.data;
+                console.log('vm.playerBonusData', vm.playerBonusData);
+                // $scope.safeApply();
+                return vm.drawPlayerBonusGraph(vm.playerBonusData, sendData);
+            }, function (data) {
+                console.log("player credit data not", data);
+            });
+        }
+        vm.drawPlayerBonusGraph = function (srcData, sendData) {
+            var placeholder = '#line-bonusAmount';
+            var playerCreditObjData = {};
+
+            var graphData = [];
+            srcData.records.map(item => {
+                graphData.push([new Date(item._id), item.amount])
+            })
+            var newOptions = {};
+            // var nowDate = new Date(sendData.startDate);
+            var xText = '';
+            switch (vm.queryPara.bonusAmount.periodText) {
+                case 'day':
+                    xText = 'DAY';
+                    newOptions = {
+                        xaxis: {
+                            tickLength: 0,
+                            mode: "time",
+                            minTickSize: [1, "day"],
+                        }
+                    };
+                    break;
+                case 'week':
+                    xText = 'WEEK';
+                    newOptions = {
+                        xaxis: {
+                            tickLength: 0,
+                            mode: "time",
+                            minTickSize: [6, "day"],
+                        }
+                    };
+                    break;
+                case 'month' :
+                    xText = 'MONTH';
+                    newOptions = {
+                        xaxis: {
+                            tickLength: 0,
+                            mode: "time",
+                            minTickSize: [1, "month"],
+                        }
+                    };
+                    break;
+            }
+            newOptions.yaxes = [{
+                position: 'left',
+                axisLabel: $translate('AMOUNT'),
+            }]
+            newOptions.xaxes = [{
+                position: 'bottom',
+                axisLabel: $translate('PERIOD') + ' : ' + $translate(xText)
+            }]
+
+            socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData}], newOptions);
+
+            vm.bindHover(placeholder, function (obj) {
+                var x = obj.datapoint[0],
+                    y = obj.datapoint[1].toFixed(0);
+
+                var date = new Date(x);
+                var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+
+                var yText = $translate('AMOUNT');
+                var fre = $translate(vm.queryPara.bonusAmount.periodText.toUpperCase());
+                $("#tooltip").html(yText + " : " + y + '<br>' + fre + " : " + dateString)
+                    .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                    .fadeIn(200);
+            })
+            //draw table
+            var tableData = [];
+            for (var i in graphData) {
+                var obj = {};
+                obj.date = String(utilService.$getTimeFromStdTimeFormat(new Date(graphData[i][0]))).substring(0, 10);
+                let amount = graphData[i][1] || 0;
+                obj.amount = amount.toFixed(2);
+                tableData.push(obj);
+            }
+            var dataOptions = {
+                data: tableData,
+                columns: [
+                    {title: $translate(vm.queryPara.bonusAmount.periodText), data: "date"},
+                    {title: $translate('amount'), data: "amount"}
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            var a = $('#bonusAmountAnalysisTable').DataTable(dataOptions);
+            a.columns.adjust().draw();
+        }
+        //player bonus end
 
         //client source start =======================================
         vm.initClientSourcePara = function (callback) {

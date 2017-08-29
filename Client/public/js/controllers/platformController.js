@@ -2883,6 +2883,9 @@ define(['js/app'], function (myApp) {
                                 link.append($('<i>', {
                                     'class': 'fa fa-forward margin-right-5 ' + (perm.playerConsecutiveConsumptionReward === false ? "text-danger" : "text-primary"),
                                 }));
+                                link.append($('<i>', {
+                                    'class': 'fa fa-umbrella margin-right-5 ' + (perm.PlayerPacketRainReward === false ? "text-danger" : "text-primary"),
+                                }));
                                 return link.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
@@ -3189,7 +3192,8 @@ define(['js/app'], function (myApp) {
                                     PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"},
                                     forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
                                     forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
-                                    playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"}
+                                    playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"},
+                                    PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"}
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
@@ -3628,24 +3632,35 @@ define(['js/app'], function (myApp) {
                         vm.showCityStr = '';
                         vm.showDistrictStr = '';
                         $scope.getProvinceStr(vm.selectedSinglePlayer.bankAccountProvince).then(data => {
-                            vm.showProvinceStr = data.data.province ? data.data.province.name : vm.selectedSinglePlayer.bankAccountProvince;
+                            if (data.data.province) {
+                                vm.showProvinceStr = data.data.province.name;
+                                $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
+                                    if (data.data.city) {
+                                        vm.showCityStr = data.data.city.name;
+                                        $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
+                                            vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
+                                            $scope.safeApply();
+                                        }, err => {
+                                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
+                                            $scope.safeApply();
+                                        });
+                                    }
+                                    else {
+                                        vm.showCityStr = vm.selectedSinglePlayer.bankAccountCity;
+                                    }
+                                    vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
+                                    $scope.safeApply();
+                                }, err => {
+                                    vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
+                                    $scope.safeApply();
+                                });
+                            }
+                            else {
+                                vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince;
+                            }
                             $scope.safeApply();
                         }, err => {
                             vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince || $translate("Unknown");
-                            $scope.safeApply();
-                        });
-                        $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
-                            vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
-                            $scope.safeApply();
-                        }, err => {
-                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
-                            $scope.safeApply();
-                        });
-                        $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
-                            vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
-                            $scope.safeApply();
-                        }, err => {
-                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
                             $scope.safeApply();
                         });
 
@@ -9549,6 +9564,24 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
+                if (type == 'add') {
+                    switch (configType) {
+                        case 'topUpScore':
+                            vm.playerValueBasic.topUpTimesScores.push({name: data.minTopUpTimes, score: data.score});
+                            break;
+                        case 'gameTypeScore':
+                            vm.playerValueBasic.gameTypeCountScores.push({name: data.name, score: data.score});
+                            break;
+                        case 'WinRatio':
+                            vm.playerValueBasic.winRatioScores.push({name: data.name, score: data.score});
+                            break;
+                    }
+                } else if (type == 'remove') {
+                    configType.splice(data, 1);
+                }
+            };
+
             vm.topupProviderChange = function (provider, checked) {
                 if (!provider) {
                     return;
@@ -9736,6 +9769,7 @@ define(['js/app'], function (myApp) {
                         vm.getMonitorBasic();
                         break;
                     case 'playerValue':
+                        vm.getPlayerValueBasic();
                         break;
                     case 'credibility':
                         vm.prepareCredibilityConfig();
@@ -10048,6 +10082,16 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getPlayerValueBasic = () => {
+                vm.playerValueBasic = vm.playerValueBasic || {};
+                vm.playerValueBasic.criteriaScoreRatio = vm.selectedPlatform.data.playerValueConfig.criteriaScoreRatio;
+                vm.playerValueBasic.topUpTimesScores = vm.selectedPlatform.data.playerValueConfig.topUpTimesScores;
+                vm.playerValueBasic.gameTypeCountScores = vm.selectedPlatform.data.playerValueConfig.gameTypeCountScores;
+                vm.playerValueBasic.winRatioScores = vm.selectedPlatform.data.playerValueConfig.winRatioScores;
+                vm.playerValueBasic.credibilityScoreDefault = vm.selectedPlatform.data.playerValueConfig.credibilityScoreDefault;
+                $scope.safeApply();
+            };
+
             vm.prepareCredibilityConfig = () => {
                 vm.removedRemarkId = [];
                 return vm.getCredibilityRemarks().then(
@@ -10087,7 +10131,7 @@ define(['js/app'], function (myApp) {
 
             vm.updateRemarkInEdit = (type, action, data) => {
                 let remarks;
-                switch(type) {
+                switch (type) {
                     case "positive":
                         remarks = vm.positiveRemarks;
                         break;
@@ -10098,7 +10142,7 @@ define(['js/app'], function (myApp) {
                         remarks = vm.neutralRemarks;
                 }
 
-                switch(action) {
+                switch (action) {
                     case "add":
                         remarks.push(data);
                         break;
@@ -10242,6 +10286,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitor':
                         updateMonitorBasic(vm.monitorBasic);
+                        break;
+                    case 'PlayerValue':
+                        updatePlayerValueConfig(vm.playerValueBasic);
                         break;
                     case 'credibility':
                         updateCredibilityRemark();
@@ -10406,6 +10453,16 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updatePlayerValueConfig(srcData) {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    playerValueConfig: srcData
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlayerValueConfig', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
                 });
             }

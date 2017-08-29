@@ -58,12 +58,12 @@ define(['js/app'], function (myApp) {
 
             //only query the success bonus proposal
             sendData.platformId = vm.platformID;
-            sendData.status = 'Success';
+            sendData.status = ['Success','Approved'];
             socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data) {
                 var totalBonus = 0;
                 var records = data.data.records;
                 for(var d in records){
-                    totalBonus += records[d].data.amount || 0;
+                    totalBonus += records[d].amount || 0;
                 }
 
                 if (numDays == 0){
@@ -251,18 +251,11 @@ define(['js/app'], function (myApp) {
                 }];
                 console.log('countPlayerBonusAllPlatform', data);
                 var playerData = data.data;
-                // sendData.startDate = new Date("2017-06-05T00:00:00.000Z");
-                // sendData.endDate = new Date("2017-06-12T00:00:00.000Z");
                 var nowDate = new Date(sendData.startDate);
                 var graphData = [];
                 var newPlayerObjData = {};
                 for (var i = 0; i < playerData.length; i++) {
-                    var amountSum = 0;
-                    var numbers = playerData[i].number;
-                    for(var d in numbers){
-                        amountSum += numbers[d].data.amount;
-                    }
-                    newPlayerObjData[playerData[i]._id.date] = amountSum;
+                    newPlayerObjData[playerData[i]._id] = playerData[i].number;
                 }
                 do {
                     var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());

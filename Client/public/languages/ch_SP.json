@@ -1806,7 +1806,6 @@
   "Player Top Up Reward": "玩家充值大冒险奖励",
   "NEWACCOUNT_REPORT": "开户统计报表",
   "PLAYERPARTNER_REPORT": "推广渠道其用户来源报表",
-  "Minimal top up amount": "本身充值限额",
   "ClearProposalLimit": "取消提案次数限制",
   "smsSetting": "短信设置",
   "Search referral": "查找被推荐玩家",
@@ -1831,6 +1830,18 @@
   "platformFee": "平台费用",
   "marketCost": "推广费用",
   "operationFee": "运营值",
+  "Player Score Ratio": "玩家价值评分比率",
+  "Game Type Count": "游戏类型（种类）",
+  "Player Level": "会员等级",
+  "Win Ratio": "输赢比率（大于等于）",
+  "Score": "评分",
+  "Top Up Times Score": "充值次数评分",
+  "Game Type Count Score": "游戏类型评分",
+  "Win Ratio Score": "输赢比率评分",
+  "General Settings": "普通设置",
+  "Default Credibility Score": "默认初始价值",
+  "Player Level Score": "会员等级评分",
+
   "totalTopUpAmount": "下线玩家总充值额",
   "totalBonusAmount": "下线玩家总提款额",
   "Payment Info History": "支付资料历史",
@@ -1957,6 +1968,7 @@
   "isPrevious": "是否为补签",
   "Player Consecutive Login Reward": "累计签到奖励",
   "Player Consecutive Consumption Reward": "智勇冲关奖励",
+  "Player Packet Rain Reward": "红包雨奖励",
   "PlayerConsecutiveConsumptionReward": "智勇冲关奖励",
   "playerConsecutiveConsumptionReward": "智勇冲关奖励",
   "Incident": "事件",
@@ -1967,7 +1979,7 @@
   "CONSUMPTION_PARTICIPANT": "参与投注人数",
   "COMPANY_EARNING_RATIO": "公司获利比例",
   "PLAYER_PROFIT_AMOUNT": "输赢金额",
-
+  "Daily apply limit": "每日可申请次数",
   "Monitor": "监控",
   "Monitor Setting": "监控设置",
   "monitor": "监控",
@@ -1982,7 +1994,7 @@
   "Player Credibility": "玩家信用",
   "ratio": "占比",
   "criteria": "项目",
-  
+
   "player - create": "玩家开户",
   "createPlayerPartner": "玩家+推广渠道开户",
   "loginPlayerPartner": "玩家+推广渠道登录",
@@ -2105,6 +2117,9 @@
   "Player Easter Egg Reward": "彩蛋奖励",
   "PlayerEasterEggReward": "彩蛋奖励",
   "PLAYER_EASTER_EGG_REWARD_REPORT": "彩蛋奖励报表",
+  "PLAYER_PACKET_RAIN_REWARD_REPORT": "红包雨奖励报表",
+  "PLAYER_CONSECUTIVE_CONSUMPTION_REWARD_REPORT": "智勇冲关奖励报表",
+  "PLAYER_CONSECUTIVE_LOGIN_REWARD_REPORT": "累计签到奖励报表",
   "PlayerTopUpPromo": "支付优惠",
   "Player Top Up Promo": "支付优惠",
   "Top Up Type": "充值类型",
@@ -2214,5 +2229,6 @@
   "UPDATE_PLAYER_CREDIBILITY_REMARK": "设置玩家信用评价",
   "UpdatePlayerCredibility": "设置玩家信用评价",
   "PLAYER_VALUE": "价值",
-  "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀"
+  "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀",
+  "PlayerPacketRainReward": "红包雨"
 }
