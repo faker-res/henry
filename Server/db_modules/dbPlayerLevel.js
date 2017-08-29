@@ -52,17 +52,9 @@ let dbPlayerLevelInfo = {
 
         return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
             levels => {
-                let stream = dbconfig.collection_players.aggregate(
-                    {
-                        $match: {
-                            platform: platformObjId
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$playerId",
-                        }
-                    }).cursor({batchSize: 10000}).allowDiskUse(true).exec();
+                let stream = dbconfig.collection_players.find(
+                    {platform: platformObjId}
+                ).cursor({batchSize: 10000}).allowDiskUse(true).exec();
 
                 let balancer = new SettlementBalancer();
                 return balancer.initConns().then(function () {
