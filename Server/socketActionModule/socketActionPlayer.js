@@ -835,7 +835,13 @@ function socketActionPlayer(socketIO, socket) {
             var endDate = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.startIndex, data.requestCount, startDate, endDate, data.status, !data.sort], actionName, isValidData);
 
-        }
+        },
+
+        updatePlayerCredibilityRemark: function updatePlayerCredibilityRemark(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.remarks);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.platformObjId, data.playerObjId, data.remarks], actionName, isValidData);
+        },
     };
     socketActionPlayer.actions = this.actions;
 }

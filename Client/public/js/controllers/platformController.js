@@ -3631,24 +3631,35 @@ define(['js/app'], function (myApp) {
                         vm.showCityStr = '';
                         vm.showDistrictStr = '';
                         $scope.getProvinceStr(vm.selectedSinglePlayer.bankAccountProvince).then(data => {
-                            vm.showProvinceStr = data.data.province ? data.data.province.name : vm.selectedSinglePlayer.bankAccountProvince;
+                            if (data.data.province) {
+                                vm.showProvinceStr = data.data.province.name;
+                                $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
+                                    if (data.data.city) {
+                                        vm.showCityStr = data.data.city.name;
+                                        $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
+                                            vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
+                                            $scope.safeApply();
+                                        }, err => {
+                                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
+                                            $scope.safeApply();
+                                        });
+                                    }
+                                    else {
+                                        vm.showCityStr = vm.selectedSinglePlayer.bankAccountCity;
+                                    }
+                                    vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
+                                    $scope.safeApply();
+                                }, err => {
+                                    vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
+                                    $scope.safeApply();
+                                });
+                            }
+                            else {
+                                vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince;
+                            }
                             $scope.safeApply();
                         }, err => {
                             vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountProvince || $translate("Unknown");
-                            $scope.safeApply();
-                        });
-                        $scope.getCityStr(vm.selectedSinglePlayer.bankAccountCity).then(data => {
-                            vm.showCityStr = data.data.city ? data.data.city.name : vm.selectedSinglePlayer.bankAccountCity;
-                            $scope.safeApply();
-                        }, err => {
-                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountCity || $translate("Unknown");
-                            $scope.safeApply();
-                        });
-                        $scope.getDistrictStr(vm.selectedSinglePlayer.bankAccountDistrict).then(data => {
-                            vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePlayer.bankAccountDistrict;
-                            $scope.safeApply();
-                        }, err => {
-                            vm.showProvinceStr = vm.selectedSinglePlayer.bankAccountDistrict || $translate("Unknown");
                             $scope.safeApply();
                         });
 
@@ -9504,6 +9515,24 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
+                if (type == 'add') {
+                    switch (configType) {
+                        case 'topUpScore':
+                            vm.playerValueBasic.topUpTimesScores.push({name: data.minTopUpTimes, score: data.score});
+                            break;
+                        case 'gameTypeScore':
+                            vm.playerValueBasic.gameTypeCountScores.push({name: data.name, score: data.score});
+                            break;
+                        case 'WinRatio':
+                            vm.playerValueBasic.winRatioScores.push({name: data.name, score: data.score});
+                            break;
+                    }
+                } else if (type == 'remove') {
+                    configType.splice(data, 1);
+                }
+            };
+
             vm.topupProviderChange = function (provider, checked) {
                 if (!provider) {
                     return;
@@ -9689,6 +9718,12 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitor':
                         vm.getMonitorBasic();
+                        break;
+                    case 'playerValue':
+                        vm.getPlayerValueBasic();
+                        break;
+                    case 'credibility':
+                        vm.prepareCredibilityConfig();
                         break;
                 }
             };
@@ -9998,6 +10033,101 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getPlayerValueBasic = () => {
+                vm.playerValueBasic = vm.playerValueBasic || {};
+                vm.playerValueBasic.criteriaScoreRatio = vm.selectedPlatform.data.playerValueConfig.criteriaScoreRatio;
+                vm.playerValueBasic.topUpTimesScores = vm.selectedPlatform.data.playerValueConfig.topUpTimesScores;
+                vm.playerValueBasic.gameTypeCountScores = vm.selectedPlatform.data.playerValueConfig.gameTypeCountScores;
+                vm.playerValueBasic.winRatioScores = vm.selectedPlatform.data.playerValueConfig.winRatioScores;
+                vm.playerValueBasic.credibilityScoreDefault = vm.selectedPlatform.data.playerValueConfig.credibilityScoreDefault;
+                $scope.safeApply();
+            };
+
+            vm.prepareCredibilityConfig = () => {
+                vm.removedRemarkId = [];
+                vm.getCredibilityRemarks().then(
+                    () => {
+                        let cloneRemarks = vm.credibilityRemarks.slice(0);
+                        vm.positiveRemarks = [];
+                        vm.negativeRemarks = [];
+                        vm.neutralRemarks = [];
+
+                        let len = cloneRemarks.length;
+
+                        for (let i = 0; i < len; i++) {
+                            let remark = cloneRemarks[i];
+                            if (remark.score > 0) {
+                                vm.positiveRemarks.push(remark);
+                            }
+                            else if (remark.score < 0) {
+                                vm.negativeRemarks.push(remark);
+                            }
+                            else {
+                                vm.neutralRemarks.push(remark);
+                            }
+                        }
+
+                        vm.positiveRemarks.sort((a, b) => {
+                            return b.score - a.score;
+                        });
+
+                        vm.negativeRemarks.sort((a, b) => {
+                            return a.score - b.score;
+                        });
+
+                        $scope.safeApply();
+                    }
+                )
+            };
+
+            vm.updateRemarkInEdit = (type, action, data) => {
+                let remarks;
+                switch (type) {
+                    case "positive":
+                        remarks = vm.positiveRemarks;
+                        break;
+                    case "negative":
+                        remarks = vm.negativeRemarks;
+                        break;
+                    default:
+                        remarks = vm.neutralRemarks;
+                }
+
+                switch (action) {
+                    case "add":
+                        remarks.push(data);
+                        break;
+                    case "update":
+                        remarks.map(remark => {
+                            if (remark._id === data) {
+                                remark["changed"] = true;
+                            }
+                        });
+                        break;
+                    case "remove":
+                        for (let i = 0; i < remarks.length; i++) {
+                            if (remarks[i]._id === data) {
+                                remarks.splice(i, 1);
+                            }
+                        }
+                        vm.removedRemarkId.push(data);
+                        break;
+                }
+                $scope.safeApply();
+            };
+
+            vm.getCredibilityRemarks = () => {
+                return new Promise((resolve, reject) => {
+                    socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                        console.log('credibilityRemarks', data);
+                        vm.credibilityRemarks = data.data;
+                        resolve();
+                    }, function (err) {
+                        reject(err);
+                    });
+                });
+            };
+
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
                 vm.newPlayerLvl.platform = vm.selectedPlatform.id;
@@ -10107,6 +10237,12 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitor':
                         updateMonitorBasic(vm.monitorBasic);
+                        break;
+                    case 'PlayerValue':
+                        updatePlayerValueConfig(vm.playerValueBasic);
+                        break;
+                    case 'credibility':
+                        updateCredibilityRemark();
                         break;
                 }
             };
@@ -10270,6 +10406,50 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
                 });
+            }
+
+            function updatePlayerValueConfig(srcData) {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    playerValueConfig: srcData
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlayerValueConfig', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateCredibilityRemark() {
+                let updatedRemarks = vm.neutralRemarks.concat(vm.positiveRemarks, vm.negativeRemarks);
+                let addRemarks = [];
+                let updateRemarks = [];
+                let deleteRemarks = [];
+
+                for (let i = 0; i < updatedRemarks.length; i++) {
+                    let updatedRemark = updatedRemarks[i];
+
+                    if (!updatedRemark._id) {
+                        addRemarks.push(updatedRemark);
+                        continue;
+                    }
+                    if (updatedRemark.changed) {
+                        updateRemarks.push(updatedRemark);
+                    }
+                }
+
+                for (let i = 0; i < vm.removedRemarkId.length; i++) {
+                    deleteRemarks.push({_id: vm.removedRemarkId[i]});
+                }
+
+                $scope.$socketPromise('updateCredibilityRemarksInBulk', {
+                    platformObjId: vm.selectedPlatform.data._id,
+                    addRemarks: addRemarks,
+                    updateRemarks: updateRemarks,
+                    deleteRemarks: deleteRemarks
+                }).then(
+                    data => {
+                        vm.prepareCredibilityConfig();
+                    }
+                );
             }
 
             vm.ensurePlayerLevelOrder = function () {
@@ -11393,6 +11573,7 @@ define(['js/app'], function (myApp) {
                                 vm.loadPlatformData();
                                 vm.getAllMessageTypes();
                                 vm.linkProvider();
+                                vm.getCredibilityRemarks();
                                 $.getScript("dataSource/data.js").then(
                                     () => {
                                         $scope.creditChangeTypeStrings = creditChangeTypeStrings.sort(function (a, b) {

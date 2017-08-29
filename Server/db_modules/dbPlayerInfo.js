@@ -70,6 +70,7 @@ let dbProposal = require('./../db_modules/dbProposal');
 let dbProposalType = require('./../db_modules/dbProposalType');
 let dbRewardEvent = require('./../db_modules/dbRewardEvent');
 let dbRewardTask = require('./../db_modules/dbRewardTask');
+let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
 
 let PLATFORM_PREFIX_SEPARATOR = '';
 
@@ -592,7 +593,7 @@ let dbPlayerInfo = {
 
         // Player name and password should be alphanumeric and between 6 to 20 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        let chineseRegex = /^[\u4E00-\u9FA5]{0,}$/;
+        let chineseRegex = /^[\u4E00-\u9FA5\u00B7]{0,}$/;
 
         if (env.mode !== "local" && env.mode !== "qa") {
             // ignore for unit test
@@ -613,20 +614,11 @@ let dbPlayerInfo = {
                 });
             }
 
-
-            // if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
-            //     return Q.reject({
-            //         status: constServerCode.PLAYER_NAME_INVALID,
-            //         name: "DBError",
-            //         message: "Realname should be chinese character"
-            //     });
-            // }
-
-            if ((playerdata.realName && playerdata.realName.match(/\d+/g) != null)) {
+            if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
-                    message: "Realname should not include digit"
+                    message: "Realname should be chinese character"
                 });
             }
         }
@@ -2823,33 +2815,49 @@ let dbPlayerInfo = {
         }
 
 
-        var a = dbconfig.collection_players
+        return dbconfig.collection_players
             .find(advancedQuery, {similarPlayers: 0})
-            .sort(sortObj).skip(index).limit(limit)
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-            .populate({path: "partner", model: dbconfig.collection_partner})
-            .lean().then(
-                playerData => {
-                    var players = [];
-                    for (var ind in playerData) {
-                        if (playerData[ind]) {
-                            var newInfo = getRewardData(playerData[ind]);
-                            players.push(Q.resolve(newInfo));
-                        }
-                    }
-                    return Q.all(players)
+            .sort(sortObj).skip(index).limit(limit).lean().then(
+            players => {
+                let calculatePlayerValueProms = [];
+                for (let i = 0; i < players.length; i++) {
+                    let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                    calculatePlayerValueProms.push(calculateProm);
                 }
-            );
-        var b = dbconfig.collection_players
-            .find({platform: platformId, $and: [data]}).count();
-        return Q.all([a, b]).then(
+                return Promise.all(calculatePlayerValueProms);
+
+            }
+        ).then(
+            () => {
+                var a = dbconfig.collection_players
+                    .find(advancedQuery, {similarPlayers: 0})
+                    .sort(sortObj).skip(index).limit(limit)
+                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                    .populate({path: "partner", model: dbconfig.collection_partner})
+                    .lean().then(
+                        playerData => {
+                            var players = [];
+                            for (var ind in playerData) {
+                                if (playerData[ind]) {
+                                    var newInfo = getRewardData(playerData[ind]);
+                                    players.push(Q.resolve(newInfo));
+                                }
+                            }
+                            return Q.all(players)
+                        }
+                    );
+                var b = dbconfig.collection_players
+                    .find({platform: platformId, $and: [data]}).count();
+                return Q.all([a, b]);
+            }
+        ).then(
             data => {
                 return {data: data[0], size: data[1]}
             },
             err => {
                 return {error: err};
             }
-        )
+        );
     },
 
     getPagePlayerByAdvanceQueryWithTopupTimes: function (platformId, data, index, limit, sortObj) {
@@ -6146,42 +6154,42 @@ let dbPlayerInfo = {
         return dbconfig.collection_proposalType.find({
             name: constProposalType.PLAYER_BONUS
         })
-        .then(function (typeData) {
-            
-            var bonusIds = [];
-            for (var type in typeData) {
-                bonusIds.push(ObjectId(typeData[type]._id));
-            }
+            .then(function (typeData) {
 
-            var queryObj = {
-                type: {$in: bonusIds}
-            };
-            queryObj.status = {$in: ['Success','Approved']};
+                var bonusIds = [];
+                for (var type in typeData) {
+                    bonusIds.push(ObjectId(typeData[type]._id));
+                }
 
-            if (startDate || endDate) {
-                queryObj.createTime = {};
-            }
-            if (startTime) {
-                queryObj.createTime["$gte"] = new Date(startTime);
-            }
-            if (endTime) {
-                queryObj.createTime["$lte"] = new Date(endTime);
-            }
-            var proposalProm = dbconfig.collection_proposal.aggregate([
-                {$match: queryObj},
-            {
-                $group: {
-                    _id: "$platformId",
-                    number: {$sum: "$data.amount"}
+                var queryObj = {
+                    type: {$in: bonusIds}
+                };
+                queryObj.status = {$in: ['Success', 'Approved']};
+
+                if (startDate || endDate) {
+                    queryObj.createTime = {};
                 }
-            }
-            ])
-            return Q.all([proposalProm]).then(
-                data => {
-                    return data[0]
+                if (startTime) {
+                    queryObj.createTime["$gte"] = new Date(startTime);
                 }
-            );
-        });
+                if (endTime) {
+                    queryObj.createTime["$lte"] = new Date(endTime);
+                }
+                var proposalProm = dbconfig.collection_proposal.aggregate([
+                    {$match: queryObj},
+                    {
+                        $group: {
+                            _id: "$platformId",
+                            number: {$sum: "$data.amount"}
+                        }
+                    }
+                ])
+                return Q.all([proposalProm]).then(
+                    data => {
+                        return data[0]
+                    }
+                );
+            });
     },
 
 
@@ -6570,11 +6578,11 @@ let dbPlayerInfo = {
 
                     var countProm = dbconfig.collection_proposal.find(queryObj).count();
                     var proposalProm = dbconfig.collection_proposal.find(queryObj)
-                    .populate({
+                        .populate({
                             path: "platform",
                             model: dbconfig.collection_platform
-                    })
-                    .sort({createTime: seq}).skip(startIndex).limit(count).lean();
+                        })
+                        .sort({createTime: seq}).skip(startIndex).limit(count).lean();
 
                     return Q.all([proposalProm, countProm]).then(
                         data => {
@@ -9461,6 +9469,23 @@ let dbPlayerInfo = {
             }
         );
     },
+
+    updatePlayerCredibilityRemark: (platformObjId, playerObjId, remarks) => {
+        return dbconfig.collection_players.findOneAndUpdate(
+            {
+                _id: playerObjId,
+                platform: platformObjId
+            },
+            {
+                credibilityRemarks: remarks
+            }
+        ).lean().then(
+            playerData => {
+                // dbPlayerCredibility.calculatePlayerValue(playerData._id);
+                return playerData;
+            }
+        );
+    }
 
 };
 
