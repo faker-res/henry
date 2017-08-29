@@ -711,7 +711,7 @@
                                                 text(ng-if="!vm.configTableEdit") {{data.score}}
                                                 input(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("negative", "update", data._id)')
                                             td.text-center
-                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("negative", "remove", data._id)', width='20%')
+                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("negative", "remove", data._id)')
                                         tr.text-center
                                             td.text-center(colspan=3)
                                                 i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("negative", "add", {})')

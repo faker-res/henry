@@ -283,7 +283,7 @@ var roleChecker = {
                 playerDailyCreditLog :['playerCreditDailyLog'],
                 playerApiLog: ['getPlayerApiLog'],
                 rewardTaskLog: ['getPlayerRewardTask'],
-
+                UpdatePlayerCredibility: ['updatePlayerCredibilityRemark']
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
