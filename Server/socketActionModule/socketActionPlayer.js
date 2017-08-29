@@ -833,10 +833,30 @@ function socketActionPlayer(socketIO, socket) {
             data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
             var startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endDate = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platformId, data.startIndex, data.requestCount, startDate, endDate, data.status, !data.sort], actionName, isValidData);
-
+            socketUtil.emitter(self.socket, dbPlayerInfo.getAllAppliedBonusList, [data.platform, data.startIndex, data.requestCount, startDate, endDate, data.status, !data.sort], actionName, isValidData);
         },
-
+        getAnalysisSingleBonusRequestList: function getAnalysisSingleBonusRequestList(data){
+            var isValidData = Boolean(data);
+            let actionName = arguments.callee.name;
+            data = data || {};
+            data.startIndex = data.startIndex || 0;
+            data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
+            var startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endDate = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            var period = data.period
+            socketUtil.emitter(self.socket, dbPlayerInfo.countDailyPlayerBonusBySinglePlatform, [data.platform, startDate, endDate, data.period, !data.sort], actionName, isValidData);
+        },
+        getAnalysisBonusRequestList: function getAnalysisBonusRequestList(data){
+            console.log(data);
+            var isValidData = Boolean(data);
+            let actionName = arguments.callee.name;
+            data = data || {};
+            data.startIndex = data.startIndex || 0;
+            data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
+            var startDate = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endDate = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.countBonusAmountALLPlatform,   [startDate, endDate, !data.sort], actionName, isValidData);
+        },
         updatePlayerCredibilityRemark: function updatePlayerCredibilityRemark(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.remarks);

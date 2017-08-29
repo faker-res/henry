@@ -5808,15 +5808,27 @@ let dbPlayerInfo = {
 
     countDailyPlayerBonusByPlatform: function (platformId, startDate, endDate) {
 
-        return dbconfig.collection_proposalType.findOne({
+        return dbconfig.collection_proposalType.find({
             platformId: platformId,
             name: constProposalType.PLAYER_BONUS
         })
 
             .then(function (typeData) {
+
+                var bonusIds = [];
+                if(Array.isArray(typeData)){
+                    for (var type in typeData) {
+                        bonusIds.push(ObjectId(typeData[type]._id));
+                    }
+                }else{
+                    bonusIds.push(typeData['_id']);
+                }
                 var queryObj = {
-                    type: typeData._id
+                    type: {$in: bonusIds}
                 };
+                if(platformId){
+                    queryObj['data.platformId']= ObjectId(platformId);
+                }
                 queryObj.status = {$in: ['Success', 'Approved']};
                 if (startDate || endDate) {
                     queryObj.createTime = {};
@@ -5843,7 +5855,80 @@ let dbPlayerInfo = {
                 );
             });
     },
+    countDailyPlayerBonusBySinglePlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                };
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
 
+        return dbconfig.collection_proposalType.find({
+            platformId: platformId,
+            name: constProposalType.PLAYER_BONUS
+        })
+
+            .then(function (typeData) {
+
+                var bonusIds = [];
+                if(Array.isArray(typeData)){
+                    for (var type in typeData) {
+                        bonusIds.push(ObjectId(typeData[type]._id));
+                    }
+                }else{
+                    bonusIds.push(typeData['_id']);
+                }
+                var queryObj = {
+                    type: {$in: bonusIds}
+                };
+
+                queryObj['status'] = {$in: ['Success', 'Approved']};
+
+                while (dayStartTime.getTime() < endDate.getTime()) {
+                    var dayEndTime = getNextDate.call(this, dayStartTime);
+
+                    queryObj["createTime"] = {$gte: new Date(dayStartTime), $lt: new Date(dayEndTime)};
+                    if (platformId != 'all') {
+                        queryObj['data.platformId']= ObjectId(platformId);
+                    }
+                    proms.push(dbconfig.collection_proposal.find(queryObj));
+                    dayStartTime = dayEndTime;
+                }
+
+                return Q.all(proms).then(data => {
+                    var tempDate = startDate;
+                    console.log(data);
+                    var res = data.map(dayData => {
+                        if(dayData[0]){
+                            var obj = {_id: tempDate, number: dayData[0]['data']['amount']};
+                        }else{
+                            var obj = {_id: tempDate, number: 0};
+                        }
+
+                        tempDate = getNextDate(tempDate);
+                        return obj;
+                    });
+                    return res;
+                });
+            });
+    },
     /* 
      * Get new player count 
      */
@@ -6153,45 +6238,45 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_proposalType.find({
             name: constProposalType.PLAYER_BONUS
-        })
-            .then(function (typeData) {
+        }).populate({path: "platformId", model: dbconfig.collection_platform})
+        .then(function (typeData) {
+            
+            var bonusIds = [];
+            for (var type in typeData) {
+                bonusIds.push(ObjectId(typeData[type]._id));
+            }
 
-                var bonusIds = [];
-                for (var type in typeData) {
-                    bonusIds.push(ObjectId(typeData[type]._id));
-                }
+            var queryObj = {
+                type: {$in: bonusIds}
+            };
+            queryObj.status = {$in: ['Success','Approved']};
 
-                var queryObj = {
-                    type: {$in: bonusIds}
-                };
-                queryObj.status = {$in: ['Success', 'Approved']};
-
-                if (startDate || endDate) {
-                    queryObj.createTime = {};
+            if (startTime || endTime) {
+                queryObj.createTime = {};
+            }
+            if (startTime) {
+                queryObj.createTime["$gte"] = new Date(startTime);
+            }
+            if (endTime) {
+                queryObj.createTime["$lte"] = new Date(endTime);
+            }
+            console.log(queryObj)
+            var proposalProm = dbconfig.collection_proposal.aggregate([
+                {$match: queryObj},
+            {
+                $group: {
+                    _id: "$data.platformId",
+                    number: {$sum: "$data.amount"}
                 }
-                if (startTime) {
-                    queryObj.createTime["$gte"] = new Date(startTime);
+            }
+            ])
+            return Q.all([proposalProm]).then(
+                data => {
+                    return data[0]
                 }
-                if (endTime) {
-                    queryObj.createTime["$lte"] = new Date(endTime);
-                }
-                var proposalProm = dbconfig.collection_proposal.aggregate([
-                    {$match: queryObj},
-                    {
-                        $group: {
-                            _id: "$platformId",
-                            number: {$sum: "$data.amount"}
-                        }
-                    }
-                ])
-                return Q.all([proposalProm]).then(
-                    data => {
-                        return data[0]
-                    }
-                );
-            });
+            );
+        });
     },
-
 
     /*
      * Get bonus list
@@ -6471,23 +6556,28 @@ let dbPlayerInfo = {
 
     getAllAppliedBonusList: function (platformId, startIndex, count, startTime, endTime, status, sort) {
         var seq = sort ? -1 : 1;
-        return dbconfig.collection_proposalType.find({
+        return dbconfig.collection_proposalType.findOne({
+            platformId:platformId,
             name: constProposalType.PLAYER_BONUS
         })
             .then(function (typeData) {
                 var bonusIds = [];
-                for (var type in typeData) {
-                    bonusIds.push(ObjectId(typeData[type]._id));
+                if(Array.isArray(typeData)){
+                    for (var type in typeData) {
+                        bonusIds.push(ObjectId(typeData[type]._id));
+                    }
+                }else{
+                    bonusIds.push(typeData['_id']);
                 }
-
                 var queryObj = {
                     type: {$in: bonusIds}
                 };
-
+                if(platformId){
+                    queryObj['data.platformId']= ObjectId(platformId);
+                }
                 if (status) {
                     queryObj.status = {$in: status}
-                }
-
+                };
                 if (startTime || endTime) {
                     queryObj.createTime = {};
                 }
@@ -6507,7 +6597,8 @@ let dbPlayerInfo = {
                             amount: {$sum: '$data.amount'}
                         }
                     }
-                ])
+
+                ]).sort({'_id':1})
 
                 return Q.all([proposalProm, countProm]).then(
                     data => {

@@ -45,6 +45,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset')
             text {{"RESET_PASSWORD" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'UpdatePlayerCredibility')",ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initPlayerCredibility()', data-target='#modalPlayerCredibilityRemarks')
+            text {{"UPDATE_PLAYER_CREDIBILITY_REMARK" | translate}}
+            img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ForbidTopupTypes')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareShowPlayerForbidTopUpType()' data-target='#modalPlayerForbidTopupTypes')
             text {{"Forbid TopUp Types" | translate}}
             img.img-edit
@@ -473,6 +476,74 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success(ng-if='!vm.playerNewPassword', ng-click='vm.submitResetPlayerPassword()') {{'RESET_PASSWORD' | translate}}
                 button.common-button.margin-right-5.btn.btn-success(ng-if='vm.playerNewPassword', data-dismiss='modal') {{'OK' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.playerNewPassword', data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalPlayerCredibilityRemarks.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'UPDATE_PLAYER_CREDIBILITY_REMARK' | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        button.btn.btn-danger.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", ng-click='vm.submitRemarkUpdate()') {{"CONFIRM" | translate}}
+                        button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
+                        span {{vm.credibilityRemarkUpdateMessage | translate}}
+                        div.row
+                            div.col-md-4
+                                .well.row
+                                    label {{"REDUCE_SCORE" | translate}}
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"remark" | translate}}
+                                                th {{"score" | translate}}
+                                                th {{"SELECT" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.negativeRemarks')
+                                                td
+                                                    text {{data.name}}
+                                                td
+                                                    text {{data.score}}
+                                                td
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected")
+
+                            div.col-md-4
+                                .well
+                                    label {{"ADD_SCORE" | translate}}
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"remark" | translate}}
+                                                th {{"score" | translate}}
+                                                th {{"SELECT" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.positiveRemarks')
+                                                td
+                                                    text {{data.name}}
+                                                td
+                                                    text {{data.score}}
+                                                td
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected")
+
+                            div.col-md-4
+                                .well
+                                    label {{"REMINDER" | translate}}
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"remark" | translate}}
+                                                th {{"score" | translate}}
+                                                th {{"SELECT" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.neutralRemarks')
+                                                td
+                                                    text {{data.name}}
+                                                td
+                                                    text {{data.score}}
+                                                td
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected")
 
 #modalPlayerExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:95%;')

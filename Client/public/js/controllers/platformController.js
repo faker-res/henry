@@ -2922,6 +2922,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
                         {title: $translate("EMAIL"), visible: false, data: "email", advSearch: true},
                         {title: $translate("LOGIN_IP"), visible: false, data: "loginIps", advSearch: true},
+                        {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
                         // {
                         //     visible: false,
                         //     title: $translate('PLAYER_TYPE'),
@@ -4431,6 +4432,54 @@ define(['js/app'], function (myApp) {
                 vm.customNewPassword = "888888";
                 vm.playerNewPassword = "";
                 vm.resetPartnerNewPassword = false;
+            };
+
+            vm.initPlayerCredibility = () => {
+                vm.credibilityRemarkUpdateMessage = "";
+                vm.playerCredibilityRemarksUpdated = false;
+                vm.prepareCredibilityConfig().then(
+                    () => {
+                        if (!vm.selectedSinglePlayer.credibilityRemarks) {
+                            return;
+                        }
+
+                        let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
+                        for (let i = 0; i < playerRemarksId.length; i++) {
+                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
+                                    vm.credibilityRemarks[j].selected = true;
+                                }
+                            }
+                        }
+                        $scope.safeApply();
+                    }
+                );
+            };
+
+            vm.submitRemarkUpdate = () => {
+                let selectedRemarks = [];
+                for (let i = 0; i < vm.credibilityRemarks.length; i++) {
+                    if (vm.credibilityRemarks[i].selected === true) {
+                        selectedRemarks.push(vm.credibilityRemarks[i]._id);
+                    }
+                }
+
+                let sendQuery = {
+                    platformObjId: vm.selectedSinglePlayer.platform,
+                    playerObjId: vm.selectedSinglePlayer._id,
+                    remarks: selectedRemarks
+                };
+
+                socketService.$socket($scope.AppSocket, "updatePlayerCredibilityRemark", sendQuery, function (data) {
+                    vm.playerCredibilityRemarksUpdated = true;
+                    vm.credibilityRemarkUpdateMessage = "SUCCESS";
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                }, function(error) {
+                    vm.playerCredibilityRemarksUpdated = true;
+                    vm.credibilityRemarkUpdateMessage = error.error.message;
+                    $scope.safeApply();
+                });
             };
 
             vm.submitResetPlayerPassword = function () {
@@ -10045,7 +10094,7 @@ define(['js/app'], function (myApp) {
 
             vm.prepareCredibilityConfig = () => {
                 vm.removedRemarkId = [];
-                vm.getCredibilityRemarks().then(
+                return vm.getCredibilityRemarks().then(
                     () => {
                         let cloneRemarks = vm.credibilityRemarks.slice(0);
                         vm.positiveRemarks = [];
@@ -10077,7 +10126,7 @@ define(['js/app'], function (myApp) {
 
                         $scope.safeApply();
                     }
-                )
+                );
             };
 
             vm.updateRemarkInEdit = (type, action, data) => {
