@@ -129,7 +129,8 @@
 .section
     .row
         .titlePic
-            .title BONUS
+            .title {{"BonusAmount" | translate}}
+                .pull-right
                     a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#allPlayerBonusAnalysis .block-query","allPlayerBonus")')
                         text.pull-left.margin-right-5 {{vm.optionText.allPlayerBonus | translate}}
     #allPlayerBonusAnalysis

@@ -936,6 +936,8 @@
   "lastBonusTime": "最近提款时间",
   "BonusTime": "提款次数",
   "BonusAmount": "提款额",
+  "BONUS_AMOUNT": "提款额",
+  "Bonus": "提款",
   "MESSAGE_TEMPLATE_TYPE": "类型",
   "MESSAGE_TEMPLATE_FORMAT": "格式",
   "MESSAGE_TEMPLATE_CONTENT": "内容",

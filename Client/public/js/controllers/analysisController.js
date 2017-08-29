@@ -71,6 +71,7 @@ define(['js/app'], function (myApp) {
                         vm.plotAllPlatformNewPlayerPie();
                         vm.plotAllPlatformCreditPie();
                         vm.plotAllPlatformTopUpPie();
+                        vm.plotAllPlatformPlayerBonusPie();
                         break;
                     case "NEW_PLAYER":
                         vm.initSearchParameter('newPlayer', 'day', 3);
@@ -286,16 +287,17 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 startDate: vm.queryPara.allPlayerBonus.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.allPlayerBonus.endTime.data('datetimepicker').getLocalDate(),
-                platformId:vm.selectedPlatform._id,
-                status: ['Success', 'Approved']
+                platformId:vm.selectedPlatform ?vm.selectedPlatform._id:null,
+                status:['Success','Approved']
             };
 
-            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data1) {
-                console.log('allActivePlayers', data1);
-                var data = data1.data.records.filter(function (obj) {
+            socketService.$socket($scope.AppSocket, 'getAnalysisBonusRequestList', sendData, function success(data1) {
+                console.log('getAnalysisBonusRequestList', data1);
+                var data = data1.data.filter(function (obj) {
                     return (obj._id);
                 }).map(function (obj) {
-                    return {label: vm.setGraphName(obj._id), data: obj.amount};
+                    var platformName = vm.platformList.filter(function( item ){ return item._id == obj._id})
+                    return {label: vm.setGraphName(platformName[0]['platformName']), data: obj.number};
                 }).sort(function (a, b) {
                     return b.data - a.data;
                 })
@@ -1827,15 +1829,14 @@ define(['js/app'], function (myApp) {
                 opt = 'topup';
             }
             var sendData = {
-                platformId: vm.selectedPlatform._id,
+                platform: vm.selectedPlatform._id,
                 period: vm.queryPara.bonusAmount.periodText,
                 type: opt,
                 startDate: vm.queryPara.bonusAmount.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.bonusAmount.endTime.data('datetimepicker').getLocalDate(),
-                status:['Approved','Success']
             }
 
-            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function (data) {
+            socketService.$socket($scope.AppSocket, 'getAnalysisSingleBonusRequestList', sendData, function (data) {
                 vm.playerBonusData = data.data;
                 console.log('vm.playerBonusData', vm.playerBonusData);
                 // $scope.safeApply();
@@ -1849,8 +1850,8 @@ define(['js/app'], function (myApp) {
             var playerCreditObjData = {};
 
             var graphData = [];
-            srcData.records.map(item => {
-                graphData.push([new Date(item._id), item.amount])
+            srcData.map(item => {
+                graphData.push([new Date(item._id), item.number])
             })
             var newOptions = {};
             // var nowDate = new Date(sendData.startDate);
