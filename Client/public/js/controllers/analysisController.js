@@ -1850,9 +1850,35 @@ define(['js/app'], function (myApp) {
             var playerCreditObjData = {};
 
             var graphData = [];
-            srcData.records.map(item => {
-                graphData.push([new Date(item._id), item.amount])
+            var startFrom = new Date(sendData.startDate).getTime();
+            var endTo = new Date(sendData.endDate).getTime();
+
+            var betweenDay = (endTo - startFrom)/ (60*60*24*1000);
+            var period = [];
+
+            for(var i=0; i<=betweenDay; i++){
+                var date = new Date(startFrom);
+                var yy = date.getFullYear();
+                var mm = ("0"+(date.getMonth()+1)).substr(-2);
+                var dd = ("0"+date.getDate()).substr(-2);
+
+                period.push(yy+'-'+mm+'-'+dd);
+                startFrom += 60*60*24*1000;
+            }
+
+            period.map(record =>{
+                var bonusDate = srcData.records.filter(function(item){
+                    return item._id == record;
+                })
+
+                if(bonusDate.length>0){
+                    graphData.push([new Date(bonusDate[0]._id), bonusDate[0].amount]);
+                }else{
+                    graphData.push([new Date(record), 0]);
+                }
+
             })
+
             var newOptions = {};
             // var nowDate = new Date(sendData.startDate);
             var xText = '';
