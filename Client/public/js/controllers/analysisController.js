@@ -71,6 +71,7 @@ define(['js/app'], function (myApp) {
                         vm.plotAllPlatformNewPlayerPie();
                         vm.plotAllPlatformCreditPie();
                         vm.plotAllPlatformTopUpPie();
+                        vm.plotAllPlatformPlayerBonusPie();
                         break;
                     case "NEW_PLAYER":
                         vm.initSearchParameter('newPlayer', 'day', 3);
