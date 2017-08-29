@@ -17,7 +17,7 @@ let dbPlayerLevelInfo = {
      * Create a new playerLevel
      * @param {json} data - The data of the playerLevel. Refer to playerLevel schema.
      */
-    createPlayerLevel : function(playerLevelData){
+    createPlayerLevel: function (playerLevelData) {
         var playerLevel = new dbconfig.collection_playerLevel(playerLevelData);
         return playerLevel.save();
     },
@@ -27,7 +27,7 @@ let dbPlayerLevelInfo = {
      * @param {String}  query - The query string
      * @param {string} updateData - The update data string
      */
-    updatePlayerLevel: function(query, updateData) {
+    updatePlayerLevel: function (query, updateData) {
         return dbconfig.collection_playerLevel.findOneAndUpdate(query, updateData);
     },
 
@@ -35,7 +35,7 @@ let dbPlayerLevelInfo = {
      * Get playerLevel information
      * @param {String}  query - The query string
      */
-    getPlayerLevel : function(query) {
+    getPlayerLevel: function (query) {
         return dbconfig.collection_playerLevel.find(query);
     },
 
@@ -43,8 +43,8 @@ let dbPlayerLevelInfo = {
      * Delete playerLevel information
      * @param {String}  - ObjectId of the playerLevel
      */
-    deletePlayerLevel : function(playerLevelObjId) {
-        return dbconfig.collection_playerLevel.remove({_id:playerLevelObjId});
+    deletePlayerLevel: function (playerLevelObjId) {
+        return dbconfig.collection_playerLevel.remove({_id: playerLevelObjId});
     },
 
     startPlatformPlayerLevelSettlement: (platformObjId, upOrDown) => {
@@ -60,8 +60,7 @@ let dbPlayerLevelInfo = {
                     },
                     {
                         $group: {
-                            _id: "$platform",
-                            playerObjIds: {$addToSet: "$_id"}
+                            _id: "$playerId",
                         }
                     }).cursor({batchSize: 10000}).allowDiskUse(true).exec();
 
@@ -71,9 +70,11 @@ let dbPlayerLevelInfo = {
                         {
                             stream: stream,
                             batchSize: constSystemParam.BATCH_SIZE,
-                            makeRequest: function (result, request) {
+                            makeRequest: function (playerIdObjs, request) {
                                 request("player", "performPlatformPlayerLevelSettlement", {
-                                    playerObjIds: result[0].playerObjIds,
+                                    playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                        return playerIdObj._id;
+                                    }),
                                     platformObjId: platformObjId,
                                     levels: levels,
                                     startTime: lastMonth.startTime,
