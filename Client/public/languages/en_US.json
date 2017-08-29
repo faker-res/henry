@@ -904,5 +904,8 @@
   "playerNameMaxLength": "Maximum Length For Player Name",
   "playerNameMinLength": "Minimum Length For Player Name",
   "merchantCount": "Merchant Count",
+  "UPDATE_PLAYER_CREDIBILITY_REMARK": "Update Player Credibility Remark",
+  "UpdatePlayerCredibility": "Update Player Credibility Remark",
+  "PLAYER_VALUE": "Value",
   "playerCount": "Player Count"
 }
