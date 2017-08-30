@@ -124,7 +124,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let proposalQuery = {
                 'data.platformId': {$in: [ObjectId(proposal.data.platformId), String(proposal.data.platformId)]},
-                'data.playerObjId': {$in: [ObjectId(proposal.data.playerObjId), String(proposal.data.platformId)]},
+                'data.playerObjId': {$in: [ObjectId(proposal.data.playerObjId), String(proposal.data.playerObjId)]},
                 createTime: {$lt: proposal.createTime},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                 mainType: {$in: ["TopUp", "Reward"]}
@@ -325,12 +325,13 @@ function checkProposalConsumption(proposal, platformObj) {
                                             let curConsumption = 0, bonusAmount = 0;
                                             let initBonusAmount = 0;
                                             let isIncludePreviousConsumption = false;
+                                            let spendingAmount = getProp.data.spendingAmount ? getProp.data.spendingAmount : getProp.data.requiredUnlockAmount;
 
                                             if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
                                                 initBonusAmount = getProp.data.rewardAmount;
                                                 isIncludePreviousConsumption = true;
                                             } else {
-                                                initBonusAmount = getProp.data.rewardAmount;
+                                                initBonusAmount = getProp.data.rewardAmount ? getProp.data.rewardAmount : getProp.data.initAmount;
                                             }
 
                                             if (record && record[0]) {
@@ -349,7 +350,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 sequence: checkingNo,
                                                 proposalId: getProp.proposalId,
                                                 initBonusAmount: initBonusAmount,
-                                                requiredConsumption: getProp.data.spendingAmount - applyAmount,
+                                                requiredConsumption: spendingAmount - applyAmount,
                                                 curConsumption: curConsumption,
                                                 bonusAmount: bonusAmount,
                                                 settleTime: new Date(queryDateFrom),
