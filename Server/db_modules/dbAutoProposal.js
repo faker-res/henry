@@ -124,7 +124,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
             let proposalQuery = {
                 'data.platformId': {$in: [ObjectId(proposal.data.platformId), String(proposal.data.platformId)]},
-                'data.playerObjId': {$in: [ObjectId(proposal.data.playerObjId), String(proposal.data.platformId)]},
+                'data.playerObjId': {$in: [ObjectId(proposal.data.playerObjId), String(proposal.data.playerObjId)]},
                 createTime: {$lt: proposal.createTime},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                 mainType: {$in: ["TopUp", "Reward"]}
@@ -161,6 +161,9 @@ function checkProposalConsumption(proposal, platformObj) {
                 allProposalQuery.createTime["$gt"] = lastWithdrawDate;
                 creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
             }
+
+
+            console.log('proposalQuery', proposalQuery);
 
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).populate(
                 {path: "type", model: dbconfig.collection_proposalType}
@@ -218,6 +221,9 @@ function checkProposalConsumption(proposal, platformObj) {
             if (data && data[0]) {
                 proposals = data[0];
             }
+
+            console.log('proposals', proposals.map(prop => prop.proposalId));
+
 
             if (data && data[3]) {
                 allProposals = data[3];
@@ -325,12 +331,13 @@ function checkProposalConsumption(proposal, platformObj) {
                                             let curConsumption = 0, bonusAmount = 0;
                                             let initBonusAmount = 0;
                                             let isIncludePreviousConsumption = false;
+                                            let spendingAmount = getProp.data.spendingAmount ? getProp.data.spendingAmount : getProp.data.requiredUnlockAmount;
 
                                             if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
                                                 initBonusAmount = getProp.data.rewardAmount;
                                                 isIncludePreviousConsumption = true;
                                             } else {
-                                                initBonusAmount = getProp.data.rewardAmount;
+                                                initBonusAmount = getProp.data.rewardAmount ? getProp.data.rewardAmount : getProp.data.initAmount;
                                             }
 
                                             if (record && record[0]) {
@@ -349,7 +356,7 @@ function checkProposalConsumption(proposal, platformObj) {
                                                 sequence: checkingNo,
                                                 proposalId: getProp.proposalId,
                                                 initBonusAmount: initBonusAmount,
-                                                requiredConsumption: getProp.data.spendingAmount - applyAmount,
+                                                requiredConsumption: spendingAmount - applyAmount,
                                                 curConsumption: curConsumption,
                                                 bonusAmount: bonusAmount,
                                                 settleTime: new Date(queryDateFrom),
