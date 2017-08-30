@@ -8,124 +8,6 @@ define(['js/app'], function (myApp) {
         var $translate = $filter('translate');
         var vm = this;
 
-
-        var eventName = "$viewContentLoaded";
-        if (!$scope.AppSocket) {
-            eventName = "socketConnected";
-            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
-        }
-        $scope.$on(eventName, function (e, d) {
-            setTimeout(
-                function () {
-                    return;
-                    socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
-                        vm.platformList = data.data;
-                        console.log("vm.getAllPlatforms", data);
-                        if (vm.platformList.length == 0) {
-                            return;
-                        } else {
-                            var storedPlatform = $cookies.get("platform");
-                            if (storedPlatform) {
-                                if (storedPlatform === '_allPlatform') {
-                                    storedPlatform = vm.platformList[0].name;
-                                }
-
-                                vm.platformList.forEach(
-                                    platform => {
-                                        if (platform.name == storedPlatform) {
-                                            vm.platformID = platform._id;
-                                            vm.platformName = platform.name
-                                        }
-                                    }
-                                );
-                            } else {
-                                vm.platformID = vm.platformList[0]._id;
-                                vm.platformName = vm.platformList[0].name;
-                            }
-                            if (authService.checkViewPermission('Dashboard', 'Platform', 'Read')) {
-                                $('#penalModel').clone().removeClass('hide').insertAfter('.onlineNum div');
-                                $('#penalModel').clone().removeClass('hide').insertAfter('.topupAmount div');
-                                $('#penalModel').clone().removeClass('hide').insertAfter('.bonusAmount div');
-                                $('#penalModel').clone().removeClass('hide').insertAfter('.spendAmount div');
-                                $('#penalModel').clone().removeClass('hide').insertAfter('.newUser div');
-
-
-                                //day current online number
-                                $('.onlineNum .panel').addClass('panel-green');
-                                // $('.onlineNum .panel-width').addClass('col-md-3');
-                                $('.onlineNum .typeIcon').addClass('fa-smile-o');
-                                $('.onlineNum .which').html($translate('Online Players'));
-
-                                //day topupamount
-                                $('.topupAmount .panel').addClass('panel-primary');
-                                // $('.topupAmount .panel-width').addClass('col-md-3');
-                                $('.topupAmount .typeIcon').addClass('fa-dollar');
-                                $('.topupAmount .which').html($translate('Topup Amount'));
-
-                                //day topupamount
-                                $('.bonusAmount .panel').addClass('panel-purple');
-                                // $('.topupAmount .panel-width').addClass('col-md-3');
-                                $('.bonusAmount .typeIcon').addClass('fa-dollar');
-                                $('.bonusAmount .which').html($translate('BonusAmount'));
-
-                                //spend amount
-                                $('.spendAmount .panel').addClass('panel-yellow');
-                                // $('.spendAmount .panel-width').addClass('col-md-3');
-                                $('.spendAmount .typeIcon').addClass('fa-money');
-                                $('.spendAmount .which').html($translate('Spent Amount'));
-
-                                //new user
-                                $('.newUser .panel').addClass('panel-red');
-                                // $('.newUser .panel-width').addClass('col-md-3');
-                                $('.newUser .typeIcon').addClass('fa-user-plus');
-                                $('.newUser .which').html($translate('New Players'));
-
-                            }
-                            if (authService.checkViewPermission('Dashboard', 'Operation', 'Read')) {
-                                $('#penalModel').clone().removeClass('hide').insertAfter('.proposal div');
-                                $('#penalModel').clone().removeClass('hide').insertAfter('.rewardRequest div');
-                                $('#penalModel').clone().removeClass('hide').insertAfter('.rewardAmount div');
-
-                                //proposal
-                                $('.proposal .panel').addClass('panel-red');
-                                // $('.proposal .panel-width').addClass('col-md-3');
-                                $('.proposal .typeIcon').addClass('fa-file-text-o');
-                                $('.proposal .which').html($translate('PROPOSAL'));
-                                $('.proposal .dashboardPanel a.href').prop('href', '/operation');
-
-                                //rewardRequest
-                                $('.rewardRequest .panel').addClass('panel-primary');
-                                // $('.rewardRequest .panel-width').addClass('col-md-3');
-                                $('.rewardRequest .typeIcon').addClass('fa-registered');
-                                $('.rewardRequest .which').html($translate('Request Reward Num'));
-                                $('.rewardRequest .dashboardPanel a.href').prop('href', '/operation');
-
-                                //rewardAmount
-                                $('.rewardAmount .panel').addClass('panel-primary');
-                                // $('.rewardAmount .panel-width').addClass('col-md-3');
-                                $('.rewardAmount .typeIcon').addClass('fa-stop-circle');
-                                $('.rewardAmount .which').html($translate('Request Reward Amount'));
-                                $('.rewardAmount .dashboardPanel a.href').prop('href', '/operation');
-                            }
-
-                            //common
-                            $('.day .which').prepend($translate('Today') + ' ');
-                            $('.week .which').prepend($translate('7 Days') + ' ');
-                            $('.dashboardDiv .statement').html($translate('View Details'));
-
-                            $('.dashboardDiv a.href').click(function () {
-                                $('#cssmenu .navbar-brand  a[href*="dashboard"]').parent().removeClass('active')
-                            })
-
-                            vm.loadAllData();
-                        }
-                    }, function (error) {
-                    });
-                }, 1000
-            );
-        });
-        return;
-
         vm.getDashboardData = function (numDays, after) {
             var queryDone = [false, false, false, false, false];
             var sendData = {
@@ -175,25 +57,24 @@ define(['js/app'], function (myApp) {
             });
 
             //only query the success bonus proposal
-            //todo:: temp disable this part
-            // sendData.status = ['Success','Approved'];
-            // socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data) {
-            //     var totalBonus = 0;
-            //     var records = data.data.records;
-            //     for(var d in records){
-            //         totalBonus += records[d].amount || 0;
-            //     }
-            //
-            //     if (numDays == 0){
-            //         $('.day .bonusAmount .number').html(totalBonus.toFixed(2));
-            //         utilService.fitText('.day .bonusAmount .number');
-            //     } else if(numDays == 7){
-            //         $('.week .bonusAmount .number').html(totalBonus.toFixed(2));
-            //         utilService.fitText('.week .bonusAmount .number');
-            //     }
-            //     queryDone[2] = true;
-            //     $scope.safeApply();
-            // });
+            sendData.status = ['Success','Approved'];
+            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data) {
+                var totalBonus = 0;
+                var records = data.data.records;
+                for(var d in records){
+                    totalBonus += records[d].amount || 0;
+                }
+
+                if (numDays == 0){
+                    $('.day .bonusAmount .number').html(totalBonus.toFixed(2));
+                    utilService.fitText('.day .bonusAmount .number');
+                } else if(numDays == 7){
+                    $('.week .bonusAmount .number').html(totalBonus.toFixed(2));
+                    utilService.fitText('.week .bonusAmount .number');
+                }
+                queryDone[2] = true;
+                $scope.safeApply();
+            });
 
             if (numDays == 0) {
                 socketService.$socket($scope.AppSocket, 'getPlayerConsumptionSumForAllPlatform', sendData, function success(data) {
@@ -358,36 +239,35 @@ define(['js/app'], function (myApp) {
                         callback();
                     }
                 });
+            
+            socketService.$socket($scope.AppSocket, 'countPlayerBonusAllPlatform', sendData, function success(data) {
+                var placeholder = '#bonusLine';
+                vm.setGraphHeight(placeholder);
+                var graphOptions = $.extend({}, vm.graphOptions);
+                graphOptions.yaxes = [{
+                    position: 'left',
+                    axisLabel: $translate('AMOUNT'),
+                }];
+                console.log('countPlayerBonusAllPlatform', data);
+                var playerData = data.data;
+                var nowDate = new Date(sendData.startDate);
+                var graphData = [];
+                var newPlayerObjData = {};
+                for (var i = 0; i < playerData.length; i++) {
+                    newPlayerObjData[playerData[i]._id] = playerData[i].number;
+                }
+                do {
+                    var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
+                    graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
+                    nowDate.setDate(nowDate.getDate() + 1);
+                } while (nowDate <= sendData.endDate);
 
-                //todo:: temp disable this part
-            // socketService.$socket($scope.AppSocket, 'countPlayerBonusAllPlatform', sendData, function success(data) {
-            //     var placeholder = '#bonusLine';
-            //     vm.setGraphHeight(placeholder);
-            //     var graphOptions = $.extend({}, vm.graphOptions);
-            //     graphOptions.yaxes = [{
-            //         position: 'left',
-            //         axisLabel: $translate('AMOUNT'),
-            //     }];
-            //     console.log('countPlayerBonusAllPlatform', data);
-            //     var playerData = data.data;
-            //     var nowDate = new Date(sendData.startDate);
-            //     var graphData = [];
-            //     var newPlayerObjData = {};
-            //     for (var i = 0; i < playerData.length; i++) {
-            //         newPlayerObjData[playerData[i]._id] = playerData[i].number;
-            //     }
-            //     do {
-            //         var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
-            //         graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
-            //         nowDate.setDate(nowDate.getDate() + 1);
-            //     } while (nowDate <= sendData.endDate);
-            //
-            //     socketService.$plotLine(placeholder, [{
-            //         // label: $translate('New Players'),
-            //         data: graphData
-            //     }], graphOptions);
-            //     vm.bindHover(null, placeholder);
-            // });
+                socketService.$plotLine(placeholder, [{
+                    // label: $translate('New Players'),
+                    data: graphData
+                }], graphOptions);
+                vm.bindHover(null, placeholder);
+            });
 
             socketService.$socket($scope.AppSocket, 'countNewPlayerAllPlatform', sendData, function success(data) {
                 var placeholder = '#newPlayerLine';
