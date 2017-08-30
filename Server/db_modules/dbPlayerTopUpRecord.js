@@ -1360,9 +1360,6 @@ var dbPlayerTopUpRecord = {
                     if (isPlayerFirstTopUp) {
                         minTopUpAmount = 1;
                     }
-                    if (entryType === "ADMIN") {
-                        minTopUpAmount = 1;
-                    }
                     if (amount < minTopUpAmount) {
                         return Q.reject({
                             status: constServerCode.PLAYER_TOP_UP_FAIL,
