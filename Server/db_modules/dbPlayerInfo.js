@@ -5842,16 +5842,15 @@ let dbPlayerInfo = {
 
         // adjust the timezone
         var timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+        let positiveTimeOffset = Math.abs(timezoneOffset);
 
         if(parseInt(timezoneOffset) > 0){
-        let positiveTimeOffset = Math.abs(timezoneOffset);
         var timezoneAdjust = {
             year:{$year:{$subtract:['$createTime',positiveTimeOffset]}},
             month:{$month:{$subtract:['$createTime',positiveTimeOffset]}},
             day:{$dayOfMonth:{$subtract:['$createTime',positiveTimeOffset]}}
         }
         }else{
-        let positiveTimeOffset = Math.abs(timezoneOffset);
         var timezoneAdjust = {
             year:{$year:{$add:['$createTime',positiveTimeOffset]}},
             month:{$month:{$add:['$createTime',positiveTimeOffset]}},
