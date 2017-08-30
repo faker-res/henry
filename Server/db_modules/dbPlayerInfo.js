@@ -5808,52 +5808,72 @@ let dbPlayerInfo = {
 
     countDailyPlayerBonusByPlatform: function (platformId, startDate, endDate) {
 
-        return dbconfig.collection_proposalType.find({
-            platformId: platformId,
-            name: constProposalType.PLAYER_BONUS
-        })
+    return dbconfig.collection_proposalType.find({
+        platformId: platformId,
+        name: constProposalType.PLAYER_BONUS
+    })
+    .then(function (typeData) {
 
-            .then(function (typeData) {
+        var bonusIds = [];
+        if(Array.isArray(typeData)){
 
-                var bonusIds = [];
-                if(Array.isArray(typeData)){
-                    for (var type in typeData) {
-                        bonusIds.push(ObjectId(typeData[type]._id));
-                    }
-                }else{
-                    bonusIds.push(typeData['_id']);
+            for (var type in typeData) {
+                bonusIds.push(ObjectId(typeData[type]._id));
+            }
+        }else{
+            bonusIds.push(typeData['_id']);
+        }
+        var queryObj = {
+            type: {$in: bonusIds}
+        };
+        if(platformId){
+            queryObj['data.platformId']= ObjectId(platformId);
+        }
+        queryObj.status = {$in: ['Success', 'Approved']};
+        if (startDate || endDate) {
+            queryObj.createTime = {};
+        }
+        if (startDate) {
+            queryObj.createTime["$gte"] = new Date(startDate);
+        }
+        if (endDate) {
+            queryObj.createTime["$lte"] = new Date(endDate);
+        }
+
+        // adjust the timezone
+        var timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+
+        if(parseInt(timezoneOffset) > 0){
+        let positiveTimeOffset = Math.abs(timezoneOffset);
+        var timezoneAdjust = {
+            year:{$year:{$subtract:['$createTime',positiveTimeOffset]}},
+            month:{$month:{$subtract:['$createTime',positiveTimeOffset]}},
+            day:{$dayOfMonth:{$subtract:['$createTime',positiveTimeOffset]}}
+        }
+        }else{
+        let positiveTimeOffset = Math.abs(timezoneOffset);
+        var timezoneAdjust = {
+            year:{$year:{$add:['$createTime',positiveTimeOffset]}},
+            month:{$month:{$add:['$createTime',positiveTimeOffset]}},
+            day:{$dayOfMonth:{$add:['$createTime',positiveTimeOffset]}}
+        }
+        }
+
+        var proposalProm = dbconfig.collection_proposal.aggregate([
+            {$match: queryObj},
+            {
+                $group: {
+                    _id:timezoneAdjust,
+                    number: {$sum: '$data.amount'}
                 }
-                var queryObj = {
-                    type: {$in: bonusIds}
-                };
-                if(platformId){
-                    queryObj['data.platformId']= ObjectId(platformId);
-                }
-                queryObj.status = {$in: ['Success', 'Approved']};
-                if (startDate || endDate) {
-                    queryObj.createTime = {};
-                }
-                if (startDate) {
-                    queryObj.createTime["$gte"] = new Date(startDate);
-                }
-                if (endDate) {
-                    queryObj.createTime["$lte"] = new Date(endDate);
-                }
-                var proposalProm = dbconfig.collection_proposal.aggregate([
-                    {$match: queryObj},
-                    {
-                        $group: {
-                            _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
-                            number: {$sum: '$data.amount'}
-                        }
-                    }
-                ])
-                return Q.all([proposalProm]).then(
-                    data => {
-                        return data[0]
-                    }
-                );
-            });
+            }
+        ])
+        return Q.all([proposalProm]).then(
+        data => {
+        return data[0]
+        }
+        );
+    });
     },
     countDailyPlayerBonusBySinglePlatform: function (platformId, startDate, endDate, period) {
         var proms = [];

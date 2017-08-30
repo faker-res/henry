@@ -239,7 +239,7 @@ define(['js/app'], function (myApp) {
                         callback();
                     }
                 });
-            
+
             socketService.$socket($scope.AppSocket, 'countPlayerBonusAllPlatform', sendData, function success(data) {
                 var placeholder = '#bonusLine';
                 vm.setGraphHeight(placeholder);
@@ -254,7 +254,8 @@ define(['js/app'], function (myApp) {
                 var graphData = [];
                 var newPlayerObjData = {};
                 for (var i = 0; i < playerData.length; i++) {
-                    newPlayerObjData[playerData[i]._id] = playerData[i].number;
+                    let dateString = playerData[i]._id.year +'-'+ ("0"+(playerData[i]._id.month)).substr(-2) +'-'+ ("0"+playerData[i]._id.day).substr(-2)
+                    newPlayerObjData[dateString] = playerData[i].number;
                 }
                 do {
                     var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
