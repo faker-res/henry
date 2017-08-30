@@ -609,6 +609,7 @@ let dbPlayerReward = {
                                     type: typeData._id,
                                     "data.playerObjId": playerObj._id,
                                     status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING]},
+                                    settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                                 }).lean();
                             }
                             else {
@@ -627,7 +628,7 @@ let dbPlayerReward = {
             data => {
                 eventData = data[0];
                 let topUpSum = data[1];
-                let todayPacketCount = data[2].length;
+                let todayPacketCount = data[2].length ? data[2].length : 0;
 
                 // Check if reward data is valid
                 // Check if player has take more than allowed packet today
@@ -671,7 +672,7 @@ let dbPlayerReward = {
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                             name: "DataError",
-                            message: "Player does not match the condition for this reward"
+                            message: "Please topup to enjoy reward"
                         })
                     }
 
@@ -716,7 +717,7 @@ let dbPlayerReward = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
-                        message: "Player does not match the condition for this reward"
+                        message: "Please try again packet rain reward again tomorrow"
                     });
                 }
             }

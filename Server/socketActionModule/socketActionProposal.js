@@ -252,6 +252,8 @@ function socketActionProposal(socketIO, socket) {
          *
          */
         getQueryProposalsForAdminId: function getQueryProposalsForAdminId(data) {
+            //todo::tmp testing
+            return;
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.adminId && data.platformId && data.status);
             var startTime = data.startDate ? data.startDate : new Date(0);
