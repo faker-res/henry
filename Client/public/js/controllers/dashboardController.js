@@ -57,24 +57,25 @@ define(['js/app'], function (myApp) {
             });
 
             //only query the success bonus proposal
-            sendData.status = ['Success','Approved'];
-            socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data) {
-                var totalBonus = 0;
-                var records = data.data.records;
-                for(var d in records){
-                    totalBonus += records[d].amount || 0;
-                }
-
-                if (numDays == 0){
-                    $('.day .bonusAmount .number').html(totalBonus.toFixed(2));
-                    utilService.fitText('.day .bonusAmount .number');
-                } else if(numDays == 7){
-                    $('.week .bonusAmount .number').html(totalBonus.toFixed(2));
-                    utilService.fitText('.week .bonusAmount .number');
-                }
-                queryDone[2] = true;
-                $scope.safeApply();
-            });
+            //todo:: temp disable this part
+            // sendData.status = ['Success','Approved'];
+            // socketService.$socket($scope.AppSocket, 'getBonusRequestList', sendData, function success(data) {
+            //     var totalBonus = 0;
+            //     var records = data.data.records;
+            //     for(var d in records){
+            //         totalBonus += records[d].amount || 0;
+            //     }
+            //
+            //     if (numDays == 0){
+            //         $('.day .bonusAmount .number').html(totalBonus.toFixed(2));
+            //         utilService.fitText('.day .bonusAmount .number');
+            //     } else if(numDays == 7){
+            //         $('.week .bonusAmount .number').html(totalBonus.toFixed(2));
+            //         utilService.fitText('.week .bonusAmount .number');
+            //     }
+            //     queryDone[2] = true;
+            //     $scope.safeApply();
+            // });
 
             if (numDays == 0) {
                 socketService.$socket($scope.AppSocket, 'getPlayerConsumptionSumForAllPlatform', sendData, function success(data) {
@@ -239,35 +240,36 @@ define(['js/app'], function (myApp) {
                         callback();
                     }
                 });
-            
-            socketService.$socket($scope.AppSocket, 'countPlayerBonusAllPlatform', sendData, function success(data) {
-                var placeholder = '#bonusLine';
-                vm.setGraphHeight(placeholder);
-                var graphOptions = $.extend({}, vm.graphOptions);
-                graphOptions.yaxes = [{
-                    position: 'left',
-                    axisLabel: $translate('AMOUNT'),
-                }];
-                console.log('countPlayerBonusAllPlatform', data);
-                var playerData = data.data;
-                var nowDate = new Date(sendData.startDate);
-                var graphData = [];
-                var newPlayerObjData = {};
-                for (var i = 0; i < playerData.length; i++) {
-                    newPlayerObjData[playerData[i]._id] = playerData[i].number;
-                }
-                do {
-                    var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
-                    graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
-                    nowDate.setDate(nowDate.getDate() + 1);
-                } while (nowDate <= sendData.endDate);
 
-                socketService.$plotLine(placeholder, [{
-                    // label: $translate('New Players'),
-                    data: graphData
-                }], graphOptions);
-                vm.bindHover(null, placeholder);
-            });
+                //todo:: temp disable this part
+            // socketService.$socket($scope.AppSocket, 'countPlayerBonusAllPlatform', sendData, function success(data) {
+            //     var placeholder = '#bonusLine';
+            //     vm.setGraphHeight(placeholder);
+            //     var graphOptions = $.extend({}, vm.graphOptions);
+            //     graphOptions.yaxes = [{
+            //         position: 'left',
+            //         axisLabel: $translate('AMOUNT'),
+            //     }];
+            //     console.log('countPlayerBonusAllPlatform', data);
+            //     var playerData = data.data;
+            //     var nowDate = new Date(sendData.startDate);
+            //     var graphData = [];
+            //     var newPlayerObjData = {};
+            //     for (var i = 0; i < playerData.length; i++) {
+            //         newPlayerObjData[playerData[i]._id] = playerData[i].number;
+            //     }
+            //     do {
+            //         var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
+            //         graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
+            //         nowDate.setDate(nowDate.getDate() + 1);
+            //     } while (nowDate <= sendData.endDate);
+            //
+            //     socketService.$plotLine(placeholder, [{
+            //         // label: $translate('New Players'),
+            //         data: graphData
+            //     }], graphOptions);
+            //     vm.bindHover(null, placeholder);
+            // });
 
             socketService.$socket($scope.AppSocket, 'countNewPlayerAllPlatform', sendData, function success(data) {
                 var placeholder = '#newPlayerLine';
