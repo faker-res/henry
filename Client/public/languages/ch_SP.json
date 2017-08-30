@@ -2230,6 +2230,7 @@
   "ADD_SCORE": "加分",
   "REMINDER": "提醒",
   "score": "分数",
+  "CREDIBILITY_REMARK": "信用评价",
   "UPDATE_PLAYER_CREDIBILITY_REMARK": "设置玩家信用评价",
   "UpdatePlayerCredibility": "设置玩家信用评价",
   "PLAYER_VALUE": "价值",
