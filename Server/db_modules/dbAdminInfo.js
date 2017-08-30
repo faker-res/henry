@@ -296,7 +296,7 @@ var dbAdminInfo = {
                 _id: newDepartmentId
             },
             {
-                $addToSet: {users: userId}
+                $addToSet: {users: {$each: userId}}
             }
         ).exec();
 
