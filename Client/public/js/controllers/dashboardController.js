@@ -8,6 +8,8 @@ define(['js/app'], function (myApp) {
         var $translate = $filter('translate');
         var vm = this;
 
+        return;
+
         vm.getDashboardData = function (numDays, after) {
             var queryDone = [false, false, false, false, false];
             var sendData = {
