@@ -287,8 +287,6 @@ var dbUtility = {
 
     getYesterdayConsumptionReturnSGTime: function () {
         var endTime = moment().tz('Asia/Singapore').startOf('day').toDate();
-        //todo::temp use
-        endTime = moment(endTime).subtract(1, 'days').toDate();
         endTime = new Date(endTime.getTime() + 12*60*60*1000);
         var startTime = moment(endTime).subtract(1, 'days').toDate();
 
