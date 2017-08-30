@@ -94,13 +94,9 @@ var WebSocketUtility = {
         var isValid = typeof isValidData === "undefined" ? true : isValidData;
         if (!noAuth && conn && !conn.isAuth) {
             var errorCode = constServerCode.INVALID_API_USER;
-
-            // Hard code return message
-            let returnMsg = args[1] == "hby" ? "Please login to get packet rain reward" : "Authentication Fails";
-
             wsFunc.response(conn, {
                 status: errorCode,
-                errorMessage: localization.translate(returnMsg, conn.lang),
+                errorMessage: localization.translate("Authentication Fails", conn.lang),
                 data: serverInstance.getServerType() == "dataMigration" ? reqData : null
             }, reqData);
             deferred.reject(false);
