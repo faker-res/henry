@@ -17,6 +17,7 @@ define(['js/app'], function (myApp) {
         $scope.$on(eventName, function (e, d) {
             setTimeout(
                 function () {
+                    return;
                     socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                         vm.platformList = data.data;
                         console.log("vm.getAllPlatforms", data);
