@@ -162,9 +162,6 @@ function checkProposalConsumption(proposal, platformObj) {
                 creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
             }
 
-
-            console.log('proposalQuery', proposalQuery);
-
             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).populate(
                 {path: "type", model: dbconfig.collection_proposalType}
             ).sort({settleTime: -1, createTime: -1}).lean();
@@ -221,9 +218,6 @@ function checkProposalConsumption(proposal, platformObj) {
             if (data && data[0]) {
                 proposals = data[0];
             }
-
-            console.log('proposals', proposals.map(prop => prop.proposalId));
-
 
             if (data && data[3]) {
                 allProposals = data[3];
