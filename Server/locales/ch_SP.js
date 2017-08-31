@@ -101,7 +101,7 @@ var simplifiedChinese = {
     "Top up type is forbidden for this player": "支付服务维护中...",
     "Player has pending manual topup request already.": "玩家已有手工充值记录",
     "The player has not unlocked the previous reward task. Not valid for new reward": "玩家已有奖励任务，无法申请新的奖励",
-    "This reward event is not valid anymore": "活动尚未开始，请9月1日餐参与，谢谢。",
+    "This reward event is not valid anymore": "活动尚未开始，请9月1日参与，谢谢",
     "Password is too short": "密码长度不够",
     "Player has pending proposal to update credit": "正在修改玩家额度",
     "Player or partner already has a pending proposal for this type": "有类似请求正在处理中",
