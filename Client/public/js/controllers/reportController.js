@@ -1720,6 +1720,7 @@ define(['js/app'], function (myApp) {
                 vm.drawPlayerDomainReport(data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+
                     if (item.userAgent[0]) {
                         item.registrationOS$ = item.userAgent[0].os;
                         item.registrationBrowser$ = item.userAgent[0].browser;
@@ -1727,6 +1728,7 @@ define(['js/app'], function (myApp) {
                         item.registrationOS$ = "";
                         item.registrationBrowser$ = "";
                     }
+
                     item.gameProviderPlayed$ = "";
                     if (item.gameProviderPlayed) {
                         let providerLength = vm.allProviders.length;
@@ -1738,6 +1740,26 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     }
+
+                    if (!item.sourceUrl) {
+                        item.registrationAgent$ = "Backstage";
+                    }
+                    else if (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1) {
+                        item.registrationAgent$ = "APP";
+                    }
+                    else if (item.registrationOS$.indexOf("iOS") !== -1) {
+                        item.registrationAgent$ = "HTML5 Agent";
+                    }
+                    else if (item.registrationOS$.indexOf("Mac") !== -1) {
+                        item.registrationAgent$ = "HTML5 Player";
+                    }
+                    else if (item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1 ) {
+                        item.registrationAgent$ = "Web Agent";
+                    }
+                    else {
+                        item.registrationAgent$ = "Web Player"
+                    }
+                    item.registrationAgent$ = $translate(item.registrationAgent$);
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
@@ -1788,6 +1810,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate("GAME_PROVIDER"),
                         data: "gameProviderPlayed$"
+                    },
+                    {
+                        title: $translate("REGISTRATION_AGENT"),
+                        data: "registrationAgent$"
                     }
                 ],
                 "paging": false,
