@@ -1720,6 +1720,13 @@ define(['js/app'], function (myApp) {
                 vm.drawPlayerDomainReport(data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                    if (item.userAgent[0]) {
+                        item.registrationOS$ = item.userAgent[0].os;
+                        item.registrationBrowser$ = item.userAgent[0].browser;
+                    } else {
+                        item.registrationOS$ = "";
+                        item.registrationBrowser$ = "";
+                    }
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
@@ -1743,10 +1750,30 @@ define(['js/app'], function (myApp) {
                     {title: $translate('LAST_ACCESS_TIME'), data: "registrationTime$"},
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
                     {title: $translate('lastLoginIp'), data: "lastLoginIp"},
-                    {title: $translate('OS'), data: "userAgent[0].os"},
-                    {title: $translate('Browser'), data: "userAgent[0].browser"},
-                    {title: $translate('Domain Name'), data: "domain"},
-                    {title: $translate('URL'), data: "sourceUrl"}
+                    {
+                        title: $translate('OS'),
+                        data: "registrationOS$"
+                    },
+                    {
+                        title: $translate('Browser'),
+                        data: "registrationBrowser$"
+                    },
+                    {
+                        title: $translate('Domain Name'),
+                        data: "domain"
+                    },
+                    {
+                        title: $translate('URL'),
+                        data: "sourceUrl",
+                        render: function (data, type, row) {
+                            if (data && data.length > 35)
+                                return "<a href=\"" + data + "\">" + data.substring(0, 30) + "...</a>";
+                            else if (data)
+                                return "<a href=\"" + data + "\">" + data + "</a>";
+                            else
+                                return data;
+                        }
+                    }
                 ],
                 "paging": false,
             }

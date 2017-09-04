@@ -297,7 +297,7 @@ define(['js/app'], function (myApp) {
                     return (obj._id);
                 }).map(function (obj) {
                     var platformName = vm.platformList.filter(function( item ){ return item._id == obj._id})
-                    return {label: vm.setGraphName(platformName[0]['platformName']), data: obj.number};
+                    return {label: vm.setGraphName(platformName[0]['name']), data: obj.number};
                 }).sort(function (a, b) {
                     return b.data - a.data;
                 })
