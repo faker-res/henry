@@ -4833,6 +4833,13 @@ let dbPlayerInfo = {
      * @returns {Promise|Promise.<TResult>}
      */
     isPlayerRealNameExist: query => {
+        let chineseRegex = /^[\u4E00-\u9FA5\u00B7\u0020]{0,}$/;
+        let retData = {};
+
+        if ((query.realName && !query.realName.match(chineseRegex))) {
+            retData.isPlayerRealNameNonChinese = true;
+        }
+
         return dbconfig.collection_platform.findOne({platformId: query.platformId}).then(
             platformData => {
                 return dbconfig.collection_players.findOne({realName: query.realName, platform: platformData._id})
@@ -4840,10 +4847,12 @@ let dbPlayerInfo = {
         ).then(
             playerData => {
                 if (playerData) {
-                    return {isPlayerRealNameExist: true};
+                    retData.isPlayerRealNameExist = true;
                 } else {
-                    return {isPlayerRealNameExist: false};
+                    retData.isPlayerRealNameExist = false;
                 }
+
+                return retData;
             }
         );
     },

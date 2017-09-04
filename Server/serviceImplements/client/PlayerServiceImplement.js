@@ -626,7 +626,33 @@ let PlayerServiceImplement = function () {
     this.isValidRealName.expectsData = 'realName: String, platformId: String';
     this.isValidRealName.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.realName && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.isPlayerRealNameExist, [data], isValidData, false, false, true);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.isPlayerRealNameExist, [data], isValidData, true, false, true).then(
+            res => {
+                if (res && res.isPlayerRealNameExist) {
+                    // User Exists in db
+                    wsFunc.response(conn, {
+                        status: constServerCode.PLAYER_REALNAME_EXIST,
+                        errorMessage: localization.translate("Realname already exists", conn.lang),
+                        data: true,
+                    }, data);
+                }
+                else if (res && res.isPlayerRealNameNonChinese) {
+                    wsFunc.response(conn, {
+                        status: constServerCode.PLAYER_REALNAME_MUST_BE_CHINESE,
+                        errorMessage: localization.translate("Realname should be chinese character", conn.lang),
+                        data: true,
+                    }, data);
+                }
+                else {
+                    // Passed
+                    wsFunc.response(conn, {
+                        status: constServerCode.SUCCESS,
+                        errorMessage: localization.translate("Success", conn.lang),
+                        data: true,
+                    }, data);
+                }
+            }
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     this.updatePassword.expectsData = 'playerId: String, oldPassword: String, newPassword: String';
