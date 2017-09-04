@@ -11,6 +11,7 @@ const dbProposal = require('./../db_modules/dbProposal');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 const dbPlayerPayment = require('../db_modules/dbPlayerPayment');
+const dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 
 const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
@@ -237,6 +238,7 @@ let dbPlayerReward = {
 
                             switch (true) {
                                 case (type === 'online' && Number(promotion.topUpType) === Number(topUpProposalData.data.topupType)):
+                                case (type === 'weChat' && Number(promotion.topUpType) === 98):
                                 case (type === 'aliPay' && Number(promotion.topUpType) === 99):
                                     promotionDetail = promotion;
                                     promoEventDetail = promoEvent;
@@ -725,19 +727,21 @@ let dbPlayerReward = {
     },
 
     getTopUpPromoList: (playerId, clientType) => {
-        let topUpTypeData, aliPayLimitData;
+        let topUpTypeData, aliPayLimitData, weChatPayAvailability;
 
         return new Promise(function (resolve, reject) {
             let topUpTypeDataProm = dbPlayerInfo.getOnlineTopupType(playerId, 1, clientType);
             let aliPayLimitProm = dbPlayerPayment.getAlipaySingleLimit(playerId);
+            let weChatAvailableProm = dbPlayerTopUpRecord.getPlayerWechatPayStatus(playerId);
             let playerDataProm = dbConfig.collection_players.findOne({playerId: playerId}).lean();
             let rewardTypeProm = dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_TOP_UP_PROMO});
-            Promise.all([topUpTypeDataProm, aliPayLimitProm, playerDataProm, rewardTypeProm]).then(
+            Promise.all([topUpTypeDataProm, aliPayLimitProm, weChatAvailableProm, playerDataProm, rewardTypeProm]).then(
                 data => {
                     topUpTypeData = data[0];
                     aliPayLimitData = data[1];
-                    let playerData = data[2];
-                    let rewardTypeData = data[3];
+                    weChatPayAvailability = data[2];
+                    let playerData = data[3];
+                    let rewardTypeData = data[4];
 
                     return dbConfig.collection_rewardEvent.find({type: rewardTypeData._id, platform: playerData.platform}).sort({_id: -1}).limit(1).lean();
                 }
@@ -750,6 +754,12 @@ let dbPlayerReward = {
                         aliPayLimitData.status = aliPayLimitData.bValid ? 1 : 2;
                         topUpTypeData.push(aliPayLimitData)
                     }
+
+                    let weChatPayData = {
+                        type: 98,
+                        status: weChatPayAvailability ? 1 : 2
+                    };
+                    topUpTypeData.push(weChatPayData);
 
                     let promotionLength = promotions.length;
                     let topUpTypeDataLength = topUpTypeData.length;

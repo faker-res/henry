@@ -877,6 +877,7 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
+                        dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
                         deferred.resolve(proposalData);
                     },
                     function (error) {
