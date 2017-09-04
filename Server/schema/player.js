@@ -329,11 +329,14 @@ var playerPostFindUpdate = function (result, bOne) {
     }
     //hide last 4 digits for qq
     if (result && result.qq) {
-        result.qq = result.qq.substring(0, (result.qq.length - 4)) + "****";
+        let qqIndex = Math.max(Math.floor((result.qq.length - 4) / 2), 0);
+        result.qq = result.qq.substr(0, qqIndex) + "****" + result.qq.substr(qqIndex + 4);
     }
     //hide last 4 digits for wechat
     if (result && result.wechat) {
-        result.wechat = result.wechat.substring(0, (result.wechat.length - 4)) + "****";
+        let wechatIndex = Math.max(Math.floor((result.wechat.length - 4) / 2), 0);
+        result.wechat = result.wechat.substr(0, wechatIndex) + "****" + result.wechat.substr(wechatIndex + 4);
+
     }
 };
 
