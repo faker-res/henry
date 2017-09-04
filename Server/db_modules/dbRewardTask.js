@@ -342,7 +342,8 @@ var dbRewardTask = {
                     taskData.unlockedBonusAmount += (taskData.requiredBonusAmount > 0 ? consumptionRecord.bonusAmount : 0);
 
                     let bAchieved = false;
-                    if (taskData.bonusAmount < 1) {
+                    //for first top up reward, even after there is no credit left, still need to check consumption amount later
+                    if (taskData.bonusAmount < 1 && taskData.rewardType != constRewardType.FIRST_TOP_UP) {
                         taskData.isUnlock = true;
                         taskData.unlockTime = createTime;
                         taskData.status = constRewardTaskStatus.NO_CREDIT;
