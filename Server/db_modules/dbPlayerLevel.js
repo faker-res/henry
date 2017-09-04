@@ -257,13 +257,21 @@ let dbPlayerLevelInfo = {
                     return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposalData}).then(
                         createdMigrationProposal => {
                             if (upOrDown) {
-                                return dbconfig.collection_proposal.findOne({
-                                    'data.playerObjId': playerData._id,
-                                    'data.platformObjId': playerData.platform,
-                                    'data.levelValue': levelUpObj.value,
-                                    status: constProposalStatus.SUCCESS
+                                return dbconfig.collection_proposalType.findOne({
+                                    platformId: platformObjId,
+                                    name: constProposalType.PLAYER_LEVEL_UP
                                 }).lean();
                             }
+                        }
+                    ).then(
+                        proposalTypeData => {
+                            return dbconfig.collection_proposal.findOne({
+                                'data.playerObjId': {$in: [ObjectId(playerData._id), String(playerData._id)]},
+                                'data.platformObjId': {$in: [ObjectId(playerData.platform), String(playerData.platform)]},
+                                'data.levelValue': levelUpObj.value,
+                                type: proposalTypeData._id,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            }).lean();
                         }
                     ).then(
                         rewardProp => {
