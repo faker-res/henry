@@ -9604,6 +9604,52 @@ let dbPlayerInfo = {
                 return playerData;
             }
         );
+    },
+
+    updatePlayerPlayedProvider: (playerId, consumptionRecord) => {
+        let player;
+        return dbconfig.collection_players.findOne({_id: playerId}).lean().then(
+            playerData => {
+                player = playerData;
+                if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
+                    if (!consumptionRecord){
+                        return false;
+                    }
+
+                    let providerExisted = false;
+                    let length = player.gameProviderPlayed.length;
+                    for (let i = 0; i < length; i++) {
+                        if (player.gameProviderPlayed[i].toString() === consumptionRecord.providerId.toString()) {
+                            providerExisted = true;
+                            break;
+                        }
+                    }
+                    if (providerExisted) {
+                        return false;
+                    } else {
+                        return [consumptionRecord.providerId];
+                    }
+                } else {
+                    return dbconfig.collection_playerConsumptionRecord.distinct("providerId", {playerId: player._id});
+                }
+            }
+        ).then(
+            providerIds => {
+                if (providerIds) {
+                    return dbconfig.collection_players.findOneAndUpdate(
+                        {
+                            _id : player._id,
+                            platform: player.platform
+                        },
+                        {
+                            $push: { gameProviderPlayed: { $each: providerIds } }
+                        }
+                    ).lean();
+                } else {
+                    return player;
+                }
+            }
+        );
     }
 
 };

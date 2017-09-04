@@ -409,7 +409,9 @@ var dbPlayerConsumptionRecord = {
                         {creditBalance: 0}
                     ).exec();
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId);
-                    return Q.all([creditProm, levelProm]);
+                    let playedProviderProm = dbPlayerInfo.updatePlayerPlayedProvider(record.playerId, record);
+
+                    return Q.all([creditProm, levelProm, playedProviderProm]);
                 }
             },
             function (error) {
