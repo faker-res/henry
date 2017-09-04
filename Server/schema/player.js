@@ -229,6 +229,8 @@ var playerSchema = new Schema({
     applyingEasterEgg: {type: Boolean, default: false},
     // credibility remarks
     credibilityRemarks: [{type: Schema.ObjectId, ref: 'playerCredibilityRemark'}],
+    // the game providers' name that player had played their games
+    gameProviderPlayed: [{type: Schema.ObjectId, ref: 'gameProvider'}],
     // player value score
     valueScore: {type: Number, default: 0}
 });

@@ -7225,7 +7225,10 @@ let dbPlayerInfo = {
                 return cpmsAPI.player_getLoginURL(sendData);
             }
         ).then(
-            loginData => ({gameURL: loginData.gameURL})
+            loginData => {
+                dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id);
+                return {gameURL: loginData.gameURL};
+            }
         );
     },
 
@@ -9602,6 +9605,53 @@ let dbPlayerInfo = {
             playerData => {
                 // dbPlayerCredibility.calculatePlayerValue(playerData._id);
                 return playerData;
+            }
+        );
+    },
+
+    updatePlayerPlayedProvider: (playerId, providerId) => {
+        let player;
+        return dbconfig.collection_players.findOne({_id: playerId}).lean().then(
+            playerData => {
+                player = playerData;
+                if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
+                    if (!providerId){
+                        return false;
+                    }
+
+                    let providerExisted = false;
+                    let length = player.gameProviderPlayed.length;
+                    for (let i = 0; i < length; i++) {
+                        if (player.gameProviderPlayed[i].toString() === providerId.toString()) {
+                            providerExisted = true;
+                            break;
+                        }
+                    }
+                    if (providerExisted) {
+                        return false;
+                    } else {
+                        return [providerId];
+                    }
+                } else {
+                    // return dbconfig.collection_playerConsumptionRecord.distinct("providerId", {playerId: player._id});
+                    return [providerId];
+                }
+            }
+        ).then(
+            providerIds => {
+                if (providerIds) {
+                    return dbconfig.collection_players.findOneAndUpdate(
+                        {
+                            _id : player._id,
+                            platform: player.platform
+                        },
+                        {
+                            $push: { gameProviderPlayed: { $each: providerIds } }
+                        }
+                    ).lean();
+                } else {
+                    return player;
+                }
             }
         );
     }
