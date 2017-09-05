@@ -264,6 +264,7 @@ var dbPlayerLoginRecord = {
         time1.setHours(23, 59, 59, 999);
         var lastDay = new Date(time1);
         lastDay.setDate(lastDay.getDate() + 30 + days[days.length - 1]);
+
         for (var day = 0; day < 31; day++) {
             var temp = dbconfig.collection_players.aggregate(
                 [{
@@ -292,6 +293,7 @@ var dbPlayerLoginRecord = {
             day0PlayerArrayProm.push(temp);
             time0.setDate(time0.getDate() + 1);
             time1.setDate(time1.getDate() + 1);
+
         }
         return Q.all(day0PlayerArrayProm).then(
             data => {
@@ -347,13 +349,14 @@ var dbPlayerLoginRecord = {
                             }
                         }
                         // console.log('dayNPlayerObj', dayNPlayerObj);
-
                         //now computing result array
                         var resultArr = [];
                         for (var i = 1; i < 31; i++) {
                             var date = new Date(startTime);
-                            date.setDate(date.getDate() + i);
-                            var row = {date: date};
+                            date.setDate(date.getDate() + i - 1);
+                            var showDate = new Date(startTime);
+                            showDate.setDate(showDate.getDate() + i);
+                            var row = {date: showDate};
                             var baseArr = [];
                             if (day0PlayerObj[date]) {
                                 row.day0 = day0PlayerObj[date].length;
