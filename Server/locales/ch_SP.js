@@ -173,7 +173,8 @@ var simplifiedChinese = {
     "Update player credit failed": "更新玩家额度失败",
     "Top up record is not the first top up record": "不符合优惠申请条件",
     "Not Valid for the reward.": "不符合优惠申请条件",
-    "Invalid image captcha": "图片验证码不正确，请再次输入"
+    "Invalid image captcha": "图片验证码不正确，请再次输入",
+    "Player is forbidden to the game": "连接游戏端失败,稍后再试"
     //todo::add missing messages here
 
     /*
