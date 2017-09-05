@@ -1451,7 +1451,7 @@ var dbPlayerTopUpRecord = {
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.alipayAccount = requestData.result.alipayAccount;
                         requestData.result.alipayQRCode = requestData.result.alipayQRCode || "";
-                        updateData.data.alipayQRCode = requestData.result.alipayQRCode
+                        updateData.data.alipayQRCode = requestData.result.alipayQRCode;
                         if (requestData.result.validTime) {
                             updateData.data.validTime = new Date(requestData.result.validTime);
                         }

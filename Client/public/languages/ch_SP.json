@@ -1996,6 +1996,12 @@
   "Player Credibility": "玩家信用",
   "ratio": "占比",
   "criteria": "项目",
+  "REGISTRATION_AGENT": "来源装置",
+  "Backstage": "后台",
+  "HTML5 Agent": "H5代理",
+  "HTML5 Player": "H5玩家",
+  "Web Agent": "WEB代理",
+  "Web Player": "WEB玩家",
 
   "player - create": "玩家开户",
   "createPlayerPartner": "玩家+推广渠道开户",
