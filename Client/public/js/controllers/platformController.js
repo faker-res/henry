@@ -3289,7 +3289,9 @@ define(['js/app'], function (myApp) {
                 // });
                 vm.playerTable = $('#playerDataTable').DataTable(tableOptions);
 
-
+                $('#phoneCallModal').on('shown.bs.modal', function (e) {
+                    $scope.makePhoneCall();
+                });
                 // $('#playerDataTable').DataTable(tableOptions);
 
                 // vm.playerTable.columns.adjust().draw();
@@ -3819,6 +3821,7 @@ define(['js/app'], function (myApp) {
                         $scope.phoneCall.loadingNumber = false;
                         $scope.safeApply();
                         $('#phoneCallModal').modal('show');
+
                     }, function (err) {
                         $scope.phoneCall.loadingNumber = false;
                         $scope.phoneCall.err = err.error.message;
