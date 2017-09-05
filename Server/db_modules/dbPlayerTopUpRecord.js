@@ -528,6 +528,9 @@ var dbPlayerTopUpRecord = {
                     }
                     if (bDirty != null) {
                         queryObj.bDirty = bDirty;
+                        if( bDirty == false ){
+                            queryObj.bDirty = {$ne: true};
+                        }
                     }
                     var countProm = dbconfig.collection_playerTopUpRecord.find(queryObj).count();
                     var recordProm = dbconfig.collection_playerTopUpRecord.find(queryObj)
