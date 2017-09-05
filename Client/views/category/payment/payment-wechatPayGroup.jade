@@ -70,6 +70,9 @@
                                         tr
                                             td {{'QUOTA' | translate}}
                                             td.text-success {{v.quota}}
+                                        tr
+                                            td {{'STATE' | translate}}
+                                            td.text-success {{v.state | translate}}
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#WechatPayList", href='#excludedWechatPays', ng-click='vm.showWechatPayCate="exclude";vm.toggleBankType()')
                             h4.panel-title
@@ -91,6 +94,9 @@
                                         tr
                                             td {{'QUOTA' | translate}}
                                             td.text-success {{v.quota}}
+                                        tr
+                                            td {{'STATE' | translate}}
+                                            td.text-success {{v.state | translate}}
                 .panel.panel-info(ng-if='vm.curWechatPay')
                     .panel-heading.panel-heading-sm
                         h4.panel-title(style='display:inline-block') {{'WechatPay' | translate}} : {{vm.curWechatPay.name}}
