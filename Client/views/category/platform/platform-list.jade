@@ -289,6 +289,8 @@
                 h4.modal-title {{"SETTLEMENT" | translate}} : {{vm.selectedPlatform.text}}
             .modal-body
                 label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+                br
+                label {{vm.partnerCommissionSettlement.startTime}} -> {{vm.partnerCommissionSettlement.endTime}}
             .modal-footer
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.partnerCommissionSettlement.status=="completed"')
                     .text-danger {{vm.partnerCommissionSettlement.result | translate}}
@@ -350,6 +352,8 @@
                 h4.modal-title {{"Player Consumption Return Settlement" | translate}} : {{vm.selectedPlatform.text}}
             .modal-body
                 label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+                br
+                label {{vm.playerConsumptionReturnSettlement.startTime}} -> {{vm.playerConsumptionReturnSettlement.endTime}}
             .modal-footer
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.playerConsumptionReturnSettlement.status=="completed"')
                     .text-danger {{vm.playerConsumptionReturnSettlement.result | translate}}
@@ -366,6 +370,8 @@
                 h4.modal-title {{"Player Consumption Incentive Settlement" | translate}} : {{vm.selectedPlatform.text}}
             .modal-body
                 label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+                br
+                label {{vm.playerConsumptionIncentiveSettlement.startTime}} -> {{vm.playerConsumptionIncentiveSettlement.endTime}}
             .modal-footer
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.playerConsumptionIncentiveSettlement.status=="completed"')
                     .text-danger {{vm.playerConsumptionIncentiveSettlement.result | translate}}
@@ -381,8 +387,12 @@
                 h4.modal-title {{"Player Level Settlement" | translate}} : {{vm.selectedPlatform.text}}
             .modal-body
                 label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+                br
+                label {{'CONFIRM_LEVEL_UP' | translate}} : {{vm.playerLevelSettlement.lvlUpStartTime}} -> {{vm.playerLevelSettlement.lvlUpEndTime}}
+                br
+                label {{'CONFIRM_LEVEL_DOWN' | translate}} : {{vm.playerLevelSettlement.lvlDownStartTime}} -> {{vm.playerLevelSettlement.lvlDownEndTime}}
             .modal-footer
-                .form-control.inlineBlk(style='width:initial', ng-if='vm.playerConsumptionReturnSettlement.status=="completed"')
+                .form-control.inlineBlk(style='width:initial', ng-if='vm.playerLevelSettlement.status=="completed"')
                     .text-danger {{vm.playerLevelSettlement.result | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
                 button.btn.btn-success.common-button(ng-if='vm.playerLevelSettlement.status=="ready"', ng-click="vm.performPlayerLevelSettlement(true)") {{'CONFIRM_LEVEL_UP' | translate}}
@@ -397,6 +407,8 @@
                 h4.modal-title {{"Player Consecutive Consumption Settlement" | translate}} : {{vm.selectedPlatform.text}}
             .modal-body
                 label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+                br
+                label {{vm.playerConsecutiveConsumptionSettlement.startTime}} -> {{vm.playerConsecutiveConsumptionSettlement.endTime}}
             .modal-footer
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.playerConsecutiveConsumptionSettlement.status=="completed"')
                     .text-danger {{vm.playerConsecutiveConsumptionSettlement.result | translate}}

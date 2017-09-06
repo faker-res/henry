@@ -678,7 +678,16 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommissionSettlement = {
                     result: false,
                     status: 'ready'
-                }
+                };
+
+                socketService.$socket($scope.AppSocket, 'getYesterdaySGTime',
+                    {},
+                    ret => {
+                        vm.partnerCommissionSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                        vm.partnerCommissionSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
                 $('#partnerCommissionSettlementModal').modal('show');
                 $scope.safeApply();
             }
@@ -703,10 +712,20 @@ define(['js/app'], function (myApp) {
                 vm.playerConsumptionReturnSettlement = {
                     result: false,
                     status: 'ready'
-                }
+                };
+
+                socketService.$socket($scope.AppSocket, 'getYesterdayConsumptionReturnSGTime',
+                    {},
+                    ret => {
+                        vm.playerConsumptionReturnSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerConsumptionReturnSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
                 $('#playerConsumptionReturnSettlementModal').modal('show');
                 $scope.safeApply();
-            }
+            };
+
             vm.performPlayerConsumptionReturnSettlement = function () {
                 vm.playerConsumptionReturnSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
@@ -728,7 +747,24 @@ define(['js/app'], function (myApp) {
                 vm.playerLevelSettlement = {
                     result: false,
                     status: 'ready'
-                }
+                };
+
+                socketService.$socket($scope.AppSocket, 'getLastMonthSGTime',
+                    {},
+                    ret => {
+                        vm.playerLevelSettlement.lvlUpStartTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerLevelSettlement.lvlUpEndTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
+                socketService.$socket($scope.AppSocket, 'getLastMonthConsumptionReturnSGTime',
+                    {},
+                    ret => {
+                        vm.playerLevelSettlement.lvlDownStartTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerLevelSettlement.lvlDownEndTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
                 $('#playerLevelSettlementModal').modal('show');
                 $scope.safeApply();
             };
@@ -754,7 +790,17 @@ define(['js/app'], function (myApp) {
                 vm.playerConsumptionIncentiveSettlement = {
                     result: false,
                     status: 'ready'
-                }
+                };
+
+                socketService.$socket($scope.AppSocket, 'getYesterdaySGTime',
+                    {},
+                    ret => {
+                        vm.playerConsumptionIncentiveSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerConsumptionIncentiveSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
+
                 $('#playerConsumptionIncentiveSettlementModal').modal('show');
                 $scope.safeApply();
             }
@@ -780,6 +826,15 @@ define(['js/app'], function (myApp) {
                     result: false,
                     status: 'ready'
                 };
+
+                socketService.$socket($scope.AppSocket, 'getYesterdayConsumptionReturnSGTime',
+                    {},
+                    ret => {
+                        vm.playerConsecutiveConsumptionSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerConsecutiveConsumptionSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
                 $('#playerConsecutiveConsumptionSettlementModal').modal('show');
                 $scope.safeApply();
             };

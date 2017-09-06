@@ -162,7 +162,18 @@ var dbUtility = {
 
     getLastMonthSGTime: function () {
         var startTime = moment().tz('Asia/Singapore').subtract(1, 'months').startOf('month').toDate();
-        var endTime = moment().tz('Asia/Singapore').subtract(1, 'months').endOf('month').toDate();
+        let endTime = moment(startTime).add(1, 'months').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getLastMonthConsumptionReturnSGTime: function () {
+        let endTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
+        let startTime = moment(endTime).subtract(1, 'month').toDate();
+
         return {
             startTime: startTime,
             endTime: endTime
