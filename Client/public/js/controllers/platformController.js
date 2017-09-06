@@ -2887,7 +2887,13 @@ define(['js/app'], function (myApp) {
                                 link.append($('<i>', {
                                     'class': 'fa fa-umbrella margin-right-5 ' + (perm.PlayerPacketRainReward === false ? "text-danger" : "text-primary"),
                                 }));
-                                return link.prop('outerHTML');
+
+                                let link2 = $('<a class="prohibitGamePopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row))
+                                    .text($translate("DisableGame"));
+
+                                return link.prop('outerHTML') + "&nbsp;" + link2.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
                         },
@@ -3112,9 +3118,9 @@ define(['js/app'], function (myApp) {
                                 // displays a fresh non-bound popover!
                                 var data = JSON.parse(this.dataset.row);
                                 var thisPopover = utilService.$getPopoverID(this);
-                                if (data.status == '2') { // 2 means "ForbidGame"
-                                    $(thisPopover).find('.showGames').show();
-                                }
+                                // if (data.status == '2') { // 2 means "ForbidGame"
+                                //     $(thisPopover).find('.showGames').show();
+                                // }
                                 //var rowData = {};
                                 // var status = '';
                                 var rowData = JSON.parse(this.dataset.row);
@@ -3134,18 +3140,10 @@ define(['js/app'], function (myApp) {
                                         return;
                                     }
                                     var reason = $(thisPopover).find('.playerStatusChangeReason').val();
-                                    var forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
-                                    var forbidProviders = [];
-                                    $.each(forbidProviderList, function (i, v) {
-                                        if ($(v).prop('checked')) {
-                                            forbidProviders.push($(v).attr('data-provider'));
-                                        }
-                                    })
                                     var sendData = {
                                         _id: rowData._id,
                                         status: status,
                                         reason: reason,
-                                        forbidProviders: forbidProviders,
                                         adminName: authService.adminName
                                     }
                                     vm.updatePlayerStatus(rowData, sendData);
@@ -3173,16 +3171,52 @@ define(['js/app'], function (myApp) {
                                     rowData = JSON.parse(this.dataset.row);
                                     status = this.dataset.status;
                                     console.log('this:playerStatusChange:onClick', rowData, status);
-                                    var toSHow = $(thisPopover).find('.showGames');
-                                    if (status == '2') { // 2 means "ForbidGame"
-                                        $(toSHow).show();
-                                    } else {
-                                        $(toSHow).hide();
-                                    }
+                                    // var toSHow = $(thisPopover).find('.showGames');
+                                    // if (status == '2') { // 2 means "ForbidGame"
+                                    //     $(toSHow).show();
+                                    // } else {
+                                    //     $(toSHow).hide();
+                                    // }
                                     $scope.safeApply();
 
                                     console.log($('.playerStatusConfirmation'));
                                     $('.playerStatusConfirmation').show();
+                                });
+                            }
+                        });
+
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.prohibitGamePopover',
+                            content: function () {
+                                var data = JSON.parse(this.dataset.row);
+                                vm.prohibitGamePopover = data;
+                                $scope.safeApply();
+                                return $compile($('#prohibitGamePopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                let rowData = JSON.parse(this.dataset.row);
+                                $scope.safeApply();
+
+                                $("button.forbidGameConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
+                                    let forbidProviders = [];
+                                    $.each(forbidProviderList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidProviders.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    let sendData = {
+                                        _id: rowData._id,
+                                        forbidProviders: forbidProviders,
+                                        adminName: authService.adminName
+                                    };
+                                    vm.updatePlayerForbidProviders(sendData);
+                                    $(".prohibitGamePopover").popover('hide');
                                 });
                             }
                         });
@@ -6742,6 +6776,14 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformPlayersData();
                 });
             };
+
+            vm.updatePlayerForbidProviders = function (sendData) {
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'updatePlayerForbidProviders', sendData, function (data) {
+                    vm.getPlatformPlayersData();
+                });
+            };
+
             vm.getPlayerStatusChangeLog = function (rowData) {
                 var deferred = Q.defer();
                 console.log(rowData);
