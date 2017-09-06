@@ -3288,10 +3288,6 @@ define(['js/app'], function (myApp) {
                 //     v.defaultContent = "";
                 // });
                 vm.playerTable = $('#playerDataTable').DataTable(tableOptions);
-
-                $('#phoneCallModal').on('shown.bs.modal', function (e) {
-                    $scope.makePhoneCall();
-                });
                 // $('#playerDataTable').DataTable(tableOptions);
 
                 // vm.playerTable.columns.adjust().draw();
@@ -3773,8 +3769,8 @@ define(['js/app'], function (myApp) {
 
                 $scope.phoneCall.phone = phoneNumber;
                 $scope.phoneCall.loadingNumber = false;
+                $scope.makePhoneCall();
                 $scope.safeApply();
-                $('#phoneCallModal').modal('show');
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
                 vm.getSMSTemplate();
@@ -3819,14 +3815,13 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: playerObjId}, function (data) {
                         $scope.phoneCall.phone = data.data;
                         $scope.phoneCall.loadingNumber = false;
+                        $scope.makePhoneCall();
                         $scope.safeApply();
-                        $('#phoneCallModal').modal('show');
-
                     }, function (err) {
                         $scope.phoneCall.loadingNumber = false;
                         $scope.phoneCall.err = err.error.message;
+                        alert($scope.phoneCall.err);
                         $scope.safeApply();
-                        $('#phoneCallModal').modal('show');
                     }, true);
                 }
             }
@@ -8205,13 +8200,13 @@ define(['js/app'], function (myApp) {
                                     socketService.$socket($scope.AppSocket, 'getPartnerPhoneNumber', {partnerObjId: vm.telphonePartner._id}, function (data) {
                                         $scope.phoneCall.phone = data.data;
                                         $scope.phoneCall.loadingNumber = false;
+                                        $scope.makePhoneCall();
                                         $scope.safeApply();
-                                        $('#phoneCallModal').modal('show');
                                     }, function (err) {
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.phoneCall.err = err.error.message;
+                                        alert($scope.phoneCall.err);
                                         $scope.safeApply();
-                                        $('#phoneCallModal').modal('show');
                                     }, true);
 
                                 });
@@ -11484,13 +11479,13 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data._id}, function (data) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
+                    $scope.makePhoneCall();
                     $scope.safeApply();
-                    $('#phoneCallModal').modal('show');
                 }, function (err) {
                     $scope.phoneCall.loadingNumber = false;
                     $scope.phoneCall.err = err.error.message;
+                    alert($scope.phoneCall.err);
                     $scope.safeApply();
-                    $('#phoneCallModal').modal('show');
                 }, true);
             }
 
