@@ -354,7 +354,7 @@ let dbPlayerCredibility = {
             if (!Number(totalBonus) || !Number(totalConsumption) || Number(totalConsumption) === 0) {
                 ratio = 0;
             } else {
-                ratio = Number(totalBonus) / Number(totalConsumption) * 100;
+                ratio = Number(totalBonus) / Number(totalConsumption) * (-100);
             }
 
             let defaultScore = 0;
