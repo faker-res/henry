@@ -62,7 +62,7 @@ let dbPlayerLevelInfo = {
                     return balancer.processStream(
                         {
                             stream: stream,
-                            batchSize: constSystemParam.BATCH_SIZE*10,
+                            batchSize: constSystemParam.BATCH_SIZE,
                             makeRequest: function (playerIdObjs, request) {
                                 request("player", "performPlatformPlayerLevelSettlement", {
                                     playerObjIds: playerIdObjs.map(function (playerIdObj) {
