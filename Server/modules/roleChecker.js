@@ -122,6 +122,9 @@ var roleChecker = {
         "updatePlatformQuickPayGroup": true,
         "getMerchantList": true,
         "getBonusRequestList": true,
+        "getYesterdaySGTime": true,
+        "getLastMonthSGTime": true,
+        "getLastMonthConsumptionReturnSGTime": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
@@ -231,7 +234,7 @@ var roleChecker = {
                 PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
                 transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
                 PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
-                PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement'],
+                PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
                 PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
                 PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement']
             },

@@ -225,7 +225,7 @@ var dbPlayerFeedback = {
 
     getPlayerFeedbackQuery: function (query, index) {
         index = index || 0;
-        query["$where"] = "this.lastAccessTime > this.lastFeedbackTime";
+        query["$where"] = "this.lastAccessTime > this.lastFeedbackTime && !(!this.lastFeedbackTime && !this.isNewSystem)";
         var a = dbconfig.collection_players.find(query).skip(index).limit(1)
             .populate({path: "partner", model: dbconfig.collection_partner});
         var b = dbconfig.collection_players.find(query).count();
@@ -235,7 +235,7 @@ var dbPlayerFeedback = {
                 index: index,
                 total: data[1]
             }
-        })
+        });
         // .populate({path: "playerId", model: dbconfig.collection_players});
     },
 
