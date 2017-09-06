@@ -1473,6 +1473,14 @@ let dbPlayerInfo = {
         return Q.all([playerProm, logProm]);
     },
 
+    updatePlayerForbidProviders: function (playerObjId, forbidProviders) {
+        let updateData = {};
+        if (forbidProviders) {
+            updateData.forbidProviders = forbidProviders;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
+
     /**
      * Delete playerInfo by object _id of the playerInfo schema
      * @param {array}  playerObjIds - The object _ids of the players
