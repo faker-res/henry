@@ -2595,8 +2595,8 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             sClass: "remarkCol",
                             render: (data, type, row) => {
-                                if (!data) {
-                                    return "";
+                                if (!data || data.length === 0) {
+                                    return "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
                                 }
                                 let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'>";
                                 let output = initOutput;
