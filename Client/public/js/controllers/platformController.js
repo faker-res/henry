@@ -4145,7 +4145,7 @@ define(['js/app'], function (myApp) {
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
                     Object.keys(newPlayerData).forEach(function (key) {
                         if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "referralName") {
+                            if (key == "alipayGroup" || key == "smsSetting" || key == "bankCardGroup" || key == "merchantGroup" || key == "wechatPayGroup" || key == "quickPayGroup" || key == "referralName" || key == "referral") {
                                 //do nothing
                             } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                                 //do nothing
@@ -4185,9 +4185,13 @@ define(['js/app'], function (myApp) {
                     if (updateData.wechatPayGroup) {
                         updateBankData.wechatPayGroup = updateData.wechatPayGroup;
                     }
+                    if (updateData.quickPayGroup){
+                        updateBankData.quickPayGroup = updateData.quickPayGroup;
+                    }
                     delete updateData.bankCardGroup;
                     delete updateData.merchantGroup;
-                    delete updateData.aliPayGroup;
+                    delete updateData.alipayGroup;
+                    delete updateData.quickPayGroup;
 
                     if (isUpdate) {
                         socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
