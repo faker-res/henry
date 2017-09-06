@@ -6351,7 +6351,7 @@ let dbPlayerInfo = {
                 {new: true}
             ).then(
                 resetPlayer => {
-                    dbLogger.createCreditChangeLog(playerObjId, platformObjId, credit, constPlayerCreditChangeType.PLAYER_BONUS_RESET_CREDIT, resetPlayer.validCredit, null, error);
+                    // dbLogger.createCreditChangeLog(playerObjId, platformObjId, credit, constPlayerCreditChangeType.PLAYER_BONUS_RESET_CREDIT, resetPlayer.validCredit, null, error);
                     if (error) {
                         return Q.reject(error);
                     }
