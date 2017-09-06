@@ -2542,7 +2542,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[9, 'desc']],
                     columns: [
                         {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
@@ -2586,6 +2586,36 @@ define(['js/app'], function (myApp) {
                             },
                             "sClass": ""
                         },
+                        {
+                            // this object is use for column show
+                            // credibility remark advsearch column's object will appear later in the code
+                            title: $translate("CREDIBILITY_REMARK"),
+                            data: "credibilityRemarks",
+                            advSearch: false,
+                            orderable: false,
+                            sClass: "remarkCol",
+                            render: (data, type, row) => {
+                                if (!data || data.length === 0) {
+                                    return "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
+                                }
+                                let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'>";
+                                let output = initOutput;
+                                data.map(function (remarkId) {
+                                    for (let i = 0; i < vm.credibilityRemarks.length; i++) {
+                                        if (vm.credibilityRemarks[i]._id === remarkId) {
+                                            if (output && output !== initOutput) {
+                                                output += "<br>";
+                                            }
+                                            output += vm.credibilityRemarks[i].name;
+                                        }
+                                    }
+                                });
+                                output += "</a>";
+
+                                return output;
+                            }
+                        },
+                        {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
                         {
                             title: $translate('REAL_NAME'),
                             data: 'realName',
@@ -2923,12 +2953,13 @@ define(['js/app'], function (myApp) {
                         {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
                         {title: $translate("EMAIL"), visible: false, data: "email", advSearch: true},
                         {title: $translate("LOGIN_IP"), visible: false, data: "loginIps", advSearch: true},
-                        {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
                         {
+                            // this object is used for search filter
                             title: $translate("CREDIBILITY_REMARK"),
-                            visible: false,
                             data: "credibilityRemarks",
                             advSearch: true,
+                            orderable: false,
+                            visible: false,
                             filterConfig: {
                                 type: "multi",
                                 options: vm.credibilityRemarks.map(function (remark) {
@@ -3051,6 +3082,8 @@ define(['js/app'], function (myApp) {
                                 }, 1000);
                             }
                         });
+
+                        $(".remarkCol > a").on("click", vm.initPlayerCredibility);
 
                         utilService.setupPopover({
                             context: container,
