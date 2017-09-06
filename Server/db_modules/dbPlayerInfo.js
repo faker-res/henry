@@ -1745,7 +1745,7 @@ let dbPlayerInfo = {
                 $gte: time0,
                 $lt: time1
             }
-        }).lean();
+        }).sort({createTime:-1}).lean();
         var totalProm = dbconfig.collection_creditChangeLog.aggregate([
             {
                 $match: queryObject,
@@ -1758,25 +1758,33 @@ let dbPlayerInfo = {
         var logThatHaveNoProposal = ['TransferIn', 'TransferOut'];
         return Q.all([a, b, c, totalProm]).then(
             data => {
-                data[1].forEach(
-                    (result) => {
-                        if (result && result.data && !result.data.proposalId && !logThatHaveNoProposal.includes(result.operationType)) {
-                            let temp = data[2].filter((proposal) => {
-                                if (result.operationType === "rejectPlayerBonus") {
-                                    return proposal.data.requestId === result.data.requestId
+                let creditChangeLogs = data[1];
+                let proposals = data[2];
+                creditChangeLogs.forEach(
+                    (creditChangeLog) => {
+                        // If there is not proposal id in result.data and it is not a change that do not have proposal (not consist in logThatHaveNoProposal)
+                        if (creditChangeLog && creditChangeLog.data && !creditChangeLog.data.proposalId && !logThatHaveNoProposal.includes(creditChangeLog.operationType)) {
+                            let relevantProposal = proposals.filter((proposal) => {
+                                // filter out proposal that does not match the request user
+                                if (creditChangeLog.operationType === "rejectPlayerBonus") {
+                                    return proposal.data.requestId === creditChangeLog.data.requestId
                                         && proposal.mainType === "PlayerBonus"
-                                        && proposal.status === "Rejected"
+                                        && (proposal.status === "Rejected" || proposal.status === "Cancel")
+                                        && creditChangeLog.operationTime >= proposal.createTime;
                                 }
                                 else {
-                                    return proposal.data.requestId === result.data.requestId;
+                                    return proposal.data.requestId === creditChangeLog.data.requestId
+                                        && creditChangeLog.operationTime >= proposal.createTime;
                                 }
                             });
-                            result.data.proposalId = temp[0] ? temp[0].proposalId : "";
+                            // get the first relevant proposal as it is most likely the correct proposal
+                            creditChangeLog.data.proposalId = relevantProposal[0] ? relevantProposal[0].proposalId : "";
                         }
                     }
                 );
-                return {total: data[0], data: data[1], totalChanged: data[3][0] ? data[3][0].totalChange : 0};
-            })
+                return {total: data[0], data: creditChangeLogs, totalChanged: data[3][0] ? data[3][0].totalChange : 0};
+            }
+        );
     },
 
     /*
