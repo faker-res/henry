@@ -2241,5 +2241,6 @@
   "UpdatePlayerCredibility": "设置玩家信用评价",
   "PLAYER_VALUE": "价值",
   "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀",
-  "PlayerPacketRainReward": "红包雨"
+  "PlayerPacketRainReward": "红包雨",
+  "LOCK":"锁定"
 }
