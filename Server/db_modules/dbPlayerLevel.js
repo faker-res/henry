@@ -111,6 +111,8 @@ let dbPlayerLevelInfo = {
      * @param {Boolean} upOrDown - True: Level up; False: Level Down
      */
     processPlayerLevelMigration: (playerObjId, platformObjId, levels, startTime, endTime, upOrDown) => {
+        let consumptionTime = dbUtil.getLastMonthConsumptionReturnSGTime();
+
         let playerProm = dbconfig.collection_players.findOne({_id: playerObjId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
 
@@ -138,8 +140,8 @@ let dbPlayerLevelInfo = {
                 $match: {
                     platformId: ObjectId(platformObjId),
                     summaryDay: {
-                        $gt: new Date(startTime),
-                        $lt: moment(endTime).add(1, 'days').toDate()
+                        $gte: new Date(consumptionTime.startTime),
+                        $lt: new Date(consumptionTime.endTime)
                     },
                     playerId: ObjectId(playerObjId)
                 }

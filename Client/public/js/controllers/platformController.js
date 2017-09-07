@@ -680,7 +680,16 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommissionSettlement = {
                     result: false,
                     status: 'ready'
-                }
+                };
+
+                socketService.$socket($scope.AppSocket, 'getYesterdaySGTime',
+                    {},
+                    ret => {
+                        vm.partnerCommissionSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                        vm.partnerCommissionSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
                 $('#partnerCommissionSettlementModal').modal('show');
                 $scope.safeApply();
             }
@@ -705,10 +714,20 @@ define(['js/app'], function (myApp) {
                 vm.playerConsumptionReturnSettlement = {
                     result: false,
                     status: 'ready'
-                }
+                };
+
+                socketService.$socket($scope.AppSocket, 'getYesterdayConsumptionReturnSGTime',
+                    {},
+                    ret => {
+                        vm.playerConsumptionReturnSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerConsumptionReturnSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
                 $('#playerConsumptionReturnSettlementModal').modal('show');
                 $scope.safeApply();
-            }
+            };
+
             vm.performPlayerConsumptionReturnSettlement = function () {
                 vm.playerConsumptionReturnSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
@@ -730,7 +749,24 @@ define(['js/app'], function (myApp) {
                 vm.playerLevelSettlement = {
                     result: false,
                     status: 'ready'
-                }
+                };
+
+                socketService.$socket($scope.AppSocket, 'getLastMonthSGTime',
+                    {},
+                    ret => {
+                        vm.playerLevelSettlement.lvlUpStartTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerLevelSettlement.lvlUpEndTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
+                socketService.$socket($scope.AppSocket, 'getLastMonthConsumptionReturnSGTime',
+                    {},
+                    ret => {
+                        vm.playerLevelSettlement.lvlDownStartTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerLevelSettlement.lvlDownEndTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
                 $('#playerLevelSettlementModal').modal('show');
                 $scope.safeApply();
             };
@@ -756,7 +792,17 @@ define(['js/app'], function (myApp) {
                 vm.playerConsumptionIncentiveSettlement = {
                     result: false,
                     status: 'ready'
-                }
+                };
+
+                socketService.$socket($scope.AppSocket, 'getYesterdaySGTime',
+                    {},
+                    ret => {
+                        vm.playerConsumptionIncentiveSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerConsumptionIncentiveSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
+
                 $('#playerConsumptionIncentiveSettlementModal').modal('show');
                 $scope.safeApply();
             }
@@ -782,6 +828,15 @@ define(['js/app'], function (myApp) {
                     result: false,
                     status: 'ready'
                 };
+
+                socketService.$socket($scope.AppSocket, 'getYesterdayConsumptionReturnSGTime',
+                    {},
+                    ret => {
+                        vm.playerConsecutiveConsumptionSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                        vm.playerConsecutiveConsumptionSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                        $scope.safeApply();
+                    });
+
                 $('#playerConsecutiveConsumptionSettlementModal').modal('show');
                 $scope.safeApply();
             };
@@ -2920,7 +2975,13 @@ define(['js/app'], function (myApp) {
                                 link.append($('<i>', {
                                     'class': 'fa fa-umbrella margin-right-5 ' + (perm.PlayerPacketRainReward === false ? "text-danger" : "text-primary"),
                                 }));
-                                return link.prop('outerHTML');
+
+                                let link2 = $('<a class="prohibitGamePopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row))
+                                    .text($translate("DisableGame"));
+
+                                return link.prop('outerHTML') + "&nbsp;" + link2.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
                         },
@@ -3148,9 +3209,9 @@ define(['js/app'], function (myApp) {
                                 // displays a fresh non-bound popover!
                                 var data = JSON.parse(this.dataset.row);
                                 var thisPopover = utilService.$getPopoverID(this);
-                                if (data.status == '2') { // 2 means "ForbidGame"
-                                    $(thisPopover).find('.showGames').show();
-                                }
+                                // if (data.status == '2') { // 2 means "ForbidGame"
+                                //     $(thisPopover).find('.showGames').show();
+                                // }
                                 //var rowData = {};
                                 // var status = '';
                                 var rowData = JSON.parse(this.dataset.row);
@@ -3170,18 +3231,10 @@ define(['js/app'], function (myApp) {
                                         return;
                                     }
                                     var reason = $(thisPopover).find('.playerStatusChangeReason').val();
-                                    var forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
-                                    var forbidProviders = [];
-                                    $.each(forbidProviderList, function (i, v) {
-                                        if ($(v).prop('checked')) {
-                                            forbidProviders.push($(v).attr('data-provider'));
-                                        }
-                                    })
                                     var sendData = {
                                         _id: rowData._id,
                                         status: status,
                                         reason: reason,
-                                        forbidProviders: forbidProviders,
                                         adminName: authService.adminName
                                     }
                                     vm.updatePlayerStatus(rowData, sendData);
@@ -3209,16 +3262,52 @@ define(['js/app'], function (myApp) {
                                     rowData = JSON.parse(this.dataset.row);
                                     status = this.dataset.status;
                                     console.log('this:playerStatusChange:onClick', rowData, status);
-                                    var toSHow = $(thisPopover).find('.showGames');
-                                    if (status == '2') { // 2 means "ForbidGame"
-                                        $(toSHow).show();
-                                    } else {
-                                        $(toSHow).hide();
-                                    }
+                                    // var toSHow = $(thisPopover).find('.showGames');
+                                    // if (status == '2') { // 2 means "ForbidGame"
+                                    //     $(toSHow).show();
+                                    // } else {
+                                    //     $(toSHow).hide();
+                                    // }
                                     $scope.safeApply();
 
                                     console.log($('.playerStatusConfirmation'));
                                     $('.playerStatusConfirmation').show();
+                                });
+                            }
+                        });
+
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.prohibitGamePopover',
+                            content: function () {
+                                var data = JSON.parse(this.dataset.row);
+                                vm.prohibitGamePopover = data;
+                                $scope.safeApply();
+                                return $compile($('#prohibitGamePopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                let rowData = JSON.parse(this.dataset.row);
+                                $scope.safeApply();
+
+                                $("button.forbidGameConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
+                                    let forbidProviders = [];
+                                    $.each(forbidProviderList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidProviders.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    let sendData = {
+                                        _id: rowData._id,
+                                        forbidProviders: forbidProviders,
+                                        adminName: authService.adminName
+                                    };
+                                    vm.updatePlayerForbidProviders(sendData);
+                                    $(".prohibitGamePopover").popover('hide');
                                 });
                             }
                         });
@@ -3340,10 +3429,6 @@ define(['js/app'], function (myApp) {
                 //     v.defaultContent = "";
                 // });
                 vm.playerTable = $('#playerDataTable').DataTable(tableOptions);
-
-                $('#phoneCallModal').on('shown.bs.modal', function (e) {
-                    $scope.makePhoneCall();
-                });
                 // $('#playerDataTable').DataTable(tableOptions);
 
                 // vm.playerTable.columns.adjust().draw();
@@ -3896,12 +3981,11 @@ define(['js/app'], function (myApp) {
                         $scope.phoneCall.loadingNumber = false;
                         $scope.safeApply();
                         $('#phoneCallModal').modal('show');
-
                     }, function (err) {
                         $scope.phoneCall.loadingNumber = false;
                         $scope.phoneCall.err = err.error.message;
+                        alert($scope.phoneCall.err);
                         $scope.safeApply();
-                        $('#phoneCallModal').modal('show');
                     }, true);
                 }
             }
@@ -6784,6 +6868,14 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformPlayersData();
                 });
             };
+
+            vm.updatePlayerForbidProviders = function (sendData) {
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'updatePlayerForbidProviders', sendData, function (data) {
+                    vm.getPlatformPlayersData();
+                });
+            };
+
             vm.getPlayerStatusChangeLog = function (rowData) {
                 var deferred = Q.defer();
                 console.log(rowData);
@@ -8296,8 +8388,8 @@ define(['js/app'], function (myApp) {
                                     }, function (err) {
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.phoneCall.err = err.error.message;
+                                        alert($scope.phoneCall.err);
                                         $scope.safeApply();
-                                        $('#phoneCallModal').modal('show');
                                     }, true);
 
                                 });
@@ -11586,8 +11678,8 @@ define(['js/app'], function (myApp) {
                 }, function (err) {
                     $scope.phoneCall.loadingNumber = false;
                     $scope.phoneCall.err = err.error.message;
+                    alert($scope.phoneCall.err);
                     $scope.safeApply();
-                    $('#phoneCallModal').modal('show');
                 }, true);
             }
 
