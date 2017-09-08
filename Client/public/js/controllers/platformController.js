@@ -271,6 +271,7 @@ define(['js/app'], function (myApp) {
 
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
+
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
@@ -281,6 +282,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     return;
                 }
+                vm.getAllAlipaysByAlipayGroup();
                 // check settlement buttons
                 var nowDate = new Date().toLocaleDateString();
                 var dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
@@ -297,7 +299,7 @@ define(['js/app'], function (myApp) {
                         var index = (curP - 1) * pageSize;
                         vm.advancedPartnerQueryObj.index = index;
                         vm.advancedPartnerQueryObj.limit = pageSize;
-                        vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData())
+                        vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData());
                     });
                 })
 
@@ -2413,6 +2415,7 @@ define(['js/app'], function (myApp) {
                 vm.advancedQueryObj = vm.advancedQueryObj || {};
                 vm.drawPlayerTable([]);
                 vm.advancedPlayerQuery(newSearch);
+
             };
 
             let getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
@@ -3686,7 +3689,6 @@ define(['js/app'], function (myApp) {
             vm.playerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 //MARK!!!
                 $compile(nRow)($scope);
-
                 //set player color according to status
                 var status = aData.status;
                 var cellColor = '';
@@ -7261,11 +7263,14 @@ define(['js/app'], function (myApp) {
             vm.initPlayerAlipayTopUp = function () {
                 vm.playerAlipayTopUp = {submitted: false};
                 vm.existingAlipayTopup = null;
+
                 socketService.$socket($scope.AppSocket, 'getAlipayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
                     data => {
                         vm.existingAlipayTopup = data.data ? data.data : false;
                         $scope.safeApply();
                     });
+                vm.alipaysAcc = '';
+
                 utilService.actionAfterLoaded('#modalPlayerAlipayTopUp', function () {
                     vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerAlipayTopUp .createTime');
                     vm.playerAlipayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
@@ -7320,6 +7325,14 @@ define(['js/app'], function (myApp) {
                     }
                 );
             };
+
+            vm.getAllAlipaysByAlipayGroup = function(){
+                socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.data.platformId},
+                    data => {
+                        var data = data.data;
+                        vm.allAlipaysAcc = data.data ? data.data : false;
+                });
+            }
 
             // Player WechatPay TopUp
             vm.initPlayerWechatPayTopUp = function () {
@@ -9197,6 +9210,17 @@ define(['js/app'], function (myApp) {
                     })
                     $scope.safeApply();
                 })
+            }
+
+            vm.pickAlipayAcc = function(){
+                vm.playerAlipayTopUp.alipayName = '';
+                vm.playerAlipayTopUp.alipayAccount = '';
+                if(vm.alipaysAcc!=''){
+                    var alipayAcc = JSON.parse(vm.alipaysAcc);
+                    vm.playerAlipayTopUp.alipayName = alipayAcc['name'];
+                    vm.playerAlipayTopUp.alipayAccount = alipayAcc['accountNumber'];
+                }
+
             }
 
             /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
