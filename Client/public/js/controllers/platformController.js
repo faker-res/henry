@@ -2472,7 +2472,6 @@ define(['js/app'], function (myApp) {
                         if (size == 1) {
                             vm.playerTable.rows(function (idx, rowData, node) {
                                 if (rowData._id == result[0]._id) {
-                                    vm.playerTableRowClick(node, rowData);
                                     vm.playerTableRowClicked(rowData);
                                     vm.selectedPlayersCount = 1;
                                     $(node).addClass('selected');
@@ -3934,7 +3933,7 @@ define(['js/app'], function (myApp) {
                 $scope.phoneCall.phone = phoneNumber;
                 $scope.phoneCall.loadingNumber = false;
                 $scope.safeApply();
-                $('#phoneCallModal').modal('show');
+                $scope.makePhoneCall();
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
                 vm.getSMSTemplate();
@@ -3980,7 +3979,7 @@ define(['js/app'], function (myApp) {
                         $scope.phoneCall.phone = data.data;
                         $scope.phoneCall.loadingNumber = false;
                         $scope.safeApply();
-                        $('#phoneCallModal').modal('show');
+                        $scope.makePhoneCall();
                     }, function (err) {
                         $scope.phoneCall.loadingNumber = false;
                         $scope.phoneCall.err = err.error.message;
@@ -8384,7 +8383,7 @@ define(['js/app'], function (myApp) {
                                         $scope.phoneCall.phone = data.data;
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.safeApply();
-                                        $('#phoneCallModal').modal('show');
+                                        $scope.makePhoneCall();
                                     }, function (err) {
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.phoneCall.err = err.error.message;
@@ -11674,7 +11673,7 @@ define(['js/app'], function (myApp) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
-                    $('#phoneCallModal').modal('show');
+                    $scope.makePhoneCall();
                 }, function (err) {
                     $scope.phoneCall.loadingNumber = false;
                     $scope.phoneCall.err = err.error.message;
