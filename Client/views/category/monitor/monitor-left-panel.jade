@@ -10,9 +10,10 @@
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#monitorCategory", href='#paymentMonitor')
                     h4.panel-title
                         label.text-success {{'PAYMENT_MONITOR' | translate}}
-                #paymentMonitor
+                div
                     .panel-body
-                        div(ng-if="checkViewPermission('Monitor', 'Payment', 'Read')")
-                            li.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR}}" /*ng-click='vm.loadPage("PAYMENT_MONITOR")'*/, ng-if="checkViewPermission('Monitor', 'Payment', 'Read')")
-                                a(href="/monitor/payment")
-                                    text {{'PAYMENT_MONITOR' | translate}}
+                        div
+                            a.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR}}", ng-if="checkViewPermission('Monitor', 'Payment', 'Read')",href="/monitor/payment")
+                                text {{'PAYMENT_MONITOR' | translate}}
+                            a.list-group-item(class="{{vm.seleDataType.PROPOSAL_PAYMENT_MONITOR}}", ng-if="checkViewPermission('Monitor', 'ProposalAndPayment', 'Read')",href="/monitor/proposal_and_payment")
+                                text {{'PROPOSAL_AND_PAYMENT_MONITOR' | translate}}

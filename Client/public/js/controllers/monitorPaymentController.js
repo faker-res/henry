@@ -56,51 +56,6 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
-        // vm.setPlatformById = function (id) {
-        //     let platObj = vm.platformList.filter(p => p._id === id)[0];
-        //     console.log("platObj:", platObj);
-        //     vm.showPageName = '';
-        //     vm.setPlatform(JSON.stringify(platObj));
-        //     $scope.safeApply();
-        // };
-        //
-        // vm.getPlatformByAdminId = function (adminId) {
-        //     return new Promise(function (resolve) {
-        //         socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: adminId}, function (data) {
-        //             vm.platformList = data.data;
-        //             console.log("platformList", vm.platformList);
-        //             $scope.safeApply();
-        //             resolve();
-        //         }, function (err) {
-        //             console.error(err);
-        //             resolve();
-        //         });
-        //     });
-        // };
-        //
-        // vm.selectStoredPlatform = function () {
-        //     if (vm.platformList.length === 0) return;
-        //     let storedPlatform = $cookies.get("platform");
-        //     let selectedPlatform = {};
-        //
-        //     if (storedPlatform) {
-        //         vm.platformList.forEach(
-        //             platform => {
-        //                 if (platform.name === storedPlatform) {
-        //                     selectedPlatform = platform;
-        //                 }
-        //             }
-        //         );
-        //     } else {
-        //         selectedPlatform = vm.platformList[0];
-        //     }
-        //
-        //     vm.selectedPlatform = selectedPlatform;
-        //     vm.selectedPlatformID = selectedPlatform._id;
-        //     vm.setPlatform(JSON.stringify(selectedPlatform));
-        //     $scope.safeApply();
-        // };
-
         vm.getPlatformProvider = function (id) {
             if (!id) return;
             socketService.$socket($scope.AppSocket, 'getPlatform', {_id: id}, function (data) {
@@ -733,8 +688,13 @@ define(['js/app'], function (myApp) {
         }
 
 
-        // $scope.$on('$viewContentLoaded', function () {
-        $scope.$on("monitorController:socketConnected", function (e, d) {
+        $scope.$on('socketReady', function (e, d) {
+            if ($scope.AppSocket) {
+                $scope.$emit('childchildControllerLoaded', 'monitorProposalAndPaymentControllerLoaded');
+            }
+        });
+
+        $scope.$on("setPlatform", function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
 
