@@ -224,19 +224,99 @@ var dbPlayerFeedback = {
     },
 
     getPlayerFeedbackQuery: function (query, index) {
+
+        // // initial implementation, work only when the "lastFeedbackTime" worked properly
+        // // todo::reverse back to this implementation once the player.feedbacktime is fixed
+        // index = index || 0;
+        // query["$where"] = "this.lastAccessTime > this.lastFeedbackTime && !(!this.lastFeedbackTime && !this.isNewSystem)";
+        // var a = dbconfig.collection_players.find(query).skip(index).limit(1)
+        //     .populate({path: "partner", model: dbconfig.collection_partner});
+        // var b = dbconfig.collection_players.find(query).count();
+        // return Q.all([a, b]).then(data => {
+        //     return {
+        //         data: data[0] ? data[0][0] : {},
+        //         index: index,
+        //         total: data[1]
+        //     }
+        // });
+
+
+        // this implementation is heavier to the server, but is a working work around as the player.lastFeedbackTime having a lots of mistakes
         index = index || 0;
-        query["$where"] = "this.lastAccessTime > this.lastFeedbackTime && !(!this.lastFeedbackTime && !this.isNewSystem)";
-        var a = dbconfig.collection_players.find(query).skip(index).limit(1)
-            .populate({path: "partner", model: dbconfig.collection_partner});
-        var b = dbconfig.collection_players.find(query).count();
-        return Q.all([a, b]).then(data => {
-            return {
-                data: data[0] ? data[0][0] : {},
-                index: index,
-                total: data[1]
+        query.$or = [{"lastFeedbackTime":{$ne:null}}, {"isNewSystem":true}]; // equivilent to !(!this.lastFeedbackTime && !this.isNewSystem)
+        let playerIds = [];
+        let playerData = [];
+        let relevantPlayerCount = 0;
+        return dbconfig.collection_players.find(query, {_id:1, lastFeedbackTime:1, lastAccessTime:1}).lean().then(
+            data => {
+                if (!data || data.length === 0) {
+                    return [];
+                }
+
+                for (let i = 0, len = data.length; i < len; i++) {
+                    playerIds.push(data[i]._id);
+                    playerData.push(data[i]);
+                }
+
+                return dbconfig.collection_playerFeedback.aggregate([
+                    {$match: {"playerId": {$in: playerIds}}},
+                    {$group: {"_id": "$playerId", "createTime": {$last: "$createTime"}}}
+                ]);
             }
-        });
-        // .populate({path: "playerId", model: dbconfig.collection_players});
+        ).then(
+            lastPlayerFeedbackDates => {
+                let playerNeedFeedback = [];
+                for (let i = 0, iLength = playerData.length; i < iLength; i++) {
+                    let recordFound = false;
+                    for (let j = 0, jLength = lastPlayerFeedbackDates.length;  j < jLength; j++) {
+                        if (playerData[i]._id.toString() === lastPlayerFeedbackDates[j]._id.toString()) {
+                            recordFound = true;
+                            if (needFeedback(playerData[i].lastAccessTime, lastPlayerFeedbackDates[j].createTime, playerData[i].lastFeedbackTime)) {
+                                playerNeedFeedback.push(playerData[i]._id);
+                            }
+                            break;
+                        }
+                    }
+
+                    if (!recordFound && needFeedback(playerData[i].lastAccessTime, null, playerData[i].lastFeedbackTime)) {
+                        playerNeedFeedback.push(playerData[i]._id);
+                    }
+                }
+
+                relevantPlayerCount = playerNeedFeedback.length;
+
+                if (playerNeedFeedback[index]) {
+                    return dbconfig.collection_players.find({_id: playerNeedFeedback[index]}).limit(1)
+                        .populate({path: "partner", model: dbconfig.collection_partner});
+                } else {
+                    return {};
+                }
+
+                function needFeedback(lastAccessTime, lastRecordTime, lastFeedbackTime) {
+                    if (!lastAccessTime) {
+                        return true;
+                    }
+
+                    if (lastRecordTime && lastRecordTime > lastAccessTime) {
+                        return false;
+                    }
+
+                    if (lastFeedbackTime && lastFeedbackTime > lastAccessTime) {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+        ).then(
+            playerData => {
+                return {
+                    data: playerData[0] ? playerData[0] : {},
+                    index: index,
+                    total: relevantPlayerCount
+                }
+            }
+        );
     },
 
     /*
