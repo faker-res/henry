@@ -91,7 +91,7 @@ gulp.task("minJs1", function () {
     return gulp.src(["./bower_components/jquery/dist/jquery.min.js",
             "./bower_components/**/*.min.js",
             "./bower_components/**/dist/*.min.js",
-			"./bower_components/**/release/*.min.js",
+            "./bower_components/**/release/*.min.js",
             "./bower_components/Flot/jquery.flot.js",
             "./bower_components/Flot/jquery.*.js",
             "./bower_components/Flot/jquery.*.*.js",

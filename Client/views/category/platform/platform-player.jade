@@ -1592,22 +1592,36 @@ include modalGameCreditLog
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAlipayTopUp()') {{'CANCEL' | translate}}
                 .row(ng-show='vm.existingAlipayTopup===false || vm.existingAlipayTopup.isCanceled')
                     .col-md-12
-                        form(name='form_alipay_topup').well
-                            .form-group-col-md-6
-                                .control-label
+                        form(name='form_alipay_topup', style="min-height:500px;").well
+                            .form-group-col-md-12
+                                .form-group.col-md-12
+                                    .control-label
                                     label {{'CREDIT' | translate}}
                                     text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
-                                input.form-control(type='number', min='1', ng-model='vm.playerAlipayTopUp.amount', required)
-                                .control-label
+                                    input.form-control(type='number', min='1', ng-model='vm.playerAlipayTopUp.amount', required)
+                                .form-group.col-md-6
+                                    .control-label
+                                    label {{'Alipay' | translate}}
+                                    select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)')
+                                        option(value='') {{'any' | translate}}
+                                        option(ng-repeat='(i,v) in vm.allAlipaysAcc', value='{{v}}') {{v.name}}({{v.state | translate}})
+                                .form-group.col-md-6
+                                    .control-label
                                     label {{'alipayName' | translate}}
-                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
-                                .control-label
+                                    input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
+                                .form-group.col-md-6
+                                    .control-label
+
+                                .form-group.col-md-6
+                                    .control-label
                                     label {{'alipayAccount' | translate}}
-                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
-                                .control-label
+                                    input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
+                                .form-group.col-md-12
+                                    .control-label
                                     label {{'REMARK' | translate}}
-                                input.form-control(ng-model='vm.playerAlipayTopUp.remark')
-                                .inlineBlk
+                                    input.form-control(ng-model='vm.playerAlipayTopUp.remark')
+                                .form-group.col-md-12
+                                    .inlineBlk
                                     label {{'DEPOSITE_TIME' | translate}}
                                     .createTime
             .modal-footer
