@@ -46,6 +46,16 @@ function socketActionMerchantGroup(socketIO, socket) {
         },
 
         /**
+         * Get all the merchants from pms
+         * @param {json} data - query data
+         */
+        getAllMerchants: function getAllMerchants(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getAllMerchants, [data.platform], actionName, isValidData);
+        },
+
+        /**
          * Get all the games by platform and the BankCardGroup
          * @param {json} data - query data
          */

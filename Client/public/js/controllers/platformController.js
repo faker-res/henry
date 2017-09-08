@@ -283,6 +283,7 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 vm.getAllAlipaysByAlipayGroup();
+                vm.getAllMerchants();
                 // check settlement buttons
                 var nowDate = new Date().toLocaleDateString();
                 var dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
@@ -6256,7 +6257,8 @@ define(['js/app'], function (myApp) {
                     cityId: vm.playerManualTopUp.cityId,
                     districtId: vm.playerManualTopUp.districtId,
                     fromFPMS: true,
-                    createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate()
+                    createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate(),
+                    remark: vm.playerManualTopUp.remark
                 };
                 vm.playerManualTopUp.submitted = true;
                 $scope.safeApply();
@@ -7246,8 +7248,8 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp = {submitted: false};
                 vm.filterBankname("playerManualTopUp");
                 vm.existingManualTopup = null;
+                vm.manualMerchantAcc = '';
                 socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
-                    console.log(data.data);
                     vm.existingManualTopup = data.data ? data.data : false;
                     $scope.safeApply();
                 });
@@ -7257,6 +7259,29 @@ define(['js/app'], function (myApp) {
                 });
                 $scope.safeApply();
             };
+
+
+            vm.getAllMerchants = function(){
+                socketService.$socket($scope.AppSocket, 'getAllMerchants', {platform: vm.selectedPlatform.data.platformId},
+                    data => {
+                        var data = data.data;
+                        console.log(data);
+                        vm.merchantCards = data.merchants ? data.merchants : false;
+
+                        if(vm.merchantCards){
+                            vm.merchantCards = vm.merchantCards.filter(mCard =>{
+                                mCard.topupTypeName = $scope.merchantTopupTypeJson[mCard.topupType];
+                                if(mCard.status=="ENABLED"){
+                                    return mCard
+                                }
+                            }).sort(function(a,b){
+                                return a.topupType - b.topupType
+                            })
+                        }
+                        console.log(vm.merchantCards);
+
+                });
+            }
 
             // Player alipay topup
             vm.initPlayerAlipayTopUp = function () {
@@ -9162,6 +9187,13 @@ define(['js/app'], function (myApp) {
                 })
             }
 
+            vm.pickMerchantAcc = function(){
+                vm.playerManualTopUp.lastBankcardNo = '';
+                if(vm.manualMerchantAcc!=''){
+                    var manualMerchant = JSON.parse(vm.manualMerchantAcc);
+                    vm.playerManualTopUp.lastBankcardNo = manualMerchant['merchantNo'].substr(manualMerchant['merchantNo'].length - 4);
+                }
+            }
             /////////////////////////////////////// bank card end  /////////////////////////////////////////////////
 
             /////////////////////////////////////// Merchant Group start  /////////////////////////////////////////////////

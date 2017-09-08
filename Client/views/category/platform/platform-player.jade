@@ -1511,13 +1511,18 @@ include modalGameCreditLog
                     .col-md-12
                         form(name='form_manual_topup').well
                             .form-group-col-md-6
-                                .control-label
-                                    label {{'CREDIT' | translate}}
-                                    text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
+                                label {{'CREDIT' | translate}}
+                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
                                 input.form-control(type='number', min=1, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
-                                label.control-label {{'LAST_BANK_CARD_NUMBER' | translate}}
-                                input.form-control(ng-model='vm.playerManualTopUp.lastBankcardNo', required)
+                                label.control-label(style='width:100%') {{'LAST_BANK_CARD_NUMBER' | translate}}
+                                div
+                                    .col-md-6(style='padding-left:0')
+                                        select.form-control(ng-model='vm.manualMerchantAcc',ng-change='vm.pickMerchantAcc(vm.manualMerchantAcc)')
+                                            option(value='') {{'any' | translate}}
+                                            option(ng-repeat='(i,v) in vm.merchantCards', value='{{v}}') <b>{{v.name}}</b>( {{v.topupTypeName | translate }}: {{v.merchantNo}})
+                                    .col-md-6(style='padding-right:0')
+                                        input.form-control(ng-model='vm.playerManualTopUp.lastBankcardNo',placeholder="{{ 'Type LastBankCardNo' | translate}}" required)
                             .form-group-col-md-6
                                 label.control-label(style='width:100%') {{'BANK_TYPE_ID' | translate}}
                                 div
@@ -1545,6 +1550,9 @@ include modalGameCreditLog
                                 label.control-label {{'DISTRICT_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.districtId', ng-disabled='vm.freezeZoneSelection')
                                     option(ng-repeat='(i,v) in vm.districtList', value='{{v.id}}') {{v.name}}
+                            .form-group-col-md-6
+                                label {{'remark' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerManualTopUp.remark')
                             .form-group-col-md-6
                                 label {{'DEPOSITE_TIME' | translate}}
                                 .createTime
