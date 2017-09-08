@@ -830,7 +830,7 @@
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("credibility")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("credibility")') {{"CONFIRM" | translate}}
                     div.row(style="overflow-x: auto; white-space: nowrap;")
-                        div.col-md-5(style="display: inline-block; float:none;margin-left:8px;")
+                        div.col-md-6(style="display: inline-block; float:none;margin-left:8px; width:500px")
                             .well.row
                                 label {{"REDUCE_SCORE" | translate}}
                                 table.paddingTbl(style='min-width:100%')
@@ -853,7 +853,7 @@
                                             td.text-center(colspan=3)
                                                 i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("negative", "add", {})')
 
-                        div.col-md-5(style="display: inline-block; float:none;")
+                        div.col-md-6(style="display: inline-block; float:none; width:500px;")
                             .well
                                 label {{"ADD_SCORE" | translate}}
                                 table.paddingTbl(style='min-width:100%')
@@ -875,7 +875,7 @@
                                         tr.text-center
                                             td.text-center(colspan=3)
                                                 i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("positive", "add", {})')
-                        div.col-md-5(style="display: inline-block; float:none")
+                        div.col-md-6(style="display: inline-block; float:none; width:500px;")
                             .well
                                 label {{"REMINDER" | translate}}
                                 table.paddingTbl(style='min-width:100%')
