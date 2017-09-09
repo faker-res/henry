@@ -10,6 +10,6 @@ var playerCredibilityRemarkSchema = new Schema({
     score: {type: Number, default: 0}
 });
 
-playerCredibilityRemarkSchema.index({ platformId: 1});
+playerCredibilityRemarkSchema.index({ platform: 1});
 
 module.exports = playerCredibilityRemarkSchema;
