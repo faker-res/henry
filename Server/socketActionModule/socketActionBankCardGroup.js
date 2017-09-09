@@ -32,7 +32,15 @@ function socketActionBankCardGroup(socketIO, socket) {
             var isValidData = Boolean(data && data.name && data.platform && data.code && data.displayName);
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.addPlatformBankCardGroup, [data.platform, data.name, data.code, data.displayName], actionName, isValidData);
         },
-
+        /**
+         * Get all the merchants from pms
+         * @param {json} data - query data
+         */
+        getAllBankCard: function getAllBankCard(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getAllBankCard, [data.platform], actionName, isValidData);
+        },
         /**
          * Get all the games by platform and the BankCardGroup
          * @param {json} data - query data

@@ -120,6 +120,15 @@ var dbPlatformBankCardGroup = {
                 }
             );
     },
+    getAllBankCard: function(platformId){
+        var allBankCards = [];
+        return pmsAPI.bankcard_getBankcardList(
+            {
+                platformId: platformId,
+                queryId: serverInstance.getQueryId()
+            }
+        );
+    },
 
     /**
      * Get all the banks  which are attached to the  platforBankcardsGroup
