@@ -283,6 +283,7 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 vm.getAllAlipaysByAlipayGroup();
+                vm.getAllBankCard();
                 // check settlement buttons
                 var nowDate = new Date().toLocaleDateString();
                 var dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
@@ -6252,11 +6253,13 @@ define(['js/app'], function (myApp) {
                     amount: vm.playerManualTopUp.amount,
                     lastBankcardNo: vm.playerManualTopUp.lastBankcardNo,
                     bankTypeId: vm.playerManualTopUp.bankTypeId,
-                    provinceId: vm.playerManualTopUp.provinceId,
-                    cityId: vm.playerManualTopUp.cityId,
-                    districtId: vm.playerManualTopUp.districtId,
+                    provinceId: '',
+                    cityId: '',
+                    districtId: '',
                     fromFPMS: true,
-                    createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate()
+                    createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate(),
+                    remark: vm.playerManualTopUp.remark,
+                    groupBankcardList: vm.playerManualTopUp.groupBankcardList
                 };
                 vm.playerManualTopUp.submitted = true;
                 $scope.safeApply();
@@ -7246,8 +7249,8 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp = {submitted: false};
                 vm.filterBankname("playerManualTopUp");
                 vm.existingManualTopup = null;
+                vm.chosenBankAcc = {};
                 socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
-                    console.log(data.data);
                     vm.existingManualTopup = data.data ? data.data : false;
                     $scope.safeApply();
                 });
@@ -7257,6 +7260,14 @@ define(['js/app'], function (myApp) {
                 });
                 $scope.safeApply();
             };
+
+            vm.getAllBankCard = function(){
+                socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.data.platformId},
+                    data => {
+                        var data = data.data;
+                        vm.bankCards = data.data ? data.data : false;
+                });
+            }
 
             // Player alipay topup
             vm.initPlayerAlipayTopUp = function () {
@@ -7629,10 +7640,15 @@ define(['js/app'], function (myApp) {
                         playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
                         platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
                     };
-                    vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                        vm.curPlayerFeedbackDetail = data;
+                    if (vm.curFeedbackPlayer._id) {
+                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                            vm.curPlayerFeedbackDetail = data;
+                            $scope.safeApply();
+                        })
+                    } else {
+                        vm.curPlayerFeedbackDetail = {};
                         $scope.safeApply();
-                    })
+                    }
                 });
             }
             vm.getFeedbackPlayer = function (inc) {
@@ -9162,6 +9178,15 @@ define(['js/app'], function (myApp) {
                 })
             }
 
+            vm.pickBankCardAcc = function(bankcard){
+                console.log(bankcard);
+                bankcard = JSON.parse(bankcard);
+                if(bankcard.accountNumber){
+                    vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
+                    vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
+                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
+                };
+            }
             /////////////////////////////////////// bank card end  /////////////////////////////////////////////////
 
             /////////////////////////////////////// Merchant Group start  /////////////////////////////////////////////////

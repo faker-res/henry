@@ -2243,5 +2243,8 @@
   "PLAYER_VALUE": "价值",
   "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀",
   "PlayerPacketRainReward": "红包雨",
-  "LOCK":"锁定"
+  "LOCK":"锁定",
+  "Type LastBankCardNo":"请输入银行卡号尾数",
+  "Daily Limit":"每日上限",
+  "CREDIBILITY_NAME": "信用名称"
 }
