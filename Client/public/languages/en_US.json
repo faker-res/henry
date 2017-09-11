@@ -908,5 +908,6 @@
   "UPDATE_PLAYER_CREDIBILITY_REMARK": "Update Player Credibility Remark",
   "UpdatePlayerCredibility": "Update Player Credibility Remark",
   "PLAYER_VALUE": "Value",
-  "playerCount": "Player Count"
+  "playerCount": "Player Count",
+  "CREDIBILITY_NAME": "Remark"
 }

@@ -7640,10 +7640,15 @@ define(['js/app'], function (myApp) {
                         playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
                         platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
                     };
-                    vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                        vm.curPlayerFeedbackDetail = data;
+                    if (vm.curFeedbackPlayer._id) {
+                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                            vm.curPlayerFeedbackDetail = data;
+                            $scope.safeApply();
+                        })
+                    } else {
+                        vm.curPlayerFeedbackDetail = {};
                         $scope.safeApply();
-                    })
+                    }
                 });
             }
             vm.getFeedbackPlayer = function (inc) {

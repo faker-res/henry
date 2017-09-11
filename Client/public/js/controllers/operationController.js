@@ -1795,7 +1795,7 @@ define(['js/app'], function (myApp) {
         var eventName = "$viewContentLoaded";
         if (!$scope.AppSocket) {
             eventName = "socketConnected";
-            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+            $scope.$emit('childControllerLoaded', 'operationControllerLoaded');
         }
         $scope.$on(eventName, function (e, d) {
             setTimeout(

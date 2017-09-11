@@ -1988,6 +1988,7 @@
   "MONITOR": "监控",
   "PAYMENT_MONITOR": "支付监控",
   "Payment Monitor": "支付监控",
+  "PROPOSAL_AND_PAYMENT_MONITOR": "提案与支付监控",
   "merchantCount": "商户计数",
   "playerCount": "玩家计数",
   "merchantNo": "商户号",
@@ -2244,5 +2245,6 @@
   "PlayerPacketRainReward": "红包雨",
   "LOCK":"锁定",
   "Type LastBankCardNo":"请输入银行卡号尾数",
-  "Daily Limit":"每日上限"
+  "Daily Limit":"每日上限",
+  "CREDIBILITY_NAME": "信用名称"
 }

@@ -2318,7 +2318,7 @@ let dbPlayerInfo = {
                 };
                 var proms = records.map(rec =>
                     dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
-                        {_id: rec._id, createTime: rec.createTime, bDirty: false},
+                        {_id: rec._id, createTime: rec.createTime, bDirty: {$ne: true}},
                         {bDirty: true},
                         {new: true}
                     )
@@ -8407,7 +8407,7 @@ let dbPlayerInfo = {
                             userType: constProposalUserType.PLAYERS,
                         };
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
-                            {_id: record._id, createTime: record.createTime, bDirty: false},
+                            {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
                             {bDirty: true},
                             {new: true}
                         ).then(
@@ -9314,7 +9314,7 @@ let dbPlayerInfo = {
                             userType: constProposalUserType.PLAYERS,
                         };
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
-                            {_id: record._id, createTime: record.createTime, bDirty: false},
+                            {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
                             {bDirty: true},
                             {new: true}
                         ).then(
