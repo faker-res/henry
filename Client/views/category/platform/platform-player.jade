@@ -1515,7 +1515,7 @@ include modalGameCreditLog
                                 text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
                                 input.form-control(type='number', min=1, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
-                                label.control-label(style='width:100%') {{'LAST_BANK_CARD_NUMBER' | translate}}
+                                label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
                                     option(value='') {{'any' | translate}}
                                     option(ng-repeat='(i,v) in vm.bankCards', value='{{v}}') <b>{{v.name}} ({{v.accountNumber}})</b>
