@@ -109,7 +109,6 @@ var dbPlatformMerchantGroup = {
             }
         )
     },
-
     getIncludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
         var allMerchants = [];
         return pmsAPI.merchant_getMerchantList(

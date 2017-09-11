@@ -1511,14 +1511,17 @@ include modalGameCreditLog
                     .col-md-12
                         form(name='form_manual_topup').well
                             .form-group-col-md-6
-                                .control-label
-                                    label {{'CREDIT' | translate}}
-                                    text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
+                                label {{'CREDIT' | translate}}
+                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
                                 input.form-control(type='number', min=1, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
-                                label.control-label {{'LAST_BANK_CARD_NUMBER' | translate}}
-                                input.form-control(ng-model='vm.playerManualTopUp.lastBankcardNo', required)
-                            .form-group-col-md-6
+                                label.control-label(style='width:100%') {{'Bankcard' | translate}}
+                                select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
+                                    option(value='') {{'any' | translate}}
+                                    option(ng-repeat='(i,v) in vm.bankCards', value='{{v}}') <b>{{v.name}} ({{v.accountNumber}})</b>
+                                    //.col-md-6(style='padding-right:0')
+                                        input.form-control(ng-model='vm.playerManualTopUp.lastBankcardNo',placeholder="{{ 'Type LastBankCardNo' | translate}}", required)
+                            //.form-group-col-md-6
                                 label.control-label(style='width:100%') {{'BANK_TYPE_ID' | translate}}
                                 div
                                     .col-md-6(style='padding-left:0')
@@ -1533,18 +1536,21 @@ include modalGameCreditLog
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod')
                                     option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
-                            .form-group-col-md-6
+                            //.form-group-col-md-6
                                 label.control-label {{'PROVINCE_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', required)
                                     option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
-                            .form-group-col-md-6
+                            //.form-group-col-md-6
                                 label.control-label {{'CITY_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.cityId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId,vm.playerManualTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', required)
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
-                            .form-group-col-md-6
+                            //.form-group-col-md-6
                                 label.control-label {{'DISTRICT_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.districtId', ng-disabled='vm.freezeZoneSelection')
                                     option(ng-repeat='(i,v) in vm.districtList', value='{{v.id}}') {{v.name}}
+                            .form-group-col-md-6
+                                label {{'remark' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerManualTopUp.remark')
                             .form-group-col-md-6
                                 label {{'DEPOSITE_TIME' | translate}}
                                 .createTime
