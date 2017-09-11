@@ -885,6 +885,7 @@ var dbPlayerTopUpRecord = {
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();
                         let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                         requestData.depositTime = cTimeString || "";
+                        requestData.groupBankcardList = inputData.groupBankcardList;
                     }
                     // console.log("requestData", requestData);
                     return pmsAPI.payment_requestManualBankCard(requestData);
