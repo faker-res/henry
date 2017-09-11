@@ -2512,7 +2512,6 @@ define(['js/app'], function (myApp) {
                         var found = false;
                         vm.playerTable.rows(function (idx, rowData, node) {
                             if (rowData._id == vm.selectedSinglePlayer._id) {
-                                vm.playerTableRowClick(node, rowData);
                                 vm.playerTableRowClicked(rowData);
                                 vm.selectedPlayersCount = 1;
                                 $(node).addClass('selected');
