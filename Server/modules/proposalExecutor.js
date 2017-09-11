@@ -1999,7 +1999,9 @@ var proposalExecutor = {
                     );
                 }
 
-                deferred.resolve("Proposal is rejected");
+                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                    deferred.resolve, deferred.reject
+                );
             },
 
             /**
@@ -2018,7 +2020,9 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                deferred.resolve("Proposal is rejected");
+                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                    deferred.resolve, deferred.reject
+                );
             },
 
             /**
@@ -2037,7 +2041,9 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                deferred.resolve("Proposal is rejected");
+                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                    deferred.resolve, deferred.reject
+                );
             },
 
             /**
@@ -2056,7 +2062,9 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                deferred.resolve("Proposal is rejected");
+                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                    deferred.resolve, deferred.reject
+                );
             },
 
             /**
