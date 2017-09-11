@@ -260,7 +260,8 @@ var dbPlayerFeedback = {
 
                 return dbconfig.collection_playerFeedback.aggregate([
                     {$match: {"playerId": {$in: playerIds}}},
-                    {$group: {"_id": "$playerId", "createTime": {$last: "$createTime"}}}
+                    {$sort: {createTime: -1}},
+                    {$group: {"_id": "$playerId", "createTime": {$first: "$createTime"}}}
                 ]);
             }
         ).then(
@@ -274,6 +275,14 @@ var dbPlayerFeedback = {
                             if (needFeedback(playerData[i].lastAccessTime, lastPlayerFeedbackDates[j].createTime, playerData[i].lastFeedbackTime)) {
                                 playerNeedFeedback.push(playerData[i]._id);
                             }
+
+                            // for debug use
+                            if (playerData[i]._id.toString() === "5954abfb08ddd327790596f1") {
+                                console.log('lAT', playerData[i].lastAccessTime)
+                                console.log('lRT', lastPlayerFeedbackDates[j].createTime)
+                                console.log('needFeedback', needFeedback(playerData[i].lastAccessTime, lastPlayerFeedbackDates[j].createTime, playerData[i].lastFeedbackTime))
+                            }
+
                             break;
                         }
                     }
@@ -287,7 +296,7 @@ var dbPlayerFeedback = {
 
                 if (playerNeedFeedback[index]) {
                     return dbconfig.collection_players.find({_id: playerNeedFeedback[index]}).limit(1)
-                        .populate({path: "partner", model: dbconfig.collection_partner});
+                        .populate({path: "partner", model: dbconfig.collection_partner}).lean();
                 } else {
                     return {};
                 }
