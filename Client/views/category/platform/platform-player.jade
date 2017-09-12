@@ -1536,11 +1536,11 @@ include modalGameCreditLog
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod')
                                     option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
-                            //.form-group-col-md-6
+                            .form-group-col-md-6
                                 label.control-label {{'PROVINCE_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', required)
                                     option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
-                            //.form-group-col-md-6
+                            .form-group-col-md-6
                                 label.control-label {{'CITY_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.cityId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId,vm.playerManualTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', required)
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
