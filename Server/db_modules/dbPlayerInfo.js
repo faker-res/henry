@@ -2713,8 +2713,8 @@ let dbPlayerInfo = {
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
                                     spendingAmount: 0,
-                                    eventName: rewardParams[i].eventName,
-                                    eventCode: rewardParams[i].eventCode,
+                                    eventName: rewardParams[i].name,
+                                    eventCode: rewardParams[i].code,
                                 }
                             };
                             let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
