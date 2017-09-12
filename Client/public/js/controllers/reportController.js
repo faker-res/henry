@@ -1735,7 +1735,7 @@ define(['js/app'], function (myApp) {
                         for (let i = 0; i < item.gameProviderPlayed.length; i++) {
                             for (let j = 0; j < providerLength; j++) {
                                 if (item.gameProviderPlayed[i].toString() === vm.allProviders[j]._id.toString()) {
-                                    item.gameProviderPlayed$ += vm.allProviders[j].name + "\n";
+                                    item.gameProviderPlayed$ += vm.allProviders[j].name + "<br>";
                                 }
                             }
                         }
