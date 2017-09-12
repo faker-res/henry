@@ -296,10 +296,16 @@ var dbPlayerFeedback = {
                 //     {$sort: {createTime: -1}},
                 //     {$group: {"_id": "$playerId", "createTime": {$first: "$createTime"}}}
                 // ]);
+            },
+            error => {
+                console.error(error);
+                throw error;
             }
         ).then(
             lastPlayerFeedbackDatesArray => {
+                console.log('lastPlayerFeedbackDatesArray length', lastPlayerFeedbackDatesArray.length);
                 let lastPlayerFeedbackDates = [].concat.apply([], lastPlayerFeedbackDatesArray);
+                console.log('lastPlayerFeedbackDates length', lastPlayerFeedbackDates.length);
                 let playerNeedFeedback = [];
                 for (let i = 0, iLength = playerData.length; i < iLength; i++) {
                     let recordFound = false;
@@ -327,6 +333,7 @@ var dbPlayerFeedback = {
                 }
 
                 relevantPlayerCount = playerNeedFeedback.length;
+                console.log('relevantPlayerCount', relevantPlayerCount);
 
                 if (playerNeedFeedback[index]) {
                     return dbconfig.collection_players.find({_id: playerNeedFeedback[index]}).limit(1)
@@ -350,19 +357,28 @@ var dbPlayerFeedback = {
 
                     return true;
                 }
+            },
+            error => {
+                console.error(error);
+                throw error;
             }
         ).then(
             playerData => {
+                console.log('return PlayerData');
                 return {
                     data: playerData[0] ? playerData[0] : {},
                     index: index,
                     total: relevantPlayerCount
                 }
+            },
+            error => {
+                console.error(error);
+                throw error;
             }
         ).catch(
             error => {
                 console.error(error);
-                return {name: "DBError", message: "Error in getting player feedback.", error: error}
+                return Promise.reject({name: "DBError", message: "Error in getting player feedback.", error: error});
             }
         );
     },
