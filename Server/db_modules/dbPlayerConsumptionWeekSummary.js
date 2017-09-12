@@ -551,6 +551,7 @@ var dbPlayerConsumptionWeekSummary = {
     getPlayerConsumptionReturn: function (playerId) {
         var platformData = null;
         var playerData = null;
+        let eventObj = null;
         //check if player platform has consumption return reward event
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
@@ -571,6 +572,7 @@ var dbPlayerConsumptionWeekSummary = {
             ).then(
                 function (eventsData) {
                     if (eventsData && eventsData.length > 0) {
+                        eventObj = eventsData[0];
                         var proms = [];
                         for (let eventData of eventsData) {
                             proms.push(dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturnAmount(platformData._id, eventData, eventData.executeProposal, playerData._id, false, true));
@@ -590,7 +592,7 @@ var dbPlayerConsumptionWeekSummary = {
                 }
             ).then(
                 function (data) {
-                    var res = {totalAmount: 0, totalConsumptionAmount: 0};
+                    var res = {totalAmount: 0, totalConsumptionAmount: 0, event: eventObj};
                     for (let amounts of data) {
                         Object.keys(amounts).forEach(
                             type => {
