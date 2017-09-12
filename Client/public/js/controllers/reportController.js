@@ -1735,7 +1735,7 @@ define(['js/app'], function (myApp) {
                         for (let i = 0; i < item.gameProviderPlayed.length; i++) {
                             for (let j = 0; j < providerLength; j++) {
                                 if (item.gameProviderPlayed[i].toString() === vm.allProviders[j]._id.toString()) {
-                                    item.gameProviderPlayed$ += vm.allProviders[j].name + "\n";
+                                    item.gameProviderPlayed$ += vm.allProviders[j].name + "<br>";
                                 }
                             }
                         }
@@ -1747,17 +1747,21 @@ define(['js/app'], function (myApp) {
                     else if (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1) {
                         item.registrationAgent$ = "APP";
                     }
-                    else if (item.registrationOS$.indexOf("iOS") !== -1) {
-                        item.registrationAgent$ = "HTML5 Agent";
-                    }
-                    else if (item.registrationOS$.indexOf("Mac") !== -1) {
-                        item.registrationAgent$ = "HTML5 Player";
-                    }
-                    else if (item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1 ) {
-                        item.registrationAgent$ = "Web Agent";
+                    else if (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1) {
+                        if (item.partner) {
+                            item.registrationAgent$ = "HTML5 Agent";
+                        }
+                        else {
+                            item.registrationAgent$ = "HTML5 Player";
+                        }
                     }
                     else {
-                        item.registrationAgent$ = "Web Player"
+                        if (item.partner) {
+                            item.registrationAgent$ = "Web Agent";
+                        }
+                        else {
+                            item.registrationAgent$ = "Web Player";
+                        }
                     }
                     item.registrationAgent$ = $translate(item.registrationAgent$);
                     return item;
