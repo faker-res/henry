@@ -806,9 +806,14 @@ define(['js/app'], function (myApp) {
                     }
                 );
             }
-            var startTime = $('#start-datetimepicker').data('datetimepicker');
-            var endTime = $('#end-datetimepicker').data('datetimepicker');
-            var newEndTime = endTime.getLocalDate();
+            // var startTime = $('#start-datetimepicker').data('datetimepicker');
+            // var endTime = $('#end-datetimepicker').data('datetimepicker');
+            // var newEndTime = endTime.getLocalDate();
+
+            var lastMonth = utilService.setNDaysAgo(new Date(), 1);
+            var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
+            var startTime = lastMonthDateStartTime;
+            var newEndTime = utilService.getTodayEndTime();
 
             var proposalTypeSelected = $('.all-proposal-type input:checkbox:checked').map(function () {
                 return this.name;
@@ -819,7 +824,7 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
                 type: proposalTypeSelected,
-                startDate: startTime.getLocalDate(),
+                startDate: startTime, //.getLocalDate(),
                 endDate: newEndTime,
                 entryType: vm.queryProposalEntryType,
                 size: vm.queryProposal.limit || 10,
