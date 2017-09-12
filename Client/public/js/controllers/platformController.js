@@ -6254,7 +6254,7 @@ define(['js/app'], function (myApp) {
                     bankTypeId: vm.playerManualTopUp.bankTypeId,
                     provinceId: vm.playerManualTopUp.provinceId,
                     cityId: vm.playerManualTopUp.cityId,
-                    districtId: '',
+                    districtId: vm.playerManualTopUp.districtId,
                     fromFPMS: true,
                     createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate(),
                     remark: vm.playerManualTopUp.remark,

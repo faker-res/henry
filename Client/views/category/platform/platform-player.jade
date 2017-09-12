@@ -1544,7 +1544,7 @@ include modalGameCreditLog
                                 label.control-label {{'CITY_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.cityId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId,vm.playerManualTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', required)
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
-                            //.form-group-col-md-6
+                            .form-group-col-md-6
                                 label.control-label {{'DISTRICT_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.districtId', ng-disabled='vm.freezeZoneSelection')
                                     option(ng-repeat='(i,v) in vm.districtList', value='{{v.id}}') {{v.name}}
