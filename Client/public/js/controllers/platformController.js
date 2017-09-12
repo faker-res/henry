@@ -7628,6 +7628,7 @@ define(['js/app'], function (myApp) {
                     query: sendQuery,
                     index: vm.feedbackPlayersPara.index - 1
                 }, function (data) {
+                    console.log('_getPlayerFeedbackQuery', data);
                     vm.curFeedbackPlayer = data.data.data;
                     vm.feedbackPlayersPara.total = data.data.total || 0;
                     vm.feedbackPlayersPara.index = data.data.index + 1;

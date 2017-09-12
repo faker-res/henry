@@ -244,9 +244,15 @@ var dbPlayerFeedback = {
         // this implementation is heavier to the server, but is a working work around as the player.lastFeedbackTime having a lots of mistakes
         index = index || 0;
         query.$or = [{"lastFeedbackTime":{$ne:null}}, {"isNewSystem":true}]; // equivilent to !(!this.lastFeedbackTime && !this.isNewSystem)
+        // query.compareFeedbackTime = 1;
         let playerIds = [];
         let playerData = [];
         let relevantPlayerCount = 0;
+        // return dbconfig.collection_players.aggregate([
+            // {$match: query},
+            // {$project: {_id:1, lastFeedbackTime:1, lastAccessTime:1, compareFeedbackTime: {$cmp: ['lastFeedbackTime','lastAccessTime']}}},
+            // {$match: {compareFeedbackTime: 1}}
+        // ]).then(
         return dbconfig.collection_players.find(query, {_id:1, lastFeedbackTime:1, lastAccessTime:1}).lean().then(
             data => {
                 if (!data || data.length === 0) {
@@ -258,14 +264,42 @@ var dbPlayerFeedback = {
                     playerData.push(data[i]);
                 }
 
-                return dbconfig.collection_playerFeedback.aggregate([
-                    {$match: {"playerId": {$in: playerIds}}},
-                    {$sort: {createTime: -1}},
-                    {$group: {"_id": "$playerId", "createTime": {$first: "$createTime"}}}
-                ]);
+                console.log("playerIds length", playerIds.length);
+
+                let playerIdGroup = [];
+                let feedbackProms = [];
+                for (let i = 0, len = playerIds.length; i < len; i++) {
+                    playerIdGroup.push(playerIds[i]);
+                    if (playerIdGroup.length >= 300) {
+                        let feedbackProm = dbconfig.collection_playerFeedback.aggregate([
+                            {$match: {"playerId": {$in: playerIdGroup}}},
+                            {$sort: {createTime: -1}},
+                            {$group: {"_id": "$playerId", "createTime": {$first: "$createTime"}}}
+                        ]);
+                        feedbackProms.push(feedbackProm);
+                        playerIdGroup = [];
+                    }
+                }
+                if (playerIdGroup.length > 0) {
+                    let feedbackProm = dbconfig.collection_playerFeedback.aggregate([
+                        {$match: {"playerId": {$in: playerIdGroup}}},
+                        {$sort: {createTime: -1}},
+                        {$group: {"_id": "$playerId", "createTime": {$first: "$createTime"}}}
+                    ]);
+                    feedbackProms.push(feedbackProm);
+                }
+
+                return Promise.all(feedbackProms);
+
+                // return dbconfig.collection_playerFeedback.aggregate([
+                //     {$match: {"playerId": {$in: playerIds}}},
+                //     {$sort: {createTime: -1}},
+                //     {$group: {"_id": "$playerId", "createTime": {$first: "$createTime"}}}
+                // ]);
             }
         ).then(
-            lastPlayerFeedbackDates => {
+            lastPlayerFeedbackDatesArray => {
+                let lastPlayerFeedbackDates = [].concat.apply([], lastPlayerFeedbackDatesArray);
                 let playerNeedFeedback = [];
                 for (let i = 0, iLength = playerData.length; i < iLength; i++) {
                     let recordFound = false;
@@ -324,6 +358,11 @@ var dbPlayerFeedback = {
                     index: index,
                     total: relevantPlayerCount
                 }
+            }
+        ).catch(
+            error => {
+                console.error(error);
+                return {name: "DBError", message: "Error in getting player feedback.", error: error}
             }
         );
     },
