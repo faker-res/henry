@@ -1779,6 +1779,9 @@ define(['js/app'], function (myApp) {
                     }
                     item.registrationAgent$ = $translate(item.registrationAgent$);
 
+                    item.phoneArea$ = item.phoneCity + " " + item.phoneProvince;
+                    item.ipArea$ = item.city + " " + item.province;
+
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
@@ -1798,22 +1801,13 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "name"},
                     {title: $translate('realName'), data: "realName", sClass: "realNameCell wordWrap"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
-                    {title: $translate('Partner'), data: "partner.partnerName"},
-                    {title: $translate('LAST_ACCESS_TIME'), data: "registrationTime$"},
+                    {title: $translate("PLAYER_PHONE_LOCATION"), data: "phoneArea$"},
+                    {title: $translate("PLAYER_IP_LOCATION"), data: "ipArea$"},
+                    {title: $translate("GAME_PROVIDER"), data: "gameProviderPlayed$"},
+                    {title: $translate('LAST_ACCESS_TIME'), data: "lastAccessTime$"},
+                    // todo :: login times
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
-                    {title: $translate('lastLoginIp'), data: "lastLoginIp"},
-                    {
-                        title: $translate('OS'),
-                        data: "registrationOS$"
-                    },
-                    {
-                        title: $translate('Browser'),
-                        data: "registrationBrowser$"
-                    },
-                    {
-                        title: $translate('Domain Name'),
-                        data: "domain"
-                    },
+                    {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {
                         title: $translate('URL'),
                         data: "sourceUrl",
@@ -1826,14 +1820,11 @@ define(['js/app'], function (myApp) {
                                 return data;
                         }
                     },
-                    {
-                        title: $translate("GAME_PROVIDER"),
-                        data: "gameProviderPlayed$"
-                    },
-                    {
-                        title: $translate("REGISTRATION_AGENT"),
-                        data: "registrationAgent$"
-                    }
+                    {title: $translate('Domain Name'), data: "domain"},
+                    {title: $translate("REGISTRATION_AGENT"), data: "registrationAgent$"},
+                    {title: $translate('OS'), data: "registrationOS$"},
+                    {title: $translate('Browser'), data: "registrationBrowser$"},
+                    {title: $translate('Partner'), data: "partner.partnerName"},
                 ],
                 "paging": false,
             }
