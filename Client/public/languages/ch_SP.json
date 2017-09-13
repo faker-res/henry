@@ -2246,5 +2246,6 @@
   "LOCK":"锁定",
   "Type LastBankCardNo":"请输入银行卡号尾数",
   "Daily Limit":"每日上限",
-  "CREDIBILITY_NAME": "信用名称"
+  "CREDIBILITY_NAME": "信用名称",
+  "SMS Records":"sms发送记录"
 }

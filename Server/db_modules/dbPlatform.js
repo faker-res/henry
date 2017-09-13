@@ -1444,7 +1444,33 @@ var dbPlatform = {
             }
         )
     },
+    vertificationSMS:function(data, index, limit){
+        index = index || 0;
+        limit = limit || constSystemParam.MAX_RECORD_NUM;
+        var query = {
+            type:data.type,
+            status: data.status === 'all' ? undefined : data.status,
+            playerId: data.playerId || undefined,
+            partnerId: data.partnerId || undefined,
+            createTime:{
+                '$gte':data.startTime,
+                '$lte':data.endTime
+            }
+        };
+        // Strip any fields which have value `undefined`
+        query = JSON.parse(JSON.stringify(query));
+        console.log(query);
+        addOptionalTimeLimitsToQuery(data, query, 'createTime');
+        //console.log("query:", query);
+        var a = dbconfig.collection_smsLog.find(query).sort({createTime: -1}).skip(index).limit(limit);
+        var b = dbconfig.collection_smsLog.find(query).count();
+        return Q.all([a, b]).then(
+            result => {
+                return {data: result[0], size: result[1]};
+            }
+        )
 
+    },
     getPagedPlatformCreditTransferLog: function (playerName, startTime, endTime, provider, type, index, limit, sortCol, status, platformObjId) {
         let queryObject = {};
         sortCol = sortCol || {createTime: -1};

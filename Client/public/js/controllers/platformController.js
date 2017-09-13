@@ -1018,7 +1018,72 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+            vm.initVertificationSMS = function(){
+                console.log('initsmsrecord');
+                vm.smsRecordQuery = {};
+                vm.initQueryTimeFilter('smsRecordQueryDiv', function () {});
+                utilService.actionAfterLoaded('#vertificationSMSRecordTable', function () {
+                    vm.smsRecordQuery.pageObj = utilService.createPageForPagingTable("#vertificationSMSRecordTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "smsRecordQuery", vm.submitSMSRecordQuery)
+                    });
+                    vm.submitSMSRecordQuery(true);
+                })
+            }
+            vm.submitSMSRecordQuery = function(newSearch){
 
+                var sendQuery = {
+                    type:'registration',
+                    status:'all',
+                    playerId:vm.smsRecordQuery.player||'',
+                    startTime:vm.queryPara['smsRecordQueryDiv'].startTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    endTime:vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    index: newSearch ? 0 : vm.smsRecordQuery.index,
+                    limit: newSearch ? 10 : vm.smsRecordQuery.limit
+
+                }
+                socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
+                    console.log(vm.smsRecordQuery);
+                    vm.smsRecordQuery.loading = false;
+                    console.log('playerData', data);
+                    var size = data.data.size || 0;
+                    var result = data.data.data || [];
+                    vm.drawVertificationSMSTable(result.map(item => {
+                        item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
+                        item.registrationTime$ = vm.dateReformat(item.registrationTime);
+                        return item;
+                    }), size, newSearch);
+                    // vm.sendMultiMessage.totalCount = size;
+                    vm.smsRecordQuery.pageObj.init({maxCount: size}, newSearch);
+                    $scope.safeApply();
+                });
+            }
+            vm.drawVertificationSMSTable = function(data, size, newSearch){
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: data,
+                    order: vm.smsRecordQuery.aaSorting || [[4, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {'title': $translate('PLAYERID'), data: 'playerId'},
+                        {'title': $translate('phoneNumber'), sClass: "wordWrap realNameCell", data: 'tel'},
+                        {'title': $translate('smsVerificationCode'), data: 'message'},
+                        {'title': $translate('Status'), data: 'status'},
+                        {'title': $translate('createTime'), data: 'createTime', bSortable: true}
+                    ],
+                    paging: false,
+                });
+                vm.smsRecordQuery.tableObj = $('#vertificationSMSRecordTable').DataTable(option);
+                $('#vertificationSMSRecordTable').off('order.dt');
+                $('#vertificationSMSRecordTable').on('order.dt', function (event, a, b) {
+                    console.log('test')
+                    // vm.commonSortChangeHandler(a, 'sendMultiMessage', vm.searchPlayersForSendingMessage);
+                });
+                setTimeout(function () {
+                    $('#vertificationSMSRecordTable').resize();
+                }, 100);
+            }
             vm.checkPlayerExist = function (key, val) {
                 if (!key || !val) {
                     $('#playerValidFalse').addClass('hidden');

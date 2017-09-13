@@ -683,6 +683,7 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             // Optional: status, startTime, endTime
             // Bad: anything else!
+            console.log(data);
             var isValidData = Boolean(data);
             // It might be good to restrict the search to the admin's allowed platforms
             socketUtil.emitter(self.socket, dbPlatform.searchSMSLog, [data, data.index, data.limit], actionName, isValidData);
@@ -692,7 +693,12 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, smsAPI.channel_getChannelList, [data], actionName, true);
         },
-
+        vertificationSMSQuery: function vertificationSMSQuery(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            console.log(data);
+            socketUtil.emitter(self.socket, dbPlatform.vertificationSMS, [data, data.index, data.limit], actionName, isValidData);
+        },
         verifyPlayerPhoneNumber: function verifyPlayerPhoneNumber(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerObjId != null && data.phoneNumber != null);

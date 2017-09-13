@@ -242,7 +242,6 @@ var dbLogger = {
         var errorLog = new dbconfig.collection_dataMigrationErrorLog(logData);
         errorLog.save().then().catch(err => errorSavingLog(err, logData));
     },
-
     createSMSLog: function (adminObjId, adminName, recipientName, data, sendObj, platform, status, error) {
         var type = data.playerId ? 'player'
             : data.partnerId ? 'partner'
@@ -263,7 +262,21 @@ var dbLogger = {
         var smsLog = new dbconfig.collection_smsLog(logData);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },
+    createRegisterSMSLog: function (type, adminObjId, adminName, recipientName, data, sendObj, platform, status, error) {
 
+        var logData = Object.assign({}, data, sendObj, {
+            admin: adminObjId,
+            adminName: adminName,
+            recipientName: recipientName,
+            type: type,
+            platform: platform,
+            phoneNumber: sendObj.tel,
+            status: status,
+            error: error,
+        });
+        var smsLog = new dbconfig.collection_smsLog(logData);
+        smsLog.save().then().catch(err => errorSavingLog(err, logData));
+    },
     getPaymentHistory: function (query) {
         var finalResult = [];
 

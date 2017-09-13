@@ -140,7 +140,6 @@ const dbPlayerMail = {
             }
         );
     },
-
     sendSMStoNumber: function (adminObjId, adminName, data) {
         var sendObj = {
             tel: data.phoneNumber,
@@ -160,7 +159,25 @@ const dbPlayerMail = {
             }
         );
     },
-
+    sendVertificationSMS:function (adminObjId, adminName, data){
+        var sendObj = {
+            tel: data.phoneNumber,
+            channel: data.channel,
+            platformId: data.platformId,
+            message: data.message,
+            delay: data.delay || 0
+        };
+        return smsAPI.sending_sendMessage(sendObj).then(
+            retData => {
+                dbLogger.createRegisterSMSLog("registration", adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'success');
+                return retData;
+            },
+            retErr => {
+                dbLogger.createRegisterSMSLog("registration", adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'failure', retErr);
+                return Q.reject({message: retErr, error: retErr});
+            }
+        );
+    },
     sendVerificationCodeToNumber: function (telNum, code, platformId) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
@@ -219,6 +236,7 @@ const dbPlayerMail = {
                         delay: 0
                     };
 
+                    dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj);
                     // Log the verification SMS before send
                     new dbconfig.collection_smsVerificationLog(saveObj).save();
 
