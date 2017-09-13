@@ -249,12 +249,27 @@ let dbPlayerInfo = {
                         }
                         //check if player's domain matches any partner
                         if (inputData.domain) {
+
+                            // for debug use
+                            if (inputData.domain.indexOf("fpms") !== -1) {
+                                console.error("domain contain fpms!!!!");
+                            }
+
                             delete inputData.referral;
                             let filteredDomain = dbUtility.getDomainName(inputData.domain);
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
                             inputData.domain = filteredDomain;
+
+                            // for debug use
+                            if (inputData.domain == "tz-office.fpms8.me") {
+                                console.error("domain is tz-office.fpms8.me from client!!!!");
+                                console.log("---------------------------------------------------");
+                                console.log("inputData", inputData);
+                                console.log("---------------------------------------------------");
+                            }
+
                             let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                 data => {
                                     if (data) {
@@ -2697,7 +2712,9 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: 0
+                                    spendingAmount: 0,
+                                    eventName: rewardParams[i].name,
+                                    eventCode: rewardParams[i].code,
                                 }
                             };
                             let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
