@@ -376,6 +376,17 @@
                     div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerDomain.playerValueOperator === 'range'") ~
                     input.form-control(type="number" ng-model="vm.playerDomain.playerValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerDomain.playerValueOperator === 'range'")
                 div
+                    label {{"REGISTRATION_AGENT"|translate}}
+                    select.form-control(ng-model="vm.playerDomain.registrationInterface")
+                        option(value='') {{'all'|translate}}
+                        option(value=0) {{'Backstage'|translate}}
+                        option(value=1) {{'Web Player'|translate}}
+                        option(value=2) {{'Web Agent'|translate}}
+                        option(value=3) {{'HTML5 Player'|translate}}
+                        option(value=4) {{'HTML5 Agent'|translate}}
+                        option(value=5) {{'APP Player'|translate}}
+                        option(value=6) {{'APP Agent'|translate}}
+                div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerDomainRepport(true)') {{'SEARCH' | translate}}
                     span#playerDomainReportTableSpin.collapse

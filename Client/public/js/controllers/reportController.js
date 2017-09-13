@@ -460,8 +460,9 @@ define(['js/app'], function (myApp) {
                 })
             } else if (choice == "PLAYERDOMAIN_REPORT") {
                 vm.playerDomain = {totalCount: 0};
-                vm.playerDomain.topUpTimesOperator = "<=";
-                vm.playerDomain.playerValueOperator = "<=";
+                vm.playerDomain.topUpTimesOperator = ">=";
+                vm.playerDomain.playerValueOperator = ">=";
+                vm.playerDomain.registrationInterface = "";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                     vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
@@ -1705,6 +1706,7 @@ define(['js/app'], function (myApp) {
                     playerValueOperator: vm.playerDomain.playerValueOperator,
                     playerValue: vm.playerDomain.playerValue,
                     playerValueTwo: vm.playerDomain.playerValueTwo,
+                    registrationInterface: vm.playerDomain.registrationInterface,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate()
                 },
