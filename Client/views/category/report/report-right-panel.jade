@@ -328,6 +328,14 @@
         div(ng-if='vm.showPageName=="PLAYERDOMAIN_REPORT"')
             #playerDomainReportQuery.block-query.col-md-12.well
                 div
+                    label {{"USER_TYPE"|translate}}
+                    select.form-control( style='max-width:300px', ng-model="vm.playerDomain.playerType")
+                        option(value='all') {{'all' | translate}}
+                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                        option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                        option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                        option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                div
                     label {{"REGISTRATION_TIME_START"|translate}}
                     .startTime
                 div
@@ -341,14 +349,32 @@
                     input.form-control(type="text", ng-model="vm.playerDomain.realName")
                 div
                     label {{"TOP_UP_TIMES"|translate}}
-                    select.form-control(ng-model="vm.playerDomain.topUpTimes", ng-options='item as item.label for item in vm.playerDomain.topUpTimesOptionArr')
-                        option(value=null) {{'any' | translate}}
+                    select.form-control(ng-model="vm.playerDomain.topUpTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerDomain.topUpTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerDomain.topUpTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.playerDomain.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerDomain.topUpTimesOperator === 'range'")
                 div
                     label {{"Domain Name"|translate}}
                     input.form-control(type="text", ng-model="vm.playerDomain.domain")
                 div
                     label {{"URL"|translate}}
                     input.form-control(style="width:100%" type="text", ng-model="vm.playerDomain.sourceUrl")
+                div
+                    label {{"PLAYER_VALUE"|translate}}
+                    select.form-control(ng-model="vm.playerDomain.playerValueOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerDomain.playerValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerDomain.playerValueOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.playerDomain.playerValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerDomain.playerValueOperator === 'range'")
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerDomainRepport(true)') {{'SEARCH' | translate}}

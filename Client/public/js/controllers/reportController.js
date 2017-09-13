@@ -460,14 +460,8 @@ define(['js/app'], function (myApp) {
                 })
             } else if (choice == "PLAYERDOMAIN_REPORT") {
                 vm.playerDomain = {totalCount: 0};
-                vm.playerDomain.topUpTimesOptionArr = [
-                    {label: $translate('any'), value: null},
-                    {label: '0', value: 0},
-                    {label: '1', value: 1},
-                    {label: '2', value: 2},
-                    {label: '3-?', value: {$gt: 2}},
-                ]
-                vm.playerDomain.topUpTimes = vm.playerDomain.topUpTimesOptionArr[0];
+                vm.playerDomain.topUpTimesOperator = "<=";
+                vm.playerDomain.playerValueOperator = "<=";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                     vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
@@ -1697,22 +1691,29 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerDomainRepport = function (newSearch) {
             $('#playerDomainReportTableSpin').show();
 
-            console.log(vm.playerDomain);
             var sendquery = {
                 platform: vm.curPlatformId,
                 query: {
+                    playerType: vm.playerDomain.playerType,
                     name: vm.playerDomain.name,
                     realName: vm.playerDomain.realName,
                     domain: vm.playerDomain.domain,
                     sourceUrl: vm.playerDomain.sourceUrl,
-                    topUpTimes: vm.playerDomain.topUpTimes.value,
+                    topUpTimesOperator: vm.playerDomain.topUpTimesOperator,
+                    topUpTimesValue: vm.playerDomain.topUpTimesValue,
+                    topUpTimesValueTwo: vm.playerDomain.topUpTimesValueTwo,
+                    playerValueOperator: vm.playerDomain.playerValueOperator,
+                    playerValue: vm.playerDomain.playerValue,
+                    playerValueTwo: vm.playerDomain.playerValueTwo,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate()
                 },
                 index: newSearch ? 0 : (vm.playerDomain.index || 0),
                 limit: vm.playerDomain.limit || 10,
                 sortCol: vm.playerDomain.sortCol || {},
-            }
+            };
+            console.log('player domain query', sendquery);
+
             socketService.$socket($scope.AppSocket, 'getPlayerDomainReport', sendquery, function (data) {
                 console.log('retData', data);
                 vm.playerDomain.totalCount = data.data.size;
@@ -1741,11 +1742,22 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
+                    if (item.domain && item.domain.indexOf("fpms8") !== -1) {
+                        item.sourceUrl = "";
+                        item.registrationBrowser$ = "";
+                        item.registrationOS$ = "";
+                    }
+
                     if (!item.sourceUrl) {
                         item.registrationAgent$ = "Backstage";
                     }
                     else if (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1) {
-                        item.registrationAgent$ = "APP";
+                        if (item.partner) {
+                            item.registrationAgent$ = "APP Agent";
+                        }
+                        else {
+                            item.registrationAgent$ = "APP Player";
+                        }
                     }
                     else if (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1) {
                         if (item.partner) {
@@ -1764,6 +1776,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     item.registrationAgent$ = $translate(item.registrationAgent$);
+
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
