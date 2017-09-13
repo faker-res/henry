@@ -5478,18 +5478,70 @@ let dbPlayerInfo = {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
+
         let query = {platform: platform};
         para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
         (para.endTime && !query.registrationTime) ? (query.registrationTime = {$lt: new Date(para.endTime)}) : null;
         (para.endTime && query.registrationTime) ? (query.registrationTime['$lt'] = new Date(para.endTime)) : null;
         para.name ? query.name = para.name : null;
         para.realName ? query.realName = para.realName : null;
-        para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
+
+        switch(para.playerType) {
+            case 'Test Player':
+                query.isRealPlayer = false;
+                break;
+            case 'Real Player (all)':
+                query.isRealPlayer = true;
+                break;
+            case 'Real Player (Individual)':
+                query.isRealPlayer = true;
+                query.partner = null;
+                break;
+            case 'Real Player (Under Partner)':
+                query.isRealPlayer = true;
+                query.partner = {$ne: null};
+        }
+
+        if (para.topUpTimesValue) {
+            switch (para.topUpTimesOperator) {
+                case '<=':
+                    query.topUpTimes = {$lte: para.topUpTimesValue};
+                    break;
+                case '>=':
+                    query.topUpTimes = {$gte: para.topUpTimesValue};
+                    break;
+                case '=':
+                    query.topUpTimes = para.topUpTimesValue;
+                    break;
+                case 'range':
+                    query.topUpTimes = {$gte: para.topUpTimesValue, $lte: para.topUpTimesValueTwo};
+                    break;
+            }
+        }
+
+        if (para.playerValue) {
+            switch (para.playerValueOperator) {
+                case '<=':
+                    query.valueScore = {$lte: para.playerValue};
+                    break;
+                case '>=':
+                    query.valueScore = {$gte: para.playerValue};
+                    break;
+                case '=':
+                    query.valueScore = para.playerValue;
+                    break;
+                case 'range':
+                    query.valueScore = {$gte: para.playerValue, $lte: para.playerValueTwo};
+                    break;
+            }
+        }
+
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'partner', model: dbconfig.collection_partner});
+            .populate({path: 'partner', model: dbconfig.collection_partner}).lean();
+
         return Q.all([count, detail]).then(
             data => {
                 return {data: data[1], size: data[0]}
