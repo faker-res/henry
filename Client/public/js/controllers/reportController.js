@@ -460,8 +460,8 @@ define(['js/app'], function (myApp) {
                 })
             } else if (choice == "PLAYERDOMAIN_REPORT") {
                 vm.playerDomain = {totalCount: 0};
-                vm.playerDomain.topUpTimesOperator = "<=";
-                vm.playerDomain.playerValueOperator = "<=";
+                vm.playerDomain.topUpTimesOperator = ">=";
+                vm.playerDomain.playerValueOperator = ">=";
                 vm.playerDomain.registrationInterface = "";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
