@@ -2002,6 +2002,8 @@
   "criteria": "项目",
   "REGISTRATION_AGENT": "来源装置",
   "Backstage": "后台",
+  "APP Agent": "APP代理",
+  "APP Player": "APP玩家",
   "HTML5 Agent": "H5代理",
   "HTML5 Player": "H5玩家",
   "Web Agent": "WEB代理",

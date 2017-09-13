@@ -1746,7 +1746,12 @@ define(['js/app'], function (myApp) {
                         item.registrationAgent$ = "Backstage";
                     }
                     else if (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1) {
-                        item.registrationAgent$ = "APP";
+                        if (item.partner) {
+                            item.registrationAgent$ = "APP Agent";
+                        }
+                        else {
+                            item.registrationAgent$ = "APP Player";
+                        }
                     }
                     else if (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1) {
                         if (item.partner) {
