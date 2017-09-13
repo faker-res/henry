@@ -1742,6 +1742,12 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
+                    if (item.domain && item.domain.indexOf("fpms8") !== -1) {
+                        item.sourceUrl = "";
+                        item.registrationBrowser$ = "";
+                        item.registrationOS$ = "";
+                    }
+
                     if (!item.sourceUrl) {
                         item.registrationAgent$ = "Backstage";
                     }
@@ -1770,6 +1776,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     item.registrationAgent$ = $translate(item.registrationAgent$);
+
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
