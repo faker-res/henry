@@ -1787,7 +1787,7 @@ let dbPlayerInfo = {
                 $gte: time0,
                 $lt: time1
             }
-        }).sort({createTime:-1}).lean();
+        }).sort({createTime: -1}).lean();
         var totalProm = dbconfig.collection_creditChangeLog.aggregate([
             {
                 $match: queryObject,
@@ -2726,7 +2726,7 @@ let dbPlayerInfo = {
                     let levelProm = [];
                     for (var i = 0; i < levels.length; i++) {
                         if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay && (!rewardParams[i].param.bankCardType ||
-                            (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
+                                (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
                             let rewardAmount = Math.min((rewardParams[i].param.maxRewardAmountPerDay - curRewardAmount), rewardParams[i].param.rewardPercentage * topupAmount);
                             let proposalData = {
                                 type: rewardParams[i].executeProposal,
@@ -2841,6 +2841,7 @@ let dbPlayerInfo = {
         if (data && data.phoneNumber) {
             data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};
         }
+
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
                 playerId: thisPlayer._id,
@@ -2878,46 +2879,46 @@ let dbPlayerInfo = {
         return dbconfig.collection_players
             .find(advancedQuery, {similarPlayers: 0})
             .sort(sortObj).skip(index).limit(limit).lean().then(
-            players => {
-                let calculatePlayerValueProms = [];
-                for (let i = 0; i < players.length; i++) {
-                    let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
-                    calculatePlayerValueProms.push(calculateProm);
-                }
-                return Promise.all(calculatePlayerValueProms);
+                players => {
+                    let calculatePlayerValueProms = [];
+                    for (let i = 0; i < players.length; i++) {
+                        let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                        calculatePlayerValueProms.push(calculateProm);
+                    }
+                    return Promise.all(calculatePlayerValueProms);
 
-            }
-        ).then(
-            () => {
-                var a = dbconfig.collection_players
-                    .find(advancedQuery, {similarPlayers: 0})
-                    .sort(sortObj).skip(index).limit(limit)
-                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-                    .populate({path: "partner", model: dbconfig.collection_partner})
-                    .lean().then(
-                        playerData => {
-                            var players = [];
-                            for (var ind in playerData) {
-                                if (playerData[ind]) {
-                                    var newInfo = getRewardData(playerData[ind]);
-                                    players.push(Q.resolve(newInfo));
+                }
+            ).then(
+                () => {
+                    var a = dbconfig.collection_players
+                        .find(advancedQuery, {similarPlayers: 0})
+                        .sort(sortObj).skip(index).limit(limit)
+                        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                        .populate({path: "partner", model: dbconfig.collection_partner})
+                        .lean().then(
+                            playerData => {
+                                var players = [];
+                                for (var ind in playerData) {
+                                    if (playerData[ind]) {
+                                        var newInfo = getRewardData(playerData[ind]);
+                                        players.push(Q.resolve(newInfo));
+                                    }
                                 }
+                                return Q.all(players)
                             }
-                            return Q.all(players)
-                        }
-                    );
-                var b = dbconfig.collection_players
-                    .find({platform: platformId, $and: [data]}).count();
-                return Q.all([a, b]);
-            }
-        ).then(
-            data => {
-                return {data: data[0], size: data[1]}
-            },
-            err => {
-                return {error: err};
-            }
-        );
+                        );
+                    var b = dbconfig.collection_players
+                        .find({platform: platformId, $and: [data]}).count();
+                    return Q.all([a, b]);
+                }
+            ).then(
+                data => {
+                    return {data: data[0], size: data[1]}
+                },
+                err => {
+                    return {error: err};
+                }
+            );
     },
 
     getPagePlayerByAdvanceQueryWithTopupTimes: function (platformId, data, index, limit, sortObj) {
@@ -5545,7 +5546,7 @@ let dbPlayerInfo = {
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
 
-        switch(para.playerType) {
+        switch (para.playerType) {
             case 'Test Player':
                 query.isRealPlayer = false;
                 break;
@@ -5647,8 +5648,6 @@ let dbPlayerInfo = {
         );
         var topupQuery = {
             platform: platform,
-            isRealPlayer: true,
-            isTestPlayer: false,
             topUpTimes: {$gt: 0},
             topUpSum: {$gt: 0},
             registrationTime: timeQuery
@@ -5657,8 +5656,6 @@ let dbPlayerInfo = {
 
         let topUpMultipleTimesQuery = {
             platform: platform,
-            isRealPlayer: true,
-            isTestPlayer: false,
             topUpTimes: {$gt: 1},
             topUpSum: {$gt: 0},
             registrationTime: timeQuery
@@ -5962,71 +5959,71 @@ let dbPlayerInfo = {
 
     countDailyPlayerBonusByPlatform: function (platformId, startDate, endDate) {
 
-    return dbconfig.collection_proposalType.find({
-        platformId: platformId,
-        name: constProposalType.PLAYER_BONUS
-    })
-    .then(function (typeData) {
+        return dbconfig.collection_proposalType.find({
+            platformId: platformId,
+            name: constProposalType.PLAYER_BONUS
+        })
+            .then(function (typeData) {
 
-        var bonusIds = [];
-        if(Array.isArray(typeData)){
+                var bonusIds = [];
+                if (Array.isArray(typeData)) {
 
-            for (var type in typeData) {
-                bonusIds.push(ObjectId(typeData[type]._id));
-            }
-        }else{
-            bonusIds.push(typeData['_id']);
-        }
-        var queryObj = {
-            type: {$in: bonusIds}
-        };
-        if(platformId){
-            queryObj['data.platformId']= ObjectId(platformId);
-        }
-        queryObj.status = {$in: ['Success', 'Approved']};
-        if (startDate || endDate) {
-            queryObj.createTime = {};
-        }
-        if (startDate) {
-            queryObj.createTime["$gte"] = new Date(startDate);
-        }
-        if (endDate) {
-            queryObj.createTime["$lte"] = new Date(endDate);
-        }
-
-        // adjust the timezone
-        var timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
-        let positiveTimeOffset = Math.abs(timezoneOffset);
-
-        if(parseInt(timezoneOffset) > 0){
-        var timezoneAdjust = {
-            year:{$year:{$subtract:['$createTime',positiveTimeOffset]}},
-            month:{$month:{$subtract:['$createTime',positiveTimeOffset]}},
-            day:{$dayOfMonth:{$subtract:['$createTime',positiveTimeOffset]}}
-        }
-        }else{
-        var timezoneAdjust = {
-            year:{$year:{$add:['$createTime',positiveTimeOffset]}},
-            month:{$month:{$add:['$createTime',positiveTimeOffset]}},
-            day:{$dayOfMonth:{$add:['$createTime',positiveTimeOffset]}}
-        }
-        }
-
-        var proposalProm = dbconfig.collection_proposal.aggregate([
-            {$match: queryObj},
-            {
-                $group: {
-                    _id:timezoneAdjust,
-                    number: {$sum: '$data.amount'}
+                    for (var type in typeData) {
+                        bonusIds.push(ObjectId(typeData[type]._id));
+                    }
+                } else {
+                    bonusIds.push(typeData['_id']);
                 }
-            }
-        ])
-        return Q.all([proposalProm]).then(
-        data => {
-        return data[0]
-        }
-        );
-    });
+                var queryObj = {
+                    type: {$in: bonusIds}
+                };
+                if (platformId) {
+                    queryObj['data.platformId'] = ObjectId(platformId);
+                }
+                queryObj.status = {$in: ['Success', 'Approved']};
+                if (startDate || endDate) {
+                    queryObj.createTime = {};
+                }
+                if (startDate) {
+                    queryObj.createTime["$gte"] = new Date(startDate);
+                }
+                if (endDate) {
+                    queryObj.createTime["$lte"] = new Date(endDate);
+                }
+
+                // adjust the timezone
+                var timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+                let positiveTimeOffset = Math.abs(timezoneOffset);
+
+                if (parseInt(timezoneOffset) > 0) {
+                    var timezoneAdjust = {
+                        year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
+                        month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
+                        day: {$dayOfMonth: {$subtract: ['$createTime', positiveTimeOffset]}}
+                    }
+                } else {
+                    var timezoneAdjust = {
+                        year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
+                        month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
+                        day: {$dayOfMonth: {$add: ['$createTime', positiveTimeOffset]}}
+                    }
+                }
+
+                var proposalProm = dbconfig.collection_proposal.aggregate([
+                    {$match: queryObj},
+                    {
+                        $group: {
+                            _id: timezoneAdjust,
+                            number: {$sum: '$data.amount'}
+                        }
+                    }
+                ])
+                return Q.all([proposalProm]).then(
+                    data => {
+                        return data[0]
+                    }
+                );
+            });
     },
     countDailyPlayerBonusBySinglePlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
@@ -6061,11 +6058,11 @@ let dbPlayerInfo = {
             .then(function (typeData) {
 
                 var bonusIds = [];
-                if(Array.isArray(typeData)){
+                if (Array.isArray(typeData)) {
                     for (var type in typeData) {
                         bonusIds.push(ObjectId(typeData[type]._id));
                     }
-                }else{
+                } else {
                     bonusIds.push(typeData['_id']);
                 }
                 var queryObj = {
@@ -6079,7 +6076,7 @@ let dbPlayerInfo = {
 
                     queryObj["createTime"] = {$gte: new Date(dayStartTime), $lt: new Date(dayEndTime)};
                     if (platformId != 'all') {
-                        queryObj['data.platformId']= ObjectId(platformId);
+                        queryObj['data.platformId'] = ObjectId(platformId);
                     }
                     proms.push(dbconfig.collection_proposal.find(queryObj));
                     dayStartTime = dayEndTime;
@@ -6089,9 +6086,9 @@ let dbPlayerInfo = {
                     var tempDate = startDate;
                     console.log(data);
                     var res = data.map(dayData => {
-                        if(dayData[0]){
+                        if (dayData[0]) {
                             var obj = {_id: tempDate, number: dayData[0]['data']['amount']};
-                        }else{
+                        } else {
                             var obj = {_id: tempDate, number: 0};
                         }
 
@@ -6412,43 +6409,43 @@ let dbPlayerInfo = {
         return dbconfig.collection_proposalType.find({
             name: constProposalType.PLAYER_BONUS
         }).populate({path: "platformId", model: dbconfig.collection_platform})
-        .then(function (typeData) {
-            
-            var bonusIds = [];
-            for (var type in typeData) {
-                bonusIds.push(ObjectId(typeData[type]._id));
-            }
+            .then(function (typeData) {
 
-            var queryObj = {
-                type: {$in: bonusIds}
-            };
-            queryObj.status = {$in: ['Success','Approved']};
+                var bonusIds = [];
+                for (var type in typeData) {
+                    bonusIds.push(ObjectId(typeData[type]._id));
+                }
 
-            if (startTime || endTime) {
-                queryObj.createTime = {};
-            }
-            if (startTime) {
-                queryObj.createTime["$gte"] = new Date(startTime);
-            }
-            if (endTime) {
-                queryObj.createTime["$lte"] = new Date(endTime);
-            }
-            console.log(queryObj)
-            var proposalProm = dbconfig.collection_proposal.aggregate([
-                {$match: queryObj},
-            {
-                $group: {
-                    _id: "$data.platformId",
-                    number: {$sum: "$data.amount"}
+                var queryObj = {
+                    type: {$in: bonusIds}
+                };
+                queryObj.status = {$in: ['Success', 'Approved']};
+
+                if (startTime || endTime) {
+                    queryObj.createTime = {};
                 }
-            }
-            ])
-            return Q.all([proposalProm]).then(
-                data => {
-                    return data[0]
+                if (startTime) {
+                    queryObj.createTime["$gte"] = new Date(startTime);
                 }
-            );
-        });
+                if (endTime) {
+                    queryObj.createTime["$lte"] = new Date(endTime);
+                }
+                console.log(queryObj)
+                var proposalProm = dbconfig.collection_proposal.aggregate([
+                    {$match: queryObj},
+                    {
+                        $group: {
+                            _id: "$data.platformId",
+                            number: {$sum: "$data.amount"}
+                        }
+                    }
+                ])
+                return Q.all([proposalProm]).then(
+                    data => {
+                        return data[0]
+                    }
+                );
+            });
     },
 
     /*
@@ -6730,27 +6727,28 @@ let dbPlayerInfo = {
     getAllAppliedBonusList: function (platformId, startIndex, count, startTime, endTime, status, sort) {
         var seq = sort ? -1 : 1;
         return dbconfig.collection_proposalType.findOne({
-            platformId:platformId,
+            platformId: platformId,
             name: constProposalType.PLAYER_BONUS
         })
             .then(function (typeData) {
                 var bonusIds = [];
-                if(Array.isArray(typeData)){
+                if (Array.isArray(typeData)) {
                     for (var type in typeData) {
                         bonusIds.push(ObjectId(typeData[type]._id));
                     }
-                }else{
+                } else {
                     bonusIds.push(typeData['_id']);
                 }
                 var queryObj = {
                     type: {$in: bonusIds}
                 };
-                if(platformId){
-                    queryObj['data.platformId']= ObjectId(platformId);
+                if (platformId) {
+                    queryObj['data.platformId'] = ObjectId(platformId);
                 }
                 if (status) {
                     queryObj.status = {$in: status}
-                };
+                }
+                ;
                 if (startTime || endTime) {
                     queryObj.createTime = {};
                 }
@@ -6771,7 +6769,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                ]).sort({'_id':1})
+                ]).sort({'_id': 1})
 
                 return Q.all([proposalProm, countProm]).then(
                     data => {
@@ -7258,15 +7256,17 @@ let dbPlayerInfo = {
                         //     });
                     }
 
-                    for (let i = 0, len = playerData.forbidProviders.length; i < len; i++) {
-                        let forbidProvider = playerData.forbidProviders[i];
-                        if (gameData.provider._id.toString() === forbidProvider.toString()) {
-                            return Q.reject({
-                                name: "DataError",
-                                status: constServerCode.PLAYER_IS_FORBIDDEN,
-                                message: "Player is forbidden to the game",
-                                playerStatus: playerData.status
-                            });
+                    if (playerData.forbidProviders && playerData.forbidProviders.length > 0) {
+                        for (let i = 0, len = playerData.forbidProviders.length; i < len; i++) {
+                            let forbidProvider = playerData.forbidProviders[i];
+                            if (gameData.provider._id.toString() === forbidProvider.toString()) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    status: constServerCode.PLAYER_IS_FORBIDDEN,
+                                    message: "Player is forbidden to the game",
+                                    playerStatus: playerData.status
+                                });
+                            }
                         }
                     }
 
@@ -9387,7 +9387,7 @@ let dbPlayerInfo = {
 
                 if (eventData.param && eventData.param.maxRewardTimes != null &&
                     ((eventData.param.maxRewardTimes > 0 && data[1] >= eventData.param.maxRewardTimes) ||
-                    (eventData.param.maxRewardTimes == 0 && data[1] > 0))) {
+                        (eventData.param.maxRewardTimes == 0 && data[1] > 0))) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
@@ -9773,7 +9773,7 @@ let dbPlayerInfo = {
             playerData => {
                 player = playerData;
                 if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
-                    if (!providerId){
+                    if (!providerId) {
                         return false;
                     }
 
@@ -9800,11 +9800,11 @@ let dbPlayerInfo = {
                 if (providerIds) {
                     return dbconfig.collection_players.findOneAndUpdate(
                         {
-                            _id : player._id,
+                            _id: player._id,
                             platform: player.platform
                         },
                         {
-                            $push: { gameProviderPlayed: { $each: providerIds } }
+                            $push: {gameProviderPlayed: {$each: providerIds}}
                         }
                     ).lean();
                 } else {
