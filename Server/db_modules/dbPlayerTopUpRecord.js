@@ -879,7 +879,8 @@ var dbPlayerTopUpRecord = {
                         provinceId: inputData.provinceId,
                         cityId: inputData.cityId,
                         districtId: inputData.districtId || "",
-                        groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : []
+                        groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : [],
+                        operateType: entryType == "ADMIN" ? 1 : 0
                     };
                     if( fromFPMS ){
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();
@@ -1621,6 +1622,7 @@ var dbPlayerTopUpRecord = {
                             groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
                             // remark: remark || player.name,
                             createTime: cTimeString,
+                            operateType: entryType == "ADMIN" ? 1 : 0
                         };
                         if (remark) {
                             requestData.remark = remark;

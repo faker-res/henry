@@ -224,163 +224,18 @@ var dbPlayerFeedback = {
     },
 
     getPlayerFeedbackQuery: function (query, index) {
-
-        // // initial implementation, work only when the "lastFeedbackTime" worked properly
-        // // todo::reverse back to this implementation once the player.feedbacktime is fixed
-        // index = index || 0;
-        // query["$where"] = "this.lastAccessTime > this.lastFeedbackTime && !(!this.lastFeedbackTime && !this.isNewSystem)";
-        // var a = dbconfig.collection_players.find(query).skip(index).limit(1)
-        //     .populate({path: "partner", model: dbconfig.collection_partner});
-        // var b = dbconfig.collection_players.find(query).count();
-        // return Q.all([a, b]).then(data => {
-        //     return {
-        //         data: data[0] ? data[0][0] : {},
-        //         index: index,
-        //         total: data[1]
-        //     }
-        // });
-
-
-        // this implementation is heavier to the server, but is a working work around as the player.lastFeedbackTime having a lots of mistakes
         index = index || 0;
-        query.$or = [{"lastFeedbackTime":{$ne:null}}, {"isNewSystem":true}]; // equivilent to !(!this.lastFeedbackTime && !this.isNewSystem)
-        // query.compareFeedbackTime = 1;
-        let playerIds = [];
-        let playerData = [];
-        let relevantPlayerCount = 0;
-        // return dbconfig.collection_players.aggregate([
-            // {$match: query},
-            // {$project: {_id:1, lastFeedbackTime:1, lastAccessTime:1, compareFeedbackTime: {$cmp: ['lastFeedbackTime','lastAccessTime']}}},
-            // {$match: {compareFeedbackTime: 1}}
-        // ]).then(
-        return dbconfig.collection_players.find(query, {_id:1, lastFeedbackTime:1, lastAccessTime:1}).lean().then(
-            data => {
-                if (!data || data.length === 0) {
-                    return [];
-                }
-
-                for (let i = 0, len = data.length; i < len; i++) {
-                    playerIds.push(data[i]._id);
-                    playerData.push(data[i]);
-                }
-
-                console.log("playerIds length", playerIds.length);
-
-                let playerIdGroup = [];
-                let feedbackProms = [];
-                for (let i = 0, len = playerIds.length; i < len; i++) {
-                    playerIdGroup.push(playerIds[i]);
-                    if (playerIdGroup.length >= 300) {
-                        let feedbackProm = dbconfig.collection_playerFeedback.aggregate([
-                            {$match: {"playerId": {$in: playerIdGroup}}},
-                            {$sort: {createTime: -1}},
-                            {$group: {"_id": "$playerId", "createTime": {$first: "$createTime"}}}
-                        ]);
-                        feedbackProms.push(feedbackProm);
-                        playerIdGroup = [];
-                    }
-                }
-                if (playerIdGroup.length > 0) {
-                    let feedbackProm = dbconfig.collection_playerFeedback.aggregate([
-                        {$match: {"playerId": {$in: playerIdGroup}}},
-                        {$sort: {createTime: -1}},
-                        {$group: {"_id": "$playerId", "createTime": {$first: "$createTime"}}}
-                    ]);
-                    feedbackProms.push(feedbackProm);
-                }
-
-                return Promise.all(feedbackProms);
-
-                // return dbconfig.collection_playerFeedback.aggregate([
-                //     {$match: {"playerId": {$in: playerIds}}},
-                //     {$sort: {createTime: -1}},
-                //     {$group: {"_id": "$playerId", "createTime": {$first: "$createTime"}}}
-                // ]);
-            },
-            error => {
-                console.error(error);
-                throw error;
+        query["$where"] = "this.lastAccessTime > this.lastFeedbackTime && !(!this.lastFeedbackTime && !this.isNewSystem)";
+        var a = dbconfig.collection_players.find(query).skip(index).limit(1)
+            .populate({path: "partner", model: dbconfig.collection_partner});
+        var b = dbconfig.collection_players.find(query).count();
+        return Q.all([a, b]).then(data => {
+            return {
+                data: data[0] ? data[0][0] : {},
+                index: index,
+                total: data[1]
             }
-        ).then(
-            lastPlayerFeedbackDatesArray => {
-                console.log('lastPlayerFeedbackDatesArray length', lastPlayerFeedbackDatesArray.length);
-                let lastPlayerFeedbackDates = [].concat.apply([], lastPlayerFeedbackDatesArray);
-                console.log('lastPlayerFeedbackDates length', lastPlayerFeedbackDates.length);
-                let playerNeedFeedback = [];
-                for (let i = 0, iLength = playerData.length; i < iLength; i++) {
-                    let recordFound = false;
-                    for (let j = 0, jLength = lastPlayerFeedbackDates.length;  j < jLength; j++) {
-                        if (playerData[i]._id.toString() === lastPlayerFeedbackDates[j]._id.toString()) {
-                            recordFound = true;
-                            if (needFeedback(playerData[i].lastAccessTime, lastPlayerFeedbackDates[j].createTime, playerData[i].lastFeedbackTime)) {
-                                playerNeedFeedback.push(playerData[i]._id);
-                            }
-
-                            // for debug use
-                            if (playerData[i]._id.toString() === "5954abfb08ddd327790596f1") {
-                                console.log('lAT', playerData[i].lastAccessTime)
-                                console.log('lRT', lastPlayerFeedbackDates[j].createTime)
-                                console.log('needFeedback', needFeedback(playerData[i].lastAccessTime, lastPlayerFeedbackDates[j].createTime, playerData[i].lastFeedbackTime))
-                            }
-
-                            break;
-                        }
-                    }
-
-                    if (!recordFound && needFeedback(playerData[i].lastAccessTime, null, playerData[i].lastFeedbackTime)) {
-                        playerNeedFeedback.push(playerData[i]._id);
-                    }
-                }
-
-                relevantPlayerCount = playerNeedFeedback.length;
-                console.log('relevantPlayerCount', relevantPlayerCount);
-
-                if (playerNeedFeedback[index]) {
-                    return dbconfig.collection_players.find({_id: playerNeedFeedback[index]}).limit(1)
-                        .populate({path: "partner", model: dbconfig.collection_partner}).lean();
-                } else {
-                    return {};
-                }
-
-                function needFeedback(lastAccessTime, lastRecordTime, lastFeedbackTime) {
-                    if (!lastAccessTime) {
-                        return true;
-                    }
-
-                    if (lastRecordTime && lastRecordTime > lastAccessTime) {
-                        return false;
-                    }
-
-                    if (lastFeedbackTime && lastFeedbackTime > lastAccessTime) {
-                        return false;
-                    }
-
-                    return true;
-                }
-            },
-            error => {
-                console.error(error);
-                throw error;
-            }
-        ).then(
-            playerData => {
-                console.log('return PlayerData');
-                return {
-                    data: playerData[0] ? playerData[0] : {},
-                    index: index,
-                    total: relevantPlayerCount
-                }
-            },
-            error => {
-                console.error(error);
-                throw error;
-            }
-        ).catch(
-            error => {
-                console.error(error);
-                return Promise.reject({name: "DBError", message: "Error in getting player feedback.", error: error});
-            }
-        );
+        });
     },
 
     /*

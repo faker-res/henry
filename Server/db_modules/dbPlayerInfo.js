@@ -38,6 +38,7 @@ var constGameStatus = require("./../const/constGameStatus");
 var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
+var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
 
 var moment = require('moment-timezone');
@@ -249,26 +250,12 @@ let dbPlayerInfo = {
                         }
                         //check if player's domain matches any partner
                         if (inputData.domain) {
-
-                            // for debug use
-                            if (inputData.domain.indexOf("fpms") !== -1) {
-                                console.error("domain contain fpms!!!!");
-                            }
-
                             delete inputData.referral;
                             let filteredDomain = dbUtility.getDomainName(inputData.domain);
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
                             inputData.domain = filteredDomain;
-
-                            // for debug use
-                            if (inputData.domain == "tz-office.fpms8.me") {
-                                console.error("domain is tz-office.fpms8.me from client!!!!");
-                                console.log("---------------------------------------------------");
-                                console.log("inputData", inputData);
-                                console.log("---------------------------------------------------");
-                            }
 
                             let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                 data => {
@@ -283,6 +270,46 @@ let dbPlayerInfo = {
                             );
                             proms.push(domainProm);
                         }
+
+                        // determine registrationInterface
+                        if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
+                            inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                        }
+                        else if (inputData.userAgent && inputData.userAgent[0]) {
+                            let userAgent = inputData.userAgent[0];
+                            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                                if (inputData.partner) {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                                }
+                                else {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                                }
+                            }
+                            else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
+                                if (inputData.partner) {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
+                                }
+                                else {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
+                                }
+                            }
+                            else {
+                                if (inputData.partner) {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.WEB_AGENT;
+                                }
+                                else {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.WEB_PLAYER;
+                                }
+                            }
+                        }
+                        else {
+                            inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                        }
+
+                        if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
+                            inputData.loginTimes = 1;
+                        }
+
                         return Q.all(proms);
                     } else {
                         return Q.reject({
@@ -3090,6 +3117,7 @@ let dbPlayerInfo = {
                         lastLoginIp: playerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
+                        $inc: {loginTimes: 1}
                     };
                     var geoInfo = {};
                     if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
@@ -5478,20 +5506,106 @@ let dbPlayerInfo = {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
+        if (sortCol.phoneArea) {
+            let sortOrder = sortCol.phoneArea;
+            sortCol = {
+                phoneCity: sortOrder,
+                phoneProvince: sortOrder
+            }
+        }
+        else if (sortCol.ipArea) {
+            let sortOrder = sortCol.ipArea;
+            sortCol = {
+                city: sortOrder,
+                province: sortOrder
+            }
+        }
+        else if (sortCol.os) {
+            let sortOrder = sortCol.os;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.os": sortOrder
+            }
+        }
+        else if (sortCol.browser) {
+            let sortOrder = sortCol.browser;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.browser": sortOrder
+            }
+        }
+
         let query = {platform: platform};
         para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
         (para.endTime && !query.registrationTime) ? (query.registrationTime = {$lt: new Date(para.endTime)}) : null;
         (para.endTime && query.registrationTime) ? (query.registrationTime['$lt'] = new Date(para.endTime)) : null;
         para.name ? query.name = para.name : null;
         para.realName ? query.realName = para.realName : null;
-        para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
+        para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
+
+        switch(para.playerType) {
+            case 'Test Player':
+                query.isRealPlayer = false;
+                break;
+            case 'Real Player (all)':
+                query.isRealPlayer = true;
+                break;
+            case 'Real Player (Individual)':
+                query.isRealPlayer = true;
+                query.partner = null;
+                break;
+            case 'Real Player (Under Partner)':
+                query.isRealPlayer = true;
+                query.partner = {$ne: null};
+        }
+
+        if (para.topUpTimesValue) {
+            switch (para.topUpTimesOperator) {
+                case '<=':
+                    query.topUpTimes = {$lte: para.topUpTimesValue};
+                    break;
+                case '>=':
+                    query.topUpTimes = {$gte: para.topUpTimesValue};
+                    break;
+                case '=':
+                    query.topUpTimes = para.topUpTimesValue;
+                    break;
+                case 'range':
+                    query.topUpTimes = {$gte: para.topUpTimesValue, $lte: para.topUpTimesValueTwo};
+                    break;
+            }
+        }
+
+        if (para.playerValue) {
+            switch (para.playerValueOperator) {
+                case '<=':
+                    query.valueScore = {$lte: para.playerValue};
+                    break;
+                case '>=':
+                    query.valueScore = {$gte: para.playerValue};
+                    break;
+                case '=':
+                    query.valueScore = para.playerValue;
+                    break;
+                case 'range':
+                    query.valueScore = {$gte: para.playerValue, $lte: para.playerValueTwo};
+                    break;
+            }
+        }
+
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'partner', model: dbconfig.collection_partner});
+            .populate({path: 'partner', model: dbconfig.collection_partner}).lean();
+
         return Q.all([count, detail]).then(
             data => {
+                let players = data[1];
+                for (let i = 0, len = players.length; i < len; i++) {
+                    dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                }
+
                 return {data: data[1], size: data[0]}
             }
         )
@@ -7145,6 +7259,19 @@ let dbPlayerInfo = {
                         //         playerStatus: playerData.status
                         //     });
                     }
+
+                    for (let i = 0, len = playerData.forbidProviders.length; i < len; i++) {
+                        let forbidProvider = playerData.forbidProviders[i];
+                        if (gameData.provider._id.toString() === forbidProvider.toString()) {
+                            return Q.reject({
+                                name: "DataError",
+                                status: constServerCode.PLAYER_IS_FORBIDDEN,
+                                message: "Player is forbidden to the game",
+                                playerStatus: playerData.status
+                            });
+                        }
+                    }
+
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
                         return Q.reject({
