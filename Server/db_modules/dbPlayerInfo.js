@@ -7651,7 +7651,7 @@ let dbPlayerInfo = {
                         }
                         proposal = proposalData;
                         bonusId = proposalData.data.bonusId;
-                        return dbProposal.updateBonusProposal(proposalId, constProposalStatus.FAIL, bonusId);
+                        return dbProposal.updateBonusProposal(proposalId, constProposalStatus.CANCEL, bonusId);
                     }
                     else {
                         return Q.reject({
