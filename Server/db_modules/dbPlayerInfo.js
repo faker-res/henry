@@ -5506,6 +5506,34 @@ let dbPlayerInfo = {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
+        if (sortCol.phoneArea) {
+            let sortOrder = sortCol.phoneArea;
+            sortCol = {
+                phoneCity: sortOrder,
+                phoneProvince: sortOrder
+            }
+        }
+        else if (sortCol.ipArea) {
+            let sortOrder = sortCol.ipArea;
+            sortCol = {
+                city: sortOrder,
+                province: sortOrder
+            }
+        }
+        else if (sortCol.os) {
+            let sortOrder = sortCol.os;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.os": sortOrder
+            }
+        }
+        else if (sortCol.browser) {
+            let sortOrder = sortCol.browser;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.browser": sortOrder
+            }
+        }
 
         let query = {platform: platform};
         para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
