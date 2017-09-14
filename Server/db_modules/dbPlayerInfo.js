@@ -306,6 +306,10 @@ let dbPlayerInfo = {
                             inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
                         }
 
+                        if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
+                            inputData.loginTimes = 1;
+                        }
+
                         return Q.all(proms);
                     } else {
                         return Q.reject({
@@ -3113,6 +3117,7 @@ let dbPlayerInfo = {
                         lastLoginIp: playerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
+                        $inc: {loginTimes: 1}
                     };
                     var geoInfo = {};
                     if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {

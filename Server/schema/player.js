@@ -234,7 +234,9 @@ var playerSchema = new Schema({
     // player value score
     valueScore: {type: Number, default: 0},
     // interface that used to register this account
-    registrationInterface: {type: Number, default: 0}
+    registrationInterface: {type: Number, default: 0},
+    // the number of times where player login
+    loginTimes: {type: Number, default: 0}
 });
 
 //record is unique by name and platform
