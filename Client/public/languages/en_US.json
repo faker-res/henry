@@ -916,5 +916,7 @@
   "NEW_QQ" : "New QQ Account",
   "CURRENT_QQ" : "Current QQ Account",
   "RETYPE_QQ" : "Retype QQ Account",
-  "QQ_DO_NOT_MATCH":"QQ account do not match"
+  "QQ_DO_NOT_MATCH":"QQ account do not match",
+  "PHONE_LOCATION": "Phone Location",
+  "IP_LOCATION": "IP Location"
 }
