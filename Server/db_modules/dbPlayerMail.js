@@ -169,6 +169,8 @@ const dbPlayerMail = {
         };
         return smsAPI.sending_sendMessage(sendObj).then(
             retData => {
+                console.log(retData);
+                console.log('[smsAPI] Sent verification code to: ', data.tel);
                 dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, sendObj.message , sendObj.channel, 'success');
                 return retData;
             },
@@ -235,19 +237,9 @@ const dbPlayerMail = {
                         message: template.content,
                         delay: 0
                     };
-                    dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code);
                     // Log the verification SMS before send
                     new dbconfig.collection_smsVerificationLog(saveObj).save();
-
-                    smsAPI.sending_sendMessage(sendObj).then(
-                        retData => {
-                            console.log('[smsAPI] Sent verification code to: ', telNum);
-                            return true;
-                        },
-                        retErr => {
-                            return Q.reject({message: retErr, error: retErr});
-                        }
-                    );
+                    return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code);
                 }
                 else {
                     return Q.reject({message: 'Template not set for current platform'});
