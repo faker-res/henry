@@ -38,6 +38,7 @@ var constGameStatus = require("./../const/constGameStatus");
 var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
+var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
 
 var moment = require('moment-timezone');
@@ -269,6 +270,42 @@ let dbPlayerInfo = {
                             );
                             proms.push(domainProm);
                         }
+
+                        // determine registrationInterface
+                        if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
+                            inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                        }
+                        else if (inputData.userAgent && inputData.userAgent[0]) {
+                            let userAgent = inputData.userAgent[0];
+                            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                                if (inputData.partner) {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                                }
+                                else {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                                }
+                            }
+                            else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
+                                if (inputData.partner) {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
+                                }
+                                else {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
+                                }
+                            }
+                            else {
+                                if (inputData.partner) {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.WEB_AGENT;
+                                }
+                                else {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.WEB_PLAYER;
+                                }
+                            }
+                        }
+                        else {
+                            inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                        }
+
                         return Q.all(proms);
                     } else {
                         return Q.reject({
@@ -5473,6 +5510,7 @@ let dbPlayerInfo = {
         para.realName ? query.realName = para.realName : null;
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
+        para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
 
         switch(para.playerType) {
             case 'Test Player':
@@ -5530,6 +5568,11 @@ let dbPlayerInfo = {
 
         return Q.all([count, detail]).then(
             data => {
+                let players = data[1];
+                for (let i = 0, len = players.length; i < len; i++) {
+                    dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                }
+
                 return {data: data[1], size: data[0]}
             }
         )

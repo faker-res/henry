@@ -460,8 +460,9 @@ define(['js/app'], function (myApp) {
                 })
             } else if (choice == "PLAYERDOMAIN_REPORT") {
                 vm.playerDomain = {totalCount: 0};
-                vm.playerDomain.topUpTimesOperator = "<=";
-                vm.playerDomain.playerValueOperator = "<=";
+                vm.playerDomain.topUpTimesOperator = ">=";
+                vm.playerDomain.playerValueOperator = ">=";
+                vm.playerDomain.registrationInterface = "";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                     vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
@@ -1705,6 +1706,7 @@ define(['js/app'], function (myApp) {
                     playerValueOperator: vm.playerDomain.playerValueOperator,
                     playerValue: vm.playerDomain.playerValue,
                     playerValueTwo: vm.playerDomain.playerValueTwo,
+                    registrationInterface: vm.playerDomain.registrationInterface,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate()
                 },
@@ -1777,6 +1779,9 @@ define(['js/app'], function (myApp) {
                     }
                     item.registrationAgent$ = $translate(item.registrationAgent$);
 
+                    item.phoneArea$ = item.phoneCity + " " + item.phoneProvince;
+                    item.ipArea$ = item.city + " " + item.province;
+
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
@@ -1796,22 +1801,13 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "name"},
                     {title: $translate('realName'), data: "realName", sClass: "realNameCell wordWrap"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
-                    {title: $translate('Partner'), data: "partner.partnerName"},
-                    {title: $translate('LAST_ACCESS_TIME'), data: "registrationTime$"},
+                    {title: $translate("PLAYER_PHONE_LOCATION"), data: "phoneArea$"},
+                    {title: $translate("PLAYER_IP_LOCATION"), data: "ipArea$"},
+                    {title: $translate("GAME_PROVIDER"), data: "gameProviderPlayed$"},
+                    {title: $translate('LAST_ACCESS_TIME'), data: "lastAccessTime$"},
+                    // todo :: login times
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
-                    {title: $translate('lastLoginIp'), data: "lastLoginIp"},
-                    {
-                        title: $translate('OS'),
-                        data: "registrationOS$"
-                    },
-                    {
-                        title: $translate('Browser'),
-                        data: "registrationBrowser$"
-                    },
-                    {
-                        title: $translate('Domain Name'),
-                        data: "domain"
-                    },
+                    {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {
                         title: $translate('URL'),
                         data: "sourceUrl",
@@ -1824,14 +1820,11 @@ define(['js/app'], function (myApp) {
                                 return data;
                         }
                     },
-                    {
-                        title: $translate("GAME_PROVIDER"),
-                        data: "gameProviderPlayed$"
-                    },
-                    {
-                        title: $translate("REGISTRATION_AGENT"),
-                        data: "registrationAgent$"
-                    }
+                    {title: $translate('Domain Name'), data: "domain"},
+                    {title: $translate("REGISTRATION_AGENT"), data: "registrationAgent$"},
+                    {title: $translate('OS'), data: "registrationOS$"},
+                    {title: $translate('Browser'), data: "registrationBrowser$"},
+                    {title: $translate('Partner'), data: "partner.partnerName"},
                 ],
                 "paging": false,
             }

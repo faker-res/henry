@@ -232,7 +232,9 @@ var playerSchema = new Schema({
     // the game providers' name that player had played their games
     gameProviderPlayed: [{type: Schema.ObjectId, ref: 'gameProvider'}],
     // player value score
-    valueScore: {type: Number, default: 0}
+    valueScore: {type: Number, default: 0},
+    // interface that used to register this account
+    registrationInterface: {type: Number, default: 0}
 });
 
 //record is unique by name and platform
