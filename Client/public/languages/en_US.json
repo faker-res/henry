@@ -253,6 +253,7 @@
   "CREATE_TRIAL": "Create Trial Player",
   "RESET_PASSWORD":"Reset Password",
   "PAYMENT":"Payment Information",
+  "LOGIN_TIMES": "Login Times",
   "TOP_UP_TIMES": "Top Up Times",
   "TOP_UP_AMOUNT": "Top Up Amount",
   "FEEDBACK_TIMES": "Feedback Times",
