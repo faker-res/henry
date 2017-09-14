@@ -2256,5 +2256,7 @@
   "LOCK":"锁定",
   "Type LastBankCardNo":"请输入银行卡号尾数",
   "Daily Limit":"每日上限",
-  "CREDIBILITY_NAME": "信用名称"
+  "CREDIBILITY_NAME": "信用名称",
+  "PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT": "支付监控 商户 变色计数",
+  "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "支付监控 玩家 变色计数"
 }
