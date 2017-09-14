@@ -7259,6 +7259,19 @@ let dbPlayerInfo = {
                         //         playerStatus: playerData.status
                         //     });
                     }
+
+                    for (let i = 0, len = playerData.forbidProviders.length; i < len; i++) {
+                        let forbidProvider = playerData.forbidProviders[i];
+                        if (gameData.provider._id.toString() === forbidProvider.toString()) {
+                            return Q.reject({
+                                name: "DataError",
+                                status: constServerCode.PLAYER_IS_FORBIDDEN,
+                                message: "Player is forbidden to the game",
+                                playerStatus: playerData.status
+                            });
+                        }
+                    }
+
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
                         return Q.reject({
