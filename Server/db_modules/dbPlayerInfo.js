@@ -5647,8 +5647,6 @@ let dbPlayerInfo = {
         );
         var topupQuery = {
             platform: platform,
-            isRealPlayer: true,
-            isTestPlayer: false,
             topUpTimes: {$gt: 0},
             topUpSum: {$gt: 0},
             registrationTime: timeQuery
@@ -5657,8 +5655,6 @@ let dbPlayerInfo = {
 
         let topUpMultipleTimesQuery = {
             platform: platform,
-            isRealPlayer: true,
-            isTestPlayer: false,
             topUpTimes: {$gt: 1},
             topUpSum: {$gt: 0},
             registrationTime: timeQuery
