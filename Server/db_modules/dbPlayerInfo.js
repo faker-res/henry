@@ -7270,7 +7270,6 @@ let dbPlayerInfo = {
                         }
                     }
 
-
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
                         return Q.reject({
