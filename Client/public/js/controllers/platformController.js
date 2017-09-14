@@ -1019,7 +1019,6 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.initVertificationSMS = function(){
-                console.log('initsmsrecord');
                 vm.smsRecordQuery = {};
                 vm.initQueryTimeFilter('smsRecordQueryDiv', function () {});
                 utilService.actionAfterLoaded('#vertificationSMSRecordTable', function () {
@@ -1035,21 +1034,23 @@ define(['js/app'], function (myApp) {
                     type:'registration',
                     status:'all',
                     tel:vm.smsRecordQuery.phoneNumber||'',
-                    playerId:vm.smsRecordQuery.player||'',
                     startTime:vm.queryPara['smsRecordQueryDiv'].startTime.data('datetimepicker').getLocalDate() || new Date(0),
                     endTime:vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.smsRecordQuery.index,
-                    limit: newSearch ? 10 : vm.smsRecordQuery.limit
-
+                    limit: newSearch ? 10 : vm.smsRecordQuery.limit,
+                    sortCol: vm.smsRecordQuery.sortCol
                 }
                 $('#loadVertificationSMSIcon').show();
                 socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
-                    console.log(vm.smsRecordQuery);
                     vm.smsRecordQuery.loading = false;
-                    console.log('playerData', data);
                     var size = data.data.size || 0;
                     var result = data.data.data || [];
-                    vm.drawVertificationSMSTable(result, newSearch);
+                    vm.drawVertificationSMSTable(result.map(item => {
+                        item.createTime = vm.dateReformat(item.createTime);
+                        item.status = $translate(item.status);
+                        return item;
+                    }), size, newSearch);
+
                     vm.smsRecordQuery.totalCount = size;
                     vm.smsRecordQuery.pageObj.init({maxCount: size}, newSearch);
                     $('#loadVertificationSMSIcon').hide();
@@ -1059,17 +1060,16 @@ define(['js/app'], function (myApp) {
             vm.drawVertificationSMSTable = function(data, size, newSearch){
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.smsRecordQuery.aaSorting || [[4, 'desc']],
+                    order: vm.smsRecordQuery.aaSorting || [[1, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('phoneNumber'), sClass: "wordWrap realNameCell", data: 'tel'},
+                        {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
                         {'title': $translate('smsVerificationCode'), data: 'message'},
-                        {'title': $translate('Status'), data: 'status'},
-                        {'title': $translate('createTime'), data: 'createTime', bSortable: true}
+                        {'title': $translate('STATUS'), data: 'status'}
                     ],
                     paging: false,
                 });
@@ -1077,7 +1077,7 @@ define(['js/app'], function (myApp) {
                 $('#vertificationSMSRecordTable').off('order.dt');
                 $('#vertificationSMSRecordTable').on('order.dt', function (event, a, b) {
                     console.log('test')
-                    // vm.commonSortChangeHandler(a, 'sendMultiMessage', vm.searchPlayersForSendingMessage);
+                    vm.commonSortChangeHandler(a, 'smsRecordQuery', vm.submitSMSRecordQuery);
                 });
                 setTimeout(function () {
                     $('#vertificationSMSRecordTable').resize();

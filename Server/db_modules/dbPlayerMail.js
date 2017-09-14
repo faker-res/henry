@@ -159,21 +159,21 @@ const dbPlayerMail = {
             }
         );
     },
-    sendVertificationSMS:function (adminObjId, adminName, data){
+    sendVertificationSMS:function (platformObjId, platformId, data, verifyCode){
         var sendObj = {
-            tel: data.phoneNumber,
+            tel: data.tel,
             channel: data.channel,
             platformId: data.platformId,
-            message: data.message,
-            delay: data.delay || 0
+            message: verifyCode,
+            delay: data.delay || 0,
         };
         return smsAPI.sending_sendMessage(sendObj).then(
             retData => {
-                dbLogger.createRegisterSMSLog("registration", adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'success');
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, sendObj.message , sendObj.channel, 'success');
                 return retData;
             },
             retErr => {
-                dbLogger.createRegisterSMSLog("registration", adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'failure', retErr);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, sendObj.message , sendObj.channel, 'failure', retErr);
                 return Q.reject({message: retErr, error: retErr});
             }
         );
@@ -235,8 +235,7 @@ const dbPlayerMail = {
                         message: template.content,
                         delay: 0
                     };
-
-                    dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj);
+                    dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code);
                     // Log the verification SMS before send
                     new dbconfig.collection_smsVerificationLog(saveObj).save();
 

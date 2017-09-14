@@ -2,9 +2,6 @@
     .col-md-12
         .well#smsRecordQueryDiv
             .inlineBlk
-                label.control-label {{'ACCOUNT' | translate}}
-                input.form-control(ng-model='vm.smsRecordQuery.player', placeholder="{{'SEARCH' | translate}}" ng-blur="vm.submitSMSRecordQuery(true)")
-            .inlineBlk
                 label.control-label {{'PHONENUMBER' | translate}}
                 input.form-control(ng-model='vm.smsRecordQuery.phoneNumber', placeholder="{{'SEARCH' | translate}}" ng-blur="vm.submitSMSRecordQuery(true)")
             .inlineBlk

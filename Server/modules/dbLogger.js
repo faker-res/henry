@@ -262,18 +262,17 @@ var dbLogger = {
         var smsLog = new dbconfig.collection_smsLog(logData);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },
-    createRegisterSMSLog: function (type, adminObjId, adminName, recipientName, data, sendObj, platform, status, error) {
+    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, status, error) {
 
-        var logData = Object.assign({}, data, sendObj, {
-            admin: adminObjId,
-            adminName: adminName,
-            recipientName: recipientName,
+        var logData = {
             type: type,
-            platform: platform,
-            phoneNumber: sendObj.tel,
+            message: message,
+            platform: platformObjId,
+            tel: tel,
+            channel: channel,
             status: status,
             error: error,
-        });
+        };
         var smsLog = new dbconfig.collection_smsLog(logData);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },

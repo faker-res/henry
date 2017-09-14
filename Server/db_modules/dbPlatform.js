@@ -1431,11 +1431,12 @@ var dbPlatform = {
             status: data.status === 'all' ? undefined : data.status,
             playerId: data.playerId || undefined,
             partnerId: data.partnerId || undefined,
+            type:{$nin:["registration"]}
         };
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
-        //console.log("query:", query);
+        console.log("query:", query);
         var a = dbconfig.collection_smsLog.find(query).sort({createTime: -1}).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
         return Q.all([a, b]).then(
@@ -1445,18 +1446,13 @@ var dbPlatform = {
         )
     },
     vertificationSMS:function(data, index, limit){
+        var sortCol = data.sortCol || {createTime: -1};
         index = index || 0;
         limit = limit || constSystemParam.MAX_RECORD_NUM;
-        console.log(data);
 
-        if(data.playerId == ''){
-            delete data.playerId;
-        }
         if(data.tel == ''){
             delete data.tel;
         }
-
-
         var query = {
             type:data.type,
             status: data.status === 'all' ? undefined : data.status,
@@ -1466,15 +1462,13 @@ var dbPlatform = {
                 '$gte': data.startTime,
                 '$lte': data.endTime
             },
-            tel: data.tel || undefined,
-            playerId: data.playerId || undefined
+            tel: data.tel || undefined
         };
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
-        console.log(query);
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
         //console.log("query:", query);
-        var a = dbconfig.collection_smsLog.find(query).sort({createTime: -1}).skip(index).limit(limit);
+        var a = dbconfig.collection_smsLog.find(query).sort(sortCol).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
         return Q.all([a, b]).then(
             result => {
