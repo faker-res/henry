@@ -317,6 +317,7 @@
   "LEVEL": "等级",
   "SHOW_ADVANCED_SEARCH": "显示高级搜索",
   "HIDE_ADVANCE_SEARCH": "隐藏高级搜索",
+  "LOGIN_TIMES": "登入次数",
   "TOP_UP_TIMES": "充值次数",
   "TOP_UP_AMOUNT": "充值额度",
   "BANK_DETAIL": "银行资料",

@@ -1805,7 +1805,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("PLAYER_IP_LOCATION"), data: "ipArea$"},
                     {title: $translate("GAME_PROVIDER"), data: "gameProviderPlayed$"},
                     {title: $translate('LAST_ACCESS_TIME'), data: "lastAccessTime$"},
-                    // todo :: login times
+                    {title: $translate('LOGIN_TIMES'), data: "loginTimes"},
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {
