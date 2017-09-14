@@ -3724,6 +3724,8 @@ define(['js/app'], function (myApp) {
                     vm.selectedPlayersCount = 1;
                     vm.playerTableRowClicked(aData);
                     vm.playerTableClickedRow = vm.playerTable.row(this);
+                    //display qq in email when no email added
+                    vm.qqAddress = (vm.selectedSinglePlayer.qq? vm.selectedSinglePlayer.qq + "@qq.com" : null);
                 });
             };
 
@@ -4004,6 +4006,8 @@ define(['js/app'], function (myApp) {
                     });
                 }
             }
+
+
             //player datatable row click handler
             vm.playerTableRowClicked = function (rowData) {
                 var deferred = Q.defer();

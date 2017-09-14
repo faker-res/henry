@@ -1116,7 +1116,7 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
                                         .inlineBlk
                                             label {{"EMAIL" | translate}}
-                                            text {{vm.selectedSinglePlayer.email || vm.selectedSinglePlayer.qq + '@qq.com' || 'Unknown' | translate}}
+                                            text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{"WECHAT" | translate}}
                                             text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
