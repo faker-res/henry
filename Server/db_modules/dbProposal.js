@@ -511,7 +511,7 @@ var proposal = {
                     if (!proposalData) {
                         errorMessage = "Cannot find proposal";
                     }
-                    else if (proposalData.status != constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING) {
+                    else if (proposalData.status != constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT) {
                         errorMessage = "Invalid proposal status:" + proposalData.status;
                     }
                     else if (proposalData.data && proposalData.data.bonusId != bonusId) {
