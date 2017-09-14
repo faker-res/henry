@@ -910,5 +910,8 @@
   "UpdatePlayerCredibility": "Update Player Credibility Remark",
   "PLAYER_VALUE": "Value",
   "playerCount": "Player Count",
-  "CREDIBILITY_NAME": "Remark"
+  "CREDIBILITY_NAME": "Remark",
+
+  "PHONE_LOCATION": "Phone Location",
+  "IP_LOCATION": "IP Location"
 }
