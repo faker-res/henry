@@ -65,7 +65,7 @@
                             a.common-tab(data-toggle="tab", href="#MultiMessage", ng-click="vm.platformPageName='#MultiMessage';vm.updatePageTile();vm.initSendMultiMessage(true);")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Send Messages" | translate}}
-                        li(ng-show="checkViewPermission('Platform', 'groupMessage','Read')")
+                        li(ng-show="checkViewPermission('Platform', 'vertificationSMS','Read')")
                             a.common-tab(data-toggle="tab", href="#VertificationSMS", ng-click="vm.platformPageName='VertificationSMS';vm.updatePageTile();vm.initVertificationSMS();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"SMS Records" | translate}}

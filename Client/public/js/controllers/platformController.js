@@ -1034,6 +1034,7 @@ define(['js/app'], function (myApp) {
                 var sendQuery = {
                     type:'registration',
                     status:'all',
+                    tel:vm.smsRecordQuery.phoneNumber||'',
                     playerId:vm.smsRecordQuery.player||'',
                     startTime:vm.queryPara['smsRecordQueryDiv'].startTime.data('datetimepicker').getLocalDate() || new Date(0),
                     endTime:vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
@@ -1041,19 +1042,17 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit
 
                 }
+                $('#loadVertificationSMSIcon').show();
                 socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
                     console.log(vm.smsRecordQuery);
                     vm.smsRecordQuery.loading = false;
                     console.log('playerData', data);
                     var size = data.data.size || 0;
                     var result = data.data.data || [];
-                    vm.drawVertificationSMSTable(result.map(item => {
-                        item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
-                        item.registrationTime$ = vm.dateReformat(item.registrationTime);
-                        return item;
-                    }), size, newSearch);
-                    // vm.sendMultiMessage.totalCount = size;
+                    vm.drawVertificationSMSTable(result, newSearch);
+                    vm.smsRecordQuery.totalCount = size;
                     vm.smsRecordQuery.pageObj.init({maxCount: size}, newSearch);
+                    $('#loadVertificationSMSIcon').hide();
                     $scope.safeApply();
                 });
             }

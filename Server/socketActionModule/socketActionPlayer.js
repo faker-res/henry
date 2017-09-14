@@ -696,7 +696,6 @@ function socketActionPlayer(socketIO, socket) {
         vertificationSMSQuery: function vertificationSMSQuery(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
-            console.log(data);
             socketUtil.emitter(self.socket, dbPlatform.vertificationSMS, [data, data.index, data.limit], actionName, isValidData);
         },
         verifyPlayerPhoneNumber: function verifyPlayerPhoneNumber(data) {

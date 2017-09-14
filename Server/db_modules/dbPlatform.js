@@ -1447,15 +1447,27 @@ var dbPlatform = {
     vertificationSMS:function(data, index, limit){
         index = index || 0;
         limit = limit || constSystemParam.MAX_RECORD_NUM;
+        console.log(data);
+
+        if(data.playerId == ''){
+            delete data.playerId;
+        }
+        if(data.tel == ''){
+            delete data.tel;
+        }
+
+
         var query = {
             type:data.type,
             status: data.status === 'all' ? undefined : data.status,
             playerId: data.playerId || undefined,
             partnerId: data.partnerId || undefined,
-            createTime:{
-                '$gte':data.startTime,
-                '$lte':data.endTime
-            }
+            createTime: {
+                '$gte': data.startTime,
+                '$lte': data.endTime
+            },
+            tel: data.tel || undefined,
+            playerId: data.playerId || undefined
         };
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
