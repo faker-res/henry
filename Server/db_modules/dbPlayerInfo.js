@@ -306,6 +306,10 @@ let dbPlayerInfo = {
                             inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
                         }
 
+                        if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
+                            inputData.loginTimes = 1;
+                        }
+
                         return Q.all(proms);
                     } else {
                         return Q.reject({
@@ -3113,6 +3117,7 @@ let dbPlayerInfo = {
                         lastLoginIp: playerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
+                        $inc: {loginTimes: 1}
                     };
                     var geoInfo = {};
                     if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
@@ -5501,6 +5506,34 @@ let dbPlayerInfo = {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
+        if (sortCol.phoneArea) {
+            let sortOrder = sortCol.phoneArea;
+            sortCol = {
+                phoneCity: sortOrder,
+                phoneProvince: sortOrder
+            }
+        }
+        else if (sortCol.ipArea) {
+            let sortOrder = sortCol.ipArea;
+            sortCol = {
+                city: sortOrder,
+                province: sortOrder
+            }
+        }
+        else if (sortCol.os) {
+            let sortOrder = sortCol.os;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.os": sortOrder
+            }
+        }
+        else if (sortCol.browser) {
+            let sortOrder = sortCol.browser;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.browser": sortOrder
+            }
+        }
 
         let query = {platform: platform};
         para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;

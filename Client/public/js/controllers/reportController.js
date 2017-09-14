@@ -1792,9 +1792,22 @@ define(['js/app'], function (myApp) {
                 data: tableData,
                 "order": vm.playerDomain.aaSorting || [[2, 'desc']],
                 aoColumnDefs: [
+                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'realName', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'registrationTime', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'lastAccessTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'gameProviderPlayed', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'lastAccessTime', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'loginTimes', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'sourceUrl', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'domain', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'registrationInterface', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'os', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'browser', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'partner', 'aTargets': [15], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1805,7 +1818,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("PLAYER_IP_LOCATION"), data: "ipArea$"},
                     {title: $translate("GAME_PROVIDER"), data: "gameProviderPlayed$"},
                     {title: $translate('LAST_ACCESS_TIME'), data: "lastAccessTime$"},
-                    // todo :: login times
+                    {title: $translate('LOGIN_TIMES'), data: "loginTimes"},
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {
