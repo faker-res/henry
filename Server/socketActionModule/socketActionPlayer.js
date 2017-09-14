@@ -683,7 +683,6 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             // Optional: status, startTime, endTime
             // Bad: anything else!
-            console.log(data);
             var isValidData = Boolean(data);
             // It might be good to restrict the search to the admin's allowed platforms
             socketUtil.emitter(self.socket, dbPlatform.searchSMSLog, [data, data.index, data.limit], actionName, isValidData);

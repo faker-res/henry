@@ -1436,7 +1436,6 @@ var dbPlatform = {
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
-        console.log("query:", query);
         var a = dbconfig.collection_smsLog.find(query).sort({createTime: -1}).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
         return Q.all([a, b]).then(
