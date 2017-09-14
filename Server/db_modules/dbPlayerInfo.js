@@ -5619,10 +5619,8 @@ let dbPlayerInfo = {
         };
         var query = {
             platform: platform,
-            registrationTime: timeQuery,
-            isRealPlayer: true,
-            isTestPlayer: false
-        }
+            registrationTime: timeQuery
+        };
         var a = dbconfig.collection_players.find(query).count();
         var b = dbconfig.collection_players.aggregate([{
             $match: query,
