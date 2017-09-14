@@ -320,15 +320,8 @@ var playerPostFindUpdate = function (result, bOne) {
     }
     //hide middle 4 digits for email
     if (result && result.email) {
-        //var startIndex = Math.max(Math.floor((result.email.length - 4) / 2), 0);
-        //result.email = result.email.substr(0, startIndex) + "****" + result.email.substr(startIndex + 4);
-        var endIndex = result.email.indexOf("@");
-        var star = "";
-        for (i = 0; i < endIndex; i++){
-            if (endIndex - i > 1 && star.length < 4)
-                star += "*";
-        }
-        result.email = result.email.slice(0, endIndex - star.length) + star + result.email.slice(endIndex, result.email.length);
+        var startIndex = Math.max(Math.floor((result.email.length - 4) / 2), 0);
+        result.email = result.email.substr(0, startIndex) + "****" + result.email.substr(startIndex + 4);
     }
     //hide banking information
     if (!bOne && result && result.bankAccount) {
