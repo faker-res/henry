@@ -62,7 +62,7 @@
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"ANNOUNCEMENTS" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'groupMessage','Read')")
-                            a.common-tab(data-toggle="tab", href="#MultiMessage", ng-click="vm.platformPageName='#MultiMessage';vm.updatePageTile();vm.initSendMultiMessage(true);")
+                            a.common-tab(data-toggle="tab", href="#MultiMessage", ng-click="vm.platformPageName='MultiMessage';vm.updatePageTile();vm.initSendMultiMessage(true);")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Send Messages" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'vertificationSMS','Read')")
