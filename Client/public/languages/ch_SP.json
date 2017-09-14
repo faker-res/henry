@@ -2263,5 +2263,7 @@
   "NEW_QQ" : "新QQ帐号",
   "CURRENT_QQ" : "原QQ帐号",
   "RETYPE_QQ" : "重新输入QQ帐号",
-  "QQ_DO_NOT_MATCH": "QQ帐号不相同"
+  "QQ_DO_NOT_MATCH": "QQ帐号不相同",
+  "PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT": "支付监控 商户 变色计数",
+  "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "支付监控 玩家 变色计数"
 }
