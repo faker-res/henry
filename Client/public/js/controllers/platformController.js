@@ -1020,9 +1020,10 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
-            vm.initVertificationSMS = function(){
+            vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
-                vm.initQueryTimeFilter('smsRecordQueryDiv', function () {});
+                vm.initQueryTimeFilter('smsRecordQueryDiv', function () {
+                });
                 utilService.actionAfterLoaded('#vertificationSMSRecordTable', function () {
                     vm.smsRecordQuery.pageObj = utilService.createPageForPagingTable("#vertificationSMSRecordTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "smsRecordQuery", vm.submitSMSRecordQuery)
@@ -1030,14 +1031,14 @@ define(['js/app'], function (myApp) {
                     vm.submitSMSRecordQuery(true);
                 })
             }
-            vm.submitSMSRecordQuery = function(newSearch){
+            vm.submitSMSRecordQuery = function (newSearch) {
 
                 var sendQuery = {
-                    type:'registration',
-                    status:'all',
-                    tel:vm.smsRecordQuery.phoneNumber||'',
-                    startTime:vm.queryPara['smsRecordQueryDiv'].startTime.data('datetimepicker').getLocalDate() || new Date(0),
-                    endTime:vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    type: 'registration',
+                    status: 'all',
+                    tel: vm.smsRecordQuery.phoneNumber || '',
+                    startTime: vm.queryPara['smsRecordQueryDiv'].startTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    endTime: vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.smsRecordQuery.index,
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
                     sortCol: vm.smsRecordQuery.sortCol
@@ -1059,7 +1060,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
-            vm.drawVertificationSMSTable = function(data, size, newSearch){
+            vm.drawVertificationSMSTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
                     order: vm.smsRecordQuery.aaSorting || [[1, 'desc']],

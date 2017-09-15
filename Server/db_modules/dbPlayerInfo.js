@@ -6905,7 +6905,7 @@ let dbPlayerInfo = {
             path: "type",
             model: dbconfig.collection_proposalType
         }).lean().then(
-            data=> {
+            data => {
                 proposalData = data;
                 return dbconfig.collection_proposal.findOneAndUpdate(
                     {_id: data._id, createTime: data.createTime},

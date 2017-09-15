@@ -159,7 +159,7 @@ const dbPlayerMail = {
             }
         );
     },
-    sendVertificationSMS:function (platformObjId, platformId, data, verifyCode){
+    sendVertificationSMS: function (platformObjId, platformId, data, verifyCode) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -172,11 +172,11 @@ const dbPlayerMail = {
             retData => {
                 console.log(retData);
                 console.log('[smsAPI] Sent verification code to: ', data.tel);
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode , sendObj.channel, 'success');
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, 'success');
                 return retData;
             },
             retErr => {
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode , sendObj.channel, 'failure', retErr);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, 'failure', retErr);
                 return Q.reject({message: retErr, error: retErr});
             }
         );

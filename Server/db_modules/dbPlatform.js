@@ -1431,7 +1431,7 @@ var dbPlatform = {
             status: data.status === 'all' ? undefined : data.status,
             playerId: data.playerId || undefined,
             partnerId: data.partnerId || undefined,
-            type:{$nin:["registration"]}
+            type: {$nin: ["registration"]}
         };
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
@@ -1444,16 +1444,16 @@ var dbPlatform = {
             }
         )
     },
-    vertificationSMS:function(data, index, limit){
+    vertificationSMS: function (data, index, limit) {
         var sortCol = data.sortCol || {createTime: -1};
         index = index || 0;
         limit = limit || constSystemParam.MAX_RECORD_NUM;
 
-        if(data.tel == ''){
+        if (data.tel == '') {
             delete data.tel;
         }
         var query = {
-            type:data.type,
+            type: data.type,
             status: data.status === 'all' ? undefined : data.status,
             playerId: data.playerId || undefined,
             partnerId: data.partnerId || undefined,

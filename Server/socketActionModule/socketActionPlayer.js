@@ -692,7 +692,7 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, smsAPI.channel_getChannelList, [data], actionName, true);
         },
-        vertificationSMSQuery: function vertificationSMSQuery(data){
+        vertificationSMSQuery: function vertificationSMSQuery(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPlatform.vertificationSMS, [data, data.index, data.limit], actionName, isValidData);
