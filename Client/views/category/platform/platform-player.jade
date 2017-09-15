@@ -1116,7 +1116,7 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
                                         .inlineBlk
                                             label {{"EMAIL" | translate}}
-                                            text {{vm.selectedSinglePlayer.email || vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
+                                            text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{"WECHAT" | translate}}
                                             text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
@@ -1536,15 +1536,15 @@ include modalGameCreditLog
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod')
                                     option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
-                            //.form-group-col-md-6
+                            .form-group-col-md-6
                                 label.control-label {{'PROVINCE_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', required)
                                     option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
-                            //.form-group-col-md-6
+                            .form-group-col-md-6
                                 label.control-label {{'CITY_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.cityId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId,vm.playerManualTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', required)
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
-                            //.form-group-col-md-6
+                            .form-group-col-md-6
                                 label.control-label {{'DISTRICT_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.districtId', ng-disabled='vm.freezeZoneSelection')
                                     option(ng-repeat='(i,v) in vm.districtList', value='{{v.id}}') {{v.name}}
@@ -1661,24 +1661,40 @@ include modalGameCreditLog
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerWechatPayTopUp()') {{'CANCEL' | translate}}
                 .row(ng-show='vm.existingWechatPayTopup===false || vm.existingWechatPayTopup.isCanceled')
                     .col-md-12
-                        form(name='form_wechatPay_topup').well
-                            .form-group-col-md-6
+                        form(name='form_wechatPay_topup', style="min-height:500px;").well
+                            .form-group.col-md-12
                                 .control-label
-                                    label {{'CREDIT' | translate}}
-                                    text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
+                                label {{'CREDIT' | translate}}
+                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
                                 input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerWechatPayTopUp.amount', required)
                                 //.control-label
                                 //    label {{'wechatPayName' | translate}}
                                 //input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
+                            .form-group.col-md-6
                                 .control-label
-                                    label {{'wechatPayAccount' | translate}}
+                                label {{'WechatPay' | translate}}
+                                select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
+                                    option(value='') {{'any' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.name}}({{v.state | translate}})
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'wechatPayName' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
+                            .form-group.col-md-6
+                                .control-label
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'wechatPayAccount' | translate}}
                                 input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayAccount', required)
+                            .form-group.col-md-12
                                 .control-label
-                                    label {{'REMARK' | translate}}
+                                label {{'REMARK' | translate}}
                                 input.form-control(ng-model='vm.playerWechatPayTopUp.remark')
+                            .form-group.col-md-12
                                 .inlineBlk
-                                    label {{'DEPOSITE_TIME' | translate}}
-                                    .createTime
+                                label {{'DEPOSITE_TIME' | translate}}
+                                .createTime
+
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerWechatPayTopUp.submitted') {{'Submitted' | translate}}
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_wechatPay_topup.$invalid || form_wechatPay_topup.$pristine || (vm.existingWechatPayTopup && !vm.existingWechatPayTopup.isCanceled)', ng-show='!vm.playerWechatPayTopUp.submitted', ng-click='vm.applyPlayerWechatPayTopUp()') {{'APPLY' | translate}}

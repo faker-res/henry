@@ -283,6 +283,7 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 vm.getAllAlipaysByAlipayGroup();
+                vm.getAllWechatpaysByWechatpayGroup();
                 vm.getAllBankCard();
                 // check settlement buttons
                 var nowDate = new Date().toLocaleDateString();
@@ -3787,6 +3788,8 @@ define(['js/app'], function (myApp) {
                     vm.selectedPlayersCount = 1;
                     vm.playerTableRowClicked(aData);
                     vm.playerTableClickedRow = vm.playerTable.row(this);
+                    //display qq in email when no email added
+                    vm.qqAddress = (vm.selectedSinglePlayer.qq? vm.selectedSinglePlayer.qq + "@qq.com" : null);
                 });
             };
 
@@ -4067,6 +4070,8 @@ define(['js/app'], function (myApp) {
                     });
                 }
             }
+
+
             //player datatable row click handler
             vm.playerTableRowClicked = function (rowData) {
                 var deferred = Q.defer();
@@ -6316,9 +6321,9 @@ define(['js/app'], function (myApp) {
                     amount: vm.playerManualTopUp.amount,
                     lastBankcardNo: vm.playerManualTopUp.lastBankcardNo,
                     bankTypeId: vm.playerManualTopUp.bankTypeId,
-                    provinceId: '',
-                    cityId: '',
-                    districtId: '',
+                    provinceId: vm.playerManualTopUp.provinceId,
+                    cityId: vm.playerManualTopUp.cityId,
+                    districtId: vm.playerManualTopUp.districtId,
                     fromFPMS: true,
                     createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate(),
                     remark: vm.playerManualTopUp.remark,
@@ -7416,6 +7421,8 @@ define(['js/app'], function (myApp) {
                         vm.existingWechatPayTopup = data.data ? data.data : false;
                         $scope.safeApply();
                     });
+                vm.wechatpaysAcc = '';
+
                 utilService.actionAfterLoaded('#modalPlayerWechatPayTopUp', function () {
                     vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerWechatPayTopUp .createTime');
                     vm.playerWechatPayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
@@ -7432,7 +7439,7 @@ define(['js/app'], function (myApp) {
                     remark: vm.playerWechatPayTopUp.remark,
                     createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
                 };
-                console.log("applyPlayerWechatPayTopUp", sendData)
+                console.log("applyPlayerWechatPayTopUp", sendData);
                 vm.playerWechatPayTopUp.submitted = true;
                 $scope.safeApply();
                 socketService.$socket($scope.AppSocket, 'applyWechatPayTopUpRequest', sendData,
@@ -7471,6 +7478,14 @@ define(['js/app'], function (myApp) {
                     }
                 );
             };
+
+            vm.getAllWechatpaysByWechatpayGroup = function(){
+                socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.data.platformId},
+                    data => {
+                        var data = data.data;
+                        vm.allWechatpaysAcc = data.data ? data.data : false;
+                    });
+            }
 
             vm.cancelPlayerManualTop = function () {
                 if (!vm.existingManualTopup) {
@@ -7692,6 +7707,7 @@ define(['js/app'], function (myApp) {
                     query: sendQuery,
                     index: vm.feedbackPlayersPara.index - 1
                 }, function (data) {
+                    console.log('_getPlayerFeedbackQuery', data);
                     vm.curFeedbackPlayer = data.data.data;
                     vm.feedbackPlayersPara.total = data.data.total || 0;
                     vm.feedbackPlayersPara.index = data.data.index + 1;
@@ -9355,6 +9371,17 @@ define(['js/app'], function (myApp) {
                     });
                     $scope.safeApply();
                 })
+            };
+
+            vm.pickWechatPayAcc = function(){
+                vm.playerWechatPayTopUp.wechatPayName = '';
+                vm.playerWechatPayTopUp.wechatPayAccount = '';
+                if(vm.wechatpaysAcc!=''){
+                    var wechatpayAcc = JSON.parse(vm.wechatpaysAcc);
+                    vm.playerWechatPayTopUp.wechatPayName = wechatpayAcc['name'];
+                    vm.playerWechatPayTopUp.wechatPayAccount = wechatpayAcc['accountNumber'];
+                }
+                $scope.safeApply();
             };
 
             /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////

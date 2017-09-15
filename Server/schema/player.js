@@ -232,7 +232,11 @@ var playerSchema = new Schema({
     // the game providers' name that player had played their games
     gameProviderPlayed: [{type: Schema.ObjectId, ref: 'gameProvider'}],
     // player value score
-    valueScore: {type: Number, default: 0}
+    valueScore: {type: Number, default: 0},
+    // interface that used to register this account
+    registrationInterface: {type: Number, default: 0},
+    // the number of times where player login
+    loginTimes: {type: Number, default: 0}
 });
 
 //record is unique by name and platform
@@ -320,8 +324,16 @@ var playerPostFindUpdate = function (result, bOne) {
     }
     //hide middle 4 digits for email
     if (result && result.email) {
-        var startIndex = Math.max(Math.floor((result.email.length - 4) / 2), 0);
-        result.email = result.email.substr(0, startIndex) + "****" + result.email.substr(startIndex + 4);
+        if (result.email.indexOf("@qq.com") !== -1) {
+            let qqNumber = result.email.substr(0, result.email.indexOf("@"));
+            let qqIndex = Math.max(Math.floor((qqNumber.length - 4) / 2), 0);
+            let qqNumberEncoded = qqNumber.substr(0, qqIndex) + "****" + qqNumber.substr(qqIndex + 4);
+            result.email = qqNumberEncoded + "@qq.com";
+        }
+        else {
+            var startIndex = Math.max(Math.floor((result.email.length - 4) / 2), 0);
+            result.email = result.email.substr(0, startIndex) + "****" + result.email.substr(startIndex + 4);
+        }
     }
     //hide banking information
     if (!bOne && result && result.bankAccount) {

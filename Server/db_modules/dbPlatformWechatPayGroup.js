@@ -112,7 +112,14 @@ let dbPlatformWechatPayGroup = {
             }
         )
     },
-
+    getAllWechatpaysByWechatpayGroup: function(platformId){
+        return pmsAPI.weChat_getWechatList(
+            {
+                platformId: platformId,
+                queryId: serverInstance.getQueryId()
+            }
+        );
+    },
     getIncludedWechatsByWechatPayGroup: function (platformId, wechatPayGroupId) {
         let allWechats = [];
         return pmsAPI.weChat_getWechatList(
