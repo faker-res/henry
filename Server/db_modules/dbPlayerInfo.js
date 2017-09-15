@@ -5510,15 +5510,15 @@ let dbPlayerInfo = {
         if (sortCol.phoneArea) {
             let sortOrder = sortCol.phoneArea;
             sortCol = {
-                phoneCity: sortOrder,
-                phoneProvince: sortOrder
+                phoneProvince: sortOrder,
+                phoneCity: sortOrder
             }
         }
         else if (sortCol.ipArea) {
             let sortOrder = sortCol.ipArea;
             sortCol = {
-                city: sortOrder,
-                province: sortOrder
+                province: sortOrder,
+                city: sortOrder
             }
         }
         else if (sortCol.os) {

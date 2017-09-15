@@ -1784,8 +1784,21 @@ define(['js/app'], function (myApp) {
                     }
                     item.registrationAgent$ = $translate(item.registrationAgent$);
 
-                    item.phoneArea$ = item.phoneCity + " " + item.phoneProvince;
-                    item.ipArea$ = item.city + " " + item.province;
+                    if (!item.phoneProvince | item.phoneProvince === 'null' || item.phoneProvince === 'undefined') {
+                        item.phoneProvince = $translate('Unknown');
+                    }
+                    if (!item.phoneCity | item.phoneCity === 'null' || item.phoneCity === 'undefined') {
+                        item.phoneCity = $translate('Unknown');
+                    }
+                    if (!item.province | item.province === 'null' || item.province === 'undefined') {
+                        item.province = $translate('Unknown');
+                    }
+                    if (!item.city | item.city === 'null' || item.city === 'undefined') {
+                        item.city = $translate('Unknown');
+                    }
+
+                    item.phoneArea$ = item.phoneProvince + " " + item.phoneCity;
+                    item.ipArea$ = item.province + " " + item.city;
 
                     return item;
                 }), data.data.size, newSearch);
@@ -1827,18 +1840,18 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {
-                        title: $translate('URL'),
+                        title: $translate('Source Domain'),
                         data: "sourceUrl",
                         render: function (data, type, row) {
                             if (data && data.length > 35)
-                                return "<a href=\"" + data + "\">" + data.substring(0, 30) + "...</a>";
+                                return "<a target=\"_blank\" href=\"" + data + "\">" + data.substring(0, 30) + "...</a>";
                             else if (data)
-                                return "<a href=\"" + data + "\">" + data + "</a>";
+                                return "<a target=\"_blank\" href=\"" + data + "\">" + data + "</a>";
                             else
                                 return data;
                         }
                     },
-                    {title: $translate('Domain Name'), data: "domain"},
+                    {title: $translate('Registration Domain'), data: "domain"},
                     {title: $translate("REGISTRATION_AGENT"), data: "registrationAgent$"},
                     {title: $translate('OS'), data: "registrationOS$"},
                     {title: $translate('Browser'), data: "registrationBrowser$"},
