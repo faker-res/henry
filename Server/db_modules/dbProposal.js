@@ -530,16 +530,16 @@ var proposal = {
             data => {
                 if (status == constProposalStatus.SUCCESS) {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, true);
-                } else if (status == constProposalStatus.FAIL) {
-                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark);
+                } else if (status == constProposalStatus.FAIL || status == constProposalStatus.CANCEL) {
+                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark, Boolean(status == constProposalStatus.CANCEL));
                 } else if (status == constProposalStatus.PENDING
                     || status == constProposalStatus.PROCESSING
                     || status == constProposalStatus.UNDETERMINED
-                    || status == constProposalStatus.RECOVER) {
+                    || status == constProposalStatus.RECOVER
+                    ) {
                     return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                         proposalData => {
-                            proposalData.status = status;
-                            return proposalData.save();
+                            return dbconfig.collection_proposal.findOneAndUpdate({proposalId: proposalId, createTime: proposalData.createTime}, {status: status});
                         }
                     );
                 }

@@ -1020,7 +1020,71 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+            vm.initVertificationSMS = function(){
+                vm.smsRecordQuery = {};
+                vm.initQueryTimeFilter('smsRecordQueryDiv', function () {});
+                utilService.actionAfterLoaded('#vertificationSMSRecordTable', function () {
+                    vm.smsRecordQuery.pageObj = utilService.createPageForPagingTable("#vertificationSMSRecordTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "smsRecordQuery", vm.submitSMSRecordQuery)
+                    });
+                    vm.submitSMSRecordQuery(true);
+                })
+            }
+            vm.submitSMSRecordQuery = function(newSearch){
 
+                var sendQuery = {
+                    type:'registration',
+                    status:'all',
+                    tel:vm.smsRecordQuery.phoneNumber||'',
+                    startTime:vm.queryPara['smsRecordQueryDiv'].startTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    endTime:vm.queryPara['smsRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    index: newSearch ? 0 : vm.smsRecordQuery.index,
+                    limit: newSearch ? 10 : vm.smsRecordQuery.limit,
+                    sortCol: vm.smsRecordQuery.sortCol
+                }
+                $('#loadVertificationSMSIcon').show();
+                socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
+                    vm.smsRecordQuery.loading = false;
+                    var size = data.data.size || 0;
+                    var result = data.data.data || [];
+                    vm.drawVertificationSMSTable(result.map(item => {
+                        item.createTime = vm.dateReformat(item.createTime);
+                        item.status = $translate(item.status);
+                        return item;
+                    }), size, newSearch);
+
+                    vm.smsRecordQuery.totalCount = size;
+                    vm.smsRecordQuery.pageObj.init({maxCount: size}, newSearch);
+                    $('#loadVertificationSMSIcon').hide();
+                    $scope.safeApply();
+                });
+            }
+            vm.drawVertificationSMSTable = function(data, size, newSearch){
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: data,
+                    order: vm.smsRecordQuery.aaSorting || [[1, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {'title': $translate('phoneNumber'), sClass: "wordWrap realNameCell", data: 'tel'},
+                        {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
+                        {'title': $translate('smsVerificationCode'), data: 'message'},
+                        {'title': $translate('STATUS'), data: 'status'}
+                    ],
+                    paging: false,
+                });
+                vm.smsRecordQuery.tableObj = $('#vertificationSMSRecordTable').DataTable(option);
+                $('#vertificationSMSRecordTable').off('order.dt');
+                $('#vertificationSMSRecordTable').on('order.dt', function (event, a, b) {
+                    console.log('test')
+                    vm.commonSortChangeHandler(a, 'smsRecordQuery', vm.submitSMSRecordQuery);
+                });
+                setTimeout(function () {
+                    $('#vertificationSMSRecordTable').resize();
+                }, 100);
+            }
             vm.checkPlayerExist = function (key, val) {
                 if (!key || !val) {
                     $('#playerValidFalse').addClass('hidden');
