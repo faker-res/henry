@@ -95,6 +95,8 @@ let dbPlayerReward = {
         )
     },
 
+    getPromoCodeTypes: (platformObjId) => dbConfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean(),
+
     /*
      * player apply for consecutive login reward
      * @param {String} playerId
@@ -785,7 +787,94 @@ let dbPlayerReward = {
                 }
             )
         });
-    }
+    },
+
+    getPromoCodesHistory: (searchQuery) => {
+        return dbConfig.collection_players.findOne({
+            platform: searchQuery.platformObjId,
+            name: searchQuery.playerName
+        }).lean().then(
+            playerData => {
+                let query = {
+                    platformObjId: searchQuery.platformObjId
+                };
+
+                if (playerData) {
+                    query.playerObjId = playerData._id;
+                }
+
+                return dbConfig.collection_promoCode.find(query)
+                    .populate({path: "playerObjId", model: dbConfig.collection_players})
+                    .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
+                    .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean();
+            }
+        )
+    },
+
+    updatePromoCodeSMSContent: (platformObjId, promoCodeSMSContent, isDelete) => {
+        let upsertProm = [];
+
+        if (isDelete) {
+            upsertProm.push(dbConfig.collection_promoCodeType.remove({
+                platformObjId: platformObjId,
+                name: promoCodeSMSContent[0].name,
+                type: promoCodeSMSContent[0].type
+            }));
+        } else {
+            promoCodeSMSContent.forEach(entry => {
+                upsertProm.push(dbConfig.collection_promoCodeType.findOneAndUpdate(
+                    {platformObjId: platformObjId, name: entry.name, type: entry.type},
+                    entry,
+                    {upsert: true}
+                ));
+            });
+        }
+
+        return Promise.all(upsertProm);
+    },
+
+    generatePromoCode: (platformObjId, newPromoCodeEntry) => {
+        // Check if player exist
+        return dbConfig.collection_players.findOne({
+            platform: platformObjId,
+            name: newPromoCodeEntry.playerName
+        }).lean().then(
+            playerData => {
+                if (playerData) {
+                    newPromoCodeEntry.playerObjId = playerData._id;
+                    newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
+
+                    return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            newPromoCode => {
+                return newPromoCode.code;
+            }
+        )
+    },
+
+    savePromoCodeUserGroup: (platformObjId, groupData) => {
+        let saveArr = [];
+
+        if (groupData && groupData.length > 0) {
+            groupData.map(grp => {
+                grp.platformObjId = platformObjId;
+                saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
+                    platformObjId: platformObjId,
+                    name: grp.name
+                }, grp, {upsert: true}));
+            });
+        }
+        ;
+
+        return Promise.all(saveArr);
+    },
+
+    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean()
 };
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {

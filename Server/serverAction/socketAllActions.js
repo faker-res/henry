@@ -33,7 +33,8 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionReport'),
     require('./../socketActionModule/socketActionTestRewardEvent'),
     require('./../socketActionModule/socketActionQuickPayGroup'),
-    require('./../socketActionModule/socketActionUtility')
+    require('./../socketActionModule/socketActionUtility'),
+    require('./../socketActionModule/socketActionPromoCode'),
 ];
 
 var socketActions = [

@@ -349,6 +349,7 @@ define(['js/app'], function (myApp) {
                         vm.loadWechatPayGroupData();
                         vm.loadQuickPayGroupData();
                         vm.getPlatformAnnouncements();
+                        vm.promoCodeTabClicked();
                         //     break;
                         // }
                         $scope.safeApply();
@@ -9754,6 +9755,63 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.updateCollectionInEdit = function (type, collection, data) {
+                if (type == 'add') {
+                    let newObj = {};
+
+                    Object.keys(data).forEach(e => {
+                        newObj[e] = data[e];
+                    });
+
+                    collection.push(newObj);
+                    collection.forEach((elem, index, arr) => {
+                        let id = '#expDate1-' + index;
+                        let provId = '#promoProviders-' + index;
+                        if (!$(id).data("datetimepicker")) {
+                            utilService.actionAfterLoaded(id, function () {
+                                collection[index].expDate = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss'
+                                });
+                                collection[index].expDate.data('datetimepicker').setDate(new Date(), 1);
+                            });
+                        }
+
+                        if (!$(provId).data("multipleSelect")) {
+                            utilService.actionAfterLoaded(provId, function () {
+                                $(provId).multipleSelect({
+                                    allSelected: $translate("All Selected"),
+                                    selectAllText: $translate("Select All"),
+                                    countSelected: $translate('# of % selected'),
+                                    onClick: function () {
+                                        //vm.proposalStatusUpdated();
+                                    },
+                                    onCheckAll: function () {
+                                        //vm.proposalStatusUpdated();
+                                    },
+                                    onUncheckAll: function () {
+                                        //vm.proposalStatusUpdated();
+                                    }
+                                });
+                                $(provId).multipleSelect("checkAll");
+                            });
+                        }
+                    })
+
+
+                } else if (type == 'remove') {
+                    let sendData = {
+                        platformObjId: vm.selectedPlatform.id,
+                        promoCodeSMSContent: collection.splice(data, 1),
+                        isDelete: true
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                        vm.loadPlatformData({loadAll: false});
+                    });
+                }
+            };
+
             vm.topupProviderChange = function (provider, checked) {
                 if (!provider) {
                     return;
@@ -9949,6 +10007,366 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.promoCodeTabClicked = function (choice) {
+                vm.selectedPromoCodeTab = choice;
+                vm.promoCodeEdit = false;
+                vm.promoCodeSMSContentEdit = false;
+                vm.promoCodeUserGroupEdit = false;
+
+                vm.newPromoCode1 = [];
+                vm.newPromoCode2 = [];
+                vm.newPromoCode3 = [];
+
+                vm.promoCodeType1 = [];
+                vm.promoCodeType2 = [];
+                vm.promoCodeType3 = [];
+
+                vm.userGroupConfig = [];
+
+                loadPromoCodeTypes();
+                loadPromoCodeUserGroup();
+
+                switch (choice) {
+                    case 'create':
+                        vm.promoCodeNewRow(vm.newPromoCode1, 1);
+                        vm.promoCodeNewRow(vm.newPromoCode2, 2);
+                        vm.promoCodeNewRow(vm.newPromoCode3, 3);
+                        break;
+                    case 'history':
+                        vm.promoCodeQuery = {};
+
+                        utilService.actionAfterLoaded('#promoCodeQuery', function () {
+                            vm.promoCodeQuery.startCreateTime = utilService.createDatePicker('#promoCodeQuery .startCreateTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeQuery.startCreateTime.data('datetimepicker').setDate(new Date(), 1);
+                            vm.promoCodeQuery.endCreateTime = utilService.createDatePicker('#promoCodeQuery .endCreateTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeQuery.endCreateTime.data('datetimepicker').setDate(new Date(), 1);
+                            vm.promoCodeQuery.startAcceptedTime = utilService.createDatePicker('#promoCodeQuery .startAcceptedTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeQuery.startAcceptedTime.data('datetimepicker').setDate(new Date(), 1);
+                            vm.promoCodeQuery.endAcceptedTime = utilService.createDatePicker('#promoCodeQuery .endAcceptedTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeQuery.endAcceptedTime.data('datetimepicker').setDate(new Date(), 1);
+
+                            vm.promoCodeQuery.pageObj = utilService.createPageForPagingTable("#promoCodeTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeHistory", vm.getPromoCodeHistory)
+                            });
+                        });
+                        break;
+                    case 'activatePromoCode':
+                        break;
+                    case 'smsContent':
+                        break;
+                    case 'userGroupConfig':
+                        vm.getPromoCodeUserGroup();
+                        break;
+                }
+            };
+
+            function loadPromoCodeTypes() {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log('getPromoCodeTypes', data);
+
+                    data.data.forEach(entry => {
+                        if (entry.type == 1) {
+                            vm.promoCodeType1.push(entry);
+                        } else if (entry.type == 2) {
+                            vm.promoCodeType2.push(entry);
+                        } else if (entry.type == 3) {
+                            vm.promoCodeType3.push(entry);
+                        }
+                    });
+
+                    $scope.safeApply();
+                });
+            }
+
+            function loadPromoCodeUserGroup() {
+                vm.selectedPromoCodeUserGroup = null;
+
+                vm.getPromoCodeUserGroup();
+            }
+
+            vm.promoCodeNewRow = function (collection, type, data) {
+                collection.push(data ? data : {disableWithdraw: true});
+                collection.forEach((elem, index, arr) => {
+                    let id = '#expDate' + type + '-' + index;
+                    let provId = '#promoProviders' + type + '-' + index;
+
+                    if (!$(id).data("datetimepicker")) {
+                        utilService.actionAfterLoaded(id, function () {
+                            collection[index].expirationTime = utilService.createDatePicker(id, {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                        });
+                    }
+
+                    if (!$(provId).data("multipleSelect")) {
+                        utilService.actionAfterLoaded(provId, function () {
+                            $(provId).multipleSelect({
+                                allSelected: $translate("All Selected"),
+                                selectAllText: $translate("Select All"),
+                                countSelected: $translate('# of % selected'),
+                                onClick: function () {
+                                    //vm.proposalStatusUpdated();
+                                },
+                                onCheckAll: function () {
+                                    //vm.proposalStatusUpdated();
+                                },
+                                onUncheckAll: function () {
+                                    //vm.proposalStatusUpdated();
+                                }
+                            });
+                            $(provId).multipleSelect("checkAll");
+                        });
+                    }
+                });
+
+                return collection;
+            };
+
+            vm.generatePromoCode = function (col, index, data, type) {
+                let sendData = Object.assign({}, data);
+
+                if (sendData.playerName.match(/\n/g)) {
+                    col.splice(index, 1);
+                    let playerArr = sendData.playerName.split(/\r?\n/);
+                    let p = Promise.resolve();
+
+                    console.log('playerArr', playerArr);
+                    console.log('col', col);
+
+                    playerArr.forEach((el, ind) => {
+                        let newData = Object.assign({}, sendData);
+                        newData.playerName = el;
+                        newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
+
+                        delete newData.$$hashKey;
+
+                        // col.splice(index + ind, 0, newData);
+
+                        p = p.then(function () {
+                            return vm.promoCodeNewRow(col, type, newData);
+                        });
+
+                    });
+
+
+                    return p.then(ret => $scope.safeApply());
+                } else {
+                    sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
+                    sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
+                    sendData.platformObjId = vm.selectedPlatform.id;
+                    sendData.allowedProviders = sendData.allowedProviders.length == vm.allGameProvider.length ? [] : sendData.allowedProviders.map(e => e._id);
+                    sendData.smsContent = sendData.promoCodeType.smsContent;
+
+                    console.log('sendData', sendData);
+
+                    return $scope.$socketPromise('generatePromoCode', {
+                        platformObjId: vm.selectedPlatform.id,
+                        newPromoCodeEntry: sendData
+                    }).then(ret => {
+                        col[index].code = ret.data;
+                        $scope.safeApply();
+                    });
+                }
+            };
+
+            vm.generateAllPromoCode = function (col) {
+                let p = Promise.resolve();
+
+                col.forEach((elem, index, arr) => {
+                    if (!elem.code) {
+                        p = p.then(function () {
+                            return vm.generatePromoCode(col, index, elem);
+                        });
+                    }
+                });
+
+                return p;
+            };
+
+            vm.getPromoCodeHistory = function (isNewSearch) {
+                vm.promoCodeQuery.platformId = vm.selectedPlatform.id;
+                $('#promoCodeHistoryTableSpin').show();
+
+                vm.promoCodeQuery.index = isNewSearch ? 0 : (vm.promoCodeQuery.index || 0);
+
+                let sendObj = {
+                    playerName: vm.promoCodeQuery.playerName,
+                    promoCodeType: vm.promoCodeQuery.promoCodeType,
+                    status: vm.promoCodeQuery.status,
+                    startCreateTime: vm.promoCodeQuery.startCreateTime.data('datetimepicker').getLocalDate(),
+                    endCreateTime: vm.promoCodeQuery.endCreateTime.data('datetimepicker').getLocalDate(),
+                    startAcceptedTime: vm.promoCodeQuery.startAcceptedTime.data('datetimepicker').getLocalDate(),
+                    endAcceptedTime: vm.promoCodeQuery.endAcceptedTime.data('datetimepicker').getLocalDate(),
+                    platformObjId: vm.promoCodeQuery.platformId,
+                    index: vm.promoCodeQuery.index,
+                    limit: vm.promoCodeQuery.limit || 10,
+                    sortCol: vm.promoCodeQuery.sortCol
+                };
+
+                console.log('sendObj', sendObj);
+
+                socketService.$socket($scope.AppSocket, 'getPromoCodesHistory', sendObj, function (data) {
+                    $('#promoCodeHistoryTableSpin').hide();
+                    console.log('getPromoCodesHistory', data);
+                    vm.promoCodeQuery.totalCount = data.data.size;
+                    $scope.safeApply();
+                    vm.drawPromoCodeHistoryTable(
+                        data.data.map(item => {
+                            // item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                            // item.merchantNo$ = item.data.merchantNo
+                            //     ? item.data.merchantNo
+                            //     : item.data.weChatAccount
+                            //         ? item.data.weChatAccount
+                            //         : item.data.alipayAccount
+                            //             ? item.data.alipayAccount
+                            //             : item.data.bankCardNo
+                            //                 ? item.data.bankCardNo
+                            //                 : item.data.accountNo
+                            //                     ? item.data.accountNo
+                            //                     : null;
+                            // item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                            // item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                            // item.status$ = $translate(item.status);
+                            // item.merchantName = vm.merchantNumbers[item.data.merchantNo];
+                            //
+                            // if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
+                            //     let msgSplit = item.data.msg.split(" 单号:");
+                            //     item.merchantName = msgSplit[0];
+                            //     item.merchantNo$ = msgSplit[1];
+                            // }
+                            //
+                            // if (item.type.name === 'PlayerTopUp') {
+                            //     //show detail topup type info for online topup.
+                            //     let typeID = item.data.topUpType || item.data.topupType;
+                            //     item.topupTypeStr = typeID
+                            //         ? $translate(vm.topUpTypeList[typeID])
+                            //         : $translate("Unknown")
+                            // } else {
+                            //     //show topup type for other types
+                            //     item.topupTypeStr = $translate(item.type.name)
+                            // }
+                            // item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
+                            // item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
+
+                            item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
+                            item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => e.code);
+                            item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
+
+                            return item;
+                        }), data.data.size, {}, isNewSearch
+                    );
+                }, function (err) {
+                    console.error(err);
+                }, true);
+
+            };
+
+            vm.resetTopUpMonitorQuery = function () {
+                vm.paymentMonitorQuery.mainTopupType = "";
+                vm.paymentMonitorQuery.topupType = "";
+                vm.paymentMonitorQuery.merchantGroup = "";
+                vm.paymentMonitorQuery.merchantNo = "";
+                vm.paymentMonitorQuery.orderId = "";
+                vm.paymentMonitorQuery.depositMethod = "";
+                vm.paymentMonitorQuery.playerName = "";
+                vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
+                vm.getPaymentMonitorRecord(true);
+                $('#autoRefreshProposalFlag')[0].checked = true;
+                $scope.safeApply();
+            };
+
+            vm.drawPromoCodeHistoryTable = function (data, size, summary, newSearch) {
+                let tableOptions = {
+                    data: data,
+                    "order": vm.promoCodeQuery.aaSorting || [[1, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [11]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('ACCOUNT'),
+                            data: "playerObjId.name"
+                        },
+                        {
+                            title: $translate('PROMO_CODE_TYPE'),
+                            data: "promoCodeTypeObjId.name"
+                        },
+                        {
+                            title: $translate('PROMO_REWARD_AMOUNT'),
+                            data: "amount"
+                        },
+                        {
+                            title: $translate('minTopUpAmount'),
+                            data: "minTopUpAmount"
+                        },
+                        {
+                            title: $translate('PROMO_CONSUMPTION'),
+                            data: "requiredConsumption"
+                        },
+                        {
+                            title: $translate('PROMO_DUE_DATE'),
+                            data: "expirationTime$"
+                        },
+                        {
+                            title: $translate('ALLOWED_PROVIDER'),
+                            data: "allowedProviders$"
+                        },
+                        {
+                            title: $translate('BANNER_TEXT'),
+                            data: "bannerText",
+                        },
+                        {
+                            title: $translate('PROMO_CODE'),
+                            data: "code"
+                        },
+                        {
+                            title: $translate('SMS_INTERMAIL'),
+                            data: "smsContent"
+                        },
+                        {
+                            title: $translate('CREATETIME'),
+                            data: "createTime$"
+                        },
+                        {
+                            title: $translate('ACCEPTTIME'),
+                            data: "endTime$"
+                        }
+                    ],
+                    "paging": false
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+                vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
+
+                vm.topUpProposalTable = utilService.createDatatableWithFooter('#promoCodeTable', tableOptions, {}, true);
+
+                vm.promoCodeQuery.pageObj.init({maxCount: size}, newSearch);
+
+                $('#paymentMonitorTable').off('order.dt');
+                $('#paymentMonitorTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'paymentMonitorQuery', vm.getPaymentMonitorRecord);
+                });
+                $('#paymentMonitorTable').resize();
+
+                $('#paymentMonitorTable tbody').on('click', 'tr', vm.tableRowClicked);
+            };
+
             // If any of the levels are holding the old data structure, migrate them to the new data structure.
             // (This code can be removed in the future.)
             function migratePlayerLevels() {
@@ -9995,7 +10413,27 @@ define(['js/app'], function (myApp) {
                 // In fact it is still confusing.  We are only migrating data when it is accessed in the UI by a user with write permission.
                 // We should probably have made this a back-end migration for all records in the DB.
                 // *** Next time let's do that! ***
-            }
+            };
+
+            vm.savePromoCodeUserGroup = function () {
+                console.log('userGroupConfig', vm.userGroupConfig);
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    groupData: vm.userGroupConfig
+                };
+
+                socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+            };
+
+            vm.getPromoCodeUserGroup = function () {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log('getPromoCodeUserGroup', data);
+
+                    vm.userGroupConfig = data.data;
+                    $scope.safeApply();
+                });
+            };
 
             vm.getAllPartnerLevels = function () {
 
@@ -10465,6 +10903,9 @@ define(['js/app'], function (myApp) {
                     case 'credibility':
                         updateCredibilityRemark();
                         break;
+                    case 'promoSMSContent':
+                        updatePromoSMSContent();
+                        break;
                 }
             };
 
@@ -10671,6 +11112,23 @@ define(['js/app'], function (myApp) {
                         vm.prepareCredibilityConfig();
                     }
                 );
+            }
+
+            function updatePromoSMSContent(srcData) {
+                vm.promoCodeType1.forEach(entry => entry.type = 1);
+                vm.promoCodeType2.forEach(entry => entry.type = 2);
+                vm.promoCodeType3.forEach(entry => entry.type = 3);
+
+                let promoCodeSMSContent = vm.promoCodeType1.concat(vm.promoCodeType2, vm.promoCodeType3);
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    promoCodeSMSContent: promoCodeSMSContent,
+                    isDelete: false
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                });
             }
 
             vm.ensurePlayerLevelOrder = function () {

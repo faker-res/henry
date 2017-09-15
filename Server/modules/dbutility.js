@@ -442,6 +442,14 @@ var dbUtility = {
         return hour >= 12;
     },
 
+    generateRandomPositiveNumber: function (min, max) {
+        let num = -1;
+        while (num < min) {
+            num = Math.floor(Math.random() * max)
+        }
+        return num;
+    },
+
     /**
      * Find one and update for query without shardkey
      * @param {Object} model
