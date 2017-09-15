@@ -9812,6 +9812,11 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    getPlayerReport: function (platform, query, index, limit, sortCol) {
+        // todo :: add implementation here
+        return { size:0, data: []};
     }
 
 };

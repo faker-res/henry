@@ -235,34 +235,8 @@ function socketActionReport(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.platformId);
             var platformId = ObjectId(data.platformId);
-            var query = {
-                registrationTime: {
-                    $gte: data.query.reg1 ? new Date(data.query.reg1) : new Date(0),
-                    $lt: data.query.reg2 ? new Date(data.query.reg2) : new Date(),
-                },
-                lastAccessTime: {
-                    $gte: data.query.acc1 ? new Date(data.query.acc1) : new Date(0),
-                    $lt: data.query.acc2 ? new Date(data.query.acc2) : new Date(),
-                }
-            };
-            if (data.query.validCredit1) {
-                query.validCredit = {$gte: data.query.validCredit1}
-            }
-            if (data.query.validCredit2) {
-                query.validCredit = query.validCredit || {};
-                query.validCredit["$lt"] = data.query.validCredit2;
-            }
-            if (data.query.topupSum1) {
-                query.topUpSum = {$gte: data.query.topupSum1}
-            }
-            if (data.query.topupSum2) {
-                query.topUpSum = query.topUpSum || {};
-                query.topUpSum["$lt"] = data.query.topupSum2;
-            }
-            if (data.query.playerLevel) {
-                query.playerLevel = ObjectId(data.query.playerLevel);
-            }
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPagePlayerByAdvanceQuery, [platformId, query, data.index, data.limit, data.sortCol], actionName, isValidData);
+
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
         // getFullAttendanceProposalReport: function getFullAttendanceProposalReport(data) {

@@ -45,12 +45,13 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProvider(vm.selectedPlatform._id);
             vm.getProposalTypeByPlatformId(vm.selectedPlatform._id);
             vm.getPlayerLevelByPlatformId(vm.selectedPlatform._id);
+            vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage(vm.showPageName);
             $scope.safeApply();
-        }
+        };
 
         vm.setPlatformById = function (id) {
             var platObj = vm.platformList.filter(p => p._id === id)[0];
@@ -426,27 +427,24 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             } else if (choice == "PLAYER_REPORT") {
                 utilService.actionAfterLoaded('#playerReportTablePage', function () {
-                    var lastMonth = utilService.setNDaysAgo(new Date(), 30);
-                    var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
+                    // todo :: change date to yesterday
+                    var yesterday = utilService.setNDaysAgo(new Date(), 1);
+                    var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                     var todayEndTime = utilService.getTodayEndTime();
                     vm.playerQuery = {};
-                    vm.playerQuery.totalCount = 0;
-                    vm.playerQuery.validCredit1 = 0;
-                    vm.playerQuery.validCredit2 = 10000;
-                    vm.playerQuery.topupSum1 = 0;
-                    vm.playerQuery.topupSum2 = 10000;
-                    vm.playerQuery.reg1 = utilService.createDatePicker('#regDateTimePicker');
-                    vm.playerQuery.reg1.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
-                    vm.playerQuery.reg2 = utilService.createDatePicker('#regEndDateTimePicker');
-                    vm.playerQuery.reg2.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-
-                    vm.playerQuery.acc1 = utilService.createDatePicker('#lastAccessDateTimePicker');
-                    vm.playerQuery.acc1.data('datetimepicker').setLocalDate((new Date(lastMonthDateStartTime)));
-                    vm.playerQuery.acc2 = utilService.createDatePicker('#lastAccessEndDateTimePicker');
-                    vm.playerQuery.acc2.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    vm.playerQuery.consumptionTimesOperator = ">=";
+                    vm.playerQuery.profitAmountOperator = ">=";
+                    vm.playerQuery.topUpTimesOperator = ">=";
+                    vm.playerQuery.bonusTimesOperator = ">=";
+                    vm.playerQuery.topUpAmountOperator = ">=";
+                    vm.playerQuery.start = utilService.createDatePicker('#startingDateTimePicker');
+                    vm.playerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                    vm.playerQuery.end = utilService.createDatePicker('#endingEndDateTimePicker');
+                    vm.playerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerQuery", vm.searchPlayerReport)
+                        vm.commonPageChangeHandler(curP, pageSize, "playerQuery", vm.searchPlayerReport);
                     });
+                    vm.setupRemarksMultiInput();
                     $scope.safeApply();
                 })
             } else if (choice == "PLAYER_EXPENSE_REPORT") {
@@ -847,6 +845,34 @@ define(['js/app'], function (myApp) {
                 console.log("cannot get player level", data);
             });
         }
+
+        vm.getCredibilityRemarksByPlatformId = function (id) {
+            return new Promise(function (resolve) {
+                socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: id}, function (data) {
+                    vm.credibilityRemarks = data.data;
+                    console.log("vm.credibilityRemarks", vm.placredibilityRemarksyerLvlData);
+                    resolve(vm.credibilityRemarks);
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("cannot get credibility remarks", data);
+                    vm.credibilityRemarks = {};
+                    resolve(vm.credibilityRemarks);
+                });
+            });
+        };
+
+        vm.setupRemarksMultiInput = function () {
+            let remarkSelect = $('select#selectCredibilityRemarks');
+            remarkSelect.multipleSelect({
+                showCheckbox  : true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+
+            $scope.safeApply();
+        };
 
         vm.getProposalTypeByPlatformId = function (id) {
             var deferred = Q.defer();
@@ -1857,7 +1883,8 @@ define(['js/app'], function (myApp) {
         // player report
         vm.clearDatePicker = function (id) {
             utilService.clearDatePickerDate(id);
-        }
+        };
+
         vm.searchPlayerReport = function (newSearch) {
             $('#loadingPlayerReportTableSpin').show();
 
@@ -1865,20 +1892,32 @@ define(['js/app'], function (myApp) {
             var sendquery = {
                 platformId: vm.curPlatformId,
                 query: {
+                    credibilityRemarks: vm.playerQuery.credibilityRemarks,
                     playerLevel: vm.playerQuery.level,
-                    validCredit1: vm.playerQuery.validCredit1,
-                    validCredit2: vm.playerQuery.validCredit2,
-                    topupSum1: vm.playerQuery.topupSum1,
-                    topupSum2: vm.playerQuery.topupSum2,
-                    reg1: vm.playerQuery.reg1.data('datetimepicker').getLocalDate(),
-                    reg2: vm.playerQuery.reg2.data('datetimepicker').getLocalDate(),
-                    acc1: vm.playerQuery.acc1.data('datetimepicker').getLocalDate(),
-                    acc2: vm.playerQuery.acc2.data('datetimepicker').getLocalDate()
+                    providerId: vm.playerQuery.providerId,
+                    start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
+                    end: vm.playerQuery.end.data('datetimepicker').getLocalDate(),
+                    name: vm.playerQuery.name,
+                    consumptionTimesOperator: vm.playerQuery.consumptionTimesOperator,
+                    consumptionTimesValue: vm.playerQuery.consumptionTimesValue,
+                    consumptionTimesValueTwo: vm.playerQuery.consumptionTimesValueTwo,
+                    profitAmountOperator: vm.playerQuery.profitAmountOperator,
+                    profitAmountValue: vm.playerQuery.profitAmountValue,
+                    profitAmountValueTwo: vm.playerQuery.profitAmountValueTwo,
+                    topUpTimesOperator: vm.playerQuery.topUpTimesOperator,
+                    topUpTimesValue: vm.playerQuery.topUpTimesValue,
+                    topUpTimesValueTwo: vm.playerQuery.topUpTimesValueTwo,
+                    bonusTimesOperator: vm.playerQuery.bonusTimesOperator,
+                    bonusTimesValue: vm.playerQuery.bonusTimesValue,
+                    bonusTimesValueTwo: vm.playerQuery.bonusTimesValueTwo,
+                    topUpAmountOperator: vm.playerQuery.topUpAmountOperator,
+                    topUpAmountValue: vm.playerQuery.topUpAmountValue,
+                    topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo
                 },
                 index: newSearch ? 0 : (vm.playerQuery.index || 0),
                 limit: vm.playerQuery.limit || 10,
                 sortCol: vm.playerQuery.sortCol || {},
-            }
+            };
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
                 console.log('retData', data);
@@ -1892,7 +1931,8 @@ define(['js/app'], function (myApp) {
                 }), data.data.size, newSearch);
                 $scope.safeApply();
             });
-        }
+        };
+
         vm.drawPlayerReport = function (data, size, newSearch) {
             var tableOptions = {
                 data: data,
@@ -1916,7 +1956,7 @@ define(['js/app'], function (myApp) {
                     "info": "Total _MAX_ records",
                     "emptyTable": $translate("No data available in table"),
                 }
-            }
+            };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             var playerTbl = utilService.createDatatableWithFooter('#playerReportTable', tableOptions, {});
 
@@ -1926,7 +1966,7 @@ define(['js/app'], function (myApp) {
             $('#playerReportTable').on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'playerQuery', vm.searchPlayerReport);
             });
-        }
+        };
         // player report end
 
         // Start player partner report
