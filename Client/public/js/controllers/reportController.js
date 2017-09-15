@@ -642,6 +642,11 @@ define(['js/app'], function (myApp) {
                         text: "createUpdatePlayerEmailProposal",
                         action: "createUpdatePlayerEmailProposal"
                     },
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerQQProposal",
+                        action: "createUpdatePlayerQQProposal"
+                    },
                     {group: "PLAYER", text: "UpdatePlayerBankInfo", action: "createUpdatePlayerBankInfoProposal"},
                     {group: "PLAYER", text: "resetPlayerPassword", action: "resetPlayerPassword"},
 
