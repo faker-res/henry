@@ -3724,6 +3724,8 @@ define(['js/app'], function (myApp) {
                     vm.selectedPlayersCount = 1;
                     vm.playerTableRowClicked(aData);
                     vm.playerTableClickedRow = vm.playerTable.row(this);
+                    //display qq in email when no email added
+                    vm.qqAddress = (vm.selectedSinglePlayer.qq? vm.selectedSinglePlayer.qq + "@qq.com" : null);
                 });
             };
 
@@ -4004,6 +4006,8 @@ define(['js/app'], function (myApp) {
                     });
                 }
             }
+
+
             //player datatable row click handler
             vm.playerTableRowClicked = function (rowData) {
                 var deferred = Q.defer();
@@ -6721,20 +6725,24 @@ define(['js/app'], function (myApp) {
                 if (which == 'player') {
                     vm.correctVerifyPhoneNumber = undefined;
                     $scope.emailConfirmation = null;
+                    $scope.qqConfirmation = null;
                     vm.modifyCritical = {
                         which: 'player',
                         title: $translate('MODIFY_PLAYER') + ' ' + vm.selectedSinglePlayer.name,
                         changeType: 'email',
                         curEmail: vm.selectedSinglePlayer.email,
+                        curQQ: vm.selectedSinglePlayer.qq,
                         phoneNumber: vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-4)) : '',
                     }
                 } else if (which == 'partner') {
                     $scope.emailConfirmation = null;
+                    $scope.qqConfirmation = null;
                     vm.modifyCritical = {
                         which: 'partner',
                         title: $translate('MODIFY_PARTNER') + ' ' + vm.selectedSinglePartner.partnerName,
                         changeType: 'email',
                         curEmail: vm.selectedSinglePartner.email,
+                        curQQ: vm.selectedSinglePartner.qq,
                         phoneNumber: vm.selectedSinglePartner.phoneNumber,
                     }
                 }
@@ -6776,6 +6784,14 @@ define(['js/app'], function (myApp) {
                     sendData.data.updateData = {
                         phoneNumber: vm.modifyCritical.newPhoneNumber
                     }
+                } else if (vm.modifyCritical.changeType == 'qq') {
+                    sendStringKey += 2;
+                    sendData.data.curData = {
+                        qq: vm.modifyCritical.curQQ
+                    }
+                    sendData.data.updateData = {
+                        qq: vm.modifyCritical.newQQ
+                    }
                 }
                 switch (sendStringKey) {
                     case 10:
@@ -6784,15 +6800,20 @@ define(['js/app'], function (myApp) {
                     case 11:
                         sendString = 'createUpdatePlayerEmailProposal';
                         break;
+                    case 12:
+                        sendString = 'createUpdatePlayerQQProposal';
+                        break;
                     case 20:
                         sendString = 'createUpdatePartnerPhoneProposal';
                         break;
                     case 21:
                         sendString = 'createUpdatePartnerEmailProposal';
                         break;
+
                 }
                 console.log(sendData, 'sendData', sendString);
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
+                    console.log("func inside");
                     console.log('sent', data);
                     if (vm.modifyCritical.which == 'partner') {
                         vm.getPlatformPartnersData();

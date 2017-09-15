@@ -1183,6 +1183,11 @@ var dbMigration = {
                     bValid = true;
                 }
                 break;
+            case "UpdatePlayerQQ":
+                if (proposalData && proposalData.updateData && proposalData.updateData.qq != null) {
+                    bValid = true;
+                }
+                break;
             case "UpdatePlayerBankInfo":
                 bValid = true;
                 break;

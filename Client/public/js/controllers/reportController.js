@@ -644,6 +644,11 @@ define(['js/app'], function (myApp) {
                         text: "createUpdatePlayerEmailProposal",
                         action: "createUpdatePlayerEmailProposal"
                     },
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerQQProposal",
+                        action: "createUpdatePlayerQQProposal"
+                    },
                     {group: "PLAYER", text: "UpdatePlayerBankInfo", action: "createUpdatePlayerBankInfoProposal"},
                     {group: "PLAYER", text: "resetPlayerPassword", action: "resetPlayerPassword"},
 
@@ -1792,17 +1797,30 @@ define(['js/app'], function (myApp) {
                 data: tableData,
                 "order": vm.playerDomain.aaSorting || [[2, 'desc']],
                 aoColumnDefs: [
+                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'realName', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'registrationTime', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'lastAccessTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'gameProviderPlayed', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'lastAccessTime', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'loginTimes', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'sourceUrl', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'domain', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'registrationInterface', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'os', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'browser', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'partner', 'aTargets': [15], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('PLAYER_NAME'), data: "name"},
                     {title: $translate('realName'), data: "realName", sClass: "realNameCell wordWrap"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
-                    {title: $translate("PLAYER_PHONE_LOCATION"), data: "phoneArea$"},
-                    {title: $translate("PLAYER_IP_LOCATION"), data: "ipArea$"},
+                    {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
+                    {title: $translate("IP_LOCATION"), data: "ipArea$"},
                     {title: $translate("GAME_PROVIDER"), data: "gameProviderPlayed$"},
                     {title: $translate('LAST_ACCESS_TIME'), data: "lastAccessTime$"},
                     {title: $translate('LOGIN_TIMES'), data: "loginTimes"},
@@ -1824,7 +1842,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("REGISTRATION_AGENT"), data: "registrationAgent$"},
                     {title: $translate('OS'), data: "registrationOS$"},
                     {title: $translate('Browser'), data: "registrationBrowser$"},
-                    {title: $translate('Partner'), data: "partner.partnerName"},
+                    {title: $translate('partner'), data: "partner.partnerName"},
                 ],
                 "paging": false,
             }
