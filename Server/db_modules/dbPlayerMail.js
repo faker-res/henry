@@ -164,18 +164,19 @@ const dbPlayerMail = {
             tel: data.tel,
             channel: data.channel,
             platformId: data.platformId,
-            message: verifyCode,
+            message: data.message,
             delay: data.delay || 0,
         };
+        console.log(sendObj);
         return smsAPI.sending_sendMessage(sendObj).then(
             retData => {
                 console.log(retData);
                 console.log('[smsAPI] Sent verification code to: ', data.tel);
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, sendObj.message , sendObj.channel, 'success');
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode , sendObj.channel, 'success');
                 return retData;
             },
             retErr => {
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, sendObj.message , sendObj.channel, 'failure', retErr);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode , sendObj.channel, 'failure', retErr);
                 return Q.reject({message: retErr, error: retErr});
             }
         );
