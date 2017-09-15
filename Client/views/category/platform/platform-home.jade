@@ -65,6 +65,10 @@
                             a.common-tab(data-toggle="tab", href="#MultiMessage", ng-click="vm.platformPageName='MultiMessage';vm.updatePageTile();vm.initSendMultiMessage(true);")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Send Messages" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'vertificationSMS','Read')")
+                            a.common-tab(data-toggle="tab", href="#VertificationSMS", ng-click="vm.platformPageName='VertificationSMS';vm.updatePageTile();vm.initVertificationSMS();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"SMS Records" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'groupMessage','Read')")
                             a.common-tab(data-toggle="tab", href="#PushNotification", ng-click="vm.platformPageName='PushNotification';vm.updatePageTile();")
                                 .fa.fa-file-text.margin-right-5
@@ -110,6 +114,8 @@
                         #MultiMessage.tab-pane.fade
                             .row
                                 include ./platform-multiMessage
+                        #VertificationSMS.tab-pane.fade
+                            include ./platform-sms-record
                         #PushNotification.tab-pane.fade
                             .row
                                 include ./platform-push-notification
