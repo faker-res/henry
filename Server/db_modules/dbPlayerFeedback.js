@@ -236,7 +236,6 @@ var dbPlayerFeedback = {
                 total: data[1]
             }
         });
-        // .populate({path: "playerId", model: dbconfig.collection_players});
     },
 
     /*

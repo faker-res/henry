@@ -98,7 +98,14 @@ var dbPlatformAlipayGroup = {
             }
         )
     },
-
+    getAllAlipaysByAlipayGroup: function(platformId){
+        return pmsAPI.alipay_getAlipayList(
+            {
+                platformId: platformId,
+                queryId: serverInstance.getQueryId()
+            }
+        );
+    },
     getIncludedAlipaysByAlipayGroup: function (platformId, alipayGroupId) {
         var allAlipays = [];
         return pmsAPI.alipay_getAlipayList(

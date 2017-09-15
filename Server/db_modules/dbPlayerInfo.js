@@ -38,6 +38,7 @@ var constGameStatus = require("./../const/constGameStatus");
 var constPlayerLevelPeriod = require("./../const/constPlayerLevelPeriod");
 var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTransferStatus");
 var constReferralStatus = require("./../const/constReferralStatus");
+var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
 
 var moment = require('moment-timezone');
@@ -255,6 +256,7 @@ let dbPlayerInfo = {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
                             inputData.domain = filteredDomain;
+
                             let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                                 data => {
                                     if (data) {
@@ -268,6 +270,46 @@ let dbPlayerInfo = {
                             );
                             proms.push(domainProm);
                         }
+
+                        // determine registrationInterface
+                        if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
+                            inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                        }
+                        else if (inputData.userAgent && inputData.userAgent[0]) {
+                            let userAgent = inputData.userAgent[0];
+                            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                                if (inputData.partner) {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                                }
+                                else {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                                }
+                            }
+                            else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
+                                if (inputData.partner) {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
+                                }
+                                else {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
+                                }
+                            }
+                            else {
+                                if (inputData.partner) {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.WEB_AGENT;
+                                }
+                                else {
+                                    inputData.registrationInterface = constPlayerRegistrationInterface.WEB_PLAYER;
+                                }
+                            }
+                        }
+                        else {
+                            inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                        }
+
+                        if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
+                            inputData.loginTimes = 1;
+                        }
+
                         return Q.all(proms);
                     } else {
                         return Q.reject({
@@ -1745,7 +1787,7 @@ let dbPlayerInfo = {
                 $gte: time0,
                 $lt: time1
             }
-        }).sort({createTime:-1}).lean();
+        }).sort({createTime: -1}).lean();
         var totalProm = dbconfig.collection_creditChangeLog.aggregate([
             {
                 $match: queryObject,
@@ -2684,7 +2726,7 @@ let dbPlayerInfo = {
                     let levelProm = [];
                     for (var i = 0; i < levels.length; i++) {
                         if (playerLevelData.value >= levels[i].value && rewardParams[i].param && curRewardAmount < rewardParams[i].param.maxRewardAmountPerDay && (!rewardParams[i].param.bankCardType ||
-                            (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
+                                (rewardParams[i].param.bankCardType && rewardParams[i].param.bankCardType.length > 0 && rewardParams[i].param.bankCardType.indexOf(bankCardType) >= 0))) {
                             let rewardAmount = Math.min((rewardParams[i].param.maxRewardAmountPerDay - curRewardAmount), rewardParams[i].param.rewardPercentage * topupAmount);
                             let proposalData = {
                                 type: rewardParams[i].executeProposal,
@@ -2697,7 +2739,9 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: 0
+                                    spendingAmount: 0,
+                                    eventName: rewardParams[i].name,
+                                    eventCode: rewardParams[i].code,
                                 }
                             };
                             let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
@@ -2797,6 +2841,7 @@ let dbPlayerInfo = {
         if (data && data.phoneNumber) {
             data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};
         }
+
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
                 playerId: thisPlayer._id,
@@ -2834,46 +2879,46 @@ let dbPlayerInfo = {
         return dbconfig.collection_players
             .find(advancedQuery, {similarPlayers: 0})
             .sort(sortObj).skip(index).limit(limit).lean().then(
-            players => {
-                let calculatePlayerValueProms = [];
-                for (let i = 0; i < players.length; i++) {
-                    let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
-                    calculatePlayerValueProms.push(calculateProm);
-                }
-                return Promise.all(calculatePlayerValueProms);
+                players => {
+                    let calculatePlayerValueProms = [];
+                    for (let i = 0; i < players.length; i++) {
+                        let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                        calculatePlayerValueProms.push(calculateProm);
+                    }
+                    return Promise.all(calculatePlayerValueProms);
 
-            }
-        ).then(
-            () => {
-                var a = dbconfig.collection_players
-                    .find(advancedQuery, {similarPlayers: 0})
-                    .sort(sortObj).skip(index).limit(limit)
-                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-                    .populate({path: "partner", model: dbconfig.collection_partner})
-                    .lean().then(
-                        playerData => {
-                            var players = [];
-                            for (var ind in playerData) {
-                                if (playerData[ind]) {
-                                    var newInfo = getRewardData(playerData[ind]);
-                                    players.push(Q.resolve(newInfo));
+                }
+            ).then(
+                () => {
+                    var a = dbconfig.collection_players
+                        .find(advancedQuery, {similarPlayers: 0})
+                        .sort(sortObj).skip(index).limit(limit)
+                        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                        .populate({path: "partner", model: dbconfig.collection_partner})
+                        .lean().then(
+                            playerData => {
+                                var players = [];
+                                for (var ind in playerData) {
+                                    if (playerData[ind]) {
+                                        var newInfo = getRewardData(playerData[ind]);
+                                        players.push(Q.resolve(newInfo));
+                                    }
                                 }
+                                return Q.all(players)
                             }
-                            return Q.all(players)
-                        }
-                    );
-                var b = dbconfig.collection_players
-                    .find({platform: platformId, $and: [data]}).count();
-                return Q.all([a, b]);
-            }
-        ).then(
-            data => {
-                return {data: data[0], size: data[1]}
-            },
-            err => {
-                return {error: err};
-            }
-        );
+                        );
+                    var b = dbconfig.collection_players
+                        .find({platform: platformId, $and: [data]}).count();
+                    return Q.all([a, b]);
+                }
+            ).then(
+                data => {
+                    return {data: data[0], size: data[1]}
+                },
+                err => {
+                    return {error: err};
+                }
+            );
     },
 
     getPagePlayerByAdvanceQueryWithTopupTimes: function (platformId, data, index, limit, sortObj) {
@@ -3073,6 +3118,7 @@ let dbPlayerInfo = {
                         lastLoginIp: playerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
+                        $inc: {loginTimes: 1}
                     };
                     var geoInfo = {};
                     if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
@@ -5461,20 +5507,106 @@ let dbPlayerInfo = {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
+        if (sortCol.phoneArea) {
+            let sortOrder = sortCol.phoneArea;
+            sortCol = {
+                phoneCity: sortOrder,
+                phoneProvince: sortOrder
+            }
+        }
+        else if (sortCol.ipArea) {
+            let sortOrder = sortCol.ipArea;
+            sortCol = {
+                city: sortOrder,
+                province: sortOrder
+            }
+        }
+        else if (sortCol.os) {
+            let sortOrder = sortCol.os;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.os": sortOrder
+            }
+        }
+        else if (sortCol.browser) {
+            let sortOrder = sortCol.browser;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.browser": sortOrder
+            }
+        }
+
         let query = {platform: platform};
         para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
         (para.endTime && !query.registrationTime) ? (query.registrationTime = {$lt: new Date(para.endTime)}) : null;
         (para.endTime && query.registrationTime) ? (query.registrationTime['$lt'] = new Date(para.endTime)) : null;
         para.name ? query.name = para.name : null;
         para.realName ? query.realName = para.realName : null;
-        para.topUpTimes !== null ? query.topUpTimes = para.topUpTimes : null;
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
+        para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
+
+        switch (para.playerType) {
+            case 'Test Player':
+                query.isRealPlayer = false;
+                break;
+            case 'Real Player (all)':
+                query.isRealPlayer = true;
+                break;
+            case 'Real Player (Individual)':
+                query.isRealPlayer = true;
+                query.partner = null;
+                break;
+            case 'Real Player (Under Partner)':
+                query.isRealPlayer = true;
+                query.partner = {$ne: null};
+        }
+
+        if (para.topUpTimesValue) {
+            switch (para.topUpTimesOperator) {
+                case '<=':
+                    query.topUpTimes = {$lte: para.topUpTimesValue};
+                    break;
+                case '>=':
+                    query.topUpTimes = {$gte: para.topUpTimesValue};
+                    break;
+                case '=':
+                    query.topUpTimes = para.topUpTimesValue;
+                    break;
+                case 'range':
+                    query.topUpTimes = {$gte: para.topUpTimesValue, $lte: para.topUpTimesValueTwo};
+                    break;
+            }
+        }
+
+        if (para.playerValue) {
+            switch (para.playerValueOperator) {
+                case '<=':
+                    query.valueScore = {$lte: para.playerValue};
+                    break;
+                case '>=':
+                    query.valueScore = {$gte: para.playerValue};
+                    break;
+                case '=':
+                    query.valueScore = para.playerValue;
+                    break;
+                case 'range':
+                    query.valueScore = {$gte: para.playerValue, $lte: para.playerValueTwo};
+                    break;
+            }
+        }
+
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'partner', model: dbconfig.collection_partner});
+            .populate({path: 'partner', model: dbconfig.collection_partner}).lean();
+
         return Q.all([count, detail]).then(
             data => {
+                let players = data[1];
+                for (let i = 0, len = players.length; i < len; i++) {
+                    dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                }
+
                 return {data: data[1], size: data[0]}
             }
         )
@@ -5488,10 +5620,8 @@ let dbPlayerInfo = {
         };
         var query = {
             platform: platform,
-            registrationTime: timeQuery,
-            isRealPlayer: true,
-            isTestPlayer: false
-        }
+            registrationTime: timeQuery
+        };
         var a = dbconfig.collection_players.find(query).count();
         var b = dbconfig.collection_players.aggregate([{
             $match: query,
@@ -5518,8 +5648,6 @@ let dbPlayerInfo = {
         );
         var topupQuery = {
             platform: platform,
-            isRealPlayer: true,
-            isTestPlayer: false,
             topUpTimes: {$gt: 0},
             topUpSum: {$gt: 0},
             registrationTime: timeQuery
@@ -5528,8 +5656,6 @@ let dbPlayerInfo = {
 
         let topUpMultipleTimesQuery = {
             platform: platform,
-            isRealPlayer: true,
-            isTestPlayer: false,
             topUpTimes: {$gt: 1},
             topUpSum: {$gt: 0},
             registrationTime: timeQuery
@@ -5833,71 +5959,71 @@ let dbPlayerInfo = {
 
     countDailyPlayerBonusByPlatform: function (platformId, startDate, endDate) {
 
-    return dbconfig.collection_proposalType.find({
-        platformId: platformId,
-        name: constProposalType.PLAYER_BONUS
-    })
-    .then(function (typeData) {
+        return dbconfig.collection_proposalType.find({
+            platformId: platformId,
+            name: constProposalType.PLAYER_BONUS
+        })
+            .then(function (typeData) {
 
-        var bonusIds = [];
-        if(Array.isArray(typeData)){
+                var bonusIds = [];
+                if (Array.isArray(typeData)) {
 
-            for (var type in typeData) {
-                bonusIds.push(ObjectId(typeData[type]._id));
-            }
-        }else{
-            bonusIds.push(typeData['_id']);
-        }
-        var queryObj = {
-            type: {$in: bonusIds}
-        };
-        if(platformId){
-            queryObj['data.platformId']= ObjectId(platformId);
-        }
-        queryObj.status = {$in: ['Success', 'Approved']};
-        if (startDate || endDate) {
-            queryObj.createTime = {};
-        }
-        if (startDate) {
-            queryObj.createTime["$gte"] = new Date(startDate);
-        }
-        if (endDate) {
-            queryObj.createTime["$lte"] = new Date(endDate);
-        }
-
-        // adjust the timezone
-        var timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
-        let positiveTimeOffset = Math.abs(timezoneOffset);
-
-        if(parseInt(timezoneOffset) > 0){
-        var timezoneAdjust = {
-            year:{$year:{$subtract:['$createTime',positiveTimeOffset]}},
-            month:{$month:{$subtract:['$createTime',positiveTimeOffset]}},
-            day:{$dayOfMonth:{$subtract:['$createTime',positiveTimeOffset]}}
-        }
-        }else{
-        var timezoneAdjust = {
-            year:{$year:{$add:['$createTime',positiveTimeOffset]}},
-            month:{$month:{$add:['$createTime',positiveTimeOffset]}},
-            day:{$dayOfMonth:{$add:['$createTime',positiveTimeOffset]}}
-        }
-        }
-
-        var proposalProm = dbconfig.collection_proposal.aggregate([
-            {$match: queryObj},
-            {
-                $group: {
-                    _id:timezoneAdjust,
-                    number: {$sum: '$data.amount'}
+                    for (var type in typeData) {
+                        bonusIds.push(ObjectId(typeData[type]._id));
+                    }
+                } else {
+                    bonusIds.push(typeData['_id']);
                 }
-            }
-        ])
-        return Q.all([proposalProm]).then(
-        data => {
-        return data[0]
-        }
-        );
-    });
+                var queryObj = {
+                    type: {$in: bonusIds}
+                };
+                if (platformId) {
+                    queryObj['data.platformId'] = ObjectId(platformId);
+                }
+                queryObj.status = {$in: ['Success', 'Approved']};
+                if (startDate || endDate) {
+                    queryObj.createTime = {};
+                }
+                if (startDate) {
+                    queryObj.createTime["$gte"] = new Date(startDate);
+                }
+                if (endDate) {
+                    queryObj.createTime["$lte"] = new Date(endDate);
+                }
+
+                // adjust the timezone
+                var timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+                let positiveTimeOffset = Math.abs(timezoneOffset);
+
+                if (parseInt(timezoneOffset) > 0) {
+                    var timezoneAdjust = {
+                        year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
+                        month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
+                        day: {$dayOfMonth: {$subtract: ['$createTime', positiveTimeOffset]}}
+                    }
+                } else {
+                    var timezoneAdjust = {
+                        year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
+                        month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
+                        day: {$dayOfMonth: {$add: ['$createTime', positiveTimeOffset]}}
+                    }
+                }
+
+                var proposalProm = dbconfig.collection_proposal.aggregate([
+                    {$match: queryObj},
+                    {
+                        $group: {
+                            _id: timezoneAdjust,
+                            number: {$sum: '$data.amount'}
+                        }
+                    }
+                ])
+                return Q.all([proposalProm]).then(
+                    data => {
+                        return data[0]
+                    }
+                );
+            });
     },
     countDailyPlayerBonusBySinglePlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
@@ -5932,11 +6058,11 @@ let dbPlayerInfo = {
             .then(function (typeData) {
 
                 var bonusIds = [];
-                if(Array.isArray(typeData)){
+                if (Array.isArray(typeData)) {
                     for (var type in typeData) {
                         bonusIds.push(ObjectId(typeData[type]._id));
                     }
-                }else{
+                } else {
                     bonusIds.push(typeData['_id']);
                 }
                 var queryObj = {
@@ -5950,7 +6076,7 @@ let dbPlayerInfo = {
 
                     queryObj["createTime"] = {$gte: new Date(dayStartTime), $lt: new Date(dayEndTime)};
                     if (platformId != 'all') {
-                        queryObj['data.platformId']= ObjectId(platformId);
+                        queryObj['data.platformId'] = ObjectId(platformId);
                     }
                     proms.push(dbconfig.collection_proposal.find(queryObj));
                     dayStartTime = dayEndTime;
@@ -5960,9 +6086,9 @@ let dbPlayerInfo = {
                     var tempDate = startDate;
                     console.log(data);
                     var res = data.map(dayData => {
-                        if(dayData[0]){
+                        if (dayData[0]) {
                             var obj = {_id: tempDate, number: dayData[0]['data']['amount']};
-                        }else{
+                        } else {
                             var obj = {_id: tempDate, number: 0};
                         }
 
@@ -6283,43 +6409,43 @@ let dbPlayerInfo = {
         return dbconfig.collection_proposalType.find({
             name: constProposalType.PLAYER_BONUS
         }).populate({path: "platformId", model: dbconfig.collection_platform})
-        .then(function (typeData) {
-            
-            var bonusIds = [];
-            for (var type in typeData) {
-                bonusIds.push(ObjectId(typeData[type]._id));
-            }
+            .then(function (typeData) {
 
-            var queryObj = {
-                type: {$in: bonusIds}
-            };
-            queryObj.status = {$in: ['Success','Approved']};
+                var bonusIds = [];
+                for (var type in typeData) {
+                    bonusIds.push(ObjectId(typeData[type]._id));
+                }
 
-            if (startTime || endTime) {
-                queryObj.createTime = {};
-            }
-            if (startTime) {
-                queryObj.createTime["$gte"] = new Date(startTime);
-            }
-            if (endTime) {
-                queryObj.createTime["$lte"] = new Date(endTime);
-            }
-            console.log(queryObj)
-            var proposalProm = dbconfig.collection_proposal.aggregate([
-                {$match: queryObj},
-            {
-                $group: {
-                    _id: "$data.platformId",
-                    number: {$sum: "$data.amount"}
+                var queryObj = {
+                    type: {$in: bonusIds}
+                };
+                queryObj.status = {$in: ['Success', 'Approved']};
+
+                if (startTime || endTime) {
+                    queryObj.createTime = {};
                 }
-            }
-            ])
-            return Q.all([proposalProm]).then(
-                data => {
-                    return data[0]
+                if (startTime) {
+                    queryObj.createTime["$gte"] = new Date(startTime);
                 }
-            );
-        });
+                if (endTime) {
+                    queryObj.createTime["$lte"] = new Date(endTime);
+                }
+                console.log(queryObj)
+                var proposalProm = dbconfig.collection_proposal.aggregate([
+                    {$match: queryObj},
+                    {
+                        $group: {
+                            _id: "$data.platformId",
+                            number: {$sum: "$data.amount"}
+                        }
+                    }
+                ])
+                return Q.all([proposalProm]).then(
+                    data => {
+                        return data[0]
+                    }
+                );
+            });
     },
 
     /*
@@ -6601,27 +6727,28 @@ let dbPlayerInfo = {
     getAllAppliedBonusList: function (platformId, startIndex, count, startTime, endTime, status, sort) {
         var seq = sort ? -1 : 1;
         return dbconfig.collection_proposalType.findOne({
-            platformId:platformId,
+            platformId: platformId,
             name: constProposalType.PLAYER_BONUS
         })
             .then(function (typeData) {
                 var bonusIds = [];
-                if(Array.isArray(typeData)){
+                if (Array.isArray(typeData)) {
                     for (var type in typeData) {
                         bonusIds.push(ObjectId(typeData[type]._id));
                     }
-                }else{
+                } else {
                     bonusIds.push(typeData['_id']);
                 }
                 var queryObj = {
                     type: {$in: bonusIds}
                 };
-                if(platformId){
-                    queryObj['data.platformId']= ObjectId(platformId);
+                if (platformId) {
+                    queryObj['data.platformId'] = ObjectId(platformId);
                 }
                 if (status) {
                     queryObj.status = {$in: status}
-                };
+                }
+                ;
                 if (startTime || endTime) {
                     queryObj.createTime = {};
                 }
@@ -6642,7 +6769,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                ]).sort({'_id':1})
+                ]).sort({'_id': 1})
 
                 return Q.all([proposalProm, countProm]).then(
                     data => {
@@ -7128,6 +7255,21 @@ let dbPlayerInfo = {
                         //         playerStatus: playerData.status
                         //     });
                     }
+
+                    if (playerData.forbidProviders && playerData.forbidProviders.length > 0) {
+                        for (let i = 0, len = playerData.forbidProviders.length; i < len; i++) {
+                            let forbidProvider = playerData.forbidProviders[i];
+                            if (gameData.provider._id.toString() === forbidProvider.toString()) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    status: constServerCode.PLAYER_IS_FORBIDDEN,
+                                    message: "Player is forbidden to the game",
+                                    playerStatus: playerData.status
+                                });
+                            }
+                        }
+                    }
+
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
                         return Q.reject({
@@ -7499,7 +7641,7 @@ let dbPlayerInfo = {
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.bonusId) {
-                        if (proposalData.status != constProposalStatus.PENDING) {
+                        if (proposalData.status != constProposalStatus.PENDING && proposalData.status != constProposalStatus.AUTOAUDIT) {
                             return Q.reject({
                                 status: constServerCode.DATA_INVALID,
                                 name: "DBError",
@@ -7508,7 +7650,7 @@ let dbPlayerInfo = {
                         }
                         proposal = proposalData;
                         bonusId = proposalData.data.bonusId;
-                        return dbProposal.updateBonusProposal(proposalId, constProposalStatus.FAIL, bonusId);
+                        return dbProposal.updateBonusProposal(proposalId, constProposalStatus.CANCEL, bonusId);
                     }
                     else {
                         return Q.reject({
@@ -9245,7 +9387,7 @@ let dbPlayerInfo = {
 
                 if (eventData.param && eventData.param.maxRewardTimes != null &&
                     ((eventData.param.maxRewardTimes > 0 && data[1] >= eventData.param.maxRewardTimes) ||
-                    (eventData.param.maxRewardTimes == 0 && data[1] > 0))) {
+                        (eventData.param.maxRewardTimes == 0 && data[1] > 0))) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "DataError",
@@ -9631,7 +9773,7 @@ let dbPlayerInfo = {
             playerData => {
                 player = playerData;
                 if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
-                    if (!providerId){
+                    if (!providerId) {
                         return false;
                     }
 
@@ -9658,11 +9800,11 @@ let dbPlayerInfo = {
                 if (providerIds) {
                     return dbconfig.collection_players.findOneAndUpdate(
                         {
-                            _id : player._id,
+                            _id: player._id,
                             platform: player.platform
                         },
                         {
-                            $push: { gameProviderPlayed: { $each: providerIds } }
+                            $push: {gameProviderPlayed: {$each: providerIds}}
                         }
                     ).lean();
                 } else {

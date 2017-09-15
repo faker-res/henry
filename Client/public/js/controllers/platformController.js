@@ -271,6 +271,7 @@ define(['js/app'], function (myApp) {
 
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
+
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
@@ -281,6 +282,9 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     return;
                 }
+                vm.getAllAlipaysByAlipayGroup();
+                vm.getAllWechatpaysByWechatpayGroup();
+                vm.getAllBankCard();
                 // check settlement buttons
                 var nowDate = new Date().toLocaleDateString();
                 var dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
@@ -297,7 +301,7 @@ define(['js/app'], function (myApp) {
                         var index = (curP - 1) * pageSize;
                         vm.advancedPartnerQueryObj.index = index;
                         vm.advancedPartnerQueryObj.limit = pageSize;
-                        vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData())
+                        vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData());
                     });
                 })
 
@@ -2414,6 +2418,7 @@ define(['js/app'], function (myApp) {
                 vm.advancedQueryObj = vm.advancedQueryObj || {};
                 vm.drawPlayerTable([]);
                 vm.advancedPlayerQuery(newSearch);
+
             };
 
             let getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
@@ -2470,7 +2475,6 @@ define(['js/app'], function (myApp) {
                         if (size == 1) {
                             vm.playerTable.rows(function (idx, rowData, node) {
                                 if (rowData._id == result[0]._id) {
-                                    vm.playerTableRowClick(node, rowData);
                                     vm.playerTableRowClicked(rowData);
                                     vm.selectedPlayersCount = 1;
                                     $(node).addClass('selected');
@@ -2510,7 +2514,6 @@ define(['js/app'], function (myApp) {
                         var found = false;
                         vm.playerTable.rows(function (idx, rowData, node) {
                             if (rowData._id == vm.selectedSinglePlayer._id) {
-                                vm.playerTableRowClick(node, rowData);
                                 vm.playerTableRowClicked(rowData);
                                 vm.selectedPlayersCount = 1;
                                 $(node).addClass('selected');
@@ -3687,7 +3690,6 @@ define(['js/app'], function (myApp) {
             vm.playerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 //MARK!!!
                 $compile(nRow)($scope);
-
                 //set player color according to status
                 var status = aData.status;
                 var cellColor = '';
@@ -3723,6 +3725,8 @@ define(['js/app'], function (myApp) {
                     vm.selectedPlayersCount = 1;
                     vm.playerTableRowClicked(aData);
                     vm.playerTableClickedRow = vm.playerTable.row(this);
+                    //display qq in email when no email added
+                    vm.qqAddress = (vm.selectedSinglePlayer.qq? vm.selectedSinglePlayer.qq + "@qq.com" : null);
                 });
             };
 
@@ -3933,7 +3937,7 @@ define(['js/app'], function (myApp) {
                 $scope.phoneCall.phone = phoneNumber;
                 $scope.phoneCall.loadingNumber = false;
                 $scope.safeApply();
-                $('#phoneCallModal').modal('show');
+                $scope.makePhoneCall();
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
                 vm.getSMSTemplate();
@@ -3979,7 +3983,7 @@ define(['js/app'], function (myApp) {
                         $scope.phoneCall.phone = data.data;
                         $scope.phoneCall.loadingNumber = false;
                         $scope.safeApply();
-                        $('#phoneCallModal').modal('show');
+                        $scope.makePhoneCall();
                     }, function (err) {
                         $scope.phoneCall.loadingNumber = false;
                         $scope.phoneCall.err = err.error.message;
@@ -4003,6 +4007,8 @@ define(['js/app'], function (myApp) {
                     });
                 }
             }
+
+
             //player datatable row click handler
             vm.playerTableRowClicked = function (rowData) {
                 var deferred = Q.defer();
@@ -6256,7 +6262,9 @@ define(['js/app'], function (myApp) {
                     cityId: vm.playerManualTopUp.cityId,
                     districtId: vm.playerManualTopUp.districtId,
                     fromFPMS: true,
-                    createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate()
+                    createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate(),
+                    remark: vm.playerManualTopUp.remark,
+                    groupBankcardList: vm.playerManualTopUp.groupBankcardList
                 };
                 vm.playerManualTopUp.submitted = true;
                 $scope.safeApply();
@@ -6718,20 +6726,24 @@ define(['js/app'], function (myApp) {
                 if (which == 'player') {
                     vm.correctVerifyPhoneNumber = undefined;
                     $scope.emailConfirmation = null;
+                    $scope.qqConfirmation = null;
                     vm.modifyCritical = {
                         which: 'player',
                         title: $translate('MODIFY_PLAYER') + ' ' + vm.selectedSinglePlayer.name,
                         changeType: 'email',
                         curEmail: vm.selectedSinglePlayer.email,
+                        curQQ: vm.selectedSinglePlayer.qq,
                         phoneNumber: vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-4)) : '',
                     }
                 } else if (which == 'partner') {
                     $scope.emailConfirmation = null;
+                    $scope.qqConfirmation = null;
                     vm.modifyCritical = {
                         which: 'partner',
                         title: $translate('MODIFY_PARTNER') + ' ' + vm.selectedSinglePartner.partnerName,
                         changeType: 'email',
                         curEmail: vm.selectedSinglePartner.email,
+                        curQQ: vm.selectedSinglePartner.qq,
                         phoneNumber: vm.selectedSinglePartner.phoneNumber,
                     }
                 }
@@ -6773,6 +6785,14 @@ define(['js/app'], function (myApp) {
                     sendData.data.updateData = {
                         phoneNumber: vm.modifyCritical.newPhoneNumber
                     }
+                } else if (vm.modifyCritical.changeType == 'qq') {
+                    sendStringKey += 2;
+                    sendData.data.curData = {
+                        qq: vm.modifyCritical.curQQ
+                    }
+                    sendData.data.updateData = {
+                        qq: vm.modifyCritical.newQQ
+                    }
                 }
                 switch (sendStringKey) {
                     case 10:
@@ -6781,15 +6801,20 @@ define(['js/app'], function (myApp) {
                     case 11:
                         sendString = 'createUpdatePlayerEmailProposal';
                         break;
+                    case 12:
+                        sendString = 'createUpdatePlayerQQProposal';
+                        break;
                     case 20:
                         sendString = 'createUpdatePartnerPhoneProposal';
                         break;
                     case 21:
                         sendString = 'createUpdatePartnerEmailProposal';
                         break;
+
                 }
                 console.log(sendData, 'sendData', sendString);
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
+                    console.log("func inside");
                     console.log('sent', data);
                     if (vm.modifyCritical.which == 'partner') {
                         vm.getPlatformPartnersData();
@@ -7246,8 +7271,8 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp = {submitted: false};
                 vm.filterBankname("playerManualTopUp");
                 vm.existingManualTopup = null;
+                vm.chosenBankAcc = {};
                 socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
-                    console.log(data.data);
                     vm.existingManualTopup = data.data ? data.data : false;
                     $scope.safeApply();
                 });
@@ -7258,15 +7283,26 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getAllBankCard = function(){
+                socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.data.platformId},
+                    data => {
+                        var data = data.data;
+                        vm.bankCards = data.data ? data.data : false;
+                });
+            }
+
             // Player alipay topup
             vm.initPlayerAlipayTopUp = function () {
                 vm.playerAlipayTopUp = {submitted: false};
                 vm.existingAlipayTopup = null;
+
                 socketService.$socket($scope.AppSocket, 'getAlipayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
                     data => {
                         vm.existingAlipayTopup = data.data ? data.data : false;
                         $scope.safeApply();
                     });
+                vm.alipaysAcc = '';
+
                 utilService.actionAfterLoaded('#modalPlayerAlipayTopUp', function () {
                     vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerAlipayTopUp .createTime');
                     vm.playerAlipayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
@@ -7322,6 +7358,14 @@ define(['js/app'], function (myApp) {
                 );
             };
 
+            vm.getAllAlipaysByAlipayGroup = function(){
+                socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.data.platformId},
+                    data => {
+                        var data = data.data;
+                        vm.allAlipaysAcc = data.data ? data.data : false;
+                });
+            }
+
             // Player WechatPay TopUp
             vm.initPlayerWechatPayTopUp = function () {
                 vm.playerWechatPayTopUp = {submitted: false};
@@ -7331,6 +7375,8 @@ define(['js/app'], function (myApp) {
                         vm.existingWechatPayTopup = data.data ? data.data : false;
                         $scope.safeApply();
                     });
+                vm.wechatpaysAcc = '';
+
                 utilService.actionAfterLoaded('#modalPlayerWechatPayTopUp', function () {
                     vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerWechatPayTopUp .createTime');
                     vm.playerWechatPayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
@@ -7347,7 +7393,7 @@ define(['js/app'], function (myApp) {
                     remark: vm.playerWechatPayTopUp.remark,
                     createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
                 };
-                console.log("applyPlayerWechatPayTopUp", sendData)
+                console.log("applyPlayerWechatPayTopUp", sendData);
                 vm.playerWechatPayTopUp.submitted = true;
                 $scope.safeApply();
                 socketService.$socket($scope.AppSocket, 'applyWechatPayTopUpRequest', sendData,
@@ -7386,6 +7432,14 @@ define(['js/app'], function (myApp) {
                     }
                 );
             };
+
+            vm.getAllWechatpaysByWechatpayGroup = function(){
+                socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.data.platformId},
+                    data => {
+                        var data = data.data;
+                        vm.allWechatpaysAcc = data.data ? data.data : false;
+                    });
+            }
 
             vm.cancelPlayerManualTop = function () {
                 if (!vm.existingManualTopup) {
@@ -7607,6 +7661,7 @@ define(['js/app'], function (myApp) {
                     query: sendQuery,
                     index: vm.feedbackPlayersPara.index - 1
                 }, function (data) {
+                    console.log('_getPlayerFeedbackQuery', data);
                     vm.curFeedbackPlayer = data.data.data;
                     vm.feedbackPlayersPara.total = data.data.total || 0;
                     vm.feedbackPlayersPara.index = data.data.index + 1;
@@ -7618,10 +7673,15 @@ define(['js/app'], function (myApp) {
                         playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
                         platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
                     };
-                    vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                        vm.curPlayerFeedbackDetail = data;
+                    if (vm.curFeedbackPlayer._id) {
+                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                            vm.curPlayerFeedbackDetail = data;
+                            $scope.safeApply();
+                        })
+                    } else {
+                        vm.curPlayerFeedbackDetail = {};
                         $scope.safeApply();
-                    })
+                    }
                 });
             }
             vm.getFeedbackPlayer = function (inc) {
@@ -8372,7 +8432,7 @@ define(['js/app'], function (myApp) {
                                         $scope.phoneCall.phone = data.data;
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.safeApply();
-                                        $('#phoneCallModal').modal('show');
+                                        $scope.makePhoneCall();
                                     }, function (err) {
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.phoneCall.err = err.error.message;
@@ -9151,6 +9211,15 @@ define(['js/app'], function (myApp) {
                 })
             }
 
+            vm.pickBankCardAcc = function(bankcard){
+                console.log(bankcard);
+                bankcard = JSON.parse(bankcard);
+                if(bankcard.accountNumber){
+                    vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
+                    vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
+                    vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
+                };
+            }
             /////////////////////////////////////// bank card end  /////////////////////////////////////////////////
 
             /////////////////////////////////////// Merchant Group start  /////////////////////////////////////////////////
@@ -9200,6 +9269,17 @@ define(['js/app'], function (myApp) {
                 })
             }
 
+            vm.pickAlipayAcc = function(){
+                vm.playerAlipayTopUp.alipayName = '';
+                vm.playerAlipayTopUp.alipayAccount = '';
+                if(vm.alipaysAcc!=''){
+                    var alipayAcc = JSON.parse(vm.alipaysAcc);
+                    vm.playerAlipayTopUp.alipayName = alipayAcc['name'];
+                    vm.playerAlipayTopUp.alipayAccount = alipayAcc['accountNumber'];
+                }
+
+            }
+
             /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
             /////////////////////////////////////// QuickPay Group start  /////////////////////////////////////////////////
@@ -9245,6 +9325,17 @@ define(['js/app'], function (myApp) {
                     });
                     $scope.safeApply();
                 })
+            };
+
+            vm.pickWechatPayAcc = function(){
+                vm.playerWechatPayTopUp.wechatPayName = '';
+                vm.playerWechatPayTopUp.wechatPayAccount = '';
+                if(vm.wechatpaysAcc!=''){
+                    var wechatpayAcc = JSON.parse(vm.wechatpaysAcc);
+                    vm.playerWechatPayTopUp.wechatPayName = wechatpayAcc['name'];
+                    vm.playerWechatPayTopUp.wechatPayAccount = wechatpayAcc['accountNumber'];
+                }
+                $scope.safeApply();
             };
 
             /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
@@ -12108,7 +12199,7 @@ define(['js/app'], function (myApp) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
-                    $('#phoneCallModal').modal('show');
+                    $scope.makePhoneCall();
                 }, function (err) {
                     $scope.phoneCall.loadingNumber = false;
                     $scope.phoneCall.err = err.error.message;

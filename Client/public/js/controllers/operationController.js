@@ -1160,14 +1160,14 @@ define(['js/app'], function (myApp) {
             }
 
             if (vm.selectedProposalDetailForDisplay['cityId']) {
-                socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['cityId']}, function (data) {
+                socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['cityId']}, function (data) {
                     var text = data.data.city ? data.data.city.name : val;
                     vm.selectedProposalDetailForDisplay['cityId'] = text;
                     $scope.safeApply();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountCity']) {
-                socketService.$socket($scope.AppSocket, "getCity", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountCity']}, function (data) {
+                socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['bankAccountCity']}, function (data) {
                     var text = data.data.city ? data.data.city.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountCity'] = text;
                     $scope.safeApply();
@@ -1175,14 +1175,14 @@ define(['js/app'], function (myApp) {
             }
 
             if (vm.selectedProposalDetailForDisplay['districtId']) {
-                socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['districtId']}, function (data) {
+                socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['districtId']}, function (data) {
                     var text = data.data.district ? data.data.district.name : val;
                     vm.selectedProposalDetailForDisplay['districtId'] = text;
                     $scope.safeApply();
                 });
             }
             if (vm.selectedProposalDetailForDisplay['bankAccountDistrict']) {
-                socketService.$socket($scope.AppSocket, "getDistrict", {provinceId: vm.selectedProposalDetailForDisplay['bankAccountDistrict']}, function (data) {
+                socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposalDetailForDisplay['bankAccountDistrict']}, function (data) {
                     var text = data.data.district ? data.data.district.name : val;
                     vm.selectedProposalDetailForDisplay['bankAccountDistrict'] = text;
                     $scope.safeApply();
@@ -1795,7 +1795,7 @@ define(['js/app'], function (myApp) {
         var eventName = "$viewContentLoaded";
         if (!$scope.AppSocket) {
             eventName = "socketConnected";
-            $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
+            $scope.$emit('childControllerLoaded', 'operationControllerLoaded');
         }
         $scope.$on(eventName, function (e, d) {
             setTimeout(

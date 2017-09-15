@@ -460,14 +460,9 @@ define(['js/app'], function (myApp) {
                 })
             } else if (choice == "PLAYERDOMAIN_REPORT") {
                 vm.playerDomain = {totalCount: 0};
-                vm.playerDomain.topUpTimesOptionArr = [
-                    {label: $translate('any'), value: null},
-                    {label: '0', value: 0},
-                    {label: '1', value: 1},
-                    {label: '2', value: 2},
-                    {label: '3-?', value: {$gt: 2}},
-                ]
-                vm.playerDomain.topUpTimes = vm.playerDomain.topUpTimesOptionArr[0];
+                vm.playerDomain.topUpTimesOperator = ">=";
+                vm.playerDomain.playerValueOperator = ">=";
+                vm.playerDomain.registrationInterface = "";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                     vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
@@ -648,6 +643,11 @@ define(['js/app'], function (myApp) {
                         group: "PLAYER",
                         text: "createUpdatePlayerEmailProposal",
                         action: "createUpdatePlayerEmailProposal"
+                    },
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerQQProposal",
+                        action: "createUpdatePlayerQQProposal"
                     },
                     {group: "PLAYER", text: "UpdatePlayerBankInfo", action: "createUpdatePlayerBankInfoProposal"},
                     {group: "PLAYER", text: "resetPlayerPassword", action: "resetPlayerPassword"},
@@ -1697,22 +1697,30 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerDomainRepport = function (newSearch) {
             $('#playerDomainReportTableSpin').show();
 
-            console.log(vm.playerDomain);
             var sendquery = {
                 platform: vm.curPlatformId,
                 query: {
+                    playerType: vm.playerDomain.playerType,
                     name: vm.playerDomain.name,
                     realName: vm.playerDomain.realName,
                     domain: vm.playerDomain.domain,
                     sourceUrl: vm.playerDomain.sourceUrl,
-                    topUpTimes: vm.playerDomain.topUpTimes.value,
+                    topUpTimesOperator: vm.playerDomain.topUpTimesOperator,
+                    topUpTimesValue: vm.playerDomain.topUpTimesValue,
+                    topUpTimesValueTwo: vm.playerDomain.topUpTimesValueTwo,
+                    playerValueOperator: vm.playerDomain.playerValueOperator,
+                    playerValue: vm.playerDomain.playerValue,
+                    playerValueTwo: vm.playerDomain.playerValueTwo,
+                    registrationInterface: vm.playerDomain.registrationInterface,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate()
                 },
                 index: newSearch ? 0 : (vm.playerDomain.index || 0),
                 limit: vm.playerDomain.limit || 10,
                 sortCol: vm.playerDomain.sortCol || {},
-            }
+            };
+            console.log('player domain query', sendquery);
+
             socketService.$socket($scope.AppSocket, 'getPlayerDomainReport', sendquery, function (data) {
                 console.log('retData', data);
                 vm.playerDomain.totalCount = data.data.size;
@@ -1735,31 +1743,50 @@ define(['js/app'], function (myApp) {
                         for (let i = 0; i < item.gameProviderPlayed.length; i++) {
                             for (let j = 0; j < providerLength; j++) {
                                 if (item.gameProviderPlayed[i].toString() === vm.allProviders[j]._id.toString()) {
-                                    item.gameProviderPlayed$ += vm.allProviders[j].name + "\n";
+                                    item.gameProviderPlayed$ += vm.allProviders[j].name + "<br>";
                                 }
                             }
                         }
+                    }
+
+                    if (item.domain && item.domain.indexOf("fpms8") !== -1) {
+                        item.sourceUrl = "";
+                        item.registrationBrowser$ = "";
+                        item.registrationOS$ = "";
                     }
 
                     if (!item.sourceUrl) {
                         item.registrationAgent$ = "Backstage";
                     }
                     else if (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1) {
-                        item.registrationAgent$ = "APP";
+                        if (item.partner) {
+                            item.registrationAgent$ = "APP Agent";
+                        }
+                        else {
+                            item.registrationAgent$ = "APP Player";
+                        }
                     }
-                    else if (item.registrationOS$.indexOf("iOS") !== -1) {
-                        item.registrationAgent$ = "HTML5 Agent";
-                    }
-                    else if (item.registrationOS$.indexOf("Mac") !== -1) {
-                        item.registrationAgent$ = "HTML5 Player";
-                    }
-                    else if (item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1 ) {
-                        item.registrationAgent$ = "Web Agent";
+                    else if (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1) {
+                        if (item.partner) {
+                            item.registrationAgent$ = "HTML5 Agent";
+                        }
+                        else {
+                            item.registrationAgent$ = "HTML5 Player";
+                        }
                     }
                     else {
-                        item.registrationAgent$ = "Web Player"
+                        if (item.partner) {
+                            item.registrationAgent$ = "Web Agent";
+                        }
+                        else {
+                            item.registrationAgent$ = "Web Player";
+                        }
                     }
                     item.registrationAgent$ = $translate(item.registrationAgent$);
+
+                    item.phoneArea$ = item.phoneCity + " " + item.phoneProvince;
+                    item.ipArea$ = item.city + " " + item.province;
+
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
@@ -1770,31 +1797,35 @@ define(['js/app'], function (myApp) {
                 data: tableData,
                 "order": vm.playerDomain.aaSorting || [[2, 'desc']],
                 aoColumnDefs: [
+                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'realName', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'registrationTime', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'lastAccessTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'gameProviderPlayed', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'lastAccessTime', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'loginTimes', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'sourceUrl', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'domain', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'registrationInterface', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'os', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'browser', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'partner', 'aTargets': [15], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('PLAYER_NAME'), data: "name"},
                     {title: $translate('realName'), data: "realName", sClass: "realNameCell wordWrap"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
-                    {title: $translate('Partner'), data: "partner.partnerName"},
-                    {title: $translate('LAST_ACCESS_TIME'), data: "registrationTime$"},
+                    {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
+                    {title: $translate("IP_LOCATION"), data: "ipArea$"},
+                    {title: $translate("GAME_PROVIDER"), data: "gameProviderPlayed$"},
+                    {title: $translate('LAST_ACCESS_TIME'), data: "lastAccessTime$"},
+                    {title: $translate('LOGIN_TIMES'), data: "loginTimes"},
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
-                    {title: $translate('lastLoginIp'), data: "lastLoginIp"},
-                    {
-                        title: $translate('OS'),
-                        data: "registrationOS$"
-                    },
-                    {
-                        title: $translate('Browser'),
-                        data: "registrationBrowser$"
-                    },
-                    {
-                        title: $translate('Domain Name'),
-                        data: "domain"
-                    },
+                    {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {
                         title: $translate('URL'),
                         data: "sourceUrl",
@@ -1807,14 +1838,11 @@ define(['js/app'], function (myApp) {
                                 return data;
                         }
                     },
-                    {
-                        title: $translate("GAME_PROVIDER"),
-                        data: "gameProviderPlayed$"
-                    },
-                    {
-                        title: $translate("REGISTRATION_AGENT"),
-                        data: "registrationAgent$"
-                    }
+                    {title: $translate('Domain Name'), data: "domain"},
+                    {title: $translate("REGISTRATION_AGENT"), data: "registrationAgent$"},
+                    {title: $translate('OS'), data: "registrationOS$"},
+                    {title: $translate('Browser'), data: "registrationBrowser$"},
+                    {title: $translate('partner'), data: "partner.partnerName"},
                 ],
                 "paging": false,
             }

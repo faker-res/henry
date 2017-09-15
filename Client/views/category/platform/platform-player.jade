@@ -1116,7 +1116,7 @@ include modalGameCreditLog
                                             text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
                                         .inlineBlk
                                             label {{"EMAIL" | translate}}
-                                            text {{vm.selectedSinglePlayer.email || vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
+                                            text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
                                         .inlineBlk
                                             label {{"WECHAT" | translate}}
                                             text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
@@ -1511,14 +1511,17 @@ include modalGameCreditLog
                     .col-md-12
                         form(name='form_manual_topup').well
                             .form-group-col-md-6
-                                .control-label
-                                    label {{'CREDIT' | translate}}
-                                    text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
+                                label {{'CREDIT' | translate}}
+                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
                                 input.form-control(type='number', min=1, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
-                                label.control-label {{'LAST_BANK_CARD_NUMBER' | translate}}
-                                input.form-control(ng-model='vm.playerManualTopUp.lastBankcardNo', required)
-                            .form-group-col-md-6
+                                label.control-label(style='width:100%') {{'Bankcard' | translate}}
+                                select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
+                                    option(value='') {{'any' | translate}}
+                                    option(ng-repeat='(i,v) in vm.bankCards', value='{{v}}') <b>{{v.name}} ({{v.accountNumber}})</b>
+                                    //.col-md-6(style='padding-right:0')
+                                        input.form-control(ng-model='vm.playerManualTopUp.lastBankcardNo',placeholder="{{ 'Type LastBankCardNo' | translate}}", required)
+                            //.form-group-col-md-6
                                 label.control-label(style='width:100%') {{'BANK_TYPE_ID' | translate}}
                                 div
                                     .col-md-6(style='padding-left:0')
@@ -1545,6 +1548,9 @@ include modalGameCreditLog
                                 label.control-label {{'DISTRICT_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.districtId', ng-disabled='vm.freezeZoneSelection')
                                     option(ng-repeat='(i,v) in vm.districtList', value='{{v.id}}') {{v.name}}
+                            .form-group-col-md-6
+                                label {{'remark' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerManualTopUp.remark')
                             .form-group-col-md-6
                                 label {{'DEPOSITE_TIME' | translate}}
                                 .createTime
@@ -1592,22 +1598,36 @@ include modalGameCreditLog
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAlipayTopUp()') {{'CANCEL' | translate}}
                 .row(ng-show='vm.existingAlipayTopup===false || vm.existingAlipayTopup.isCanceled')
                     .col-md-12
-                        form(name='form_alipay_topup').well
-                            .form-group-col-md-6
-                                .control-label
+                        form(name='form_alipay_topup', style="min-height:500px;").well
+                            .form-group-col-md-12
+                                .form-group.col-md-12
+                                    .control-label
                                     label {{'CREDIT' | translate}}
                                     text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
-                                input.form-control(type='number', min='1', ng-model='vm.playerAlipayTopUp.amount', required)
-                                .control-label
+                                    input.form-control(type='number', min='1', ng-model='vm.playerAlipayTopUp.amount', required)
+                                .form-group.col-md-6
+                                    .control-label
+                                    label {{'Alipay' | translate}}
+                                    select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)')
+                                        option(value='') {{'any' | translate}}
+                                        option(ng-repeat='(i,v) in vm.allAlipaysAcc', value='{{v}}') {{v.name}}({{v.state | translate}})
+                                .form-group.col-md-6
+                                    .control-label
                                     label {{'alipayName' | translate}}
-                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
-                                .control-label
+                                    input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
+                                .form-group.col-md-6
+                                    .control-label
+
+                                .form-group.col-md-6
+                                    .control-label
                                     label {{'alipayAccount' | translate}}
-                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
-                                .control-label
+                                    input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
+                                .form-group.col-md-12
+                                    .control-label
                                     label {{'REMARK' | translate}}
-                                input.form-control(ng-model='vm.playerAlipayTopUp.remark')
-                                .inlineBlk
+                                    input.form-control(ng-model='vm.playerAlipayTopUp.remark')
+                                .form-group.col-md-12
+                                    .inlineBlk
                                     label {{'DEPOSITE_TIME' | translate}}
                                     .createTime
             .modal-footer
@@ -1641,24 +1661,40 @@ include modalGameCreditLog
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerWechatPayTopUp()') {{'CANCEL' | translate}}
                 .row(ng-show='vm.existingWechatPayTopup===false || vm.existingWechatPayTopup.isCanceled')
                     .col-md-12
-                        form(name='form_wechatPay_topup').well
-                            .form-group-col-md-6
+                        form(name='form_wechatPay_topup', style="min-height:500px;").well
+                            .form-group.col-md-12
                                 .control-label
-                                    label {{'CREDIT' | translate}}
-                                    text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
+                                label {{'CREDIT' | translate}}
+                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
                                 input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerWechatPayTopUp.amount', required)
                                 //.control-label
                                 //    label {{'wechatPayName' | translate}}
                                 //input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
+                            .form-group.col-md-6
                                 .control-label
-                                    label {{'wechatPayAccount' | translate}}
+                                label {{'WechatPay' | translate}}
+                                select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
+                                    option(value='') {{'any' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.name}}({{v.state | translate}})
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'wechatPayName' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
+                            .form-group.col-md-6
+                                .control-label
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'wechatPayAccount' | translate}}
                                 input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayAccount', required)
+                            .form-group.col-md-12
                                 .control-label
-                                    label {{'REMARK' | translate}}
+                                label {{'REMARK' | translate}}
                                 input.form-control(ng-model='vm.playerWechatPayTopUp.remark')
+                            .form-group.col-md-12
                                 .inlineBlk
-                                    label {{'DEPOSITE_TIME' | translate}}
-                                    .createTime
+                                label {{'DEPOSITE_TIME' | translate}}
+                                .createTime
+
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerWechatPayTopUp.submitted') {{'Submitted' | translate}}
                 button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_wechatPay_topup.$invalid || form_wechatPay_topup.$pristine || (vm.existingWechatPayTopup && !vm.existingWechatPayTopup.isCanceled)', ng-show='!vm.playerWechatPayTopUp.submitted', ng-click='vm.applyPlayerWechatPayTopUp()') {{'APPLY' | translate}}
