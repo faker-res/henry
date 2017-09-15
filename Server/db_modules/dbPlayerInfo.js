@@ -6899,42 +6899,36 @@ let dbPlayerInfo = {
     /*
      * update applied bonus proposal
      */
-    updatePlayerBonusProposal: function (proposalId, bSuccess, remark) {
+    updatePlayerBonusProposal: function (proposalId, bSuccess, remark, bCancel) {
+        let proposalData = null;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: "type",
             model: dbconfig.collection_proposalType
         }).lean().then(
+            data=> {
+                proposalData = data;
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {_id: data._id, createTime: data.createTime},
+                    {
+                        status: bSuccess ? constProposalStatus.SUCCESS : bCancel ? constProposalStatus.CANCEL : constProposalStatus.FAIL,
+                        "data.lastSettleTime": new Date(),
+                        "data.remark": remark
+                    }
+                );
+            }
+        ).then(
             data => {
-                if (data) {
-                    // data.status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                    // data.data.lastSettleTime = new Date();
-                    // data.data.remark = remark;
+                if (data && data.status != constProposalStatus.SUCCESS && data.status != constProposalStatus.FAIL && data.status != constProposalStatus.CANCEL) {
                     if (!bSuccess) {
-                        return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                            () => dbconfig.collection_proposal.findOneAndUpdate(
-                                {_id: data._id, createTime: data.createTime},
-                                {
-                                    status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
-                                    "data.lastSettleTime": new Date(),
-                                    "data.remark": remark
-                                }
-                            )
-                        );
+                        return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
                     }
                     else {
                         SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: data._id, createTime: data.createTime},
-                            {
-                                status: bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL,
-                                "data.lastSettleTime": new Date(),
-                                "data.remark": remark
-                            }
-                        );
+                        return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
                     }
                 }
                 else {
-                    return Q.reject({name: "DataError", message: "Invalid proposal id"});
+                    return Q.reject({name: "DataError", message: "Invalid proposal status"});
                 }
             }
         );

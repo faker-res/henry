@@ -106,6 +106,7 @@ var proposalExecutor = {
             this.executions.executeFixPlayerCreditTransfer.des = "Fix player credit transfer";
             this.executions.executePlayerConsumptionReturnFix.des = "Update player credit for consumption return";
             this.executions.executeUpdatePlayerEmail.des = "Update player email";
+            this.executions.executeUpdatePlayerQQ.des = "Update player QQ";
             this.executions.executeUpdatePlayerPhone.des = "Update player phone number";
             this.executions.executeUpdatePlayerBankInfo.des = "Update player bank information";
             this.executions.executeAddPlayerRewardTask.des = "Add player reward task";
@@ -153,6 +154,7 @@ var proposalExecutor = {
             this.rejections.rejectFixPlayerCreditTransfer.des = "Reject fix player credit transfer proposal";
             this.rejections.rejectPlayerConsumptionReturnFix.des = "Reject update player credit for consumption return";
             this.rejections.rejectUpdatePlayerEmail.des = "Reject player update email proposal";
+            this.rejections.rejectUpdatePlayerQQ.des = "Reject player update QQ proposal";
             this.rejections.rejectUpdatePlayerPhone.des = "Reject player update phone number proposal";
             this.rejections.rejectUpdatePlayerBankInfo.des = "Reject player update bank information";
             this.rejections.rejectAddPlayerRewardTask.des = "Reject add player reward task";
@@ -422,6 +424,31 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update player email proposal data"});
+                }
+            },
+
+            /**
+             * execution function for update player qq proposal type
+             */
+            executeUpdatePlayerQQ: function (proposalData, deferred) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.updateData && proposalData.data.updateData.qq) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_players,
+                        {_id: proposalData.data.playerObjId},
+                        proposalData.data.updateData,
+                        constShardKeys.collection_players
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update player QQ", error: err});
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update player QQ proposal data"});
                 }
             },
 
@@ -1796,6 +1823,13 @@ var proposalExecutor = {
              * reject function for UpdatePlayerEmail proposal
              */
             rejectUpdatePlayerEmail: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for UpdatePlayerQQ proposal
+             */
+            rejectUpdatePlayerQQ: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 
