@@ -12,8 +12,8 @@ var smsLogSchema = new Schema ({
     platform: {type: Schema.ObjectId, ref: 'platform', required: false},
     platformId: {type: String, required: false},
     //Admin LoginId.
-    admin: {type: Schema.ObjectId, ref: 'admin', required: true},
-    adminName: {type: String, required: true},
+    admin: {type: Schema.ObjectId, ref: 'admin', required: false},
+    adminName: {type: String, required: false},
     // Data sent
     tel: {type: String, required: true},
     //Action

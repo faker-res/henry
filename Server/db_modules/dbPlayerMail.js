@@ -140,7 +140,6 @@ const dbPlayerMail = {
             }
         );
     },
-
     sendSMStoNumber: function (adminObjId, adminName, data) {
         var sendObj = {
             tel: data.phoneNumber,
@@ -160,7 +159,28 @@ const dbPlayerMail = {
             }
         );
     },
-
+    sendVertificationSMS:function (platformObjId, platformId, data, verifyCode){
+        var sendObj = {
+            tel: data.tel,
+            channel: data.channel,
+            platformId: data.platformId,
+            message: data.message,
+            delay: data.delay || 0,
+        };
+        console.log(sendObj);
+        return smsAPI.sending_sendMessage(sendObj).then(
+            retData => {
+                console.log(retData);
+                console.log('[smsAPI] Sent verification code to: ', data.tel);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode , sendObj.channel, 'success');
+                return retData;
+            },
+            retErr => {
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode , sendObj.channel, 'failure', retErr);
+                return Q.reject({message: retErr, error: retErr});
+            }
+        );
+    },
     sendVerificationCodeToNumber: function (telNum, code, platformId) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
@@ -218,19 +238,9 @@ const dbPlayerMail = {
                         message: template.content,
                         delay: 0
                     };
-
                     // Log the verification SMS before send
                     new dbconfig.collection_smsVerificationLog(saveObj).save();
-
-                    smsAPI.sending_sendMessage(sendObj).then(
-                        retData => {
-                            console.log('[smsAPI] Sent verification code to: ', telNum);
-                            return true;
-                        },
-                        retErr => {
-                            return Q.reject({message: retErr, error: retErr});
-                        }
-                    );
+                    return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code);
                 }
                 else {
                     return Q.reject({message: 'Template not set for current platform'});
