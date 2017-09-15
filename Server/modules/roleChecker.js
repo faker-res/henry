@@ -393,7 +393,8 @@ var roleChecker = {
                 promoCodeHistory: ['getPromoCodesHistory'],
                 smsContentConfig: [],
                 userGroupConfig: [],
-                activatePromoCode: []
+                activatePromoCode: [],
+                applyPromoCode: [],
             }
         },
         Payment: {

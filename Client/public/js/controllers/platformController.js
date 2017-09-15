@@ -10303,7 +10303,7 @@ define(['js/app'], function (myApp) {
                     startAcceptedTime: vm.promoCodeQuery.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeQuery.endAcceptedTime.data('datetimepicker').getLocalDate(),
                     platformObjId: vm.promoCodeQuery.platformId,
-                    index: vm.promoCodeQuery.index,
+                    index: vm.promoCodeQuery.index || 0,
                     limit: vm.promoCodeQuery.limit || 10,
                     sortCol: vm.promoCodeQuery.sortCol
                 };
@@ -10313,52 +10313,16 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPromoCodesHistory', sendObj, function (data) {
                     $('#promoCodeHistoryTableSpin').hide();
                     console.log('getPromoCodesHistory', data);
-                    vm.promoCodeQuery.totalCount = data.data.size;
+                    vm.promoCodeQuery.totalCount = data.data.length;
                     $scope.safeApply();
                     vm.drawPromoCodeHistoryTable(
                         data.data.map(item => {
-                            // item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                            // item.merchantNo$ = item.data.merchantNo
-                            //     ? item.data.merchantNo
-                            //     : item.data.weChatAccount
-                            //         ? item.data.weChatAccount
-                            //         : item.data.alipayAccount
-                            //             ? item.data.alipayAccount
-                            //             : item.data.bankCardNo
-                            //                 ? item.data.bankCardNo
-                            //                 : item.data.accountNo
-                            //                     ? item.data.accountNo
-                            //                     : null;
-                            // item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
-                            // item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
-                            // item.status$ = $translate(item.status);
-                            // item.merchantName = vm.merchantNumbers[item.data.merchantNo];
-                            //
-                            // if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
-                            //     let msgSplit = item.data.msg.split(" 单号:");
-                            //     item.merchantName = msgSplit[0];
-                            //     item.merchantNo$ = msgSplit[1];
-                            // }
-                            //
-                            // if (item.type.name === 'PlayerTopUp') {
-                            //     //show detail topup type info for online topup.
-                            //     let typeID = item.data.topUpType || item.data.topupType;
-                            //     item.topupTypeStr = typeID
-                            //         ? $translate(vm.topUpTypeList[typeID])
-                            //         : $translate("Unknown")
-                            // } else {
-                            //     //show topup type for other types
-                            //     item.topupTypeStr = $translate(item.type.name)
-                            // }
-                            // item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
-                            // item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
-
                             item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
                             item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => e.code);
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
 
                             return item;
-                        }), data.data.size, {}, isNewSearch
+                        }), data.data.length, {}, isNewSearch
                     );
                 }, function (err) {
                     console.error(err);
@@ -10367,16 +10331,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.resetTopUpMonitorQuery = function () {
-                vm.paymentMonitorQuery.mainTopupType = "";
-                vm.paymentMonitorQuery.topupType = "";
-                vm.paymentMonitorQuery.merchantGroup = "";
-                vm.paymentMonitorQuery.merchantNo = "";
-                vm.paymentMonitorQuery.orderId = "";
-                vm.paymentMonitorQuery.depositMethod = "";
-                vm.paymentMonitorQuery.playerName = "";
-                vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
-                vm.getPaymentMonitorRecord(true);
-                $('#autoRefreshProposalFlag')[0].checked = true;
                 $scope.safeApply();
             };
 
@@ -10405,6 +10359,10 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('minTopUpAmount'),
                             data: "minTopUpAmount"
+                        },
+                        {
+                            title: $translate('maxTopUpAmount'),
+                            data: "maxTopUpAmount"
                         },
                         {
                             title: $translate('PROMO_CONSUMPTION'),
@@ -10441,21 +10399,43 @@ define(['js/app'], function (myApp) {
                     ],
                     "paging": false
                 };
-                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
 
-                vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
-
-                vm.topUpProposalTable = utilService.createDatatableWithFooter('#promoCodeTable', tableOptions, {}, true);
+                let promoCodeTable = utilService.createDatatableWithFooter('#promoCodeTable', tableOptions, {}, true);
 
                 vm.promoCodeQuery.pageObj.init({maxCount: size}, newSearch);
 
-                $('#paymentMonitorTable').off('order.dt');
-                $('#paymentMonitorTable').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'paymentMonitorQuery', vm.getPaymentMonitorRecord);
+                $('#promoCodeTable').off('order.dt');
+                $('#promoCodeTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'promoCodeQuery', vm.getPromoCodeHistory);
                 });
-                $('#paymentMonitorTable').resize();
+                $('#promoCodeTable').resize();
 
-                $('#paymentMonitorTable tbody').on('click', 'tr', vm.tableRowClicked);
+                $('#promoCodeTable tbody').on('click', 'tr', function (tbl) {
+                    if ($(this).hasClass('selected')) {
+                        $(this).removeClass('selected');
+                        vm.selectedPromoCode = null;
+                    } else {
+                        promoCodeTable.$('tr.selected').removeClass('selected');
+                        $(this).addClass('selected');
+                        vm.selectedPromoCode = promoCodeTable.row(this).data();
+                    }
+
+                    $scope.safeApply();
+                });
+            };
+
+            vm.applyPromoCode = function () {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    promoCodeObjId: vm.selectedPromoCode._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'applyPromoCode', sendData, function (data) {
+
+                }, function (err) {
+                    console.error(err);
+                }, true);
             };
 
             // If any of the levels are holding the old data structure, migrate them to the new data structure.

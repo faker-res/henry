@@ -4,36 +4,40 @@ let Schema = mongoose.Schema;
 let promoCodeSchema = new Schema({
     // platform id
     platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true},
-    // promo code type name
+    // user id
     playerObjId: {type: Schema.ObjectId, ref: 'player', required: true},
-    // promo code type name
-    promoCodeTypeObjId: {type: Schema.ObjectId, ref: 'promoCodeType', required: true},
     // promo code type
+    promoCodeTypeObjId: {type: Schema.ObjectId, ref: 'promoCodeType', required: true},
+    // promo code reward amount
     amount: {type: Number, required: true},
     // promo code minimum top up amount
     minTopUpAmount: {type: Number},
-    // promo code type
+    // promo code maximum top up amount
+    maxTopUpAmount: {type: Number},
+    // promo code required consumption
     requiredConsumption: {type: Number, required: true},
-    //if this proposal has any step
+    // Disable Withdrawal after accept promo code
     disableWithdraw: {type: Boolean, default: false, index: true},
-    //game providers
+    // Allowed Game Providers, empty if all providers
     allowedProviders: [{type: Schema.ObjectId}],
     // Banner Text
     bannerText: {type: String},
-    // promo code type
+    // Promo Code
     code: {type: Number, required: true},
     // SMS Content
     smsContent: {type: String},
     // create Time
     createTime: {type: Date, default: Date.now, index: true},
-    // create Time
+    // Promo Code Accept Time
     acceptedTime: {type: Date},
-    //expiry date for each proposal
+    // Promo Code Expiration Time
     expirationTime: {type: Date},
     // Promo Code Status
     status: {type: Number},
     // Promo Code Active Flag
-    isActive: {type: Boolean, default: false}
+    isActive: {type: Boolean, default: false},
+    // Top Up Proposal Used for this promo code
+    topUpProposalId: {type: String}
 });
 
 module.exports = promoCodeSchema;

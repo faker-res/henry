@@ -1,4 +1,6 @@
 const Q = require("q");
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalStatus = require("./../const/constProposalStatus");
@@ -874,7 +876,88 @@ let dbPlayerReward = {
         return Promise.all(saveArr);
     },
 
-    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean()
+    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+
+    applyPromoCode: (platformObjId, promoCodeObjId) => {
+        let promoCodeObj = null;
+
+        return dbConfig.collection_promoCode.findOne({_id: promoCodeObjId, platformObjId: platformObjId}).populate({
+            path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
+        }).lean().then(
+            promoCodeObjRet => {
+                console.log('promoCodeObj', promoCodeObjRet);
+                promoCodeObj = promoCodeObjRet;
+
+                if (promoCodeObj.acceptedTime) {
+
+                }
+
+                let searchQuery = {
+                    'data.platformId': platformObjId,
+                    'data.playerObjId': promoCodeObjRet.playerObjId,
+                    settleTime: {$gte: promoCodeObjRet.createTime, $lt: new Date()},
+                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                    mainType: "TopUp"
+                };
+
+                if (promoCodeObj.promoCodeTypeObjId.type == 3) {
+                    searchQuery["data.amount"] = {$gte: promoCodeObj.minTopUpAmount}
+                }
+
+                // Search Top Up Proposal After Received Promo Code
+                return dbConfig.collection_proposal.find(searchQuery).sort({createTime: -1}).limit(1).lean();
+            }
+        ).then(
+            topUpProposal => {
+                console.log('topUpProposal', topUpProposal);
+                if (topUpProposal && topUpProposal.length > 0) {
+                    let topUpProp = topUpProposal[0];
+
+                    if (topUpProp.data.promoCode) {
+                        return Q.reject({
+                            status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                            name: "ConditionError",
+                            message: "您的最新存款已经申请其他优惠，请在重新存款后、投注前申请！"
+                        })
+                    }
+
+                    return dbConfig.collection_playerConsumptionRecord.aggregate(
+                        {
+                            $match: {
+                                playerId: {$in: [ObjectId(promoCodeObj.playerObjId), String(promoCodeObj.playerObjId)]},
+                                platformId: {$in: [ObjectId(platformObjId), String(platformObjId)]},
+                                createTime: {$gte: topUpProp.settleTime, $lt: new Date()}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: {playerId: "$playerId"},
+                                amount: {$sum: "$amount"}
+                            }
+                        });
+                } else {
+                    return Q.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "ConditionError",
+                        message: "您需要有新的存款 '" + promoCodeObj.minTopUpAmount + "元' 才可以领取此优惠，千万别错过了！"
+                    })
+                }
+            }
+        ).then(
+            consumptionSumm => {
+                console.log("consumptionSumm", consumptionSumm);
+                if (consumptionSumm.length == 0) {
+
+                } else {
+                    return Q.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "ConditionError",
+                        message: "您在最近一笔的存款后已经投注，请在重新存款后、投注前申请！"
+                    })
+                }
+            }
+        )
+    }
 };
 
 function processConsecutiveLoginRewardRequest(playerData, inputDate, event, adminInfo, isPrevious) {
