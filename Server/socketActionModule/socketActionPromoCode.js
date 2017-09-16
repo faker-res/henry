@@ -70,6 +70,12 @@ function socketActionPromoCode(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.playerName && data.promoCode);
             socketUtil.emitter(self.socket, dbPlayerReward.applyPromoCode, [ObjectId(data.platformObjId), data.playerName, data.promoCode, adminInfo], actionName, isValidData);
+        },
+
+        getPromoCodesMonitor: function getPromoCodesMonitor(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodesMonitor, [ObjectId(data.platformObjId), data.startAcceptedTime, data.endAcceptedTime], actionName, isValidData);
         }
     };
     socketActionPromoCode.actions = this.actions;

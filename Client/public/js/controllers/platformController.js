@@ -10203,7 +10203,7 @@ define(['js/app'], function (myApp) {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
                             });
-                            vm.promoCodeQuery.endCreateTime.data('datetimepicker').setDate(new Date(), 1);
+                            vm.promoCodeQuery.endCreateTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             vm.promoCodeQuery.startAcceptedTime = utilService.createDatePicker('#promoCodeQuery .startAcceptedTime', {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
@@ -10213,10 +10213,30 @@ define(['js/app'], function (myApp) {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
                             });
-                            vm.promoCodeQuery.endAcceptedTime.data('datetimepicker').setDate(new Date(), 1);
+                            vm.promoCodeQuery.endAcceptedTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
 
                             vm.promoCodeQuery.pageObj = utilService.createPageForPagingTable("#promoCodeTablePage", {}, $translate, function (curP, pageSize) {
                                 vm.commonPageChangeHandler(curP, pageSize, "promoCodeHistory", vm.getPromoCodeHistory)
+                            });
+                        });
+                        break;
+                    case 'monitor':
+                        vm.promoCodeMonitor = {};
+
+                        utilService.actionAfterLoaded('#promoCodeMonitorQuery', function () {
+                            vm.promoCodeMonitor.startAcceptedTime = utilService.createDatePicker('#promoCodeMonitorQuery .startAcceptedTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                            vm.promoCodeMonitor.endAcceptedTime = utilService.createDatePicker('#promoCodeMonitorQuery .endAcceptedTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                            vm.promoCodeMonitor.pageObj = utilService.createPageForPagingTable("#promoCodeMonitorTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeMonitor", vm.getPromoCodeMonitor)
                             });
                         });
                         break;
@@ -10507,6 +10527,44 @@ define(['js/app'], function (myApp) {
                 }, function (err) {
                     console.error(err);
                 }, true);
+            };
+
+            vm.getPromoCodeMonitor = function (isNewSearch) {
+                vm.promoCodeMonitor.platformId = vm.selectedPlatform.id;
+                $('#promoCodeMonitorTableSpin').show();
+
+                vm.promoCodeMonitor.index = isNewSearch ? 0 : (vm.promoCodeMonitor.index || 0);
+
+                let sendObj = {
+                    startAcceptedTime: vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
+                    endAcceptedTime: vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
+                    platformObjId: vm.promoCodeMonitor.platformId,
+                    index: vm.promoCodeMonitor.index || 0,
+                    limit: vm.promoCodeMonitor.limit || 10,
+                    sortCol: vm.promoCodeMonitor.sortCol
+                };
+
+                console.log('sendObj', sendObj);
+
+                socketService.$socket($scope.AppSocket, 'getPromoCodesMonitor', sendObj, function (data) {
+                    $('#promoCodeMonitorTableSpin').hide();
+                    console.log('getPromoCodesMonitor', data);
+                    // vm.promoCodeMonitor.totalCount = data.data.length;
+                    // $scope.safeApply();
+                    // vm.drawPromoCodeHistoryTable(
+                    //     data.data.map(item => {
+                    //         item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
+                    //         item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => e.code);
+                    //         item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
+                    //         item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
+                    //
+                    //         return item;
+                    //     }), data.data.length, {}, isNewSearch
+                    // );
+                }, function (err) {
+                    console.error(err);
+                }, true);
+
             };
 
             // If any of the levels are holding the old data structure, migrate them to the new data structure.
