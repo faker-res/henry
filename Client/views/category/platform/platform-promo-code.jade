@@ -244,7 +244,7 @@
                     .col-md-12.playerBtn
                         hr.margin-top-bottom-small
                         .btn-group.margin-small
-                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="!vm.selectedPromoCode", ng-click='vm.applyPromoCode()')
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
                                 text {{"APPLY" | translate}}
                                 img.img-edit
 

@@ -10385,6 +10385,7 @@ define(['js/app'], function (myApp) {
                             item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
                             item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => e.code);
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
+                            item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
 
                             return item;
                         }), data.data.length, {}, isNewSearch
@@ -10419,7 +10420,8 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('PROMO_REWARD_AMOUNT'),
-                            data: "amount"
+                            data: "amount",
+                            render: (data, index, row) => row.promoCodeTypeObjId.type == 3 ? data + "%" : data
                         },
                         {
                             title: $translate('minTopUpAmount'),
@@ -10431,7 +10433,8 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('PROMO_CONSUMPTION'),
-                            data: "requiredConsumption"
+                            data: "requiredConsumption",
+                            render: (data, index, row) => row.promoCodeTypeObjId.type == 3 ? "*" + data : data
                         },
                         {
                             title: $translate('PROMO_DUE_DATE'),
@@ -10450,16 +10453,12 @@ define(['js/app'], function (myApp) {
                             data: "code"
                         },
                         {
-                            title: $translate('SMS_INTERMAIL'),
-                            data: "smsContent"
-                        },
-                        {
                             title: $translate('CREATETIME'),
                             data: "createTime$"
                         },
                         {
                             title: $translate('ACCEPTTIME'),
-                            data: "endTime$"
+                            data: "acceptedTime$"
                         }
                     ],
                     "paging": false
@@ -10476,6 +10475,7 @@ define(['js/app'], function (myApp) {
                 });
                 $('#promoCodeTable').resize();
 
+                $('#promoCodeTable tbody').off('click', 'tr');
                 $('#promoCodeTable tbody').on('click', 'tr', function (tbl) {
                     if ($(this).hasClass('selected')) {
                         $(this).removeClass('selected');
@@ -10493,11 +10493,15 @@ define(['js/app'], function (myApp) {
             vm.applyPromoCode = function () {
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
-                    promoCodeObjId: vm.selectedPromoCode._id
+                    playerName: vm.selectedPromoCode.playerObjId.name,
+                    promoCode: vm.selectedPromoCode.code
                 };
 
-                socketService.$socket($scope.AppSocket, 'applyPromoCode', sendData, function (data) {
+                console.log('sendData', sendData);
 
+                socketService.$socket($scope.AppSocket, 'applyPromoCode', sendData, function (data) {
+                    vm.getPromoCodeHistory();
+                    vm.selectedPromoCode = null;
                 }, function (err) {
                     console.error(err);
                 }, true);

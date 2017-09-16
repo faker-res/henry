@@ -878,40 +878,67 @@ let dbPlayerReward = {
 
     getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
 
-    applyPromoCode: (platformObjId, promoCodeObjId) => {
-        let promoCodeObj = null;
+    applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
+        let promoCodeObj, playerObj, topUpProp;
 
-        return dbConfig.collection_promoCode.findOne({_id: promoCodeObjId, platformObjId: platformObjId}).populate({
-            path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
-        }).lean().then(
-            promoCodeObjRet => {
-                console.log('promoCodeObj', promoCodeObjRet);
-                promoCodeObj = promoCodeObjRet;
+        return dbConfig.collection_players.findOne({
+            platform: platformObjId,
+            name: playerName
+        }).then(
+            playerData => {
+                playerObj = playerData;
 
-                if (promoCodeObj.acceptedTime) {
+                return dbConfig.collection_promoCode.find({
+                    platformObjId: platformObjId,
+                    playerObjId: playerObj._id,
+                    acceptedTime: {$exists: false}
+                }).populate({
+                    path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
+                }).lean();
+            }
+        ).then(
+            promoCodeObjs => {
+                if (promoCodeObjs && promoCodeObjs.length > 0) {
+                    promoCodeObjs.some(e => {
+                        if (e.code == promoCode) {
+                            return promoCodeObj = e;
+                        }
+                    });
 
+                    if (!promoCodeObj) {
+                        return Q.reject({
+                            status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                            name: "ConditionError",
+                            message: "您输入了错误的优惠代码，请确认您的短信内容。"
+                        })
+                    }
+
+                    let searchQuery = {
+                        'data.platformId': platformObjId,
+                        'data.playerObjId': promoCodeObj.playerObjId,
+                        settleTime: {$gte: promoCodeObj.createTime, $lt: new Date()},
+                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                        mainType: "TopUp"
+                    };
+
+                    if (promoCodeObj.promoCodeTypeObjId.type == 3) {
+                        searchQuery["data.amount"] = {$gte: promoCodeObj.minTopUpAmount}
+                    }
+
+                    // Search Top Up Proposal After Received Promo Code
+                    return dbConfig.collection_proposal.find(searchQuery).sort({createTime: -1}).limit(1).lean();
+                } else {
+                    return Q.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "ConditionError",
+                        message: "您目前尚无可领取优惠，谢谢。"
+                    })
                 }
-
-                let searchQuery = {
-                    'data.platformId': platformObjId,
-                    'data.playerObjId': promoCodeObjRet.playerObjId,
-                    settleTime: {$gte: promoCodeObjRet.createTime, $lt: new Date()},
-                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                    mainType: "TopUp"
-                };
-
-                if (promoCodeObj.promoCodeTypeObjId.type == 3) {
-                    searchQuery["data.amount"] = {$gte: promoCodeObj.minTopUpAmount}
-                }
-
-                // Search Top Up Proposal After Received Promo Code
-                return dbConfig.collection_proposal.find(searchQuery).sort({createTime: -1}).limit(1).lean();
             }
         ).then(
             topUpProposal => {
-                console.log('topUpProposal', topUpProposal);
                 if (topUpProposal && topUpProposal.length > 0) {
-                    let topUpProp = topUpProposal[0];
+                    topUpProp = topUpProposal[0];
 
                     if (topUpProp.data.promoCode) {
                         return Q.reject({
@@ -919,6 +946,12 @@ let dbPlayerReward = {
                             name: "ConditionError",
                             message: "您的最新存款已经申请其他优惠，请在重新存款后、投注前申请！"
                         })
+                    }
+
+                    // Process amount and requiredConsumption for type 3 promo code
+                    if (promoCodeObj.promoCodeTypeObjId.type == 3) {
+                        promoCodeObj.amount = topUpProp.data.amount * promoCodeObj.amount * 0.01;
+                        promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
                     }
 
                     return dbConfig.collection_playerConsumptionRecord.aggregate(
@@ -945,9 +978,11 @@ let dbPlayerReward = {
             }
         ).then(
             consumptionSumm => {
-                console.log("consumptionSumm", consumptionSumm);
                 if (consumptionSumm.length == 0) {
-
+                    return dbConfig.collection_proposalType.findOne({
+                        platformId: platformObjId,
+                        name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                    }).lean();
                 } else {
                     return Q.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
@@ -955,6 +990,45 @@ let dbPlayerReward = {
                         message: "您在最近一笔的存款后已经投注，请在重新存款后、投注前申请！"
                     })
                 }
+            }
+        ).then(
+            proposalTypeData => {
+                // create reward proposal
+                let proposalData = {
+                    type: proposalTypeData._id,
+                    creator: adminInfo ? adminInfo :
+                        {
+                            type: 'player',
+                            name: playerObj.name,
+                            id: playerObj._id
+                        },
+                    data: {
+                        playerObjId: playerObj._id,
+                        playerId: playerObj.playerId,
+                        playerName: playerObj.name,
+                        realName: playerObj.realName,
+                        platformObjId: playerObj.platform._id,
+                        rewardAmount: promoCodeObj.amount,
+                        spendingAmount: promoCodeObj.requiredConsumption,
+                        promoCode: promoCodeObj.code,
+                        PROMO_CODE_TYPE: promoCodeObj.promoCodeTypeObjId.name,
+                        applyAmount: topUpProp.data.amount,
+                        topUpProposal: topUpProp.proposalId,
+                        useLockedCredit: false,
+                        useConsumption: false
+                    },
+                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS
+                };
+                return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+            }
+        ).then(
+            data => {
+                return dbConfig.collection_promoCode.findOneAndUpdate({
+                    _id: promoCodeObj._id
+                }, {
+                    acceptedTime: new Date()
+                })
             }
         )
     }

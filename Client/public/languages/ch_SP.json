@@ -1176,6 +1176,8 @@
   "PROMO_CODE_USER_GROUP_CONFIG": "代码用户分组设置",
   "GROUP": "群组",
   "ACTIVATE_PROMO_CODE": "展示已使用代码",
+  "PlayerPromoCodeReward": "优惠代码奖励",
+  "topUpProposal": "充值提案",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",

@@ -11,6 +11,24 @@ function socketActionPromoCode(socketIO, socket) {
     this.socket = socket;
 
     let self = this;
+    let adminInfo;
+
+    function getAdminId() {
+        return self.socket.decoded_token && self.socket.decoded_token._id;
+    }
+
+    function getAdminName() {
+        return self.socket.decoded_token && self.socket.decoded_token.adminName;
+    }
+
+    if (getAdminId() && getAdminName()) {
+        adminInfo = {
+            name: getAdminName(),
+            type: 'admin',
+            id: getAdminId()
+        }
+    }
+
     this.actions = {
         getPromoCodesHistory: function getPromoCodesHistory(data) {
             let actionName = arguments.callee.name;
@@ -50,8 +68,8 @@ function socketActionPromoCode(socketIO, socket) {
 
         applyPromoCode: function applyPromoCode(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.promoCodeObjId);
-            socketUtil.emitter(self.socket, dbPlayerReward.applyPromoCode, [ObjectId(data.platformObjId), ObjectId(data.promoCodeObjId)], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.playerName && data.promoCode);
+            socketUtil.emitter(self.socket, dbPlayerReward.applyPromoCode, [ObjectId(data.platformObjId), data.playerName, data.promoCode, adminInfo], actionName, isValidData);
         }
     };
     socketActionPromoCode.actions = this.actions;
