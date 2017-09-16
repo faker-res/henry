@@ -1024,7 +1024,8 @@ define(['js/app'], function (myApp) {
                 vm.smsRecordQuery = {};
                 vm.smsRecordQuery.index = 0;
                 vm.smsRecordQuery.limit = 10;
-                vm.initQueryTimeFilter('smsRecordQueryDiv', function () {});
+                vm.initQueryTimeFilter('smsRecordQueryDiv', function () {
+                });
                 utilService.actionAfterLoaded('#vertificationSMSRecordTable', function () {
                     vm.smsRecordQuery.pageObj = utilService.createPageForPagingTable("#vertificationSMSRecordTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "smsRecordQuery", vm.submitSMSRecordQuery)
