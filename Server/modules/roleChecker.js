@@ -387,7 +387,7 @@ var roleChecker = {
                 SMSSendLog: ['searchSMSLog'],
                 SendGroupMessage: []
             },
-            "verificationSMS": {
+            "vertificationSMS": {
                 Read: ['vertificationSMSQuery']
             },
             "promoCode": {

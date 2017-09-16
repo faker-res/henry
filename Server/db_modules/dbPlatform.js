@@ -1471,6 +1471,14 @@ var dbPlatform = {
         var b = dbconfig.collection_smsLog.find(query).count();
         return Q.all([a, b]).then(
             result => {
+                if(result[0].length > 0){
+                    result[0].map(function(sms){
+                        if(sms.tel){
+                            sms.tel = dbUtility.encodePhoneNum(sms.tel);
+                        }
+                        return sms
+                    })
+                }
                 return {data: result[0], size: result[1]};
             }
         )
