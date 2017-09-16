@@ -536,10 +536,13 @@ var proposal = {
                     || status == constProposalStatus.PROCESSING
                     || status == constProposalStatus.UNDETERMINED
                     || status == constProposalStatus.RECOVER
-                    ) {
+                ) {
                     return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                         proposalData => {
-                            return dbconfig.collection_proposal.findOneAndUpdate({proposalId: proposalId, createTime: proposalData.createTime}, {status: status});
+                            return dbconfig.collection_proposal.findOneAndUpdate({
+                                proposalId: proposalId,
+                                createTime: proposalData.createTime
+                            }, {status: status});
                         }
                     );
                 }

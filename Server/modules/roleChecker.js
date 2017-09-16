@@ -389,6 +389,15 @@ var roleChecker = {
             },
             "vertificationSMS": {
                 Read: ['vertificationSMSQuery']
+            },
+            "promoCode": {
+                Read: ['getPromoCodeTypes'],
+                createPromoCode: ['generatePromoCode'],
+                promoCodeHistory: ['getPromoCodesHistory'],
+                smsContentConfig: [],
+                userGroupConfig: [],
+                activatePromoCode: [],
+                applyPromoCode: [],
             }
         },
         Payment: {

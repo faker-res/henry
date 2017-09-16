@@ -73,6 +73,10 @@
                             a.common-tab(data-toggle="tab", href="#PushNotification", ng-click="vm.platformPageName='PushNotification';vm.updatePageTile();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Push Notification" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'promoCode','Read')")
+                            a.common-tab(data-toggle="tab", href="#PromoCode", ng-click="vm.platformPageName='PromoCode';vm.updatePageTile();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"promoCode" | translate}}
                         //li
                             a.common-tab(ng-show="checkViewPermission('Platform', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.platformPageName='bankCardGroup';vm.updatePageTile();")
                                 .fa.fa-credit-card.margin-right-5
@@ -119,6 +123,8 @@
                         #PushNotification.tab-pane.fade
                             .row
                                 include ./platform-push-notification
+                        #PromoCode.tab-pane.fade
+                            include ./platform-promo-code
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
                             include ./platform-bankCardGroup
