@@ -105,6 +105,8 @@ var platformSchema = new Schema({
     autoCheckPlayerLevelUp: {type: Boolean, default: false},
     // user login require captcha verfication
     requireLogInCaptcha: {type: Boolean, default: false},
+    // user get SMS code with captcha
+    requireCaptchaInSMS: {type: Boolean, default: false},
     //only new system user can login
     onlyNewCanLogin: {type: Boolean, default: false},
     //if use locked credit
