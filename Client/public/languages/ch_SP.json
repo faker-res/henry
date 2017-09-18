@@ -2310,5 +2310,8 @@
   "PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT": "支付监控 商户 变色计数",
   "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "支付监控 玩家 变色计数",
   "Source Domain": "跳转域名",
-  "Registration Domain": "开户域名"
+  "Registration Domain": "开户域名",
+  "SYSTEM_PLAYER": "系统玩家",
+  "OLD_SYSTEM": "老系统",
+  "NEW_SYSTEM": "新系统"
 }

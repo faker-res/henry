@@ -463,6 +463,7 @@ define(['js/app'], function (myApp) {
                 vm.playerDomain.topUpTimesOperator = ">=";
                 vm.playerDomain.playerValueOperator = ">=";
                 vm.playerDomain.registrationInterface = "";
+                vm.playerDomain.isNewSystem = "";
                 vm.playerDomain.playerType = "Real Player (all)";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
@@ -1713,6 +1714,7 @@ define(['js/app'], function (myApp) {
                     playerValue: vm.playerDomain.playerValue,
                     playerValueTwo: vm.playerDomain.playerValueTwo,
                     registrationInterface: vm.playerDomain.registrationInterface,
+                    isNewSystem: vm.playerDomain.isNewSystem,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate()
                 },

@@ -5551,6 +5551,12 @@ let dbPlayerInfo = {
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
 
+        if (para.isNewSystem === 'old') {
+            query.isNewSystem = {$ne : true};
+        } else if (para.isNewSystem === 'new') {
+            query.isNewSystem = true;
+        }
+
         switch (para.playerType) {
             case 'Test Player':
                 query.isRealPlayer = false;
