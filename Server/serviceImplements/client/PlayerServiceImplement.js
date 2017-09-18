@@ -810,7 +810,8 @@ let PlayerServiceImplement = function () {
         let randomCode = parseInt(Math.random() * 9000 + 1000);
         conn.phoneNumber = data.phoneNumber;
         conn.smsCode = randomCode;
-        let captchaValidation = conn.captchaCode == data.captcha;
+        let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
+        conn.captchaCode = null;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation], isValidData, false, false, true);
     };
