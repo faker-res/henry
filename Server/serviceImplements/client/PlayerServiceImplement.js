@@ -72,6 +72,7 @@ let PlayerServiceImplement = function () {
             let inputData = Object.assign({}, data);
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData], isValidData, true, true, true).then(
                 (playerData) => {
+                    console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
@@ -111,6 +112,7 @@ let PlayerServiceImplement = function () {
                         resObj.errorMessage = err.errMessage || resObj.errorMessage;
                         wsFunc.response(conn, resObj, data);
                     }
+                    console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                 }
             ).catch(WebSocketUtil.errorHandler)
