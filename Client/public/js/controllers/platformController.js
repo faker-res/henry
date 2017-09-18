@@ -10274,6 +10274,18 @@ define(['js/app'], function (myApp) {
                 vm.getPromoCodeUserGroup();
             }
 
+            vm.checkPlayerName = function (el, id) {
+                let bgColor;
+
+                vm.userGroupConfig.map(e => {
+                    if (e.playerNames.indexOf(el.playerName) > -1) {
+                        bgColor = e.color;
+                    }
+                })
+
+                $(id).css("background-color", bgColor ? bgColor : "");
+            }
+
             vm.promoCodeNewRow = function (collection, type, data) {
                 collection.push(data ? data : {disableWithdraw: true});
                 collection.forEach((elem, index, arr) => {
