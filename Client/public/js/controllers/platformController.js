@@ -10446,20 +10446,27 @@ define(['js/app'], function (myApp) {
             };
 
             vm.sendSMSByPromoCode = function () {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
-                    console.log('getPromoCodeTypes', data);
+                let sendObj = {
+                    platformId: vm.selectedPromoCode.platformObjId,
+                    adminName: 'admin',
+                    playerId: vm.selectedPromoCode.playerObjId._id,
+                    title: 'Test Title',
+                    content: vm.selectedPromoCode.smsContent
+                };
 
-                    data.data.forEach(entry => {
-                        if (entry.type == 1) {
-                            vm.promoCodeType1.push(entry);
-                        } else if (entry.type == 2) {
-                            vm.promoCodeType2.push(entry);
-                        } else if (entry.type == 3) {
-                            vm.promoCodeType3.push(entry);
-                        }
-                    });
+                let smsObj = {
+                    playerId: vm.selectedPromoCode.playerObjId.playerId,
+                    platformId: vm.selectedPromoCode.platformObjId,
+                    channel: 2,
+                    message: vm.selectedPromoCode.smsContent
+                };
 
-                    $scope.safeApply();
+                socketService.$socket($scope.AppSocket, 'sendPlayerMailFromAdminToPlayer', sendObj, function (data) {
+                    console.log('sendPlayerMailFromAdminToPlayer', data);
+                });
+
+                socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', smsObj, function (data) {
+                    console.log('sendSMSToPlayer', data);
                 });
             }
 
