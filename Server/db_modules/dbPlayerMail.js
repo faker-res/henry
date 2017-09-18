@@ -199,17 +199,14 @@ const dbPlayerMail = {
                     // verfiy captcha if necessary
                     if (platform.requireCaptchaInSMS) {
                         if (!captchaValidation) {
-                            console.log("captcha not match")
-                            return Promise.reject({
+                            return Q.reject({
                                 name: "DataError",
-                                error: "Invalid image captcha"
+                                message: "Invalid image captcha"
                             });
                         }
                     }
 
-                    let smsChannelProm = smsAPI.channel_getChannelList({}).then(function (data) {
-                        return data
-                    });
+                    let smsChannelProm = smsAPI.channel_getChannelList({});
                     let smsVerificationLogProm = dbconfig.collection_smsVerificationLog.findOne({tel: telNum, createTime: {$gt: lastMin}}).lean();
                     let messageTemplateProm = dbconfig.collection_messageTemplate.findOne({
                         platform: platformObjId,
@@ -219,7 +216,7 @@ const dbPlayerMail = {
 
                     return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm]);
                 } else {
-                    return Promise.reject({
+                    return Q.reject({
                         name: "DataError",
                         message: "Platform does not exist"
                     });
@@ -227,13 +224,12 @@ const dbPlayerMail = {
             }
         ).then(
             function (data) {
-                console.log('data2', data);
                 channel = data[0] && data[0].channels && data[0].channels[0] ? data[0].channels[0] : 2;
                 lastMinuteHistory = data[1];
                 template = data[2];
 
                 if (!template) {
-                    return Promise.reject({message: 'Template not set for current platform'});
+                    return Q.reject({message: 'Template not set for current platform'});
                 }
 
                 template.content = template.content.replace('smsCode', code);
@@ -257,18 +253,19 @@ const dbPlayerMail = {
                     delay: 0
                 };
 
-                    let sendObj = {
-                        tel: telNum,
-                        channel: channel,
-                        platformId: platformId,
-                        message: template.content,
-                        delay: 0
-                    };
-                    // Log the verification SMS before send
-                    new dbconfig.collection_smsVerificationLog(saveObj).save();
-                    return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code);
+                let sendObj = {
+                    tel: telNum,
+                    channel: channel,
+                    platformId: platformId,
+                    message: template.content,
+                    delay: 0
+                };
+                // Log the verification SMS before send
+                new dbconfig.collection_smsVerificationLog(saveObj).save();
+                return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code);
    
-            }).then(
+            }
+        ).then(
             function (retData) {
                 console.log('[smsAPI] Sent verification code to: ', telNum);
                 return true;
