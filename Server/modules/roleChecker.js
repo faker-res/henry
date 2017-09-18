@@ -391,7 +391,7 @@ var roleChecker = {
                 Read: ['vertificationSMSQuery']
             },
             "promoCode": {
-                Read: ['getPromoCodeTypes'],
+                Read: ['getPromoCodeTypes', 'getPromoCodeUserGroup'],
                 createPromoCode: ['generatePromoCode'],
                 promoCodeHistory: ['getPromoCodesHistory'],
                 monitor: [],

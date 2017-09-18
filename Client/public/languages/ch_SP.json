@@ -1187,6 +1187,11 @@
   "playerCredit": "玩家账户余额",
   "withdrawConsumption": "提款流水",
   "withdrawAmount": "提款额",
+  "AVAILABLE": "未领取",
+  "ACCEPTED": "已领取",
+  "EXPIRED": "已过期",
+  "SEARCH_CREATETIME": "搜索生成时间",
+  "SEARCH_ACCEPTEDTIME": "搜索领取时间",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
@@ -2310,5 +2315,8 @@
   "PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT": "支付监控 商户 变色计数",
   "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "支付监控 玩家 变色计数",
   "Source Domain": "跳转域名",
-  "Registration Domain": "开户域名"
+  "Registration Domain": "开户域名",
+  "SYSTEM_PLAYER": "系统玩家",
+  "OLD_SYSTEM": "老系统",
+  "NEW_SYSTEM": "新系统"
 }
