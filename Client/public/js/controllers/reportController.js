@@ -463,13 +463,14 @@ define(['js/app'], function (myApp) {
                 vm.playerDomain.topUpTimesOperator = ">=";
                 vm.playerDomain.playerValueOperator = ">=";
                 vm.playerDomain.registrationInterface = "";
+                vm.playerDomain.playerType = "Real Player (all)";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                     vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
                     });
                     vm.searchPlayerDomainRepport(true);
-                })
+                });
             } else if (choice == "NEWACCOUNT_REPORT") {
                 vm.newPlayerQuery = {totalCount: 0};
                 utilService.actionAfterLoaded("#newPlayerDomainTable", function () {

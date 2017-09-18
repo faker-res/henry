@@ -330,11 +330,11 @@
                 div
                     label {{"USER_TYPE"|translate}}
                     select.form-control( style='max-width:300px', ng-model="vm.playerDomain.playerType")
-                        option(value='all') {{'all' | translate}}
-                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
                         option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
                         option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
                         option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                        option(value='Partner') {{'Partner' | translate}}
                 div
                     label {{"REGISTRATION_TIME_START"|translate}}
                     .startTime

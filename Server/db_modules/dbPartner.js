@@ -31,6 +31,7 @@ const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
 const constPartnerStatus = require('../const/constPartnerStatus');
+const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 
 
 let dbPartner = {
@@ -206,6 +207,45 @@ let dbPartner = {
             function (level) {
                 return dbPartner.createPartnerDomain(partnerdata).then(
                     () => {
+                        // determine registrationInterface
+                        if (partnerdata.domain && partnerdata.domain.indexOf('fpms8') !== -1) {
+                            partnerdata.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                        }
+                        else if (partnerdata.userAgent && partnerdata.userAgent[0]) {
+                            let userAgent = inputData.userAgent[0];
+                            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                                if (partnerdata.partner) {
+                                    partnerdata.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                                }
+                                else {
+                                    partnerdata.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                                }
+                            }
+                            else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
+                                if (partnerdata.partner) {
+                                    partnerdata.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
+                                }
+                                else {
+                                    partnerdata.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
+                                }
+                            }
+                            else {
+                                if (partnerdata.partner) {
+                                    partnerdata.registrationInterface = constPlayerRegistrationInterface.WEB_AGENT;
+                                }
+                                else {
+                                    partnerdata.registrationInterface = constPlayerRegistrationInterface.WEB_PLAYER;
+                                }
+                            }
+                        }
+                        else {
+                            partnerdata.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                        }
+
+                        if (partnerdata.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
+                            partnerdata.loginTimes = 1;
+                        }
+
                         let partner = new dbconfig.collection_partner(partnerdata);
                         partner.level = level;
                         partner.partnerName = partnerdata.partnerName.toLowerCase();
@@ -1132,6 +1172,7 @@ let dbPartner = {
                         isLogin: true,
                         lastLoginIp: partnerData.lastLoginIp,
                         userAgent: newAgentArray,
+                        $inc: {loginTimes: 1},
                         lastAccessTime: new Date().getTime(),
                     };
                     var geoInfo = {};
@@ -4255,6 +4296,60 @@ let dbPartner = {
      */
     refundPartnerCredit: function (partnerObjId, platformObjId, refundAmount, reasonType, data) {
         return dbPartner.changePartnerCredit(partnerObjId, platformObjId, refundAmount, reasonType, data);
+    },
+
+    getPartnerDomainReport : function (platform, para, index, limit, sortCol) {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {'registrationTime': -1};
+        if (sortCol.phoneArea) {
+            let sortOrder = sortCol.phoneArea;
+            sortCol = {
+                phoneProvince: sortOrder,
+                phoneCity: sortOrder
+            }
+        }
+        else if (sortCol.ipArea) {
+            let sortOrder = sortCol.ipArea;
+            sortCol = {
+                province: sortOrder,
+                city: sortOrder
+            }
+        }
+        else if (sortCol.os) {
+            let sortOrder = sortCol.os;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.os": sortOrder
+            }
+        }
+        else if (sortCol.browser) {
+            let sortOrder = sortCol.browser;
+            sortCol = {
+                registrationInterface: sortOrder,
+                "userAgent.0.browser": sortOrder
+            }
+        }
+
+        let query = {platform: platform};
+        para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
+        (para.endTime && !query.registrationTime) ? (query.registrationTime = {$lt: new Date(para.endTime)}) : null;
+        (para.endTime && query.registrationTime) ? (query.registrationTime['$lt'] = new Date(para.endTime)) : null;
+        para.partnerName ? query.name = para.name : null;
+        para.realName ? query.realName = para.realName : null;
+        para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
+        para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
+        para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
+
+        let count = dbconfig.collection_partner.find(query).count();
+        let detail = dbconfig.collection_partner.find(query).sort(sortCol).skip(index).limit(limit)
+            .populate({path: 'partner', model: dbconfig.collection_partner}).lean();
+
+        return Q.all([count, detail]).then(
+            data => {
+                return {data: data[1], size: data[0]}
+            }
+        )
     }
 
 
