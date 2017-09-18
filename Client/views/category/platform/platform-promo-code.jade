@@ -30,7 +30,8 @@
                                 th(style="width:150px") {{"ACCOUNT" | translate}}
                                 th(style="width:150px") {{"PROMO_CODE_TYPE_1" | translate}}
                                 th(style="width:100px") {{"PROMO_REWARD_AMOUNT" | translate}}
-                                th(style="width:100px") {{"PROMO_CONSUMPTION" | translate}}
+                                th(style="width:90px") {{"minTopUpAmount" | translate}}
+                                th(style="width:90px") {{"PROMO_CONSUMPTION" | translate}}
                                 th(style="width:150px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:100px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
                                 th(style="width:150px") {{"ALLOWED_PROVIDER" | translate}}
@@ -42,11 +43,13 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode1')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName', ng-disabled="promoCode.code")
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable1')", ng-disabled="promoCode.code")
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1', ng-disabled="promoCode.code")
                                 td
                                     input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code")
                                 td
                                     input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code")
                                 td
@@ -245,10 +248,10 @@
                                 text {{"sendSMS" | translate}}
                                 img.img-edit
                         hr.margin-top-bottom-small
-                            .btn-group.margin-small
-                                button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
-                                    text {{"APPLY" | translate}}
-                                    img.img-edit
+                        .btn-group.margin-small
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
+                                text {{"APPLY" | translate}}
+                                img.img-edit
 
                 //Tab - Promo Code Monitor
                 div(ng-if='vm.selectedPromoCodeTab=="monitor" && checkViewPermission("Platform", "promoCode", "monitor")')
