@@ -1187,6 +1187,11 @@
   "playerCredit": "玩家账户余额",
   "withdrawConsumption": "提款流水",
   "withdrawAmount": "提款额",
+  "AVAILABLE": "未领取",
+  "ACCEPTED": "已领取",
+  "EXPIRED": "已过期",
+  "SEARCH_CREATETIME": "搜索生成时间",
+  "SEARCH_ACCEPTEDTIME": "搜索领取时间",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",

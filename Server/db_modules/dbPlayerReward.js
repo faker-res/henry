@@ -2,6 +2,7 @@ const Q = require("q");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
+const constPromoCodeStatus = require("./../const/constPromoCodeStatus");
 const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalStatus = require("./../const/constProposalStatus");
 const constProposalType = require("./../const/constProposalType");
@@ -805,6 +806,14 @@ let dbPlayerReward = {
 
                 if (playerData) {
                     query.playerObjId = playerData._id;
+                } else if (searchQuery.playerName) {
+                    return [];
+                } else if (searchQuery.status) {
+                    query.status = searchQuery.status
+                } else if (searchQuery.startCreateTime) {
+                    query.createTime = {$gte: searchQuery.startCreateTime, $lt: searchQuery.endCreateTime}
+                } else if (searchQuery.startAcceptedTime) {
+                    query.acceptedTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime}
                 }
 
                 return dbConfig.collection_promoCode.find(query)
@@ -812,6 +821,8 @@ let dbPlayerReward = {
                     .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
                     .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean();
             }
+        ).then(
+            res => searchQuery.promoCodeType ? res.filter(e => e.promoCodeTypeObjId.type == searchQuery.promoCodeType) : res
         )
     },
 
@@ -847,6 +858,7 @@ let dbPlayerReward = {
                 if (playerData) {
                     newPromoCodeEntry.playerObjId = playerData._id;
                     newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
+                    newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
 
                     return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
                 }
@@ -1029,7 +1041,8 @@ let dbPlayerReward = {
                 return dbConfig.collection_promoCode.findOneAndUpdate({
                     _id: promoCodeObj._id
                 }, {
-                    acceptedTime: new Date()
+                    acceptedTime: new Date(),
+                    status: constPromoCodeStatus.ACCEPTED
                 })
             }
         )
