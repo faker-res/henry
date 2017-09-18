@@ -1,23 +1,17 @@
 .row
     .col-md-12
-        .panel.panel-primary
-            .panel-heading.panel-heading-sm
-                .fa.fa-wrench
-                label &nbsp;{{"promoCode" | translate}}
-            .panel-body
-                p(ng-if="!vm.curPlatformText")
-                    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-                ul.list-group(style="width: auto; overflow-y: auto;", ng-if="vm.curPlatformText")
-                    li.list-group-item(ng-class='{active: vm.selectedPromoCodeTab === "create"}', ng-click='vm.promoCodeTabClicked("create")')
-                        span {{"CREATE_PROMO_CODE" | translate}}
-                    li.list-group-item(ng-class='{active: vm.selectedPromoCodeTab === "history"}', ng-click='vm.promoCodeTabClicked("history")')
-                        span {{"PROMO_CODE_HISTORY" | translate}}
-                    li.list-group-item(ng-class='{active: vm.selectedPromoCodeTab === "activatePromoCode"}', ng-click='vm.promoCodeTabClicked("activatePromoCode")')
-                        span {{"ACTIVATE_PROMO_CODE" | translate}}
-                    li.list-group-item(ng-class='{active: vm.selectedPromoCodeTab === "smsContent"}', ng-click='vm.promoCodeTabClicked("smsContent")')
-                        span {{"SMS_CONTENT" | translate}}
-                    li.list-group-item(ng-class='{active: vm.selectedPromoCodeTab === "userGroupConfig"}', ng-click='vm.promoCodeTabClicked("userGroupConfig")')
-                        span {{"PROMO_CODE_USER_GROUP_CONFIG" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "create"}', ng-click='vm.promoCodeTabClicked("create")')
+            span {{"CREATE_PROMO_CODE" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "history"}', ng-click='vm.promoCodeTabClicked("history")')
+            span {{"PROMO_CODE_HISTORY" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "monitor"}', ng-click='vm.promoCodeTabClicked("monitor")')
+            span {{"PROMO_CODE_TYPE_3_MONITOR" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "activatePromoCode"}', ng-click='vm.promoCodeTabClicked("activatePromoCode")')
+            span {{"ACTIVATE_PROMO_CODE" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "smsContent"}', ng-click='vm.promoCodeTabClicked("smsContent")')
+            span {{"SMS_CONTENT" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "userGroupConfig"}', ng-click='vm.promoCodeTabClicked("userGroupConfig")')
+            span {{"PROMO_CODE_USER_GROUP_CONFIG" | translate}}
 
     .col-md-12
         .panel.panel-primary
@@ -247,6 +241,25 @@
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
                                 text {{"APPLY" | translate}}
                                 img.img-edit
+
+                //Tab - Promo Code Monitor
+                div(ng-if='vm.selectedPromoCodeTab=="monitor" && checkViewPermission("Platform", "promoCode", "monitor")')
+                    #promoCodeMonitorQuery.block-query.col-md-12.well
+                        div
+                            label.control-label {{'START_ACCEPTED_TIME' | translate}}
+                            .startAcceptedTime
+                        div
+                            label.control-label {{'END_ACCEPTED_TIME' | translate}}
+                            .endAcceptedTime
+                        div
+                            label &nbsp;
+                            button.btn.btn-success(ng-click='vm.getPromoCodeMonitor(true)') {{'SEARCH' | translate}}
+                            span#promoCodeMonitorTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                    .clearfix
+                    label {{"Total" | translate}} {{vm.promoCodeMonitor.totalCount}} {{"records" | translate}}
+                    table#promoCodeMonitorTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #promoCodeMonitorTablePage.col-md-12
 
                 // Tab - SMS Content
                 div(ng-if='vm.selectedPromoCodeTab=="smsContent" && checkViewPermission("Platform", "promoCode", "smsContentConfig")')

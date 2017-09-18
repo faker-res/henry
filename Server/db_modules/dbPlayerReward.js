@@ -1031,6 +1031,54 @@ let dbPlayerReward = {
                 })
             }
         )
+    },
+
+    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime) => {
+        let promoCodeObjs;
+        let monitorObjs;
+
+        return dbConfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: constProposalType.PLAYER_PROMO_CODE_REWARD
+        }).lean().then(
+            proposalType => {
+                return dbConfig.collection_proposal.find({
+                    'data.platformId': platformObjId,
+                    type: proposalType._id,
+                    settleTime: {$gte: startAcceptedTime, $lt: endAcceptedTime},
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                })
+            }
+        ).then(
+            promoCodeData => {
+                monitorObjs = promoCodeData.map(p => {
+                    return {
+                        promoCodeProposalId: p.proposalId,
+                        platformObjId: p.data.platformId,
+                        playerObjId: p.data.playerObjId,
+                        playerName: p.data.playerName,
+                        topUpAmount: p.data.applyAmount,
+                        rewardAmount: p.data.rewardAmount,
+                        promoCodeType: p.data.PROMO_CODE_TYPE,
+                        spendingAmount: p.data.spendingAmount,
+                        acceptedTime: p.settleTime
+                    }
+                });
+
+                console.log('monitorObjs', monitorObjs);
+
+                monitorObjs.forEach((elem, index, arr) => {
+                    dbConfig.collection_proposal.findOne({
+                        'data.platformId': elem.platformObjId,
+                        'data.playerObjId': elem.playerObjId,
+                        settleTime: {$gt: elem.acceptedTime},
+                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                        mainType: {$in: ["TopUp", "Reward"]}
+                    })
+                })
+
+            }
+        )
     }
 };
 

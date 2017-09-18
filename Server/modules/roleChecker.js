@@ -394,6 +394,7 @@ var roleChecker = {
                 Read: ['getPromoCodeTypes'],
                 createPromoCode: ['generatePromoCode'],
                 promoCodeHistory: ['getPromoCodesHistory'],
+                monitor: [],
                 smsContentConfig: [],
                 userGroupConfig: [],
                 activatePromoCode: [],
