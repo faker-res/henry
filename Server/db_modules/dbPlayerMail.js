@@ -190,7 +190,7 @@ const dbPlayerMail = {
         let template = null;
         let lastMinuteHistory = null;
         let platform;
-        let getPlatform = dbconfig.collection_platform.findOne({_id: platformId}).lean();
+        let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
         return getPlatform.then(
             function (platformData) {
                 if (platformData) {
