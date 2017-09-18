@@ -212,7 +212,7 @@ let dbPartner = {
                             partnerdata.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
                         }
                         else if (partnerdata.userAgent && partnerdata.userAgent[0]) {
-                            let userAgent = inputData.userAgent[0];
+                            let userAgent = partnerdata.userAgent[0];
                             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                                 if (partnerdata.partner) {
                                     partnerdata.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
@@ -274,6 +274,7 @@ let dbPartner = {
                 deferred.resolve(data);
             },
             function (error) {
+                console.log(error)
                 deferred.reject({
                     name: "DataError",
                     message: "Error in creating partner",
