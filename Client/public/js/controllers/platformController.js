@@ -10512,6 +10512,75 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.drawPromoCodeMonitorTable = function (data, size, summary, newSearch) {
+                let tableOptions = {
+                    data: data,
+                    "order": vm.promoCodeMonitor.aaSorting || [[0, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('ACCOUNT'),
+                            data: "playerName"
+                        },
+                        {
+                            title: $translate('topUpAmount(A)'),
+                            data: "topUpAmount"
+                        },
+                        {
+                            title: $translate('PROMO_REWARD_AMOUNT'),
+                            data: "rewardAmount"
+                        },
+                        {
+                            title: $translate('PROMO_CODE_TYPE'),
+                            data: "promoCodeType"
+                        },
+                        {
+                            title: $translate('requiredConsumption'),
+                            data: "spendingAmount"
+                        },
+                        {
+                            title: $translate('withdrawConsumption'),
+                            data: "consumptionBeforeWithdraw"
+                        },
+                        {
+                            title: $translate('withdrawAmount'),
+                            data: "nextWithdrawAmount"
+                        },
+                        {
+                            title: $translate('playerCredit'),
+                            data: "playerCredit"
+                        },
+                        {
+                            title: $translate('nextTopUpAmount'),
+                            data: "nextTopUpAmount"
+                        },
+                        {
+                            title: $translate('nextWithdrawProposalId'),
+                            data: "nextWithdrawProposalId",
+                        },
+                        {
+                            title: $translate('promoCodeProposalId'),
+                            data: "promoCodeProposalId"
+                        }
+                    ],
+                    "paging": false
+                };
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+
+                let promoCodeMonitorTable = utilService.createDatatableWithFooter('#promoCodeMonitorTable', tableOptions, {}, true);
+
+                vm.promoCodeMonitor.pageObj.init({maxCount: size}, newSearch);
+
+                $('#promoCodeMonitorTable').off('order.dt');
+                $('#promoCodeMonitorTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'promoCodeQuery', vm.getPromoCodeMonitor);
+                });
+                $('#promoCodeMonitorTable').resize();
+            };
+
             vm.applyPromoCode = function () {
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
@@ -10549,18 +10618,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPromoCodesMonitor', sendObj, function (data) {
                     $('#promoCodeMonitorTableSpin').hide();
                     console.log('getPromoCodesMonitor', data);
-                    // vm.promoCodeMonitor.totalCount = data.data.length;
-                    // $scope.safeApply();
-                    // vm.drawPromoCodeHistoryTable(
-                    //     data.data.map(item => {
-                    //         item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
-                    //         item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => e.code);
-                    //         item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
-                    //         item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
-                    //
-                    //         return item;
-                    //     }), data.data.length, {}, isNewSearch
-                    // );
+                    vm.promoCodeMonitor.totalCount = data.data.length;
+                    $scope.safeApply();
+                    vm.drawPromoCodeMonitorTable(data.data, data.data.length, {}, isNewSearch);
                 }, function (err) {
                     console.error(err);
                 }, true);

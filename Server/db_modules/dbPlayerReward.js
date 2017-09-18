@@ -9,6 +9,8 @@ const constProposalUserType = require("./../const/constProposalUserType");
 const constRewardType = require("./../const/constRewardType");
 const constServerCode = require('../const/constServerCode');
 
+const dbPlayerUtil = require('../db_common/dbPlayerUtility');
+
 const dbProposal = require('./../db_modules/dbProposal');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
@@ -1051,6 +1053,8 @@ let dbPlayerReward = {
             }
         ).then(
             promoCodeData => {
+                let delProm = [];
+
                 monitorObjs = promoCodeData.map(p => {
                     return {
                         promoCodeProposalId: p.proposalId,
@@ -1065,19 +1069,71 @@ let dbPlayerReward = {
                     }
                 });
 
-                console.log('monitorObjs', monitorObjs);
+                monitorObjs.forEach((elem, index, arr) => {
+                    delProm.push(dbConfig.collection_proposalType.findOne({
+                        platformId: elem.platformObjId,
+                        name: constProposalType.PLAYER_BONUS
+                    }).then(
+                        propType => {
+                            return dbConfig.collection_proposal.findOne({
+                                'data.platformId': elem.platformObjId,
+                                'data.playerObjId': elem.playerObjId,
+                                type: propType._id,
+                                settleTime: {$gt: elem.acceptedTime},
+                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                            })
+                        }
+                    ).then(
+                        withdrawProp => {
+                            if (withdrawProp) {
+                                monitorObjs[index].nextWithdrawProposalId = withdrawProp.proposalId;
+                                monitorObjs[index].nextWithdrawAmount = withdrawProp.data.amount;
+                                monitorObjs[index].nextWithdrawTime = withdrawProp.settleTime;
+                            }
+                        }
+                    ));
+                });
+
+                return Promise.all(delProm);
+            }
+        ).then(
+            data => {
+                let proms = [];
+
+                monitorObjs = monitorObjs.filter(e => e.nextWithdrawProposalId);
 
                 monitorObjs.forEach((elem, index, arr) => {
-                    dbConfig.collection_proposal.findOne({
-                        'data.platformId': elem.platformObjId,
-                        'data.playerObjId': elem.playerObjId,
-                        settleTime: {$gt: elem.acceptedTime},
-                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                        mainType: {$in: ["TopUp", "Reward"]}
-                    })
-                })
+                    proms.push(
+                        getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
+                            res => {
+                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? res[0].bonusAmount : 0;
 
+                                return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
+                            }
+                        ).then(
+                            creditRes => {
+                                monitorObjs[index].playerCredit = creditRes ? creditRes.gameCredit + creditRes.validCredit + creditRes.lockedCredit : 0;
+
+                                return dbConfig.collection_proposal.find({
+                                    'data.platformId': elem.platformObjId,
+                                    'data.playerObjId': elem.playerObjId,
+                                    settleTime: {$gt: elem.nextWithdrawTime},
+                                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                                    mainType: "TopUp"
+                                }).sort({settleTime: -1}).limit(1).lean();
+                            }
+                        ).then(
+                            topUpRes => {
+                                monitorObjs[index].nextTopUpAmount = topUpRes && topUpRes[0] ? topUpRes[0].data.amount : 0;
+                            }
+                        )
+                    )
+                });
+
+                return Promise.all(proms);
             }
+        ).then(
+            res => monitorObjs
         )
     }
 };
@@ -1237,6 +1293,32 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                     return dbProposal.createProposalWithTypeId(event.executeProposal, proposalData);
                 }
             }
+        }
+    );
+}
+
+function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
+    let matchObj = {
+        platformId: ObjectId(platformId),
+        createTime: {
+            $gte: new Date(dateFrom),
+            $lt: new Date(dateTo)
+        },
+        playerId: ObjectId(playerId)
+    };
+
+    let groupObj = {
+        _id: {playerId: "$playerId", platformId: "$platformId"},
+        validAmount: {$sum: "$validAmount"},
+        bonusAmount: {$sum: "$bonusAmount"}
+    };
+
+    return dbConfig.collection_playerConsumptionRecord.aggregate(
+        {
+            $match: matchObj
+        },
+        {
+            $group: groupObj
         }
     );
 }
