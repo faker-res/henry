@@ -8,10 +8,10 @@
                 label.control-label {{'Start date' | translate}}
                 .startTime
             .inlineBlk
-                 label.control-label {{'End date' | translate}}
-                 .endTime
+                label.control-label {{'End date' | translate}}
+                .endTime
 
-            button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'FeedbackQuery', 'Read')",ng-click='vm.submitSMSRecordQuery(true)') {{"SEARCH" | translate}}
+            button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'vertificationSMS', 'Read')",ng-click='vm.submitSMSRecordQuery(true)') {{"SEARCH" | translate}}
             i#loadVertificationSMSIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
 .row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
     .text-center.text-danger

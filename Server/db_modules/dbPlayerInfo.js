@@ -72,6 +72,7 @@ let dbProposalType = require('./../db_modules/dbProposalType');
 let dbRewardEvent = require('./../db_modules/dbRewardEvent');
 let dbRewardTask = require('./../db_modules/dbRewardTask');
 let dbPlayerCredibility = require('./../db_modules/dbPlayerCredibility');
+let dbPartner = require('../db_modules/dbPartner');
 
 let PLATFORM_PREFIX_SEPARATOR = '';
 
@@ -5504,21 +5505,24 @@ let dbPlayerInfo = {
 
     // report
     getPlayerDomainReport: function (platform, para, index, limit, sortCol) {
+        if (para.playerType === 'Partner') {
+            return dbPartner.getPartnerDomainReport(platform, para, index, limit, sortCol);
+        }
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
         if (sortCol.phoneArea) {
             let sortOrder = sortCol.phoneArea;
             sortCol = {
-                phoneCity: sortOrder,
-                phoneProvince: sortOrder
+                phoneProvince: sortOrder,
+                phoneCity: sortOrder
             }
         }
         else if (sortCol.ipArea) {
             let sortOrder = sortCol.ipArea;
             sortCol = {
-                city: sortOrder,
-                province: sortOrder
+                province: sortOrder,
+                city: sortOrder
             }
         }
         else if (sortCol.os) {
@@ -6905,7 +6909,7 @@ let dbPlayerInfo = {
             path: "type",
             model: dbconfig.collection_proposalType
         }).lean().then(
-            data=> {
+            data => {
                 proposalData = data;
                 return dbconfig.collection_proposal.findOneAndUpdate(
                     {_id: data._id, createTime: data.createTime},
