@@ -7640,7 +7640,8 @@ define(['js/app'], function (myApp) {
                         trustLevel: "all",
                         lastLogin: "0",
                         lastFeedback: "0",
-                        topUpTimes: "-1"
+                        topUpTimes: "-1",
+                        isNewSystem: ""
                     };
                 vm.feedbackPlayersPara = {numPerPage: '1'};
                 vm.feedbackPlayersPara.index = 1;
@@ -7723,6 +7724,13 @@ define(['js/app'], function (myApp) {
                             break;
                     }
                 }
+
+                if (vm.playerFeedbackQuery.isNewSystem === 'old') {
+                    sendQuery.isNewSystem = {$ne : true};
+                } else if (vm.playerFeedbackQuery.isNewSystem === 'new') {
+                    sendQuery.isNewSystem = true;
+                }
+
                 console.log('sendQuery', sendQuery);
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
                     query: sendQuery,

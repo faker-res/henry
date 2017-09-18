@@ -387,8 +387,8 @@
                         option(value=5) {{'APP Player'|translate}}
                         option(value=6) {{'APP Agent'|translate}}
                 div
-                    label {{"SYSTEM_PLAYER"|translate}}
-                    select.form-control(ng-model="vm.playerDomain.isNewSystem")
+                    label(ng-hide="true") {{"SYSTEM_PLAYER"|translate}}
+                    select.form-control(ng-model="vm.playerDomain.isNewSystem", ng-hide="true")
                         option(value='') {{'all'|translate}}
                         option(value='new') {{'NEW_SYSTEM'|translate}}
                         option(value='old') {{'OLD_SYSTEM'|translate}}
