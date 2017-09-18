@@ -386,6 +386,19 @@ var roleChecker = {
                 Read: ['sendSMStoNumber'],
                 SMSSendLog: ['searchSMSLog'],
                 SendGroupMessage: []
+            },
+            "vertificationSMS": {
+                Read: ['vertificationSMSQuery']
+            },
+            "promoCode": {
+                Read: ['getPromoCodeTypes'],
+                createPromoCode: ['generatePromoCode'],
+                promoCodeHistory: ['getPromoCodesHistory'],
+                monitor: [],
+                smsContentConfig: [],
+                userGroupConfig: [],
+                activatePromoCode: [],
+                applyPromoCode: [],
             }
         },
         Payment: {

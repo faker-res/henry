@@ -1197,6 +1197,7 @@ define(['js/app'], function (myApp) {
             delete vm.selectedProposalDetailForDisplay.playerLevelName;
             delete vm.selectedProposalDetailForDisplay.playerLevelValue;
             delete vm.selectedProposalDetailForDisplay.devCheckMsg;
+            delete vm.selectedProposalDetailForDisplay.useLockedCredit;
             // delete vm.selectedProposalDetailForDisplay.remark;
             function canCancelProposal(proposal) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;

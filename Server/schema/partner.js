@@ -137,7 +137,11 @@ var partnerSchema = new Schema({
     // partner status normal or forbid
     status: {type: Number, default: constPartnerStatus.NORMAL, index: true},
     //is new system user
-    isNewSystem: {type: Boolean}
+    isNewSystem: {type: Boolean},
+    // interface that used to register this account
+    registrationInterface: {type: Number, default: 0},
+    // the number of times where partner login
+    loginTimes: {type: Number, default: 0}
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));

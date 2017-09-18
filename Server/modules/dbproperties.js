@@ -137,6 +137,11 @@ let platformQuickPayGroupModel = db_admin.model('platformQuickPayGroup', platfor
 let playerCredibilityRemarkSchema = require('../schema/playerCredibilityRemark');
 let playerCredibilityRemarkModel = db_admin.model('playerCredibilityRemark', playerCredibilityRemarkSchema, 'playerCredibilityRemark');
 
+let promoCodeTypeSchema = require('./../schema/promoCodeType');
+let promoCodeTypeModel = db_admin.model('promoCodeType', promoCodeTypeSchema, 'promoCodeType');
+let promoCodeUserGroupSchema = require('./../schema/promoCodeUserGroup');
+let promoCodeUserGroupModel = db_admin.model('promoCodeUserGroup', promoCodeUserGroupSchema, 'promoCodeUserGroup');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -245,6 +250,8 @@ let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
 let smsVerificationLogModel = dbLogs.model('smsVerificationLog', smsVerificationLogSchema, 'smsVerificationLog');
 let playerCreditsDailyLogSchema = require('./../schema/logs/playerCreditsDailyLog');
 let playerCreditsDailyLogModel = dbLogs.model('playerCreditsDailyLog', playerCreditsDailyLogSchema, 'playerCreditsDailyLog');
+let promoCodeSchema = require('./../schema/logs/promoCode');
+let promoCodeModel = dbLogs.model('promoCode', promoCodeSchema, 'promoCode');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -338,6 +345,8 @@ var dbProperties = {
     collection_partnerCommissionConfig: partnerCommissionConfigModel,
 
     collection_geoIp: geoIpModel,
+    collection_promoCodeType: promoCodeTypeModel,
+    collection_promoCodeUserGroup: promoCodeUserGroupModel,
 
     //logs
     collection_playerMail: playerMailModel,
@@ -383,6 +392,7 @@ var dbProperties = {
     collection_partnerPermissionLog: partnerPermissionLogModel,
     collection_partnerStatusChangeLog: partnerStatusChangeLogModal,
     collection_apiLog: apiLogModel,
+    collection_promoCode: promoCodeModel,
 
     //unique
     collection_playerName: playerNameModal,

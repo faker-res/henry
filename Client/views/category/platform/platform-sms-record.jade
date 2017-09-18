@@ -1,0 +1,23 @@
+.row
+    .col-md-12
+        .well#smsRecordQueryDiv
+            .inlineBlk
+                label.control-label {{'PHONENUMBER' | translate}}
+                input.form-control(ng-model='vm.smsRecordQuery.phoneNumber', placeholder="{{'SEARCH' | translate}}" ng-blur="vm.submitSMSRecordQuery(true)")
+            .inlineBlk
+                label.control-label {{'Start date' | translate}}
+                .startTime
+            .inlineBlk
+                label.control-label {{'End date' | translate}}
+                .endTime
+
+            button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'vertificationSMS', 'Read')",ng-click='vm.submitSMSRecordQuery(true)') {{"SEARCH" | translate}}
+            i#loadVertificationSMSIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
+.row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
+    .text-center.text-danger
+        label {{"NO_PLATFORM_MESSAGE" | translate}}
+.row.margin-top-bottom-small(ng-show='vm.selectedPlatform')
+    .col-md-12
+        label.margin-left-5 {{"total" | translate}} {{vm.smsRecordQuery.totalCount}} {{"records" | translate}}
+        table#vertificationSMSRecordTable.display.common-table(style='min-width:100%;width:100%')
+        #vertificationSMSRecordTablePage
