@@ -10857,6 +10857,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
                 vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
                 vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
+                vm.platformBasic.requireCaptchaInSMS = vm.selectedPlatform.data.requireCaptchaInSMS;
                 vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
                 vm.platformBasic.useLockedCredit = vm.selectedPlatform.data.useLockedCredit;
                 $scope.safeApply();
@@ -11222,6 +11223,7 @@ define(['js/app'], function (myApp) {
                         bonusPercentageCharges: srcData.bonusPercentageCharges,
                         bonusCharges: srcData.bonusCharges,
                         requireLogInCaptcha: srcData.requireLogInCaptcha,
+                        requireCaptchaInSMS: srcData.requireCaptchaInSMS,
                         onlyNewCanLogin: srcData.onlyNewCanLogin,
                         useLockedCredit: srcData.useLockedCredit,
                         playerNameMaxLength: srcData.playerNameMaxLength,
