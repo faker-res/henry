@@ -224,10 +224,10 @@
                             .endAcceptedTime
                         div
                             label &nbsp;
-                            button.btn.btn-warning(ng-click='vm.resetTopUpMonitorQuery()') {{'Reset' | translate}}
+                            button.btn.btn-success(ng-click='vm.getPromoCodeHistory(true, 1)') {{'SEARCH_CREATETIME' | translate}}
                         div
                             label &nbsp;
-                            button.btn.btn-success(ng-click='vm.getPromoCodeHistory(true)') {{'SEARCH' | translate}}
+                            button.btn.btn-success(ng-click='vm.getPromoCodeHistory(true, 2)') {{'SEARCH_ACCEPTEDTIME' | translate}}
                             span#promoCodeHistoryTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
@@ -238,9 +238,17 @@
                     .col-md-12.playerBtn
                         hr.margin-top-bottom-small
                         .btn-group.margin-small
-                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-click='vm.applyPromoCode()')
                                 text {{"APPLY" | translate}}
                                 img.img-edit
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-click='vm.sendSMSByPromoCode()')
+                                text {{"sendSMS" | translate}}
+                                img.img-edit
+                        hr.margin-top-bottom-small
+                            .btn-group.margin-small
+                                button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
+                                    text {{"APPLY" | translate}}
+                                    img.img-edit
 
                 //Tab - Promo Code Monitor
                 div(ng-if='vm.selectedPromoCodeTab=="monitor" && checkViewPermission("Platform", "promoCode", "monitor")')

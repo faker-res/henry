@@ -10198,7 +10198,7 @@ define(['js/app'], function (myApp) {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
                             });
-                            vm.promoCodeQuery.startCreateTime.data('datetimepicker').setDate(new Date(), 1);
+                            vm.promoCodeQuery.startCreateTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                             vm.promoCodeQuery.endCreateTime = utilService.createDatePicker('#promoCodeQuery .endCreateTime', {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
@@ -10208,7 +10208,7 @@ define(['js/app'], function (myApp) {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
                             });
-                            vm.promoCodeQuery.startAcceptedTime.data('datetimepicker').setDate(new Date(), 1);
+                            vm.promoCodeQuery.startAcceptedTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                             vm.promoCodeQuery.endAcceptedTime = utilService.createDatePicker('#promoCodeQuery .endAcceptedTime', {
                                 language: 'en',
                                 format: 'yyyy/MM/dd hh:mm:ss'
@@ -10375,25 +10375,32 @@ define(['js/app'], function (myApp) {
                 return p;
             };
 
-            vm.getPromoCodeHistory = function (isNewSearch) {
+            vm.getPromoCodeHistory = function (isNewSearch, type) {
                 vm.promoCodeQuery.platformId = vm.selectedPlatform.id;
                 $('#promoCodeHistoryTableSpin').show();
 
                 vm.promoCodeQuery.index = isNewSearch ? 0 : (vm.promoCodeQuery.index || 0);
 
                 let sendObj = {
-                    playerName: vm.promoCodeQuery.playerName,
                     promoCodeType: vm.promoCodeQuery.promoCodeType,
                     status: vm.promoCodeQuery.status,
-                    startCreateTime: vm.promoCodeQuery.startCreateTime.data('datetimepicker').getLocalDate(),
-                    endCreateTime: vm.promoCodeQuery.endCreateTime.data('datetimepicker').getLocalDate(),
-                    startAcceptedTime: vm.promoCodeQuery.startAcceptedTime.data('datetimepicker').getLocalDate(),
-                    endAcceptedTime: vm.promoCodeQuery.endAcceptedTime.data('datetimepicker').getLocalDate(),
                     platformObjId: vm.promoCodeQuery.platformId,
                     index: vm.promoCodeQuery.index || 0,
                     limit: vm.promoCodeQuery.limit || 10,
                     sortCol: vm.promoCodeQuery.sortCol
                 };
+
+                if (vm.promoCodeQuery.playerName && vm.promoCodeQuery.playerName.length) {
+                    sendObj.playerName = vm.promoCodeQuery.playerName;
+                }
+
+                if (type == 1) {
+                    sendObj.startCreateTime = vm.promoCodeQuery.startCreateTime.data('datetimepicker').getLocalDate();
+                    sendObj.endCreateTime = vm.promoCodeQuery.endCreateTime.data('datetimepicker').getLocalDate();
+                } else {
+                    sendObj.startAcceptedTime = vm.promoCodeQuery.startAcceptedTime.data('datetimepicker').getLocalDate();
+                    sendObj.endAcceptedTime = vm.promoCodeQuery.endAcceptedTime.data('datetimepicker').getLocalDate();
+                }
 
                 console.log('sendObj', sendObj);
 
@@ -10418,9 +10425,23 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.resetTopUpMonitorQuery = function () {
-                $scope.safeApply();
-            };
+            vm.sendSMSByPromoCode = function () {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log('getPromoCodeTypes', data);
+
+                    data.data.forEach(entry => {
+                        if (entry.type == 1) {
+                            vm.promoCodeType1.push(entry);
+                        } else if (entry.type == 2) {
+                            vm.promoCodeType2.push(entry);
+                        } else if (entry.type == 3) {
+                            vm.promoCodeType3.push(entry);
+                        }
+                    });
+
+                    $scope.safeApply();
+                });
+            }
 
             vm.drawPromoCodeHistoryTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
