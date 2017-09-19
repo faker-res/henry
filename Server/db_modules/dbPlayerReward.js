@@ -873,19 +873,22 @@ let dbPlayerReward = {
         )
     },
 
-    savePromoCodeUserGroup: (platformObjId, groupData) => {
+    savePromoCodeUserGroup: (platformObjId, data, isDelete) => {
         let saveArr = [];
 
-        if (groupData && groupData.length > 0) {
-            groupData.map(grp => {
-                grp.platformObjId = platformObjId;
-                saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
-                    platformObjId: platformObjId,
-                    name: grp.name
-                }, grp, {upsert: true}));
-            });
+        if (isDelete) {
+            return dbConfig.collection_promoCodeUserGroup.remove({_id: data});
+        } else {
+            if (data && data.length > 0) {
+                data.map(grp => {
+                    grp.platformObjId = platformObjId;
+                    saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
+                        platformObjId: platformObjId,
+                        name: grp.name
+                    }, grp, {upsert: true}));
+                });
+            }
         }
-        ;
 
         return Promise.all(saveArr);
     },

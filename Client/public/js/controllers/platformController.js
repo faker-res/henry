@@ -10246,6 +10246,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'userGroupConfig':
                         vm.getPromoCodeUserGroup();
+
+                        vm.newPromoCodeUserGroup = {};
+                        vm.newUserPromoCodeUserGroup = {};
                         break;
                 }
             };
@@ -10715,7 +10718,7 @@ define(['js/app'], function (myApp) {
                 // *** Next time let's do that! ***
             };
 
-            vm.savePromoCodeUserGroup = function () {
+            vm.savePromoCodeUserGroup = function (isDelete, index) {
                 console.log('userGroupConfig', vm.userGroupConfig);
 
                 let sendData = {
@@ -10723,7 +10726,52 @@ define(['js/app'], function (myApp) {
                     groupData: vm.userGroupConfig
                 };
 
-                socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                if (isDelete) {
+                    let deleteData = {
+                        platformObjId: vm.selectedPlatform.id,
+                        deleteData: index
+                    };
+                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
+                } else {
+                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                }
+            };
+
+            vm.searchPromoCodeUserGroup = function (s, isRet) {
+                let exists = false;
+
+                vm.userGroupConfig.map(e => {
+                    e.playerNames.map(el => {
+                        if (el == s) {
+                            vm.newUserPromoCodeUserGroup.oldGroup = e;
+                            exists = true;
+                        }
+                    })
+                });
+
+                if (isRet) {
+                    return exists;
+                } else {
+                    vm.selectedPromoCodeUserGroup = e;
+                }
+            };
+
+            vm.addUserToPromoCodeGroup = function (data, isSkipCheck) {
+                if (vm.searchPromoCodeUserGroup(data, true) && !isSkipCheck) {
+                    vm.newUserPromoCodeUserGroup.newGroup = vm.selectedPromoCodeUserGroup;
+                    $('#modalYesNo').modal();
+                } else {
+                    if (isSkipCheck) {
+                        vm.newUserPromoCodeUserGroup.oldGroup.playerNames.splice(vm.newUserPromoCodeUserGroup.oldGroup.playerNames.indexOf(data), 1);
+                        vm.newUserPromoCodeUserGroup.newGroup.playerNames.push(data);
+                        vm.newUserPromoCodeUserGroup = null;
+                    } else {
+                        vm.selectedPromoCodeUserGroup.playerNames.push(data);
+                        vm.newUserPromoCodeUserGroup = null;
+                    }
+
+                    data = null;
+                }
             };
 
             vm.getPromoCodeUserGroup = function () {

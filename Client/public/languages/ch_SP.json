@@ -1192,6 +1192,9 @@
   "EXPIRED": "已过期",
   "SEARCH_CREATETIME": "搜索生成时间",
   "SEARCH_ACCEPTEDTIME": "搜索领取时间",
+  "MOVE_PLAYER": "移动玩家",
+  "already exist in group": "已存在于",
+  ", Are you sure you want to move player to group": "，请问是否移动至",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
