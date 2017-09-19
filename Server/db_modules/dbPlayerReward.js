@@ -790,6 +790,46 @@ let dbPlayerReward = {
             )
         });
     },
+    getPromoCode: (playerId, platformId, status) => {
+      let platformData = null;
+      return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
+      .then(
+          platformRecord=>{
+            if(platformRecord){
+              platformData = platformRecord;
+              return dbConfig.collection_players.findOne({
+                  playerId: playerId,
+                  platform: ObjectId(platformRecord._id)
+              })
+            }else{
+              return Q.reject({name: "DataError", message: "Player Not Found"});
+            }
+       })
+       .then(
+         playerRecord=>{
+           if(playerRecord && playerRecord._id){
+               var query = {
+                   playerObjId:playerRecord._id,
+                   platformObjId:platformData._id
+               }
+               if(status){
+                 query = {
+                   'playerObjId':playerRecord._id,
+                   'platformObjId':platformData._id,
+                   'promoCodeTypeObjId.type':status
+                 }
+
+               }
+               return dbConfig.collection_promoCode.find(query)
+                 .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
+                 .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean();
+           }else{
+             return Q.reject({name: "DataError", message: "Platform Not Found"});
+           }
+         }
+       )
+
+    },
 
     getPromoCodesHistory: (searchQuery) => {
         return dbConfig.collection_players.findOne({
