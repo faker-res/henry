@@ -56,8 +56,9 @@ function socketActionPromoCode(socketIO, socket) {
 
         savePromoCodeUserGroup: function savePromoCodeUserGroup(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.groupData);
-            socketUtil.emitter(self.socket, dbPlayerReward.savePromoCodeUserGroup, [ObjectId(data.platformObjId), data.groupData], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && (data.groupData || data.deleteData));
+            let isDelete = Boolean(data.deleteData);
+            socketUtil.emitter(self.socket, dbPlayerReward.savePromoCodeUserGroup, [ObjectId(data.platformObjId), isDelete ? data.deleteData : data.groupData, isDelete], actionName, isValidData);
         },
 
         getPromoCodeUserGroup: function getPromoCodeUserGroup(data) {
