@@ -913,5 +913,13 @@
   "CREDIBILITY_NAME": "Remark",
 
   "PHONE_LOCATION": "Phone Location",
-  "IP_LOCATION": "IP Location"
+  "IP_LOCATION": "IP Location",
+  "LOBBY": "Lobby",
+  "DEPOSIT_COUNT": "Deposit Count",
+  "TOTAL_DEPOSIT": "Total Deposit",
+  "WITHDRAW_COUNT": "Withdrawal Count",
+  "WITHDRAW_AMOUNT":"Withdrawal Amount",
+  "PROMOTION": "Promotion",
+  "CONSUMPTION_RETURN_AMOUNT": "Consumption Return Amount",
+  "COMPANY_PROFIT": "Company Profit"
 }
