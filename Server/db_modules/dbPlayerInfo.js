@@ -272,44 +272,6 @@ let dbPlayerInfo = {
                             proms.push(domainProm);
                         }
 
-                        // determine registrationInterface
-                        if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
-                            inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
-                        }
-                        else if (inputData.userAgent && inputData.userAgent[0]) {
-                            let userAgent = inputData.userAgent[0];
-                            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
-                                if (inputData.partner) {
-                                    inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
-                                }
-                                else {
-                                    inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
-                                }
-                            }
-                            else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
-                                if (inputData.partner) {
-                                    inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
-                                }
-                                else {
-                                    inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
-                                }
-                            }
-                            else {
-                                if (inputData.partner) {
-                                    inputData.registrationInterface = constPlayerRegistrationInterface.WEB_AGENT;
-                                }
-                                else {
-                                    inputData.registrationInterface = constPlayerRegistrationInterface.WEB_PLAYER;
-                                }
-                            }
-                        }
-                        else {
-                            inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
-                        }
-
-                        if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
-                            inputData.loginTimes = 1;
-                        }
 
                         return Q.all(proms);
                     } else {
@@ -322,6 +284,45 @@ let dbPlayerInfo = {
                 }
             ).then(
                 data => {
+                    // determine registrationInterface
+                    if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
+                        inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                    }
+                    else if (inputData.userAgent && inputData.userAgent[0]) {
+                        let userAgent = inputData.userAgent[0];
+                        if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                            if (inputData.partner) {
+                                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                            }
+                            else {
+                                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                            }
+                        }
+                        else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
+                            if (inputData.partner) {
+                                inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
+                            }
+                            else {
+                                inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
+                            }
+                        }
+                        else {
+                            if (inputData.partner) {
+                                inputData.registrationInterface = constPlayerRegistrationInterface.WEB_AGENT;
+                            }
+                            else {
+                                inputData.registrationInterface = constPlayerRegistrationInterface.WEB_PLAYER;
+                            }
+                        }
+                    }
+                    else {
+                        inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+                    }
+
+                    if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
+                        inputData.loginTimes = 1;
+                    }
+
                     return dbPlayerInfo.createPlayerInfo(inputData);
                 }
             ).then(
@@ -5549,6 +5550,12 @@ let dbPlayerInfo = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
+
+        if (para.isNewSystem === 'old') {
+            query.isNewSystem = {$ne : true};
+        } else if (para.isNewSystem === 'new') {
+            query.isNewSystem = true;
+        }
 
         switch (para.playerType) {
             case 'Test Player':

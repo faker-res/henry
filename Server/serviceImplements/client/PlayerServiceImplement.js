@@ -66,12 +66,14 @@ let PlayerServiceImplement = function () {
             if (data.qq && !data.email) {
                 data.email = data.qq + "@qq.com";
             }
-            // let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
+            //for partner player registration
+            let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
             conn.captchaCode = null;
             data.isOnline = true;
             let inputData = Object.assign({}, data);
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData], isValidData, true, true, true).then(
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode], isValidData, true, true, true).then(
                 (playerData) => {
+                    console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     conn.isAuth = true;
                     conn.playerId = playerData.playerId;
@@ -111,6 +113,7 @@ let PlayerServiceImplement = function () {
                         resObj.errorMessage = err.errMessage || resObj.errorMessage;
                         wsFunc.response(conn, resObj, data);
                     }
+                    console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                 }
             ).catch(WebSocketUtil.errorHandler)
@@ -810,8 +813,10 @@ let PlayerServiceImplement = function () {
         let randomCode = parseInt(Math.random() * 9000 + 1000);
         conn.phoneNumber = data.phoneNumber;
         conn.smsCode = randomCode;
+        let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
+        conn.captchaCode = null;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation], isValidData, false, false, true);
     };
 
     this.sendSMSCodeToPlayer.expectsData = 'platformId: String';

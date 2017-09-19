@@ -30,7 +30,8 @@
                                 th(style="width:150px") {{"ACCOUNT" | translate}}
                                 th(style="width:150px") {{"PROMO_CODE_TYPE_1" | translate}}
                                 th(style="width:100px") {{"PROMO_REWARD_AMOUNT" | translate}}
-                                th(style="width:100px") {{"PROMO_CONSUMPTION" | translate}}
+                                th(style="width:90px") {{"minTopUpAmount" | translate}}
+                                th(style="width:90px") {{"PROMO_CONSUMPTION" | translate}}
                                 th(style="width:150px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:100px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
                                 th(style="width:150px") {{"ALLOWED_PROVIDER" | translate}}
@@ -42,11 +43,13 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode1')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName', ng-disabled="promoCode.code")
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable1')", ng-disabled="promoCode.code")
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1', ng-disabled="promoCode.code")
                                 td
                                     input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code")
                                 td
                                     input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code")
                                 td
@@ -95,32 +98,38 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode2')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName')
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable2')", ng-disabled="promoCode.code")
                                 td
-                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1')
+                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType2', ng-disabled="promoCode.code")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount')
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption')
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code")
                                 td
-                                    div(id="expDate2-{{$index}}")
+                                    div(id="expDate2-{{$index}}", ng-disabled="promoCode.code")
                                 td
-                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true")
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="promoCode.code")
                                     text {{'Yes' | translate}}
-                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false")
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
                                     text {{'No' | translate}}
                                 td
-                                    select.pull-left.form-control(id="promoProviders2-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider")
+                                    select.pull-left.form-control(id="promoProviders2-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider", ng-disabled="promoCode.code")
                                 td
-                                    input.form-control(type='string', ng-model='promoCode.bannerText')
+                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
                                 td
-                                    button.btn.btn-primary(ng-click='vm.generatePromoCode(promoCode);')
+                                    text(ng-if="promoCode.code") {{promoCode.code}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
                                         text {{'GENERATE' | translate}}
                                 td
-                                    text test
+                                    text {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode2, 2)')
-
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode2)")
+                            text {{'GENERATE_ALL' | translate}}
+                            img.img-create
+                    br
                     br
                     table#createPromoCodeTable3.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
@@ -174,21 +183,9 @@
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)')
                     br
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI();')
-                            text {{'ADD_LEVEL' | translate}}
+                        button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode3)")
+                            text {{'GENERATE_ALL' | translate}}
                             img.img-create
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player")')
-                            text {{'EDIT' | translate}}
-                            img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player")')
-                            text {{"CANCEL" | translate}}
-                            .fa.fa-ban
-                        button.btn.btn-primary.common-button(ng-if="vm.configTableAdd", ng-disabled='formPlatformConfigPlayerLevel.$invalid || !vm.configAddPlayerLevelValid()', ng-click='vm.configTableAdd=false; vm.submitAddPlayerLvl()')
-                            text {{"SUBMIT" | translate}}
-                            .fa.fa-check
-                        button.btn.btn-primary.common-button(ng-if="vm.configTableEdit", ng-disabled='formPlatformConfigPlayerLevel.$invalid || !vm.configPlayerLevelTableIsValid()', ng-click='vm.configTableEdit=false; vm.configSubmitUpdate("player")')
-                            text {{"CONFIRM" | translate}}
-                            .fa.fa-check
 
                 // Tab - Promo Code History
                 div(ng-if='vm.selectedPromoCodeTab=="history" && checkViewPermission("Platform", "promoCode", "promoCodeHistory")')
@@ -224,10 +221,10 @@
                             .endAcceptedTime
                         div
                             label &nbsp;
-                            button.btn.btn-warning(ng-click='vm.resetTopUpMonitorQuery()') {{'Reset' | translate}}
+                            button.btn.btn-success(ng-click='vm.getPromoCodeHistory(true, 1)') {{'SEARCH_CREATETIME' | translate}}
                         div
                             label &nbsp;
-                            button.btn.btn-success(ng-click='vm.getPromoCodeHistory(true)') {{'SEARCH' | translate}}
+                            button.btn.btn-success(ng-click='vm.getPromoCodeHistory(true, 2)') {{'SEARCH_ACCEPTEDTIME' | translate}}
                             span#promoCodeHistoryTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
@@ -239,6 +236,14 @@
                         hr.margin-top-bottom-small
                         .btn-group.margin-small
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
+                                text {{"APPLY" | translate}}
+                                img.img-edit
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.sendSMSByPromoCode()')
+                                text {{"sendSMS" | translate}}
+                                img.img-edit
+                        hr.margin-top-bottom-small
+                        .btn-group.margin-small
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
                                 text {{"APPLY" | translate}}
                                 img.img-edit
 
