@@ -9,7 +9,7 @@ var Q = require('q');
 var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 var SMSSender = require('../../modules/SMSSender');
 var constServerCode = require('./../../const/constServerCode');
-
+const ObjectId = mongoose.Types.ObjectId;
 const dbPlayerReward = require('./../../db_modules/dbPlayerReward');
 
 let RewardServiceImplement = function () {
@@ -116,8 +116,8 @@ let RewardServiceImplement = function () {
     };
     this.applyPromoCode.expectsData = 'platformObjId: String';
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){
-        let isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [data.platformObjId, data.playerName, data.promoCode, data.adminInfo], isValidData, false, false, true);
+        let isValidData = Boolean(data && data.playerName && data.promoCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [ObjectId(data.platformObjId), data.playerName, data.promoCode], isValidData, false, false, true);
     };
 };
 

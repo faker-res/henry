@@ -176,12 +176,13 @@
         this.rewardService.getTopUpPromoList.request(data);
         this.rewardService.getTopUpPromoList.once(callback);
     };
-
+    
     proto.getPromoCode = function (callback, requestData) {
         let data = requestData || {};
         this.rewardService.getPromoCode.request(data);
         this.rewardService.getPromoCode.once(callback);
     };
+
     proto.applyPromoCode = function (callback, requestData) {
         let data = requestData || {};
         this.rewardService.applyPromoCode.request(data);

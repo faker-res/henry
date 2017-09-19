@@ -816,12 +816,7 @@ let dbPlayerReward = {
                    platformObjId:platformData._id
                }
                if(status){
-                 query = {
-                   'playerObjId':playerRecord._id,
-                   'platformObjId':platformData._id,
-                   'promoCodeTypeObjId.type':status
-                 }
-
+                   query.status = status;
                }
                return dbConfig.collection_promoCode.find(query)
                  .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
@@ -934,14 +929,12 @@ let dbPlayerReward = {
 
     applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;
-
         return dbConfig.collection_players.findOne({
             platform: platformObjId,
             name: playerName
         }).then(
             playerData => {
                 playerObj = playerData;
-
                 return dbConfig.collection_promoCode.find({
                     platformObjId: platformObjId,
                     playerObjId: playerObj._id,
