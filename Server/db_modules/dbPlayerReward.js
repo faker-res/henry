@@ -793,6 +793,41 @@ let dbPlayerReward = {
             )
         });
     },
+    getPromoCode: (playerId, platformId, status) => {
+      let platformData = null;
+      return dbConfig.collection_platform.findOne({platformId: platformId}).exec()
+      .then(
+          platformRecord=>{
+            if(platformRecord){
+              platformData = platformRecord;
+              return dbConfig.collection_players.findOne({
+                  playerId: playerId,
+                  platform: ObjectId(platformRecord._id)
+              })
+            }else{
+              return Q.reject({name: "DataError", message: "Player Not Found"});
+            }
+       })
+       .then(
+         playerRecord=>{
+           if(playerRecord && playerRecord._id){
+               var query = {
+                   playerObjId:playerRecord._id,
+                   platformObjId:platformData._id
+               }
+               if(status){
+                   query.status = status;
+               }
+               return dbConfig.collection_promoCode.find(query)
+                 .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
+                 .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean();
+           }else{
+             return Q.reject({name: "DataError", message: "Platform Not Found"});
+           }
+         }
+       )
+
+    },
 
     getPromoCodesHistory: (searchQuery) => {
         return dbConfig.collection_players.findOne({
@@ -873,19 +908,22 @@ let dbPlayerReward = {
         )
     },
 
-    savePromoCodeUserGroup: (platformObjId, groupData) => {
+    savePromoCodeUserGroup: (platformObjId, data, isDelete) => {
         let saveArr = [];
 
-        if (groupData && groupData.length > 0) {
-            groupData.map(grp => {
-                grp.platformObjId = platformObjId;
-                saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
-                    platformObjId: platformObjId,
-                    name: grp.name
-                }, grp, {upsert: true}));
-            });
+        if (isDelete) {
+            return dbConfig.collection_promoCodeUserGroup.remove({_id: data});
+        } else {
+            if (data && data.length > 0) {
+                data.map(grp => {
+                    grp.platformObjId = platformObjId;
+                    saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
+                        platformObjId: platformObjId,
+                        name: grp.name
+                    }, grp, {upsert: true}));
+                });
+            }
         }
-        ;
 
         return Promise.all(saveArr);
     },
@@ -894,14 +932,12 @@ let dbPlayerReward = {
 
     applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;
-
         return dbConfig.collection_players.findOne({
             platform: platformObjId,
             name: playerName
         }).then(
             playerData => {
                 playerObj = playerData;
-
                 return dbConfig.collection_promoCode.find({
                     platformObjId: platformObjId,
                     playerObjId: playerObj._id,

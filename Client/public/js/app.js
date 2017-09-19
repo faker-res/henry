@@ -16,7 +16,8 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
         'flowChart',
         'LocalStorageModule',
         'datePicker',
-        'ui.router'
+        'ui.router',
+        'colorpicker.module'
     );
 
     myApp.config(['$controllerProvider',
