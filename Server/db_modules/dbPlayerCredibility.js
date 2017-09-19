@@ -257,7 +257,7 @@ let dbPlayerCredibility = {
                     player = playerData;
 
                     let platformProm = dbconfig.collection_platform.findOne({_id: player.platform}).lean();
-                    let gameTypeProm = dbconfig.collection_playerConsumptionRecord.distinct("gameId", {playerId: player._id});
+                    // let gameTypeProm = dbconfig.collection_playerConsumptionRecord.distinct("gameId", {playerId: player._id});
                     let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: player.playerLevel}).lean();
                     let playerRemarksProm = dbconfig.collection_playerCredibilityRemark.find({_id:{$in:player.credibilityRemarks}}).lean();
                     let winRatioProm = dbconfig.collection_playerConsumptionRecord.aggregate([
@@ -271,22 +271,23 @@ let dbPlayerCredibility = {
                         }
                     ]);
 
-                    return Promise.all([platformProm, gameTypeProm, playerLevelProm, playerRemarksProm, winRatioProm]);
+                    return Promise.all([platformProm,/* gameTypeProm,*/ playerLevelProm, playerRemarksProm, winRatioProm]);
                 }
             ).then(
                 data => {
                     platform = data[0];
-                    let gameTypeCount = data[1].length;
-                    let playerLevel = data[2];
-                    let playerRemarks = data[3];
-                    let consumptionSummary = data[4][0];
+                    // let gameTypeCount = data[1].length;
+                    let numProviderPlayed = player.gameProviderPlayed ? player.gameProviderPlayed.length : 0;
+                    let playerLevel = data[1];
+                    let playerRemarks = data[2];
+                    let consumptionSummary = data[3][0];
 
                     if (!platform.playerValueConfig) {
                         return {};
                     }
 
                     let topUpTimesScore = calculateTopUpTimesScore(platform.playerValueConfig.topUpTimesScores, player.topUpTimes);//) * platform.playerValueConfig.criteriaScoreRatio.topUpTimes;
-                    let gameTypeScore = calculateGameTypeCountScore(platform.playerValueConfig.gameTypeCountScores, gameTypeCount);
+                    let gameTypeScore = calculateGameTypeCountScore(platform.playerValueConfig.gameTypeCountScores, numProviderPlayed);
                     let remarkScore = calculateRemarksScore(platform.playerValueConfig.credibilityScoreDefault, playerRemarks);
                     let playerLevelScore = playerLevel.playerValueScore || 2;
                     let winRatioScore = consumptionSummary
