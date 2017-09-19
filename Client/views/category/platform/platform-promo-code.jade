@@ -151,7 +151,7 @@
                         tbody
                             tr(ng-repeat='promoCode in vm.newPromoCode3')
                                 td
-                                    textarea.form-control(ng-model='promoCode.playerName', ng-disabled="promoCode.code")
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable3')", ng-disabled="promoCode.code")
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType3', ng-disabled="promoCode.code")
                                 td
@@ -243,7 +243,7 @@
                                 img.img-edit
                         hr.margin-top-bottom-small
                         .btn-group.margin-small
-                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.promoCodeQuery.totalCount", ng-click='vm.applyPromoCode()')
                                 text {{"APPLY" | translate}}
                                 img.img-edit
 
