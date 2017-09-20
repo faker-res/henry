@@ -1153,6 +1153,7 @@
   "promoCode": "优惠代码",
   "CREATE_PROMO_CODE": "生成优惠代码",
   "PROMO_CODE_TYPE": "优惠類型",
+  "PROMO_CODE_SUB_TYPE": "优惠子類型",
   "PROMO_CODE_TYPE_1": "优惠類型-B(需存款)",
   "PROMO_CODE_TYPE_2": "优惠類型-B(不存款)",
   "PROMO_CODE_TYPE_3": "优惠类型-C",
@@ -1195,6 +1196,8 @@
   "MOVE_PLAYER": "移动玩家",
   "already exist in group": "已存在于",
   ", Are you sure you want to move player to group": "，请问是否移动至",
+  "Send all unaccepted promo code to members?": "是否发送给所有尚未领取优惠的会员？",
+  "Send Promo Code SMS": "发送优惠代码短信",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
