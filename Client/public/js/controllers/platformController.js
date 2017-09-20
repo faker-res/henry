@@ -9449,7 +9449,9 @@ define(['js/app'], function (myApp) {
                             if (dateTimeRegex.test(inputFieldValue)) {
                                 $("#rewardValidStartTime").datetimepicker('update');
                             }else{
+                              if(inputFieldValue==''){
                                 $("#rewardValidStartTime").datetimepicker('setDate',null);
+                              }
                             }
                             vm.showReward.validStartTime = $("#rewardValidStartTime").data('datetimepicker').getLocalDate();
                             checkValidTime();
@@ -9461,7 +9463,9 @@ define(['js/app'], function (myApp) {
                             if (dateTimeRegex.test(inputFieldValue)) {
                                 $("#rewardValidEndTime").datetimepicker('update');
                             }else{
-                              $("#rewardValidEndTime").datetimepicker('setDate',null);
+                              if(inputFieldValue==''){
+                                $("#rewardValidEndTime").datetimepicker('setDate',null);
+                              }
                             }
                             vm.showReward.validEndTime = $("#rewardValidEndTime").data('datetimepicker').getLocalDate();
                             checkValidTime();
