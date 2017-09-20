@@ -830,10 +830,12 @@ let dbPlayerReward = {
     },
 
     getPromoCodesHistory: (searchQuery) => {
-        return dbConfig.collection_players.findOne({
-            platform: searchQuery.platformObjId,
-            name: searchQuery.playerName
-        }).lean().then(
+        return expirePromoCode().then(res => {
+            return dbConfig.collection_players.findOne({
+                platform: searchQuery.platformObjId,
+                name: searchQuery.playerName
+            }).lean();
+        }).then(
             playerData => {
                 let query = {
                     platformObjId: searchQuery.platformObjId
@@ -860,10 +862,19 @@ let dbPlayerReward = {
                 return dbConfig.collection_promoCode.find(query)
                     .populate({path: "playerObjId", model: dbConfig.collection_players})
                     .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
-                    .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider}).lean();
+                    .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider})
+                    .lean();
             }
         ).then(
-            res => searchQuery.promoCodeType ? res.filter(e => e.promoCodeTypeObjId.type == searchQuery.promoCodeType) : res
+            res => {
+                let f1 = searchQuery.promoCodeType ? res.filter(e => e.promoCodeTypeObjId.type == searchQuery.promoCodeType) : res;
+                let f2 = searchQuery.promoCodeSubType ? f1.filter(e => e.promoCodeTypeObjId.name == searchQuery.promoCodeSubType) : f1;
+
+                return {
+                    size: Object.keys(f2).length,
+                    data: f2.splice(searchQuery.index, searchQuery.limit)
+                };
+            }
         )
     },
 
@@ -938,16 +949,18 @@ let dbPlayerReward = {
 
     applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;
-        return dbConfig.collection_players.findOne({
-            platform: platformObjId,
-            name: playerName
+        return expirePromoCode().then(res => {
+            return dbConfig.collection_players.findOne({
+                platform: platformObjId,
+                name: playerName
+            })
         }).then(
             playerData => {
                 playerObj = playerData;
                 return dbConfig.collection_promoCode.find({
                     platformObjId: platformObjId,
                     playerObjId: playerObj._id,
-                    acceptedTime: {$exists: false}
+                    status: constPromoCodeStatus.AVAILABLE
                 }).populate({
                     path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
                 }).lean();
@@ -1377,5 +1390,20 @@ function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo) {
         }
     );
 }
+
+/**
+ * Expire promo code in all platforms pass expirationTime
+ */
+function expirePromoCode() {
+    return dbConfig.collection_promoCode.update({
+        status: constPromoCodeStatus.AVAILABLE,
+        expirationTime: {$lte: new Date()}
+    }, {
+        status: constPromoCodeStatus.EXPIRED
+    }, {
+        multi: true
+    });
+}
+
 
 module.exports = dbPlayerReward;

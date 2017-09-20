@@ -218,6 +218,10 @@
                                 option(value='1') {{"PROMO_CODE_TYPE_1" | translate}}
                                 option(value='2') {{"PROMO_CODE_TYPE_2" | translate}}
                                 option(value='3') {{"PROMO_CODE_TYPE_3" | translate}}
+                        div(ng-if='vm.promoCodeQuery.promoCodeType')
+                            label {{"PROMO_CODE_SUB_TYPE" | translate}}
+                            select.form-control(ng-model='vm.promoCodeQuery.promoCodeSubType' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: vm.promoCodeQuery.promoCodeType}")
+                                option(value='') {{'any' | translate}}
                         div
                             label {{"STATUS" | translate}}
                             select.form-control(ng-model='vm.promoCodeQuery.status')
@@ -239,10 +243,10 @@
                             .endAcceptedTime
                         div
                             label &nbsp;
-                            button.btn.btn-success(ng-click='vm.getPromoCodeHistory(true, 1)') {{'SEARCH_CREATETIME' | translate}}
+                            button.btn.btn-success(ng-click='vm.promoCodeQuery.searchType = 1; vm.getPromoCodeHistory(true)') {{'SEARCH_CREATETIME' | translate}}
                         div
                             label &nbsp;
-                            button.btn.btn-success(ng-click='vm.getPromoCodeHistory(true, 2)') {{'SEARCH_ACCEPTEDTIME' | translate}}
+                            button.btn.btn-success(ng-click='vm.promoCodeQuery.searchType = 2; vm.getPromoCodeHistory(true)') {{'SEARCH_ACCEPTEDTIME' | translate}}
                             span#promoCodeHistoryTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
@@ -256,13 +260,8 @@
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.applyPromoCode()')
                                 text {{"APPLY" | translate}}
                                 img.img-edit
-                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.selectedPromoCode || vm.selectedPromoCode.acceptedTime", ng-click='vm.sendSMSByPromoCode()')
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.promoCodeQuery.totalCount", ng-click='vm.selectedPromoCode ? vm.sendSMSByPromoCode() : vm.sendSMSByPromoCodeBatch()')
                                 text {{"sendSMS" | translate}}
-                                img.img-edit
-                        hr.margin-top-bottom-small
-                        .btn-group.margin-small
-                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.promoCodeQuery.totalCount", ng-click='vm.applyPromoCode()')
-                                text {{"APPLY" | translate}}
                                 img.img-edit
 
                 //Tab - Promo Code Monitor
@@ -429,19 +428,14 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"MOVE_PLAYER" | translate}}
+                h4.modal-title {{vm.modalYesNo.modalTitle}}
             .modal-body
                 .panel.panel-primary
                     .panel-body
                         .row
                             .col-md-12
                                 .well
-                                    text {{vm.newUserPromoCodeUserGroup.name}}&nbsp;
-                                    text {{"already exist in group"|translate}}&nbsp;
-                                    text {{vm.newUserPromoCodeUserGroup.oldGroup.name}}
-                                    text {{", Are you sure you want to move player to group"|translate}}&nbsp;
-                                    text {{vm.newUserPromoCodeUserGroup.newGroup.name}}
-                                    text ?
+                                    text {{vm.modalYesNo.modalText}}
             .modal-footer
-                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.addUserToPromoCodeGroup(vm.newUserPromoCodeUserGroup.name, true);") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.modalYesNo.actionYes()") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
