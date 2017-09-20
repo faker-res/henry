@@ -9448,6 +9448,10 @@ define(['js/app'], function (myApp) {
                             let inputFieldValue = $("#rewardValidStartTime > div > input").val();
                             if (dateTimeRegex.test(inputFieldValue)) {
                                 $("#rewardValidStartTime").datetimepicker('update');
+                            }else{
+                              if(inputFieldValue==''){
+                                $("#rewardValidStartTime").datetimepicker('setDate',null);
+                              }
                             }
                             vm.showReward.validStartTime = $("#rewardValidStartTime").data('datetimepicker').getLocalDate();
                             checkValidTime();
@@ -9458,6 +9462,10 @@ define(['js/app'], function (myApp) {
                             let inputFieldValue = $("#rewardValidEndTime > div > input").val();
                             if (dateTimeRegex.test(inputFieldValue)) {
                                 $("#rewardValidEndTime").datetimepicker('update');
+                            }else{
+                              if(inputFieldValue==''){
+                                $("#rewardValidEndTime").datetimepicker('setDate',null);
+                              }
                             }
                             vm.showReward.validEndTime = $("#rewardValidEndTime").data('datetimepicker').getLocalDate();
                             checkValidTime();
@@ -9841,6 +9849,11 @@ define(['js/app'], function (myApp) {
 
                 if (vm.platformRewardPageName == "newReward" || vm.platformRewardPageName == "updateReward")return false;
                 else return true;
+            }
+            vm.clearCanApplyFromClient = function(){
+              if(!vm.showReward.needApply){
+                vm.showReward.canApplyFromClient = false;
+              }
             }
             vm.clearRewardFormData = function () {
                 vm.rewardCondition = null;
