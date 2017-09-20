@@ -271,15 +271,15 @@
                     table.common-table.playerLvlTable
                         thead
                             tr
-                                th {{"PROMO_CODE_TYPE_1" | translate}}
-                                th {{"SMS_CONTENT" | translate}}
+                                th(style="width:30%") {{"PROMO_CODE_TYPE_1" | translate}}
+                                th(style="width:70%") {{"SMS_CONTENT" | translate}}
                                 th(ng-if='vm.promoCodeSMSContentEdit')
                         tbody
                             tr(ng-repeat='type in vm.promoCodeType1')
                                 td
                                     text {{type.name}}
                                 td
-                                    text {{type.smsContent}}
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType1, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
@@ -295,15 +295,15 @@
                     table.common-table.playerLvlTable
                         thead
                             tr
-                                th {{"PROMO_CODE_TYPE_2" | translate}}
-                                th {{"SMS_CONTENT" | translate}}
+                                th(style="width:30%") {{"PROMO_CODE_TYPE_2" | translate}}
+                                th(style="width:70%") {{"SMS_CONTENT" | translate}}
                                 th(ng-if='vm.promoCodeSMSContentEdit')
                         tbody
                             tr(ng-repeat='type in vm.promoCodeType2')
                                 td
                                     text {{type.name}}
                                 td
-                                    text {{type.smsContent}}
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType2, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
@@ -319,15 +319,15 @@
                     table.common-table.playerLvlTable
                         thead
                             tr
-                                th {{"PROMO_CODE_TYPE_3" | translate}}
-                                th {{"SMS_CONTENT" | translate}}
+                                th(style="width:30%") {{"PROMO_CODE_TYPE_3" | translate}}
+                                th(style="width:70%") {{"SMS_CONTENT" | translate}}
                                 th(ng-if='vm.promoCodeSMSContentEdit')
                         tbody
                             tr(ng-repeat='type in vm.promoCodeType3')
                                 td
                                     text {{type.name}}
                                 td
-                                    text {{type.smsContent}}
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType3, $index)')
                             tr(ng-if='vm.promoCodeSMSContentEdit')
