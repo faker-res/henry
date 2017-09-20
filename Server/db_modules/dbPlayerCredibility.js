@@ -158,10 +158,10 @@ let dbPlayerCredibility = {
                     let proms = [];
                     for (let i = 0; i < scores.length; i++) {
                         for (let j = 0; j < playerLevels.length; j++) {
-                            if (scores[i].name === playerLevels[j].name) {
+                            if (scores[i]._id.toString() === playerLevels[j]._id.toString()) {
                                 let updateProm = dbconfig.collection_playerLevel.findOneAndUpdate(
                                     {platform: platformObjId, _id: playerLevels[j]._id},
-                                    {playerValueScore: scores.score[i]}
+                                    {playerValueScore: parseFloat(scores[i].playerValueScore)}
                                 ).lean();
                                 proms.push(updateProm);
                                 break;
