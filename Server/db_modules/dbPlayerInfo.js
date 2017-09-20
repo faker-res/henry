@@ -9943,7 +9943,7 @@ let dbPlayerInfo = {
             //         "$gte": new Date(startTime),
             //         "$lte": new Date(endTime)
             //     },
-            //     "mainType": constProposalMainType.TOP_UP,
+            //     "mainType": "TopUp",
             //     "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
             // };
             // console.log(match$);
@@ -9979,7 +9979,7 @@ let dbPlayerInfo = {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
                         },
-                        "mainType": constProposalMainType.TOP_UP,
+                        "mainType": "TopUp",
                         "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
@@ -10001,7 +10001,7 @@ let dbPlayerInfo = {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
                         },
-                        "mainType": constProposalMainType.BONUS,
+                        "mainType": "PlayerBonus",
                         "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
@@ -10042,7 +10042,7 @@ let dbPlayerInfo = {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
                         },
-                        "mainType": constProposalMainType.REWARD,
+                        "mainType": "Reward",
                         "type": {"$ne": consumptionReturnTypeId},
                         "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
@@ -10099,8 +10099,8 @@ let dbPlayerInfo = {
                         providerDetail[providerId].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
                         result.consumptionTimes += gameRecord.count;
                         result.consumptionAmount += gameRecord.amount;
-                        result.consumptionBonusAmount += gameRecord.validAmount;
-                        result.consumptionBonusRatio += gameRecord.bonusAmount;
+                        result.validConsumptionAmount += gameRecord.validAmount;
+                        result.consumptionBonusAmount += gameRecord.bonusAmount;
                     }
 
                     result.consumptionBonusRatio = (result.consumptionBonusAmount / result.consumptionBonusRatio);
@@ -10174,7 +10174,7 @@ let dbPlayerInfo = {
                         if (topUpTypeRecord.typeId.toString() === onlineTopUpTypeId) {
                             result.onlineTopUpAmount = topUpTypeRecord.amount;
                         }
-                        else if (topUpTypeRecord.typeId.toStirng() === manualTopUpTypeId) {
+                        else if (topUpTypeRecord.typeId.toString() === manualTopUpTypeId) {
                             result.manualTopUpAmount = topUpTypeRecord.amount;
                         }
 
