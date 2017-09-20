@@ -30,7 +30,7 @@
                                 th(style="width:150px") {{"ACCOUNT" | translate}}
                                 th(style="width:150px") {{"PROMO_CODE_TYPE_1" | translate}}
                                 th(style="width:100px") {{"PROMO_REWARD_AMOUNT" | translate}}
-                                th(style="width:90px") {{"minTopUpAmount" | translate}}
+                                th(style="width:90px") {{"PROMO_minTopUpAmount" | translate}}
                                 th(style="width:90px") {{"PROMO_CONSUMPTION" | translate}}
                                 th(style="width:150px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:100px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
@@ -65,10 +65,16 @@
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
-                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generatePromoCode(vm.newPromoCode1, $index, promoCode, 1);')
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne", ng-click='vm.generatePromoCode(vm.newPromoCode1, $index, promoCode, 1);')
                                         text {{'GENERATE' | translate}}
+                                    text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne") * more than 1?
+                                    wbr
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode1, $index, promoCode, 1);')
+                                        text {{'Yes' | translate}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
+                                        text {{'No' | translate}}
                                 td
-                                    text {{promoCode.promoCodeType.smsContent}}
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode1, 1)')
 
@@ -118,10 +124,16 @@
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
-                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne", ng-click='vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
                                         text {{'GENERATE' | translate}}
+                                    text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne") * more than 1?
+                                    wbr
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
+                                        text {{'Yes' | translate}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
+                                        text {{'No' | translate}}
                                 td
-                                    text {{promoCode.promoCodeType.smsContent}}
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode2, 2)')
                     br
@@ -137,8 +149,8 @@
                                 th(style="width:150px") {{"ACCOUNT" | translate}}
                                 th(style="width:150px") {{"PROMO_CODE_TYPE_3" | translate}}
                                 th(style="width:100px") {{"PROMO_REWARD_%" | translate}}
-                                th(style="width:90px") {{"minTopUpAmount" | translate}}
-                                th(style="width:90px") {{"maxTopUpAmount" | translate}}
+                                th(style="width:90px") {{"PROMO_minTopUpAmount" | translate}}
+                                th(style="width:90px") {{"PROMO_maxTopUpAmount" | translate}}
                                 th(style="width:90px") {{"PROMO_CONSUMPTION" | translate}}
                                 th(style="width:150px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:100px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
@@ -175,10 +187,16 @@
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
-                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generatePromoCode(vm.newPromoCode3, $index, promoCode, 3);')
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne", ng-click='vm.generatePromoCode(vm.newPromoCode3, $index, promoCode, 3);')
                                         text {{'GENERATE' | translate}}
+                                    text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne") * more than 1?
+                                    wbr
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode3, $index, promoCode, 3);')
+                                        text {{'Yes' | translate}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
+                                        text {{'No' | translate}}
                                 td
-                                    text {{promoCode.promoCodeType.smsContent}}
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)')
                     br

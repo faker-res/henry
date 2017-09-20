@@ -10292,16 +10292,17 @@ define(['js/app'], function (myApp) {
                     if (e.playerNames.indexOf(el.playerName) > -1) {
                         bgColor = e.color;
                     }
-                })
+                });
 
                 $(id).css("background-color", bgColor ? bgColor : "");
-            }
+            };
 
             vm.promoCodeNewRow = function (collection, type, data) {
-                collection.push(data ? data : {disableWithdraw: true});
+                collection.push(data ? data : {disableWithdraw: false});
                 collection.forEach((elem, index, arr) => {
                     let id = '#expDate' + type + '-' + index;
                     let provId = '#promoProviders' + type + '-' + index;
+                    let tableId = "#createPromoCodeTable" + type;
 
                     if (!$(id).data("datetimepicker")) {
                         utilService.actionAfterLoaded(id, function () {
@@ -10332,6 +10333,8 @@ define(['js/app'], function (myApp) {
                             $(provId).multipleSelect("checkAll");
                         });
                     }
+
+                    vm.checkPlayerName(elem, tableId);
                 });
 
                 return collection;
@@ -10345,17 +10348,12 @@ define(['js/app'], function (myApp) {
                     let playerArr = sendData.playerName.split(/\r?\n/);
                     let p = Promise.resolve();
 
-                    console.log('playerArr', playerArr);
-                    console.log('col', col);
-
                     playerArr.forEach((el, ind) => {
                         let newData = Object.assign({}, sendData);
                         newData.playerName = el;
                         newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
 
                         delete newData.$$hashKey;
-
-                        // col.splice(index + ind, 0, newData);
 
                         p = p.then(function () {
                             return vm.promoCodeNewRow(col, type, newData);
@@ -10366,20 +10364,37 @@ define(['js/app'], function (myApp) {
 
                     return p.then(ret => $scope.safeApply());
                 } else {
-                    sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
-                    sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
-                    sendData.platformObjId = vm.selectedPlatform.id;
-                    sendData.allowedProviders = sendData.allowedProviders.length == vm.allGameProvider.length ? [] : sendData.allowedProviders.map(e => e._id);
-                    sendData.smsContent = sendData.promoCodeType.smsContent;
-
-                    console.log('sendData', sendData);
-
-                    return $scope.$socketPromise('generatePromoCode', {
+                    let searchQ = {
                         platformObjId: vm.selectedPlatform.id,
-                        newPromoCodeEntry: sendData
-                    }).then(ret => {
-                        col[index].code = ret.data;
-                        $scope.safeApply();
+                        playerName: data.playerName,
+                        status: 1
+                    };
+
+                    return $scope.$socketPromise('getPromoCodesHistory', searchQ).then(ret => {
+                        if (ret && ret.data && ret.data.length > 0) {
+                            if (!data.skipCheck) {
+                                data.hasMoreThanOne = true;
+                                $scope.safeApply();
+                            }
+                        }
+
+                        if (!data.hasMoreThanOne || data.skipCheck) {
+                            sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
+                            sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
+                            sendData.platformObjId = vm.selectedPlatform.id;
+                            sendData.allowedProviders = sendData.allowedProviders.length == vm.allGameProvider.length ? [] : sendData.allowedProviders.map(e => e._id);
+                            sendData.smsContent = sendData.promoCodeType.smsContent;
+
+                            console.log('sendData', sendData);
+
+                            return $scope.$socketPromise('generatePromoCode', {
+                                platformObjId: vm.selectedPlatform.id,
+                                newPromoCodeEntry: sendData
+                            }).then(ret => {
+                                col[index].code = ret.data;
+                                $scope.safeApply();
+                            });
+                        }
                     });
                 }
             };
@@ -10497,7 +10512,7 @@ define(['js/app'], function (myApp) {
                             render: (data, index, row) => row.promoCodeTypeObjId.type == 3 ? data + "%" : data
                         },
                         {
-                            title: $translate('minTopUpAmount'),
+                            title: $translate('PROMO_minTopUpAmount'),
                             data: "minTopUpAmount"
                         },
                         {
