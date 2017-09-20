@@ -634,6 +634,7 @@ define([], function () {
                 case "UpdatePlayerCredit":
                 case "FixPlayerCreditTransfer":
                 case "UpdatePlayerEmail":
+                case "UpdatePlayerQQ":
                 case "UpdatePlayerPhone":
                 case "UpdatePlayerBankInfo":
                 case "AddPlayerRewardTask":

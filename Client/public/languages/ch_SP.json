@@ -472,6 +472,7 @@
   "UpdatePlayerCredit": "编辑玩家额度",
   "rejectUpdatePlayerCredit": "编辑玩家额度未通过",
   "UpdatePlayerEmail": "编辑玩家电子邮件",
+  "UpdatePlayerQQ": "编辑玩家QQ",
   "UpdatePlayerPhone": "编辑玩家电话号码",
   "UpdatePlayerBankInfo": "编辑玩家银行资料",
   "UpdatePartnerBankInfo": "编辑推广渠道银行资料",
@@ -823,6 +824,7 @@
   "Update player information": "更新玩家资料",
   "Update player credit": "更新玩家额度",
   "Update player email": "更新玩家电子邮件",
+  "Update player QQ": "更新玩家QQ",
   "Update player phone number": "更新玩家电话号码",
   "Update partner bank information": "更新推广渠道银行资料",
   "Update partner email": "更推广渠道电子邮件",
@@ -1235,6 +1237,7 @@
   "createPlayerLevel": "创建玩家等级",
   "createUpdatePlayerPhoneProposal": "创建更新玩家电话提案",
   "createUpdatePlayerEmailProposal": "创建更新玩家电子邮件提案",
+  "createUpdatePlayerQQProposal": "创建更新玩家QQ提案",
   "detachRolesFromUsersById": "移除用户角色",
   "deletePartnersById": "删除推广渠道",
   "Similar Players": "相似玩家",
@@ -2266,6 +2269,13 @@
   "WITHDRAW_AMOUNT":"提款金额",
   "PROMOTION":"促销优惠",
   "CONSUMPTION_RETURN_AMOUNT":"洗码金额",
-  "COMPANY_PROFIT": "公司营利点"
-
+  "COMPANY_PROFIT": "公司营利点",
+  "SMS Records":"sms发送记录",
+  "SENT TIME":"尝试时间",
+  "NEW_QQ" : "新QQ帐号",
+  "CURRENT_QQ" : "原QQ帐号",
+  "RETYPE_QQ" : "重新输入QQ帐号",
+  "QQ_DO_NOT_MATCH": "QQ帐号不相同",
+  "PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT": "支付监控 商户 变色计数",
+  "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "支付监控 玩家 变色计数"
 }
