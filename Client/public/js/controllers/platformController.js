@@ -11271,6 +11271,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'PlayerValue':
                         updatePlayerValueConfig(vm.playerValueBasic);
+                        updatePlayerLevelScore();
                         break;
                     case 'credibility':
                         updateCredibilityRemark();
@@ -11450,6 +11451,16 @@ define(['js/app'], function (myApp) {
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlayerValueConfig', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updatePlayerLevelScore() {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    playerLevel: vm.allPlayerLvl
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlayerLevelScores', sendData, function (data) {
+                    // do nothing
                 });
             }
 
