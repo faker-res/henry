@@ -1731,6 +1731,9 @@ define(['js/app'], function (myApp) {
                 vm.drawPlayerDomainReport(data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                    if (!item.name && item.partnerName) {
+                        item.name = item.partnerName;
+                    }
 
                     if (item.userAgent[0]) {
                         item.registrationOS$ = item.userAgent[0].os;
