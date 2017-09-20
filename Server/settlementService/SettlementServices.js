@@ -49,6 +49,7 @@
                 "sendPlayerMailFromAdminToAllPlayers",
                 "sendPlayerMailFromAdminToPlayer",
                 "performPlatformPlayerLevelSettlement",
+                "getConsumptionDetailOfPlayers",
                 "calculatePlatformConsecutiveConsumptionForPlayers"
             ];
             addServiceFunctions(sinonet, this, functionNames);
