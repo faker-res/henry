@@ -141,7 +141,9 @@ var partnerSchema = new Schema({
     // interface that used to register this account
     registrationInterface: {type: Number, default: 0},
     // the number of times where partner login
-    loginTimes: {type: Number, default: 0}
+    loginTimes: {type: Number, default: 0},
+    // url where the registree come from
+    sourceUrl: {type: String}
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));
