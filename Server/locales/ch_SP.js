@@ -50,7 +50,7 @@ var simplifiedChinese = {
     "Game is not available on platform": "游戏在维护中",
 
     "Cannot find player or provider": "找不到玩家或供应商",
-    "Cannot find partner": "找不到推广渠道",
+    "Cannot find partner": "找不到代理",
     "Cannot find platform": "不能找到平台",
     "Cannot find Provider": "无法找到提供者",
     "Cannot find player": "找不到玩家",
