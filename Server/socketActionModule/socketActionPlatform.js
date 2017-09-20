@@ -309,8 +309,8 @@ function socketActionPlatform(socketIO, socket) {
 
         updatePlayerLevelScores: function updatePlayerLevelScores(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlayerCredibility.updatePlayerLevelScores, [data.platformObjId, data], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.playerLevel);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.updatePlayerLevelScores, [data.platformObjId, data.playerLevel], actionName, isValidData);
         },
 
         updatePlayerValueConfig: function updatePlayerValueConfig(data) {
