@@ -4303,6 +4303,12 @@ let dbPartner = {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
+        if (sortCol.name) {
+            let sortOrder = sortCol.name;
+            sortCol = {
+                partnerName: sortOrder
+            }
+        }
         if (sortCol.phoneArea) {
             let sortOrder = sortCol.phoneArea;
             sortCol = {
