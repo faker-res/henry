@@ -4309,6 +4309,12 @@ let dbPartner = {
                 partnerName: sortOrder
             }
         }
+        if (sortCol.partner) {
+            let sortOrder = sortCol.partner;
+            sortCol = {
+                parent: sortOrder
+            }
+        }
         if (sortCol.phoneArea) {
             let sortOrder = sortCol.phoneArea;
             sortCol = {
@@ -4350,7 +4356,7 @@ let dbPartner = {
 
         let count = dbconfig.collection_partner.find(query).count();
         let detail = dbconfig.collection_partner.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'partner', model: dbconfig.collection_partner}).lean();
+            .populate({path: 'parent', model: dbconfig.collection_partner}).lean();
 
         return Q.all([count, detail]).then(
             data => {
