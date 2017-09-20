@@ -1806,6 +1806,13 @@ define(['js/app'], function (myApp) {
                     item.phoneArea$ = item.phoneProvince + " " + item.phoneCity;
                     item.ipArea$ = item.province + " " + item.city;
 
+                    if (item.partner && item.partner.partnerName) {
+                        item.partner$ = item.partner.partnerName;
+                    }
+                    else if (item.parent && item.parent.partnerName) {
+                        item.partner$ = item.parent.partnerName;
+                    }
+
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
@@ -1861,7 +1868,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("REGISTRATION_AGENT"), data: "registrationAgent$"},
                     {title: $translate('OS'), data: "registrationOS$"},
                     {title: $translate('Browser'), data: "registrationBrowser$"},
-                    {title: $translate('partner'), data: "partner.partnerName"},
+                    {title: $translate('partner'), data: "partner$"},
                 ],
                 "paging": false,
             }
