@@ -843,11 +843,17 @@ let dbPlayerReward = {
                     query.playerObjId = playerData._id;
                 } else if (searchQuery.playerName) {
                     return [];
-                } else if (searchQuery.status) {
+                }
+
+                if (searchQuery.status) {
                     query.status = searchQuery.status
-                } else if (searchQuery.startCreateTime) {
+                }
+
+                if (searchQuery.startCreateTime) {
                     query.createTime = {$gte: searchQuery.startCreateTime, $lt: searchQuery.endCreateTime}
-                } else if (searchQuery.startAcceptedTime) {
+                }
+
+                if (searchQuery.startAcceptedTime) {
                     query.acceptedTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime}
                 }
 
