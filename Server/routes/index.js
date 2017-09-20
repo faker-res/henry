@@ -294,10 +294,12 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
             return dbConfig.collection_players.find({platform: doc._id, phoneNumber: {$in: [encryptPhoneNumber, phoneNumber]}}).then(
                 function (playerData) {
                     if( playerData && playerData.length > 0){
-                        let res = playerData.map(
-                            player => {return {loginname: player.name, phone: player.phoneNumber, createTime: player.registrationTime};}
+                        let resData = playerData.map(
+                            player => {
+                                return {loginname: player.name, phone: player.phoneNumber, createTime: player.registrationTime};
+                            }
                         );
-                        res.json({success: true, data: res});
+                        res.json({success: true, data: resData});
                     }
                     else{
                         res.json({success: false, error: {name: "InvalidData", message: "Can not find player data"}});
