@@ -164,7 +164,7 @@ let dbPartner = {
             function (data) {
                 if (data.isPhoneNumberValid) {
                     return dbPartner.isPartnerNameValidToRegister({
-                        partnerName: partnerdata.partnerName,
+                        realName: partnerdata.realName,
                         platform: partnerdata.platform
                     });
                 } else {
@@ -194,6 +194,7 @@ let dbPartner = {
                         name: "DataError",
                         message: "Username already exists"
                     });
+                    return Promise.reject(new Error());
                 }
             },
             function (error) {
@@ -202,6 +203,7 @@ let dbPartner = {
                     message: "Error in checking partner name validity",
                     error: error
                 });
+                return Promise.reject(new Error());
             }
         ).then(
             function (level) {
@@ -573,7 +575,19 @@ let dbPartner = {
                     retData.push(prom);
                 }
                 return Q.all(retData);
-            });
+            }).then(
+                partners => {
+                    for (let i = 0; i < partners.length; i++) {
+                        if (partners[i].phoneNumber) {
+                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                        }
+                    }
+                    return partners;
+                },
+                error => {
+                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                }
+            );
         }else{
             //if there is not sorting parameter
             var detail = dbconfig.collection_partner.aggregate([  
@@ -596,7 +610,6 @@ let dbPartner = {
                             partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
                         }
                     }
-
                     return partners;
                 },
                 error => {
