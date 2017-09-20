@@ -194,11 +194,13 @@
                         option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
                 div
                     label {{'Start date' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regDateTimePicker")')
+                        //a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regDateTimePicker")')
+                        .startTime
                     #startingDateTimePicker
                 div
                     label {{'End date' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regEndDateTimePicker")')
+                        //a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regEndDateTimePicker")')
+                        .endTime
                     #endingEndDateTimePicker
                 div
                     label {{'Player Name' | translate}}
