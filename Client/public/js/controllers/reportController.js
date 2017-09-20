@@ -1926,7 +1926,14 @@ define(['js/app'], function (myApp) {
                 vm.drawPlayerReport(data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
-                    item.topUpSum$ = item.topUpSum.toFixed(2);
+                    // item.topUpSum$ = item.topUpSum.toFixed(2);
+
+                    item.lobby$ = "";
+                    if (item.lobby) {
+                        for (let i = 0; i < item.lobby.length; i++) {
+                            item.lobby$ += item.lobby[i] + "<br>";
+                        }
+                    }
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
@@ -1946,7 +1953,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap", bSortable: true},
                     {title: $translate('LEVEL'), data: "level", bSortable: true},
                     {title: $translate('CREDIBILITY'), data: "credibility", bSortable: true},
-                    {title: $translate('LOBBY'), data: "lobby", bSortable: true},
+                    {title: $translate('LOBBY'), data: "lobby$", bSortable: true},
                     {title: $translate('TOPUPMANUAL'), data: "manualTopUp", bSortable: true},
                     {title: $translate('TOPUPONLINE'), data: "onlineTopUp", bSortable: true},
                     {title: $translate('DEPOSIT_COUNT'), data: "depositCount", bSortable: true},
