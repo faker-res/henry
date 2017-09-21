@@ -262,6 +262,18 @@ const pmsAPI = {
         return callPMSAPI("payment", "requestMfbAccount", data);
     },
 
+    reconciliation_getOnlineCashinList: function (data) {
+        return callPMSAPI("reconciliation", "getOnlineCashinList", data);
+    },
+
+    reconciliation_getCashinList: function (data) {
+        return callPMSAPI("reconciliation", "getCashinList", data);
+    },
+
+    reconciliation_getCashoutList: function (data) {
+        return callPMSAPI("reconciliation", "getCashoutList", data);
+    },
+
 };
 
 module.exports = pmsAPI;
