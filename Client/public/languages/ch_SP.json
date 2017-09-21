@@ -2263,6 +2263,7 @@
   "Daily Limit":"每日上限",
   "CREDIBILITY_NAME": "信用名称",
   "LOBBY":"大厅",
+  "LOBBY_NAME":"大厅名",
   "DEPOSIT_COUNT": "存款笔数",
   "TOTAL_DEPOSIT": "存款总金额",
   "WITHDRAW_COUNT": "提款笔数",
@@ -2277,5 +2278,6 @@
   "RETYPE_QQ" : "重新输入QQ帐号",
   "QQ_DO_NOT_MATCH": "QQ帐号不相同",
   "PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT": "支付监控 商户 变色计数",
-  "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "支付监控 玩家 变色计数"
+  "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "支付监控 玩家 变色计数",
+  "GAME_NAME": "游戏名"
 }

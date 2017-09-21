@@ -828,16 +828,33 @@ define(['js/app'], function (myApp) {
             if (!id) return;
             socketService.$socket($scope.AppSocket, 'getPlatform', {_id: id}, function (data) {
                 vm.allProviders = data.data.gameProviders;
-                console.log('vm.allProviders', data.data.gameProviders);
+                console.log('vm.allProviders', vm.allProviders);
                 $scope.safeApply();
             }, function (data) {
                 console.log("create not", data);
             });
         }
 
+        vm.getGameByIds = function (id) {
+            if (!id) return;
+            return new Promise(function (resolve, reject) {
+                socketService.$socket($scope.AppSocket, 'getGames', {_ids: id}, function (data) {
+                    vm.allGame = data.data;
+                    console.log('selected game', vm.allGame);
+                    $scope.safeApply();
+                    resolve();
+                }, function (data) {
+                    console.log("cannot get game name", data);
+                    reject(new Error());
+                });
+            });
+
+        };
+
         vm.getPlayerLevelByPlatformId = function (id) {
             socketService.$socket($scope.AppSocket, 'getPlayerLevelByPlatformId', {platformId: id}, function (data) {
                 vm.playerLvlData = {};
+                console.log(data)
                 if (data.data) {
                     $.each(data.data, function (i, v) {
                         vm.playerLvlData[v._id] = v;
@@ -855,7 +872,7 @@ define(['js/app'], function (myApp) {
             return new Promise(function (resolve) {
                 socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: id}, function (data) {
                     vm.credibilityRemarks = data.data;
-                    console.log("vm.credibilityRemarks", vm.placredibilityRemarksyerLvlData);
+                    console.log("vm.credibilityRemarks", vm.credibilityRemarks);
                     resolve(vm.credibilityRemarks);
                     $scope.safeApply();
                 }, function (data) {
@@ -868,6 +885,9 @@ define(['js/app'], function (myApp) {
 
         vm.setupRemarksMultiInput = function () {
             let remarkSelect = $('select#selectCredibilityRemarks');
+            if (remarkSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
             remarkSelect.multipleSelect({
                 showCheckbox  : true,
                 allSelected: $translate("All Selected"),
@@ -1549,7 +1569,6 @@ define(['js/app'], function (myApp) {
             ).catch(console.error);
         }
         vm.drawPlayerProviderReport = function (data, size, summary, newSearch) {
-
             var tableOptions = {
                 data: data,
                 "order": vm.playerExpenseQuery.aaSorting,
@@ -1928,17 +1947,118 @@ define(['js/app'], function (myApp) {
                 console.log('retData', data);
                 vm.playerQuery.totalCount = data.data.size;
                 $('#loadingPlayerReportTableSpin').hide();
+                // get game data.then(
+                // map
                 vm.drawPlayerReport(data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
                     // item.topUpSum$ = item.topUpSum.toFixed(2);
+                    item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
+                    item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                    item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                    item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                    item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                    item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                    item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                    item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                    item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
 
-                    item.lobby$ = "";
-                    if (item.lobby) {
-                        for (let i = 0; i < item.lobby.length; i++) {
-                            item.lobby$ += item.lobby[i] + "<br>";
+                    item.playerLevel$ = "";
+                    if (vm.playerLvlData[item.playerLevel]) {
+                        item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                    }
+                    else {
+                        item.playerLevel$ = "";
+                    }
+
+                    item.credibility$ = "";
+                    if (item.credibilityRemarks){
+                        for (let i = 0; i < item.credibilityRemarks.length; i++){
+                            for (let j = 0; j < vm.credibilityRemarks.length; j++){
+                                if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()){
+                                    item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                }
+                            }
                         }
                     }
+
+                    // item.provider$ = "";
+                    // if (item.gameDetail) {
+                    //     for (let i = 0; i < item.gameDetail.length; i++) {
+                    //         for (let j = 0; j < vm.allProviders.length; j++) {
+                    //             if (item.gameDetail[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                    //                 item.provider$ += vm.allProviders[j].name + "<br>";
+                    //             }
+                    //         }
+                    //     }
+                    // }
+
+
+                    item.providerArr = [];
+                    for (var key in item.providerDetail) {
+                        if (item.providerDetail.hasOwnProperty(key)) {
+                            item.providerDetail[key].providerId = key;
+                            item.providerArr.push(item.providerDetail[key]);
+                        }
+                    }
+
+
+
+                    item.provider$ = "";
+                    if (item.providerDetail) {
+                        for (let i = 0; i < item.providerArr.length; i++) {
+                            item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                            item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                            item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                            item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                            for (let j = 0; j < vm.allProviders.length; j++) {
+                                if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                    item.providerArr[i].name = vm.allProviders[j].name;
+                                    item.provider$ += vm.allProviders[j].name + "<br>";
+                                }
+                            }
+                        }
+                    }
+
+                    // vm.allGame = [];
+                    // var gameId = [];
+                    // if (item.gameDetail) {
+                    //     for (let n = 0; n < item.gameDetail.length; n++) {
+                    //         gameId[n] = item.gameDetail[n].gameId;
+                    //     }
+                    //     vm.getGameByIds(gameId).then(
+                    //         function () {
+                    //             console.log("OO",item.gameDetail[0].gameId,vm.allGame);
+                    //             for (let i = 0; i < item.gameDetail.length; i++) {
+                    //                 for (let j = 0; j < vm.allGame.length; j++){
+                    //                     if (item.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()){
+                    //                         item.gameDetail[i].name = vm.allGame[j].name;
+                    //                     }
+                    //                 }
+                    //             }
+                    //         }
+                    //     )
+                    // }
+
+                    // item.provider$ = "";
+                    // if (item.gameDetail) {
+                    //     for (let i = 0; i < item.gameDetail.length; i++) {
+                    //         for (let j = 0; j < vm.allProviders.length; j++) {
+                    //             if (item.gameDetail[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                    //                 item.provider$ += vm.allProviders[j].name + "<br>";
+                    //             }
+                    //         }
+                    //     }
+                    // }
+
+                    item.profit$ = 0;
+                    if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0){
+                        item.profit$ = (item.consumptionBonusAmount /  item.validConsumptionAmount) * - 100;
+                        item.profit$ += "%";
+                    }
+
+
+
                     return item;
                 }), data.data.size, newSearch);
                 $scope.safeApply();
@@ -1950,28 +2070,48 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.playerQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'registrationTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'lastAccessTime', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'credibilityRemarks', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'provider', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [16], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap", bSortable: true},
-                    {title: $translate('LEVEL'), data: "level", bSortable: true},
-                    {title: $translate('CREDIBILITY'), data: "credibility", bSortable: true},
-                    {title: $translate('LOBBY'), data: "lobby$", bSortable: true},
-                    {title: $translate('TOPUPMANUAL'), data: "manualTopUp", bSortable: true},
-                    {title: $translate('TOPUPONLINE'), data: "onlineTopUp", bSortable: true},
-                    {title: $translate('DEPOSIT_COUNT'), data: "depositCount", bSortable: true},
-                    {title: $translate('TOTAL_DEPOSIT'), data: "totalDeposit", bSortable: true},
-                    {title: $translate('WITHDRAW_COUNT'), data: "withdrawCount", bSortable: true},
-                    {title: $translate('WITHDRAW_AMOUNT'), data: "withdrawAmount", bSortable: true},
-                    {title: $translate('PROMOTION'), data: "promotion", bSortable: true},
-                    {title: $translate('CONSUMPTION_RETURN_AMOUNT'), data: "consumptionReturn", bSortable: true},
-                    {title: $translate('TIMES_CONSUMED'), data: "timesConsume", bSortable: true},
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "totalConsume", bSortable: true},
-                    {title: $translate('VALID_CONSUMPTION'), data: "validConsumption", bSortable: true},
-                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "playerProfitAmount", bSortable: true},
-                    {title: $translate('COMPANY_PROFIT'), data: "companyProfit", bSortable: true}
+                    {
+                        title: $translate('*'),
+                        data: null,
+                        "className": 'expandPlayerReport expand',
+                        "orderable": false
+                    },
+                    {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('LEVEL'), data: "playerLevel$"},
+                    {title: $translate('CREDIBILITY'), data: "credibility$"},
+                    {title: $translate('LOBBY'), data: "provider$"},
+                    {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$"},
+                    {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$"},
+                    {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
+                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$"},
+                    {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes"},
+                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$"},
+                    {title: $translate('PROMOTION'), data: "rewardAmount$"},
+                    {title: $translate('CONSUMPTION_RETURN_AMOUNT'), data: "consumptionReturnAmount$"},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
+                    {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$"},
+                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$"}
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
@@ -1981,15 +2121,192 @@ define(['js/app'], function (myApp) {
                 }
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            if (playerTbl){
+                playerTbl.clear();
+            }
             var playerTbl = utilService.createDatatableWithFooter('#playerReportTable', tableOptions, {});
+            utilService.setDataTablePageInput('playerReportTable', playerTbl, $translate);
 
             vm.playerQuery.pageObj.init({maxCount: size}, newSearch);
 
-            $('#playerReportTable').off('order.dt');
-            $('#playerReportTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'playerQuery', vm.searchPlayerReport);
+            $('#playerReportTable').resize();
+            $('#playerReportTable tbody').off('click', 'td.expandPlayerReport');
+            $('#playerReportTable tbody').on('click', 'td.expandPlayerReport', function () {
+                var tr = $(this).closest('tr');
+                var row = playerTbl.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    var data = row.data();
+                    console.log('content', data);
+                    var id = 'playertable' + data._id;
+                    row.child(vm.createInnerTable(id)).show();
+                    vm[id] = {};
+                    // utilService.actionAfterLoaded("#" + id + 'Page', function () {
+                    //     vm[id].pageObj = utilService.createPageForPagingTable("#" + id + 'Page', {}, $translate, function (curP, pageSize) {
+                    //         vm.searchGameReportInProvider(data, id, false, (curP - 1) * pageSize, pageSize);
+                    //     });
+                    //
+                    // })
+                    vm.allGame = [];
+                    var gameId = [];
+                    if (data.gameDetail) {
+                        for (let n = 0; n < data.gameDetail.length; n++) {
+                            gameId[n] = data.gameDetail[n].gameId;
+                        }
+
+                        vm.getGameByIds(gameId).then(
+                            function () {
+                                console.log("OO",data.gameDetail[0].gameId,vm.allGame);
+                                for (let i = 0; i < data.gameDetail.length; i++) {
+                                    data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allGame.length; j++){
+                                        if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()){
+                                            data.gameDetail[i].name = vm.allGame[j].name;
+                                        }
+                                    }
+                                }
+                                vm.drawPlatformTable(data, id, data.providerArr.length, newSearch);
+                            }
+                        )
+                    }
+
+                    tr.addClass('shown');
+                }
             });
+            // $('#playerReportTable').off('order.dt');
+            // $('#playerReportTable').on('order.dt', function (event, a, b) {
+            //     vm.commonSortChangeHandler(a, 'playerQuery', vm.searchPlayerReport);
+            // });
         };
+
+        ///////draw Platform table inside player start///////
+        vm.drawPlatformTable = function (data, id, size, newSearch){
+            let holder = data;
+            var tableOptions = {
+                data: data.providerArr,
+                "order": vm.playerQuery.aaSorting,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        title: $translate('*'),
+                        data: null,
+                        "className": 'expandPlayerReportPlatform expand',
+                        "orderable": false
+                    },
+                    {title: $translate('LOBBY_NAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('TIMES_CONSUMED'), data: "count"},
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "amount"},
+                    {title: $translate('VALID_CONSUMPTION'), data: "validAmount"},
+                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit"}
+                ],
+                "paging": false,
+                // "dom": '<"top">rt<"bottom"il><"clear">',
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if (vm.playerPlatformReport[id]) {
+                vm.playerPlatformReport[id].clear();
+            }
+            $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
+
+            vm.playerPlatformReport[id] = utilService.createDatatableWithFooter('#' + id, tableOptions, {});
+            utilService.setDataTablePageInput('playerReportTable', vm.gameTable[id], $translate);
+            // vm[id].pageObj.init({maxCount: size}, newSearch);
+
+            $('#' + id).resize();
+            $('#' + id).off('click', 'td.expandPlayerReportPlatform');
+            $('#' + id).on('click', 'td.expandPlayerReportPlatform', function () {
+                // var tr = $(this).closest('tr');
+                // var row = vm.playerPlatformReport[id].row(tr);
+                var tr = $(this).closest('tr');
+                var table = $(this).parent().closest('table');
+                console.log('clicked', tr);
+                var providerId = table.attr('id').substring(11);
+                console.log('clicked', providerId, table.attr('id'));
+                console.log('vm.plateformTable', vm.playerPlatformReport);
+                var row = vm.playerPlatformReport[table.attr('id')].row(tr);
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    var data = row.data();
+                    console.log('content', data);
+                    var id = 'playerplatformtable' + data._id;
+                    row.child(vm.createInnerTable(id)).show();
+                    vm[id] = {};
+                    // implement filter
+                    var gameDetail = [];
+                    if (holder.gameDetail) {
+                        for (let i = 0; i < holder.gameDetail.length; i++) {
+                            if (holder.gameDetail[i].providerId.toString() == data.providerId.toString()) {
+                                gameDetail.push(holder.gameDetail[i]);
+                            }
+                        }
+                    }
+
+                    vm.drawPlatformGameTable(gameDetail, id, gameDetail.length, newSearch);
+                    tr.addClass('shown');
+                }
+            });
+
+        };
+
+        //////draw game table inside player end /////
+
+        ///////draw Platform table inside player start///////
+        vm.drawPlatformGameTable = function (data, id, size, newSearch){
+            var tableOptions = {
+                data: data,
+                "order": vm.playerQuery.aaSorting,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('GAME_NAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('TIMES_CONSUMED'), data: "count"},
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "amount"},
+                    {title: $translate('VALID_CONSUMPTION'), data: "validAmount"},
+                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit"}
+                ],
+                "paging": false,
+                // "dom": '<"top">rt<"bottom"il><"clear">',
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if (vm.playerGameReport[id]) {
+                vm.playerGameReport[id].clear();
+            }
+            $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
+
+            vm.playerPlatformReport[id] = utilService.createDatatableWithFooter('#' + id, tableOptions, {});
+            utilService.setDataTablePageInput('playerReportTable', vm.gameTable[id], $translate);
+            // vm[id].pageObj.init({maxCount: size}, newSearch);
+
+        };
+
+        //////draw game table inside player end /////
+
         // player report end
 
         // Start player partner report
@@ -3559,6 +3876,9 @@ define(['js/app'], function (myApp) {
 
             setTimeout(
                 function () {
+                    vm.playerReport = {};
+                    vm.playerPlatformReport = {};
+                    vm.playerGameReport = {};
                     vm.playerTable = {};
                     vm.gameTable = {};
                     vm.tableIndentWidth = 60;

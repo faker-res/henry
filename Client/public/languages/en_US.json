@@ -920,6 +920,7 @@
   "PHONE_LOCATION": "Phone Location",
   "IP_LOCATION": "IP Location",
   "LOBBY": "Lobby",
+  "LOBBY_NAME": "Lobby Name",
   "DEPOSIT_COUNT": "Deposit Count",
   "TOTAL_DEPOSIT": "Total Deposit",
   "WITHDRAW_COUNT": "Withdrawal Count",
