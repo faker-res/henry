@@ -9448,6 +9448,10 @@ define(['js/app'], function (myApp) {
                             let inputFieldValue = $("#rewardValidStartTime > div > input").val();
                             if (dateTimeRegex.test(inputFieldValue)) {
                                 $("#rewardValidStartTime").datetimepicker('update');
+                            }else{
+                              if(inputFieldValue==''){
+                                $("#rewardValidStartTime").datetimepicker('setDate',null);
+                              }
                             }
                             vm.showReward.validStartTime = $("#rewardValidStartTime").data('datetimepicker').getLocalDate();
                             checkValidTime();
@@ -9458,6 +9462,10 @@ define(['js/app'], function (myApp) {
                             let inputFieldValue = $("#rewardValidEndTime > div > input").val();
                             if (dateTimeRegex.test(inputFieldValue)) {
                                 $("#rewardValidEndTime").datetimepicker('update');
+                            }else{
+                              if(inputFieldValue==''){
+                                $("#rewardValidEndTime").datetimepicker('setDate',null);
+                              }
                             }
                             vm.showReward.validEndTime = $("#rewardValidEndTime").data('datetimepicker').getLocalDate();
                             checkValidTime();
@@ -9842,6 +9850,11 @@ define(['js/app'], function (myApp) {
                 if (vm.platformRewardPageName == "newReward" || vm.platformRewardPageName == "updateReward")return false;
                 else return true;
             }
+            vm.clearCanApplyFromClient = function(){
+              if(!vm.showReward.needApply){
+                vm.showReward.canApplyFromClient = false;
+              }
+            }
             vm.clearRewardFormData = function () {
                 vm.rewardCondition = null;
                 vm.showReward = null;
@@ -10188,6 +10201,7 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeType3 = [];
 
                 vm.userGroupConfig = [];
+                vm.modalYesNo = {};
 
                 loadPromoCodeTypes();
                 loadPromoCodeUserGroup();
@@ -10199,7 +10213,7 @@ define(['js/app'], function (myApp) {
                         vm.promoCodeNewRow(vm.newPromoCode3, 3);
                         break;
                     case 'history':
-                        vm.promoCodeQuery = {};
+                        vm.promoCodeQuery = {sortCol: {createTime: -1}};
 
                         utilService.actionAfterLoaded('#promoCodeQuery', function () {
                             vm.promoCodeQuery.startCreateTime = utilService.createDatePicker('#promoCodeQuery .startCreateTime', {
@@ -10223,8 +10237,8 @@ define(['js/app'], function (myApp) {
                             });
                             vm.promoCodeQuery.endAcceptedTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
 
-                            vm.promoCodeQuery.pageObj = utilService.createPageForPagingTable("#promoCodeTablePage", {}, $translate, function (curP, pageSize) {
-                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeHistory", vm.getPromoCodeHistory)
+                            vm.promoCodeQuery.pageObj = utilService.createPageForPagingTable("#promoCodeTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeQuery", vm.getPromoCodeHistory)
                             });
                         });
                         break;
@@ -10265,7 +10279,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log('getPromoCodeTypes', data);
 
-                    data.data.forEach(entry => {
+                    vm.promoCodeTypes = data.data;
+
+                    vm.promoCodeTypes.forEach(entry => {
                         if (entry.type == 1) {
                             vm.promoCodeType1.push(entry);
                         } else if (entry.type == 2) {
@@ -10308,7 +10324,8 @@ define(['js/app'], function (myApp) {
                         utilService.actionAfterLoaded(id, function () {
                             collection[index].expirationTime = utilService.createDatePicker(id, {
                                 language: 'en',
-                                format: 'yyyy/MM/dd hh:mm:ss'
+                                format: 'yyyy/MM/dd hh:mm:ss',
+                                startDate: utilService.setLocalDayStartTime(new Date())
                             });
                             collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                         });
@@ -10421,6 +10438,7 @@ define(['js/app'], function (myApp) {
 
                 let sendObj = {
                     promoCodeType: vm.promoCodeQuery.promoCodeType,
+                    promoCodeSubType: vm.promoCodeQuery.promoCodeSubType,
                     status: vm.promoCodeQuery.status,
                     platformObjId: vm.promoCodeQuery.platformId,
                     index: vm.promoCodeQuery.index || 0,
@@ -10432,7 +10450,7 @@ define(['js/app'], function (myApp) {
                     sendObj.playerName = vm.promoCodeQuery.playerName;
                 }
 
-                if (type == 1) {
+                if (vm.promoCodeQuery.searchType == 1) {
                     sendObj.startCreateTime = vm.promoCodeQuery.startCreateTime.data('datetimepicker').getLocalDate();
                     sendObj.endCreateTime = vm.promoCodeQuery.endCreateTime.data('datetimepicker').getLocalDate();
                 } else {
@@ -10445,17 +10463,18 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPromoCodesHistory', sendObj, function (data) {
                     $('#promoCodeHistoryTableSpin').hide();
                     console.log('getPromoCodesHistory', data);
-                    vm.promoCodeQuery.totalCount = data.data.length;
+                    vm.promoCodeQuery.totalCount = data.data.size;
+                    vm.promoCodeQuery.result = data.data.data;
                     $scope.safeApply();
                     vm.drawPromoCodeHistoryTable(
-                        data.data.map(item => {
+                        vm.promoCodeQuery.result.map(item => {
                             item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
                             item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => e.code);
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                             item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
 
                             return item;
-                        }), data.data.length, {}, isNewSearch
+                        }), vm.promoCodeQuery.totalCount, {}, isNewSearch
                     );
                 }, function (err) {
                     console.error(err);
@@ -10463,20 +10482,22 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.sendSMSByPromoCode = function () {
+            vm.sendSMSByPromoCode = function (promoCode) {
+                let item = promoCode ? promoCode : vm.selectedPromoCode
+
                 let sendObj = {
-                    platformId: vm.selectedPromoCode.platformObjId,
+                    platformId: item.platformObjId,
                     adminName: 'admin',
-                    playerId: vm.selectedPromoCode.playerObjId._id,
+                    playerId: item.playerObjId._id,
                     title: 'Test Title',
-                    content: vm.selectedPromoCode.smsContent
+                    content: item.smsContent
                 };
 
                 let smsObj = {
-                    playerId: vm.selectedPromoCode.playerObjId.playerId,
-                    platformId: vm.selectedPromoCode.platformObjId,
+                    playerId: item.playerObjId.playerId,
+                    platformId: item.platformObjId,
                     channel: 2,
-                    message: vm.selectedPromoCode.smsContent
+                    message: item.smsContent
                 };
 
                 socketService.$socket($scope.AppSocket, 'sendPlayerMailFromAdminToPlayer', sendObj, function (data) {
@@ -10486,15 +10507,31 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', smsObj, function (data) {
                     console.log('sendSMSToPlayer', data);
                 });
-            }
+            };
+
+            vm.sendSMSByPromoCodeBatch = function (isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo.modalTitle = $translate("Send Promo Code SMS");
+                    vm.modalYesNo.modalText = $translate("Send all unaccepted promo code to members?");
+                    vm.modalYesNo.actionYes = () => vm.sendSMSByPromoCodeBatch(true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    vm.promoCodeQuery.result.map(e => {
+                        if (e.status == 1) {
+                            vm.sendSMSByPromoCode(e);
+                        }
+                    })
+                }
+            };
 
             vm.drawPromoCodeHistoryTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
                     data: data,
-                    "order": vm.promoCodeQuery.aaSorting || [[1, 'desc']],
+                    "order": vm.promoCodeQuery.aaSorting || [[10, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [11]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [10]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -10549,7 +10586,8 @@ define(['js/app'], function (myApp) {
                             data: "acceptedTime$"
                         }
                     ],
-                    "paging": false
+                    "paging": false,
+                    fnRowCallback: vm.promoCodeHistoryTableRow
                 };
                 tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
 
@@ -10576,6 +10614,29 @@ define(['js/app'], function (myApp) {
 
                     $scope.safeApply();
                 });
+            };
+
+            vm.promoCodeHistoryTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                $compile(nRow)($scope);
+                vm.promoCodeTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
+                //console.log("row", nRow, aData, iDisplayIndex, iDisplayIndexFull);
+            };
+
+            vm.promoCodeTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                switch (true) {
+                    case (aData.status == 3): {
+                        $(nRow).css('background-color', 'rgba(138, 138, 138, 100)');
+                        break;
+                    }
+                    case (aData.status == 2): {
+                        $(nRow).css('background-color', 'rgba(197, 181, 43, 100)');
+                        break;
+                    }
+                    default: {
+                        $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                        break;
+                    }
+                }
             };
 
             vm.drawPromoCodeMonitorTable = function (data, size, summary, newSearch) {
@@ -10782,6 +10843,13 @@ define(['js/app'], function (myApp) {
             vm.addUserToPromoCodeGroup = function (data, isSkipCheck) {
                 if (vm.searchPromoCodeUserGroup(data, true) && !isSkipCheck) {
                     vm.newUserPromoCodeUserGroup.newGroup = vm.selectedPromoCodeUserGroup;
+
+                    let message = [
+                        vm.newUserPromoCodeUserGroup.name, $translate("already exist in group"), vm.newUserPromoCodeUserGroup.oldGroup.name,
+                        $translate(", Are you sure you want to move player to group"), vm.newUserPromoCodeUserGroup.newGroup.name, "?"];
+                    vm.modalYesNo.modalTitle = $translate("MOVE_PLAYER");
+                    vm.modalYesNo.modalText = message.join(" ");
+                    vm.modalYesNo.actionYes = () => vm.addUserToPromoCodeGroup(vm.newUserPromoCodeUserGroup.name, true);
                     $('#modalYesNo').modal();
                 } else {
                     if (isSkipCheck) {
