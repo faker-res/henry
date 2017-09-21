@@ -11000,7 +11000,7 @@ define(['js/app'], function (myApp) {
             vm.constructBonusSetting = (bonusSetting) =>{
 
               for(var d in vm.allPlayerLvl){
-                  let lvlName = vm.allPlayerLvl[d].name;
+                  let val = Object.keys(vm.allPlayerLvl)[d];
                   if(Object.keys(vm.bonusSetting).length === 0){
 
                     vm.bonusSetting[d] = {};
@@ -11010,7 +11010,7 @@ define(['js/app'], function (myApp) {
                     vm.bonusSetting[d].bonusPercentageCharges = 0;
                     vm.bonusSetting[d].bonusCharges = 0;
                   }else{
-                    let setting = vm.getValueByKey(lvlName, vm.bonusSetting);
+                    let setting = vm.getValueByKey(val, vm.bonusSetting);
                     if(!setting){
                       vm.bonusSetting[d] = {};
                       vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;
@@ -11024,11 +11024,11 @@ define(['js/app'], function (myApp) {
               vm.bonusBasic = {'bonusSetting':vm.bonusSetting}
               $scope.safeApply();
             }
-            vm.getValueByKey = (lvlName, bonusSettings) =>{
+            vm.getValueByKey = (val, bonusSettings) =>{
               var result = 0;
               var len = Object.keys(vm.bonusSetting).length;
               for(var i = 0;i < len; i++){
-                if(vm.bonusSetting[i].name==lvlName){
+                if(Object.keys(vm.bonusSetting)[i]==val){
                   result += 1;
                 }
               }
