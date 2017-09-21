@@ -863,7 +863,7 @@ let dbPlayerReward = {
                     .populate({path: "playerObjId", model: dbConfig.collection_players})
                     .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
                     .populate({path: "allowedProviders", model: dbConfig.collection_gameProvider})
-                    .lean();
+                    .sort(searchQuery.sortCol).lean();
             }
         ).then(
             res => {
@@ -949,6 +949,8 @@ let dbPlayerReward = {
 
     applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;
+        let isType2Promo = false;
+
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
                 platform: platformObjId,
@@ -982,20 +984,25 @@ let dbPlayerReward = {
                         })
                     }
 
-                    let searchQuery = {
-                        'data.platformId': platformObjId,
-                        'data.playerObjId': promoCodeObj.playerObjId,
-                        settleTime: {$gte: promoCodeObj.createTime, $lt: new Date()},
-                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                        mainType: "TopUp"
-                    };
+                    if (!promoCodeObj.minTopUpAmount) {
+                        isType2Promo = true;
+                        return true;
+                    } else {
+                        let searchQuery = {
+                            'data.platformId': platformObjId,
+                            'data.playerObjId': promoCodeObj.playerObjId,
+                            settleTime: {$gte: promoCodeObj.createTime, $lt: new Date()},
+                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                            mainType: "TopUp"
+                        };
 
-                    if (promoCodeObj.promoCodeTypeObjId.type == 3) {
-                        searchQuery["data.amount"] = {$gte: promoCodeObj.minTopUpAmount}
+                        if (promoCodeObj.promoCodeTypeObjId.type == 3) {
+                            searchQuery["data.amount"] = {$gte: promoCodeObj.minTopUpAmount}
+                        }
+
+                        // Search Top Up Proposal After Received Promo Code
+                        return dbConfig.collection_proposal.find(searchQuery).sort({createTime: -1}).limit(1).lean();
                     }
-
-                    // Search Top Up Proposal After Received Promo Code
-                    return dbConfig.collection_proposal.find(searchQuery).sort({createTime: -1}).limit(1).lean();
                 } else {
                     return Q.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
@@ -1006,7 +1013,11 @@ let dbPlayerReward = {
             }
         ).then(
             topUpProposal => {
-                if (topUpProposal && topUpProposal.length > 0) {
+                if (isType2Promo || (topUpProposal && topUpProposal.length > 0)) {
+                    if (isType2Promo) {
+                        return true;
+                    }
+
                     topUpProp = topUpProposal[0];
 
                     if (topUpProp.data.promoCode) {
@@ -1047,7 +1058,7 @@ let dbPlayerReward = {
             }
         ).then(
             consumptionSumm => {
-                if (consumptionSumm.length == 0) {
+                if (isType2Promo || consumptionSumm.length == 0) {
                     return dbConfig.collection_proposalType.findOne({
                         platformId: platformObjId,
                         name: constProposalType.PLAYER_PROMO_CODE_REWARD
@@ -1081,8 +1092,8 @@ let dbPlayerReward = {
                         spendingAmount: promoCodeObj.requiredConsumption,
                         promoCode: promoCodeObj.code,
                         PROMO_CODE_TYPE: promoCodeObj.promoCodeTypeObjId.name,
-                        applyAmount: topUpProp.data.amount,
-                        topUpProposal: topUpProp.proposalId,
+                        applyAmount: topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0,
+                        topUpProposal: topUpProp && topUpProp.proposalId ? topUpProp.proposalId : null,
                         useLockedCredit: false,
                         useConsumption: false
                     },
@@ -1092,12 +1103,13 @@ let dbPlayerReward = {
                 return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
             }
         ).then(
-            data => {
+            newProp => {
                 return dbConfig.collection_promoCode.findOneAndUpdate({
                     _id: promoCodeObj._id
                 }, {
                     acceptedTime: new Date(),
-                    status: constPromoCodeStatus.ACCEPTED
+                    status: constPromoCodeStatus.ACCEPTED,
+                    proposalId: newProp.proposalId
                 })
             }
         )

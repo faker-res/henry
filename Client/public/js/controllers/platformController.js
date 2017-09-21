@@ -10517,7 +10517,6 @@ define(['js/app'], function (myApp) {
                     data: data,
                     "order": vm.promoCodeQuery.aaSorting || [[10, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                         {'sortCol': 'createTime', bSortable: true, 'aTargets': [10]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
@@ -10571,6 +10570,10 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('ACCEPTTIME'),
                             data: "acceptedTime$"
+                        },
+                        {
+                            title: $translate('proposalId'),
+                            data: "proposalId"
                         }
                     ],
                     "paging": false,
@@ -10612,15 +10615,15 @@ define(['js/app'], function (myApp) {
             vm.promoCodeTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 switch (true) {
                     case (aData.status == 3): {
-                        $(nRow).css('background-color', 'rgba(138, 138, 138, 100)');
+                        $(nRow).find('td').css('background-color', 'rgba(138, 138, 138, 100)');
                         break;
                     }
                     case (aData.status == 2): {
-                        $(nRow).css('background-color', 'rgba(197, 181, 43, 100)');
+                        $(nRow).find('td').css('background-color', 'rgba(197, 181, 43, 100)');
                         break;
                     }
                     default: {
-                        $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                        // $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
                         break;
                     }
                 }

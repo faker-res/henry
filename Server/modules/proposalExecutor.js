@@ -1759,6 +1759,7 @@ var proposalExecutor = {
             executePlayerConsecutiveConsumptionReward: function (proposalData, deferred) {
                 //verify data
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
+                    proposalData.data.proposalId = proposalData.proposalId;
                     changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSECUTIVE_CONSUMPTION_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
                 }
                 else {
@@ -1794,12 +1795,23 @@ var proposalExecutor = {
                         taskData.targetProviders = proposalData.data.providers;
                     }
 
-                    dbUtil.findOneAndUpdateForShard(
-                        dbconfig.collection_proposal,
-                        {proposalId: proposalData.data.topUpProposal, 'data.platformId': proposalData.data.platformId},
-                        {'data.promoCode': proposalData.data.promoCode},
-                        constShardKeys.collection_proposal
-                    ).then(
+                    let prom;
+
+                    if (proposalData.data.applyAmount) {
+                        prom = dbUtil.findOneAndUpdateForShard(
+                            dbconfig.collection_proposal,
+                            {
+                                proposalId: proposalData.data.topUpProposal,
+                                'data.platformId': proposalData.data.platformId
+                            },
+                            {'data.promoCode': proposalData.data.promoCode},
+                            constShardKeys.collection_proposal
+                        );
+                    } else {
+                        prom = Promise.resolve();
+                    }
+
+                    prom.then(
                         data => {
                             createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_PROMO_CODE_REWARD, proposalData);
                         },
