@@ -268,10 +268,8 @@ define(['js/app'], function (myApp) {
                     $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
                 }
             };
-
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
-
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
@@ -11106,12 +11104,57 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getBonusBasic = () => {
-                vm.bonusBasic = vm.bonusBasic || {};
-                vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
-                vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
-                $scope.safeApply();
+
+                vm.getAllPlayerLevels().done(
+                    function (data) {
+                      if(vm.selectedPlatform.data.bonusSetting){
+                         vm.bonusSetting = vm.selectedPlatform.data.bonusSetting;
+                      }else{
+                         vm.bonusSetting = {};
+                      }
+                      vm.constructBonusSetting();
+
+                    }
+                );
             };
 
+            vm.constructBonusSetting = (bonusSetting) =>{
+
+              for(var d in vm.allPlayerLvl){
+                  let val = Object.keys(vm.allPlayerLvl)[d];
+                  if(Object.keys(vm.bonusSetting).length === 0){
+
+                    vm.bonusSetting[d] = {};
+                    vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;
+                    vm.bonusSetting[d].value = vm.allPlayerLvl[d].value;
+                    vm.bonusSetting[d].name = vm.allPlayerLvl[d].name;
+                    vm.bonusSetting[d].bonusPercentageCharges = 0;
+                    vm.bonusSetting[d].bonusCharges = 0;
+                  }else{
+                    let setting = vm.getValueByKey(val, vm.bonusSetting);
+                    if(!setting){
+                      vm.bonusSetting[d] = {};
+                      vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;
+                      vm.bonusSetting[d].value = vm.allPlayerLvl[d].value;
+                      vm.bonusSetting[d].name = vm.allPlayerLvl[d].name;
+                      vm.bonusSetting[d].bonusPercentageCharges = 0;
+                      vm.bonusSetting[d].bonusCharges = 0;
+                    }
+                  }
+              }
+              vm.bonusBasic = {'bonusSetting':vm.bonusSetting}
+              $scope.safeApply();
+            }
+            vm.getValueByKey = (val, bonusSettings) =>{
+              var result = 0;
+              var len = Object.keys(vm.bonusSetting).length;
+              for(var i = 0;i < len; i++){
+                if(Object.keys(vm.bonusSetting)[i]==val){
+                  result += 1;
+                }
+              }
+              return result;
+            }
             vm.getAutoApprovalBasic = () => {
                 vm.autoApprovalBasic = vm.autoApprovalBasic || {};
                 console.log('vm.selectedPlatform.data', vm.selectedPlatform.data);
@@ -11463,14 +11506,13 @@ define(['js/app'], function (myApp) {
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
-                        bonusPercentageCharges: srcData.bonusPercentageCharges,
-                        bonusCharges: srcData.bonusCharges,
                         requireLogInCaptcha: srcData.requireLogInCaptcha,
                         requireCaptchaInSMS: srcData.requireCaptchaInSMS,
                         onlyNewCanLogin: srcData.onlyNewCanLogin,
                         useLockedCredit: srcData.useLockedCredit,
                         playerNameMaxLength: srcData.playerNameMaxLength,
-                        playerNameMinLength: srcData.playerNameMinLength
+                        playerNameMinLength: srcData.playerNameMinLength,
+                        bonusSetting: srcData.bonusSetting
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

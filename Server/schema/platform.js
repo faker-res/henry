@@ -145,7 +145,8 @@ var platformSchema = new Schema({
         credibilityScoreDefault: {type: Number, default: 5}
     },
     jiguangAppKey: {type: String},
-    jiguangMasterKey: {type: String}
+    jiguangMasterKey: {type: String},
+    bonusSetting: {type: JSON,default:{}}
 });
 
 //add platform id before save
