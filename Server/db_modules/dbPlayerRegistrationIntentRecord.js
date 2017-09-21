@@ -70,10 +70,12 @@ var dbPlayerRegistrationIntentRecord = {
                     }).lean().then(
                         proposalData => {
                             if( proposalData ){
-                                dbconfig.collection_proposal.findOneAndUpdate(
-                                    {_id: proposalData._id, createTime: proposalData.createTime},
-                                    {status: status}
-                                ).then();
+                                if(proposalData.status != constProposalStatus.SUCCESS){
+                                    dbconfig.collection_proposal.findOneAndUpdate(
+                                        {_id: proposalData._id, createTime: proposalData.createTime},
+                                        {status: status}
+                                    ).then();
+                                }
                             }
                             else{
                                 dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(
