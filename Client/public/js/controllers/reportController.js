@@ -486,6 +486,13 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
                 });
                 $scope.safeApply();
+            } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
+                vm.onlinePaymentMismatchQuery = {};
+                vm.proposalMismatchDetail = {};
+                utilService.actionAfterLoaded("#onlinePaymentMismatchTable", function () {
+                    vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
+                });
+                $scope.safeApply();
             } else if (choice == "PLAYERPARTNER_REPORT") {
                 vm.partnerQuery = {};
                 utilService.actionAfterLoaded("#playerPartnerTable", function () {
@@ -1661,8 +1668,6 @@ define(['js/app'], function (myApp) {
 
         // Win Rate Report
         vm.getWinRateReportData = function () {
-            let data = null;
-
             // hide table and show 'loading'
             $('#winRateTableSpin').show();
             $('#winRateTable').hide();
@@ -1691,7 +1696,40 @@ define(['js/app'], function (myApp) {
                 vm.winRateReportLoadingStatus = err.message;
                 $scope.safeApply();
             }, true);
+        };
 
+        vm.getMismatchReport = function () {
+            $('#onlinePaymentMismatchTableSpin').show();
+            let sendQuery = {
+                platform: vm.selectedPlatform._id,
+                platformId: vm.selectedPlatform.platformId,
+                startTime: vm.onlinePaymentMismatchQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.onlinePaymentMismatchQuery.endTime.data('datetimepicker').getLocalDate()
+            };
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getMismatchReport', sendQuery, function (data) {
+                console.log('_getMismatchReport', data);
+                $('#onlinePaymentMismatchTableSpin').hide();
+                vm.proposalMismatchDetail = data.data;
+                $scope.safeApply();
+            });
+        };
+
+        vm.testMismatchReportOutput = function (sendQuery) {
+            let today = new Date();
+            let yesterday = new Date().setDate(new Date().getDate() - 1);
+            sendQuery = sendQuery ? sendQuery : {
+                platform: vm.selectedPlatform._id,
+                platformId: vm.selectedPlatform.platformId,
+                startTime: yesterday,
+                endTime: today
+            };
+
+            socketService.$socket($scope.AppSocket, 'getMismatchReport', sendQuery, function (data) {
+                console.log('data', data);
+            });
 
         };
 
