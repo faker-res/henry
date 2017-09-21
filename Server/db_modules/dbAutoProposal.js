@@ -393,6 +393,8 @@ function checkProposalConsumption(proposal, platformObj) {
                             spendingAmount = 0;
                             bonusAmount = 0;
                             initBonusAmount = 0;
+                            totalBonusAmount = 0;
+                            totalTopUpAmount -= lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
                         }
 
                         currentProposal = checkResult[i].proposalId;
