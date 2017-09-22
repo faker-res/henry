@@ -65,8 +65,8 @@ var dbPlayerRegistrationIntentRecord = {
                 if( typeData ){
                     return dbconfig.collection_proposal.findOne({
                         type: typeData._id,
-                        "data.name": data.data.name,
-                        "data.phoneNumber": data.data.phoneNumber
+                        "data.name": data.data.name
+                        // "data.phoneNumber": data.data.phoneNumber
                     }).lean().then(
                         proposalData => {
                             if( proposalData ){

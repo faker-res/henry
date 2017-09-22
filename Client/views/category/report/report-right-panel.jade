@@ -636,6 +636,37 @@
                         td {{(vm.winRateSummaryData.validAmount) | number : 2}}
                         td {{(vm.winRateSummaryData.bonusAmount) | number : 2}}
                         td {{(-vm.winRateSummaryData.bonusAmount/vm.winRateSummaryData.validAmount*100 || 0) | number : 2 }}%
+
+        div(ng-if='vm.showPageName=="ONLINE_PAYMENT_MISMATCH_REPORT"')
+            // 输赢报表
+            #onlinePaymentMismatchQuery.block-query.col-md-12.well
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.getMismatchReport()') {{'SEARCH' | translate}}
+                    span#onlinePaymentMismatchTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.winRateReportLoadingStatus}}
+            .clearfix
+            table#onlinePaymentMismatchTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                thead
+                    tr
+                        th {{'proposalId' | translate}}
+                        th {{'CREATE_TIME' | translate}}
+                        th {{'SYSTEM_THAT_MISSING' | translate}}
+
+                tbody
+                    tr(ng-repeat='(i,v) in vm.proposalMismatchDetail')
+                        td {{v.proposalId}}
+                        td {{v.createTime}}
+                        td {{v.missing}}
+
+
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')
 script(src='js/lib/flot/jquery.flot.pie.min.js')
