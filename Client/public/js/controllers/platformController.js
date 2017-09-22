@@ -6931,6 +6931,12 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.testSound = function (soundPath) {
+                let soundUrl = "sound/notification/" + soundPath;
+                let sound = new Audio(soundUrl);
+                sound.play();
+            };
+
             // Returns an object containing all key-value pairs of newObj which were are not in oldObj
             function newAndModifiedFields(oldObj, newObj) {
                 function isEqualArray(array1, array2) {
