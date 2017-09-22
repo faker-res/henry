@@ -1835,7 +1835,7 @@
   "Change UnlockedAmount": "变化解锁额度",
   "Access Type": "连入方式",
   "Domain Name": "域名",
-  "Registration Domain": "注册来源",
+  "Registration Domain": "开户域名",
   "Client Type": "客户类型",
   "APPROVAL_PROPOSAL": "待审提案",
   "AUTO_SETTLEMENT": "自动结算",
@@ -2325,7 +2325,6 @@
   "PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT": "商户连续被充值失败 X 次后出现变色提醒",
   "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "玩家连续充值失败 X 次后出现变色提醒",
   "Source Domain": "跳转域名",
-  "Registration Domain": "开户域名",
   "SYSTEM_PLAYER": "系统玩家",
   "OLD_SYSTEM": "老系统",
   "NEW_SYSTEM": "新系统"
