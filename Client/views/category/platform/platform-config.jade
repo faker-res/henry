@@ -673,7 +673,7 @@
                                 td
                                     input(type='checkbox', ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorMerchantUseSound')
                                 td
-                                    select.form-control(ng-disabled="!vm.configTableEdit", ng-model="vm.monitorBasic.monitorMerchantSoundChoice", required)
+                                    select.form-control(ng-disabled="!vm.configTableEdit", ng-model="vm.monitorBasic.monitorMerchantSoundChoice", required, ng-change="vm.testSound(vm.monitorBasic.monitorMerchantSoundChoice)")
                                         option(ng-repeat='(i,j) in vm.soundChoice', value='{{j}}') {{i}}
                             tr
                                 td {{'PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT' | translate}}
@@ -683,7 +683,7 @@
                                 td
                                     input(type='checkbox', ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorPlayerUseSound')
                                 td
-                                    select.form-control(ng-disabled="!vm.configTableEdit", ng-model="vm.monitorBasic.monitorPlayerSoundChoice", required)
+                                    select.form-control(ng-disabled="!vm.configTableEdit", ng-model="vm.monitorBasic.monitorPlayerSoundChoice", required, ng-change="vm.testSound(vm.monitorBasic.monitorPlayerSoundChoice)")
                                         option(ng-repeat='(i,j) in vm.soundChoice', value='{{j}}') {{i}}
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.configTableEdit=!vm.configTableEdit')
