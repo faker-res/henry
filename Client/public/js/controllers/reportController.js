@@ -1952,7 +1952,6 @@ define(['js/app'], function (myApp) {
                 vm.drawPlayerReport(data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
-                    // item.topUpSum$ = item.topUpSum.toFixed(2);
                     item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
                     item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
                     item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
@@ -1982,18 +1981,6 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
-                    // item.provider$ = "";
-                    // if (item.gameDetail) {
-                    //     for (let i = 0; i < item.gameDetail.length; i++) {
-                    //         for (let j = 0; j < vm.allProviders.length; j++) {
-                    //             if (item.gameDetail[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                    //                 item.provider$ += vm.allProviders[j].name + "<br>";
-                    //             }
-                    //         }
-                    //     }
-                    // }
-
-
                     item.providerArr = [];
                     for (var key in item.providerDetail) {
                         if (item.providerDetail.hasOwnProperty(key)) {
@@ -2001,8 +1988,6 @@ define(['js/app'], function (myApp) {
                             item.providerArr.push(item.providerDetail[key]);
                         }
                     }
-
-
 
                     item.provider$ = "";
                     if (item.providerDetail) {
@@ -2020,41 +2005,9 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
-                    // vm.allGame = [];
-                    // var gameId = [];
-                    // if (item.gameDetail) {
-                    //     for (let n = 0; n < item.gameDetail.length; n++) {
-                    //         gameId[n] = item.gameDetail[n].gameId;
-                    //     }
-                    //     vm.getGameByIds(gameId).then(
-                    //         function () {
-                    //             console.log("OO",item.gameDetail[0].gameId,vm.allGame);
-                    //             for (let i = 0; i < item.gameDetail.length; i++) {
-                    //                 for (let j = 0; j < vm.allGame.length; j++){
-                    //                     if (item.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()){
-                    //                         item.gameDetail[i].name = vm.allGame[j].name;
-                    //                     }
-                    //                 }
-                    //             }
-                    //         }
-                    //     )
-                    // }
-
-                    // item.provider$ = "";
-                    // if (item.gameDetail) {
-                    //     for (let i = 0; i < item.gameDetail.length; i++) {
-                    //         for (let j = 0; j < vm.allProviders.length; j++) {
-                    //             if (item.gameDetail[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                    //                 item.provider$ += vm.allProviders[j].name + "<br>";
-                    //             }
-                    //         }
-                    //     }
-                    // }
-
                     item.profit$ = 0;
                     if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0){
-                        item.profit$ = (item.consumptionBonusAmount /  item.validConsumptionAmount) * - 100;
-                        item.profit$ += "%";
+                        item.profit$ = parseFloat((item.consumptionBonusAmount /  item.validConsumptionAmount) * - 100).toFixed(2) + "%";
                     }
 
 
@@ -2162,7 +2115,6 @@ define(['js/app'], function (myApp) {
 
                         vm.getGameByIds(gameId).then(
                             function () {
-                                console.log("OO",data.gameDetail[0].gameId,vm.allGame);
                                 for (let i = 0; i < data.gameDetail.length; i++) {
                                     data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
                                     for (let j = 0; j < vm.allGame.length; j++){
@@ -2221,7 +2173,6 @@ define(['js/app'], function (myApp) {
                 vm.playerPlatformReport[id].clear();
             }
             $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
-
             vm.playerPlatformReport[id] = utilService.createDatatableWithFooter('#' + id, tableOptions, {});
             utilService.setDataTablePageInput('playerReportTable', vm.gameTable[id], $translate);
             // vm[id].pageObj.init({maxCount: size}, newSearch);
@@ -2229,14 +2180,9 @@ define(['js/app'], function (myApp) {
             $('#' + id).resize();
             $('#' + id).off('click', 'td.expandPlayerReportPlatform');
             $('#' + id).on('click', 'td.expandPlayerReportPlatform', function () {
-                // var tr = $(this).closest('tr');
-                // var row = vm.playerPlatformReport[id].row(tr);
                 var tr = $(this).closest('tr');
                 var table = $(this).parent().closest('table');
-                console.log('clicked', tr);
                 var providerId = table.attr('id').substring(11);
-                console.log('clicked', providerId, table.attr('id'));
-                console.log('vm.plateformTable', vm.playerPlatformReport);
                 var row = vm.playerPlatformReport[table.attr('id')].row(tr);
                 if (row.child.isShown()) {
                     // This row is already open - close it
@@ -2246,8 +2192,7 @@ define(['js/app'], function (myApp) {
                 else {
                     // Open this row
                     var data = row.data();
-                    console.log('content', data);
-                    var id = 'playerplatformtable' + data._id;
+                    var id = providerId + 'playerplatformtable' + data.providerId;
                     row.child(vm.createInnerTable(id)).show();
                     vm[id] = {};
                     // implement filter
@@ -2298,11 +2243,9 @@ define(['js/app'], function (myApp) {
                 vm.playerGameReport[id].clear();
             }
             $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
-
             vm.playerPlatformReport[id] = utilService.createDatatableWithFooter('#' + id, tableOptions, {});
             utilService.setDataTablePageInput('playerReportTable', vm.gameTable[id], $translate);
             // vm[id].pageObj.init({maxCount: size}, newSearch);
-
         };
 
         //////draw game table inside player end /////
