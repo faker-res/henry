@@ -7729,6 +7729,7 @@ define(['js/app'], function (myApp) {
                     sendQuery.isNewSystem = true;
                 }
 
+                $('#platformFeedbackSpin').show();
                 console.log('sendQuery', sendQuery);
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
                     query: sendQuery,
@@ -7738,10 +7739,12 @@ define(['js/app'], function (myApp) {
                     vm.curFeedbackPlayer = data.data.data;
                     vm.feedbackPlayersPara.total = data.data.total || 0;
                     vm.feedbackPlayersPara.index = data.data.index + 1;
+                    $('#platformFeedbackSpin').hide();
                     if (!vm.curFeedbackPlayer) {
                         $scope.safeApply();
                         return;
                     }
+
                     vm.addFeedback = {
                         playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
                         platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
