@@ -10522,7 +10522,16 @@ define(['js/app'], function (myApp) {
                     })
                 }
             };
+            vm.showProposalModal = function(proposalId){
+              socketService.$socket($scope.AppSocket, 'getProposal', {
+                  proposalId: proposalId
+              }, function (data) {
+                console.log(data);
 
+                $('#modalProposal').modal('show');
+              })
+
+            }
             vm.drawPromoCodeHistoryTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
                     data: data,
@@ -10584,7 +10593,14 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('proposalId'),
-                            data: "proposalId"
+                            data: "proposalId",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    // 'ng-click': 'vm.showProposalModal("' + data + '")'
+                                    'ng-click': 'vm.showProposalModal("403353")'
+                                }).text('403353');
+                                return link.prop('outerHTML');
+                            }
                         }
                     ],
                     "paging": false,
