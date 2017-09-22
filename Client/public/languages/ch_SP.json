@@ -2341,5 +2341,7 @@
   "OLD_SYSTEM": "老系统",
   "NEW_SYSTEM": "新系统",
   "PlayerValue": "玩家价值",
-  "Credibility": "玩家信用"
+  "Credibility": "玩家信用",
+  "SOUND_NOTIFICATION": "声响",
+  "SOUND_NOTIFICATION_CHOICE": "声响音选择"
 }
