@@ -1415,12 +1415,12 @@ include modalGameCreditLog
                             option(value='') {{'ALL' | translate}}
                             option(value="player - create") {{"玩家开户" | translate}}
                             option(value="login") {{"login" | translate}}
-                            option(value="createPlayerPartner") {{"玩家+推广渠道开户" | translate}}
-                            option(value="loginPlayerPartner") {{"玩家+推广渠道登录" | translate}}
+                            option(value="createPlayerPartner") {{"玩家+代理开户" | translate}}
+                            option(value="loginPlayerPartner") {{"玩家+代理登录" | translate}}
                             option(value="updatePaymentInfo") {{"修改玩家的支付信息" | translate}}
-                            option(value="updatePlayerPartnerPaymentInfo") {{"修改玩家+推广渠道的支付信息" | translate}}
+                            option(value="updatePlayerPartnerPaymentInfo") {{"修改玩家+代理的支付信息" | translate}}
                             option(value="updatePassword") {{"修改玩家登录密码" | translate}}
-                            option(value="updatePasswordPlayerPartner") {{"修改玩家+推广渠道登录密码" | translate}}
+                            option(value="updatePasswordPlayerPartner") {{"修改玩家+代理登录密码" | translate}}
                             option(value="updateSmsSetting") {{"设置短信通知" | translate}}
                             option(value="player - update") {{"修改玩家信息" | translate}}
                             option(value="updatePhotoUrl") {{"修改玩家头像" | translate}}
@@ -1610,7 +1610,7 @@ include modalGameCreditLog
                                     label {{'Alipay' | translate}}
                                     select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)')
                                         option(value='') {{'any' | translate}}
-                                        option(ng-repeat='(i,v) in vm.allAlipaysAcc', value='{{v}}') {{v.name}}({{v.state | translate}})
+                                        option(ng-repeat='(i,v) in vm.allAlipaysAcc', value='{{v}}') {{v.accountNumber}} {{v.name}}({{v.state | translate}})
                                 .form-group.col-md-6
                                     .control-label
                                     label {{'alipayName' | translate}}

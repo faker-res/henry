@@ -47,7 +47,8 @@ const constProposalType = {
     PLAYER_TOP_UP_PROMO: "PlayerTopUpPromo",
     PLAYER_LEVEL_MIGRATION: "PlayerLevelMigration",
     PLAYER_CONSECUTIVE_CONSUMPTION_REWARD: "PlayerConsecutiveConsumptionReward",
-    PLAYER_PACKET_RAIN_REWARD: "PlayerPacketRainReward"
+    PLAYER_PACKET_RAIN_REWARD: "PlayerPacketRainReward",
+    PLAYER_PROMO_CODE_REWARD: "PlayerPromoCodeReward"
 };
 
 module.exports = constProposalType;

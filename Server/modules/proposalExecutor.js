@@ -147,6 +147,7 @@ var proposalExecutor = {
             this.executions.executePlayerConsecutiveConsumptionReward.des = "Player Consecutive Consumption Reward";
             this.executions.executePlayerLevelMigration.des = "Player Level Migration";
             this.executions.executePlayerPacketRainReward.des = "Player Packet Rain Reward";
+            this.executions.executePlayerPromoCodeReward.des = "Player Promo Code Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -193,6 +194,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerConsecutiveConsumptionReward.des = "Reject Player Consecutive Consumption Reward";
             this.rejections.rejectPlayerLevelMigration.des = "Reject Player Level Migration";
             this.rejections.rejectPlayerPacketRainReward.des = "Reject Player Packet Rain Reward";
+            this.rejections.rejectPlayerPromoCodeReward.des = "Reject Player Promo Code Reward";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1757,6 +1759,7 @@ var proposalExecutor = {
             executePlayerConsecutiveConsumptionReward: function (proposalData, deferred) {
                 //verify data
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
+                    proposalData.data.proposalId = proposalData.proposalId;
                     changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSECUTIVE_CONSUMPTION_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
                 }
                 else {
@@ -1773,6 +1776,60 @@ var proposalExecutor = {
                     deferred.reject({name: "DataError", message: "Incorrect player packet rain proposal data"});
                 }
             },
+
+            executePlayerPromoCodeReward: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_PROMO_CODE_REWARD,
+                        rewardType: constRewardType.PLAYER_PROMO_CODE_REWARD,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.applyAmount,
+                        initAmount: proposalData.data.applyAmount,
+                        eventId: proposalData.data.eventId,
+                        useLockedCredit: proposalData.data.useLockedCredit,
+                        useConsumption: Boolean(proposalData.data.useConsumption)
+                    };
+                    if (proposalData.data.providers) {
+                        taskData.targetProviders = proposalData.data.providers;
+                    }
+
+                    let prom;
+
+                    if (proposalData.data.applyAmount) {
+                        prom = dbUtil.findOneAndUpdateForShard(
+                            dbconfig.collection_proposal,
+                            {
+                                proposalId: proposalData.data.topUpProposal,
+                                'data.platformId': proposalData.data.platformId
+                            },
+                            {'data.promoCode': proposalData.data.promoCode},
+                            constShardKeys.collection_proposal
+                        );
+                    } else {
+                        prom = Promise.resolve();
+                    }
+
+                    prom.then(
+                        data => {
+                            createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_PROMO_CODE_REWARD, proposalData);
+                        },
+                        error => {
+                            deferred.reject({
+                                name: "DBError",
+                                message: "Failed to update topup proposal for promo code",
+                                error: error
+                            });
+                        }
+                    )
+                } else {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Incorrect player promo code reward proposal data"
+                    });
+                }
+            }
         },
 
         /**
@@ -2307,6 +2364,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerPacketRainReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerPromoCodeReward: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             }
         }

@@ -461,13 +461,15 @@ define(['js/app'], function (myApp) {
                 vm.playerDomain.topUpTimesOperator = ">=";
                 vm.playerDomain.playerValueOperator = ">=";
                 vm.playerDomain.registrationInterface = "";
+                vm.playerDomain.isNewSystem = "";
+                vm.playerDomain.playerType = "Real Player (all)";
                 utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
                     vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                     vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
                     });
                     vm.searchPlayerDomainRepport(true);
-                })
+                });
             } else if (choice == "NEWACCOUNT_REPORT") {
                 vm.newPlayerQuery = {totalCount: 0};
                 utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
@@ -480,6 +482,13 @@ define(['js/app'], function (myApp) {
                 vm.winRateQuery.providerId = 'all';
                 utilService.actionAfterLoaded("#winRateTable", function () {
                     vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
+                });
+                $scope.safeApply();
+            } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
+                vm.onlinePaymentMismatchQuery = {};
+                vm.proposalMismatchDetail = {};
+                utilService.actionAfterLoaded("#onlinePaymentMismatchTable", function () {
+                    vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
                 });
                 $scope.safeApply();
             } else if (choice == "PLAYERPARTNER_REPORT") {
@@ -1704,8 +1713,6 @@ define(['js/app'], function (myApp) {
 
         // Win Rate Report
         vm.getWinRateReportData = function () {
-            let data = null;
-
             // hide table and show 'loading'
             $('#winRateTableSpin').show();
             $('#winRateTable').hide();
@@ -1734,7 +1741,40 @@ define(['js/app'], function (myApp) {
                 vm.winRateReportLoadingStatus = err.message;
                 $scope.safeApply();
             }, true);
+        };
 
+        vm.getMismatchReport = function () {
+            $('#onlinePaymentMismatchTableSpin').show();
+            let sendQuery = {
+                platform: vm.selectedPlatform._id,
+                platformId: vm.selectedPlatform.platformId,
+                startTime: vm.onlinePaymentMismatchQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.onlinePaymentMismatchQuery.endTime.data('datetimepicker').getLocalDate()
+            };
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getMismatchReport', sendQuery, function (data) {
+                console.log('_getMismatchReport', data);
+                $('#onlinePaymentMismatchTableSpin').hide();
+                vm.proposalMismatchDetail = data.data;
+                $scope.safeApply();
+            });
+        };
+
+        vm.testMismatchReportOutput = function (sendQuery) {
+            let today = new Date();
+            let yesterday = new Date().setDate(new Date().getDate() - 1);
+            sendQuery = sendQuery ? sendQuery : {
+                platform: vm.selectedPlatform._id,
+                platformId: vm.selectedPlatform.platformId,
+                startTime: yesterday,
+                endTime: today
+            };
+
+            socketService.$socket($scope.AppSocket, 'getMismatchReport', sendQuery, function (data) {
+                console.log('data', data);
+            });
 
         };
 
@@ -1757,6 +1797,7 @@ define(['js/app'], function (myApp) {
                     playerValue: vm.playerDomain.playerValue,
                     playerValueTwo: vm.playerDomain.playerValueTwo,
                     registrationInterface: vm.playerDomain.registrationInterface,
+                    isNewSystem: vm.playerDomain.isNewSystem,
                     startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate()
                 },
@@ -1773,6 +1814,9 @@ define(['js/app'], function (myApp) {
                 vm.drawPlayerDomainReport(data.data.data.map(item => {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                    if (!item.name && item.partnerName) {
+                        item.name = item.partnerName;
+                    }
 
                     if (item.userAgent[0]) {
                         item.registrationOS$ = item.userAgent[0].os;
@@ -1829,8 +1873,28 @@ define(['js/app'], function (myApp) {
                     }
                     item.registrationAgent$ = $translate(item.registrationAgent$);
 
-                    item.phoneArea$ = item.phoneCity + " " + item.phoneProvince;
-                    item.ipArea$ = item.city + " " + item.province;
+                    if (!item.phoneProvince | item.phoneProvince === 'null' || item.phoneProvince === 'undefined') {
+                        item.phoneProvince = $translate('Unknown');
+                    }
+                    if (!item.phoneCity | item.phoneCity === 'null' || item.phoneCity === 'undefined') {
+                        item.phoneCity = $translate('Unknown');
+                    }
+                    if (!item.province | item.province === 'null' || item.province === 'undefined') {
+                        item.province = $translate('Unknown');
+                    }
+                    if (!item.city | item.city === 'null' || item.city === 'undefined') {
+                        item.city = $translate('Unknown');
+                    }
+
+                    item.phoneArea$ = item.phoneProvince + " " + item.phoneCity;
+                    item.ipArea$ = item.province + " " + item.city;
+
+                    if (item.partner && item.partner.partnerName) {
+                        item.partner$ = item.partner.partnerName;
+                    }
+                    else if (item.parent && item.parent.partnerName) {
+                        item.partner$ = item.parent.partnerName;
+                    }
 
                     return item;
                 }), data.data.size, newSearch);
@@ -1872,22 +1936,22 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {
-                        title: $translate('URL'),
+                        title: $translate('Source Domain'),
                         data: "sourceUrl",
                         render: function (data, type, row) {
                             if (data && data.length > 35)
-                                return "<a href=\"" + data + "\">" + data.substring(0, 30) + "...</a>";
+                                return "<a target=\"_blank\" href=\"" + data + "\">" + data.substring(0, 30) + "...</a>";
                             else if (data)
-                                return "<a href=\"" + data + "\">" + data + "</a>";
+                                return "<a target=\"_blank\" href=\"" + data + "\">" + data + "</a>";
                             else
                                 return data;
                         }
                     },
-                    {title: $translate('Domain Name'), data: "domain"},
+                    {title: $translate('Registration Domain'), data: "domain"},
                     {title: $translate("REGISTRATION_AGENT"), data: "registrationAgent$"},
                     {title: $translate('OS'), data: "registrationOS$"},
                     {title: $translate('Browser'), data: "registrationBrowser$"},
-                    {title: $translate('partner'), data: "partner.partnerName"},
+                    {title: $translate('partner'), data: "partner$"},
                 ],
                 "paging": false,
             }

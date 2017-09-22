@@ -1,0 +1,441 @@
+.row
+    .col-md-12
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "create"}', ng-click='vm.promoCodeTabClicked("create")')
+            span {{"CREATE_PROMO_CODE" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "history"}', ng-click='vm.promoCodeTabClicked("history")')
+            span {{"PROMO_CODE_HISTORY" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "monitor"}', ng-click='vm.promoCodeTabClicked("monitor")')
+            span {{"PROMO_CODE_TYPE_3_MONITOR" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "activatePromoCode"}', ng-click='vm.promoCodeTabClicked("activatePromoCode")')
+            span {{"ACTIVATE_PROMO_CODE" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "smsContent"}', ng-click='vm.promoCodeTabClicked("smsContent")')
+            span {{"SMS_CONTENT" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "userGroupConfig"}', ng-click='vm.promoCodeTabClicked("userGroupConfig")')
+            span {{"PROMO_CODE_USER_GROUP_CONFIG" | translate}}
+
+    .col-md-12
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"promoCode" | translate}}
+            .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
+            .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
+                .text-center(ng-if='!vm.selectedPromoCodeTab')
+                    label.text-danger {{'Please select a type' | translate}}
+
+                // Tab - Create promo code
+                div#createPromoCodePage(ng-if='vm.selectedPromoCodeTab=="create" && checkViewPermission("Platform", "promoCode", "createPromoCode")')
+                    table#createPromoCodeTable1.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(style="width:150px") {{"ACCOUNT" | translate}}
+                                th(style="width:150px") {{"PROMO_CODE_TYPE_1" | translate}}
+                                th(style="width:100px") {{"PROMO_REWARD_AMOUNT" | translate}}
+                                th(style="width:90px") {{"PROMO_minTopUpAmount" | translate}}
+                                th(style="width:90px") {{"PROMO_CONSUMPTION" | translate}}
+                                th(style="width:150px") {{"PROMO_DUE_DATE" | translate}}
+                                th(style="width:100px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:150px") {{"ALLOWED_PROVIDER" | translate}}
+                                th(style="width:150px") {{"BANNER_TEXT" | translate}}
+                                th(style="width:100px") {{"PROMO_CODE" | translate}}
+                                th {{"SMS_INTERMAIL" | translate}}
+                                th(style="width:20px")
+                                    i.fa.fa-plus
+                        tbody
+                            tr(ng-repeat='promoCode in vm.newPromoCode1')
+                                td
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable1')", ng-disabled="promoCode.code")
+                                td
+                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1', ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code")
+                                td
+                                    div(id="expDate1-{{$index}}", ng-disabled="!promoCode.code")
+                                td
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="promoCode.code")
+                                    text {{'Yes' | translate}}
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
+                                    text {{'No' | translate}}
+                                td
+                                    select.pull-left.form-control(id="promoProviders1-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider", ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
+                                td
+                                    text(ng-if="promoCode.code") {{promoCode.code}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne", ng-click='vm.generatePromoCode(vm.newPromoCode1, $index, promoCode, 1);')
+                                        text {{'GENERATE' | translate}}
+                                    text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne") * more than 1?
+                                    wbr
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode1, $index, promoCode, 1);')
+                                        text {{'Yes' | translate}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
+                                        text {{'No' | translate}}
+                                td
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
+                                td
+                                    i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode1, 1)')
+
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode1)")
+                            text {{'GENERATE_ALL' | translate}}
+                            img.img-create
+                    br
+
+                    br
+                    table#createPromoCodeTable2.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(style="width:150px") {{"ACCOUNT" | translate}}
+                                th(style="width:150px") {{"PROMO_CODE_TYPE_2" | translate}}
+                                th(style="width:100px") {{"PROMO_REWARD_AMOUNT" | translate}}
+                                th(style="width:100px") {{"PROMO_CONSUMPTION" | translate}}
+                                th(style="width:150px") {{"PROMO_DUE_DATE" | translate}}
+                                th(style="width:100px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:150px") {{"ALLOWED_PROVIDER" | translate}}
+                                th(style="width:150px") {{"BANNER_TEXT" | translate}}
+                                th(style="width:100px") {{"PROMO_CODE" | translate}}
+                                th {{"SMS_INTERMAIL" | translate}}
+                                th(style="width:20px")
+                                    i.fa.fa-plus
+                        tbody
+                            tr(ng-repeat='promoCode in vm.newPromoCode2')
+                                td
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable2')", ng-disabled="promoCode.code")
+                                td
+                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType2', ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code")
+                                td
+                                    div(id="expDate2-{{$index}}", ng-disabled="promoCode.code")
+                                td
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="promoCode.code")
+                                    text {{'Yes' | translate}}
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
+                                    text {{'No' | translate}}
+                                td
+                                    select.pull-left.form-control(id="promoProviders2-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider", ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
+                                td
+                                    text(ng-if="promoCode.code") {{promoCode.code}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne", ng-click='vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
+                                        text {{'GENERATE' | translate}}
+                                    text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne") * more than 1?
+                                    wbr
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
+                                        text {{'Yes' | translate}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
+                                        text {{'No' | translate}}
+                                td
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
+                                td
+                                    i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode2, 2)')
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode2)")
+                            text {{'GENERATE_ALL' | translate}}
+                            img.img-create
+                    br
+                    br
+                    table#createPromoCodeTable3.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(style="width:150px") {{"ACCOUNT" | translate}}
+                                th(style="width:150px") {{"PROMO_CODE_TYPE_3" | translate}}
+                                th(style="width:100px") {{"PROMO_REWARD_%" | translate}}
+                                th(style="width:90px") {{"PROMO_minTopUpAmount" | translate}}
+                                th(style="width:90px") {{"PROMO_maxTopUpAmount" | translate}}
+                                th(style="width:90px") {{"PROMO_CONSUMPTION" | translate}}
+                                th(style="width:150px") {{"PROMO_DUE_DATE" | translate}}
+                                th(style="width:100px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:150px") {{"ALLOWED_PROVIDER" | translate}}
+                                th(style="width:150px") {{"BANNER_TEXT" | translate}}
+                                th(style="width:100px") {{"PROMO_CODE" | translate}}
+                                th {{"SMS_INTERMAIL" | translate}}
+                                th(style="width:20px")
+                                    i.fa.fa-plus
+                        tbody
+                            tr(ng-repeat='promoCode in vm.newPromoCode3')
+                                td
+                                    textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable3')", ng-disabled="promoCode.code")
+                                td
+                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType3', ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.maxTopUpAmount", ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code")
+                                td
+                                    div(id="expDate3-{{$index}}", ng-disabled="promoCode.code")
+                                td
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="promoCode.code")
+                                    text {{'Yes' | translate}}
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code")
+                                    text {{'No' | translate}}
+                                td
+                                    select.pull-left.form-control(id="promoProviders3-{{$index}}", multiple="multiple", style='min-width:100px;height:34px;' ng-model="promoCode.allowedProviders" ng-options = "prov.name for prov in vm.allGameProvider", ng-disabled="promoCode.code")
+                                td
+                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
+                                td
+                                    text(ng-if="promoCode.code") {{promoCode.code}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne", ng-click='vm.generatePromoCode(vm.newPromoCode3, $index, promoCode, 3);')
+                                        text {{'GENERATE' | translate}}
+                                    text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne") * more than 1?
+                                    wbr
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode3, $index, promoCode, 3);')
+                                        text {{'Yes' | translate}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne", ng-click='promoCode.hasMoreThanOne = false;')
+                                        text {{'No' | translate}}
+                                td
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{promoCode.promoCodeType.smsContent}}
+                                td
+                                    i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)')
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode3)")
+                            text {{'GENERATE_ALL' | translate}}
+                            img.img-create
+
+                // Tab - Promo Code History
+                div(ng-if='vm.selectedPromoCodeTab=="history" && checkViewPermission("Platform", "promoCode", "promoCodeHistory")')
+                    #promoCodeQuery.block-query.col-md-12.well
+                        div
+                            label {{"ACCOUNT" | translate}}
+                            input.form-control(type='text', ng-model='vm.promoCodeQuery.playerName')
+                        div
+                            label {{"PROMO_CODE_TYPE" | translate}}
+                            select.form-control(ng-model='vm.promoCodeQuery.promoCodeType')
+                                option(value='') {{'any' | translate}}
+                                option(value='1') {{"PROMO_CODE_TYPE_1" | translate}}
+                                option(value='2') {{"PROMO_CODE_TYPE_2" | translate}}
+                                option(value='3') {{"PROMO_CODE_TYPE_3" | translate}}
+                        div(ng-if='vm.promoCodeQuery.promoCodeType')
+                            label {{"PROMO_CODE_SUB_TYPE" | translate}}
+                            select.form-control(ng-model='vm.promoCodeQuery.promoCodeSubType' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: vm.promoCodeQuery.promoCodeType}")
+                                option(value='') {{'any' | translate}}
+                        div
+                            label {{"STATUS" | translate}}
+                            select.form-control(ng-model='vm.promoCodeQuery.status')
+                                option(value='') {{'any' | translate}}
+                                option(value='1') {{"AVAILABLE" | translate}}
+                                option(value='2') {{"ACCEPTED" | translate}}
+                                option(value='3') {{"EXPIRED" | translate}}
+                        div
+                            label.control-label {{'START_CREATE_TIME' | translate}}
+                            .startCreateTime
+                        div
+                            label.control-label {{'END_CREATE_TIME' | translate}}
+                            .endCreateTime
+                        div
+                            label.control-label {{'START_ACCEPTED_TIME' | translate}}
+                            .startAcceptedTime
+                        div
+                            label.control-label {{'END_ACCEPTED_TIME' | translate}}
+                            .endAcceptedTime
+                        div
+                            label &nbsp;
+                            button.btn.btn-success(ng-click='vm.promoCodeQuery.searchType = 1; vm.getPromoCodeHistory(true)') {{'SEARCH_CREATETIME' | translate}}
+                        div
+                            label &nbsp;
+                            button.btn.btn-success(ng-click='vm.promoCodeQuery.searchType = 2; vm.getPromoCodeHistory(true)') {{'SEARCH_ACCEPTEDTIME' | translate}}
+                            span#promoCodeHistoryTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                    .clearfix
+                    label {{"Total" | translate}} {{vm.promoCodeQuery.totalCount}} {{"records" | translate}}
+                    table#promoCodeTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #promoCodeTablePage.col-md-12
+
+                    .col-md-12.playerBtn
+                        hr.margin-top-bottom-small
+                        .btn-group.margin-small
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="vm.selectedPromoCode.status != 1", ng-click='vm.applyPromoCode()')
+                                text {{"APPLY" | translate}}
+                                img.img-edit
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.promoCodeQuery.totalCount", ng-click='vm.selectedPromoCode ? vm.sendSMSByPromoCode() : vm.sendSMSByPromoCodeBatch()')
+                                text {{"sendSMS" | translate}}
+                                img.img-edit
+
+                //Tab - Promo Code Monitor
+                div(ng-if='vm.selectedPromoCodeTab=="monitor" && checkViewPermission("Platform", "promoCode", "monitor")')
+                    #promoCodeMonitorQuery.block-query.col-md-12.well
+                        div
+                            label.control-label {{'START_ACCEPTED_TIME' | translate}}
+                            .startAcceptedTime
+                        div
+                            label.control-label {{'END_ACCEPTED_TIME' | translate}}
+                            .endAcceptedTime
+                        div
+                            label &nbsp;
+                            button.btn.btn-success(ng-click='vm.getPromoCodeMonitor(true)') {{'SEARCH' | translate}}
+                            span#promoCodeMonitorTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                    .clearfix
+                    label {{"Total" | translate}} {{vm.promoCodeMonitor.totalCount}} {{"records" | translate}}
+                    table#promoCodeMonitorTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #promoCodeMonitorTablePage.col-md-12
+
+                // Tab - SMS Content
+                div(ng-if='vm.selectedPromoCodeTab=="smsContent" && checkViewPermission("Platform", "promoCode", "smsContentConfig")')
+                    table.common-table.playerLvlTable
+                        thead
+                            tr
+                                th(style="width:30%") {{"PROMO_CODE_TYPE_1" | translate}}
+                                th(style="width:70%") {{"SMS_CONTENT" | translate}}
+                                th(ng-if='vm.promoCodeSMSContentEdit')
+                        tbody
+                            tr(ng-repeat='type in vm.promoCodeType1')
+                                td
+                                    text {{type.name}}
+                                td
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType1, $index)')
+                            tr(ng-if='vm.promoCodeSMSContentEdit')
+                                td(colspan=3) {{'ADD' | translate}}
+                            tr(ng-if='vm.promoCodeSMSContentEdit')
+                                td
+                                    input(type='text' , ng-model='vm.newPromoCodeSMSContentType1.name')
+                                td
+                                    input(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name, smsContent: vm.newPromoCodeSMSContentType1.smsContent}); vm.newPromoCodeSMSContentType1={}')
+                    br
+                    table.common-table.playerLvlTable
+                        thead
+                            tr
+                                th(style="width:30%") {{"PROMO_CODE_TYPE_2" | translate}}
+                                th(style="width:70%") {{"SMS_CONTENT" | translate}}
+                                th(ng-if='vm.promoCodeSMSContentEdit')
+                        tbody
+                            tr(ng-repeat='type in vm.promoCodeType2')
+                                td
+                                    text {{type.name}}
+                                td
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType2, $index)')
+                            tr(ng-if='vm.promoCodeSMSContentEdit')
+                                td(colspan=3) {{'ADD' | translate}}
+                            tr(ng-if='vm.promoCodeSMSContentEdit')
+                                td
+                                    input(type='text' , ng-model='vm.newPromoCodeSMSContentType2.name')
+                                td
+                                    input(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsContent")
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType2, {name: vm.newPromoCodeSMSContentType2.name, smsContent: vm.newPromoCodeSMSContentType2.smsContent}); vm.newPromoCodeSMSContentType2={}')
+                    br
+                    table.common-table.playerLvlTable
+                        thead
+                            tr
+                                th(style="width:30%") {{"PROMO_CODE_TYPE_3" | translate}}
+                                th(style="width:70%") {{"SMS_CONTENT" | translate}}
+                                th(ng-if='vm.promoCodeSMSContentEdit')
+                        tbody
+                            tr(ng-repeat='type in vm.promoCodeType3')
+                                td
+                                    text {{type.name}}
+                                td
+                                    div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
+                                td(ng-if='vm.promoCodeSMSContentEdit')
+                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.promoCodeType3, $index)')
+                            tr(ng-if='vm.promoCodeSMSContentEdit')
+                                td(colspan=3) {{'ADD' | translate}}
+                            tr(ng-if='vm.promoCodeSMSContentEdit')
+                                td
+                                    input(type='text' , ng-model='vm.newPromoCodeSMSContentType3.name')
+                                td
+                                    input(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsContent")
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType3, {name: vm.newPromoCodeSMSContentType3.name, smsContent: vm.newPromoCodeSMSContentType3.smsContent}); vm.newPromoCodeSMSContentType3={}')
+
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.promoCodeSMSContentEdit && checkViewPermission('Platform', 'promoCode', 'smsContentConfig')", ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=false') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit;vm.configSubmitUpdate("promoSMSContent")') {{"CONFIRM" | translate}}
+
+                // Tab - Promo Code User Group
+                div(ng-if='vm.selectedPromoCodeTab=="userGroupConfig" && checkViewPermission("Platform", "promoCode", "userGroupConfig")')
+                    div(style="margin-bottom:5px")
+                        input.form-control(type="text", ng-model="vm.spcug", placeholder="Search", ng-change="vm.searchPromoCodeUserGroup(vm.spcug)")
+                        br
+                        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                            thead
+                                tr
+                                    th {{'GROUP' | translate}}
+                                    th {{'COLOR_CODE' | translate}}
+                                    th(ng-if="vm.promoCodeUserGroupEdit")
+                            tbody
+                                tr(ng-repeat='config in vm.userGroupConfig')
+                                    td(style="background-color:{{config.color}}", ng-click="vm.selectedPromoCodeUserGroup=config;") {{config.name}}
+                                    td(style="background-color:{{config.color}}") {{config.color}}
+                                    td(ng-if='vm.promoCodeUserGroupEdit')
+                                        i.fa.fa-minus(ng-click="vm.savePromoCodeUserGroup(true, vm.userGroupConfig[$index]._id); vm.userGroupConfig.splice($index, 1);")
+                                tr(ng-if='vm.promoCodeUserGroupEdit')
+                                    td(colspan=3) {{'ADD' | translate}}
+                                tr(ng-if='vm.promoCodeUserGroupEdit')
+                                    td
+                                        input(type='text' , ng-model='vm.newPromoCodeUserGroup.name')
+                                    td
+                                        input(colorpicker="rgb", style="background-color:{{vm.newPromoCodeUserGroup.color}}", type="text", ng-model="vm.newPromoCodeUserGroup.color")
+                                    td
+                                        i.fa.fa-plus(ng-click='vm.newPromoCodeUserGroup.playerNames = []; vm.userGroupConfig.push(vm.newPromoCodeUserGroup); vm.newPromoCodeUserGroup={};')
+                        br
+                        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%', ng-if="vm.selectedPromoCodeUserGroup")
+                            thead
+                                tr
+                                    th(style="background-color:{{vm.selectedPromoCodeUserGroup.color}}") {{'PLAYER' | translate}} - {{vm.selectedPromoCodeUserGroup.name}}
+                                    th(style="background-color:{{vm.selectedPromoCodeUserGroup.color}}" ng-if="vm.promoCodeUserGroupEdit")
+                            tbody
+                                tr(ng-repeat='name in vm.selectedPromoCodeUserGroup.playerNames')
+                                    td {{name}}
+                                    td(ng-if='vm.promoCodeUserGroupEdit')
+                                        i.fa.fa-minus(ng-click="vm.selectedPromoCodeUserGroup.playerNames.splice($index, 1)")
+                                tr(ng-if='vm.promoCodeUserGroupEdit')
+                                    td(colspan=2) {{'ADD' | translate}}
+                                tr(ng-if='vm.promoCodeUserGroupEdit')
+                                    td
+                                        textarea(ng-model='vm.newUserPromoCodeUserGroup.name')
+                                    td
+                                        i.fa.fa-plus(ng-click='vm.addUserToPromoCodeGroup(vm.newUserPromoCodeUserGroup.name);')
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.promoCodeUserGroupEdit", ng-click='vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.promoCodeUserGroupEdit', ng-click='vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit;') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.promoCodeUserGroupEdit', ng-click='vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit;vm.savePromoCodeUserGroup()') {{"CONFIRM" | translate}}
+
+                // Tab - Activate Promo Code
+                div(ng-if='vm.selectedPromoCodeTab=="activatePromoCode" && checkViewPermission("Platform", "promoCode", "activatePromoCode")')
+                    label {{"SET_PROMO_CODE_FLAG" | tramslate}}
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"SET" | translate}}
+
+
+#modalYesNo.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.modalYesNo.modalTitle}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    text {{vm.modalYesNo.modalText}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.modalYesNo.actionYes()") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}

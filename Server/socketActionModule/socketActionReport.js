@@ -8,6 +8,7 @@ var dbLogger = require("./../modules/dbLogger");
 var dbGameProviderDaySummary = require('./../db_modules/dbGameProviderDaySummary');
 var dbGameProviderPlayerDaySummary = require('./../db_modules/dbGameProviderPlayerDaySummary');
 var dbPlayerConsumptionWeekSummary = require('./../db_modules/dbPlayerConsumptionWeekSummary');
+var dbPaymentReconciliation = require('../db_modules/dbPaymentReconciliation');
 var constProposalType = require('./../const/constProposalType');
 var constRewardType = require('./../const/constRewardType');
 var constPlayerTopUpType = require('./../const/constPlayerTopUpType');
@@ -412,6 +413,14 @@ function socketActionReport(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionIntervalData, [ObjectId(data.platform), data.days], actionName, isValidData);
+        },
+
+        getMismatchReport: function getMismatchReport(data) {
+            let actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.platform && data.platformId && data.startTime && data.endTime && (endTime > startTime));
+            socketUtil.emitter(self.socket, dbPaymentReconciliation.getOnlinePaymentProposalMismatchReport, [ObjectId(data.platform), data.platformId, startTime, endTime], actionName, isValidData);
         }
     };
     socketActionReport.actions = this.actions;

@@ -105,6 +105,8 @@ var platformSchema = new Schema({
     autoCheckPlayerLevelUp: {type: Boolean, default: false},
     // user login require captcha verfication
     requireLogInCaptcha: {type: Boolean, default: false},
+    // user get SMS code with captcha
+    requireCaptchaInSMS: {type: Boolean, default: false},
     //only new system user can login
     onlyNewCanLogin: {type: Boolean, default: false},
     //if use locked credit
@@ -143,7 +145,8 @@ var platformSchema = new Schema({
         credibilityScoreDefault: {type: Number, default: 5}
     },
     jiguangAppKey: {type: String},
-    jiguangMasterKey: {type: String}
+    jiguangMasterKey: {type: String},
+    bonusSetting: {type: JSON,default:{}}
 });
 
 //add platform id before save
