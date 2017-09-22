@@ -367,8 +367,8 @@ var roleChecker = {
                 platformBasic: [],
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],
-                PlayerValue: [],
-                Credibility: []
+                PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
+                Credibility: ['updateCredibilityRemarksInBulk']
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],

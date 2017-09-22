@@ -2339,5 +2339,7 @@
   "Source Domain": "跳转域名",
   "SYSTEM_PLAYER": "系统玩家",
   "OLD_SYSTEM": "老系统",
-  "NEW_SYSTEM": "新系统"
+  "NEW_SYSTEM": "新系统",
+  "PlayerValue": "玩家价值",
+  "Credibility": "玩家信用"
 }
