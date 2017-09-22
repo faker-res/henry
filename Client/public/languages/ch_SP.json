@@ -2339,5 +2339,7 @@
   "Source Domain": "跳转域名",
   "SYSTEM_PLAYER": "系统玩家",
   "OLD_SYSTEM": "老系统",
-  "NEW_SYSTEM": "新系统"
+  "NEW_SYSTEM": "新系统",
+  "SOUND_NOTIFICATION": "声响",
+  "SOUND_NOTIFICATION_CHOICE": "声响音选择"
 }

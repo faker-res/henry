@@ -662,18 +662,29 @@
                             tr
                                 th {{'NAME' | translate}}
                                 th {{'VALUE' | translate}}
+                                th {{'SOUND_NOTIFICATION' | translate}}
+                                th {{'SOUND_NOTIFICATION_CHOICE' | translate}}
                         tbody
                             tr
                                 td {{'PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorMerchantCount}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorMerchantCount')
+                                td
+                                    input(type='checkbox', ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorMerchantUseSound')
+                                td
+                                    select.form-control(ng-disabled="!vm.configTableEdit", ng-model="vm.monitorBasic.monitorMerchantSoundChoice", required)
+                                        option(ng-repeat='(i,j) in vm.soundChoice', value='{{j}}') {{i}}
                             tr
                                 td {{'PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorPlayerCount}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorPlayerCount')
-
+                                td
+                                    input(type='checkbox', ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorPlayerUseSound')
+                                td
+                                    select.form-control(ng-disabled="!vm.configTableEdit", ng-model="vm.monitorBasic.monitorPlayerSoundChoice", required)
+                                        option(ng-repeat='(i,j) in vm.soundChoice', value='{{j}}') {{i}}
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
