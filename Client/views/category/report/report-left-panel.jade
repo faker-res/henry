@@ -91,6 +91,8 @@
                                 text {{'PLAYER_ALMOST_LEVELUP_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.ACTIONLOG_REPORT}}" ng-click='vm.loadPage("ACTIONLOG_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'ACTIONLOG_REPORT')")
                                 text {{'ACTIONLOG_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.ONLINE_PAYMENT_MISMATCH_REPORT}}" ng-click='vm.loadPage("ONLINE_PAYMENT_MISMATCH_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'ACTIONLOG_REPORT')")
+                                text {{'ONLINE_PAYMENT_MISMATCH_REPORT' | translate}}
 
 
 

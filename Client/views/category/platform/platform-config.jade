@@ -553,28 +553,46 @@
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("platformBasic")') {{"CONFIRM" | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="bonusBasic"')
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
-                        thead
-                            tr
-                                th {{'NAME' | translate}}
-                                th {{'VALUE' | translate}}
-                        tbody
-                            tr
-                                td {{'Percentage Charge' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.bonusBasic.bonusPercentageCharges}}%
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.bonusBasic.bonusPercentageCharges')
-                            tr
-                                td {{'Apply without charge' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.bonusBasic.bonusCharges}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.bonusBasic.bonusCharges')
+                    //bonus basic
+
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'bonusBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
-                        text {{'EDIT' | translate}}
-                        img.img-edit
-                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bonusBasic")') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bonusBasic")') {{"CONFIRM" | translate}}
+                    div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
+                        form(name="formPlatformConfigPlayerLevel")
+                            table.common-table.playerLvlTable.stronger-top.stronger-bottom(style='width:auto;min-width:99.9%')
+                                mixin playerLevelConfigHeader
+                                    tr
+                                        th(rowspan='2') {{"LEVEL" | translate}}
+                                        th(colspan='2') {{"Bonus Basic" | translate}}
+                                    tr
+                                        th {{'Percentage Charge' | translate}}
+                                        th {{'Apply without charge' | translate}}
+
+                                thead
+                                    +playerLevelConfigHeader
+
+                                tbody(ng-repeat='(i,level) in vm.bonusSetting')
+                                    tr.stronger-top
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            text {{level.name | translate}}
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.bonusCharges')
+                                            text(ng-show='!vm.configTableEdit') {{level.bonusCharges | number}}
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.bonusPercentageCharges')
+                                            text(ng-show='!vm.configTableEdit') {{level.bonusPercentageCharges | number}}
+
+
+                                tbody(ng-if='vm.configTableAdd')
+                                    tr.stronger-top
+                                        td(colspan='10')
+                                            text &nbsp;
+
+                            br
+                            button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'bonusBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                                text {{'EDIT' | translate}}
+                                img.img-edit
+                            button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bonusBasic")') {{"CANCEL" | translate}}
+                            button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bonusBasic")') {{"CONFIRM" | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="autoApproval"')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')

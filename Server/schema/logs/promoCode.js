@@ -37,7 +37,9 @@ let promoCodeSchema = new Schema({
     // Promo Code Active Flag
     isActive: {type: Boolean, default: false},
     // Top Up Proposal Used for this promo code
-    topUpProposalId: {type: String}
+    topUpProposalId: {type: String},
+    // Promo Code Proposal Id
+    proposalId: {type: String}
 });
 
 module.exports = promoCodeSchema;
