@@ -3077,7 +3077,6 @@ let dbPlayerInfo = {
         ).then(
             isMatch => {
                 if (isMatch) {
-                    console.log(playerObj);
                     if (playerObj.permission.forbidPlayerFromLogin) {
                         deferred.reject({
                             name: "DataError",
@@ -3166,7 +3165,6 @@ let dbPlayerInfo = {
                                 }
                             ).then(
                                 () => {
-                                    // console.log("check player city!!!");
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
@@ -3178,12 +3176,10 @@ let dbPlayerInfo = {
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
                                             var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
-                                            // console.log(a,b,c,creditProm);
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
                                         zoneData => {
-                                            // console.log("zoneData",zoneData);
                                             retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
@@ -3192,7 +3188,6 @@ let dbPlayerInfo = {
                                             deferred.resolve(retObj);
                                         },
                                         errorZone => {
-                                            //console.error("errorZone", errorZone);
                                             deferred.resolve(retObj);
                                         }
                                     );
@@ -3967,7 +3962,7 @@ let dbPlayerInfo = {
             // to prevent concurrent deduction
             function (updateData) {
                 if (updateData) {
-                    //console.log("Before transfer credit:", playerData.validCredit);
+
                     if (updateData.validCredit < -0.02 || updateData.lockedCredit < -0.02) {
                         //reset player credit to 0
                         return dbconfig.collection_players.findOneAndUpdate(
@@ -4012,7 +4007,6 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data) {
-                    //console.log("CPMS transfer credit:", transferAmount);
                     bTransfered = true;
                     if (forSync) {
                         return true;
@@ -4126,7 +4120,7 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Error transfer player credit to provider."});
                 }
             }
-        );//.catch( error => console.log("transfer error:", error));
+        );
     },
 
     /*
@@ -6096,7 +6090,6 @@ let dbPlayerInfo = {
 
                 return Q.all(proms).then(data => {
                     var tempDate = startDate;
-                    console.log(data);
                     var res = data.map(dayData => {
                         if (dayData[0]) {
                             var obj = {_id: tempDate, number: dayData[0]['data']['amount']};
@@ -6442,7 +6435,7 @@ let dbPlayerInfo = {
                 if (endTime) {
                     queryObj.createTime["$lte"] = new Date(endTime);
                 }
-                console.log(queryObj)
+
                 var proposalProm = dbconfig.collection_proposal.aggregate([
                     {$match: queryObj},
                     {
@@ -6770,7 +6763,6 @@ let dbPlayerInfo = {
                 if (endTime) {
                     queryObj.createTime["$lte"] = new Date(endTime)
                 }
-                console.log(queryObj.createTime)
                 var countProm = dbconfig.collection_proposal.find(queryObj).count();
                 var proposalProm = dbconfig.collection_proposal.aggregate([
                     {$match: queryObj},
@@ -6785,7 +6777,6 @@ let dbPlayerInfo = {
 
                 return Q.all([proposalProm, countProm]).then(
                     data => {
-                        console.log(data);
                         if (data && data[0] && data[1]) {
                             return {
                                 stats: {
@@ -7228,7 +7219,6 @@ let dbPlayerInfo = {
         }).lean();
         return Q.all([playerProm, gameProm]).then(
             data => {
-                console.log(playerData);
                 if (data && data[0] && data[1] && data[1].provider) {
                     playerData = data[0];
                     gameData = data[1];
@@ -9878,7 +9868,6 @@ let dbPlayerInfo = {
         ).then(
             () => {
                 // handle index limit sortcol here
-                console.log(result)
                 result.sort(function (a, b) {
                     if (a._id > b._id) {
                         return -1;
