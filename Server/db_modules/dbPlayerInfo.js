@@ -9905,6 +9905,36 @@ let dbPlayerInfo = {
         );
     },
 
+    verifyUserPassword: function (playerName, playerPassword) {
+        return dbconfig.collection_players.findOne({name: playerName}, {password: 1}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return false;
+                }
+
+                let db_password = String(playerData.password);
+
+                if (dbUtility.isMd5(db_password)) {
+                    return Boolean(md5(playerPassword) === db_password);
+                }
+                else {
+                    return new Promise( function (resolve, reject) {
+                        bcrypt.compare(String(playerPassword), db_password, function (err, isMatch) {
+                            if (err) {
+                                reject({
+                                    name: "DataError",
+                                    message: "Error in matching password",
+                                    error: err
+                                });
+                            }
+                            resolve(Boolean(isMatch));
+                        });
+                    });
+                }
+            }
+        );
+    },
+
     getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds) {
         let proms = [];
         let proposalType = [];
