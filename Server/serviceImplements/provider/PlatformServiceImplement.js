@@ -1,6 +1,7 @@
 var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var PlatformService = require("./../../services/provider/ProviderServices").PlatformService;
 var dbPlatform = require('./../../db_modules/dbPlatform');
+var dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
 
 var PlatformServiceImplement = function () {
     PlatformService.call(this);
@@ -44,6 +45,13 @@ var PlatformServiceImplement = function () {
     this.getConsumptionIncentivePlayer.onRequest = function(wsFunc, conn, data){
         var isValidData = Boolean (data && data.hasOwnProperty("platformId"));
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConsumptionIncentivePlayer, [data.platformId], isValidData);
+    };
+
+
+    this.getPlayerInfoByName.expectsData = 'loginname: String';
+    this.getPlayerInfoByName.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.loginname);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerInfo, [{name: data.loginname}], isValidData);
     };
 
 };
