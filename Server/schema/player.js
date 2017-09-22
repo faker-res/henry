@@ -236,7 +236,9 @@ var playerSchema = new Schema({
     // interface that used to register this account
     registrationInterface: {type: Number, default: 0},
     // the number of times where player login
-    loginTimes: {type: Number, default: 0}
+    loginTimes: {type: Number, default: 0},
+    //for reporo conversion
+    reporoId: {type: String}
 });
 
 //record is unique by name and platform

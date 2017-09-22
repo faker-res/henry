@@ -114,7 +114,9 @@ let PlayerServiceImplement = function () {
                         wsFunc.response(conn, resObj, data);
                     }
                     console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
-                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                    if(err && err.status != constServerCode.USERNAME_ALREADY_EXIST){
+                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                    }
                 }
             ).catch(WebSocketUtil.errorHandler)
                 .done();
