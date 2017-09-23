@@ -10695,9 +10695,8 @@ define(['js/app'], function (myApp) {
                             data: "proposalId",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    // 'ng-click': 'vm.showProposalModal("' + data + '")'
-                                    'ng-click': 'vm.showProposalModal("403353")'
-                                }).text('403353');
+                                    'ng-click': 'vm.showProposalModal("'+data+'")'
+                                }).text(data);
                                 return link.prop('outerHTML');
                             }
                         }
