@@ -11146,7 +11146,7 @@ define(['js/app'], function (myApp) {
                 if (isRet) {
                     return exists;
                 } else {
-                    vm.selectedPromoCodeUserGroup = e;
+                    vm.selectedPromoCodeUserGroup = vm.newUserPromoCodeUserGroup.oldGroup;
                 }
             };
 
