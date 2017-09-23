@@ -6624,10 +6624,17 @@ let dbPlayerInfo = {
                                 let finalAmount = amount;
                                 let creditCharge = 0;
                                 let amountAfterUpdate = player.validCredit - amount;
+                                let playerLevelVal = player.playerLevel.value;
+                                let bonusSetting = playerData.platform.bonusSetting.find( (item) => {return item.value == playerLevelVal} );
 
-                                if (todayBonusApply.length >= playerData.platform.bonusCharges && playerData.platform.bonusPercentageCharges > 0) {
-                                    creditCharge = (finalAmount * playerData.platform.bonusPercentageCharges) * 0.01;
+                                if(!bonusSetting){
+                                   return Q.reject({name: "DataError", errorMessage: "Please Set the Bonus PercentageCharges First"});
+                                }
+                                if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
+                                    creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
                                     finalAmount = finalAmount - creditCharge;
+                                    console.log('finalAmount'+finalAmount);
+                                    console.log('creditCharge'+creditCharge);
                                 }
 
                                 return dbconfig.collection_players.findOneAndUpdate(

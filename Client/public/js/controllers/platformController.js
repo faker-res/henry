@@ -102,7 +102,22 @@ define(['js/app'], function (myApp) {
                 Success: $translate("Success"),
                 Fail: $translate("Fail"),
                 Pending: $translate("Pending")
-            }
+            };
+
+            vm.soundChoice = {
+                "tone1": "1.wav",
+                "tone2": "2.wav",
+                "tone3": "3.mp3",
+                "tone4": "4.wav",
+                "tone5": "5.mp3",
+                "tone6": "6.wav",
+                "tone7": "7.wav",
+                "tone8": "8.ogg",
+                "tone9": "9.ogg",
+                // "tone10": "10.wav",
+                // "tone11": "11.wav",
+                // "tone12": "12.wav"
+            };
 
             // Basic library functions
             var Lodash = {
@@ -6916,6 +6931,12 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.testSound = function (soundPath) {
+                let soundUrl = "sound/notification/" + soundPath;
+                let sound = new Audio(soundUrl);
+                sound.play();
+            };
+
             // Returns an object containing all key-value pairs of newObj which were are not in oldObj
             function newAndModifiedFields(oldObj, newObj) {
                 function isEqualArray(array1, array2) {
@@ -11178,6 +11199,10 @@ define(['js/app'], function (myApp) {
                 vm.monitorBasic = vm.monitorBasic || {};
                 vm.monitorBasic.monitorMerchantCount = vm.selectedPlatform.data.monitorMerchantCount;
                 vm.monitorBasic.monitorPlayerCount = vm.selectedPlatform.data.monitorPlayerCount;
+                vm.monitorBasic.monitorMerchantUseSound = vm.selectedPlatform.data.monitorMerchantUseSound;
+                vm.monitorBasic.monitorPlayerUseSound = vm.selectedPlatform.data.monitorPlayerUseSound;
+                vm.monitorBasic.monitorMerchantSoundChoice = vm.selectedPlatform.data.monitorMerchantSoundChoice;
+                vm.monitorBasic.monitorPlayerSoundChoice = vm.selectedPlatform.data.monitorPlayerSoundChoice;
                 $scope.safeApply();
             };
 
@@ -11552,7 +11577,11 @@ define(['js/app'], function (myApp) {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         monitorMerchantCount: srcData.monitorMerchantCount,
-                        monitorPlayerCount: srcData.monitorPlayerCount
+                        monitorPlayerCount: srcData.monitorPlayerCount,
+                        monitorMerchantUseSound: srcData.monitorMerchantUseSound,
+                        monitorPlayerUseSound: srcData.monitorPlayerUseSound,
+                        monitorMerchantSoundChoice: srcData.monitorMerchantSoundChoice,
+                        monitorPlayerSoundChoice: srcData.monitorPlayerSoundChoice
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
