@@ -377,6 +377,7 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
+            .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
             .then(
                 proposalData => {
                     if(proposalData.data.phone){
@@ -1342,7 +1343,7 @@ var proposal = {
                                              }
                                              return item
                                          })
- 
+
                                          return pdata;
                                  })
                                 :
