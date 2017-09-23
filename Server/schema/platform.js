@@ -119,6 +119,14 @@ var platformSchema = new Schema({
     monitorMerchantCount: {type: Number, default: 10},
     // the count that trigger the failing alert in payment monitor for player
     monitorPlayerCount: {type: Number, default: 4},
+    // whether to use the sound notification on merchant count alert
+    monitorMerchantUseSound: {type: Boolean, default: false},
+    // whether to use the sound notification on player count alert
+    monitorPlayerUseSound: {type: Boolean, default: false},
+    // select the sound notification that use for merchant count alert
+    monitorMerchantSoundChoice: {type: String, default: '1.wav'},
+    // select the sound notification that use for player count alert
+    monitorPlayerSoundChoice: {type: String, default: '1.wav'},
     // player value score relevant settings
     playerValueConfig: {
         // criteria score criteria ratio
