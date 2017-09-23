@@ -10294,6 +10294,29 @@ define(['js/app'], function (myApp) {
                         vm.newPromoCodeUserGroup = {};
                         vm.newUserPromoCodeUserGroup = {};
                         break;
+                    case 'promoCodeAnalysis':
+                        vm.promoCodeAnalysis = {};
+                        vm.promoCodeAnalysis2 = {};
+
+                        utilService.actionAfterLoaded('#promoCodeAnalysisQuery', function () {
+                            vm.promoCodeAnalysis.startCreateTime = utilService.createDatePicker('#promoCodeAnalysisQuery .startCreateTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeAnalysis.startCreateTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                            vm.promoCodeAnalysis.endCreateTime = utilService.createDatePicker('#promoCodeAnalysisQuery .endCreateTime', {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss'
+                            });
+                            vm.promoCodeAnalysis.endCreateTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                            vm.promoCodeAnalysis.pageObj = utilService.createPageForPagingTable("#promoCodeAnalysisTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeAnalysis", vm.getPromoCodeAnalysis)
+                            });
+                            vm.promoCodeAnalysis2.pageObj = utilService.createPageForPagingTable("#promoCodeAnalysis2TablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeAnalysis2", vm.getPromoCodeAnalysis)
+                            });
+                        });
                 }
             };
 
@@ -10733,6 +10756,22 @@ define(['js/app'], function (myApp) {
                 $('#promoCodeMonitorTable').resize();
             };
 
+            vm.drawTable = function (tblOptions, tblId, qObj, qName, fnSortChange, data, size, summary, newSearch) {
+                tblOptions = $.extend(true, {}, vm.generalDataTableOptions, tblOptions);
+
+                utilService.createDatatableWithFooter(tblId, tblOptions, {}, true);
+
+                qObj.pageObj.init({maxCount: size}, newSearch);
+
+                $(tblId).off('order.dt');
+                $(tblId).on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'promoCodeQuery', fnSortChange);
+                });
+                $(tblId).resize();
+
+                $scope.safeApply();
+            };
+
             vm.applyPromoCode = function () {
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
@@ -10773,6 +10812,138 @@ define(['js/app'], function (myApp) {
                     vm.promoCodeMonitor.totalCount = data.data.length;
                     $scope.safeApply();
                     vm.drawPromoCodeMonitorTable(data.data, data.data.length, {}, isNewSearch);
+                }, function (err) {
+                    console.error(err);
+                }, true);
+
+            };
+
+            vm.getPromoCodeAnalysis = function (isNewSearch) {
+                vm.promoCodeAnalysis.platformId = vm.selectedPlatform.id;
+                $('#promoCodeAnaysisTableSpin').show();
+
+                vm.promoCodeAnalysis.index = isNewSearch ? 0 : (vm.promoCodeAnalysis.index || 0);
+
+                let sendObj = {
+                    startCreateTime: vm.promoCodeAnalysis.startCreateTime.data('datetimepicker').getLocalDate(),
+                    endCreateTime: vm.promoCodeAnalysis.endCreateTime.data('datetimepicker').getLocalDate(),
+                    playerName: vm.promoCodeAnalysis.playerName,
+                    platformObjId: vm.promoCodeAnalysis.platformId,
+                    index: vm.promoCodeAnalysis.index || 0,
+                    limit: vm.promoCodeAnalysis.limit || 10,
+                    sortCol: vm.promoCodeAnalysis.sortCol
+                };
+
+                if (vm.promoCodeAnalysis.promoCodeType) {
+                    sendObj.promoCodeType = vm.promoCodeAnalysis.promoCodeType;
+                }
+
+                if (vm.promoCodeAnalysis.promoCodeSubType) {
+                    sendObj.promoCodeSubType = vm.promoCodeAnalysis.promoCodeSubType;
+                }
+
+                console.log('sendObj', sendObj);
+
+                socketService.$socket($scope.AppSocket, 'getPromoCodesAnalysis', sendObj, function (data) {
+                    $('#promoCodeAnaysisTableSpin').hide();
+                    console.log('getPromoCodesAnalysis', data);
+
+                    let table1Data = data.data[0];
+                    let table2Data = data.data[1];
+
+                    let p = Promise.resolve();
+                    let p1 = Promise.resolve();
+
+                    vm.promoCodeAnalysis.totalCount = table1Data.length;
+                    vm.promoCodeAnalysis2.totalCount = table2Data.length;
+
+                    table1Data.forEach((elem, idx, arr) => {
+                        p = p.then(function () {
+                            return $scope.$socketPromise('getPromoCodeTypeByObjId', elem._id).then(res => {
+                                elem.promoCodeType = res.data;
+                            })
+                        });
+                    });
+
+                    table2Data.forEach((elem, idx, arr) => {
+                        p1 = p1.then(function () {
+                            return $scope.$socketPromise('getPlayerInfo', {_id: elem._id}).then(res => {
+                                elem.player = res.data;
+                            })
+                        });
+                    });
+
+                    return Promise.all([p, p1]).then(res => {
+                        let table1Options = {
+                            data: table1Data,
+                            "order": vm.promoCodeAnalysis.aaSorting || [[0, 'desc']],
+                            aoColumnDefs: [
+                                {targets: '_all', defaultContent: ' ', bSortable: false}
+                            ],
+                            columns: [
+                                {
+                                    title: $translate('PROMO_CODE_SUB_TYPE'),
+                                    data: "promoCodeType.name"
+                                },
+                                {
+                                    title: $translate('sendCount'),
+                                    data: "sendCount"
+                                },
+                                {
+                                    title: $translate('acceptedCount'),
+                                    data: "acceptedCount"
+                                },
+                                {
+                                    title: $translate('acceptedRate'),
+                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%"
+                                },
+                                {
+                                    title: $translate('acceptedAmount'),
+                                    data: "acceptedAmount"
+                                }
+                            ],
+                            "paging": false
+                        };
+
+                        let table2Options = {
+                            data: table2Data,
+                            "order": vm.promoCodeAnalysis2.aaSorting || [[0, 'desc']],
+                            aoColumnDefs: [
+                                {targets: '_all', defaultContent: ' ', bSortable: false}
+                            ],
+                            columns: [
+                                {
+                                    title: $translate('playerAccount'),
+                                    data: "player.name"
+                                },
+                                {
+                                    title: $translate('sendCount'),
+                                    data: "sendCount"
+                                },
+                                {
+                                    title: $translate('acceptedCount'),
+                                    data: "acceptedCount"
+                                },
+                                {
+                                    title: $translate('acceptedRate'),
+                                    render: (data, index, row) => String(parseFloat(row.acceptedCount / row.sendCount * 100).toFixed(2)) + "%"
+                                },
+                                {
+                                    title: $translate('acceptedAmount'),
+                                    data: "acceptedAmount"
+                                },
+                                {
+                                    title: $translate('relatedTopUpAmount'),
+                                    data: "topUpAmount"
+                                }
+                            ],
+                            "paging": false
+                        };
+
+                        vm.drawTable(table1Options, '#promoCodeAnalysisTable', vm.promoCodeAnalysis, 'promoCodeAnalysis', vm.getPromoCodeAnalysis, table1Data, vm.promoCodeAnalysis.totalCount, null, isNewSearch);
+                        vm.drawTable(table2Options, '#promoCodeAnalysis2Table', vm.promoCodeAnalysis2, 'promoCodeAnalysis2', vm.getPromoCodeAnalysis, table2Data, vm.promoCodeAnalysis2.totalCount, null, isNewSearch);
+
+                    })
                 }, function (err) {
                     console.error(err);
                 }, true);

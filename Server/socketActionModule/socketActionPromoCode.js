@@ -42,6 +42,11 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTypes, [ObjectId(data.platformObjId)], actionName, isValidData);
         },
 
+        getPromoCodeTypeByObjId: function getPromoCodeTypeByObjId(data) {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTypeByObjId, [data], actionName, true);
+        },
+
         updatePromoCodeSMSContent: function updatePromoCodeSMSContent(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.promoCodeSMSContent);
@@ -77,6 +82,12 @@ function socketActionPromoCode(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodesMonitor, [ObjectId(data.platformObjId), data.startAcceptedTime, data.endAcceptedTime], actionName, isValidData);
+        },
+
+        getPromoCodesAnalysis: function getPromoCodesAnalysis(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeAnalysis, [ObjectId(data.platformObjId), data], actionName, isValidData);
         }
     };
     socketActionPromoCode.actions = this.actions;

@@ -400,6 +400,7 @@ var roleChecker = {
                 userGroupConfig: [],
                 activatePromoCode: [],
                 applyPromoCode: [],
+                promoCodeAnalysis: ['getPromoCodeTypeByObjId']
             }
         },
         Payment: {
