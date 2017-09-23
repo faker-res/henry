@@ -204,7 +204,9 @@
                 "removeProvider",
                 "syncProviders",
                 "isUserExist",
-                "getConsumptionIncentivePlayer"
+                "getConsumptionIncentivePlayer",
+                "getPlayerInfoByName",
+                "verifyUserPassword"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

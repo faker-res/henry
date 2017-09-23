@@ -5,6 +5,7 @@ const dbAutoProposal = require('./../../db_modules/dbAutoProposal');
 const dbPlayerConsumptionDaySummary = require('./../../db_modules/dbPlayerConsumptionDaySummary');
 const dbPlayerConsumptionWeekSummary = require('./../../db_modules/dbPlayerConsumptionWeekSummary');
 const dbPlayerGameTypeConsumptionWeekSummary = require('./../../db_modules/dbPlayerGameTypeConsumptionWeekSummary');
+const dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
 const dbPlayerLevel = require('./../../db_modules/dbPlayerLevel');
 const dbPlayerTopUpDaySummary = require('./../../db_modules/dbPlayerTopUpDaySummary');
 const dbPlayerTopUpWeekSummary = require('./../../db_modules/dbPlayerTopUpWeekSummary');
@@ -184,6 +185,13 @@ var SettlementServiceImplement = function () {
         var isValidData = Boolean(data && data.platformObjId && data.childrenCommissionRate && data.partnerObjIds && data.startTime && data.endTime);
         var args = [ObjectId(data.platformObjId), data.childrenCommissionRate, mapIdsToMongooseIds(data.partnerObjIds), new Date(data.startTime), new Date(data.endTime), data.settlementTimeToSave];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.calculatePartnersChildrenCommission, args, isValidData);
+    };
+
+    this.getConsumptionDetailOfPlayers.expectsData = 'platformObjId: ObjectId, playerObjIds: [], startTime: Date, endTime: Date, query: {}';
+    this.getConsumptionDetailOfPlayers.onRequest = function(wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.startTime && data.endTime && data.playerObjIds);
+        var args = [ObjectId(data.platformId), data.startTime, data.endTime, data.query, data.playerObjIds];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionDetailOfPlayers, args, isValidData);
     };
 
     this.checkPlatformPlayersRewardTask.onRequest = function(wsFunc, conn, data) {

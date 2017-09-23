@@ -102,7 +102,22 @@ define(['js/app'], function (myApp) {
                 Success: $translate("Success"),
                 Fail: $translate("Fail"),
                 Pending: $translate("Pending")
-            }
+            };
+
+            vm.soundChoice = {
+                "tone1": "1.wav",
+                "tone2": "2.wav",
+                "tone3": "3.mp3",
+                "tone4": "4.wav",
+                "tone5": "5.mp3",
+                "tone6": "6.wav",
+                "tone7": "7.wav",
+                "tone8": "8.ogg",
+                "tone9": "9.ogg",
+                // "tone10": "10.wav",
+                // "tone11": "11.wav",
+                // "tone12": "12.wav"
+            };
 
             // Basic library functions
             var Lodash = {
@@ -268,10 +283,8 @@ define(['js/app'], function (myApp) {
                     $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
                 }
             };
-
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
-
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
@@ -6918,6 +6931,12 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.testSound = function (soundPath) {
+                let soundUrl = "sound/notification/" + soundPath;
+                let sound = new Audio(soundUrl);
+                sound.play();
+            };
+
             // Returns an object containing all key-value pairs of newObj which were are not in oldObj
             function newAndModifiedFields(oldObj, newObj) {
                 function isEqualArray(array1, array2) {
@@ -7731,6 +7750,7 @@ define(['js/app'], function (myApp) {
                     sendQuery.isNewSystem = true;
                 }
 
+                $('#platformFeedbackSpin').show();
                 console.log('sendQuery', sendQuery);
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
                     query: sendQuery,
@@ -7740,10 +7760,12 @@ define(['js/app'], function (myApp) {
                     vm.curFeedbackPlayer = data.data.data;
                     vm.feedbackPlayersPara.total = data.data.total || 0;
                     vm.feedbackPlayersPara.index = data.data.index + 1;
+                    $('#platformFeedbackSpin').hide();
                     if (!vm.curFeedbackPlayer) {
                         $scope.safeApply();
                         return;
                     }
+
                     vm.addFeedback = {
                         playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
                         platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
@@ -9448,6 +9470,10 @@ define(['js/app'], function (myApp) {
                             let inputFieldValue = $("#rewardValidStartTime > div > input").val();
                             if (dateTimeRegex.test(inputFieldValue)) {
                                 $("#rewardValidStartTime").datetimepicker('update');
+                            }else{
+                              if(inputFieldValue==''){
+                                $("#rewardValidStartTime").datetimepicker('setDate',null);
+                              }
                             }
                             vm.showReward.validStartTime = $("#rewardValidStartTime").data('datetimepicker').getLocalDate();
                             checkValidTime();
@@ -9458,6 +9484,10 @@ define(['js/app'], function (myApp) {
                             let inputFieldValue = $("#rewardValidEndTime > div > input").val();
                             if (dateTimeRegex.test(inputFieldValue)) {
                                 $("#rewardValidEndTime").datetimepicker('update');
+                            }else{
+                              if(inputFieldValue==''){
+                                $("#rewardValidEndTime").datetimepicker('setDate',null);
+                              }
                             }
                             vm.showReward.validEndTime = $("#rewardValidEndTime").data('datetimepicker').getLocalDate();
                             checkValidTime();
@@ -9841,6 +9871,11 @@ define(['js/app'], function (myApp) {
 
                 if (vm.platformRewardPageName == "newReward" || vm.platformRewardPageName == "updateReward")return false;
                 else return true;
+            }
+            vm.clearCanApplyFromClient = function(){
+              if(!vm.showReward.needApply){
+                vm.showReward.canApplyFromClient = false;
+              }
             }
             vm.clearRewardFormData = function () {
                 vm.rewardCondition = null;
@@ -11264,12 +11299,57 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getBonusBasic = () => {
-                vm.bonusBasic = vm.bonusBasic || {};
-                vm.bonusBasic.bonusPercentageCharges = vm.selectedPlatform.data.bonusPercentageCharges;
-                vm.bonusBasic.bonusCharges = vm.selectedPlatform.data.bonusCharges;
-                $scope.safeApply();
+
+                vm.getAllPlayerLevels().done(
+                    function (data) {
+                      if(vm.selectedPlatform.data.bonusSetting){
+                         vm.bonusSetting = vm.selectedPlatform.data.bonusSetting;
+                      }else{
+                         vm.bonusSetting = {};
+                      }
+                      vm.constructBonusSetting();
+
+                    }
+                );
             };
 
+            vm.constructBonusSetting = (bonusSetting) =>{
+
+              for(var d in vm.allPlayerLvl){
+                  let val = Object.keys(vm.allPlayerLvl)[d];
+                  if(Object.keys(vm.bonusSetting).length === 0){
+
+                    vm.bonusSetting[d] = {};
+                    vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;
+                    vm.bonusSetting[d].value = vm.allPlayerLvl[d].value;
+                    vm.bonusSetting[d].name = vm.allPlayerLvl[d].name;
+                    vm.bonusSetting[d].bonusPercentageCharges = 0;
+                    vm.bonusSetting[d].bonusCharges = 0;
+                  }else{
+                    let setting = vm.getValueByKey(val, vm.bonusSetting);
+                    if(!setting){
+                      vm.bonusSetting[d] = {};
+                      vm.bonusSetting[d].platform = vm.allPlayerLvl[d].platform;
+                      vm.bonusSetting[d].value = vm.allPlayerLvl[d].value;
+                      vm.bonusSetting[d].name = vm.allPlayerLvl[d].name;
+                      vm.bonusSetting[d].bonusPercentageCharges = 0;
+                      vm.bonusSetting[d].bonusCharges = 0;
+                    }
+                  }
+              }
+              vm.bonusBasic = {'bonusSetting':vm.bonusSetting}
+              $scope.safeApply();
+            }
+            vm.getValueByKey = (val, bonusSettings) =>{
+              var result = 0;
+              var len = Object.keys(vm.bonusSetting).length;
+              for(var i = 0;i < len; i++){
+                if(Object.keys(vm.bonusSetting)[i]==val){
+                  result += 1;
+                }
+              }
+              return result;
+            }
             vm.getAutoApprovalBasic = () => {
                 vm.autoApprovalBasic = vm.autoApprovalBasic || {};
                 console.log('vm.selectedPlatform.data', vm.selectedPlatform.data);
@@ -11290,6 +11370,10 @@ define(['js/app'], function (myApp) {
                 vm.monitorBasic = vm.monitorBasic || {};
                 vm.monitorBasic.monitorMerchantCount = vm.selectedPlatform.data.monitorMerchantCount;
                 vm.monitorBasic.monitorPlayerCount = vm.selectedPlatform.data.monitorPlayerCount;
+                vm.monitorBasic.monitorMerchantUseSound = vm.selectedPlatform.data.monitorMerchantUseSound;
+                vm.monitorBasic.monitorPlayerUseSound = vm.selectedPlatform.data.monitorPlayerUseSound;
+                vm.monitorBasic.monitorMerchantSoundChoice = vm.selectedPlatform.data.monitorMerchantSoundChoice;
+                vm.monitorBasic.monitorPlayerSoundChoice = vm.selectedPlatform.data.monitorPlayerSoundChoice;
                 $scope.safeApply();
             };
 
@@ -11500,6 +11584,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'PlayerValue':
                         updatePlayerValueConfig(vm.playerValueBasic);
+                        updatePlayerLevelScore();
                         break;
                     case 'credibility':
                         updateCredibilityRemark();
@@ -11620,14 +11705,13 @@ define(['js/app'], function (myApp) {
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
-                        bonusPercentageCharges: srcData.bonusPercentageCharges,
-                        bonusCharges: srcData.bonusCharges,
                         requireLogInCaptcha: srcData.requireLogInCaptcha,
                         requireCaptchaInSMS: srcData.requireCaptchaInSMS,
                         onlyNewCanLogin: srcData.onlyNewCanLogin,
                         useLockedCredit: srcData.useLockedCredit,
                         playerNameMaxLength: srcData.playerNameMaxLength,
-                        playerNameMinLength: srcData.playerNameMinLength
+                        playerNameMinLength: srcData.playerNameMinLength,
+                        bonusSetting: srcData.bonusSetting
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -11664,7 +11748,11 @@ define(['js/app'], function (myApp) {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         monitorMerchantCount: srcData.monitorMerchantCount,
-                        monitorPlayerCount: srcData.monitorPlayerCount
+                        monitorPlayerCount: srcData.monitorPlayerCount,
+                        monitorMerchantUseSound: srcData.monitorMerchantUseSound,
+                        monitorPlayerUseSound: srcData.monitorPlayerUseSound,
+                        monitorMerchantSoundChoice: srcData.monitorMerchantSoundChoice,
+                        monitorPlayerSoundChoice: srcData.monitorPlayerSoundChoice
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -11679,6 +11767,16 @@ define(['js/app'], function (myApp) {
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlayerValueConfig', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updatePlayerLevelScore() {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    playerLevel: vm.allPlayerLvl
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlayerLevelScores', sendData, function (data) {
+                    // do nothing
                 });
             }
 

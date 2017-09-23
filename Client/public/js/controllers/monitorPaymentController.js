@@ -337,10 +337,22 @@ define(['js/app'], function (myApp) {
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     if (aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
                         $(nRow).addClass('merchantExceed');
+                        if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorMerchantUseSound) {
+                            checkMerchantNotificationAlert(aData);
+                        }
+                        if (!vm.lastMerchantExceedId || vm.lastMerchantExceedId < aData._id) {
+                            vm.lastMerchantExceedId = aData._id;
+                        }
                     }
 
                     if (aData.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
                         $(nRow).addClass('playerExceed');
+                        if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorPlayerUseSound) {
+                            checkPlayerNotificationAlert(aData);
+                        }
+                        if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
+                            vm.lastPlayerExceedId = aData._id;
+                        }
                     }
                 }
             };
@@ -360,6 +372,22 @@ define(['js/app'], function (myApp) {
 
             $('#paymentMonitorTable tbody').on('click', 'tr', vm.tableRowClicked);
         };
+
+        function checkPlayerNotificationAlert(aData) {
+            if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
+                let soundUrl = "sound/notification/" + vm.selectedPlatform.monitorPlayerSoundChoice;
+                let sound = new Audio(soundUrl);
+                sound.play();
+            }
+        };
+
+        function checkMerchantNotificationAlert(aData) {
+            if (!vm.lastMerchantExceedId || vm.lastMerchantExceedId < aData._id) {
+                let soundUrl = "sound/notification/" + vm.selectedPlatform.monitorMerchantSoundChoice;
+                let sound = new Audio(soundUrl);
+                sound.play();
+            }
+        }
 
         vm.tableRowClicked = function (event) {
             if (event.target.tagName == 'A') {
