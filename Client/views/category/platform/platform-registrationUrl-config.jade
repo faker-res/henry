@@ -1,0 +1,8 @@
+.row
+    .col-md-12
+        .well#smsRecordQueryDiv
+            .inlineBlk
+                label.control-label {{'Create Officer' | translate}}
+                input.form-control(ng-model='', placeholder="{{'Create Officer' | translate}}" ng-blur="")
+
+            button.btn.btn-primary(ng-click='vm.submitSMSRecordQuery(true)') {{"CREATE" | translate}}
