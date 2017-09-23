@@ -77,7 +77,7 @@
                             a.common-tab(data-toggle="tab", href="#PromoCode", ng-click="vm.platformPageName='PromoCode';vm.updatePageTile();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"promoCode" | translate}}
-                        li(ng-show="checkViewPermission('Platform', 'promoCode','Read')")
+                        li(ng-show="checkViewPermission('Platform', 'RegistrationUrlConfig','Read')")
                             a.common-tab(data-toggle="tab", href="#registrationUrlConfig", ng-click="vm.platformPageName='RegistrationUrlConfig';vm.updatePageTile();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"RegistrationUrlConfig" | translate}}
@@ -130,7 +130,7 @@
                         #PromoCode.tab-pane.fade
                             include ./platform-promo-code
                         #registrationUrlConfig.tab-pane.fade
-                            include ./platform-registrationUrl-config
+                            include platform-registrationUrl-config
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
                             include ./platform-bankCardGroup

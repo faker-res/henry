@@ -400,6 +400,9 @@ var roleChecker = {
                 userGroupConfig: [],
                 activatePromoCode: [],
                 applyPromoCode: [],
+            },
+            "RegistrationUrlConfig":{
+                Read:[]
             }
         },
         Payment: {

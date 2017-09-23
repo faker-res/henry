@@ -2344,5 +2344,7 @@
   "Credibility": "玩家信用",
   "SOUND_NOTIFICATION": "声响",
   "SOUND_NOTIFICATION_CHOICE": "声响音选择",
-  "RegistrationUrlConfig": "开户网址配置"
+  "RegistrationUrlConfig": "开户网址配置",
+  "Create Officer": "创建客服"
+
 }
