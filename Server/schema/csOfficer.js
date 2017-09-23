@@ -10,4 +10,4 @@ var csOfficerSchema = new Schema({
     }
 });
 
-module.exports = CsOfficerSchema;
+module.exports = csOfficerSchema;

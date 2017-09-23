@@ -5,4 +5,4 @@ var csPromoteWaySchema = new Schema({
     name: {type: String, unique: true, required: true},
 });
 
-module.exports = CsPromoteWaySchema;
+module.exports = csPromoteWaySchema;
