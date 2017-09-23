@@ -2344,5 +2344,20 @@
   "PlayerValue": "玩家价值",
   "Credibility": "玩家信用",
   "SOUND_NOTIFICATION": "声响",
-  "SOUND_NOTIFICATION_CHOICE": "声响音选择"
+  "SOUND_NOTIFICATION_CHOICE": "声响音选择",
+  "Offer Name": "标题",
+  "Original Amount": "原价",
+  "Offer Amount": "卖价",
+  "Display Original Price": "显示原价",
+  "Quantity": "每期释出数量",
+  "Limit Apply Per Person": "每人/单期抢购次数",
+  "Offer Amount": "存款时效能",
+  "Bet": "提款流水",
+  "Game Provider": "制定大厅",
+  "Repeat Day": "重复",
+  "inStock DisplayTime": "展示上架",
+  "Out Of Stock DisplayTime": "下架时间",
+  "CountDown Time": "倒数计时",
+  "Image Url": "图片链接"
+
 }
