@@ -357,6 +357,30 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.name);
             socketUtil.emitter(self.socket, dbCsOfficer.createOfficer, [data.platformId, data.name], actionName, isValidData);
+        },
+
+        getAllOfficer: function getAllOfficer(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbCsOfficer.getAllOfficer, [data.platformId], actionName, isValidData);
+        },
+
+        addPromoteWay: function addPromoteWay(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.name && data.platformId);
+            socketUtil.emitter(self.socket, dbCsOfficer.addPromoteWay, [data.name, data.platformId], actionName, isValidData);
+        },
+
+        getAllPromoteWay: function getAllPromoteWay(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbCsOfficer.getAllPromoteWay, [data.platformId], actionName, isValidData);
+        },
+
+        addUrl: function addUrl(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.officerId && data.domain && data.way);
+            socketUtil.emitter(self.socket, dbCsOfficer.addUrl, [data.platformId, data.officerId, data.domain, data.way], actionName, isValidData);
         }
 
 

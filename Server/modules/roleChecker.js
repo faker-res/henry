@@ -402,8 +402,8 @@ var roleChecker = {
                 applyPromoCode: [],
             },
             "RegistrationUrlConfig":{
-                Read:[],
-                Create:['createOfficer']
+                Read:['getAllOfficer','getAllPromoteWay'],
+                Create:['createOfficer','addPromoteWay','addUrl']
             }
         },
         Payment: {

@@ -12,7 +12,7 @@ define(['js/app'], function (myApp) {
             window.VM = vm;
 
             //init local var data
-            vm.newOfficer = {};
+            vm.platformOfficer = {};
             vm.updatePlatform = {};
             vm.editPlayer = {};
             vm.editPartner = {};
@@ -12916,24 +12916,112 @@ define(['js/app'], function (myApp) {
 
             vm.createOfficer = function () {
                 vm.officerCreateMessage = "";
+                let createOfficerId = $("#officer-message");
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
-                    name: vm.newOfficer.name
+                    name: vm.platformOfficer.name
                 };
-                socketService.$socket($scope.AppSocket, 'createOfficer', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'createOfficer', sendData, function () {
                     console.log("Officer created");
-                    vm.newOfficer.name = "";
+                    vm.platformOfficer.name = "";
                     vm.officerCreateMessage = $translate('Approved');
-                    $("#officer-message").css("color", "green");
+                    createOfficerId.css("color", "green");
+                    createOfficerId.css("font-weight", "bold");
                     $scope.safeApply();
                 },
                 function (err) {
-                    $("#officer-message").css("color", "red");
+                    createOfficerId.css("color", "red");
                     vm.officerCreateMessage = err.error.message;
                     console.log(err);
                     $scope.safeApply();
                 });
             }
+
+            vm.addPromoteWay = function () {
+                let officerPromoteMessageId = $("#officer-promote-message");
+                vm.officerPromoteMessage = "";
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    name: vm.platformOfficer.way
+                };
+                socketService.$socket($scope.AppSocket, 'addPromoteWay', sendData, function () {
+                        console.log("PromoteWay created");
+                        vm.platformOfficer.way = "";
+                        vm.officerPromoteMessage = $translate('Approved');
+                        officerPromoteMessageId.css("color", "green");
+                        officerPromoteMessageId.css("font-weight", "bold");
+                        $scope.safeApply();
+                    },
+                    function (err) {
+                        officerPromoteMessageId.css("color", "red");
+                        vm.officerPromoteMessage = err.error.message;
+                        console.log(err);
+                        $scope.safeApply();
+                    });
+            }
+
+            vm.getAllPromoteWay = function () {
+                vm.allPromoteWay = {};
+                vm.promoteSelected = '';
+                let query = {
+                    platformId: vm.selectedPlatform.id
+                };
+                socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                        vm.allPromoteWay = data.data;
+                        console.log("vm.allPromoteWay", vm.allPromoteWay);
+                        $scope.safeApply();
+                    },
+                    function(err) {
+                        console.log(err);
+                    });
+            };
+
+            vm.getAllOfficer = function () {
+                vm.allOfficer = {};
+                vm.officerSelected = '';
+                let query = {
+                    platformId: vm.selectedPlatform.id
+                };
+                socketService.$socket($scope.AppSocket, 'getAllOfficer', query, function (data) {
+                    vm.allOfficer = data.data;
+                    console.log("vm.allOfficer", vm.allOfficer);
+                    $scope.safeApply();
+                },
+                function(err) {
+                    console.log(err);
+                });
+            };
+
+            vm.pickOfficer = function(){
+                vm.platformOfficer.url = '';
+                $scope.safeApply();
+            };
+
+            vm.addUrl = function () {
+                let officeraddUrlMessageId = $("#officer-addUrl-message");
+                vm.officerUrlMessage = "";
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    officerId: vm.officerSelected,
+                    domain: vm.platformOfficer.url,
+                    way: vm.promoteSelected
+                };
+                socketService.$socket($scope.AppSocket, 'addUrl', sendData, function () {
+                        console.log("Officer Url created");
+                        vm.platformOfficer.url = "";
+                        vm.officerUrlMessage = $translate('Approved');
+                        officeraddUrlMessageId.css("color", "green");
+                        officeraddUrlMessageId.css("font-weight", "bold");
+                        $scope.safeApply();
+                    },
+                    function (err) {
+                        officeraddUrlMessageId.css("color", "red");
+                        vm.officerUrlMessage = err.error.errorMessage;
+                        console.log(err);
+                        $scope.safeApply();
+                    });
+            }
+
         };
         platformController.$inject = injectParams;
         myApp.register.controller('platformCtrl', platformController);

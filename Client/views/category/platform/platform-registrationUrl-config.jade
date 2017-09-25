@@ -1,9 +1,29 @@
 .row
     .col-md-12
-        .well#smsRecordQueryDiv
-            .inlineBlk
-                label.control-label {{'Create Officer' | translate}}
-                input.form-control(ng-model='vm.newOfficer.name', placeholder="{{'Create Officer' | translate}}" )
-
-            button.btn.btn-primary(ng-click='vm.createOfficer()') {{"CREATE" | translate}}
-            span#officer-message &nbsp{{vm.officerCreateMessage}}
+        .well#Officer
+            div.createOfficer
+                label.control-label {{'Create Officer' | translate}} &nbsp
+                .inlineBlk
+                    input.form-control(ng-model='vm.platformOfficer.name', placeholder="{{'OFFICER_NAME' | translate}}" )
+                button.btn.btn-primary(ng-click='vm.createOfficer();vm.getAllOfficer()') {{"CREATE" | translate}}
+                span#officer-message &nbsp{{vm.officerCreateMessage}}
+            div.addPromoteWay
+                label.control-label {{'PROMOTE_WAY' | translate}} &nbsp
+                .inlineBlk
+                    input.form-control(ng-model='vm.platformOfficer.way', placeholder="{{'PROMOTE_WAY' | translate}}" )
+                button.btn.btn-primary(ng-click='vm.addPromoteWay();vm.getAllPromoteWay()') {{"CREATE" | translate}}
+                span#officer-promote-message &nbsp{{vm.officerPromoteMessage}}
+            div.addOfficerUrl
+                label.control-label {{'ADD_OFFICER_URL' | translate}} &nbsp
+                .inlineBlk
+                    select.form-control#officerOption(ng-model='vm.officerSelected')
+                        option(value='') {{'CHOOSE_OFFICER' | translate}}
+                        option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
+                .inlineBlk
+                    select.form-control#officerOption(ng-model='vm.promoteSelected')
+                        option(value='') {{'CHOOSE_PROMOTE_WAY' | translate}}
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+                .inlineBlk
+                    input.form-control(ng-model='vm.platformOfficer.url', placeholder="{{'URL' | translate}}" )
+                button.btn.btn-primary(ng-click='vm.addUrl()') {{"ADD" | translate}}
+                span#officer-addUrl-message &nbsp{{vm.officerUrlMessage}}

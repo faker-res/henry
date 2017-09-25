@@ -18,7 +18,28 @@ let dbCsOfficer = {
                return newOfficer.save().then().catch(err => errorSavingLog(err, adminActionRecordData));
            }
        );
-   }
+   },
+
+    addPromoteWay: function(name, platformId){
+        return dbconfig.collection_csPromoteWay.findOne({name: name, platform: platformId}).lean().then(
+            function (data) {
+                if (data) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Name already existed"
+                    });
+                }
+
+                let newPromoteWay = dbconfig.collection_csPromoteWay({name: name, platform: platformId});
+                return newPromoteWay.save().then().catch(err => errorSavingLog(err, adminActionRecordData));
+            }
+        );
+    },
+
+    getAllPromoteWay: (platformId) => {
+        return dbconfig.collection_csPromoteWay.find({platform: platformId}, {url: 0}).lean();
+    },
+
 
     ////
 
@@ -28,8 +49,8 @@ let dbCsOfficer = {
 
         return Promise.all([officerProm, domainProm]).then(
             data => {
-                officer = data[0];
-                domainExisted = data[1];
+                let officer = data[0];
+                let domainExisted = data[1];
                 if (!officer) {
                     return Promise.reject({
                         name: "DataError",
@@ -44,7 +65,7 @@ let dbCsOfficer = {
                     });
                 }
 
-                let newUrl = {domain: domain, way: way};
+                let newUrl = {_id: ObjectId(), domain: domain, way: way, createTime: new Date()};
 
                 return dbconfig.collection_csOfficer.findOneAndUpdate({_id: officerId}, {$push: {url: newUrl}});
             }
