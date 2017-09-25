@@ -139,11 +139,13 @@ function sliceTimeFrameToDaily(startTime, endTime) {
 }
 
 function getMismatchFromProposalGroup(proposals, isManual) {
-    let pmsProposals = proposals[0].onlineCashinList;
+    let pmsProposals = proposals[0].onlineCashinList || [];
+
     let localProposals = proposals[1];
-    let pmsOnlineProposals = isManual ? proposals[2] : [];
+    let pmsOnlineProposals = isManual ? proposals[2].onlineCashinList : [];
 
     if (isManual) {
+        pmsOnlineProposals = pmsOnlineProposals || [];
         for (let i = 0, iLength = pmsOnlineProposals.length; i < iLength; i++) {
             for (let j = 0, jLength = pmsProposals.length; j < jLength; j++) {
                 let pmsOnlineProposal = pmsOnlineProposals[i];
