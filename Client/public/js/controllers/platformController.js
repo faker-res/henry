@@ -12,6 +12,7 @@ define(['js/app'], function (myApp) {
             window.VM = vm;
 
             //init local var data
+            vm.newOfficer = {};
             vm.updatePlatform = {};
             vm.editPlayer = {};
             vm.editPartner = {};
@@ -12912,6 +12913,27 @@ define(['js/app'], function (myApp) {
                     }
                 );
             });
+
+            vm.createOfficer = function () {
+                vm.officerCreateMessage = "";
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    name: vm.newOfficer.name
+                };
+                socketService.$socket($scope.AppSocket, 'createOfficer', sendData, function (data) {
+                    console.log("Officer created");
+                    vm.newOfficer.name = "";
+                    vm.officerCreateMessage = $translate('Approved');
+                    $("#officer-message").css("color", "green");
+                    $scope.safeApply();
+                },
+                function (err) {
+                    $("#officer-message").css("color", "red");
+                    vm.officerCreateMessage = err.error.message;
+                    console.log(err);
+                    $scope.safeApply();
+                });
+            }
         };
         platformController.$inject = injectParams;
         myApp.register.controller('platformCtrl', platformController);
