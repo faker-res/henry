@@ -685,6 +685,12 @@
             // 输赢报表
             #onlinePaymentMismatchQuery.block-query.col-md-12.well
                 div
+                    label {{'Topup Type' | translate}}
+                        select.form-control(ng-model='vm.onlinePaymentMismatchQuery.type')
+                            option(value='all') {{'any' | translate}}
+                            option(value='online') {{"TOPUPONLINE" | translate }}
+                            option(value='manual') {{"TOPUPMANUAL" | translate }}
+                div
                     label {{"Start date"|translate}}
                     .startTime
                 div
