@@ -22,8 +22,8 @@ const dbPaymentReconciliation = {
 
                     let pmsProm = pmsAPI.reconciliation_getCashoutList({
                         platformId: platformId,
-                        starttime: startTime,
-                        endtime: endTime
+                        starttime: start,
+                        endtime: end
                     });
 
                     let proposalQuery = {
@@ -122,8 +122,8 @@ const dbPaymentReconciliation = {
 
                     let pmsProm = pmsAPI.reconciliation_getCashinList({
                         platformId: platformId,
-                        starttime: startTime,
-                        endtime: endTime
+                        starttime: start,
+                        endtime: end
                     });
 
                     if (option === 'online') {
