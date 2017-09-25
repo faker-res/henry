@@ -7667,6 +7667,16 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
+            data => {
+                if(proposal){
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                    );
+                }
+
+            }
+        ).then(
             data => ({proposalId: proposalId})
         );
     },

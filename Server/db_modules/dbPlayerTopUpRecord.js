@@ -968,6 +968,15 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             }
         ).then(
+            data => {
+                if(proposal){
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                    );
+                }
+            }
+        ).then(
             data => ({proposalId: proposalId})
         );
     },
@@ -979,7 +988,6 @@ var dbPlayerTopUpRecord = {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
-
                         return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
                     }
                     else {
@@ -993,6 +1001,15 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            }
+        ).then(
+            data => {
+                if(proposal){
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                    );
+                }
             }
         ).then(
             data => ({proposalId: proposalId})
@@ -1020,6 +1037,15 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            }
+        ).then(
+            data => {
+                if(proposal){
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                    );
+                }
             }
         ).then(
             data => ({proposalId: proposalId})
