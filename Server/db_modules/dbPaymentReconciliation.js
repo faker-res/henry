@@ -36,7 +36,8 @@ const dbPaymentReconciliation = {
                     let proposalQuery = {
                         type: proposalTypeId,
                         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                        createTime: {$gte: start, $lte: end}
+                        createTime: {$gte: start, $lte: end},
+                        from_old_system: {$exists: false}
                     };
 
                     let proposalProm = dbconfig.collection_proposal.find(proposalQuery, {proposalId: 1, "data.amount": 1, createTime: 1}).lean();
@@ -119,7 +120,7 @@ function getMismatchFromProposalGroup(proposals) {
     for (let i = 0, iLength = localProposals.length; i < iLength; i++) {
         let localProposal = localProposals[i];
         if (!localProposal.matched) {
-            mismatches.push({proposalId: localProposal.proposalId, missing: "PMS", createTime: localProposal.createTime});
+            mismatches.push({proposalId: localProposal.proposalId, missing: "PMS", createTime: localProposal.createTime, amount: localProposal.data.amount});
         }
     }
 
