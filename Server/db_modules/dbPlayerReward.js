@@ -575,6 +575,35 @@ let dbPlayerReward = {
                 if (playerData && playerData.platform) {
                     playerObj = playerData;
 
+                    // Check player state
+                    return dbConfig.collection_playerState.findOne({player: playerObj._id});
+                } else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            stateRec => {
+                if (!stateRec) {
+                    return new dbConfig.collection_playerState({
+                        player: playerObj._id,
+                        'state.applyingPacketRainReward': true
+                    }).save();
+                } else {
+                    return dbConfig.collection_playerState.findOneAndUpdate({
+                        player: playerObj._id,
+                        'state.applyingPacketRainReward': false,
+                        lastModified: {$lt: new Date() - 1000}
+                    }, {
+                        $set: {'state.applyingPacketRainReward': true},
+                        $currentDate: {lastModified: true}
+                    }, {
+                        new: true
+                    });
+                }
+            }
+        ).then(
+            stateRec => {
+                if (stateRec) {
                     //check if player is valid for reward
                     if (playerObj.permission.PlayerPacketRainReward === false) {
                         return Q.reject({
@@ -584,12 +613,12 @@ let dbPlayerReward = {
                         });
                     }
 
-                    let promEvent = dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform._id, constRewardType.PLAYER_PACKET_RAIN_REWARD, code);
+                    let promEvent = dbRewardEvent.getPlatformRewardEventWithTypeName(playerObj.platform._id, constRewardType.PLAYER_PACKET_RAIN_REWARD, code);
                     let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
                         {
                             $match: {
-                                playerId: playerData._id,
-                                platformId: playerData.platform._id,
+                                playerId: playerObj._id,
+                                platformId: playerObj.platform._id,
                                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                             }
                         },
@@ -630,9 +659,8 @@ let dbPlayerReward = {
                     );
 
                     return Promise.all([promEvent, promTopUp, todayPropsProm]);
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                } else {
+                    return Q.reject({name: "ConcurrencyError", message: "Multiple calls detected!"});
                 }
             }
         ).then(
@@ -648,7 +676,8 @@ let dbPlayerReward = {
                     //calculate player reward amount
                     let rewardAmount = 0;
                     let totalProbability = 0;
-                    let curMinTopUpAmount = 0;
+                    // TODO RESET STATE WHEN CATCHING ERROR
+                    let curMinTopUpAmount = -1;
                     let curReward = null;
                     let combination = [];
 

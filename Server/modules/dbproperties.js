@@ -252,6 +252,8 @@ let playerCreditsDailyLogSchema = require('./../schema/logs/playerCreditsDailyLo
 let playerCreditsDailyLogModel = dbLogs.model('playerCreditsDailyLog', playerCreditsDailyLogSchema, 'playerCreditsDailyLog');
 let promoCodeSchema = require('./../schema/logs/promoCode');
 let promoCodeModel = dbLogs.model('promoCode', promoCodeSchema, 'promoCode');
+let playerStateSchema = require('./../schema/logs/playerState');
+let playerStateModel = dbLogs.model('playerState', playerStateSchema, 'playerState');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -393,6 +395,7 @@ var dbProperties = {
     collection_partnerStatusChangeLog: partnerStatusChangeLogModal,
     collection_apiLog: apiLogModel,
     collection_promoCode: promoCodeModel,
+    collection_playerState: playerStateModel,
 
     //unique
     collection_playerName: playerNameModal,
