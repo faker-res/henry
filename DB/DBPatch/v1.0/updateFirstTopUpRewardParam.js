@@ -322,3 +322,36 @@ var param22Cursor = db.rewardParam.find({"name": type22});
 var param22 = param22Cursor.next();
 
 db.rewardType.insert({"name": type22, params: param22._id, des: "Player Packet Rain Reward"});
+
+//Player Limited Offers Reward
+
+var type23 = "PlayerLimitedOffersReward";
+db.rewardParam.insert({
+    "name": type23, params: {
+        dailyApplyLimit: {type: "Boolean", des: "Daily apply limit"},
+        reward: {
+            type: "Table",
+            data: {
+                name: {type: "String", des: "Offer Name"},
+                oriPrice: {type: "Number", des: "Original Amount"},
+                offerPrice: {type: "Number", des: "Offer Amount"},
+                displayOriPrice: {type: "Boolean", des: "Display Original Price"},
+                qty : {type: "Number", des: "Quantity"},
+                limitPerson : {type: "Number", des: "Limit Apply Per Person"},
+                limitTime: {type: "Number", des: "Offer Amount"},
+                bet: {type: "Number", des: "Bet"},
+                providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
+                repeatWeekDay: {type: "Array", des: "Repeat Day"},
+                inStockDisplayTime: {type: "Number", des: "inStock DisplayTime"},
+                outStockDisplayTime: {type: "Number", des: "Out Of Stock DisplayTime"},
+                countDownTime: {type: "Number", des: "CountDown Time"},
+                imgUrl: {type: "String", des: "Image Url"}
+            },
+            des: "Reward parameter"
+        }
+    }
+});
+var param23Cursor = db.rewardParam.find({"name": type23});
+var param23 = param23Cursor.next();
+
+db.rewardType.insert({"name": type23, params: param23._id, des: "Player Limited Offers Reward"});
