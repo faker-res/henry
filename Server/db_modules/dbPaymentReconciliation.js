@@ -22,8 +22,8 @@ const dbPaymentReconciliation = {
 
                     let pmsProm = pmsAPI.reconciliation_getCashoutList({
                         platformId: platformId,
-                        starttime: startTime,
-                        endtime: endTime
+                        starttime: start,
+                        endtime: end
                     });
 
                     let proposalQuery = {
@@ -122,15 +122,15 @@ const dbPaymentReconciliation = {
 
                     let pmsProm = pmsAPI.reconciliation_getCashinList({
                         platformId: platformId,
-                        starttime: startTime,
-                        endtime: endTime
+                        starttime: start,
+                        endtime: end
                     });
 
                     if (option === 'online') {
                         pmsProm = pmsAPI.reconciliation_getOnlineCashinList({
                             platformId: platformId,
-                            starttime: startTime,
-                            endtime: endTime
+                            starttime: start,
+                            endtime: end
                         });
                     }
 
@@ -150,8 +150,8 @@ const dbPaymentReconciliation = {
                     if (option === 'manual') {
                         let pmsOnlineCashinProm = pmsAPI.reconciliation_getCashinList({
                             platformId: platformId,
-                            starttime: startTime,
-                            endtime: endTime
+                            starttime: start,
+                            endtime: end
                         });
 
                         promises.push(pmsOnlineCashinProm);
