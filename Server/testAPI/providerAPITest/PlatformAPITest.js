@@ -31,7 +31,8 @@
             return deferred.promise;
         };
     }
-
+    var testPlayerObjId = !isNode && window.testPlayerObjId;
+    var testPlayerId = !isNode && window.testPlayerId;
     proto.getPlatformList = function (callback, requestData) {
         //todo:: update test data here
         var data = requestData || {};
@@ -100,6 +101,28 @@
         var data = requestData || {};
         this._service.getConsumptionIncentivePlayer.request(data);
         this._service.getConsumptionIncentivePlayer.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.getPlayerInfoByName = function (callback, requestData) {
+        let data = requestData || {name: 'testclientplayer'};
+        this._service.getPlayerInfoByName.request(data);
+        this._service.getPlayerInfoByName.once(function (data) {
+            testPlayerObjId = data && data.data ? data.data._id : null;
+            testPlayerId = data && data.data ? data.data.playerId : null;
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.verifyUserPassword = function (callback, requestData) {
+        let data = requestData || {name: 'testclientplayer'};
+        this._service.verifyUserPassword.request(data);
+        this._service.verifyUserPassword.once(function (data) {
             if (callback && typeof callback === "function") {
                 callback(data);
             }
