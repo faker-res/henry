@@ -88,7 +88,7 @@
                         label {{vm.showRewardTypeData.params.params.imgUrl.des | translate}}
                         input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].imgUrl', ng-disabled='vm.platformRewardShowEdit()')
                 td(ng-if='!vm.platformRewardShowEdit()')
-                    i.fa.fa-minus(ng-click='vm.updateLimitedOffersEdit("remove",rowIndex)')
+                    i.fa.fa-minus(ng-click='vm.updateLimitedOffersEdit("remove",rowIndex, vm.rewardParams.reward[rowIndex]._id)')
             //editReward
             tr(ng-if='!vm.platformRewardShowEdit()')
                 td
@@ -136,7 +136,7 @@
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.repeatWeekDay.des | translate}}
-                        select.form-control.selectpicker( ng-model='vm.tempNewRewardEntry.providers[i]', ng-init=[1], multiple, ng-disabled='vm.platformRewardShowEdit()')
+                        select.form-control.spicker( ng-model='vm.tempNewRewardEntry.providers[i]',multiple, ng-init=[1], ng-disabled='vm.platformRewardShowEdit()')
                             option(ng-repeat='(i,v) in vm.weekDayList', value='{{i}}') {{v}}
                         label.form-control(ng-if='vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length==0') {{"NO_GAME" | translate}}
                 td

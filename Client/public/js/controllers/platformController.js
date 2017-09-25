@@ -9543,6 +9543,11 @@ define(['js/app'], function (myApp) {
 
             }
             vm.rewardEventClicked = function (i, v) {
+
+              $('.spicker').selectpicker({
+                size: 12
+              });
+
                 if (!v) {
                     vm.platformRewardPageName = 'showReward';
                     //vm.highlightRewardEvent = {};
@@ -9567,6 +9572,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardParams = Lodash.cloneDeep(v.param);
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.platformRewardTypeChanged();
+
 
                 console.log('vm.rewardParams', vm.rewardParams);
                 $scope.safeApply();
@@ -9961,9 +9967,8 @@ define(['js/app'], function (myApp) {
                     vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
                 }
             };
-            vm.updateLimitedOffersEdit = function (type, data) {
+            vm.updateLimitedOffersEdit = function (type, data, id) {
                 if (type == 'add') {
-
                   socketService.$socket($scope.AppSocket, 'generateObjectId', {}, function (result) {
                       var objectId = result.data
                       if(objectId){
@@ -9973,8 +9978,11 @@ define(['js/app'], function (myApp) {
                       }
                   });
                 } else if (type == 'remove') {
-                    vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1);
-                    console.log(vm.rewardParams.reward);
+                    if(vm.rewardParams.reward){
+                        vm.rewardParams.reward = vm.rewardParams.reward.filter(item=>{
+                          return item._id != id;
+                        })
+                    }
                 }
             };
             vm.weekDayList = {
