@@ -736,15 +736,12 @@ var proposal = {
                     if (proposalData) {
                         var reject = true;
                         var proposalStatus = proposalData.status || proposalData.process.status;
-                        if (proposalData.creator.id.toString() != adminId.toString()) {
+                        if (proposalData.creator.name.toString() != adminId.toString()) {
                             reject = false;
                         } else if (proposalStatus != constProposalStatus.PENDING && proposalStatus !== constProposalStatus.AUTOAUDIT) {
                             reject = false;
                         }
                         if (reject) {
-                            // if (remark) {
-                            //     updateData['$addToSet'] = {remark: {admin: adminId, content: remark}};
-                            // }
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
                                     return dbconfig.collection_proposal.findOneAndUpdate(
@@ -753,12 +750,19 @@ var proposal = {
                                             noSteps: true,
                                             process: null,
                                             status: constProposalStatus.CANCEL,
+                                            "data.cancelBy": "客服：" + adminId
                                         },
                                         {new: true}
                                     );
                                 })
-                        } else return Q.reject({message: "incorrect proposal status or authentication."});
-                    } else return Q.reject({message: "incorrect proposal data!"});
+                        }
+                        else {
+                            return Q.reject({message: "incorrect proposal status or authentication."});
+                        }
+                    }
+                    else {
+                        return Q.reject({message: "incorrect proposal data!"});
+                    }
                 }
             );
     },

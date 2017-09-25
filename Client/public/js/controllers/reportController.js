@@ -485,7 +485,7 @@ define(['js/app'], function (myApp) {
                 });
                 $scope.safeApply();
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
-                vm.onlinePaymentMismatchQuery = {};
+                vm.onlinePaymentMismatchQuery = {type: 'all'};
                 vm.proposalMismatchDetail = {};
                 utilService.actionAfterLoaded("#onlinePaymentMismatchTable", function () {
                     vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
@@ -1749,7 +1749,8 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform._id,
                 platformId: vm.selectedPlatform.platformId,
                 startTime: vm.onlinePaymentMismatchQuery.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.onlinePaymentMismatchQuery.endTime.data('datetimepicker').getLocalDate()
+                endTime: vm.onlinePaymentMismatchQuery.endTime.data('datetimepicker').getLocalDate(),
+                type: vm.onlinePaymentMismatchQuery.type
             };
 
             console.log('sendQuery', sendQuery);

@@ -40,6 +40,8 @@ var playerSchema = new Schema({
     lastFeedbackTime: {type: Date, default: ""},
     //feedback times
     feedbackTimes: {type: Number, min: 0, default: 0},
+    //no more feedback
+    noMoreFeedback: {type: Boolean},
     //player password
     password: {type: String, required: true},
     //whether player want to receive SMS

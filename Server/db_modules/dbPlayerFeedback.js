@@ -16,10 +16,11 @@ var dbPlayerFeedback = {
         var playerFeedback = new dbconfig.collection_playerFeedback(playerFeedbackData);
         var feedbackProm = playerFeedback.save();
 
+        let noMoreFeedback = playerFeedbackData.result == constPlayerFeedbackResult.LAST_CALL ? true : false;
         var playerProm = dbconfig.collection_players.findOneAndUpdate(
             {_id: playerFeedbackData.playerId, platform: playerFeedbackData.platform},
-            {$inc: {feedbackTimes: 1}, lastFeedbackTime: playerFeedbackData.createTime}
-        ).exec();
+            {$inc: {feedbackTimes: 1}, lastFeedbackTime: playerFeedbackData.createTime, noMoreFeedback: noMoreFeedback}
+        );
 
         Q.all([feedbackProm, playerProm]).then(
             function (data) {
@@ -225,7 +226,7 @@ var dbPlayerFeedback = {
 
     getPlayerFeedbackQuery: function (query, index) {
         index = index || 0;
-        query["$where"] = "this.lastAccessTime > this.lastFeedbackTime && !(!this.lastFeedbackTime && !this.isNewSystem)";
+        query["$where"] = "this.lastAccessTime > this.lastFeedbackTime && !(!this.lastFeedbackTime && !this.isNewSystem) && !this.noMoreFeedback";
         var a = dbconfig.collection_players.find(query).skip(index).limit(1)
             .populate({path: "partner", model: dbconfig.collection_partner});
         var b = dbconfig.collection_players.find(query).count();
