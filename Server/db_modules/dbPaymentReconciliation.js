@@ -95,11 +95,20 @@ const dbPaymentReconciliation = {
             }
         ).then(
             proposalGroup => {
+                // console.log(proposalGroup[0])
                 let mismatches = [];
+                let pmsMismatchCount = 0;
+                let pmsMismatchAmount = 0;
+                let fpmsMismatchCount = 0;
+                let fpmsMismatchAmount = 0;
 
                 for (let i = 0, len = proposalGroup.length; i < len; i++) {
-                    let mismatchWithinGroup = getMismatchFromProposalGroup(proposalGroup[i], Boolean(option === 'manual'));
-                    mismatches = mismatches.concat(mismatchWithinGroup);
+                    let mismatchDataWithinGroup = getMismatchFromProposalGroup(proposalGroup[i], option);
+                    mismatches = mismatches.concat(mismatchDataWithinGroup.mismatches);
+                    pmsMismatchCount += mismatchDataWithinGroup.pmsMismatchCount;
+                    pmsMismatchAmount += mismatchDataWithinGroup.pmsMismatchAmount;
+                    fpmsMismatchCount += mismatchDataWithinGroup.fpmsMismatchCount;
+                    fpmsMismatchAmount += mismatchDataWithinGroup.fpmsMismatchAmount;
                 }
 
                 mismatches.sort(function (proposalA, proposalB) {
@@ -109,7 +118,13 @@ const dbPaymentReconciliation = {
                     return 1;
                 });
 
-                return mismatches;
+                return {
+                    mismatches: mismatches,
+                    pmsMismatchCount: pmsMismatchCount,
+                    pmsMismatchAmount: pmsMismatchAmount,
+                    fpmsMismatchCount: fpmsMismatchCount,
+                    fpmsMismatchAmount: fpmsMismatchAmount
+                };
             }
 
         );
@@ -138,13 +153,19 @@ function sliceTimeFrameToDaily(startTime, endTime) {
     return timeFrames;
 }
 
-function getMismatchFromProposalGroup(proposals, isManual) {
-    let pmsProposals = proposals[0].onlineCashinList || [];
+function getMismatchFromProposalGroup(proposals, option) {
+    let pmsProposals;
+    if (option === 'online') {
+        pmsProposals = proposals[0].onlineCashinList || [];
+    }
+    else {
+        pmsProposals = proposals[0].cashinList || [];
+    }
 
     let localProposals = proposals[1];
-    let pmsOnlineProposals = isManual ? proposals[2].onlineCashinList : [];
+    let pmsOnlineProposals = option === 'manual' ? proposals[2].onlineCashinList : [];
 
-    if (isManual) {
+    if (option === 'manual') {
         pmsOnlineProposals = pmsOnlineProposals || [];
         for (let i = 0, iLength = pmsOnlineProposals.length; i < iLength; i++) {
             for (let j = 0, jLength = pmsProposals.length; j < jLength; j++) {
@@ -174,21 +195,35 @@ function getMismatchFromProposalGroup(proposals, isManual) {
     }
 
     let mismatches = [];
+    let pmsMismatchCount = 0;
+    let pmsMismatchAmount = 0;
     for (let i = 0, iLength = pmsProposals.length; i < iLength; i++) {
         let pmsProposal = pmsProposals[i];
         if (!pmsProposal.matched) {
-            mismatches.push({proposalId: pmsProposal.proposalId, missing: "FPMS", createTime: pmsProposal.createTime});
+            mismatches.push({proposalId: pmsProposal.proposalId, missing: "FPMS", createTime: pmsProposal.createTime, amount: pmsProposal.amount});
+            pmsMismatchCount++;
+            pmsMismatchAmount += pmsProposal.amount;
         }
     }
 
+    let localMismatchCount = 0;
+    let localMismatchAmount = 0;
     for (let i = 0, iLength = localProposals.length; i < iLength; i++) {
         let localProposal = localProposals[i];
         if (!localProposal.matched) {
             mismatches.push({proposalId: localProposal.proposalId, missing: "PMS", createTime: localProposal.createTime, amount: localProposal.data.amount});
+            localMismatchCount++;
+            localMismatchAmount += localProposal.data.amount;
         }
     }
 
-    return mismatches;
+    return {
+        mismatches: mismatches,
+        pmsMismatchCount: pmsMismatchCount,
+        pmsMismatchAmount: pmsMismatchAmount,
+        fpmsMismatchCount: localMismatchCount,
+        fpmsMismatchAmount: localMismatchAmount
+    };
 }
 
 module.exports = dbPaymentReconciliation;
