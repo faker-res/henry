@@ -5,6 +5,75 @@ const constProposalType = require("../const/constProposalType");
 const constProposalStatus = require("../const/constProposalStatus");
 
 const dbPaymentReconciliation = {
+    getBonusReport: function (platform, platformId, option, startTime, endTime) {
+        let timeFrames = sliceTimeFrameToDaily(startTime, endTime);
+
+        let name = constProposalType.PLAYER_BONUS;
+
+        return dbconfig.collection_proposalType.findOne({platformId: platform, name: name}).lean().then(
+            proposalTypeData => {
+                let proposalTypeId = proposalTypeData._id;
+                let allProm = [];
+
+                for (let t = 0, tLength = timeFrames.length; t < tLength; t++) {
+                    let promises = [];
+                    let start = timeFrames[t].startTime;
+                    let end = timeFrames[t].endTime;
+
+                    let pmsProm = pmsAPI.reconciliation_getCashoutList({
+                        platformId: platformId,
+                        starttime: startTime,
+                        endtime: endTime
+                    });
+
+                    let proposalQuery = {
+                        type: proposalTypeId,
+                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                        createTime: {$gte: start, $lte: end},
+                        from_old_system: {$exists: false}
+                    };
+
+                    let proposalProm = dbconfig.collection_proposal.find(proposalQuery, {proposalId: 1, "data.amount": 1, createTime: 1, amount:1}).lean();
+
+                    allProm.push([pmsProm, proposalProm]);
+                }
+
+                return Promise.all(allProm)
+            }
+        ).then(
+            proposalGroup => {
+                let mismatches = [];
+                let pmsMismatchCount = 0;
+                let pmsMismatchAmount = 0;
+                let fpmsMismatchCount = 0;
+                let fpmsMismatchAmount = 0;
+
+                for (let i = 0, len = proposalGroup.length; i < len; i++) {
+                    let mismatchDataWithinGroup = getMismatchFromProposalGroup(proposalGroup[i], option);
+                    mismatches = mismatches.concat(mismatchDataWithinGroup.mismatches);
+                    pmsMismatchCount += mismatchDataWithinGroup.pmsMismatchCount;
+                    pmsMismatchAmount += mismatchDataWithinGroup.pmsMismatchAmount;
+                    fpmsMismatchCount += mismatchDataWithinGroup.fpmsMismatchCount;
+                    fpmsMismatchAmount += mismatchDataWithinGroup.fpmsMismatchAmount;
+                }
+
+                mismatches.sort(function (proposalA, proposalB) {
+                    if (new Date(proposalA.createTime) > new Date(proposalB.createTime)) {
+                        return -1;
+                    }
+                    return 1;
+                });
+
+                return {
+                    mismatches: mismatches,
+                    pmsMismatchCount: pmsMismatchCount,
+                    pmsMismatchAmount: pmsMismatchAmount,
+                    fpmsMismatchCount: fpmsMismatchCount,
+                    fpmsMismatchAmount: fpmsMismatchAmount
+                };
+            }
+        )
+    },
 
     getOnlinePaymentProposalMismatchReport: function (platform, platformId, option, startTime, endTime) {
         // since PMS does not allow having more than 24hr between time frame,
@@ -74,7 +143,7 @@ const dbPaymentReconciliation = {
                         from_old_system: {$exists: false}
                     };
 
-                    let proposalProm = dbconfig.collection_proposal.find(proposalQuery, {proposalId: 1, "data.amount": 1, createTime: 1}).lean();
+                    let proposalProm = dbconfig.collection_proposal.find(proposalQuery, {proposalId: 1, "data.amount": 1, createTime: 1, amount:1}).lean();
 
                     promises.push(proposalProm);
 
@@ -101,6 +170,10 @@ const dbPaymentReconciliation = {
                 let pmsMismatchAmount = 0;
                 let fpmsMismatchCount = 0;
                 let fpmsMismatchAmount = 0;
+                let pmsCount = 0;
+                let pmsAmount = 0;
+                let fpmsCount = 0;
+                let fpmsAmount = 0;
 
                 for (let i = 0, len = proposalGroup.length; i < len; i++) {
                     let mismatchDataWithinGroup = getMismatchFromProposalGroup(proposalGroup[i], option);
@@ -109,6 +182,10 @@ const dbPaymentReconciliation = {
                     pmsMismatchAmount += mismatchDataWithinGroup.pmsMismatchAmount;
                     fpmsMismatchCount += mismatchDataWithinGroup.fpmsMismatchCount;
                     fpmsMismatchAmount += mismatchDataWithinGroup.fpmsMismatchAmount;
+                    pmsCount += mismatchDataWithinGroup.pmsCount;
+                    pmsAmount += mismatchDataWithinGroup.pmsAmount;
+                    fpmsCount += mismatchDataWithinGroup.fpmsCount;
+                    fpmsAmount += mismatchDataWithinGroup.fpmsAmount;
                 }
 
                 mismatches.sort(function (proposalA, proposalB) {
@@ -123,7 +200,11 @@ const dbPaymentReconciliation = {
                     pmsMismatchCount: pmsMismatchCount,
                     pmsMismatchAmount: pmsMismatchAmount,
                     fpmsMismatchCount: fpmsMismatchCount,
-                    fpmsMismatchAmount: fpmsMismatchAmount
+                    fpmsMismatchAmount: fpmsMismatchAmount,
+                    pmsCount: pmsCount,
+                    pmsAmount: pmsAmount,
+                    fpmsCount: fpmsCount,
+                    fpmsAmount: fpmsAmount
                 };
             }
 
@@ -197,6 +278,8 @@ function getMismatchFromProposalGroup(proposals, option) {
     let mismatches = [];
     let pmsMismatchCount = 0;
     let pmsMismatchAmount = 0;
+    let pmsCount = 0;
+    let pmsAmount = 0;
     for (let i = 0, iLength = pmsProposals.length; i < iLength; i++) {
         let pmsProposal = pmsProposals[i];
         if (!pmsProposal.matched) {
@@ -204,10 +287,14 @@ function getMismatchFromProposalGroup(proposals, option) {
             pmsMismatchCount++;
             pmsMismatchAmount += pmsProposal.amount;
         }
+        pmsCount++;
+        pmsAmount += pmsProposal.amount;
     }
 
     let localMismatchCount = 0;
     let localMismatchAmount = 0;
+    let localCount = 0;
+    let localAmount = 0;
     for (let i = 0, iLength = localProposals.length; i < iLength; i++) {
         let localProposal = localProposals[i];
         if (!localProposal.matched) {
@@ -215,6 +302,8 @@ function getMismatchFromProposalGroup(proposals, option) {
             localMismatchCount++;
             localMismatchAmount += localProposal.data.amount;
         }
+        localCount++;
+        localAmount += localProposal.data.amount;
     }
 
     return {
@@ -222,7 +311,11 @@ function getMismatchFromProposalGroup(proposals, option) {
         pmsMismatchCount: pmsMismatchCount,
         pmsMismatchAmount: pmsMismatchAmount,
         fpmsMismatchCount: localMismatchCount,
-        fpmsMismatchAmount: localMismatchAmount
+        fpmsMismatchAmount: localMismatchAmount,
+        pmsCount: pmsCount,
+        pmsAmount: pmsAmount,
+        fpmsCount: localCount,
+        fpmsAmount: localAmount
     };
 }
 
