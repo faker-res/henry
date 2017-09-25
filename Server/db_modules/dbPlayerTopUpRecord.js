@@ -941,7 +941,7 @@ var dbPlayerTopUpRecord = {
         );
     },
 
-    cancelManualTopupRequest: function (playerId, proposalId) {
+    cancelManualTopupRequest: function (playerId, proposalId, adminName) {
         var proposal = null;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
@@ -970,9 +970,10 @@ var dbPlayerTopUpRecord = {
         ).then(
             data => {
                 if(proposal){
+                    let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                        {"data.cancelBy": cancelBy}
                     );
                 }
             }
@@ -981,7 +982,7 @@ var dbPlayerTopUpRecord = {
         );
     },
 
-    cancelAlipayTopup: function (playerId, proposalId) {
+    cancelAlipayTopup: function (playerId, proposalId, adminName) {
         var proposal = null;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
@@ -1005,9 +1006,10 @@ var dbPlayerTopUpRecord = {
         ).then(
             data => {
                 if(proposal){
+                    let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                        {"data.cancelBy": cancelBy}
                     );
                 }
             }
@@ -1016,7 +1018,7 @@ var dbPlayerTopUpRecord = {
         );
     },
 
-    cancelWechatTopup: function (playerId, proposalId) {
+    cancelWechatTopup: function (playerId, proposalId, adminName) {
         var proposal = null;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
@@ -1041,9 +1043,10 @@ var dbPlayerTopUpRecord = {
         ).then(
             data => {
                 if(proposal){
+                    let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                        {"data.cancelBy": cancelBy}
                     );
                 }
             }
