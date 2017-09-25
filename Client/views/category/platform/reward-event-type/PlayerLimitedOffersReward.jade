@@ -8,7 +8,7 @@
                 th(style='min-width:110px;') {{'Display Original Price' | translate}}
                 th(style='min-width:110px;') {{'Quantity' | translate}}
                 th(style='min-width:110px;') {{'Limit Apply Per Person' | translate}}
-                th(style='min-width:110px;') {{'Offer Amount' | translate}}
+                th(style='min-width:110px;') {{'Expired Time' | translate}}
                 th(style='min-width:110px;') {{'Bet' | translate}}
                 th(style='min-width:150px;') {{'Game Provider' | translate}}
                 th(style='min-width:150px;') {{'Repeat Day' | translate}}
@@ -19,43 +19,43 @@
                 th(style='min-width:50px;')
 
         tbody
-            tr
+            tr(ng-repeat='(rowIndex,rowdata) in vm.rewardParams.reward')
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.name.des | translate}}
-                        input.form-control(type='String', min='0', ng-model='vm.rewardParams.name', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='String', min='0', ng-model='vm.rewardParams.reward[rowIndex].name', ng-disabled='vm.platformRewardShowEdit()', required)
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.oriPrice.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.oriPrice', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].oriPrice', ng-disabled='vm.platformRewardShowEdit()', required)
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.offerPrice.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.offerPrice', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].offerPrice', ng-disabled='vm.platformRewardShowEdit()', required)
 
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.displayOriPrice.des | translate}}
-                        input(type='checkbox', ng-model='vm.rewardParams.displayOriPrice', ng-disabled='vm.platformRewardShowEdit()')
+                        input(type='checkbox', ng-model='vm.rewardParams.reward[rowIndex].displayOriPrice', ng-disabled='vm.platformRewardShowEdit()')
 
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.qty.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.qty', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].qty', ng-disabled='vm.platformRewardShowEdit()', required)
 
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.limitPerson.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.limitPerson', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].limitPerson', ng-disabled='vm.platformRewardShowEdit()', required)
 
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.limitTime.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.limitTime', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].limitTime', ng-disabled='vm.platformRewardShowEdit()', required)
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.bet.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.bet', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].bet', ng-disabled='vm.platformRewardShowEdit()', required)
 
                 td
                     .full-width-input-block
@@ -72,24 +72,93 @@
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.inStockDisplayTime.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.inStockDisplayTime', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].inStockDisplayTime', ng-disabled='vm.platformRewardShowEdit()', required)
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.outStockDisplayTime.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.outStockDisplayTime', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].outStockDisplayTime', ng-disabled='vm.platformRewardShowEdit()', required)
 
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.countDownTime.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.countDownTime', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].countDownTime', ng-disabled='vm.platformRewardShowEdit()', required)
 
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.imgUrl.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.imgUrl', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.reward[rowIndex].imgUrl', ng-disabled='vm.platformRewardShowEdit()')
+                td(ng-if='!vm.platformRewardShowEdit()')
+                    i.fa.fa-minus(ng-click='vm.updateLimitedOffersEdit("remove",rowIndex)')
+            //editReward
+            tr(ng-if='!vm.platformRewardShowEdit()')
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.name.des | translate}}
+                        input.form-control(type='String', min='0', ng-model='vm.tempNewRewardEntry.name', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.oriPrice.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.oriPrice', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.offerPrice.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.offerPrice', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.displayOriPrice.des | translate}}
+                        input(type='checkbox', ng-model='vm.tempNewRewardEntry.displayOriPrice', ng-disabled='vm.platformRewardShowEdit()')
 
                 td
-                    i.fa.fa-plus(ng-click='vm.updateLimitedOffersEdit("add",vm.rewardParams);vm.tempNewRewardEntry={}')
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.qty.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.qty', ng-disabled='vm.platformRewardShowEdit()')
+
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.limitPerson.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.limitPerson', ng-disabled='vm.platformRewardShowEdit()')
+
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.limitTime.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.limitTime', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.bet.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.bet', ng-disabled='vm.platformRewardShowEdit()')
+
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.providers.des | translate}}
+                        select.form-control(ng-if='vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length>0', ng-model='vm.tempNewRewardEntry.providers[i]', ng-init=[1], multiple, ng-disabled='vm.platformRewardShowEdit()')
+                            option(ng-repeat='(i,v) in vm.providerGame[vm.rewardParams.providers[i].providerObjId]', value='{{v._id}}') {{v.name}}
+                        label.form-control(ng-if='vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length==0') {{"NO_GAME" | translate}}
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.repeatWeekDay.des | translate}}
+                        select.form-control.selectpicker( ng-model='vm.tempNewRewardEntry.providers[i]', ng-init=[1], multiple, ng-disabled='vm.platformRewardShowEdit()')
+                            option(ng-repeat='(i,v) in vm.weekDayList', value='{{i}}') {{v}}
+                        label.form-control(ng-if='vm.providerGame[vm.rewardParams.providers[i].providerObjId] && vm.providerGame[vm.rewardParams.providers[i].providerObjId].length==0') {{"NO_GAME" | translate}}
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.inStockDisplayTime.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.inStockDisplayTime', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.outStockDisplayTime.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.outStockDisplayTime', ng-disabled='vm.platformRewardShowEdit()')
+
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.countDownTime.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.countDownTime', ng-disabled='vm.platformRewardShowEdit()')
+
+                td
+                    .full-width-input-block
+                        label {{vm.showRewardTypeData.params.params.imgUrl.des | translate}}
+                        input.form-control(type='number', min='0', ng-model='vm.tempNewRewardEntry.imgUrl', ng-disabled='vm.platformRewardShowEdit()')
+                td
+                    i.fa.fa-plus(ng-click='vm.updateLimitedOffersEdit("add",vm.tempNewRewardEntry);vm.tempNewRewardEntry={}')
             //tr
                 td
                     .full-width-input-block
@@ -98,11 +167,11 @@
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.numOfConsumeDays.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.numOfConsumeDays', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.numOfConsumeDays', ng-disabled='vm.platformRewardShowEdit()')
                 td
                     .full-width-input-block
                         label {{vm.showRewardTypeData.params.params.minConsumeAmount.des | translate}}
-                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.minConsumeAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+                        input.form-control(type='number', min='0', ng-model='vm.rewardParams.minConsumeAmount', ng-disabled='vm.platformRewardShowEdit()')
     .full-width-input-block(ng-if='vm.rewardParams.checkConsumption')
         label {{vm.showRewardTypeData.params.params.andProvider.des | translate}}
         input(type='checkbox', ng-model='vm.rewardParams.andProvider', ng-disabled='vm.platformRewardShowEdit()')

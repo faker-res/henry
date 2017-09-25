@@ -9963,12 +9963,25 @@ define(['js/app'], function (myApp) {
             };
             vm.updateLimitedOffersEdit = function (type, data) {
                 if (type == 'add') {
-                    vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+
+                  socketService.$socket($scope.AppSocket, 'generateObjectId', {}, function (result) {
+                      var objectId = result.data
+                      if(objectId){
+                          data._id = objectId;
+                          vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                          $scope.safeApply();
+                      }
+                  });
                 } else if (type == 'remove') {
-                    vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
+                    vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1);
+                    console.log(vm.rewardParams.reward);
                 }
             };
-
+            vm.weekDayList = {
+              '1':'星期一',
+              '2':'星期二',
+              '3':'星期三'
+            };
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
