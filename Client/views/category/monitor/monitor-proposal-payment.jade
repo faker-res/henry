@@ -1,16 +1,14 @@
-//div(ng-if='vm.pageName === "Payment Monitor"')
-.resizable-content
-   .resizable-row(resizable="resizable", r-directions="['bottom']",r-flex="true")
-        #proposalDataTableDiv.container-fluid.tab-pane.fade.in.active(style="overflow: scroll;")
+.resizable-content.container-fluid
+   .resizable-row.row(resizable="resizable", r-directions="['bottom']", r-flex="true")
+        #proposalDataTableDiv.tab-pane.fade.in.active.col-md-12(style="overflow: scroll;")
             #search.well
                 .label.label-success 提案列表
                 .inlineBlk(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalId')")
                     div.all-proposal-type(ng-repeat="item in vm.allProposalType", style="display: inline-block;")
                         .checkbox
                             label
-                                input(type="checkbox", name="{{item.name}}", value="{{item.name}}")
+                                input(name="{{item.name}}", type="checkbox", value="{{item.name}}")
                                 {{item.name | translate}}
-                    
             .clearfix
             .proposalMessage
                 text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.timeAllProposal}}
@@ -29,12 +27,11 @@
                     label {{"Total" | translate}} {{vm.queryProposal.totalCount}} {{"records" | translate}}
                     table.common-table#proposalDataTable.display(style="width:100%;min-width:100%;max-height:450px;")
                     #proposalDataTablePage
-
-    .resizable-row
-        div(style="overflow: scroll;")
-            #paymentMonitorQuery.container-fluid.block-query.col-md-12.well
+    .resizable-row.row
+        .col-md-6(resizable="resizable", r-directions="['right']", r-flex="true")
+            #paymentMonitorQuery.block-query.well
                 div
-                    .label.label-success 在线支付
+                    .label.label-success 在线充值提案
                 br
                 div
                     label {{'topupType' | translate}}
@@ -59,18 +56,11 @@
                         option(value='') {{'any' | translate}}
                 div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="2"',style='max-width:125px')
                     label {{'Merchant No' | translate}}
-                    select.form-control(ng-model='vm.paymentMonitorQuery.merchantNo',ng-options='index as name for (index, name) in vm.merchantNumbers')
+                    select.form-control(ng-model='vm.paymentMonitorQuery.merchantNo', ng-options='index as name for (index, name) in vm.merchantNumbers')
                         option(value='') {{'any' | translate}}
-                //div(ng-show='!vm.paymentMonitorQuery.mainTopupType || vm.paymentMonitorQuery.mainTopupType=="1"',style='max-width:125px')
-                //    label {{'depositMethod' | translate}}
-                //    select.form-control(ng-model='vm.paymentMonitorQuery.depositMethod')
-                //        option(value='') {{'any' | translate}}
-                //        option(value='1') 网银转账(OnlineTransfer)
-                //        option(value='2') 自动取款机(ATM)
-                //        option(value='3') 柜台存款(Counter)
                 div(style='max-width:125px')
                     label {{'PLAYER_NAME' | translate}}
-                    input.form-control(type='text', ng-model='vm.paymentMonitorQuery.playerName')
+                    input.form-control(ng-model='vm.paymentMonitorQuery.playerName', type='text')
                 div
                     label.control-label {{'Start date' | translate}}
                     .startTime
@@ -101,29 +91,46 @@
             label {{"Total" | translate}} {{vm.paymentMonitorQuery.totalCount}} {{"records" | translate}}
             table#paymentMonitorTable.common-table.display(style="min-width:100% ;overflow: scroll")
             #paymentMonitorTablePage
-        #modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-            .modal-dialog
-                .modal-content
-                    .modal-header
-                        a.fa.fa-times.close(type='button', data-dismiss='modal')
-                        span
-                            ul.nav.nav-tabs
-                                li
-                                    label {{vm.selectedProposal.type.name | translate}}
-                                li.active
-                                    a(data-toggle="tab", href="#ProposalDetail", ng-click="")
-                                        .fa.fa-user
-                                        | {{ 'DETAIL' | translate }}
-                                //li(ng-if='vm.chartData')
-                                //    a(data-toggle="tab", href="#Workflow", ng-click="")
-                                //        .fa.fa-user
-                                //        | {{ 'WORKFLOW' | translate }}
-                    .modal-body
-                        .panel.panel-primary
-                            .panel-body
-                                .tab-content
-                                    #ProposalDetail.tab-pane.fade.in.active
-                                        include ./proposal-dialog-detail
-                    .modal-footer
-                        button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
-        
+            #modalProposal.modal.fade(data-backdrop='static', role='dialog', aria-hidden='true', aria-labelledby='myModalLabel', tabindex='-1', keyboard=false)
+                .modal-dialog
+                    .modal-content
+                        .modal-header
+                            a.fa.fa-times.close(data-dismiss='modal', type='button')
+                            span
+                                ul.nav.nav-tabs
+                                    li
+                                        label {{vm.selectedProposal.type.name | translate}}
+                                    li.active
+                                        a(data-toggle="tab", ng-click="", href="#ProposalDetail")
+                                            .fa.fa-user
+                                            | {{ 'DETAIL' | translate }}
+                        .modal-body
+                            .panel.panel-primary
+                                .panel-body
+                                    .tab-content
+                                        #ProposalDetail.tab-pane.fade.in.active
+                                            include ./proposal-dialog-detail
+                        .modal-footer
+                            button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+        .col-md-6
+            #proposalNewUserDataTableDiv.tab-pane.fade.in.active
+                h1
+                    .label.label-success 开户提案
+                .clearfix
+                .proposalMessage
+                    text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.timeAllProposal}}
+                    label.text-danger.newProposalAlert
+                    a(ng-click='vm.loadProposalQueryData(true)')
+                        .fa.fa-refresh
+                    .pull-right
+                        label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
+                            input#autoRefreshProposalFlag2.margin-left-5(type='checkbox', checked)
+                        .inlineBlk.hidden
+                            text {{"Time left until next refresh" | translate}} :&nbsp;
+                            text.timeLeftRefreshOperation
+                            text s
+                .row
+                    .col-md-12
+                        label {{"Total" | translate}} {{vm.queryProposal.totalCount}} {{"records" | translate}}
+                        table.common-table#proposalNewUserDataTable.display(style="width:100%;min-width:100%;max-height:450px;")
+                        #proposalNewUserDataTablePage
