@@ -485,7 +485,7 @@ define(['js/app'], function (myApp) {
                 });
                 $scope.safeApply();
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
-                vm.onlinePaymentMismatchQuery = {type: 'all'};
+                vm.onlinePaymentMismatchQuery = {type: 'online'};
                 vm.proposalMismatchDetail = {};
                 utilService.actionAfterLoaded("#onlinePaymentMismatchTable", function () {
                     vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
