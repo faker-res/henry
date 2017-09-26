@@ -7871,10 +7871,13 @@ let dbPlayerInfo = {
         var bDoneDeduction = false;
         var adminInfo = ifAdmin;
 
+        let eventData, taskData;
+
         var recordProm = dbconfig.collection_playerTopUpRecord.findById(topUpRecordId).lean();
         var playerProm = dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "platform", model: dbconfig.collection_platform}).lean();
+
         return Q.all([playerProm, recordProm]).then(
             function (data) {
                 // Check player permission to apply this reward
@@ -7907,7 +7910,8 @@ let dbPlayerInfo = {
                     }
 
                     //get reward event data
-                    var eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_TOP_UP_RETURN, code);
+                    let eventProm = dbRewardEvent.getPlatformRewardEventWithTypeName(platformId, constRewardType.PLAYER_TOP_UP_RETURN, code);
+
                     return Q.all([eventProm, taskProm]);
                 }
                 else {
@@ -7937,135 +7941,171 @@ let dbPlayerInfo = {
                     });
                 }
 
-                var eventData = data[0];
-                var taskData = data[1];
+                eventData = data[0];
+                taskData = data[1];
 
-                if (taskData) {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_HAS_REWARD_TASK,
-                        name: "DataError",
-                        message: "The player has not unlocked the previous reward task. Not valid for new reward"
-                    });
+                if (eventData.validStartTime && eventData.validEndTime) {
+                    // TODO Temoporary hardcoding: Only can apply 1 time within period
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: player.platform._id,
+                        name: constProposalType.PLAYER_TOP_UP_RETURN
+                    }).lean();
                 }
-
-                if (!rewardUtility.isValidRewardEvent(constRewardType.PLAYER_TOP_UP_RETURN, eventData)) {
-                    return Q.reject({
-                        status: constServerCode.REWARD_EVENT_INVALID,
-                        name: "DataError",
-                        message: "Cannot find top up return event data for platform"
-                    });
+                else {
+                    return false;
                 }
-
-                rewardParam = eventData.param.reward[player.playerLevel.value];
-                if (!rewardParam) {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                        name: "DataError",
-                        message: "Player is not valid for this reward"
-                    });
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    return dbconfig.collection_proposal.findOne({
+                        type: proposalTypeData._id,
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        "data.playerObjId": player._id,
+                        settleTime: {$gte: eventData.validStartTime, $lt: eventData.validEndTime}
+                    }).lean();
                 }
-
-                if (rewardParam.maxDailyRewardAmount <= player.dailyTopUpIncentiveAmount) {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                        name: "DataError",
-                        message: "You have reached the max reward amount today"
-                    });
+                else {
+                    return false;
                 }
-
-                if (record.amount < rewardParam.minTopUpAmount) {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
-                        name: "DataError",
-                        message: "Topup amount is less than minimum topup requirement"
-                    });
-                }
-
-                // All requirements are met.  Let's proceed.
-                rewardAmount = Math.min((record.amount * rewardParam.rewardPercentage), rewardParam.maxRewardAmount);
-                deductionAmount = record.amount;
-
-                let creditProm = Q.resolve(false);
-                if (player.platform.useLockedCredit) {
-                    creditProm = dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record);
-                }
-                return creditProm.then(
-                    function (bDeduct) {
-                        bDoneDeduction = bDeduct;
-
-                        var proposalData = {
-                            type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: player.name,
-                                    id: playerId
-                                },
-                            data: {
-                                playerObjId: player._id,
-                                playerId: player.playerId,
-                                player: player.playerId,
-                                playerName: player.name,
-                                platformId: platformId,
-                                topUpRecordId: topUpRecordId,
-                                topUpProposalId: record.proposalId,
-                                applyAmount: deductionAmount,
-                                rewardAmount: rewardAmount,
-                                providers: eventData.param.providers,
-                                targetEnable: eventData.param.targetEnable,
-                                games: eventData.param.games,
-                                spendingAmount: (record.amount + rewardAmount) * rewardParam.spendingTimes,
-                                minTopUpAmount: rewardParam.minTopUpAmount,
-                                useConsumption: eventData.param.useConsumption,
-                                eventId: eventData._id,
-                                eventName: eventData.name,
-                                eventCode: eventData.code,
-                                eventDescription: eventData.description,
-                                useLockedCredit: Boolean(player.platform.useLockedCredit)
-                            },
-                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                            userType: constProposalUserType.PLAYERS,
-                        };
-                        return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
-                            {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
-                            {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
-                            {new: true}
-                        ).then(
-                            data => {
-                                if (data && data.bDirty) {
-                                    return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
-                                        data => {
-                                            return data;
-                                        },
-                                        error => {
-                                            //clean top up record if create proposal failed
-                                            console.error({
-                                                name: "DBError",
-                                                message: "Create player top up return proposal failed",
-                                                data: proposalData
-                                            });
-                                            return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
-                                                {
-                                                    _id: record._id,
-                                                    createTime: record.createTime
-                                                }, {bDirty: false}
-                                            ).catch(errorUtils.reportError).then(
-                                                () => Q.reject(error)
-                                            );
-                                        }
-                                    );
-                                }
-                                else {
-                                    return Q.reject({
-                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                        name: "DataError",
-                                        message: "This top up record has been used"
-                                    });
-                                }
-                            }
-                        );
+            }
+        ).then(
+            appliedProposal => {
+                if (!appliedProposal || appliedProposal.length == 0) {
+                    if (taskData) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_HAS_REWARD_TASK,
+                            name: "DataError",
+                            message: "The player has not unlocked the previous reward task. Not valid for new reward"
+                        });
                     }
-                );
+
+                    if (!rewardUtility.isValidRewardEvent(constRewardType.PLAYER_TOP_UP_RETURN, eventData)) {
+                        return Q.reject({
+                            status: constServerCode.REWARD_EVENT_INVALID,
+                            name: "DataError",
+                            message: "Cannot find top up return event data for platform"
+                        });
+                    }
+
+                    rewardParam = eventData.param.reward[player.playerLevel.value];
+                    if (!rewardParam) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                            name: "DataError",
+                            message: "Player is not valid for this reward"
+                        });
+                    }
+
+                    if (rewardParam.maxDailyRewardAmount <= player.dailyTopUpIncentiveAmount) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                            name: "DataError",
+                            message: "You have reached the max reward amount today"
+                        });
+                    }
+
+                    if (record.amount < rewardParam.minTopUpAmount) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                            name: "DataError",
+                            message: "Topup amount is less than minimum topup requirement"
+                        });
+                    }
+
+                    // All requirements are met.  Let's proceed.
+                    rewardAmount = Math.min((record.amount * rewardParam.rewardPercentage), rewardParam.maxRewardAmount);
+                    deductionAmount = record.amount;
+
+                    let creditProm = Q.resolve(false);
+                    if (player.platform.useLockedCredit) {
+                        creditProm = dbPlayerInfo.tryToDeductCreditFromPlayer(player._id, player.platform, deductionAmount, "applyTopUpReturn:Deduction", record);
+                    }
+                    return creditProm.then(
+                        function (bDeduct) {
+                            bDoneDeduction = bDeduct;
+
+                            var proposalData = {
+                                type: eventData.executeProposal,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: player.name,
+                                        id: playerId
+                                    },
+                                data: {
+                                    playerObjId: player._id,
+                                    playerId: player.playerId,
+                                    player: player.playerId,
+                                    playerName: player.name,
+                                    platformId: platformId,
+                                    topUpRecordId: topUpRecordId,
+                                    topUpProposalId: record.proposalId,
+                                    applyAmount: deductionAmount,
+                                    rewardAmount: rewardAmount,
+                                    providers: eventData.param.providers,
+                                    targetEnable: eventData.param.targetEnable,
+                                    games: eventData.param.games,
+                                    spendingAmount: (record.amount + rewardAmount) * rewardParam.spendingTimes,
+                                    minTopUpAmount: rewardParam.minTopUpAmount,
+                                    useConsumption: eventData.param.useConsumption,
+                                    eventId: eventData._id,
+                                    eventName: eventData.name,
+                                    eventCode: eventData.code,
+                                    eventDescription: eventData.description,
+                                    useLockedCredit: Boolean(player.platform.useLockedCredit)
+                                },
+                                entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                userType: constProposalUserType.PLAYERS,
+                            };
+                            return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
+                                {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
+                                {bDirty: true, usedType: constRewardType.PLAYER_TOP_UP_RETURN},
+                                {new: true}
+                            ).then(
+                                data => {
+                                    if (data && data.bDirty) {
+                                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
+                                            data => {
+                                                return data;
+                                            },
+                                            error => {
+                                                //clean top up record if create proposal failed
+                                                console.error({
+                                                    name: "DBError",
+                                                    message: "Create player top up return proposal failed",
+                                                    data: proposalData
+                                                });
+                                                return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
+                                                    {
+                                                        _id: record._id,
+                                                        createTime: record.createTime
+                                                    }, {bDirty: false}
+                                                ).catch(errorUtils.reportError).then(
+                                                    () => Q.reject(error)
+                                                );
+                                            }
+                                        );
+                                    }
+                                    else {
+                                        return Q.reject({
+                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                            name: "DataError",
+                                            message: "This top up record has been used"
+                                        });
+                                    }
+                                }
+                            );
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "The player already has this reward. Not Valid for the reward."
+                    });
+                }
             }
         ).catch(
             error => {

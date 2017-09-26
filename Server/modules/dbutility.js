@@ -651,6 +651,18 @@ var dbUtility = {
     encodePhoneNum: function (str) {
         str = str || '';
         return str.substring(0, 3) + "******" + str.slice(-4);
+    },
+
+    getParameterByName: function (name, url) {
+        if( !url ){
+            return url;
+        }
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
     }
 
 };
