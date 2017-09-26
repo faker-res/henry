@@ -17,6 +17,7 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
         'LocalStorageModule',
         'datePicker',
         'ui.router',
+        'angularResizable',
         'colorpicker.module'
     );
 

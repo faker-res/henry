@@ -7,8 +7,6 @@ define(['js/app'], function (myApp) {
         let vm = this;
 
         window.mPVM = vm;
-        // vm.pp = $scope.$parent.vm.selectStoredPlatform; // it work
-        // console.log('mVM', monitorVM) // it work
 
         // declare constant
         vm.proposalStatusList = {
@@ -36,13 +34,7 @@ define(['js/app'], function (myApp) {
 
         vm.seleDataType = {};
 
-        $scope.$on('setPlatform', function () {
-            vm.setPlatform();
-        });
-
         vm.setPlatform = function () {
-            // vm.operSelPlatform = false;
-            // vm.selectedPlatform = JSON.parse(platObj);
             vm.selectedPlatform = $scope.$parent.vm.selectedPlatform;
             vm.curPlatformId = vm.selectedPlatform._id;
             vm.allProviders = {};
@@ -52,35 +44,7 @@ define(['js/app'], function (myApp) {
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage(vm.showPageName); // 5
-            vm.getProposalTypeByPlatformId([vm.curPlatformId]).then(
-                function (data) {
-                    $('select#selectProposalType').multipleSelect({
-                        // allSelected: $translate("All Selected"),
-                        // selectAllText: $translate("Select All"),
-                        // displayValues: true,
-                        // countSelected: $translate('# of % selected'),
-                        // onClick: function () {
-                        //     vm.proposalTypeUpdated();
-                        // },
-                        // onCheckAll: function () {
-                        //     vm.proposalTypeUpdated();
-                        // },
-                        // onUncheckAll: function () {
-                        //     vm.proposalTypeUpdated();
-                        // }
-                    });
-                    // var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
-                    // $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
-                    //     var upText = $($multi).text().split(',').map(item => {
-                    //         return $translate(item);
-                    //     }).join(',');
-                    //     $($multi).find('span').text(upText)
-                    // });
-                    // $("select#selectProposalType").multipleSelect("checkAll");
-                    // vm.proposalTypeClicked("total");
-                    // vm.allProposalClicked();
-                }
-            );
+            vm.getProposalTypeByPlatformId([vm.curPlatformId]);
             // $scope.safeApply();
         };
 
@@ -421,6 +385,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.tableRowClicked = function (event) {
+            console.log('11111111111');
             if (event.target.tagName == 'A') {
                 let data = vm.topUpProposalTable.row(this).data();
                 vm.proposalRowClicked(data);
@@ -449,9 +414,9 @@ define(['js/app'], function (myApp) {
                     vm.thisProposalSteps = data.data.steps;
                     vm.chartData = {};
                     vm.chartData.nextNodeID = 10;
-                    let para = [$translate("START_PROPOSAL"), $translate("END_PROPOSAL"), $translate("FAIL_PROPOSAL")];
-                    vm.chartViewModel.setDefaultLabel(para);
-                    vm.chartViewModel.setEditable(false);
+                    // let para = [$translate("START_PROPOSAL"), $translate("END_PROPOSAL"), $translate("FAIL_PROPOSAL")];
+                    // vm.chartViewModel.setDefaultLabel(para);
+                    // vm.chartViewModel.setEditable(false);
                     $.each(data.data.steps, function (i, v) {
                         if (v._id == data.data.currentStep) {
                             vm.chartData.curStep = v.type;
@@ -806,9 +771,14 @@ define(['js/app'], function (myApp) {
                     }
                 );
             }
-            var startTime = $('#start-datetimepicker').data('datetimepicker');
-            var endTime = $('#end-datetimepicker').data('datetimepicker');
-            var newEndTime = endTime.getLocalDate();
+            // var startTime = $('#start-datetimepicker').data('datetimepicker');
+            // var endTime = $('#end-datetimepicker').data('datetimepicker');
+            // var newEndTime = endTime.getLocalDate();
+
+            var lastMonth = utilService.setNDaysAgo(new Date(), 1);
+            var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
+            var startTime = lastMonthDateStartTime;
+            var newEndTime = utilService.getTodayEndTime();
 
             var proposalTypeSelected = $('.all-proposal-type input:checkbox:checked').map(function () {
                 return this.name;
@@ -819,7 +789,7 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
                 type: proposalTypeSelected,
-                startDate: startTime.getLocalDate(),
+                startDate: startTime, //.getLocalDate(),
                 endDate: newEndTime,
                 entryType: vm.queryProposalEntryType,
                 size: vm.queryProposal.limit || 10,
@@ -856,6 +826,74 @@ define(['js/app'], function (myApp) {
                 // vm.proposalTable.destroy();
                 vm.queryProposal.totalCount = data.data.size;
                 vm.drawProposalTable(vm.proposals, data.data.size, data.data.summary, newSearch);
+                $scope.safeApply();
+            });
+        };
+        vm.loadProposalNewUserQueryData = function (newSearch, callback) {
+            var selectedStatus = [];
+            if (vm.proposalStatusSelected) {
+                vm.proposalStatusSelected.forEach(
+                    status => {
+                        selectedStatus.push(status);
+                        if (status == "Success") {
+                            selectedStatus.push("Approved");
+                        }
+                        if (status == "Fail") {
+                            selectedStatus.push("Rejected");
+                        }
+                    }
+                );
+            }
+
+            var lastMonth = utilService.setNDaysAgo(new Date(), 1);
+            var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
+            var startTime = lastMonthDateStartTime;
+            var newEndTime = utilService.getTodayEndTime();
+
+            var proposalTypeSelected = ["PlayerRegistrationIntention"];
+            selectedStatus = ["PrePending", "Pending", "Processing", "Success", "Approved", "Fail", "Rejected", "Cancel", "Expired", "Undetermined", "AutoAudit", "Recover"];
+
+            let sendData = {
+                adminId: authService.adminId,
+                platformId: vm.allPlatformId,
+                type: proposalTypeSelected,
+                startDate: startTime, //.getLocalDate(),
+                endDate: newEndTime,
+                entryType: vm.queryProposalEntryType,
+                size: vm.queryProposal.limit || 10,
+                index: newSearch ? 0 : (vm.queryProposal.index || 0),
+                sortCol: vm.queryProposal.sortCol
+            };
+
+            if (vm.curPlatformId) {
+                sendData.platformId = [vm.curPlatformId];
+            }
+
+            if (vm.queryProposalRelatedUser) {
+                sendData.relateUser = vm.queryProposalRelatedUser.toLowerCase();
+            }
+
+            if (selectedStatus) {
+                sendData.status = selectedStatus
+            }
+            if (vm.queryProposalMinCredit || vm.queryProposalMaxCredit) {
+                sendData.credit = {
+                    $gte: vm.queryProposalMinCredit || 0,
+                    $lt: vm.queryProposalMaxCredit || 1000000000
+                }
+            }
+            $('.proposalMessage > a > .fa').addClass('fa-spin');
+            $('.proposalMessage').next().hide();
+            console.log('send proposal query', sendData);
+            var queryString = 'getQueryProposalsForAdminId';
+            socketService.$socket($scope.AppSocket, queryString, sendData, function (data) {
+                console.log('proposal allData', data);
+                vm.proposalNewUsers = data.data.data;
+                $('.proposalMessage > a > .fa').removeClass('fa-spin');
+                $('.proposalMessage').next().show();
+                // vm.proposalTable.destroy();
+                vm.queryProposal.totalCount = data.data.size;
+                vm.drawProposalNewUserTable(vm.proposalNewUsers, data.data.size, data.data.summary, newSearch);
                 $scope.safeApply();
             });
         };
@@ -939,6 +977,407 @@ define(['js/app'], function (myApp) {
                 vm.showOperationList = false;
             }
             $cookies.put("operationShowLeft", vm.showOperationList);
+            $scope.safeApply();
+        };
+        //draw player table based on data
+        vm.drawProposalNewUserTable = function (data, size, summary, newSearch) {
+            console.log("drawProposalNewUserTable", data);
+            vm.newProposalNum = 0;
+            vm.blinkAllProposal = false;
+            var tableData = [];
+            $.each(data, function (i, v) {
+                if (v) {
+                    if (v.mainType == 'Reward') {
+                        v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
+                    }
+                    v.mainType$ = $translate(v.mainType);
+                    v.priority$ = $translate(v.data.proposalPlayerLevel ? v.data.proposalPlayerLevel : "Normal");
+                    v.playerStatus$ = v.data.playerStatus;
+                    v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
+                    v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
+                    v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
+                    v.expirationTime$ = v.createTime == v.expirationTime ? 0 : new Date(v.expirationTime) - Date.now();
+                    v.lockUser$ = $translate(v.isLocked);
+                    v.creditAmount$ = (v.data.amount != null) ?
+                        parseFloat(v.data.amount).toFixed(2) :
+                        (v.data.rewardAmount != null ?
+                            parseFloat(v.data.rewardAmount).toFixed(2) :
+                            v.data.commissionAmount != null ?
+                            parseFloat(v.data.commissionAmount).toFixed(2) :
+                            v.data.negativeProfitAmount != null ?
+                            parseFloat(v.data.negativeProfitAmount).toFixed(2) :
+                            $translate("N/A"));
+                    if (v.data.updateAmount != null) {
+                        v.creditAmount$ = parseFloat(v.data.updateAmount).toFixed(2);
+                    }
+                    if (v.mainType == "PlayerBonus" && v.data.bankTypeId) {
+                        v.bankType$ = vm.allBankTypeList[v.data.bankTypeId]
+                    }
+                    if (v.mainType == "PlayerBonus" && v.status == "Approved") {
+                        v.status = "approved";
+                    }
+                    if (v.data.commissionAmount && v.data.commissionAmountFromChildren) {
+                        v.creditAmount$ = parseFloat(v.data.commissionAmount + v.data.commissionAmountFromChildren).toFixed(2);
+                    }
+                    // v.remark$ = v.remark.map(item => {
+                    //     return item ? item.content : '';
+                    // });
+                    v.playerLevel$ = v.data.playerLevelName ? $translate(v.data.playerLevelName) : '';
+                    v.merchantNo$ = v.data.merchantNo != null ?
+                        v.data.merchantNo :
+                        v.data.weChatAccount != null ?
+                        v.data.weChatAccount :
+                        v.data.alipayAccount != null ?
+                        v.data.alipayAccount :
+                        null;
+                    tableData.push(v);
+                }
+            });
+
+            // Plug-in to sort signed numbers
+            jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+                "signed-num-asc": function (a, b) {
+                    a = a == 0 ? Infinity : a;
+                    b = b == 0 ? Infinity : b;
+
+                    return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+                },
+
+                "signed-num-desc": function (a, b) {
+                    a = a == 0 ? -Infinity : a;
+                    b = b == 0 ? -Infinity : b;
+
+                    return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+                }
+            });
+
+            let tableOptions = {
+                data: tableData,
+                deferRender: true,
+                "bProcessing": true,
+                bDeferRender: true,
+                // filterProposalType: true,
+                "aaSorting": vm.queryProposal.aaSorting || [],
+                aoColumnDefs: [{
+                        'sortCol': 'proposalId',
+                        bSortable: true,
+                        'aTargets': [1]
+                    },
+                    {
+                        'sortCol': 'relatedAmount',
+                        bSortable: true,
+                        'aTargets': [7]
+                    },
+                    {
+                        'sortCol': 'createTime',
+                        bSortable: true,
+                        'aTargets': [13]
+                    },
+                    {
+                        targets: '_all',
+                        defaultContent: ' ',
+                        bSortable: false
+                    }
+                ],
+                columns: [{
+                        "title": $translate('Multiselect'),
+                        bSortable: false,
+                        sClass: "approvalProposalSelected",
+                        render: function (data, type, row) {
+                            if (!row.isLocked || row.isLocked._id == authService.adminId) {
+                                var link = $('<input>', {
+                                    type: 'checkbox',
+                                    "data-proposalId": row._id,
+                                    class: "transform150"
+                                })
+                                return link.prop('outerHTML');
+                            } else return null;
+                        },
+                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
+                        "title": $translate('PROPOSAL_NO'),
+                        "data": "proposalId",
+                        render: function (data, type, row) {
+                            var $link = $('<a>').text(data);
+                            return $link.prop('outerHTML');
+                        },
+                        bSortable: true
+                    },
+                    {
+                        "title": $translate('request Id'),
+                        "data": "data.requestId"
+                    },
+                    {
+                        "title": $translate('Merchant No'),
+                        "data": "merchantNo$"
+                    },
+                    {
+                        "title": $translate('MAIN_TYPE'),
+                        "data": "mainType$"
+                    },
+                    {
+                        "title": $translate('TYPE'),
+                        "data": "type",
+                        render: function (data, type, row) {
+                            var text = $translate(row.type ? row.type.name : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        "title": $translate('topupType'),
+                        "data": "data.topupType",
+                        render: function (data, type, row) {
+                            let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
+                            return "<div>" + text + "</div>";
+                        },
+                        bSortable: true
+                    },
+                    {
+                        "title": $translate('PRIORITY'),
+                        "data": "priority$"
+                    },
+                    {
+                        "title": $translate('playerStatus'),
+                        "data": "playerStatus$",
+                        render: function (data, type, row) {
+                            let showText = $translate($scope.constPlayerStatus[data] ?
+                                $scope.constPlayerStatus[data] : "Normal");
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (data === 4) {
+                                textClass = "bold";
+                                fontStyle = {
+                                    'font-weight': 'bold'
+                                };
+                            } else if (data === 5) {
+                                textClass = "text-danger";
+                                fontStyle = {
+                                    'font-weight': 'bold'
+                                };
+                            }
+
+                            return $('<div>')
+                                .text(showText)
+                                .addClass(textClass)
+                                .css(fontStyle)
+                                .prop('outerHTML');
+                        }
+                    },
+                    {
+                        "title": $translate('ENTRY_TYPE'),
+                        "data": "entryType$"
+                    },
+                    {
+                        "title": $translate('USER_TYPE'),
+                        "data": "userType$",
+                        "sClass": "sumText"
+                    },
+                    {
+                        "title": $translate('Credit Amount'),
+                        "data": "creditAmount$",
+                        "sClass": "alignRight creditAmount sumFloat"
+                    },
+                    {
+                        "title": $translate('bankTypeId'),
+                        "data": "bankType$",
+                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
+                        "title": $translate('RELATED_USER'),
+                        "data": null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                return data.creator.name;
+                            }
+                            if (data && data.data && data.data.playerName) {
+                                return data.data.playerName;
+                            } else if (data && data.data && data.data.partnerName) {
+                                return data.data.partnerName;
+                            } else {
+                                return "";
+                            }
+                        }
+                    },
+                    {
+                        "title": $translate('PlayerLevel'),
+                        bSortable: false,
+                        data: "playerLevel$",
+                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
+                        "title": $translate('CREATOR'),
+                        "data": null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator')) {
+                                return data.creator.name;
+                            } else {
+                                var creator = $translate('System');
+                                if (data && data.data && data.data.playerName) {
+                                    creator += "(" + data.data.playerName + ")";
+                                }
+                                return creator;
+                            }
+                        }
+                    },
+                    {
+                        "title": $translate('LOCK_USER'),
+                        "data": "lockUser$",
+                        render: function (data, type, row) {
+                            var text = row.isLocked ? row.isLocked.adminName : "";
+                            return "<div>" + text + "</div>";
+                        },
+                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
+                        "title": $translate('STATUS'),
+                        "data": 'process',
+                        render: function (data, type, row) {
+                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            text = text === "approved" ? "Approved" : text;
+
+                            let textClass = '';
+                            let fontStyle = {};
+                            if (row.status === 'Pending') {
+                                textClass = "text-danger";
+                                fontStyle = {
+                                    'font-weight': 'bold'
+                                };
+                            }
+
+                            let $link = $('<a>').text(text).addClass(textClass).css(fontStyle);
+                            return $link.prop('outerHTML');
+                        },
+                    },
+                    {
+                        "title": $translate('CREATION_TIME'),
+                        "data": 'createTime$',
+                        bSortable: true
+                    },
+                    {
+                        "title": $translate('REMARK'),
+                        data: "remark$",
+                        sClass: "maxWidth100 wordWrap",
+                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                    {
+                        "title": $translate('EXPIRY_DATE'),
+                        "data": 'expirationTime$',
+                        type: 'signed-num',
+                        render: function (data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return data;
+                            } else {
+                                if (data > 0) {
+                                    // Not expired
+                                    let expireTime = Math.floor((data / 1000) / 60);
+                                    return "<div>" + $translate("Left") + " " + expireTime + " " + $translate("mins") + "</div>";
+                                } else if (data < 0) {
+                                    // Expired
+                                    let expireTime = Math.ceil((data / 1000) / 60);
+                                    return "<div>" + $translate("Expired") + " " + -expireTime + " " + $translate("mins") + "</div>";
+                                } else {
+                                    return "<div>" + $translate("N/A") + "</div>";
+                                }
+                            }
+                        },
+                        bSortable: true,
+                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                    },
+                ],
+                "bSortClasses": false,
+                "scrollX": true,
+                "destroy": true,
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ proposals",
+                    "emptyTable": $translate("No data available in table"),
+                },
+                dom: 'Zrt<"footer">lp',
+                fnRowCallback: vm.proposalTableRow
+            };
+            $.fn.dataTable.ext.search.push(
+                function (settings, rdata, dataIndex) {
+                    if (settings.oInit.filterProposalType) {
+                        var selectedStatus = [];
+                        vm.proposalStatusSelected.forEach(
+                            status => {
+                                selectedStatus.push(status);
+                                if (status == "Success") {
+                                    selectedStatus.push("Approved");
+                                }
+                                if (status == "Fail") {
+                                    selectedStatus.push("Rejected");
+                                }
+                            }
+                        );
+                        var typeName = settings.aoData[dataIndex]._aData.type.name;
+                        var statusName = settings.aoData[dataIndex]._aData.status || settings.aoData[dataIndex]._aData.process.status;
+                        if (
+                            (vm.proposalTypeSelected && vm.proposalTypeSelected.indexOf(typeName) != -1) &&
+                            (selectedStatus && selectedStatus.indexOf(statusName) != -1)) {
+                            return true;
+                        } else return false;
+                    } else return true;
+                }
+            );
+            vm.queryProposal.pageObj.init({
+                maxCount: size
+            }, newSearch);
+            $('#proposalNewUserDataTable').empty();
+            //no idea why is 7, and 7 is not working, so I change it to 8
+            //lizhu: the number here indicates the data should be listed in N-th column
+            vm.proposalTable = utilService.createDatatableWithFooter('#proposalNewUserDataTable', tableOptions, {
+                11: summary.amount
+            });
+            // utilService.setDataTablePageInput('proposalNewUserDataTable', vm.proposalTable, $translate);
+
+            //update select all in table
+            var $checkAll = $(".dataTables_scrollHead thead .approvalProposalSelected");
+            if ($checkAll.length == 1) {
+                var $showBtn = $('<input>', {
+                    type: 'checkbox',
+                    class: "approvalProposalSelected transform150 checkAllProposal"
+                });
+                $checkAll.html($showBtn);
+                $('.approvalProposalSelected.checkAllProposal').on('click', function () {
+                    var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
+                    setCheckAllProposal($checkAll.checked);
+                })
+            }
+
+            function setCheckAllProposal(flag) {
+                var s = $("#proposalNewUserDataTable tbody td.approvalProposalSelected input").each(function () {
+                    $(this).prop("checked", flag);
+                });
+                vm.updateMultiselectProposal();
+            }
+
+            vm.timeAllProposal = utilService.$getTimeFromStdTimeFormat();
+            $("#proposalNewUserDataTableDiv .newProposalAlert").text('');
+            setTimeout(function () {
+                $('#proposalNewUserDataTable').resize();
+            }, 100)
+
+            function tableRowClicked(event) {
+                console.log('2222222222');
+                if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
+                    var flagAllChecked = $("#proposalNewUserDataTable tbody td.approvalProposalSelected input[type='checkbox']:not(:checked)");
+                    $('.approvalProposalSelected.checkAllProposal').prop('checked', flagAllChecked.length == 0);
+                    vm.updateMultiselectProposal();
+                }
+                if (event.target.tagName == 'A') {
+                    var data = vm.proposalTable.row(this).data();
+                    vm.proposalRowClicked(data);
+                }
+            }
+
+            $('#proposalNewUserDataTable tbody').off('click', "**");
+            $('#proposalNewUserDataTable tbody').on('click', 'tr', tableRowClicked);
+            $('#proposalNewUserDataTable').off('order.dt');
+            $('#proposalNewUserDataTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
+            });
             $scope.safeApply();
         };
         //draw player table based on data
@@ -1322,6 +1761,7 @@ define(['js/app'], function (myApp) {
             }, 100)
 
             function tableRowClicked(event) {
+                console.log('2222222222');
                 if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
                     var flagAllChecked = $("#proposalDataTable tbody td.approvalProposalSelected input[type='checkbox']:not(:checked)");
                     $('.approvalProposalSelected.checkAllProposal').prop('checked', flagAllChecked.length == 0);
@@ -1348,11 +1788,11 @@ define(['js/app'], function (myApp) {
             }
         });
         $scope.$on("setPlatform", function (e, d) {
+            vm.setPlatform();
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
 
             setTimeout(function () {
-                // vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
                 socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                     if (data && data.data && data.data.data) {
                         console.log('banktype', data.data.data);
@@ -1363,34 +1803,6 @@ define(['js/app'], function (myApp) {
                         })
                     }
                 });
-
-                // let countDown = -1;
-                // clearInterval(vm.refreshInterval);
-                // vm.refreshInterval = setInterval(function () {
-                //     var item = $('#autoRefreshProposalFlag');
-                //     var isRefresh = item && item.length > 0 && item[0].checked;
-                //     var mark = $('.timeLeftRefreshOperation')[0];
-                //     $(mark).parent().toggleClass('hidden', countDown < 0);
-                //     if (isRefresh) {
-                //         if (countDown < 0) {
-                //             countDown = 11
-                //         }
-                //         if (countDown === 0) {
-                //             vm.getPaymentMonitorRecord();
-                //             countDown = 11;
-                //         }
-                //         countDown--;
-                //         $(mark).text(countDown);
-                //     } else {
-                //         countDown = -1;
-                //     }
-                //     if (window.location.pathname != '/monitor/payment') {
-                //         clearInterval(vm.refreshInterval);
-                //     }
-                //     else if (!vm.paymentMonitorQuery) {
-                //         vm.loadPage();
-                //     }
-                // }, 1000);
             });
 
             setTimeout(
@@ -1406,7 +1818,7 @@ define(['js/app'], function (myApp) {
                     vm.proposalTypeIdtoText = {};
                     $.fn.dataTable.ext.search = [];
                     vm.rightPanelTitle = $translate('ALL_PROPOSAL');
-                    vm.chartViewModel = new flowchart.ChartViewModel();
+                    //vm.chartViewModel = new flowchart.ChartViewModel();
 
                     utilService.actionAfterLoaded('#operPlayerList', function () {
                         $("#operPlayerList").off('scroll');
@@ -1430,6 +1842,13 @@ define(['js/app'], function (myApp) {
                             vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
                         });
                     });
+
+                    utilService.actionAfterLoaded("#proposalNewUserDataTablePage", function () {
+                        vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalNewUserDataTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalNewUserQueryData)
+                        });
+                    });
+
 
                     Q.fcall(function () {
                             //todo::refactor the process here
@@ -1489,7 +1908,17 @@ define(['js/app'], function (myApp) {
                                 countDown = 11
                             }
                             if (countDown == 0) {
-                                vm.loadProposalQueryData();
+
+                                Q.fcall(function () {
+                                        vm.loadProposalQueryData();
+                                    },
+                                    function (error) {}).
+                                then(
+                                    function (data) {
+                                        vm.loadProposalNewUserQueryData();
+                                    },
+                                    function (error) {})
+
                                 vm.getPaymentMonitorRecord();
                                 countDown = 11;
                             }
