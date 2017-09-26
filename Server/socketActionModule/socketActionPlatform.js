@@ -381,8 +381,37 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.officerId && data.domain && data.way);
             socketUtil.emitter(self.socket, dbCsOfficer.addUrl, [data.platformId, data.officerId, data.domain, data.way], actionName, isValidData);
-        }
+        },
 
+        deletePromoteWay: function deletePromoteWay(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.promoteWayId && data.platformId);
+            socketUtil.emitter(self.socket, dbCsOfficer.deletePromoteWay, [data.promoteWayId, data.platformId], actionName, isValidData);
+        },
+
+        deleteOfficer: function deleteOfficer(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.officerId);
+            socketUtil.emitter(self.socket, dbCsOfficer.deleteOfficer, [data.officerId], actionName, isValidData);
+        },
+
+        getAllUrl: function getAllUrl(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbCsOfficer.getAllUrl, [data.platformId], actionName, isValidData);
+        },
+
+        deleteUrl: function deleteUrl(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.urlId);
+            socketUtil.emitter(self.socket, dbCsOfficer.deleteUrl, [data.urlId], actionName, isValidData);
+        },
+
+        updateUrl: function updateUrl(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.urlId && data.domain && data.officerId && data.way);
+            socketUtil.emitter(self.socket, dbCsOfficer.updateUrl, [data.urlId, data.domain, data.officerId, data.way], actionName, isValidData);
+        }
 
     };
     socketActionPlatform.actions = this.actions;

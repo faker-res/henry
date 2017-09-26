@@ -78,7 +78,7 @@
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"promoCode" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'RegistrationUrlConfig','Read')")
-                            a.common-tab(data-toggle="tab", href="#registrationUrlConfig", ng-click="vm.platformPageName='RegistrationUrlConfig';vm.updatePageTile();vm.getAllOfficer();vm.getAllPromoteWay();")
+                            a.common-tab(data-toggle="tab", href="#registrationUrlConfig", ng-click="vm.platformPageName='RegistrationUrlConfig';vm.updatePageTile();vm.initPlatformOfficer();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"RegistrationUrlConfig" | translate}}
                         //li

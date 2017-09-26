@@ -2351,6 +2351,7 @@
   "ADD_OFFICER_URL": "添加URL",
   "CHOOSE_OFFICER": "选择客服",
   "PROMOTE_WAY": "推广方式",
-  "CHOOSE_PROMOTE_WAY": "选择推广方式"
+  "CHOOSE_PROMOTE_WAY": "选择推广方式",
+  "DELETE_OFFICER": "删除客服"
 
 }
