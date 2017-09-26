@@ -50,7 +50,7 @@ var simplifiedChinese = {
     "Game is not available on platform": "游戏在维护中",
 
     "Cannot find player or provider": "找不到玩家或供应商",
-    "Cannot find partner": "找不到推广渠道",
+    "Cannot find partner": "找不到代理",
     "Cannot find platform": "不能找到平台",
     "Cannot find Provider": "无法找到提供者",
     "Cannot find player": "找不到玩家",
@@ -174,7 +174,8 @@ var simplifiedChinese = {
     "Top up record is not the first top up record": "不符合优惠申请条件",
     "Not Valid for the reward.": "不符合优惠申请条件",
     "Invalid image captcha": "图片验证码不正确，请再次输入",
-    "Player is forbidden to the game": "连接游戏端失败,稍后再试"
+    "Player is forbidden to the game": "连接游戏端失败,稍后再试",
+    "Please Set the Bonus PercentageCharges First": "请先设置提款手续费"
     //todo::add missing messages here
 
     /*

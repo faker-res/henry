@@ -9,7 +9,7 @@ var Q = require('q');
 var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 var SMSSender = require('../../modules/SMSSender');
 var constServerCode = require('./../../const/constServerCode');
-
+const ObjectId = mongoose.Types.ObjectId;
 const dbPlayerReward = require('./../../db_modules/dbPlayerReward');
 
 let RewardServiceImplement = function () {
@@ -109,6 +109,16 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getEasterEggPlayerInfo, [data.platformId], isValidData, false, false, true);
     };
 
+    this.getPromoCode.expectsData = 'playerId: String, platformId: String';
+    this.getPromoCode.onRequest = function(wsFunc, conn, data){
+        let isValidData = Boolean(data && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPromoCode, [data.playerId, data.platformId, data.status], isValidData, false, false, true);
+    };
+    this.applyPromoCode.expectsData = 'platformObjId: String';
+    this.applyPromoCode.onRequest = function(wsFunc, conn, data){
+        let isValidData = Boolean(data && data.playerName && data.promoCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [ObjectId(data.platformObjId), data.playerName, data.promoCode], isValidData, false, false, true);
+    };
 };
 
 

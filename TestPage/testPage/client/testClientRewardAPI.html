@@ -255,6 +255,54 @@
     </div>
 </div>
 
+<h3>GET PROMO CODE (获取优惠代码)</h3>
+<div class="test-container">
+  <div>1 AVAILABLE 2 ACCEPTED 3 EXPIRED</div>
+    <div>
+        <label>Player ID
+            <input name="playerId">
+        </label>
+    </div>
+    <div>
+      <label>Platform ID
+        <input name="platformId">
+      </label>
+    </div>
+    <div>
+      <label>Status
+        <input name="status">
+      </label>
+    </div>
+    <p></p>
+    <button data-api-name="getPromoCode">Get Promo Code</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+<h3>APPLY PROMO CODE (申请优惠代码)</h3>
+<div class="test-container">
+    <div>
+        <label>PlayerObjId ID
+            <input name="platformObjId">
+        </label>
+    </div>
+    <div>
+      <label>Player Name
+        <input name="playerName">
+      </label>
+    </div>
+    <div>
+      <label>PromoCode
+        <input name="promoCode">
+      </label>
+    </div>
+    <p></p>
+    <button data-api-name="applyPromoCode">Apply Promo Code</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

@@ -106,7 +106,7 @@ function checkProposalConsumption(proposal, platformObj) {
     let todayBonusAmount = 0;
     let bFirstWithdraw = false;
     let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
-    let dLastWithdraw;
+    let dLastWithdraw, initialTransferTime;
     let abnormalMessage = "";
     let abnormalMessageChinese = "";
     let bTransferAbnormal = false;
@@ -189,6 +189,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
                 if (transferInRec && transferInRec[0]) {
                     initialAmount = transferInRec[0].amount;
+                    initialTransferTime = transferInRec[0].createTime;
                 }
 
                 let transferLogs = data[1];
@@ -233,7 +234,7 @@ function checkProposalConsumption(proposal, platformObj) {
             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
             let consumptionOffset = platformObj.autoApproveConsumptionOffset ? platformObj.autoApproveConsumptionOffset : 0;
             let countProposals = 0;
-            let isTypeEApproval = false;
+            let isTypeEApproval = false, isCheckedInitialAmount = false;
             let dateTo = proposal.settleTime ? proposal.settleTime : proposal.createTime;
 
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
@@ -276,16 +277,14 @@ function checkProposalConsumption(proposal, platformObj) {
                     let checkingNo = countProposals;
                     switch (getProp.mainType) {
                         case "TopUp":
-                            proms.push(
-                                // Check if this top up has used for apply reward
-                                dbconfig.collection_playerTopUpRecord.findOne({proposalId: getProp.proposalId}).then(
-                                    topUpRecord => {
-                                        // Sum up top up amount to calculate profit limit
-                                        totalTopUpAmount += getProp.data.amount;
+                            // Get real amount left before top up, if there's any top up before transfer in after last withdrawal
+                            if (!isCheckedInitialAmount && initialTransferTime > getProp.settleTime && initialAmount >= getProp.data.amount) {
+                                initialAmount -= getProp.data.amount;
+                                isCheckedInitialAmount = true;
+                            }
 
-                                        return getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo);
-                                    }
-                                ).then(
+                            proms.push(
+                                getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
                                     record => {
                                         let curConsumption = 0, bonusAmount = 0;
                                         if (record && record[0]) {
@@ -393,6 +392,8 @@ function checkProposalConsumption(proposal, platformObj) {
                             spendingAmount = 0;
                             bonusAmount = 0;
                             initBonusAmount = 0;
+                            totalBonusAmount = 0;
+                            totalTopUpAmount = 0;
                         }
 
                         currentProposal = checkResult[i].proposalId;
@@ -451,6 +452,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
                         // save current checkResult if it is top up
                         if (checkResult[i].isTopUp) {
+                            totalTopUpAmount += checkResult[i].initBonusAmount;
                             lastTopUpResult = {
                                 proposalId: checkResult[i].proposalId,
                                 curConsumption: checkResult[i].curConsumption,

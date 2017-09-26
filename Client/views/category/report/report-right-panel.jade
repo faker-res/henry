@@ -181,41 +181,85 @@
         div(ng-if='vm.showPageName=="PLAYER_REPORT"')
             .block-query.col-md-12.well
                 div
-                    label {{'REGISTRATION_TIME_START' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regDateTimePicker")')
-                    #regDateTimePicker
-                div
-                    label {{'REGISTRATION_TIME_END' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regEndDateTimePicker")')
-                    #regEndDateTimePicker
-                div
-                    label {{'LAST_ACCESS_TIME_START' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#lastAccessDateTimePicker")')
-                    #lastAccessDateTimePicker
-                div
-                    label {{'LAST_ACCESS_TIME_END' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#lastAccessEndDateTimePicker")')
-                    #lastAccessEndDateTimePicker
+                    label(style='min-width:130px') {{"CREDIBILITY"|translate}}
+                    select.form-control#selectCredibilityRemarks(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
                 div
                     label {{'LEVEL' | translate}}
                     select.form-control(ng-model="vm.playerQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
                         option(value='') {{'any' | translate}}
                 div
-                    label {{'Qty_Min' | translate}}&nbsp;{{'VALID_CREDIT' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.playerQuery.validCredit1=null')
-                    input.form-control.span.input-sm(type="number", style='width: 80px', ng-model="vm.playerQuery.validCredit1")
+                    label {{"Provider"|translate}}
+                    select.form-control(ng-model='vm.playerQuery.providerId', style='max-width:300px', required)
+                        option(value='') {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
                 div
-                    label {{'Qty_Max' | translate}}&nbsp;{{'VALID_CREDIT' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.playerQuery.validCredit2=null')
-                    input.form-control.span.input-sm(type="number", style='width: 80px', ng-model="vm.playerQuery.validCredit2")
+                    label {{'Start date' | translate}}
+                        //a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regDateTimePicker")')
+                        .startTime
+                    #startingDateTimePicker
                 div
-                    label {{'Qty_Min' | translate}}&nbsp;{{'TopUp Sum' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.playerQuery.topupSum1=null')
-                    input.form-control.span.input-sm(type="number", style='width: 80px', ng-model="vm.playerQuery.topupSum1")
+                    label {{'End date' | translate}}
+                        //a.fa.fa-times.text-danger.close(ng-click='vm.clearDatePicker("#regEndDateTimePicker")')
+                        .endTime
+                    #endingEndDateTimePicker
                 div
-                    label {{'Qty_Max' | translate}}&nbsp;{{'TopUp Sum' | translate}}
-                        a.fa.fa-times.text-danger.close(ng-click='vm.playerQuery.topupSum2=null')
-                    input.form-control.span.input-sm(type="number", style='width: 80px', ng-model="vm.playerQuery.topupSum2")
+                    label {{'Player Name' | translate}}
+                    input.form-control.span.input-sm(ng-model="vm.playerQuery.name")
+                div
+                    label {{"Consumption Times"|translate}}
+                    select.form-control(ng-model="vm.playerQuery.consumptionTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerQuery.consumptionTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.consumptionTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.playerQuery.consumptionTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.consumptionTimesOperator === 'range'")
+                div
+                    label {{"PLAYER_PROFIT_AMOUNT"|translate}}
+                    select.form-control(ng-model="vm.playerQuery.profitAmountOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerQuery.profitAmountValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.profitAmountOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.playerQuery.profitAmountValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.profitAmountOperator === 'range'")
+                div
+                    label {{"TOP_UP_TIMES"|translate}}
+                    select.form-control(ng-model="vm.playerQuery.topUpTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerQuery.topUpTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.topUpTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.playerQuery.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.topUpTimesOperator === 'range'")
+                div
+                    label {{"BonusTime"|translate}}
+                    select.form-control(ng-model="vm.playerQuery.bonusTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerQuery.bonusTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.bonusTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.playerQuery.bonusTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.bonusTimesOperator === 'range'")
+                div
+                    label {{"TOTAL_TOP_UP"|translate}}
+                    select.form-control(ng-model="vm.playerQuery.topUpAmountOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerQuery.topUpAmountValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.topUpAmountOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.playerQuery.topUpAmountValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.topUpAmountOperator === 'range'")
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerReport(true)') {{'SEARCH' | translate}}
@@ -330,11 +374,11 @@
                 div
                     label {{"USER_TYPE"|translate}}
                     select.form-control( style='max-width:300px', ng-model="vm.playerDomain.playerType")
-                        option(value='all') {{'all' | translate}}
-                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
                         option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
                         option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
                         option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                        option(value='Partner') {{'partner' | translate}}
                 div
                     label {{"REGISTRATION_TIME_START"|translate}}
                     .startTime
@@ -359,10 +403,10 @@
                     div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerDomain.topUpTimesOperator === 'range'") ~
                     input.form-control(type="number" ng-model="vm.playerDomain.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerDomain.topUpTimesOperator === 'range'")
                 div
-                    label {{"Domain Name"|translate}}
+                    label {{"Registration Domain"|translate}}
                     input.form-control(type="text", ng-model="vm.playerDomain.domain")
                 div
-                    label {{"URL"|translate}}
+                    label {{"Source Domain"|translate}}
                     input.form-control(style="width:100%" type="text", ng-model="vm.playerDomain.sourceUrl")
                 div
                     label {{"PLAYER_VALUE"|translate}}
@@ -386,6 +430,12 @@
                         option(value=4) {{'HTML5 Agent'|translate}}
                         option(value=5) {{'APP Player'|translate}}
                         option(value=6) {{'APP Agent'|translate}}
+                div
+                    label(ng-hide="true") {{"SYSTEM_PLAYER"|translate}}
+                    select.form-control(ng-model="vm.playerDomain.isNewSystem", ng-hide="true")
+                        option(value='') {{'all'|translate}}
+                        option(value='new') {{'NEW_SYSTEM'|translate}}
+                        option(value='old') {{'OLD_SYSTEM'|translate}}
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerDomainRepport(true)') {{'SEARCH' | translate}}
@@ -630,6 +680,48 @@
                         td {{(vm.winRateSummaryData.validAmount) | number : 2}}
                         td {{(vm.winRateSummaryData.bonusAmount) | number : 2}}
                         td {{(-vm.winRateSummaryData.bonusAmount/vm.winRateSummaryData.validAmount*100 || 0) | number : 2 }}%
+
+        div(ng-if='vm.showPageName=="ONLINE_PAYMENT_MISMATCH_REPORT"')
+            // 输赢报表
+            #onlinePaymentMismatchQuery.block-query.col-md-12.well
+                div
+                    label {{'Topup Type' | translate}}
+                        select.form-control(ng-model='vm.onlinePaymentMismatchQuery.type')
+                            option(value='all') {{'any' | translate}}
+                            option(value='online') {{"TOPUPONLINE" | translate }}
+                            option(value='manual') {{"TOPUPMANUAL" | translate }}
+                            option(value='bonus') {{"Bonus" | translate }}
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.getMismatchReport()') {{'SEARCH' | translate}}
+                    span#onlinePaymentMismatchTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.winRateReportLoadingStatus}}
+            .clearfix
+            table#onlinePaymentMismatchTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                thead
+                    tr
+                        th {{'proposalId' | translate}}
+                        th {{'CREATE_TIME' | translate}}
+                        th {{'SYSTEM_THAT_MISSING' | translate}}
+
+                tbody
+                    tr(ng-repeat='(i,v) in vm.proposalMismatchDetail.mismatches')
+                        td {{v.proposalId}}
+                        td {{v.createTime}}
+                        td {{v.missing}}
+
+            div
+                span fpms：提案个数： {{vm.proposalMismatchDetail.fpmsCount || 0}}  提案总额度： {{vm.proposalMismatchDetail.fpmsAmount || 0}}
+            div
+                span pms：提案个数： {{vm.proposalMismatchDetail.pmsCount || 0}}  提案总额度： {{vm.proposalMismatchDetail.pmsAmount || 0}}
+
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')
 script(src='js/lib/flot/jquery.flot.pie.min.js')

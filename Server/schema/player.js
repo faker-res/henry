@@ -40,6 +40,8 @@ var playerSchema = new Schema({
     lastFeedbackTime: {type: Date, default: ""},
     //feedback times
     feedbackTimes: {type: Number, min: 0, default: 0},
+    //no more feedback
+    noMoreFeedback: {type: Boolean},
     //player password
     password: {type: String, required: true},
     //whether player want to receive SMS
@@ -236,7 +238,9 @@ var playerSchema = new Schema({
     // interface that used to register this account
     registrationInterface: {type: Number, default: 0},
     // the number of times where player login
-    loginTimes: {type: Number, default: 0}
+    loginTimes: {type: Number, default: 0},
+    //for reporo conversion
+    reporoId: {type: String}
 });
 
 //record is unique by name and platform

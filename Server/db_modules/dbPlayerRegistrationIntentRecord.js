@@ -65,15 +65,17 @@ var dbPlayerRegistrationIntentRecord = {
                 if( typeData ){
                     return dbconfig.collection_proposal.findOne({
                         type: typeData._id,
-                        "data.name": data.data.name,
-                        "data.phoneNumber": data.data.phoneNumber
+                        "data.name": data.data.name
+                        // "data.phoneNumber": data.data.phoneNumber
                     }).lean().then(
                         proposalData => {
                             if( proposalData ){
-                                dbconfig.collection_proposal.findOneAndUpdate(
-                                    {_id: proposalData._id, createTime: proposalData.createTime},
-                                    {status: status}
-                                ).then();
+                                if(proposalData.status != constProposalStatus.SUCCESS){
+                                    dbconfig.collection_proposal.findOneAndUpdate(
+                                        {_id: proposalData._id, createTime: proposalData.createTime},
+                                        {status: status, "data.realName": data.data.realName}
+                                    ).then();
+                                }
                             }
                             else{
                                 dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(

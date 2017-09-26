@@ -122,6 +122,41 @@
     </div>
 </div>
 
+<h3>GET PLAYER INFORMATION(获取玩家基本信息)</h3>
+<div class='test-container'>
+    <!--For testing Get player information API (7)-->
+    <label>Login Name
+        <input name="loginname" type=text>
+    </label>
+    <div>
+        <button data-api-name="getPlayerInfoByName">Get Player Information</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>VERIFY USER PASSWORD(确认玩家密码)</h3>
+<div class='test-container'>
+    <div>
+        <label>Login Name
+            <input name="loginname" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input name="password" type=text>
+        </label>
+    </div>
+
+    <div>
+        <button data-api-name="verifyUserPassword">Verify</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/provider/ProviderServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/providerAPITest/PlatformAPITest', 'testAPI/providerAPITest/ConnectionAPITest'],
             function (ProviderServices, WebSocketClient, TestHelper, PlatformAPITest, connectionAPITest) {

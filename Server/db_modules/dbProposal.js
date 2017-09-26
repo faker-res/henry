@@ -377,6 +377,7 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
+            .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
             .then(
                 proposalData => {
                     if(proposalData.data.phone){
@@ -530,16 +531,19 @@ var proposal = {
             data => {
                 if (status == constProposalStatus.SUCCESS) {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, true);
-                } else if (status == constProposalStatus.FAIL) {
-                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark);
+                } else if (status == constProposalStatus.FAIL || status == constProposalStatus.CANCEL) {
+                    return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark, Boolean(status == constProposalStatus.CANCEL));
                 } else if (status == constProposalStatus.PENDING
                     || status == constProposalStatus.PROCESSING
                     || status == constProposalStatus.UNDETERMINED
-                    || status == constProposalStatus.RECOVER) {
+                    || status == constProposalStatus.RECOVER
+                ) {
                     return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
                         proposalData => {
-                            proposalData.status = status;
-                            return proposalData.save();
+                            return dbconfig.collection_proposal.findOneAndUpdate({
+                                proposalId: proposalId,
+                                createTime: proposalData.createTime
+                            }, {status: status});
                         }
                     );
                 }
@@ -732,15 +736,12 @@ var proposal = {
                     if (proposalData) {
                         var reject = true;
                         var proposalStatus = proposalData.status || proposalData.process.status;
-                        if (proposalData.creator.id.toString() != adminId.toString()) {
+                        if (proposalData.creator.name.toString() != adminId.toString()) {
                             reject = false;
                         } else if (proposalStatus != constProposalStatus.PENDING && proposalStatus !== constProposalStatus.AUTOAUDIT) {
                             reject = false;
                         }
                         if (reject) {
-                            // if (remark) {
-                            //     updateData['$addToSet'] = {remark: {admin: adminId, content: remark}};
-                            // }
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
                                     return dbconfig.collection_proposal.findOneAndUpdate(
@@ -749,12 +750,19 @@ var proposal = {
                                             noSteps: true,
                                             process: null,
                                             status: constProposalStatus.CANCEL,
+                                            "data.cancelBy": "客服：" + adminId
                                         },
                                         {new: true}
                                     );
                                 })
-                        } else return Q.reject({message: "incorrect proposal status or authentication."});
-                    } else return Q.reject({message: "incorrect proposal data!"});
+                        }
+                        else {
+                            return Q.reject({message: "incorrect proposal status or authentication."});
+                        }
+                    }
+                    else {
+                        return Q.reject({message: "incorrect proposal data!"});
+                    }
                 }
             );
     },
@@ -1339,7 +1347,7 @@ var proposal = {
                                              }
                                              return item
                                          })
- 
+
                                          return pdata;
                                  })
                                 :

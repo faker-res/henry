@@ -245,6 +245,26 @@
         rootObj.QuickPayService = QuickPayService;
     };
 
+    var defineReconciliationService = function (sinonet) {
+        var ReconciliationService = function (connection) {
+            sinonet.WebSocketService.call(this, "reconciliation", connection);
+
+            //define functions
+            var functionNames = [
+                "getOnlineCashinList",
+                "getCashinList",
+                "getCashoutList",
+            ];
+            addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
+        };
+
+        ReconciliationService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        ReconciliationService.prototype.constructor = ReconciliationService;
+
+        rootObj.ReconciliationService = ReconciliationService;
+    };
+
+
     if (isNode) {
         var sinonet = require("./../../server_common/WebSocketService");
         defineConnectionService(sinonet);
@@ -257,6 +277,7 @@
         defineAlipayService(sinonet);
         defineWechatService(sinonet);
         defineQuickPayService(sinonet);
+        defineReconciliationService(sinonet);
         module.exports = rootObj;
     } else {
         define(["common/WebSocketService"], function (sinonet) {
@@ -270,6 +291,7 @@
             defineAlipayService(sinonet);
             defineWechatService(sinonet);
             defineQuickPayService(sinonet);
+            defineReconciliationService(sinonet);
             return rootObj;
         });
     }

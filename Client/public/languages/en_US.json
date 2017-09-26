@@ -825,7 +825,8 @@
   "SMS_VERIFICATION": "SMS Verification",
   "SMS_VERIFICATION_FOR_PASSWORD_UPDATE": "SMS Verification For Password Update",
   "SMS_VERIFICATION_FOR_PAYMENT_UPDATE": "SMS Verification For Payment Update",
-  "CAPTCHA_VERIFICATION_FOR_LOGIN": "Capttcha Verfication For Login",
+  "CAPTCHA_VERIFICATION_FOR_LOGIN": "Captcha Verfication For Login",
+  "CAPTCHA_VERIFICATION_FOR_SMS": "Captcha Verfication For SMS",
   "LAST_DAILY_SETTLEMENT_TIME": "Last Daily Settlement Time",
   "LAST_WEEKLY_SETTLEMENT_TIME": "Last Weekly Settlement Time",
   "deficitAmount": "Deficit Amount",
@@ -918,5 +919,17 @@
   "RETYPE_QQ" : "Retype QQ Account",
   "QQ_DO_NOT_MATCH":"QQ account do not match",
   "PHONE_LOCATION": "Phone Location",
-  "IP_LOCATION": "IP Location"
+  "IP_LOCATION": "IP Location",
+  "LOBBY": "Lobby",
+  "LOBBY_NAME": "Lobby Name",
+  "DEPOSIT_COUNT": "Deposit Count",
+  "TOTAL_DEPOSIT": "Total Deposit",
+  "WITHDRAW_COUNT": "Withdrawal Count",
+  "WITHDRAW_AMOUNT":"Withdrawal Amount",
+  "PROMOTION": "Promotion",
+  "CONSUMPTION_RETURN_AMOUNT": "Consumption Return Amount",
+  "COMPANY_PROFIT": "Company Profit",
+  "SYSTEM_PLAYER": "System Player",
+  "OLD_SYSTEM": "Old System",
+  "NEW_SYSTEM": "New System"
 }

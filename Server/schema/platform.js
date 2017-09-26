@@ -105,6 +105,8 @@ var platformSchema = new Schema({
     autoCheckPlayerLevelUp: {type: Boolean, default: false},
     // user login require captcha verfication
     requireLogInCaptcha: {type: Boolean, default: false},
+    // user get SMS code with captcha
+    requireCaptchaInSMS: {type: Boolean, default: false},
     //only new system user can login
     onlyNewCanLogin: {type: Boolean, default: false},
     //if use locked credit
@@ -117,6 +119,14 @@ var platformSchema = new Schema({
     monitorMerchantCount: {type: Number, default: 10},
     // the count that trigger the failing alert in payment monitor for player
     monitorPlayerCount: {type: Number, default: 4},
+    // whether to use the sound notification on merchant count alert
+    monitorMerchantUseSound: {type: Boolean, default: false},
+    // whether to use the sound notification on player count alert
+    monitorPlayerUseSound: {type: Boolean, default: false},
+    // select the sound notification that use for merchant count alert
+    monitorMerchantSoundChoice: {type: String, default: '1.wav'},
+    // select the sound notification that use for player count alert
+    monitorPlayerSoundChoice: {type: String, default: '1.wav'},
     // player value score relevant settings
     playerValueConfig: {
         // criteria score criteria ratio
@@ -143,7 +153,8 @@ var platformSchema = new Schema({
         credibilityScoreDefault: {type: Number, default: 5}
     },
     jiguangAppKey: {type: String},
-    jiguangMasterKey: {type: String}
+    jiguangMasterKey: {type: String},
+    bonusSetting: {type: JSON,default:{}}
 });
 
 //add platform id before save

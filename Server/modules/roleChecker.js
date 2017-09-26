@@ -367,8 +367,8 @@ var roleChecker = {
                 platformBasic: [],
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],
-                PlayerValue: [],
-                Credibility: []
+                PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
+                Credibility: ['updateCredibilityRemarksInBulk']
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -387,8 +387,20 @@ var roleChecker = {
                 SMSSendLog: ['searchSMSLog'],
                 SendGroupMessage: []
             },
-            "verificationSMS": {
+            "vertificationSMS": {
                 Read: ['vertificationSMSQuery']
+            },
+            "promoCode": {
+                Read: ['getPromoCodeTypes', 'getPromoCodeUserGroup'],
+                createPromoCode: ['generatePromoCode'],
+                promoCodeHistory: ['getPromoCodesHistory'],
+                sendSMS: [],
+                monitor: [],
+                smsContentConfig: [],
+                userGroupConfig: [],
+                activatePromoCode: [],
+                applyPromoCode: [],
+                promoCodeAnalysis: ['getPromoCodeTypeByObjId']
             }
         },
         Payment: {

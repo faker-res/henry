@@ -692,7 +692,7 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, smsAPI.channel_getChannelList, [data], actionName, true);
         },
-        vertificationSMSQuery: function vertificationSMSQuery(data){
+        vertificationSMSQuery: function vertificationSMSQuery(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPlatform.vertificationSMS, [data, data.index, data.limit], actionName, isValidData);
@@ -713,7 +713,7 @@ function socketActionPlayer(socketIO, socket) {
         cancelManualTopupRequest: function cancelManualTopupRequest(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId != null && data.proposalId != null);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelManualTopupRequest, [data.playerId, data.proposalId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelManualTopupRequest, [data.playerId, data.proposalId, getAdminName()], actionName, isValidData);
         },
 
         // Alipay TopUp
@@ -732,7 +732,7 @@ function socketActionPlayer(socketIO, socket) {
         cancelAlipayTopup: function cancelAlipayTopup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data.playerId && data.proposalId);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelAlipayTopup, [data.playerId, data.proposalId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelAlipayTopup, [data.playerId, data.proposalId, getAdminName()], actionName, isValidData);
         },
 
         // WechatPay TopUp
@@ -751,7 +751,7 @@ function socketActionPlayer(socketIO, socket) {
         cancelWechatPayTopup: function cancelWechatPayTopup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data.playerId && data.proposalId);
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelWechatTopup, [data.playerId, data.proposalId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelWechatTopup, [data.playerId, data.proposalId, getAdminName()], actionName, isValidData);
         },
 
         // Quickpay TopUp

@@ -47,7 +47,16 @@
                     option(value=0) 0-1
                     option(value=1) 2{{"above" | translate}}
             .inlineBlk
+                label {{"SYSTEM_PLAYER" | translate}}
+                select.form-control(ng-model='vm.playerFeedbackQuery.isNewSystem', required)
+                    option(value='') {{'all'|translate}}
+                    option(value='new') {{'NEW_SYSTEM'|translate}}
+                    option(value='old') {{'OLD_SYSTEM'|translate}}
+            .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.submitPlayerFeedbackQuery()') {{"SEARCH" | translate}}
+                span#platformFeedbackSpin.collapse
+                    i.fa.fa-spinner.fa-spin
+                span.margin-left-5
 .row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
     .text-center.text-danger
         label {{"NO_PLATFORM_MESSAGE" | translate}}
