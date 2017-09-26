@@ -825,11 +825,7 @@ define(['js/app'], function (myApp) {
                 $('.proposalMessage').next().show();
                 // vm.proposalTable.destroy();
                 vm.queryProposal.totalCount = data.data.size;
-                if (data.data.size > 0 && data.data.data[0].type.name == "PlayerRegistrationIntention") {
-                    vm.drawProposalNewUserTable(vm.proposals, data.data.size, data.data.summary, newSearch);
-                } else {
-                    vm.drawProposalTable(vm.proposals, data.data.size, data.data.summary, newSearch);
-                }
+                vm.drawProposalTable(vm.proposals, data.data.size, data.data.summary, newSearch);
                 $scope.safeApply();
             });
         };
@@ -897,11 +893,7 @@ define(['js/app'], function (myApp) {
                 $('.proposalMessage').next().show();
                 // vm.proposalTable.destroy();
                 vm.queryProposal.totalCount = data.data.size;
-                if (data.data.size > 0 && data.data.data[0].type.name == "PlayerRegistrationIntention") {
-                    vm.drawProposalNewUserTable(vm.proposalNewUsers, data.data.size, data.data.summary, newSearch);
-                } else {
-                    vm.drawProposalTable(vm.proposalNewUsers, data.data.size, data.data.summary, newSearch);
-                }
+                vm.drawProposalNewUserTable(vm.proposalNewUsers, data.data.size, data.data.summary, newSearch);
                 $scope.safeApply();
             });
         };
@@ -1916,8 +1908,17 @@ define(['js/app'], function (myApp) {
                                 countDown = 11
                             }
                             if (countDown == 0) {
-                                vm.loadProposalQueryData();
-                                vm.loadProposalNewUserQueryData();
+
+                                Q.fcall(function () {
+                                        vm.loadProposalQueryData();
+                                    },
+                                    function (error) {}).
+                                then(
+                                    function (data) {
+                                        vm.loadProposalNewUserQueryData();
+                                    },
+                                    function (error) {})
+
                                 vm.getPaymentMonitorRecord();
                                 countDown = 11;
                             }
