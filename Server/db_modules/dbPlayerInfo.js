@@ -6618,16 +6618,15 @@ let dbPlayerInfo = {
                                 let creditCharge = 0;
                                 let amountAfterUpdate = player.validCredit - amount;
                                 let playerLevelVal = player.playerLevel.value;
-                                let bonusSetting = playerData.platform.bonusSetting.find( (item) => {return item.value == playerLevelVal} );
 
-                                if(!bonusSetting){
-                                   return Q.reject({name: "DataError", errorMessage: "Please Set the Bonus PercentageCharges First"});
-                                }
-                                if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
-                                    creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
-                                    finalAmount = finalAmount - creditCharge;
-                                    console.log('finalAmount'+finalAmount);
-                                    console.log('creditCharge'+creditCharge);
+                                if(playerData.platform.bonusSetting){
+                                    let bonusSetting = playerData.platform.bonusSetting.find( (item) => {return item.value == playerLevelVal} );
+                                    if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
+                                        creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
+                                        finalAmount = finalAmount - creditCharge;
+                                        console.log('finalAmount'+finalAmount);
+                                        console.log('creditCharge'+creditCharge);
+                                    }
                                 }
 
                                 return dbconfig.collection_players.findOneAndUpdate(
@@ -7666,6 +7665,16 @@ let dbPlayerInfo = {
                 else {
                     return Q.reject({name: "DBError", message: 'Cannot find proposal'});
                 }
+            }
+        ).then(
+            data => {
+                if(proposal){
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                    );
+                }
+
             }
         ).then(
             data => ({proposalId: proposalId})

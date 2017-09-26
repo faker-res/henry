@@ -941,7 +941,7 @@ var dbPlayerTopUpRecord = {
         );
     },
 
-    cancelManualTopupRequest: function (playerId, proposalId) {
+    cancelManualTopupRequest: function (playerId, proposalId, adminName) {
         var proposal = null;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
@@ -968,18 +968,27 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             }
         ).then(
+            data => {
+                if(proposal){
+                    let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        {"data.cancelBy": cancelBy}
+                    );
+                }
+            }
+        ).then(
             data => ({proposalId: proposalId})
         );
     },
 
-    cancelAlipayTopup: function (playerId, proposalId) {
+    cancelAlipayTopup: function (playerId, proposalId, adminName) {
         var proposal = null;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
-
                         return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
                     }
                     else {
@@ -995,11 +1004,21 @@ var dbPlayerTopUpRecord = {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
             }
         ).then(
+            data => {
+                if(proposal){
+                    let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        {"data.cancelBy": cancelBy}
+                    );
+                }
+            }
+        ).then(
             data => ({proposalId: proposalId})
         );
     },
 
-    cancelWechatTopup: function (playerId, proposalId) {
+    cancelWechatTopup: function (playerId, proposalId, adminName) {
         var proposal = null;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
@@ -1020,6 +1039,16 @@ var dbPlayerTopUpRecord = {
         ).then(
             request => {
                 return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true);
+            }
+        ).then(
+            data => {
+                if(proposal){
+                    let cancelBy = adminName ? "客服:" + adminName : "玩家：" + proposal.data.playerName;
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        {"data.cancelBy": cancelBy}
+                    );
+                }
             }
         ).then(
             data => ({proposalId: proposalId})

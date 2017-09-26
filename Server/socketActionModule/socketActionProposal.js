@@ -226,7 +226,7 @@ function socketActionProposal(socketIO, socket) {
         cancelProposal: function cancelProposal(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.proposalId);
-            socketUtil.emitter(self.socket, dbProposal.cancelProposal, [data.proposalId, getAdminId(), data.remark], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.cancelProposal, [data.proposalId, getAdminName(), data.remark], actionName, isValidData);
         },
 
         /**

@@ -236,7 +236,7 @@ function socketActionPlatform(socketIO, socket) {
             let isDataValid = Boolean(data && data.proposalObjId && data.createTime);
             socketUtil.emitter(self.socket, dbAutoProposal.changeStatusToPendingFromAutoAudit, [data.proposalObjId, data.createTime], actionName, isDataValid);
         },
-        
+
         updateAutoApprovalConfig: function updateAutoApprovalConfig(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query && data.updateData);
@@ -351,7 +351,11 @@ function socketActionPlatform(socketIO, socket) {
             let deleteRemarks = data.deleteRemarks || [];
             socketUtil.emitter(self.socket, dbPlayerCredibility.updateCredibilityRemarksInBulk, [data.platformObjId, addRemarks, updateRemarks, deleteRemarks], actionName, isValidData);
         },
+        generateObjectId: function generateObjectId(){
+          let actionName = arguments.callee.name;
+          socketUtil.emitter(self.socket, dbPlatform.generateObjectId, [], actionName, true);
 
+        }
 
     };
     socketActionPlatform.actions = this.actions;
