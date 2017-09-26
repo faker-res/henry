@@ -916,7 +916,7 @@ var dbRewardTask = {
                             var gameCredit = (parseFloat(credit.gameCredit) || 0);
                             totalCredit += gameCredit < 1 ? 0 : gameCredit;
                         });
-                    if (totalCredit < 1 && playerCredit < 1) {
+                    if (totalCredit < 1 && playerCredit < 1 && taskObj.rewardType != constRewardType.FIRST_TOP_UP) {
                         return dbconfig.collection_rewardTask.findOneAndUpdate(
                             {_id: taskObj._id, platformId: taskObj.platformId},
                             {
