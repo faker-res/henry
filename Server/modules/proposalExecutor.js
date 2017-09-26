@@ -1770,7 +1770,21 @@ var proposalExecutor = {
             executePlayerPacketRainReward: function (proposalData, deferred) {
                 //verify data
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && proposalData.data.rewardAmount) {
-                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_PACKET_RAIN_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
+                    proposalData.data.proposalId = proposalData.proposalId;
+
+                    // Clear state
+                    dbconfig.collection_playerState.findOneAndUpdate({
+                        player: proposalData.data.playerObjId
+                    }, {
+                        'state.applyingPacketRainReward': false
+                    }).then(
+                        success => {
+                            changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constRewardType.PLAYER_PACKET_RAIN_REWARD, proposalData.data).then(deferred.resolve, deferred.reject);
+                        },
+                        err => {
+                            deferred.reject(error);
+                        }
+                    )
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player packet rain proposal data"});
