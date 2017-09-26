@@ -9807,7 +9807,31 @@ define(['js/app'], function (myApp) {
                         });
                     }
                     $scope.safeApply();
+                } else if (vm.showRewardTypeData.name === "PlayerLimitedOffersReward") {
+                    vm.rewardParams.reward = vm.rewardParams.reward || [];
+                    vm.allGames = [];
+
+                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                        vm.platformProvider = data.data.gameProviders;
+                        $scope.safeApply();
+                    }, function (data) {
+                        console.log("cannot get gameProvider", data);
+                    });
+
+                    //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                    if (vm.rewardParams.provider) {
+                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                            vm.allGames = data.data;
+                            console.log('ok', vm.allGames);
+                            $scope.safeApply();
+                        }, function (data) {
+                            console.log("created not", data);
+                            //vm.rewardTabClicked();
+                        });
+                    }
+                    $scope.safeApply();
                 }
+
 
                 if (onCreationForm) {
                     if (vm.showRewardTypeData.name == "PartnerConsumptionReturn") {
@@ -9937,7 +9961,27 @@ define(['js/app'], function (myApp) {
                     vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
                 }
             };
+            vm.updateLimitedOffersEdit = function (type, data) {
+                if (type == 'add') {
 
+                  socketService.$socket($scope.AppSocket, 'generateObjectId', {}, function (result) {
+                      var objectId = result.data
+                      if(objectId){
+                          data._id = objectId;
+                          vm.rewardParams.reward.push(JSON.parse(JSON.stringify(data)));
+                          $scope.safeApply();
+                      }
+                  });
+                } else if (type == 'remove') {
+                    vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1);
+                    console.log(vm.rewardParams.reward);
+                }
+            };
+            vm.weekDayList = {
+              '1':'星期一',
+              '2':'星期二',
+              '3':'星期三'
+            };
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
