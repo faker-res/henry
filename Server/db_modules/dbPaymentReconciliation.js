@@ -218,7 +218,7 @@ function sliceTimeFrameToDaily(startTime, endTime) {
     const oneDayInMs = 1000*60*60*24;
     let timeFrames = [];
 
-    if ((endTime - startTime) > oneDayInMs) {
+    if ((endTime - startTime) <= oneDayInMs) {
         timeFrames.push({startTime: startTime, endTime: endTime});
     }
     else {
