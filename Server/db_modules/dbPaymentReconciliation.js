@@ -3,6 +3,7 @@ const dbconfig = require("../modules/dbproperties");
 const dbUtility = require("../modules/dbutility");
 const constProposalType = require("../const/constProposalType");
 const constProposalStatus = require("../const/constProposalStatus");
+const moment = require('moment-timezone');
 
 const dbPaymentReconciliation = {
     getBonusReport: function (platform, platformId, option, startTime, endTime) {
@@ -22,8 +23,8 @@ const dbPaymentReconciliation = {
 
                     let pmsProm = pmsAPI.reconciliation_getCashoutList({
                         platformId: platformId,
-                        starttime: start,
-                        endtime: end
+                        starttime: getPMSTimeFormat(start),
+                        endtime: getPMSTimeFormat(end)
                     });
 
                     let proposalQuery = {
@@ -122,15 +123,15 @@ const dbPaymentReconciliation = {
 
                     let pmsProm = pmsAPI.reconciliation_getCashinList({
                         platformId: platformId,
-                        starttime: start,
-                        endtime: end
+                        starttime: getPMSTimeFormat(start),
+                        endtime: getPMSTimeFormat(end)
                     });
 
                     if (option === 'online') {
                         pmsProm = pmsAPI.reconciliation_getOnlineCashinList({
                             platformId: platformId,
-                            starttime: start,
-                            endtime: end
+                            starttime: getPMSTimeFormat(start),
+                            endtime: getPMSTimeFormat(end)
                         });
                     }
 
@@ -150,8 +151,8 @@ const dbPaymentReconciliation = {
                     if (option === 'manual') {
                         let pmsOnlineCashinProm = pmsAPI.reconciliation_getCashinList({
                             platformId: platformId,
-                            starttime: start,
-                            endtime: end
+                            starttime: getPMSTimeFormat(start),
+                            endtime: getPMSTimeFormat(end)
                         });
 
                         promises.push(pmsOnlineCashinProm);
@@ -317,6 +318,10 @@ function getMismatchFromProposalGroup(proposals, option) {
         fpmsCount: localCount,
         fpmsAmount: localAmount
     };
+}
+
+function getPMSTimeFormat(date) {
+    return moment(date).tz('Asia/Singapore').format("YYYY-MM-DD HH:mm:ss");
 }
 
 module.exports = dbPaymentReconciliation;
