@@ -15,7 +15,7 @@ let dbCsOfficer = {
                }
 
                let newOfficer = dbconfig.collection_csOfficer({platform: platformId, name: name});
-               return newOfficer.save().then().catch(err => errorSavingLog(err, adminActionRecordData));
+               return newOfficer.save();
            }
        );
    },
@@ -31,7 +31,7 @@ let dbCsOfficer = {
                 }
 
                 let newPromoteWay = dbconfig.collection_csPromoteWay({name: name, platform: platformId});
-                return newPromoteWay.save().then().catch(err => errorSavingLog(err, adminActionRecordData));
+                return newPromoteWay.save();
             }
         );
     },
@@ -59,6 +59,7 @@ let dbCsOfficer = {
                     });
                 }
 
+                console.log('WALAO', domainExisted)
                 if (domainExisted) {
                     return Promise.reject({
                         name: "DataError",
