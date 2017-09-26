@@ -1819,7 +1819,7 @@ define(['js/app'], function (myApp) {
                         item.name = item.partnerName;
                     }
 
-                    if (item.userAgent[0]) {
+                    if (item.userAgent && item.userAgent[0]) {
                         item.registrationOS$ = item.userAgent[0].os;
                         item.registrationBrowser$ = item.userAgent[0].browser;
                     } else {
