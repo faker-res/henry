@@ -826,6 +826,7 @@ define(['js/app'], function (myApp) {
                 // vm.proposalTable.destroy();
                 vm.queryProposal.totalCount = data.data.size;
                 vm.drawProposalTable(vm.proposals, data.data.size, data.data.summary, newSearch);
+                vm.loadProposalNewUserQueryData();
                 $scope.safeApply();
             });
         };
@@ -1915,7 +1916,7 @@ define(['js/app'], function (myApp) {
                                     function (error) {}).
                                 then(
                                     function (data) {
-                                        vm.loadProposalNewUserQueryData();
+                                        // vm.loadProposalNewUserQueryData();
                                     },
                                     function (error) {})
 
