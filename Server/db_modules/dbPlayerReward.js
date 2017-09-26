@@ -585,17 +585,14 @@ let dbPlayerReward = {
             stateRec => {
                 if (!stateRec) {
                     return new dbConfig.collection_playerState({
-                        player: playerObj._id,
-                        'state.applyingPacketRainReward': true
+                        player: playerObj._id
                     }).save();
                 } else {
                     return dbConfig.collection_playerState.findOneAndUpdate({
                         player: playerObj._id,
-                        'state.applyingPacketRainReward': false,
-                        lastModified: {$lt: new Date() - 1000}
+                        lastApplyPacketRainReward: {$lt: new Date() - 1000}
                     }, {
-                        $set: {'state.applyingPacketRainReward': true},
-                        $currentDate: {lastModified: true}
+                        $currentDate: {lastApplyPacketRainReward: true}
                     }, {
                         new: true
                     });
