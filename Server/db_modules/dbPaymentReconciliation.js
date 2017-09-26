@@ -288,6 +288,10 @@ function getMismatchFromProposalGroup(proposals, option) {
             pmsMismatchCount++;
             pmsMismatchAmount += pmsProposal.amount;
         }
+        if (i === 0) {
+            // todo :: debugging console.log, remove later
+            console.log(JSON.stringify(pmsProposal, null, 4));
+        }
         pmsCount++;
         pmsAmount += pmsProposal.amount;
     }
