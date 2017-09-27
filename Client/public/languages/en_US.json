@@ -931,5 +931,10 @@
   "COMPANY_PROFIT": "Company Profit",
   "SYSTEM_PLAYER": "System Player",
   "OLD_SYSTEM": "Old System",
-  "NEW_SYSTEM": "New System"
+  "NEW_SYSTEM": "New System",
+  "ADD_OFFICER_URL": "Add Officer Url",
+  "CHOOSE_OFFICER": "Choose Officer",
+  "PROMOTE_WAY": "Promote Way",
+  "CHOOSE_PROMOTE_WAY": "Choose Promote Way",
+  "DELETE_OFFICER": "Delete Officer"
 }
