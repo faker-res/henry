@@ -2101,9 +2101,9 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'rewardAmount', 'aTargets': [11], bSortable: true},
                     {'sortCol': 'consumptionReturnAmount', 'aTargets': [12], bSortable: true},
                     {'sortCol': 'consumptionTimes', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [16], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -2123,10 +2123,10 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PROMOTION'), data: "rewardAmount$"},
                     {title: $translate('CONSUMPTION_RETURN_AMOUNT'), data: "consumptionReturnAmount$"},
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
                     {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$"},
                     {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$"},
-                    {title: $translate('COMPANY_PROFIT'), data: "profit$"}
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$"},
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
