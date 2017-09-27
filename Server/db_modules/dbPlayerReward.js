@@ -1332,6 +1332,66 @@ let dbPlayerReward = {
 
             return Promise.all([promByType, promByPlayer]);
         })
+    },
+
+    applyLimitedOffer: (platformObjId, playerName, limitedOfferObjId, adminInfo) => {
+        let playerObj;
+        let limitedOfferObj;
+
+        return dbConfig.collection_players.find({
+            platform: platformObjId,
+            name: playerName
+        }).populate({path: "platform", model: dbConfig.collection_platform}).then(
+            playerData => {
+                playerObj = playerData;
+
+                return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFER_REWARD}).lean();
+            }
+        ).then(
+            rewardTypeData => {
+                console.log('rewardTypeData', rewardTypeData);
+                let rewardEventQuery = {
+                    platform: playerObj.platform._id,
+                    type: rewardTypeData._id
+                };
+
+                return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+            }
+        ).then(
+            v => {
+                return dbConfig.collection_proposalType.findOne({
+                    platformId: platformObjId,
+                    name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                }).lean();
+            }
+        ).then(
+            proposalTypeData => {
+                // create reward proposal
+                let proposalData = {
+                    type: proposalTypeData._id,
+                    creator: adminInfo ? adminInfo :
+                        {
+                            type: 'player',
+                            name: playerObj.name,
+                            id: playerObj._id
+                        },
+                    data: {
+                        playerObjId: playerObj._id,
+                        playerId: playerObj.playerId,
+                        playerName: playerObj.name,
+                        realName: playerObj.realName,
+                        platformObjId: playerObj.platform._id,
+                        limitedOfferObjId: limitedOfferObj._id,
+                        rewardAmount: limitedOfferObj.oriPrice - limitedOfferObj.offerPrice,
+                        spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
+                        limitedOfferName: limitedOfferObj.name
+                    },
+                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS
+                };
+                return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+            }
+        )
     }
 };
 
