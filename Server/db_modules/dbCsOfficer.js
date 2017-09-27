@@ -59,7 +59,6 @@ let dbCsOfficer = {
                     });
                 }
 
-                console.log('WALAO', domainExisted)
                 if (domainExisted) {
                     return Promise.reject({
                         name: "DataError",
