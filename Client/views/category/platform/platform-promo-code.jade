@@ -12,6 +12,8 @@
             span {{"SMS_CONTENT" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "userGroupConfig"}', ng-click='vm.promoCodeTabClicked("userGroupConfig")')
             span {{"PROMO_CODE_USER_GROUP_CONFIG" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "promoCodeAnalysis"}', ng-click='vm.promoCodeTabClicked("promoCodeAnalysis")')
+            span {{"PROMO_CODE_ANALYSIS" | translate}}
 
     .col-md-12
         .panel.panel-primary
@@ -421,6 +423,42 @@
                     label {{"SET_PROMO_CODE_FLAG" | tramslate}}
                     .pull-right
                         button.btn.btn-primary.common-button(ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"SET" | translate}}
+
+                // Tab - Promo Code Analysis
+                div(ng-if='vm.selectedPromoCodeTab=="promoCodeAnalysis" && checkViewPermission("Platform", "promoCode", "promoCodeAnalysis")')
+                    #promoCodeAnalysisQuery.block-query.col-md-12.well
+                        div
+                            label.control-label {{'START_CREATE_TIME' | translate}}
+                            .startCreateTime
+                        div
+                            label.control-label {{'END_CREATE_TIME' | translate}}
+                            .endCreateTime
+                        div
+                            label {{"ACCOUNT" | translate}}
+                            input.form-control(type='text', ng-model='vm.promoCodeAnalysis.playerName')
+                        div
+                            label {{"PROMO_CODE_TYPE" | translate}}
+                            select.form-control(ng-model='vm.promoCodeAnalysis.promoCodeType', ng-change="vm.promoCodeAnalysis.promoCodeSubType = ''")
+                                option(value='') {{'any' | translate}}
+                                option(value='1') {{"PROMO_CODE_TYPE_1" | translate}}
+                                option(value='2') {{"PROMO_CODE_TYPE_2" | translate}}
+                                option(value='3') {{"PROMO_CODE_TYPE_3" | translate}}
+                        div(ng-if='vm.promoCodeAnalysis.promoCodeType')
+                            label {{"PROMO_CODE_SUB_TYPE" | translate}}
+                            select.form-control(ng-model='vm.promoCodeAnalysis.promoCodeSubType' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: vm.promoCodeAnalysis.promoCodeType}")
+                                option(value='') {{'any' | translate}}
+                        div
+                            label &nbsp;
+                            button.btn.btn-success(ng-click='vm.promoCodeAnalysis.searchType = 1; vm.getPromoCodeAnalysis(true)') {{'SEARCH_CREATETIME' | translate}}
+                            span#promoCodeAnaysisTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                    .clearfix
+                    label(ng-if="vm.promoCodeAnalysis.totalCount") {{"Promo Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis.totalCount}} {{"records" | translate}}
+                    table#promoCodeAnalysisTable.common-table.display(style="min-width:100% ;overflow: scroll")
+
+                    .clearfix
+                    label(ng-if="vm.promoCodeAnalysis2.totalCount") {{"Player Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis2.totalCount}} {{"records" | translate}}
+                    table#promoCodeAnalysis2Table.common-table.display(style="min-width:100% ;overflow: scroll")
 
 
 #modalYesNo.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

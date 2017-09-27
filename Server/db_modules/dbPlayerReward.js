@@ -102,6 +102,8 @@ let dbPlayerReward = {
 
     getPromoCodeTypes: (platformObjId) => dbConfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean(),
 
+    getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
+
     /*
      * player apply for consecutive login reward
      * @param {String} playerId
@@ -573,6 +575,32 @@ let dbPlayerReward = {
                 if (playerData && playerData.platform) {
                     playerObj = playerData;
 
+                    // Check player state
+                    return dbConfig.collection_playerState.findOne({player: playerObj._id});
+                } else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            stateRec => {
+                if (!stateRec) {
+                    return new dbConfig.collection_playerState({
+                        player: playerObj._id
+                    }).save();
+                } else {
+                    return dbConfig.collection_playerState.findOneAndUpdate({
+                        player: playerObj._id,
+                        lastApplyPacketRainReward: {$lt: new Date() - 1000}
+                    }, {
+                        $currentDate: {lastApplyPacketRainReward: true}
+                    }, {
+                        new: true
+                    });
+                }
+            }
+        ).then(
+            stateRec => {
+                if (stateRec) {
                     //check if player is valid for reward
                     if (playerObj.permission.PlayerPacketRainReward === false) {
                         return Q.reject({
@@ -582,12 +610,12 @@ let dbPlayerReward = {
                         });
                     }
 
-                    let promEvent = dbRewardEvent.getPlatformRewardEventWithTypeName(playerData.platform._id, constRewardType.PLAYER_PACKET_RAIN_REWARD, code);
+                    let promEvent = dbRewardEvent.getPlatformRewardEventWithTypeName(playerObj.platform._id, constRewardType.PLAYER_PACKET_RAIN_REWARD, code);
                     let promTopUp = dbConfig.collection_playerTopUpRecord.aggregate(
                         {
                             $match: {
-                                playerId: playerData._id,
-                                platformId: playerData.platform._id,
+                                playerId: playerObj._id,
+                                platformId: playerObj.platform._id,
                                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                             }
                         },
@@ -628,9 +656,8 @@ let dbPlayerReward = {
                     );
 
                     return Promise.all([promEvent, promTopUp, todayPropsProm]);
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                } else {
+                    return Q.reject({name: "ConcurrencyError", message: "Multiple calls detected!"});
                 }
             }
         ).then(
@@ -646,7 +673,8 @@ let dbPlayerReward = {
                     //calculate player reward amount
                     let rewardAmount = 0;
                     let totalProbability = 0;
-                    let curMinTopUpAmount = 0;
+                    // TODO RESET STATE WHEN CATCHING ERROR
+                    let curMinTopUpAmount = -1;
                     let curReward = null;
                     let combination = [];
 
@@ -1109,7 +1137,9 @@ let dbPlayerReward = {
                 }, {
                     acceptedTime: new Date(),
                     status: constPromoCodeStatus.ACCEPTED,
-                    proposalId: newProp.proposalId
+                    proposalId: newProp.proposalId,
+                    acceptedAmount: newProp.data.rewardAmount,
+                    topUpAmount: newProp.data.applyAmount
                 })
             }
         )
@@ -1215,6 +1245,93 @@ let dbPlayerReward = {
         ).then(
             res => monitorObjs
         )
+    },
+
+    getPromoCodeAnalysis: (platformObjId, data) => {
+        let playerProm = dbConfig.collection_players.findOne({
+            platform: platformObjId,
+            name: data.playerName
+        }).lean();
+
+        let promoTypeQ = {
+            platformObjId: platformObjId,
+            type: data.promoCodeType
+        };
+
+        if (data.promoCodeSubType) {
+            promoTypeQ.name = data.promoCodeSubType;
+        }
+
+        let promoTypeProm = dbConfig.collection_promoCodeType.find(promoTypeQ).lean();
+
+        return Promise.all([playerProm, promoTypeProm]).then(res => {
+            let playerData = res[0];
+            let promoCodeTypeData = res[1];
+            let promoCodeTypeObjIds = promoCodeTypeData.map(e => e._id);
+
+            let matchObj = {
+                platformObjId: platformObjId,
+                createTime: {$gte: new Date(data.startCreateTime), $lt: new Date(data.endCreateTime)}
+            };
+
+            if (playerData && playerData._id) {
+                matchObj.playerObjId = playerData._id;
+            }
+
+            if (promoCodeTypeObjIds && promoCodeTypeObjIds.length > 0) {
+                matchObj.promoCodeTypeObjId = {$in: promoCodeTypeObjIds}
+            }
+
+            let promByType = dbConfig.collection_promoCode.aggregate(
+                {
+                    $match: matchObj
+                },
+                {
+                    $project: {
+                        promoCodeTypeObjId: 1,
+                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                        acceptedAmount: 1,
+                        amount: 1
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$promoCodeTypeObjId",
+                        amount: {$sum: "$amount"},
+                        acceptedCount: {$sum: "$acceptedCount"},
+                        acceptedAmount: {$sum: "$acceptedAmount"},
+                        sendCount: {$sum: 1}
+                    }
+                }
+            );
+
+            let promByPlayer = dbConfig.collection_promoCode.aggregate(
+                {
+                    $match: matchObj
+                },
+                {
+                    $project: {
+                        playerObjId: 1,
+                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                        acceptedAmount: 1,
+                        amount: 1,
+                        topUpAmount: 1
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$playerObjId",
+                        amount: {$sum: "$amount"},
+                        acceptedCount: {$sum: "$acceptedCount"},
+                        acceptedAmount: {$sum: "$acceptedAmount"},
+                        sendCount: {$sum: 1},
+                        topUpAmount: {$sum: "$topUpAmount"}
+                    }
+                }
+            );
+
+            return Promise.all([promByType, promByPlayer]);
+        })
     }
 };
 
