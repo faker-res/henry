@@ -65,7 +65,7 @@
                                    option(value='') {{'CHOOSE_OFFICER' | translate}}
                                    option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
                             td
-                               select.form-control#officerPromoteOption(ng-model='vm.addOfficerUrl.promoteWay', required)
+                               select.form-control#officerPromoteOption(ng-model='vm.addOfficerUrl.promoteWay')
                                    option(value='') {{'CHOOSE_PROMOTE_WAY' | translate}}
                                    option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
                             td

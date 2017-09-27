@@ -39,7 +39,7 @@ function socketActionCsOfficer(socketIO, socket) {
 
         addUrl: function addUrl(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data.officerId && data.domain && data.way);
+            let isValidData = Boolean(data && data.platformId && data.officerId && data.domain);
             socketUtil.emitter(self.socket, dbCsOfficer.addUrl, [data.platformId, data.officerId, data.domain, data.way], actionName, isValidData);
         },
 
