@@ -15,7 +15,7 @@ let dbCsOfficer = {
                }
 
                let newOfficer = dbconfig.collection_csOfficer({platform: platformId, name: name});
-               return newOfficer.save().then().catch(err => errorSavingLog(err, adminActionRecordData));
+               return newOfficer.save();
            }
        );
    },
@@ -31,17 +31,18 @@ let dbCsOfficer = {
                 }
 
                 let newPromoteWay = dbconfig.collection_csPromoteWay({name: name, platform: platformId});
-                return newPromoteWay.save().then().catch(err => errorSavingLog(err, adminActionRecordData));
+                return newPromoteWay.save();
             }
         );
     },
 
     getAllPromoteWay: (platformId) => {
-        return dbconfig.collection_csPromoteWay.find({platform: platformId}, {url: 0}).lean();
+        return dbconfig.collection_csPromoteWay.find({platform: platformId}, {url: 0}).sort({name: 1}).lean();
     },
 
-
-    ////
+    deletePromoteWay: (promoteWayId, platformId) => {
+        return dbconfig.collection_csPromoteWay.remove({_id: promoteWayId, platform: platformId});
+    },
 
     addUrl: (platformId, officerId, domain, way) => {
         let officerProm = dbconfig.collection_csOfficer.findOne({_id: officerId}).lean();
@@ -58,6 +59,7 @@ let dbCsOfficer = {
                     });
                 }
 
+                console.log('WALAO', domainExisted)
                 if (domainExisted) {
                     return Promise.reject({
                         name: "DataError",
@@ -74,23 +76,23 @@ let dbCsOfficer = {
 
     getAllUrl: (platformId) => {
         return dbconfig.collection_csOfficer.aggregate([
-            {$match: {platform: platformId}},
-            {$unwind: $url},
-            {$sort: {createTime: -1}}
+            {$match: {platform: ObjectId(platformId)}},
+            {$unwind: "$url"},
+            {$sort: {"url.createTime": -1}}
         ]);
     },
 
     getAllOfficer: (platformId) => {
-        return dbconfig.collection_csOfficer.find({platform: platformId}, {url: 0}).lean();
+        return dbconfig.collection_csOfficer.find({platform: platformId}).sort({name: 1}).lean();
     },
 
     updateUrl: (urlId, domain, officerId, way) => {
         return dbconfig.collection_csOfficer.aggregate([
-            {$unwind: $url},
+            {$unwind: "$url"},
             {$match: {"url._id": ObjectId(urlId)}}
         ]).then(
             data => {
-                if (!data || data[0]) {
+                if (!data || data.length === 0) {
                     return Promise.reject({
                         name: "DataError",
                         errorMessage: "No such url."
@@ -99,14 +101,16 @@ let dbCsOfficer = {
 
                 let urlData = data[0];
 
-                return officerId.toString() !== urlData._id ? updateUrlWithOfficerChange(urlId, domain, officerId, way, urlData.createTime) : updateUrlWithoutOfficerChange(urlId, domain, officerId, way);
+                return officerId.toString() !== urlData._id.toString()
+                    ? updateUrlWithOfficerChange(urlId, domain, officerId, way, urlData.createTime)
+                    : updateUrlWithoutOfficerChange(urlId, domain, officerId, way);
             }
         );
     },
 
     deleteUrl: (urlId) => {
         return dbconfig.collection_csOfficer.findOneAndUpdate(
-            {},
+            {"url._id": urlId},
             {$pull: {url: {_id: urlId}}}
         ).lean();
     },
@@ -119,7 +123,7 @@ let dbCsOfficer = {
 
 function updateUrlWithOfficerChange(urlId, domain, officerId, way, createTime) {
     return dbconfig.collection_csOfficer.update(
-        {},
+        {"url._id": urlId},
         {$pull: {url: {_id: urlId}}}
     ).then(
         () =>{

@@ -1,29 +1,97 @@
 .row
     .col-md-12
         .well#Officer
-            div.createOfficer
+            div.createOfficer(ng-show = "checkViewPermission('Platform', 'RegistrationUrlConfig','Create')" )
                 label.control-label {{'Create Officer' | translate}} &nbsp
                 .inlineBlk
                     input.form-control(ng-model='vm.platformOfficer.name', placeholder="{{'OFFICER_NAME' | translate}}" )
                 button.btn.btn-primary(ng-click='vm.createOfficer();vm.getAllOfficer()') {{"CREATE" | translate}}
                 span#officer-message &nbsp{{vm.officerCreateMessage}}
-            div.addPromoteWay
+            div.deleteOfficer(ng-show = "checkViewPermission('Platform', 'RegistrationUrlConfig','Delete')" )
+                label.control-label {{"DELETE_OFFICER" | translate}} &nbsp
+                .inlineBlk
+                    select.form-control#officerDeleteOption(ng-model='vm.deleteOfficer.officerId')
+                        option(value='') {{'CHOOSE_OFFICER' | translate}}
+                        option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
+                button.btn.btn-primary(ng-click='vm.deleteOfficerById();vm.getAllOfficer()') {{"DELETE" | translate}}
+                span#delete-officer-message &nbsp{{vm.deleteOfficerMessage}}
+            div.addPromoteWay(ng-show = "checkViewPermission('Platform', 'RegistrationUrlConfig','Create')" )
                 label.control-label {{'PROMOTE_WAY' | translate}} &nbsp
                 .inlineBlk
                     input.form-control(ng-model='vm.platformOfficer.way', placeholder="{{'PROMOTE_WAY' | translate}}" )
-                button.btn.btn-primary(ng-click='vm.addPromoteWay();vm.getAllPromoteWay()') {{"CREATE" | translate}}
+                button.btn.btn-primary(ng-click='vm.addPromoteWay();vm.getAllPromoteWay();') {{"CREATE" | translate}}
                 span#officer-promote-message &nbsp{{vm.officerPromoteMessage}}
-            div.addOfficerUrl
-                label.control-label {{'ADD_OFFICER_URL' | translate}} &nbsp
+            div.deletePromoteWay(ng-show = "checkViewPermission('Platform', 'RegistrationUrlConfig','Delete')" )
+                label.control-label {{"DELETE" | translate}}{{'PROMOTE_WAY' | translate}} &nbsp
                 .inlineBlk
-                    select.form-control#officerOption(ng-model='vm.officerSelected')
-                        option(value='') {{'CHOOSE_OFFICER' | translate}}
-                        option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
-                .inlineBlk
-                    select.form-control#officerOption(ng-model='vm.promoteSelected')
+                    select.form-control#promoteDeleteOption(ng-model='vm.deleteOfficer.promoteWay')
                         option(value='') {{'CHOOSE_PROMOTE_WAY' | translate}}
-                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
-                .inlineBlk
-                    input.form-control(ng-model='vm.platformOfficer.url', placeholder="{{'URL' | translate}}" )
-                button.btn.btn-primary(ng-click='vm.addUrl()') {{"ADD" | translate}}
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v._id}}') {{v.name}}
+                button.btn.btn-primary(ng-click='vm.deletePromoteWay();vm.getAllPromoteWay()') {{"DELETE" | translate}}
+                span#delete-promote-message &nbsp{{vm.deletePromoteMessage}}
+        div(style="height:265px;overflow:auto;margin-bottom:5px")
+            form(name="officerUrlForm")
+                table.simple-table(style='width:auto;min-width:99.9%')
+                    thead
+                        tr
+                            th(width="28%") {{'OFFICER_NAME' | translate}}
+                            th(width="20%") {{'PROMOTE_WAY' | translate}}
+                            th(width="47%") {{'URL' | translate}}
+                            th(width="5%", ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
+                    tbody
+                        tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit", ng-repeat="(i,url) in vm.allUrl", sn-selectable-model="vm.selectedOfficerUrl", sn-selectable-value="url", ng-click="vm.currentUrlEditSelect = url")
+                            td
+                                select.form-control#officerOption(ng-model='url._id', ng-disabled="!vm.urlTableEdit", required)
+                                    option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
+                            td
+                                select.form-control#officerPromoteOption(ng-model='url.url.way', ng-disabled="!vm.urlTableEdit", required)
+                                    option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+                            td
+                                input.form-control(type="text", ng-model="url.url.domain", ng-disabled="!vm.urlTableEdit", required)
+                            td(ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
+                                a {{'SELECT' | translate}}
+                        tr(ng-if="vm.urlTableEdit")
+                             td
+                                 select.form-control#officerOption(ng-model='vm.currentUrlEditSelect._id', ng-disabled="!vm.urlTableEdit", required)
+                                     option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
+                             td
+                                 select.form-control#officerPromoteOption(ng-model='vm.currentUrlEditSelect.url.way', ng-disabled="!vm.urlTableEdit", required)
+                                     option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+                             td
+                                 input.form-control(type="text", ng-model="vm.currentUrlEditSelect.url.domain", ng-disabled="!vm.urlTableEdit", required)
+                        tr(ng-if="vm.urlTableAdd")
+                            td
+                               select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required)
+                                   option(value='') {{'CHOOSE_OFFICER' | translate}}
+                                   option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
+                            td
+                               select.form-control#officerPromoteOption(ng-model='vm.addOfficerUrl.promoteWay', required)
+                                   option(value='') {{'CHOOSE_PROMOTE_WAY' | translate}}
+                                   option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+                            td
+                               input.form-control(type="text", ng-model="vm.addOfficerUrl.url", required)
+        .pull-right
+            button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Create')", ng-click="vm.initCreateUrl()")
+                text {{'CREATE' | translate}}
+                img.img-create
+            button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Update')", ng-disabled="!vm.selectedOfficerUrl", ng-click='vm.urlTableEdit=true')
+                text {{'EDIT' | translate}}
+                img.img-edit
+            button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Delete')", ng-disabled="!vm.selectedOfficerUrl", ng-click='vm.deleteUrl()')
+                text {{'DELETE' | translate}}
+                img.img-delete
+            button.btn.btn-danger.common-button(ng-if='vm.urlTableEdit || vm.urlTableAdd', ng-click='vm.urlCancelEditOrAdd()')
+                text {{"CANCEL" | translate}}
+                .fa.fa-ban
+            button.btn.btn-primary.common-button(ng-if='vm.urlTableAdd', ng-disabled="officerUrlForm.$invalid", ng-click='vm.urlTableAdd=false; vm.addUrl()')
+                text {{"SUBMIT" | translate}}
+                .fa.fa-check
+            button.btn.btn-primary.common-button(ng-if='vm.urlTableEdit', ng-disabled="officerUrlForm.$invalid", ng-click='vm.urlTableEdit=false; vm.updateUrl()')
+                text {{"CONFIRM" | translate}}
+                .fa.fa-check
+
+        div(ng-show = 'vm.officerUrlMessage')
+            br
+            br
+            .well
                 span#officer-addUrl-message &nbsp{{vm.officerUrlMessage}}

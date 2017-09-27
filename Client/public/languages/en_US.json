@@ -935,5 +935,6 @@
   "ADD_OFFICER_URL": "Add Officer Url",
   "CHOOSE_OFFICER": "Choose Officer",
   "PROMOTE_WAY": "Promote Way",
-  "CHOOSE_PROMOTE_WAY": "Choose Promote Way"
+  "CHOOSE_PROMOTE_WAY": "Choose Promote Way",
+  "DELETE_OFFICER": "Delete Officer"
 }
