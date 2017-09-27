@@ -10301,17 +10301,17 @@ let dbPlayerInfo = {
                         let relevant = true;
                         switch (query.bonusTimesOperator) {
                             case '>=':
-                                relevant = result.topUpTimes >= query.bonusTimesValue;
+                                relevant = result.bonusTimes >= query.bonusTimesValue;
                                 break;
                             case '=':
-                                relevant = result.topUpTimes = query.bonusTimesValue;
+                                relevant = result.bonusTimes = query.bonusTimesValue;
                                 break;
                             case '<=':
-                                relevant = result.topUpTimes <= query.bonusTimesValue;
+                                relevant = result.bonusTimes <= query.bonusTimesValue;
                                 break;
                             case 'range':
                                 if (query.bonusTimesValueTwo) {
-                                    relevant = result.topUpTimes >= query.bonusTimesValue && result.topUpTimes <= query.bonusTimesValueTwo;
+                                    relevant = result.bonusTimes >= query.bonusTimesValue && result.bonusTimes <= query.bonusTimesValueTwo;
                                 }
                                 break;
                         }
