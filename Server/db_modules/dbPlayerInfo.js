@@ -10102,7 +10102,7 @@ let dbPlayerInfo = {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
                         },
-                        "type": consumptionReturnTypeId,
+                        "type": ObjectId(consumptionReturnTypeId),
                         "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
@@ -10123,7 +10123,7 @@ let dbPlayerInfo = {
                             "$lte": new Date(endTime)
                         },
                         "mainType": "Reward",
-                        "type": {"$ne": consumptionReturnTypeId},
+                        "type": {"$ne": ObjectId(consumptionReturnTypeId)},
                         "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
