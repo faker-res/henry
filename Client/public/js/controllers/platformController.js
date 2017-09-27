@@ -9507,7 +9507,22 @@ define(['js/app'], function (myApp) {
                 //vm.showRewardTypeData.condition.condition = {};
                 $scope.safeApply();
             }
+            vm.getFullDate = function(num){
+              if(num<10){
+                return '0'+num;
+              }else{
+                return ''+num+'';
+              }
+            }
             vm.rewardTabClicked = function (callback) {
+                vm.dayHrs = {};
+                vm.dayMin = {};
+                for(var i=0;i <24;i++){
+                  vm.dayHrs[i] = vm.getFullDate(i);
+                }
+                for(var i=0;i <60;i++){
+                  vm.dayMin[i] = vm.getFullDate(i);
+                }
                 if (!vm.selectedPlatform) return;
                 if (!authService.checkViewPermission('Platform', 'Reward', 'Read')) {
                     return;
@@ -9811,7 +9826,6 @@ define(['js/app'], function (myApp) {
                 } else if (vm.showRewardTypeData.name === "PlayerLimitedOffersReward") {
                     vm.rewardParams.reward = vm.rewardParams.reward || [];
                     vm.allGames = [];
-
                     socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
                         vm.platformProvider = data.data.gameProviders;
                     }, function (data) {
@@ -9996,18 +10010,31 @@ define(['js/app'], function (myApp) {
                 }
             };
             vm.weekDayList = {
-              '1':'星期一',
-              '2':'星期二',
-              '3':'星期三',
-              '4':'星期四',
-              '5':'星期五',
-              '6':'星期六',
-              '7':'星期日'
+              '1':'Mon',
+              '2':'Tue',
+              '3':'Wed',
+              '4':'Thu',
+              '5':'Fri',
+              '6':'Sat',
+              '7':'Sun'
             };
+
             vm.endLoadWeekDay = function(){
                 $timeout(function(){
                     $('.spicker').selectpicker('refresh');
                  }, 0);
+            };
+            vm.convertRewardDate = function(rewardObj, status, index){
+              var validTime = true;
+              if(!rewardObj.hrs){
+                  validTime = false;
+              }
+              if(!rewardObj.min){
+                  validTime = false;
+              }
+              if(validTime){
+                  rewardObj.startTime =  rewardObj.hrs+':'+rewardObj.min;
+              }
             }
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
