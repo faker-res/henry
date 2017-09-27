@@ -119,6 +119,17 @@ let RewardServiceImplement = function () {
         let isValidData = Boolean(data && data.playerName && data.promoCode);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [ObjectId(data.platformObjId), data.playerName, data.promoCode], isValidData, false, false, true);
     };
+    this.getLimitedOffers.expectsData = 'playerId: String, platformId: String';
+    this.getLimitedOffers.onRequest = function(wsFunc, conn, data){
+        let isValidData = Boolean(data && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOffers, [data.playerId, data.platformId, data.status], isValidData, false, false, true);
+    };
+    this.applyLimitedOffers.expectsData = 'playerId: String, platformId: String';
+    this.applyLimitedOffers.onRequest = function(wsFunc, conn, data){
+        let isValidData = Boolean(data && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyLimitedOffers, [data.playerId, data.platformId, data.status], isValidData, false, false, true);
+    };
+
 };
 
 

@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-        var injectParams = ['$sce','$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies"];
+        var injectParams = ['$sce','$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies","$timeout"];
 
-        var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies) {
+        var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies,$timeout) {
             var $translate = $filter('translate');
             var vm = this;
 
@@ -9568,6 +9568,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardCondition = Lodash.cloneDeep(v.condition);
                 vm.platformRewardTypeChanged();
 
+
                 console.log('vm.rewardParams', vm.rewardParams);
                 $scope.safeApply();
             };
@@ -9813,7 +9814,6 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
                         vm.platformProvider = data.data.gameProviders;
-                        $scope.safeApply();
                     }, function (data) {
                         console.log("cannot get gameProvider", data);
                     });
@@ -9823,13 +9823,13 @@ define(['js/app'], function (myApp) {
                         socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
                             vm.allGames = data.data;
                             console.log('ok', vm.allGames);
+
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
                             //vm.rewardTabClicked();
                         });
                     }
-                    $scope.safeApply();
                 }
 
 
@@ -9893,19 +9893,35 @@ define(['js/app'], function (myApp) {
                 if (type == "rewardType") return true;
                 if (type && vm.platformRewardPageName) return false;
 
-                if (vm.platformRewardPageName == "newReward" || vm.platformRewardPageName == "updateReward")return false;
-                else return true;
+                if (vm.platformRewardPageName == "newReward" || vm.platformRewardPageName == "updateReward"){
+                  return false}else{return true;}
             }
             vm.clearCanApplyFromClient = function(){
               if(!vm.showReward.needApply){
                 vm.showReward.canApplyFromClient = false;
               }
             }
+
             vm.clearRewardFormData = function () {
                 vm.rewardCondition = null;
                 vm.showReward = null;
                 vm.rewardParams = null;
                 vm.showRewardTypeId = null;
+            }
+
+            vm.clearProvider = function(rowIndex){
+              for(var providers in vm.rewardParams.reward[rowIndex].providers){
+                if(vm.rewardParams.reward[rowIndex].providers[providers]=='ANY'){
+                    vm.rewardParams.reward[rowIndex].providers = [] ;
+                }
+              }
+              console.log(vm.rewardParams.reward[rowIndex]);
+              $scope.safeApply();
+            }
+
+            vm.clearWeekDay = function(rowIndex){
+              vm.rewardParams.reward[rowIndex].repeatWeekDay = [];
+              $scope.safeApply();
             }
 
             vm.rewardWeeklyConsecutiveTopUpAddProvider = function () {
@@ -9961,9 +9977,8 @@ define(['js/app'], function (myApp) {
                     vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
                 }
             };
-            vm.updateLimitedOffersEdit = function (type, data) {
+            vm.updateLimitedOffersEdit = function (type, data, id) {
                 if (type == 'add') {
-
                   socketService.$socket($scope.AppSocket, 'generateObjectId', {}, function (result) {
                       var objectId = result.data
                       if(objectId){
@@ -9973,15 +9988,27 @@ define(['js/app'], function (myApp) {
                       }
                   });
                 } else if (type == 'remove') {
-                    vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1);
-                    console.log(vm.rewardParams.reward);
+                    if(vm.rewardParams.reward){
+                        vm.rewardParams.reward = vm.rewardParams.reward.filter(item=>{
+                          return item._id != id;
+                        })
+                    }
                 }
             };
             vm.weekDayList = {
               '1':'星期一',
               '2':'星期二',
-              '3':'星期三'
+              '3':'星期三',
+              '4':'星期四',
+              '5':'星期五',
+              '6':'星期六',
+              '7':'星期日'
             };
+            vm.endLoadWeekDay = function(){
+                $timeout(function(){
+                    $('.spicker').selectpicker('refresh');
+                 }, 0);
+            }
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
