@@ -13,7 +13,8 @@ let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommi
 const dbAutoProposal = require('./../db_modules/dbAutoProposal');
 const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
-let dbPlayerCredibility = require('../db_modules/dbPlayerCredibility')
+let dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
+let dbCsOfficer = require('../db_modules/dbCsOfficer');
 
 const consumptionReturnEvent = require('./../scheduleTask/consumptionReturnEvent');
 
@@ -351,10 +352,10 @@ function socketActionPlatform(socketIO, socket) {
             let deleteRemarks = data.deleteRemarks || [];
             socketUtil.emitter(self.socket, dbPlayerCredibility.updateCredibilityRemarksInBulk, [data.platformObjId, addRemarks, updateRemarks, deleteRemarks], actionName, isValidData);
         },
+      
         generateObjectId: function generateObjectId(){
           let actionName = arguments.callee.name;
           socketUtil.emitter(self.socket, dbPlatform.generateObjectId, [], actionName, true);
-
         }
 
     };

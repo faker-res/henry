@@ -35,6 +35,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionQuickPayGroup'),
     require('./../socketActionModule/socketActionUtility'),
     require('./../socketActionModule/socketActionPromoCode'),
+    require('./../socketActionModule/socketActionCsOfficer'),
 ];
 
 var socketActions = [

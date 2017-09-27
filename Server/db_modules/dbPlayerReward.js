@@ -1332,6 +1332,12 @@ let dbPlayerReward = {
 
             return Promise.all([promByType, promByPlayer]);
         })
+    },
+    getLimitedOffers:function(){
+      return true;
+    },
+    applyLimitedOffers:function(){
+      return true;
     }
 };
 
