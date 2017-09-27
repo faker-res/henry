@@ -176,7 +176,7 @@
         this.rewardService.getTopUpPromoList.request(data);
         this.rewardService.getTopUpPromoList.once(callback);
     };
-    
+
     proto.getPromoCode = function (callback, requestData) {
         let data = requestData || {};
         this.rewardService.getPromoCode.request(data);
@@ -189,7 +189,17 @@
         this.rewardService.applyPromoCode.once(callback);
     };
 
+    proto.getLimitedOffers = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getLimitedOffers.request(data);
+        this.rewardService.getLimitedOffers.once(callback);
+    };
 
+    proto.applyLimitedOffers = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.applyLimitedOffers.request(data);
+        this.rewardService.applyLimitedOffers.once(callback);
+    };
 
     if (isNode) {
         module.exports = ClientRewardAPITest;

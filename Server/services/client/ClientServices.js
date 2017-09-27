@@ -253,7 +253,9 @@
                 "getEasterEggPlayerInfo",
                 "getTopUpPromoList",
                 "getPromoCode",
-                "applyPromoCode"
+                "applyPromoCode",
+                "getLimitedOffers",
+                "applyLimitedOffers"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 
