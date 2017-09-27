@@ -2107,16 +2107,13 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {
-                        title: $translate('*'),
-                        data: null,
-                        "className": 'expandPlayerReport expand',
-                        "orderable": false
-                    },
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('LEVEL'), data: "playerLevel$"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
-                    {title: $translate('LOBBY'), data: "provider$"},
+                    {title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport',
+                        render: function (data) {
+                                return "<a>" + data + "</a>";
+                        }},
                     {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$"},
                     {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$"},
                     {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
