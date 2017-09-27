@@ -9911,7 +9911,6 @@ define(['js/app'], function (myApp) {
 
             vm.clearProvider = function(rowIndex){
               for(var providers in vm.rewardParams.reward[rowIndex].providers){
-                console.log(vm.rewardParams.reward[rowIndex].providers[providers]);
                 if(vm.rewardParams.reward[rowIndex].providers[providers]=='ANY'){
                     vm.rewardParams.reward[rowIndex].providers = [] ;
                 }
@@ -9922,7 +9921,6 @@ define(['js/app'], function (myApp) {
 
             vm.clearWeekDay = function(rowIndex){
               vm.rewardParams.reward[rowIndex].repeatWeekDay = [];
-              console.log(vm.rewardParams.reward[rowIndex]);
               $scope.safeApply();
             }
 
