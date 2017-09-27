@@ -2019,6 +2019,8 @@ define(['js/app'], function (myApp) {
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
                     item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
                     item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                    item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                    item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
                     item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
                     item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
@@ -2093,6 +2095,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'credibilityRemarks', 'aTargets': [3], bSortable: true},
                     {'sortCol': 'provider', 'aTargets': [4], bSortable: true},
                     {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
                     {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
                     {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
                     {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
@@ -2115,8 +2119,8 @@ define(['js/app'], function (myApp) {
                                 return "<a>" + data + "</a>";
                         }},
                     {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$"},
-                    {title: $translate('TOPUP_WECHAT'), data: ""},
-                    {title: $translate('TOPUP_ALIPAY'), data: ""},
+                    {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$"},
+                    {title: $translate('TOPUP_ALIPAY'), data: "aliPayTopUpAmount$"},
                     {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$"},
                     {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                     {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$"},
