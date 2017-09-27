@@ -1737,7 +1737,7 @@
   "Error finding player": "无法找到玩家",
   "Error getting platform reward data": "无法找到奖励数据",
   "Error creating proposal": "无法创建提案",
-  "The player already has this reward. Not Valid for the reward.": "玩家以申请该奖励",
+  "The player already has this reward. Not Valid for the reward.": "玩家已申请该奖励",
   "This top up record has been used": "该充值记录已被使用",
   "Player is not enable": "玩家被禁用",
   "Player does not have enough credit.": "玩家额度不够",

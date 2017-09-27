@@ -22,7 +22,8 @@
     "bootstrap-treeview": "^1.2.0",
     "datatables.net-bs": "~1.10.15",
     "angular-ui-router": "0.3.1",
-    "angular-bootstrap-colorpicker": "^3.0.31"
+    "angular-bootstrap-colorpicker": "^3.0.31",
+    "angular-resizable": "^1.2.0"
   },
   "devDependencies": {
     "ng-bootstrap-select": "^0.5.0"

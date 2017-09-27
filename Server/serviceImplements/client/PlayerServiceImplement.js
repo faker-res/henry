@@ -60,6 +60,13 @@ let PlayerServiceImplement = function () {
                 }
             }
             if (data.domain) {
+                //for ad tracking debug
+                console.log("Player registration domain:", data.domain);
+                let reporoId = dbUtility.getParameterByName("rcid", data.domain);
+                if (reporoId) {
+                    data.reporoId = reporoId;
+                }
+                console.log("Player registration reporoId:", reporoId);
                 data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
             }
             //set email to qq if there is only qq number and no email data
@@ -114,7 +121,7 @@ let PlayerServiceImplement = function () {
                         wsFunc.response(conn, resObj, data);
                     }
                     console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
-                    if(err && err.status != constServerCode.USERNAME_ALREADY_EXIST){
+                    if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
                         dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                     }
                 }
