@@ -21,8 +21,10 @@
     "Flot": "jquery-flot#^0.8.3",
     "bootstrap-treeview": "^1.2.0",
     "datatables.net-bs": "~1.10.15",
-    "multiple-select": "^1.2.1",
     "angular-ui-router": "0.3.1",
     "angular-bootstrap-colorpicker": "^3.0.31"
+  },
+  "devDependencies": {
+    "ng-bootstrap-select": "^0.5.0"
   }
 }
