@@ -936,5 +936,7 @@
   "CHOOSE_OFFICER": "Choose Officer",
   "PROMOTE_WAY": "Promote Way",
   "CHOOSE_PROMOTE_WAY": "Choose Promote Way",
-  "DELETE_OFFICER": "Delete Officer"
+  "DELETE_OFFICER": "Delete Officer",
+  "TOPUP_WECHAT": "weChat",
+  "TOPUP_ALIPAY": "AliPay"
 }
