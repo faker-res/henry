@@ -10024,18 +10024,6 @@ define(['js/app'], function (myApp) {
                     $('.spicker').selectpicker('refresh');
                  }, 0);
             };
-            vm.convertRewardDate = function(rewardObj, status, index){
-              var validTime = true;
-              if(!rewardObj.hrs){
-                  validTime = false;
-              }
-              if(!rewardObj.min){
-                  validTime = false;
-              }
-              if(validTime){
-                  rewardObj.startTime =  rewardObj.hrs+':'+rewardObj.min;
-              }
-            }
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
