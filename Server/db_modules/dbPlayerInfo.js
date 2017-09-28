@@ -9925,17 +9925,16 @@ let dbPlayerInfo = {
         ).then(
             () => {
                 // handle index limit sortcol here
-                if (Object.keys(sortCol).length > 0){
-                    result.sort(function (a, b){
-                       if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]){
-                           return 1 * sortCol[Object.keys(sortCol)[0]];
-                       } else{
-                           return -1 * sortCol[Object.keys(sortCol)[0]];
-                       }
+                if (Object.keys(sortCol).length > 0) {
+                    result.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
                     });
                 }
-                else
-                {
+                else {
                     result.sort(function (a, b) {
                         if (a._id > b._id) {
                             return 1;
