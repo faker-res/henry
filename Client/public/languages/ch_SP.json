@@ -1328,7 +1328,7 @@
   "FORBID_GAME": "禁登游戏",
   "FORBID": "禁用",
   "LOGOFF": "注销",
-  "forbidPlayerFromLogin":"封帐号",
+  "forbidPlayerFromLogin":"禁用",
   "forbidPlayerFromEnteringGame" : "禁登游戏",
   "CHEAT_NEW_ACCOUNT_REWARD": "骗开户优惠",
   "TOPUP_ATTENTION": "存款留意",
