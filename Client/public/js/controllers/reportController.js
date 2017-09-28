@@ -2114,10 +2114,12 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('LEVEL'), data: "playerLevel$"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
-                    {title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport',
+                    {
+                        title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport',
                         render: function (data) {
-                                return "<a>" + data + "</a>";
-                        }},
+                            return "<a>" + data + "</a>";
+                        }
+                    },
                     {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$"},
                     {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$"},
                     {title: $translate('TOPUP_ALIPAY'), data: "aliPayTopUpAmount$"},

@@ -112,7 +112,8 @@ var playerSchema = new Schema({
         forbidPlayerFromLogin: {type: Boolean, default: false},
         forbidPlayerFromEnteringGame: {type: Boolean, default: false},
         playerConsecutiveConsumptionReward: {type: Boolean, default: true},
-        PlayerPacketRainReward: {type: Boolean, default: true}
+        PlayerPacketRainReward: {type: Boolean, default: true},
+        PlayerLimitedOfferReward: {type: Boolean, default: true}
     },
 
     //country

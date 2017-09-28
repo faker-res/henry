@@ -595,7 +595,11 @@ var dbPlayerTopUpRecord = {
             playerData => {
                 if (playerData && playerData.platform) {
                     player = playerData;
-                    return dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
+
+                    let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
+                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount);
+
+                    return Promise.all([firstTopUpProm, limitedOfferProm]);
                 }
                 else {
                     return Q.reject({
@@ -606,8 +610,11 @@ var dbPlayerTopUpRecord = {
                 }
             }
         ).then(
-            isPlayerFirstTopUp => {
-                var minTopUpAmount;
+            res => {
+                let minTopUpAmount;
+                let isPlayerFirstTopUp = res[0];
+                let limitedOfferTopUp = res[1];
+
                 if (isPlayerFirstTopUp) {
                     minTopUpAmount = 1;
                 } else {
@@ -636,7 +643,7 @@ var dbPlayerTopUpRecord = {
                 if (!player.merchantGroup || !player.merchantGroup.merchants) {
                     return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
                 }
-                var proposalData = Object.assign({}, topupRequest);
+                let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
                 proposalData.platformId = player.platform._id;
@@ -648,12 +655,20 @@ var dbPlayerTopUpRecord = {
                     name: player.name,
                     id: playerId
                 };
-                var newProposal = {
+
+                // Check Limited Offer Intention
+                if (limitedOfferTopUp) {
+                    proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    proposalData.remark += "(秒杀礼包: " + limitedOfferTopUp.proposalId + ")"
+                }
+
+                let newProposal = {
                     creator: proposalData.creator,
                     data: proposalData,
                     entryType: constProposalEntryType.CLIENT,
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
+
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_TOP_UP, newProposal);
             }
         ).then(
@@ -1371,7 +1386,7 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime, limitedOfferObjId) {
         let player = null;
         let proposal = null;
         let request = null;
@@ -1422,6 +1437,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.alipayName = alipayName;
                     proposalData.alipayAccount = alipayAccount;
                     proposalData.remark = remark;
+                    proposalData.limitedOfferObjId = limitedOfferObjId;
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
@@ -1892,6 +1908,30 @@ var dbPlayerTopUpRecord = {
     }
 
 };
+
+function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
+    return dbconfig.collection_proposalType.findOne({
+        platformId: platformObjId,
+        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+    }).lean().then(
+        proposalTypeData => {
+            return dbconfig.collection_proposal.findOne({
+                'data.platformObjId': platformObjId,
+                'data.playerObjId': playerObjId,
+                'data.applyAmount': topUpAmount,
+                type: proposalTypeData._id
+            })
+        }
+    ).then(
+        intentionProp => {
+            if (intentionProp) {
+                return intentionProp.proposalId;
+            } else {
+                return false;
+            }
+        }
+    );
+}
 
 var proto = dbPlayerTopUpRecordFunc.prototype;
 proto = Object.assign(proto, dbPlayerTopUpRecord);

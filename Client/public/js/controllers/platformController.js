@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-        var injectParams = ['$sce','$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies","$timeout"];
+    var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$timeout"];
 
-        var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies,$timeout) {
+    var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout) {
             var $translate = $filter('translate');
             var vm = this;
 
@@ -3056,6 +3056,9 @@ define(['js/app'], function (myApp) {
                                 link.append($('<i>', {
                                     'class': 'fa fa-umbrella margin-right-5 ' + (perm.PlayerPacketRainReward === false ? "text-danger" : "text-primary"),
                                 }));
+                                link.append($('<i>', {
+                                    'class': 'fa fa-bullseye margin-right-5 ' + (perm.PlayerLimitedOfferReward === false ? "text-danger" : "text-primary"),
+                                }));
 
                                 let link2 = $('<a class="prohibitGamePopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
                                     'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
@@ -3415,7 +3418,8 @@ define(['js/app'], function (myApp) {
                                     forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
                                     forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
                                     playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"},
-                                    PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"}
+                                    PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"},
+                                    PlayerLimitedOfferReward: {imgType: 'i', iconClass: "fa fa-bullseye"}
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
@@ -9893,8 +9897,11 @@ define(['js/app'], function (myApp) {
                 if (type == "rewardType") return true;
                 if (type && vm.platformRewardPageName) return false;
 
-                if (vm.platformRewardPageName == "newReward" || vm.platformRewardPageName == "updateReward"){
-                  return false}else{return true;}
+                if (vm.platformRewardPageName == "newReward" || vm.platformRewardPageName == "updateReward") {
+                    return false
+                } else {
+                    return true;
+                }
             }
             vm.clearCanApplyFromClient = function(){
               if(!vm.showReward.needApply){
@@ -9909,20 +9916,20 @@ define(['js/app'], function (myApp) {
                 vm.showRewardTypeId = null;
             }
 
-            vm.clearProvider = function(rowIndex){
-              for(var providers in vm.rewardParams.reward[rowIndex].providers){
-                if(vm.rewardParams.reward[rowIndex].providers[providers]=='ANY'){
-                    vm.rewardParams.reward[rowIndex].providers = [] ;
+        vm.clearProvider = function (rowIndex) {
+            for (var providers in vm.rewardParams.reward[rowIndex].providers) {
+                if (vm.rewardParams.reward[rowIndex].providers[providers] == 'ANY') {
+                    vm.rewardParams.reward[rowIndex].providers = [];
                 }
-              }
-              console.log(vm.rewardParams.reward[rowIndex]);
-              $scope.safeApply();
             }
+            console.log(vm.rewardParams.reward[rowIndex]);
+            $scope.safeApply();
+        }
 
-            vm.clearWeekDay = function(rowIndex){
-              vm.rewardParams.reward[rowIndex].repeatWeekDay = [];
-              $scope.safeApply();
-            }
+        vm.clearWeekDay = function (rowIndex) {
+            vm.rewardParams.reward[rowIndex].repeatWeekDay = [];
+            $scope.safeApply();
+        }
 
             vm.rewardWeeklyConsecutiveTopUpAddProvider = function () {
                 vm.rewardParams.providers = vm.rewardParams.providers || [];
@@ -9977,7 +9984,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardParams.reward = vm.rewardParams.reward.splice(data, 1)
                 }
             };
-            vm.updateLimitedOffersEdit = function (type, data, id) {
+        vm.updateLimitedOffersEdit = function (type, data, id) {
                 if (type == 'add') {
                   socketService.$socket($scope.AppSocket, 'generateObjectId', {}, function (result) {
                       var objectId = result.data
@@ -9988,9 +9995,9 @@ define(['js/app'], function (myApp) {
                       }
                   });
                 } else if (type == 'remove') {
-                    if(vm.rewardParams.reward){
-                        vm.rewardParams.reward = vm.rewardParams.reward.filter(item=>{
-                          return item._id != id;
+                    if (vm.rewardParams.reward) {
+                        vm.rewardParams.reward = vm.rewardParams.reward.filter(item => {
+                            return item._id != id;
                         })
                     }
                 }
@@ -9998,17 +10005,17 @@ define(['js/app'], function (myApp) {
             vm.weekDayList = {
               '1':'星期一',
               '2':'星期二',
-              '3':'星期三',
-              '4':'星期四',
-              '5':'星期五',
-              '6':'星期六',
-              '7':'星期日'
+                '3': '星期三',
+                '4': '星期四',
+                '5': '星期五',
+                '6': '星期六',
+                '7': '星期日'
             };
-            vm.endLoadWeekDay = function(){
-                $timeout(function(){
-                    $('.spicker').selectpicker('refresh');
-                 }, 0);
-            }
+        vm.endLoadWeekDay = function () {
+            $timeout(function () {
+                $('.spicker').selectpicker('refresh');
+            }, 0);
+        }
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
@@ -13269,267 +13276,267 @@ define(['js/app'], function (myApp) {
                 );
             });
 
-            vm.initPlatformOfficer = function (){
-                vm.platformOfficer = {};
-                // vm.addOfficerUrl = {};
-                vm.officerPromoteMessage = "";
-                vm.officerCreateMessage = "";
-                vm.officerUrlMessage = "";
-                vm.deletePromoteMessage = "";
-                vm.deleteOfficer = {};
-                vm.currentUrlEditSelect = {};
-                vm.urlTableEdit = false;
-                vm.getAllOfficer();
-                vm.getAllPromoteWay();
-                vm.getAllUrl();
-            }
+        vm.initPlatformOfficer = function () {
+            vm.platformOfficer = {};
+            // vm.addOfficerUrl = {};
+            vm.officerPromoteMessage = "";
+            vm.officerCreateMessage = "";
+            vm.officerUrlMessage = "";
+            vm.deletePromoteMessage = "";
+            vm.deleteOfficer = {};
+            vm.currentUrlEditSelect = {};
+            vm.urlTableEdit = false;
+            vm.getAllOfficer();
+            vm.getAllPromoteWay();
+            vm.getAllUrl();
+        }
 
-            vm.initClearMessage = function(){
-                vm.officerPromoteMessage = "";
-                vm.deletePromoteMessage = "";
-                vm.officerCreateMessage = "";
-                vm.deleteOfficerMessage = "";
-                vm.officerUrlMessage = "";
-            }
+        vm.initClearMessage = function () {
+            vm.officerPromoteMessage = "";
+            vm.deletePromoteMessage = "";
+            vm.officerCreateMessage = "";
+            vm.deleteOfficerMessage = "";
+            vm.officerUrlMessage = "";
+        }
 
-            vm.initCreateUrl = function () {
-                vm.urlTableAdd = true;
-                vm.addOfficerUrl = {};
-                vm.currentlyFocusedAnnouncement = vm.addOfficerUrl;
+        vm.initCreateUrl = function () {
+            vm.urlTableAdd = true;
+            vm.addOfficerUrl = {};
+            vm.currentlyFocusedAnnouncement = vm.addOfficerUrl;
+        };
+
+        vm.urlCancelEditOrAdd = function () {
+            vm.urlTableEdit = false;
+            vm.urlTableAdd = false;
+        }
+
+        vm.addPromoteWay = function () {
+            let officerPromoteMessageId = $("#officer-promote-message");
+            vm.initClearMessage();
+            let sendData = {
+                platformId: vm.selectedPlatform.id,
+                name: vm.platformOfficer.way
             };
+            socketService.$socket($scope.AppSocket, 'addPromoteWay', sendData, function () {
+                    console.log("PromoteWay created");
+                    vm.platformOfficer.way = "";
+                    vm.officerPromoteMessage = $translate('Approved');
+                    officerPromoteMessageId.css("color", "green");
+                    officerPromoteMessageId.css("font-weight", "bold");
+                    $scope.safeApply();
+                },
+                function (err) {
+                    officerPromoteMessageId.css("color", "red");
+                    officerPromoteMessageId.css("font-weight", "normal");
+                    vm.officerPromoteMessage = err.error.message;
+                    console.log(err);
+                    $scope.safeApply();
+                });
+        }
 
-            vm.urlCancelEditOrAdd = function () {
-                vm.urlTableEdit = false;
-                vm.urlTableAdd = false;
-            }
-
-            vm.addPromoteWay = function () {
-                let officerPromoteMessageId = $("#officer-promote-message");
-                vm.initClearMessage();
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    name: vm.platformOfficer.way
-                };
-                socketService.$socket($scope.AppSocket, 'addPromoteWay', sendData, function () {
-                        console.log("PromoteWay created");
-                        vm.platformOfficer.way = "";
-                        vm.officerPromoteMessage = $translate('Approved');
-                        officerPromoteMessageId.css("color", "green");
-                        officerPromoteMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        officerPromoteMessageId.css("color", "red");
-                        officerPromoteMessageId.css("font-weight", "normal");
-                        vm.officerPromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
-                    });
-            }
-
-            vm.getAllPromoteWay = function () {
-                vm.allPromoteWay = {};
-                let query = {
-                    platformId: vm.selectedPlatform.id
-                };
-                socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                        vm.allPromoteWay = data.data;
-                        console.log("vm.allPromoteWay", vm.allPromoteWay);
-                        $scope.safeApply();
-                    },
-                    function(err) {
-                        console.log(err);
-                    });
+        vm.getAllPromoteWay = function () {
+            vm.allPromoteWay = {};
+            let query = {
+                platformId: vm.selectedPlatform.id
             };
+            socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                    vm.allPromoteWay = data.data;
+                    console.log("vm.allPromoteWay", vm.allPromoteWay);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log(err);
+                });
+        };
 
-            vm.deletePromoteWay = function () {
-                let deletePromoteMessageId = $("#delete-promote-message");
-                vm.initClearMessage();
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    promoteWayId: vm.deleteOfficer.promoteWay
-                };
-                socketService.$socket($scope.AppSocket, 'deletePromoteWay', sendData, function () {
-                        console.log("PromoteWay deleted");
-                        vm.deleteOfficer.promoteWay = "";
-                        vm.deletePromoteMessage = $translate('Approved');
-                        deletePromoteMessageId.css("color", "green");
-                        deletePromoteMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        deletePromoteMessageId.css("color", "red");
-                        deletePromoteMessageId.css("font-weight", "normal");
-                        vm.deletePromoteMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
-                    });
-            }
+        vm.deletePromoteWay = function () {
+            let deletePromoteMessageId = $("#delete-promote-message");
+            vm.initClearMessage();
+            let sendData = {
+                platformId: vm.selectedPlatform.id,
+                promoteWayId: vm.deleteOfficer.promoteWay
+            };
+            socketService.$socket($scope.AppSocket, 'deletePromoteWay', sendData, function () {
+                    console.log("PromoteWay deleted");
+                    vm.deleteOfficer.promoteWay = "";
+                    vm.deletePromoteMessage = $translate('Approved');
+                    deletePromoteMessageId.css("color", "green");
+                    deletePromoteMessageId.css("font-weight", "bold");
+                    $scope.safeApply();
+                },
+                function (err) {
+                    deletePromoteMessageId.css("color", "red");
+                    deletePromoteMessageId.css("font-weight", "normal");
+                    vm.deletePromoteMessage = err.error.message;
+                    console.log(err);
+                    $scope.safeApply();
+                });
+        }
 
-            vm.createOfficer = function () {
-                vm.initClearMessage();
-                let createOfficerId = $("#officer-message");
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    name: vm.platformOfficer.name
-                };
-                socketService.$socket($scope.AppSocket, 'createOfficer', sendData, function () {
-                        console.log("Officer created");
-                        vm.platformOfficer.name = "";
-                        vm.officerCreateMessage = $translate('Approved');
-                        createOfficerId.css("color", "green");
-                        createOfficerId.css("font-weight", "bold");
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        createOfficerId.css("color", "red");
-                        createOfficerId.css("font-weight", "normal");
-                        vm.officerCreateMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
-                    });
-            }
+        vm.createOfficer = function () {
+            vm.initClearMessage();
+            let createOfficerId = $("#officer-message");
+            let sendData = {
+                platformId: vm.selectedPlatform.id,
+                name: vm.platformOfficer.name
+            };
+            socketService.$socket($scope.AppSocket, 'createOfficer', sendData, function () {
+                    console.log("Officer created");
+                    vm.platformOfficer.name = "";
+                    vm.officerCreateMessage = $translate('Approved');
+                    createOfficerId.css("color", "green");
+                    createOfficerId.css("font-weight", "bold");
+                    $scope.safeApply();
+                },
+                function (err) {
+                    createOfficerId.css("color", "red");
+                    createOfficerId.css("font-weight", "normal");
+                    vm.officerCreateMessage = err.error.message;
+                    console.log(err);
+                    $scope.safeApply();
+                });
+        }
 
-            vm.deleteOfficerById = function () {
-                let deleteOfficerMessageId = $("#delete-officer-message");
-                vm.initClearMessage();
-                let sendData = {
-                    officerId: vm.deleteOfficer.officerId
-                };
-                socketService.$socket($scope.AppSocket, 'deleteOfficer', sendData, function () {
-                        console.log("Officer deleted");
-                        vm.deleteOfficer.officerId = "";
-                        vm.deleteOfficerMessage = $translate('Approved');
-                        deleteOfficerMessageId.css("color", "green");
-                        deleteOfficerMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        deleteOfficerMessageId.css("color", "red");
-                        deleteOfficerMessageId.css("font-weight", "normal");
-                        vm.deleteOfficerMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
-                    });
-            }
+        vm.deleteOfficerById = function () {
+            let deleteOfficerMessageId = $("#delete-officer-message");
+            vm.initClearMessage();
+            let sendData = {
+                officerId: vm.deleteOfficer.officerId
+            };
+            socketService.$socket($scope.AppSocket, 'deleteOfficer', sendData, function () {
+                    console.log("Officer deleted");
+                    vm.deleteOfficer.officerId = "";
+                    vm.deleteOfficerMessage = $translate('Approved');
+                    deleteOfficerMessageId.css("color", "green");
+                    deleteOfficerMessageId.css("font-weight", "bold");
+                    $scope.safeApply();
+                },
+                function (err) {
+                    deleteOfficerMessageId.css("color", "red");
+                    deleteOfficerMessageId.css("font-weight", "normal");
+                    vm.deleteOfficerMessage = err.error.message;
+                    console.log(err);
+                    $scope.safeApply();
+                });
+        }
 
-            vm.getAllOfficer = function () {
-                vm.allOfficer = {};
-                let query = {
-                    platformId: vm.selectedPlatform.id
-                };
-                socketService.$socket($scope.AppSocket, 'getAllOfficer', query, function (data) {
+        vm.getAllOfficer = function () {
+            vm.allOfficer = {};
+            let query = {
+                platformId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'getAllOfficer', query, function (data) {
                     vm.allOfficer = data.data;
                     console.log("vm.allOfficer", vm.allOfficer);
                     $scope.safeApply();
                 },
-                function(err) {
+                function (err) {
                     console.log(err);
                 });
-            };
+        };
 
-            vm.pickOfficer = function(){
-                vm.platformOfficer.url = '';
-                $scope.safeApply();
-            };
+        vm.pickOfficer = function () {
+            vm.platformOfficer.url = '';
+            $scope.safeApply();
+        };
 
-            vm.addUrl = function () {
-                let officeraddUrlMessageId = $("#officer-addUrl-message");
-                vm.initClearMessage();
-                let sendData = {
-                    platformId: vm.selectedPlatform.id,
-                    officerId: vm.addOfficerUrl.officer,
-                    domain: vm.addOfficerUrl.url,
-                    way: vm.addOfficerUrl.promoteWay
-                };
-                vm.selectedOfficerUrl = null;
-                socketService.$socket($scope.AppSocket, 'addUrl', sendData, function () {
-                        console.log("Officer Url created");
-                        vm.getAllUrl();
-                        vm.addOfficerUrl.url = "";
-                        vm.addOfficerUrl.officer = '';
-                        vm.addOfficerUrl.promoteWay = '';
-                        vm.officerUrlMessage = $translate('Approved');
-                        officeraddUrlMessageId.css("color", "green");
-                        officeraddUrlMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        officeraddUrlMessageId.css("color", "red");
-                        officeraddUrlMessageId.css("font-weight", "normal");
-                        vm.officerUrlMessage = err.error.errorMessage;
-                        console.log(err);
-                        $scope.safeApply();
-                    });
+        vm.addUrl = function () {
+            let officeraddUrlMessageId = $("#officer-addUrl-message");
+            vm.initClearMessage();
+            let sendData = {
+                platformId: vm.selectedPlatform.id,
+                officerId: vm.addOfficerUrl.officer,
+                domain: vm.addOfficerUrl.url,
+                way: vm.addOfficerUrl.promoteWay
             };
+            vm.selectedOfficerUrl = null;
+            socketService.$socket($scope.AppSocket, 'addUrl', sendData, function () {
+                    console.log("Officer Url created");
+                    vm.getAllUrl();
+                    vm.addOfficerUrl.url = "";
+                    vm.addOfficerUrl.officer = '';
+                    vm.addOfficerUrl.promoteWay = '';
+                    vm.officerUrlMessage = $translate('Approved');
+                    officeraddUrlMessageId.css("color", "green");
+                    officeraddUrlMessageId.css("font-weight", "bold");
+                    $scope.safeApply();
+                },
+                function (err) {
+                    officeraddUrlMessageId.css("color", "red");
+                    officeraddUrlMessageId.css("font-weight", "normal");
+                    vm.officerUrlMessage = err.error.errorMessage;
+                    console.log(err);
+                    $scope.safeApply();
+                });
+        };
 
-            vm.deleteUrl = function () {
-                let officeraddUrlMessageId = $("#officer-addUrl-message");
-                vm.initClearMessage();
-                let sendData = {
-                    urlId: vm.currentUrlEditSelect.url._id,
-                };
-                vm.selectedOfficerUrl = null;
-                socketService.$socket($scope.AppSocket, 'deleteUrl', sendData, function () {
-                        console.log("Url deleted");
-                        vm.getAllUrl();
-                        vm.officerUrlMessage = $translate('Approved');
-                        officeraddUrlMessageId.css("color", "green");
-                        officeraddUrlMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        officeraddUrlMessageId.css("color", "red");
-                        officeraddUrlMessageId.css("font-weight", "normal");
-                        vm.officerUrlMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
-                    });
+        vm.deleteUrl = function () {
+            let officeraddUrlMessageId = $("#officer-addUrl-message");
+            vm.initClearMessage();
+            let sendData = {
+                urlId: vm.currentUrlEditSelect.url._id,
             };
+            vm.selectedOfficerUrl = null;
+            socketService.$socket($scope.AppSocket, 'deleteUrl', sendData, function () {
+                    console.log("Url deleted");
+                    vm.getAllUrl();
+                    vm.officerUrlMessage = $translate('Approved');
+                    officeraddUrlMessageId.css("color", "green");
+                    officeraddUrlMessageId.css("font-weight", "bold");
+                    $scope.safeApply();
+                },
+                function (err) {
+                    officeraddUrlMessageId.css("color", "red");
+                    officeraddUrlMessageId.css("font-weight", "normal");
+                    vm.officerUrlMessage = err.error.message;
+                    console.log(err);
+                    $scope.safeApply();
+                });
+        };
 
-            vm.updateUrl = function () {
-                let officeraddUrlMessageId = $("#officer-addUrl-message");
-                vm.initClearMessage();
-                let sendData = {
-                    urlId: vm.currentUrlEditSelect.url._id,
-                    domain:vm.currentUrlEditSelect.url.domain,
-                    officerId:vm.currentUrlEditSelect._id,
-                    way:vm.currentUrlEditSelect.url.way,
-                };
-                console.log("IAM HERE",sendData)
-                vm.selectedOfficerUrl = null;
-                socketService.$socket($scope.AppSocket, 'updateUrl', sendData, function () {
-                        console.log("Url updated");
-                        vm.getAllUrl();
-                        vm.officerUrlMessage = $translate('Approved');
-                        officeraddUrlMessageId.css("color", "green");
-                        officeraddUrlMessageId.css("font-weight", "bold");
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        vm.getAllUrl();
-                        officeraddUrlMessageId.css("color", "red");
-                        officeraddUrlMessageId.css("font-weight", "normal");
-                        vm.officerUrlMessage = err.error.message;
-                        console.log(err);
-                        $scope.safeApply();
-                    });
-            }
-
-            vm.getAllUrl = function () {
-                vm.allUrl = {};
-                let query = {
-                    platformId: vm.selectedPlatform.id
-                };
-                socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                        vm.allUrl = data.data;
-                        console.log("vm.allUrl", vm.allUrl);
-                        $scope.safeApply();
-                    },
-                    function(err) {
-                        console.log(err);
-                    });
+        vm.updateUrl = function () {
+            let officeraddUrlMessageId = $("#officer-addUrl-message");
+            vm.initClearMessage();
+            let sendData = {
+                urlId: vm.currentUrlEditSelect.url._id,
+                domain: vm.currentUrlEditSelect.url.domain,
+                officerId: vm.currentUrlEditSelect._id,
+                way: vm.currentUrlEditSelect.url.way,
             };
+            console.log("IAM HERE", sendData)
+            vm.selectedOfficerUrl = null;
+            socketService.$socket($scope.AppSocket, 'updateUrl', sendData, function () {
+                    console.log("Url updated");
+                    vm.getAllUrl();
+                    vm.officerUrlMessage = $translate('Approved');
+                    officeraddUrlMessageId.css("color", "green");
+                    officeraddUrlMessageId.css("font-weight", "bold");
+                    $scope.safeApply();
+                },
+                function (err) {
+                    vm.getAllUrl();
+                    officeraddUrlMessageId.css("color", "red");
+                    officeraddUrlMessageId.css("font-weight", "normal");
+                    vm.officerUrlMessage = err.error.message;
+                    console.log(err);
+                    $scope.safeApply();
+                });
+        }
+
+        vm.getAllUrl = function () {
+            vm.allUrl = {};
+            let query = {
+                platformId: vm.selectedPlatform.id
+            };
+            socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
+                    vm.allUrl = data.data;
+                    console.log("vm.allUrl", vm.allUrl);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log(err);
+                });
+        };
 
         };
         platformController.$inject = injectParams;

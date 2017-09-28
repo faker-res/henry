@@ -1334,34 +1334,79 @@ let dbPlayerReward = {
         })
     },
 
-    applyLimitedOffer: (platformObjId, playerName, limitedOfferObjId, adminInfo) => {
-        let playerObj;
-        let limitedOfferObj;
+    getLimitedOffers: (platformId) => {
+        let platformObj;
 
-        return dbConfig.collection_players.find({
-            platform: platformObjId,
-            name: playerName
-        }).populate({path: "platform", model: dbConfig.collection_platform}).then(
-            playerData => {
-                playerObj = playerData;
-
-                return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFER_REWARD}).lean();
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                platformObj = platformData;
+                return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
             }
         ).then(
             rewardTypeData => {
-                console.log('rewardTypeData', rewardTypeData);
                 let rewardEventQuery = {
-                    platform: playerObj.platform._id,
+                    platform: platformObj._id,
+                    type: rewardTypeData._id
+                };
+
+                return dbConfig.collection_rewardEvent.findOne(rewardEventQuery).lean();
+            }
+        ).then(eventData => eventData.param.reward);
+    },
+
+    applyLimitedOffers: (platformId, playerName, limitedOfferObjId, adminInfo) => {
+        let playerObj;
+        let limitedOfferObj;
+        let platformObj;
+
+        return dbConfig.collection_platform.findOne({
+            platformId: platformId
+        }).lean().then(
+            platformData => {
+                platformObj = platformData;
+
+                return dbConfig.collection_players.findOne({
+                    platform: platformObj._id,
+                    name: playerName
+                }).lean();
+            }
+        ).then(
+            playerData => {
+                playerObj = playerData;
+
+                //check if player is valid for reward
+                if (playerObj.permission.PlayerLimitedOfferReward === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Reward not applicable"
+                    });
+                }
+
+                return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
+            }
+        ).then(
+            rewardTypeData => {
+                let rewardEventQuery = {
+                    platform: platformObj._id,
                     type: rewardTypeData._id
                 };
 
                 return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
             }
         ).then(
-            v => {
+            eventData => {
+                eventData.map(e => {
+                    e.param.reward.map(f => {
+                        if (String(f._id) == String(limitedOfferObjId)) {
+                            limitedOfferObj = f;
+                        }
+                    })
+                });
+
                 return dbConfig.collection_proposalType.findOne({
-                    platformId: platformObjId,
-                    name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                    platformId: platformObj._id,
+                    name: constProposalType.PLAYER_LIMITED_OFFER_REWARD
                 }).lean();
             }
         ).then(
@@ -1380,8 +1425,9 @@ let dbPlayerReward = {
                         playerId: playerObj.playerId,
                         playerName: playerObj.name,
                         realName: playerObj.realName,
-                        platformObjId: playerObj.platform._id,
+                        platformObjId: platformObj._id,
                         limitedOfferObjId: limitedOfferObj._id,
+                        applyAmount: limitedOfferObj.offerPrice,
                         rewardAmount: limitedOfferObj.oriPrice - limitedOfferObj.offerPrice,
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
                         limitedOfferName: limitedOfferObj.name
