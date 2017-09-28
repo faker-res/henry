@@ -18,7 +18,7 @@ var localConfig = {
     paymentAPIServerUrl : "ws://localhost:9480",
     messageServerUrl: "ws://localhost:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://101.78.133.212:8566/acc",
+    paymentAPIUrl: "ws://101.78.133.212:8558/acc",
     smsAPIUrl: "ws://203.192.151.12:8560/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
     disableCPAPI: false,
