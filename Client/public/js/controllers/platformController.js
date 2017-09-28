@@ -2681,7 +2681,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
@@ -2693,38 +2693,38 @@ define(['js/app'], function (myApp) {
                                 return link.prop('outerHTML');
                             }
                         },
-                        {
-                            title: $translate('STATUS'), data: 'status',
-                            render: function (data, type, row) {
-                                var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
-                                var textClass = '';
-                                if (data == 4) {
-                                    textClass = "text-black";
-                                } else if (data == 5) {
-                                    textClass = "text-danger";
-                                } else if (data === 6) {
-                                    textClass = "text-warning";
-                                }
-
-                                return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text(showText)
-                                    .addClass(textClass)
-                                    .prop('outerHTML');
-                            },
-                            advSearch: true,
-                            filterConfig: {
-                                type: "dropdown",
-                                options: vm.allPlayersStatusKeys.map(function (status) {
-                                    return {
-                                        value: vm.allPlayersStatusString[status],
-                                        text: $translate(status)
-                                    };
-                                })
-                            },
-                            "sClass": ""
-                        },
+                        // {
+                        //     title: $translate('STATUS'), data: 'status',
+                        //     render: function (data, type, row) {
+                        //         var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
+                        //         var textClass = '';
+                        //         if (data == 4) {
+                        //             textClass = "text-black";
+                        //         } else if (data == 5) {
+                        //             textClass = "text-danger";
+                        //         } else if (data === 6) {
+                        //             textClass = "text-warning";
+                        //         }
+                        //
+                        //         return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                        //             'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                        //             .attr('data-row', JSON.stringify(row))
+                        //             .text(showText)
+                        //             .addClass(textClass)
+                        //             .prop('outerHTML');
+                        //     },
+                        //     advSearch: true,
+                        //     filterConfig: {
+                        //         type: "dropdown",
+                        //         options: vm.allPlayersStatusKeys.map(function (status) {
+                        //             return {
+                        //                 value: vm.allPlayersStatusString[status],
+                        //                 text: $translate(status)
+                        //             };
+                        //         })
+                        //     },
+                        //     "sClass": ""
+                        // },
                         {
                             // this object is use for column show
                             // credibility remark advsearch column's object will appear later in the code
