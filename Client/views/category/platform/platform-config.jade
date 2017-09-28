@@ -857,7 +857,7 @@
                                         tr(ng-repeat='(i, data) in vm.negativeRemarks')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.name}}
-                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name')
+                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name', ng-change='vm.updateRemarkInEdit("negative", "update", data._id)')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.score}}
                                                 input.form-control(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("negative", "update", data._id)')
@@ -880,7 +880,7 @@
                                         tr(ng-repeat='(i, data) in vm.positiveRemarks')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.name}}
-                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name')
+                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name', ng-change='vm.updateRemarkInEdit("positive", "update", data._id)')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.score}}
                                                 input.form-control(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("positive", "update", data._id)')
@@ -902,7 +902,7 @@
                                         tr(ng-repeat='(i, data) in vm.neutralRemarks')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.name}}
-                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name')
+                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.score}}
                                                 input.form-control(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
