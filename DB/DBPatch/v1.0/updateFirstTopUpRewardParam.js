@@ -332,6 +332,7 @@ db.rewardParam.insert({
         reward: {
             type: "Table",
             data: {
+                displayOrder: {type: "String", des: "Display Order"},
                 name: {type: "String", des: "Offer Name"},
                 oriPrice: {type: "Number", des: "Original Amount"},
                 offerPrice: {type: "Number", des: "Offer Amount"},
@@ -341,11 +342,14 @@ db.rewardParam.insert({
                 limitTime: {type: "Number", des: "Offer Amount"},
                 bet: {type: "Number", des: "Bet"},
                 providers: {type: "DBArray", action: "getAllGameProviders", field: "name", des: "Game Provider"},
+                hrs: {type: "String", des: "Start Hour"},
+                min: {type: "String", des: "Start Min"},
                 repeatWeekDay: {type: "Array", des: "Repeat Day"},
                 inStockDisplayTime: {type: "Number", des: "inStock DisplayTime"},
                 outStockDisplayTime: {type: "Number", des: "Out Of Stock DisplayTime"},
                 countDownTime: {type: "Number", des: "CountDown Time"},
-                imgUrl: {type: "String", des: "Image Url"}
+                imgUrl: {type: "String", des: "Image Url"},
+                status: {type: "Boolean", des: "Status"},
             },
             des: "Reward parameter"
         }

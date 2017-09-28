@@ -352,6 +352,12 @@ function socketActionPlatform(socketIO, socket) {
             let deleteRemarks = data.deleteRemarks || [];
             socketUtil.emitter(self.socket, dbPlayerCredibility.updateCredibilityRemarksInBulk, [data.platformObjId, addRemarks, updateRemarks, deleteRemarks], actionName, isValidData);
         },
+
+        getUpdateCredibilityLog: function getUpdateCredibilityLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.getUpdateCredibilityLog, [data.playerObjId], actionName, isValidData);
+        },
       
         generateObjectId: function generateObjectId(){
           let actionName = arguments.callee.name;
