@@ -940,5 +940,6 @@
   "CHOOSE_PROMOTE_WAY": "Choose Promote Way",
   "DELETE_OFFICER": "Delete Officer",
   "TOPUP_WECHAT": "weChat",
-  "TOPUP_ALIPAY": "AliPay"
+  "TOPUP_ALIPAY": "AliPay",
+  "CREDIBILITY_RECORD": "Credibility Records"
 }

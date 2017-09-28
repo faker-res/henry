@@ -870,7 +870,7 @@ function socketActionPlayer(socketIO, socket) {
         updatePlayerCredibilityRemark: function updatePlayerCredibilityRemark(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.remarks);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.platformObjId, data.playerObjId, data.remarks], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
         },
     };
     socketActionPlayer.actions = this.actions;

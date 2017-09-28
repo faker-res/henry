@@ -4686,6 +4686,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initPlayerCredibility = () => {
+                vm.credibilityRemarkComment = "";
                 vm.credibilityRemarkUpdateMessage = "";
                 vm.playerCredibilityRemarksUpdated = false;
                 vm.prepareCredibilityConfig().then(
@@ -4702,6 +4703,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         }
+                        vm.getPlayerCredibilityComment();
                         $scope.safeApply();
                     }
                 );
@@ -4718,7 +4720,8 @@ define(['js/app'], function (myApp) {
                 let sendQuery = {
                     platformObjId: vm.selectedSinglePlayer.platform,
                     playerObjId: vm.selectedSinglePlayer._id,
-                    remarks: selectedRemarks
+                    remarks: selectedRemarks,
+                    comment: vm.credibilityRemarkComment
                 };
 
                 socketService.$socket($scope.AppSocket, "updatePlayerCredibilityRemark", sendQuery, function (data) {
@@ -4732,6 +4735,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
 
             vm.submitResetPlayerPassword = function () {
                 console.log('here', {_id: vm.isOneSelectedPlayer()._id});
@@ -13539,6 +13543,30 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
                         vm.allUrl = data.data;
                         console.log("vm.allUrl", vm.allUrl);
+                        $scope.safeApply();
+                    },
+                    function(err) {
+                        console.log(err);
+                    });
+            };
+
+            vm.getPlayerCredibilityComment = function () {
+                vm.playerCredibilityComment = [];
+                let query = {
+                    playerObjId: vm.selectedSinglePlayer._id
+                };
+                socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
+                        vm.playerCredibilityComment = data.data;
+                        for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
+                            let log = vm.playerCredibilityComment[i];
+                            log.remarks$ = "";
+                            for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
+                                log.remarks$ += log.credibilityRemarkNames[j];
+                                j < (len-1) ? log.remarks$ += ", " : null;
+                            }
+                            log.createTime = new Date(log.createTime).toLocaleString();
+                        }
+                        console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
                         $scope.safeApply();
                     },
                     function(err) {
