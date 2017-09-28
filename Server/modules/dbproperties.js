@@ -137,6 +137,12 @@ let platformQuickPayGroupModel = db_admin.model('platformQuickPayGroup', platfor
 let playerCredibilityRemarkSchema = require('../schema/playerCredibilityRemark');
 let playerCredibilityRemarkModel = db_admin.model('playerCredibilityRemark', playerCredibilityRemarkSchema, 'playerCredibilityRemark');
 
+let csOfficerSchema = require('../schema/csOfficer');
+let csOfficerModel = db_admin.model('csOfficer', csOfficerSchema, 'csOfficer');
+
+let csPromoteWaySchema = require('../schema/csPromoteWay');
+let csPromoteWayModel = db_admin.model('csPromoteWay', csPromoteWaySchema, 'csPromoteWay');
+
 let promoCodeTypeSchema = require('./../schema/promoCodeType');
 let promoCodeTypeModel = db_admin.model('promoCodeType', promoCodeTypeSchema, 'promoCodeType');
 let promoCodeUserGroupSchema = require('./../schema/promoCodeUserGroup');
@@ -349,6 +355,9 @@ var dbProperties = {
     collection_geoIp: geoIpModel,
     collection_promoCodeType: promoCodeTypeModel,
     collection_promoCodeUserGroup: promoCodeUserGroupModel,
+
+    collection_csOfficer: csOfficerModel,
+    collection_csPromoteWay: csPromoteWayModel,
 
     //logs
     collection_playerMail: playerMailModel,

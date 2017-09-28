@@ -2670,3 +2670,11 @@ input[type='number'].leftALignNumber {
     display:inline-block;
     margin-right:10px;
 }
+
+.scrollRecord{
+  overflow-x:scroll;
+}
+
+.limitOffersTB td input[type='text']{
+  min-width: 85px;
+}
