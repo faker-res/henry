@@ -2681,9 +2681,9 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[9, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
                     columns: [
-                        {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
+                        // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
                             title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
