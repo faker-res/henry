@@ -48,6 +48,10 @@ const dbPaymentReconciliation = {
                 let pmsMismatchAmount = 0;
                 let fpmsMismatchCount = 0;
                 let fpmsMismatchAmount = 0;
+                let pmsCount = 0;
+                let pmsAmount = 0;
+                let fpmsCount = 0;
+                let fpmsAmount = 0;
 
                 for (let i = 0, len = proposalGroup.length; i < len; i++) {
                     let mismatchDataWithinGroup = getMismatchFromProposalGroup(proposalGroup[i], option);
@@ -56,6 +60,10 @@ const dbPaymentReconciliation = {
                     pmsMismatchAmount += mismatchDataWithinGroup.pmsMismatchAmount;
                     fpmsMismatchCount += mismatchDataWithinGroup.fpmsMismatchCount;
                     fpmsMismatchAmount += mismatchDataWithinGroup.fpmsMismatchAmount;
+                    pmsCount += mismatchDataWithinGroup.pmsCount;
+                    pmsAmount += mismatchDataWithinGroup.pmsAmount;
+                    fpmsCount += mismatchDataWithinGroup.fpmsCount;
+                    fpmsAmount += mismatchDataWithinGroup.fpmsAmount;
                 }
 
                 mismatches.sort(function (proposalA, proposalB) {
@@ -70,7 +78,11 @@ const dbPaymentReconciliation = {
                     pmsMismatchCount: pmsMismatchCount,
                     pmsMismatchAmount: pmsMismatchAmount,
                     fpmsMismatchCount: fpmsMismatchCount,
-                    fpmsMismatchAmount: fpmsMismatchAmount
+                    fpmsMismatchAmount: fpmsMismatchAmount,
+                    pmsCount: pmsCount,
+                    pmsAmount: pmsAmount,
+                    fpmsCount: fpmsCount,
+                    fpmsAmount: fpmsAmount
                 };
             }
         )
