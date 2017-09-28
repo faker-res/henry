@@ -9870,6 +9870,7 @@ let dbPlayerInfo = {
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
+
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
         let getPlayerProm = Promise.resolve("");
@@ -9924,13 +9925,26 @@ let dbPlayerInfo = {
         ).then(
             () => {
                 // handle index limit sortcol here
-                result.sort(function (a, b) {
-                    if (a._id > b._id) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                });
+                if (Object.keys(sortCol).length > 0){
+                    result.sort(function (a, b){
+                       if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]){
+                           return 1 * sortCol[Object.keys(sortCol)[0]];
+                       } else{
+                           return -1 * sortCol[Object.keys(sortCol)[0]];
+                       }
+                    });
+                }
+                else
+                {
+                    result.sort(function (a, b) {
+                        if (a._id > b._id) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
 
                 let outputResult = [];
 
