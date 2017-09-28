@@ -9870,6 +9870,7 @@ let dbPlayerInfo = {
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
+
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
         let getPlayerProm = Promise.resolve("");
@@ -9924,13 +9925,26 @@ let dbPlayerInfo = {
         ).then(
             () => {
                 // handle index limit sortcol here
-                result.sort(function (a, b) {
-                    if (a._id > b._id) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                });
+                if (Object.keys(sortCol).length > 0){
+                    result.sort(function (a, b){
+                       if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]){
+                           return 1 * sortCol[Object.keys(sortCol)[0]];
+                       } else{
+                           return -1 * sortCol[Object.keys(sortCol)[0]];
+                       }
+                    });
+                }
+                else
+                {
+                    result.sort(function (a, b) {
+                        if (a._id > b._id) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
 
                 let outputResult = [];
 
@@ -9999,9 +10013,11 @@ let dbPlayerInfo = {
 
         function getPlayerRecord(playerObjId) {
             let result = {_id: playerObjId};
-            playerObjId = {$in: [ObjectId(playerObjId), playerObjId]}
+            playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
             let manualTopUpTypeId = "";
+            let weChatTopUpTypeId = "";
+            let aliPayTopUpTypeId = "";
             let consumptionReturnTypeId = "";
 
             for (let i = 0, len = proposalType.length; i < len; i++) {
@@ -10012,21 +10028,16 @@ let dbPlayerInfo = {
                 else if (proposalTypeObj.name === constProposalType.PLAYER_MANUAL_TOP_UP) {
                     manualTopUpTypeId = proposalTypeObj._id.toString();
                 }
+                else if (proposalTypeObj.name === constProposalType.PLAYER_WECHAT_TOP_UP) {
+                    weChatTopUpTypeId = proposalTypeObj._id.toString();
+                }
+                else if (proposalTypeObj.name === constProposalType.PLAYER_ALIPAY_TOP_UP) {
+                    aliPayTopUpTypeId = proposalTypeObj._id.toString();
+                }
                 else if (proposalTypeObj.name === constProposalType.PLAYER_CONSUMPTION_RETURN) {
                     consumptionReturnTypeId = proposalTypeObj._id.toString();
                 }
             }
-
-            // let match$ = {
-            //     "data.playerObjId": playerObjId,
-            //     "createTime": {
-            //         "$gte": new Date(startTime),
-            //         "$lte": new Date(endTime)
-            //     },
-            //     "mainType": "TopUp",
-            //     "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-            // };
-            // console.log(match$);
 
             let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
                 {
@@ -10102,7 +10113,7 @@ let dbPlayerInfo = {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
                         },
-                        "type": consumptionReturnTypeId,
+                        "type": ObjectId(consumptionReturnTypeId),
                         "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
@@ -10123,7 +10134,7 @@ let dbPlayerInfo = {
                             "$lte": new Date(endTime)
                         },
                         "mainType": "Reward",
-                        "type": {"$ne": consumptionReturnTypeId},
+                        "type": {"$ne": ObjectId(consumptionReturnTypeId)},
                         "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
@@ -10246,6 +10257,8 @@ let dbPlayerInfo = {
                     result.topUpTimes = 0;
                     result.onlineTopUpAmount = 0;
                     result.manualTopUpAmount = 0;
+                    result.weChatTopUpAmount = 0;
+                    result.aliPayTopUpAmount = 0;
 
                     let topUpTypeDetail = data[1];
                     for (let i = 0, len = topUpTypeDetail.length; i < len; i++) {
@@ -10256,6 +10269,12 @@ let dbPlayerInfo = {
                         }
                         else if (topUpTypeRecord.typeId.toString() === manualTopUpTypeId) {
                             result.manualTopUpAmount = topUpTypeRecord.amount;
+                        }
+                        else if (topUpTypeRecord.typeId.toString() === weChatTopUpTypeId) {
+                            result.weChatTopUpAmount = topUpTypeRecord.amount;
+                        }
+                        else if (topUpTypeRecord.typeId.toString() === aliPayTopUpTypeId) {
+                            result.aliPayTopUpAmount = topUpTypeRecord.amount;
                         }
 
                         result.topUpAmount += topUpTypeRecord.amount;
@@ -10301,17 +10320,17 @@ let dbPlayerInfo = {
                         let relevant = true;
                         switch (query.bonusTimesOperator) {
                             case '>=':
-                                relevant = result.topUpTimes >= query.bonusTimesValue;
+                                relevant = result.bonusTimes >= query.bonusTimesValue;
                                 break;
                             case '=':
-                                relevant = result.topUpTimes = query.bonusTimesValue;
+                                relevant = result.bonusTimes = query.bonusTimesValue;
                                 break;
                             case '<=':
-                                relevant = result.topUpTimes <= query.bonusTimesValue;
+                                relevant = result.bonusTimes <= query.bonusTimesValue;
                                 break;
                             case 'range':
                                 if (query.bonusTimesValueTwo) {
-                                    relevant = result.topUpTimes >= query.bonusTimesValue && result.topUpTimes <= query.bonusTimesValueTwo;
+                                    relevant = result.bonusTimes >= query.bonusTimesValue && result.bonusTimes <= query.bonusTimesValueTwo;
                                 }
                                 break;
                         }

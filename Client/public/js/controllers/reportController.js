@@ -2004,8 +2004,8 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo
                 },
                 index: newSearch ? 0 : (vm.playerQuery.index || 0),
-                limit: vm.playerQuery.limit || 10,
-                sortCol: vm.playerQuery.sortCol || {},
+                limit: vm.playerQuery.limit || 5000,
+                sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
             };
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
@@ -2019,6 +2019,8 @@ define(['js/app'], function (myApp) {
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
                     item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
                     item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                    item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                    item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
                     item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
                     item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
@@ -2086,38 +2088,39 @@ define(['js/app'], function (myApp) {
         vm.drawPlayerReport = function (data, size, newSearch) {
             var tableOptions = {
                 data: data,
-                "order": vm.playerQuery.aaSorting,
+                "order": vm.playerQuery.aaSorting || [[15, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'name', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'credibilityRemarks', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'provider', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'playerLevel', 'aTargets': [1], bSortable: true},
+                    // {'sortCol': 'credibilityRemarks', 'aTargets': [2], bSortable: true},
+                    // {'sortCol': 'provider', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [14], bSortable: true},
                     {'sortCol': 'validConsumptionAmount', 'aTargets': [15], bSortable: true},
                     {'sortCol': 'consumptionBonusAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {
-                        title: $translate('*'),
-                        data: null,
-                        "className": 'expandPlayerReport expand',
-                        "orderable": false
-                    },
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('LEVEL'), data: "playerLevel$"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
-                    {title: $translate('LOBBY'), data: "provider$"},
+                    {title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport',
+                        render: function (data) {
+                                return "<a>" + data + "</a>";
+                        }},
                     {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$"},
+                    {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$"},
+                    {title: $translate('TOPUP_ALIPAY'), data: "aliPayTopUpAmount$"},
                     {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$"},
                     {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                     {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$"},
@@ -2126,10 +2129,10 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PROMOTION'), data: "rewardAmount$"},
                     {title: $translate('CONSUMPTION_RETURN_AMOUNT'), data: "consumptionReturnAmount$"},
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
                     {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$"},
                     {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$"},
-                    {title: $translate('COMPANY_PROFIT'), data: "profit$"}
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$"},
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
@@ -2196,10 +2199,10 @@ define(['js/app'], function (myApp) {
                     tr.addClass('shown');
                 }
             });
-            // $('#playerReportTable').off('order.dt');
-            // $('#playerReportTable').on('order.dt', function (event, a, b) {
-            //     vm.commonSortChangeHandler(a, 'playerQuery', vm.searchPlayerReport);
-            // });
+            $('#playerReportTable').off('order.dt');
+            $('#playerReportTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'playerQuery', vm.searchPlayerReport);
+            });
         };
 
         ///////draw Platform table inside player start///////

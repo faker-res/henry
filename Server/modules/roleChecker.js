@@ -401,6 +401,12 @@ var roleChecker = {
                 activatePromoCode: [],
                 applyPromoCode: [],
                 promoCodeAnalysis: ['getPromoCodeTypeByObjId']
+            },
+            "RegistrationUrlConfig":{
+                Read:['getAllOfficer','getAllPromoteWay','getAllUrl'],
+                Create:['createOfficer','addPromoteWay','addUrl'],
+                Delete:['deletePromoteWay','deleteOfficer','deleteUrl'],
+                Update:['updateUrl']
             }
         },
         Payment: {
