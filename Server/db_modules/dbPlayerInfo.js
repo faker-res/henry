@@ -1899,9 +1899,23 @@ let dbPlayerInfo = {
                     }
                     var logProm = dbLogger.createCreditChangeLog(playerId, data.platform, amount, type, data.validCredit, null, logData);
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
+
+                    let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
+                        dbconfig.collection_proposal,
+                        {_id: proposalData.data.limitedOfferObjId},
+                        {
+                            $set: {
+                                'data.topUpProposalObjId': proposalData._id,
+                                'data.topUpProposalId': proposalData.proposalId
+                            },
+                            $currentDate: {settleTime: true}
+                        },
+                        constShardKeys.collection_proposal
+                    );
+
                     //no need to check player reward task status now.
                     //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
-                    return Q.all([recordProm, logProm, levelProm]);
+                    return Q.all([recordProm, logProm, levelProm, limitedOfferProm]);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't update player credit."});

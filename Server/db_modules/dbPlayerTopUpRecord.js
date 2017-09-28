@@ -658,8 +658,14 @@ var dbPlayerTopUpRecord = {
 
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
-                    proposalData.limitedOfferObjId = limitedOfferTopUp._id;
-                    proposalData.remark += "(秒杀礼包: " + limitedOfferTopUp.proposalId + ")"
+                    if (limitedOfferTopUp._id) {
+                        proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
+                    }
+
+                    if (limitedOfferTopUp.expired) {
+                        proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
+                    }
                 }
 
                 let newProposal = {
@@ -778,7 +784,10 @@ var dbPlayerTopUpRecord = {
                 if (playerData && playerData.platform && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
                     player = playerData;
 
-                    return dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
+                    let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
+                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount);
+
+                    return Promise.all([firstTopUpProm, limitedOfferProm]);
                 } else {
                     return Q.reject({
                         status: constServerCode.INVALID_DATA,
@@ -788,7 +797,7 @@ var dbPlayerTopUpRecord = {
                 }
             }
         ).then(
-            isPlayerFirstTopUp => {
+            res => {
                 //disable bankaccount check for now
                 // if (inputData.lastBankcardNo.length > 0 && fromFPMS) {
                 //     let isCorrectBankAcc = player.bankCardGroup.banks.find((bankAcc) => {
@@ -803,7 +812,10 @@ var dbPlayerTopUpRecord = {
                 //     }
                 // }
 
-                var minTopUpAmount;
+                let minTopUpAmount;
+                let isPlayerFirstTopUp = res[0];
+                let limitedOfferTopUp = res[1];
+
                 if (isPlayerFirstTopUp) {
                     minTopUpAmount = 1;
                 } else {
@@ -826,7 +838,7 @@ var dbPlayerTopUpRecord = {
                     });
                 }
 
-                var proposalData = Object.assign({}, inputData);
+                let proposalData = Object.assign({}, inputData);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
                 proposalData.platformId = player.platform._id;
@@ -848,6 +860,19 @@ var dbPlayerTopUpRecord = {
                     name: player.name,
                     id: playerId
                 };
+
+                // Check Limited Offer Intention
+                if (limitedOfferTopUp) {
+                    if (limitedOfferTopUp._id) {
+                        proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
+                    }
+
+                    if (limitedOfferTopUp.expired) {
+                        proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
+                    }
+                }
+
                 var newProposal = {
                     creator: proposalData.creator,
                     data: proposalData,
@@ -1386,7 +1411,7 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime, limitedOfferObjId) {
+    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
         let player = null;
         let proposal = null;
         let request = null;
@@ -1397,15 +1422,22 @@ var dbPlayerTopUpRecord = {
                 playerData => {
                     if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
                         player = playerData;
-                        return dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
+
+                        let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
+                        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+
+                        return Promise.all([firstTopUpProm, limitedOfferProm]);
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
                     }
                 }
             ).then(
-                isPlayerFirstTopUp => {
+                res => {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
+                    let isPlayerFirstTopUp = res[0];
+                    let limitedOfferTopUp = res[1];
+
                     if (isPlayerFirstTopUp) {
                         minTopUpAmount = 1;
                     }
@@ -1437,7 +1469,6 @@ var dbPlayerTopUpRecord = {
                     proposalData.alipayName = alipayName;
                     proposalData.alipayAccount = alipayAccount;
                     proposalData.remark = remark;
-                    proposalData.limitedOfferObjId = limitedOfferObjId;
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
@@ -1450,6 +1481,19 @@ var dbPlayerTopUpRecord = {
                         name: player.name,
                         id: playerId
                     };
+
+                    // Check Limited Offer Intention
+                    if (limitedOfferTopUp) {
+                        if (limitedOfferTopUp._id) {
+                            proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
+                        }
+
+                        if (limitedOfferTopUp.expired) {
+                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
+                        }
+                    }
+
                     let newProposal = {
                         creator: proposalData.creator,
                         data: proposalData,
@@ -1591,134 +1635,152 @@ var dbPlayerTopUpRecord = {
         let proposal = null;
         let request = null;
 
-        return dbconfig.collection_players.findOne({playerId: playerId})
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).then(
-                playerData => {
-                    if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
-                        player = playerData;
-                        let minTopUpAmount = playerData.platform.minTopUpAmount || 0;
-                        if (amount < minTopUpAmount) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_TOP_UP_FAIL,
-                                name: "DataError",
-                                errorMessage: "Top up amount is not enough"
-                            });
-                        }
+            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean();
+        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
 
-                        // Check player permission
-                        if (!playerData.permission || playerData.permission.disableWechatPay) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_NO_PERMISSION,
-                                name: "DataError",
-                                errorMessage: "Player does not have this permission"
-                            });
-                        }
+        return Promise.all([playerProm, limitedOfferProm]).then(
+            res => {
+                player = res[0];
+                let limitedOfferTopUp = res[1];
 
-                        let proposalData = {};
-                        proposalData.playerId = playerId;
-                        proposalData.playerObjId = playerData._id;
-                        proposalData.platformId = playerData.platform._id;
-                        proposalData.playerLevel = playerData.playerLevel;
-                        proposalData.platform = playerData.platform.platformId;
-                        proposalData.playerName = playerData.name;
-                        proposalData.amount = Number(amount);
-                        proposalData.wechatName = wechatName;
-                        proposalData.wechatAccount = wechatAccount;
-                        proposalData.remark = remark;
-                        if (createTime) {
-                            proposalData.depositeTime = new Date(createTime);
-                        }
-                        proposalData.creator = entryType === "ADMIN" ? {
-                            type: 'admin',
-                            name: adminName,
-                            id: adminId
-                        } : {
-                            type: 'player',
-                            name: playerData.name,
-                            id: playerId
-                        };
-                        let newProposal = {
-                            creator: proposalData.creator,
-                            data: proposalData,
-                            entryType: constProposalEntryType[entryType],
-                            //createTime: createTime ? new Date(createTime) : new Date(),
-                            userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                        };
-                        return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
+                if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
+                    let minTopUpAmount = player.platform.minTopUpAmount || 0;
+                    if (amount < minTopUpAmount) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_TOP_UP_FAIL,
+                            name: "DataError",
+                            errorMessage: "Top up amount is not enough"
+                        });
                     }
-                    else {
-                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+
+                    // Check player permission
+                    if (!player.permission || player.permission.disableWechatPay) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            errorMessage: "Player does not have this permission"
+                        });
                     }
-                }
-            ).then(
-                proposalData => {
-                    if (proposalData) {
-                        proposal = proposalData;
-                        let cTime = createTime ? new Date(createTime) : new Date();
-                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
-                        let requestData = {
-                            proposalId: proposalData.proposalId,
-                            platformId: player.platform.platformId,
-                            userName: player.name,
-                            // realName: wechatName,//player.realName || "",
-                            aliPayAccount: 1,
-                            amount: amount,
-                            groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
-                            // remark: remark || player.name,
-                            createTime: cTimeString,
-                            operateType: entryType == "ADMIN" ? 1 : 0
-                        };
-                        if (remark) {
-                            requestData.remark = remark;
-                        }
-                        if (wechatAccount) {
-                            requestData.groupWechatList = [wechatAccount];
-                        }
-                        //console.log("requestData", requestData);
-                        return pmsAPI.payment_requestWeChatQRAccount(requestData);
+
+                    let proposalData = {};
+                    proposalData.playerId = playerId;
+                    proposalData.playerObjId = player._id;
+                    proposalData.platformId = player.platform._id;
+                    proposalData.playerLevel = player.playerLevel;
+                    proposalData.platform = player.platform.platformId;
+                    proposalData.playerName = player.name;
+                    proposalData.amount = Number(amount);
+                    proposalData.wechatName = wechatName;
+                    proposalData.wechatAccount = wechatAccount;
+                    proposalData.remark = remark;
+                    if (createTime) {
+                        proposalData.depositeTime = new Date(createTime);
                     }
-                    else {
-                        return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
-                    }
-                }
-            ).then(
-                requestData => {
-                    //console.log("request response", requestData);
-                    if (requestData && requestData.result) {
-                        request = requestData;
-                        //add request data to proposal and update proposal status to pending
-                        var updateData = {
-                            status: constProposalStatus.PENDING
-                        };
-                        updateData.data = Object.assign({}, proposal.data);
-                        updateData.data.requestId = requestData.result.requestId;
-                        updateData.data.proposalId = proposal.proposalId;
-                        updateData.data.weChatAccount = requestData.result.weChatAccount;
-                        updateData.data.weChatQRCode = requestData.result.weChatQRCode;
-                        if (requestData.result.validTime) {
-                            updateData.data.validTime = new Date(requestData.result.validTime);
-                        }
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: proposal._id, createTime: proposal.createTime},
-                            updateData,
-                            {new: true}
-                        );
-                    }
-                    else {
-                        return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
-                    }
-                }
-            ).then(
-                data => {
-                    return {
-                        proposalId: data.proposalId,
-                        requestId: request.result.requestId,
-                        status: data.status,
-                        result: request.result
+                    proposalData.creator = entryType === "ADMIN" ? {
+                        type: 'admin',
+                        name: adminName,
+                        id: adminId
+                    } : {
+                        type: 'player',
+                        name: player.name,
+                        id: playerId
                     };
+
+                    // Check Limited Offer Intention
+                    if (limitedOfferTopUp) {
+                        if (limitedOfferTopUp._id) {
+                            proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
+                        }
+
+                        if (limitedOfferTopUp.expired) {
+                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
+                        }
+                    }
+
+                    let newProposal = {
+                        creator: proposalData.creator,
+                        data: proposalData,
+                        entryType: constProposalEntryType[entryType],
+                        //createTime: createTime ? new Date(createTime) : new Date(),
+                        userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                    };
+                    return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
                 }
-            );
+                else {
+                    return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                }
+            }
+        ).then(
+            proposalData => {
+                if (proposalData) {
+                    proposal = proposalData;
+                    let cTime = createTime ? new Date(createTime) : new Date();
+                    let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                    let requestData = {
+                        proposalId: proposalData.proposalId,
+                        platformId: player.platform.platformId,
+                        userName: player.name,
+                        // realName: wechatName,//player.realName || "",
+                        aliPayAccount: 1,
+                        amount: amount,
+                        groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
+                        // remark: remark || player.name,
+                        createTime: cTimeString,
+                        operateType: entryType == "ADMIN" ? 1 : 0
+                    };
+                    if (remark) {
+                        requestData.remark = remark;
+                    }
+                    if (wechatAccount) {
+                        requestData.groupWechatList = [wechatAccount];
+                    }
+                    //console.log("requestData", requestData);
+                    return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                }
+                else {
+                    return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
+                }
+            }
+        ).then(
+            requestData => {
+                //console.log("request response", requestData);
+                if (requestData && requestData.result) {
+                    request = requestData;
+                    //add request data to proposal and update proposal status to pending
+                    var updateData = {
+                        status: constProposalStatus.PENDING
+                    };
+                    updateData.data = Object.assign({}, proposal.data);
+                    updateData.data.requestId = requestData.result.requestId;
+                    updateData.data.proposalId = proposal.proposalId;
+                    updateData.data.weChatAccount = requestData.result.weChatAccount;
+                    updateData.data.weChatQRCode = requestData.result.weChatQRCode;
+                    if (requestData.result.validTime) {
+                        updateData.data.validTime = new Date(requestData.result.validTime);
+                    }
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        updateData,
+                        {new: true}
+                    );
+                }
+                else {
+                    return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
+                }
+            }
+        ).then(
+            data => {
+                return {
+                    proposalId: data.proposalId,
+                    requestId: request.result.requestId,
+                    status: data.status,
+                    result: request.result
+                };
+            }
+        );
     },
 
 
@@ -1737,130 +1799,148 @@ var dbPlayerTopUpRecord = {
         let proposal = null;
         let request = null;
 
-        return dbconfig.collection_players.findOne({playerId: playerId})
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "quickPayGroup", model: dbconfig.collection_platformQuickPayGroup}).then(
-                playerData => {
-                    if (playerData && playerData.platform && playerData.quickPayGroup && playerData.quickPayGroup.quickpays && playerData.quickPayGroup.quickpays.length > 0) {
-                        player = playerData;
-                        let minTopUpAmount = playerData.platform.minTopUpAmount || 0;
-                        if (amount < minTopUpAmount) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_TOP_UP_FAIL,
-                                name: "DataError",
-                                errorMessage: "Top up amount is not enough"
-                            });
-                        }
-                        // if (!playerData.permission || !playerData.permission.quickpayTransaction) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_NO_PERMISSION,
-                        //         name: "DataError",
-                        //         errorMessage: "Player does not have this permission"
-                        //     });
-                        // }
-                        let proposalData = {};
-                        proposalData.playerId = playerId;
-                        proposalData.playerObjId = playerData._id;
-                        proposalData.platformId = playerData.platform._id;
-                        proposalData.playerLevel = playerData.playerLevel;
-                        proposalData.platform = playerData.platform.platformId;
-                        proposalData.playerName = playerData.name;
-                        proposalData.amount = Number(amount);
-                        proposalData.quickpayName = quickpayName;
-                        proposalData.quickpayAccount = quickpayAccount;
-                        proposalData.remark = remark;
-                        if (createTime) {
-                            proposalData.depositeTime = new Date(createTime);
-                        }
-                        proposalData.creator = entryType === "ADMIN" ? {
-                            type: 'admin',
-                            name: adminName,
-                            id: adminId
-                        } : {
-                            type: 'player',
-                            name: playerData.name,
-                            id: playerId
-                        };
-                        let newProposal = {
-                            creator: proposalData.creator,
-                            data: proposalData,
-                            entryType: constProposalEntryType[entryType],
-                            //createTime: createTime ? new Date(createTime) : new Date(),
-                            userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                        };
-                        return dbProposal.createProposalWithTypeName(playerData.platform._id, constProposalType.PLAYER_QUICKPAY_TOP_UP, newProposal);
+            .populate({path: "quickPayGroup", model: dbconfig.collection_platformQuickPayGroup}).lean();
+        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+
+        return Promise.all([playerProm, limitedOfferProm]).then(
+            res => {
+                player = res[0];
+                let limitedOfferTopUp = res[1];
+
+                if (player && player.platform && player.quickPayGroup && player.quickPayGroup.quickpays && player.quickPayGroup.quickpays.length > 0) {
+                    let minTopUpAmount = player.platform.minTopUpAmount || 0;
+                    if (amount < minTopUpAmount) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_TOP_UP_FAIL,
+                            name: "DataError",
+                            errorMessage: "Top up amount is not enough"
+                        });
                     }
-                    else {
-                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                    // if (!playerData.permission || !playerData.permission.quickpayTransaction) {
+                    //     return Q.reject({
+                    //         status: constServerCode.PLAYER_NO_PERMISSION,
+                    //         name: "DataError",
+                    //         errorMessage: "Player does not have this permission"
+                    //     });
+                    // }
+                    let proposalData = {};
+                    proposalData.playerId = playerId;
+                    proposalData.playerObjId = player._id;
+                    proposalData.platformId = player.platform._id;
+                    proposalData.playerLevel = player.playerLevel;
+                    proposalData.platform = player.platform.platformId;
+                    proposalData.playerName = player.name;
+                    proposalData.amount = Number(amount);
+                    proposalData.quickpayName = quickpayName;
+                    proposalData.quickpayAccount = quickpayAccount;
+                    proposalData.remark = remark;
+                    if (createTime) {
+                        proposalData.depositeTime = new Date(createTime);
                     }
-                }
-            ).then(
-                proposalData => {
-                    if (proposalData) {
-                        proposal = proposalData;
-                        let cTime = createTime ? new Date(createTime) : new Date();
-                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
-                        let requestData = {
-                            proposalId: proposalData.proposalId,
-                            platformId: player.platform.platformId,
-                            userName: player.name,
-                            realName: quickpayName || player.realName || "",
-                            amount: amount,
-                            groupMfbList: player.quickPayGroup ? player.quickPayGroup.quickpays : [],
-                            remark: quickpayName || player.realName || "",
-                            // createTime: cTimeString,
-                            operateType: entryType == "ADMIN" ? 1 : 0
-                        };
-                        if (quickpayAccount) {
-                            requestData.groupQuickpayList = [quickpayAccount];
-                        }
-                        //console.log("requestData", requestData);
-                        return pmsAPI.payment_requestMfbAccount(requestData);
-                    }
-                    else {
-                        return Q.reject({name: "DataError", errorMessage: "Cannot create quickpay top up proposal"});
-                    }
-                }
-            ).then(
-                requestData => {
-                    //console.log("request response", requestData);
-                    if (requestData && requestData.result) {
-                        request = requestData;
-                        //add request data to proposal and update proposal status to pending
-                        var updateData = {
-                            status: constProposalStatus.PENDING
-                        };
-                        updateData.data = Object.assign({}, proposal.data);
-                        updateData.data.requestId = requestData.result.requestId;
-                        updateData.data.proposalId = proposal.proposalId;
-                        updateData.data.mfbAccount = requestData.result.mfbAccount;
-                        requestData.result.mfbQRCode = requestData.result.mfbQRCode || "";
-                        updateData.data.mfbQRCode = requestData.result.mfbQRCode;
-                        updateData.data.createTime = requestData.result.createTime;
-                        if (requestData.result.validTime) {
-                            updateData.data.validTime = new Date(requestData.result.validTime);
-                        }
-                        // requestData.result.quickpayName = quickpayName;
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: proposal._id, createTime: proposal.createTime},
-                            updateData,
-                            {new: true}
-                        );
-                    }
-                    else {
-                        return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
-                    }
-                }
-            ).then(
-                data => {
-                    return {
-                        proposalId: data.proposalId,
-                        requestId: request.result.requestId,
-                        status: data.status,
-                        result: request.result
+                    proposalData.creator = entryType === "ADMIN" ? {
+                        type: 'admin',
+                        name: adminName,
+                        id: adminId
+                    } : {
+                        type: 'player',
+                        name: player.name,
+                        id: playerId
                     };
+
+                    // Check Limited Offer Intention
+                    if (limitedOfferTopUp) {
+                        if (limitedOfferTopUp._id) {
+                            proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
+                        }
+
+                        if (limitedOfferTopUp.expired) {
+                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
+                        }
+                    }
+
+                    let newProposal = {
+                        creator: proposalData.creator,
+                        data: proposalData,
+                        entryType: constProposalEntryType[entryType],
+                        //createTime: createTime ? new Date(createTime) : new Date(),
+                        userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                    };
+                    return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_QUICKPAY_TOP_UP, newProposal);
                 }
-            );
+                else {
+                    return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                }
+            }
+        ).then(
+            proposalData => {
+                if (proposalData) {
+                    proposal = proposalData;
+                    let cTime = createTime ? new Date(createTime) : new Date();
+                    let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                    let requestData = {
+                        proposalId: proposalData.proposalId,
+                        platformId: player.platform.platformId,
+                        userName: player.name,
+                        realName: quickpayName || player.realName || "",
+                        amount: amount,
+                        groupMfbList: player.quickPayGroup ? player.quickPayGroup.quickpays : [],
+                        remark: quickpayName || player.realName || "",
+                        // createTime: cTimeString,
+                        operateType: entryType == "ADMIN" ? 1 : 0
+                    };
+                    if (quickpayAccount) {
+                        requestData.groupQuickpayList = [quickpayAccount];
+                    }
+                    //console.log("requestData", requestData);
+                    return pmsAPI.payment_requestMfbAccount(requestData);
+                }
+                else {
+                    return Q.reject({name: "DataError", errorMessage: "Cannot create quickpay top up proposal"});
+                }
+            }
+        ).then(
+            requestData => {
+                //console.log("request response", requestData);
+                if (requestData && requestData.result) {
+                    request = requestData;
+                    //add request data to proposal and update proposal status to pending
+                    var updateData = {
+                        status: constProposalStatus.PENDING
+                    };
+                    updateData.data = Object.assign({}, proposal.data);
+                    updateData.data.requestId = requestData.result.requestId;
+                    updateData.data.proposalId = proposal.proposalId;
+                    updateData.data.mfbAccount = requestData.result.mfbAccount;
+                    requestData.result.mfbQRCode = requestData.result.mfbQRCode || "";
+                    updateData.data.mfbQRCode = requestData.result.mfbQRCode;
+                    updateData.data.createTime = requestData.result.createTime;
+                    if (requestData.result.validTime) {
+                        updateData.data.validTime = new Date(requestData.result.validTime);
+                    }
+                    // requestData.result.quickpayName = quickpayName;
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposal._id, createTime: proposal.createTime},
+                        updateData,
+                        {new: true}
+                    );
+                }
+                else {
+                    return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
+                }
+            }
+        ).then(
+            data => {
+                return {
+                    proposalId: data.proposalId,
+                    requestId: request.result.requestId,
+                    status: data.status,
+                    result: request.result
+                };
+            }
+        );
     },
 
     cancelQuickpayTopup: function (playerId, proposalId) {
@@ -1919,13 +1999,17 @@ function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
                 'data.platformObjId': platformObjId,
                 'data.playerObjId': playerObjId,
                 'data.applyAmount': topUpAmount,
+                'data.topUpProposalObjId': {$exists: false},
                 type: proposalTypeData._id
-            })
+            }).sort({createTime: -1}).lean();
         }
     ).then(
         intentionProp => {
             if (intentionProp) {
-                return intentionProp.proposalId;
+                return intentionProp.data.expirationTime.getTime() >= new Date().getTime() ? intentionProp : {
+                    proposalId: intentionProp.proposalId,
+                    expired: true
+                };
             } else {
                 return false;
             }

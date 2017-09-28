@@ -1,4 +1,5 @@
 const Q = require("q");
+const moment = require('moment-timezone');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -1406,7 +1407,7 @@ let dbPlayerReward = {
 
                 return dbConfig.collection_proposalType.findOne({
                     platformId: platformObj._id,
-                    name: constProposalType.PLAYER_LIMITED_OFFER_REWARD
+                    name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
                 }).lean();
             }
         ).then(
@@ -1430,7 +1431,8 @@ let dbPlayerReward = {
                         applyAmount: limitedOfferObj.offerPrice,
                         rewardAmount: limitedOfferObj.oriPrice - limitedOfferObj.offerPrice,
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
-                        limitedOfferName: limitedOfferObj.name
+                        limitedOfferName: limitedOfferObj.name,
+                        expirationTime: moment().add(30, 'm').toDate()
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
