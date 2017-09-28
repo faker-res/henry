@@ -792,6 +792,8 @@
   "MERCHANT_GROUP": "Merchant Group",
   "topupOnline":"Online Topup",
   "topupManual":"Manual Topup",
+  "TOPUPONLINE":"Online Topup",
+  "TOPUPMANUAL":"Manual Topup",
   "ADD_PLAYER_TO_BANKCARD_GROUP":"Add player to bank card group",
   "ADD_PLAYER_TO_MERCHANT_GROUP":"Add player to merchant group",
   "ADD_PLAYER":"Add Player",
