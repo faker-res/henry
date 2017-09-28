@@ -552,13 +552,25 @@ include modalGameCreditLog
                         div.col-md-4(style='width:40%;')
                             label {{'REMARKS' | translate}}:
                             div
-                                textarea.form-control(style="max-width: 90%; overflow: auto; margin-bottom: 12px;", rows="15", ng-disabled="", ng-model="", ng-change="", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
+                                textarea.form-control(style="max-width: 90%; overflow: auto; margin-bottom: 12px;", rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
                         div.col-md-4(style='width:60%;')
                             label {{'CREDIBILITY_RECORD' | translate}}
                             .well
                                 div(align="center")
-
-
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"TIME" | translate}}
+                                                th {{"CREDIBILITY" | translate}}
+                                                th {{"remark" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                                                td(style= "border: 1px solid #0099CC")
+                                                    text {{data.createTime}}
+                                                td(style="text-align:center;border: 1px solid #0099CC")
+                                                    text {{data.remarks$}}
+                                                td(style = "background-color:white;border: 1px solid #0099CC")
+                                                    text {{data.comment}}
 
 #modalPlayerExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:95%;')

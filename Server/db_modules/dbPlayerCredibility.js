@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const errorUtils = require("./../modules/errorUtils");
 
 let dbconfig = require('./../modules/dbproperties');
 
@@ -383,7 +384,7 @@ let dbPlayerCredibility = {
 
     createUpdateCredibilityLog: (platform, player, remarks, comment) => {
         comment = comment || "";
-        return dbconfig.collection_playerCredibilityRemark.find({_id: {$in: [remarks]}}).lean().then(
+        return dbconfig.collection_playerCredibilityRemark.find({_id: {$in: remarks}}).lean().then(
             remarksData => {
                 let credibilityRemarkNames = [];
                 for (let i = 0, len = remarksData.length; i < len; i++) {
@@ -401,7 +402,7 @@ let dbPlayerCredibility = {
     },
 
     getUpdateCredibilityLog: (playerObjId) => {
-        return dbconfig.collection_playerCredibilityUpdateLog.find({player: playerObjId}).lean();
+        return dbconfig.collection_playerCredibilityUpdateLog.find({player: playerObjId}).sort({_id: -1}).lean();
     }
 };
 
