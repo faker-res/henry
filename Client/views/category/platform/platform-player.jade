@@ -478,7 +478,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.playerNewPassword', data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerCredibilityRemarks.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -544,6 +544,21 @@ include modalGameCreditLog
                                                     text {{data.score}}
                                                 td
                                                     input.selectRemark(type="checkbox", ng-model="data.selected")
+
+
+
+                .panel.panel-primary
+                    .panel-body
+                        div.col-md-4(style='width:40%;')
+                            label {{'REMARKS' | translate}}:
+                            div
+                                textarea.form-control(style="max-width: 90%; overflow: auto; margin-bottom: 12px;", rows="15", ng-disabled="", ng-model="", ng-change="", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
+                        div.col-md-4(style='width:60%;')
+                            label {{'CREDIBILITY_RECORD' | translate}}
+                            .well
+                                div(align="center")
+
+
 
 #modalPlayerExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:95%;')
