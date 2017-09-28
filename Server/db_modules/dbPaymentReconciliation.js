@@ -36,10 +36,10 @@ const dbPaymentReconciliation = {
 
                     let proposalProm = dbconfig.collection_proposal.find(proposalQuery, {proposalId: 1, "data.amount": 1, createTime: 1, amount:1}).lean();
 
-                    allProm.push([pmsProm, proposalProm]);
+                    allProm.push(Promise.all([pmsProm, proposalProm]));
                 }
 
-                return Promise.all(allProm)
+                return Promise.all(allProm);
             }
         ).then(
             proposalGroup => {
