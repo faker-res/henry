@@ -379,6 +379,29 @@ let dbPlayerCredibility = {
                 + (playerLevelScore * ratios.playerLevel)
                 + (winRatioScore * ratios.winRatio)) / 100;
         }
+    },
+
+    createUpdateCredibilityLog: (platform, player, remarks, comment) => {
+        comment = comment || "";
+        return dbconfig.collection_playerCredibilityRemark.find({_id: {$in: [remarks]}}).lean().then(
+            remarksData => {
+                let credibilityRemarkNames = [];
+                for (let i = 0, len = remarksData.length; i < len; i++) {
+                    credibilityRemarkNames.push(remarksData[i].name);
+                }
+
+                return dbconfig.collection_playerCredibilityUpdateLog({
+                    platform: platform,
+                    player: player,
+                    credibilityRemarkNames: credibilityRemarkNames,
+                    comment: comment
+                }).save().then().catch(errorUtils.reportError);
+            }
+        )
+    },
+
+    getUpdateCredibilityLog: (playerObjId) => {
+        return dbconfig.collection_playerCredibilityUpdateLog.find({player: playerObjId}).lean();
     }
 };
 
