@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-        var injectParams = ['$sce','$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies","$timeout"];
+    var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$timeout"];
 
-        var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies,$timeout) {
+    var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout) {
             var $translate = $filter('translate');
             var vm = this;
 
@@ -4714,21 +4714,21 @@ define(['js/app'], function (myApp) {
                 );
             };
 
-            vm.checkAnyPlayerRemarkRemoved = () => {
-                let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
-                for (let i = 0; i < playerRemarksId.length; i++) {
-                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                        if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
-                            if (vm.credibilityRemarks[j].selected !== true) {
-                                vm.somePlayerRemarksRemoved = true;
-                                return;
-                            }
-                            break;
+        vm.checkAnyPlayerRemarkRemoved = () => {
+            let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
+            for (let i = 0; i < playerRemarksId.length; i++) {
+                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                    if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
+                        if (vm.credibilityRemarks[j].selected !== true) {
+                            vm.somePlayerRemarksRemoved = true;
+                            return;
                         }
+                        break;
                     }
                 }
-                vm.somePlayerRemarksRemoved = false;
-            };
+            }
+            vm.somePlayerRemarksRemoved = false;
+        };
 
             vm.submitRemarkUpdate = () => {
                 let selectedRemarks = [];
@@ -9532,21 +9532,21 @@ define(['js/app'], function (myApp) {
                 //vm.showRewardTypeData.condition.condition = {};
                 $scope.safeApply();
             }
-            vm.getFullDate = function(num){
-              if(num<10){
-                return '0'+num;
-              }else{
-                return ''+num+'';
-              }
+        vm.getFullDate = function (num) {
+            if (num < 10) {
+                return '0' + num;
+            } else {
+                return '' + num + '';
             }
+        }
             vm.rewardTabClicked = function (callback) {
                 vm.dayHrs = {};
                 vm.dayMin = {};
-                for(var i=0;i <24;i++){
-                  vm.dayHrs[i] = vm.getFullDate(i);
+                for (var i = 0; i < 24; i++) {
+                    vm.dayHrs[i] = vm.getFullDate(i);
                 }
-                for(var i=0;i <60;i++){
-                  vm.dayMin[i] = vm.getFullDate(i);
+                for (var i = 0; i < 60; i++) {
+                    vm.dayMin[i] = vm.getFullDate(i);
                 }
                 if (!vm.selectedPlatform) return;
                 if (!authService.checkViewPermission('Platform', 'Reward', 'Read')) {
@@ -10038,20 +10038,20 @@ define(['js/app'], function (myApp) {
                 }
             };
             vm.weekDayList = {
-              '1':'Mon',
-              '2':'Tue',
-              '3':'Wed',
-              '4':'Thu',
-              '5':'Fri',
-              '6':'Sat',
-              '7':'Sun'
+                '1': 'Mon',
+                '2': 'Tue',
+                '3': 'Wed',
+                '4': 'Thu',
+                '5': 'Fri',
+                '6': 'Sat',
+                '7': 'Sun'
             };
 
-            vm.endLoadWeekDay = function(){
-                $timeout(function(){
-                    $('.spicker').selectpicker('refresh');
-                 }, 0);
-            };
+        vm.endLoadWeekDay = function () {
+            $timeout(function () {
+                $('.spicker').selectpicker('refresh');
+            }, 0);
+        };
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
@@ -13559,44 +13559,44 @@ define(['js/app'], function (myApp) {
                 });
         }
 
-            vm.getAllUrl = function () {
-                vm.allUrl = {};
-                let query = {
-                    platformId: vm.selectedPlatform.id
-                };
-                socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                        vm.allUrl = data.data;
-                        console.log("vm.allUrl", vm.allUrl);
-                        $scope.safeApply();
-                    },
-                    function(err) {
-                        console.log(err);
-                    });
+        vm.getAllUrl = function () {
+            vm.allUrl = {};
+            let query = {
+                platformId: vm.selectedPlatform.id
             };
+            socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
+                    vm.allUrl = data.data;
+                    console.log("vm.allUrl", vm.allUrl);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log(err);
+                });
+        };
 
-            vm.getPlayerCredibilityComment = function () {
-                vm.playerCredibilityComment = [];
-                let query = {
-                    playerObjId: vm.selectedSinglePlayer._id
-                };
-                socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
-                        vm.playerCredibilityComment = data.data;
-                        for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
-                            let log = vm.playerCredibilityComment[i];
-                            log.remarks$ = "";
-                            for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
-                                log.remarks$ += log.credibilityRemarkNames[j];
-                                j < (len-1) ? log.remarks$ += ", " : null;
-                            }
-                            log.createTime = new Date(log.createTime).toLocaleString();
-                        }
-                        console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
-                        $scope.safeApply();
-                    },
-                    function(err) {
-                        console.log(err);
-                    });
+        vm.getPlayerCredibilityComment = function () {
+            vm.playerCredibilityComment = [];
+            let query = {
+                playerObjId: vm.selectedSinglePlayer._id
             };
+            socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
+                    vm.playerCredibilityComment = data.data;
+                    for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
+                        let log = vm.playerCredibilityComment[i];
+                        log.remarks$ = "";
+                        for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
+                            log.remarks$ += log.credibilityRemarkNames[j];
+                            j < (len - 1) ? log.remarks$ += ", " : null;
+                        }
+                        log.createTime = new Date(log.createTime).toLocaleString();
+                    }
+                    console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log(err);
+                });
+        };
 
         };
         platformController.$inject = injectParams;

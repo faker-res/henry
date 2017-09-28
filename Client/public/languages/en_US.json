@@ -502,9 +502,8 @@
   "NO_RECORD":"No Record",
   "BANK_NAME":"Bank Name",
   "BANK_BRANCH":"Bank Branch",
-
-  "ONLINE_PAYMENT_MISMATCH_REPORT":"Online Payment Mismatch Report",
-  "SYSTEM_THAT_MISSING":"Mismatch Occurrence System",
+  "ONLINE_PAYMENT_MISMATCH_REPORT": "Online Payment Mismatch Report",
+  "SYSTEM_THAT_MISSING": "Mismatch Occurrence System",
   "TOPUP_REPORT":"Top Up Report",
   "PROPOSAL_REPORT":"Proposal Report",
   "OPERATION_REPORT":"Operation Report",
