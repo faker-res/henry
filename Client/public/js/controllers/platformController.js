@@ -4688,6 +4688,7 @@ define(['js/app'], function (myApp) {
             vm.initPlayerCredibility = () => {
                 vm.credibilityRemarkComment = "";
                 vm.credibilityRemarkUpdateMessage = "";
+                vm.somePlayerRemarksRemoved = false;
                 vm.playerCredibilityRemarksUpdated = false;
                 vm.prepareCredibilityConfig().then(
                     () => {
@@ -4707,6 +4708,22 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 );
+            };
+
+            vm.checkAnyPlayerRemarkRemoved = () => {
+                let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
+                for (let i = 0; i < playerRemarksId.length; i++) {
+                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                        if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
+                            if (vm.credibilityRemarks[j].selected !== true) {
+                                vm.somePlayerRemarksRemoved = true;
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+                vm.somePlayerRemarksRemoved = false;
             };
 
             vm.submitRemarkUpdate = () => {
