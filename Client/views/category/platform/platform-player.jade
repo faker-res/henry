@@ -141,9 +141,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'FeedbackHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowFeedbackRecord()')
             text {{"Feedback History" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
-            text {{"Permission History" | translate}}
-            img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
+        //    text {{"Permission History" | translate}}
+        //    img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'mailLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initMailLog()', data-target='#modalMailLog')
             text {{"Mail Log" | translate}}
             img.img-edit
