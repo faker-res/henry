@@ -71,7 +71,7 @@ let returnData = {
     }
 };
 
-const pmsAPI = {
+const pmsFakeAPI = {
 
     /*
      * function name format: <service>_<functionName>
@@ -286,4 +286,4 @@ const pmsAPI = {
 
 };
 
-module.exports = pmsAPI;
+module.exports = pmsFakeAPI;
