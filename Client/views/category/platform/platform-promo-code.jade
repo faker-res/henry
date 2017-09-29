@@ -423,6 +423,24 @@
                                 // before edit enabled
                                 tr(ng-repeat='name in vm.selectedPromoCodeUserGroup.playerNames', ng-if='!vm.promoCodeUserGroupPlayerEdit')
                                     td {{name}}
+                                    td
+                                        button.btn.btn-primary.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=true")
+                                            i.fa.fa-pencil-square-o
+                                            text {{'EDIT' | translate}}
+                                        button.btn.btn-danger.common-button(ng-click="vm.selectedPromoCodeUserGroup.playerNames.splice($index, 1)")
+                                            i.fa.fa-trash
+                                            text {{'DELETE' | translate}}
+                                // after edit enabled
+                                tr(ng-repeat='name in vm.selectedPromoCodeUserGroup.playerNames', ng-if='vm.promoCodeUserGroupPlayerEdit')
+                                    td
+                                        input.form-control(type="text", ng-model="vm.selectedPromoCodeUserGroup.playerNames[$index]")
+                                    td
+                                        button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
+                                            i.fa.fa-floppy-o
+                                            text {{'SAVE' | translate}}
+                                        button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
+                                            i.fa.fa-times
+                                            text {{'CANCEL' | translate}}
                                 tr(ng-if='vm.promoCodeUserGroupEdit')
                                     td(colspan=2)
                                         strong {{'ADD_PLAYER' | translate}}
