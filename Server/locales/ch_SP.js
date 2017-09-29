@@ -91,7 +91,7 @@ var simplifiedChinese = {
     "Error finding player": "无法找到玩家",
     "Error getting platform reward data": "无法找到奖励数据",
     "Error creating proposal": "无法创建提案",
-    "The player already has this reward. Not Valid for the reward.": "玩家已申请该奖励",
+    "The player already has this reward. Not Valid for the reward.": "不符合领取",
     "This top up record has been used": "该充值记录已被使用",
     "Player is not enable": "用户没有发现或无效密码",
     "Player does not have enough credit.": "玩家额度不够",

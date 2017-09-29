@@ -358,7 +358,7 @@ function socketActionPlatform(socketIO, socket) {
             let isValidData = Boolean(data && data.playerObjId);
             socketUtil.emitter(self.socket, dbPlayerCredibility.getUpdateCredibilityLog, [data.playerObjId], actionName, isValidData);
         },
-      
+
         generateObjectId: function generateObjectId(){
           let actionName = arguments.callee.name;
           socketUtil.emitter(self.socket, dbPlatform.generateObjectId, [], actionName, true);

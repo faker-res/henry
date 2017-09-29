@@ -73,6 +73,31 @@ const dbPlayerUtility = {
             }
         );
     },
+
+    /**
+     * Enforce some API calls can only be execute once concurrently, typically when applying rewards
+     * @param playerObjId
+     * @param stateName
+     * @returns {Promise|Promise.<TResult>}
+     */
+    setPlayerState: (playerObjId, stateName) => {
+        let matchQ = {player: playerObjId};
+
+        return dbconfig.collection_playerState.findOne({player: playerObjId}).then(
+            stateRec => {
+                if (!stateRec) {
+                    return new dbconfig.collection_playerState(matchQ).save();
+                } else {
+                    matchQ[stateName] = {$lt: new Date() - 1000};
+                    let updateQChild = {};
+                    updateQChild[stateName] = true;
+                    let updateQ = {$currentDate: updateQChild};
+
+                    return dbconfig.collection_playerState.findOneAndUpdate(matchQ, updateQ, {new: true});
+                }
+            }
+        )
+    },
 };
 
 module.exports = dbPlayerUtility;

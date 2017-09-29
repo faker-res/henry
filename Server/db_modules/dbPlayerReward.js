@@ -1,4 +1,5 @@
 const Q = require("q");
+const moment = require('moment-timezone');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -1333,11 +1334,112 @@ let dbPlayerReward = {
             return Promise.all([promByType, promByPlayer]);
         })
     },
-    getLimitedOffers:function(){
-      return true;
+
+    getLimitedOffers: (platformId) => {
+        let platformObj;
+
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                platformObj = platformData;
+                return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
+            }
+        ).then(
+            rewardTypeData => {
+                let rewardEventQuery = {
+                    platform: platformObj._id,
+                    type: rewardTypeData._id
+                };
+
+                return dbConfig.collection_rewardEvent.findOne(rewardEventQuery).lean();
+            }
+        ).then(eventData => eventData.param.reward);
     },
-    applyLimitedOffers:function(){
-      return true;
+
+    applyLimitedOffers: (platformId, playerName, limitedOfferObjId, adminInfo) => {
+        let playerObj;
+        let limitedOfferObj;
+        let platformObj;
+
+        return dbConfig.collection_platform.findOne({
+            platformId: platformId
+        }).lean().then(
+            platformData => {
+                platformObj = platformData;
+
+                return dbConfig.collection_players.findOne({
+                    platform: platformObj._id,
+                    name: playerName
+                }).lean();
+            }
+        ).then(
+            playerData => {
+                playerObj = playerData;
+
+                //check if player is valid for reward
+                if (playerObj.permission.PlayerLimitedOfferReward === false) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Reward not applicable"
+                    });
+                }
+
+                return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
+            }
+        ).then(
+            rewardTypeData => {
+                let rewardEventQuery = {
+                    platform: platformObj._id,
+                    type: rewardTypeData._id
+                };
+
+                return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
+            }
+        ).then(
+            eventData => {
+                eventData.map(e => {
+                    e.param.reward.map(f => {
+                        if (String(f._id) == String(limitedOfferObjId)) {
+                            limitedOfferObj = f;
+                        }
+                    })
+                });
+
+                return dbConfig.collection_proposalType.findOne({
+                    platformId: platformObj._id,
+                    name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                }).lean();
+            }
+        ).then(
+            proposalTypeData => {
+                // create reward proposal
+                let proposalData = {
+                    type: proposalTypeData._id,
+                    creator: adminInfo ? adminInfo :
+                        {
+                            type: 'player',
+                            name: playerObj.name,
+                            id: playerObj._id
+                        },
+                    data: {
+                        playerObjId: playerObj._id,
+                        playerId: playerObj.playerId,
+                        playerName: playerObj.name,
+                        realName: playerObj.realName,
+                        platformObjId: platformObj._id,
+                        limitedOfferObjId: limitedOfferObj._id,
+                        applyAmount: limitedOfferObj.offerPrice,
+                        rewardAmount: limitedOfferObj.oriPrice - limitedOfferObj.offerPrice,
+                        spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
+                        limitedOfferName: limitedOfferObj.name,
+                        expirationTime: moment().add(30, 'm').toDate()
+                    },
+                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS
+                };
+                return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+            }
+        )
     }
 };
 
