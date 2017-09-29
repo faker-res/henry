@@ -23,7 +23,7 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
 
             if (!noAuto) {
                 // Attempt to auto log in by visiting the main page.
-                $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/dashboard";
+                $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/platform";
                 return;
             }
         }
@@ -84,7 +84,7 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
                     page = '/' + page.toLowerCase();
                     $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + page;
                 } else {
-                    $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/dashboard";
+                    $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/platform";
                 }
             }
 

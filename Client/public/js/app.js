@@ -345,7 +345,7 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
             //     }
             // });
 
-            $urlRouterProvider.otherwise('/dashboard');
+            $urlRouterProvider.otherwise('/platform');
         }]);
 
     return myApp;
