@@ -164,8 +164,8 @@ define([], function () {
                         return failFunc(data);
                     }
                 }
-            },
-                );
+                },
+            );
             //function fnNoData() {
             //    var answer = confirm("Data has not been received. Click 'OK' to continue waiting, or 'Cancel' to give up.");
             //    if (answer) {
