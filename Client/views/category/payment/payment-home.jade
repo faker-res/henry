@@ -15,7 +15,7 @@
                                 text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
                         li(ng-if='vm.curPlatformText', style='margin: 0 5px')
                             div.platformName(ng-click='vm.showPlatformDetailModal()')
-                                .fa.fa-2x.fa-cubes(style='margin:5px 10px;')
+                                .fa.fa-2x.fa-money(style='margin:5px 10px;')
                                 text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
                         li.active
                             a.common-tab(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.paymentPageName='bankCardGroup';vm.updatePageTile();")

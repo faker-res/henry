@@ -281,6 +281,20 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         }
     };
 
+    $scope.setClickedHeaderIcon = function () {
+        var location = $location.path().slice(1);
+
+        if(location == "platform")
+            $('#cssmenu .navbar-brand  a[name*="platform"]').parent().addClass('clickedWebsiteBusiness');
+        else
+            $('#cssmenu .navbar-brand  a[name*="platform"]').parent().removeClass('clickedWebsiteBusiness');
+
+        if(location == "mainPage")
+            $('#cssmenu .navbar-brand  a[name*="mainPage"]').parent().addClass('clickedBackstagePrivilege');
+        else
+            $('#cssmenu .navbar-brand  a[name*="mainPage"]').parent().removeClass('clickedBackstagePrivilege');
+    };
+
     // From: https://davidwalsh.name/javascript-debounce-function
     // Returns a function, that, as long as it continues to be invoked, will not
     // be triggered. The function will be called after it stops being called for
@@ -844,6 +858,12 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
 
         var location = $location.path().slice(1);
         $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('active');
+
+        if(location == "platform")
+            $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('clickedWebsiteBusiness');
+        else if(location == "mainPage")
+            $('#cssmenu .navbar-brand  a[name*="' + location + '"]').parent().addClass('clickedBackstagePrivilege');
+
         $translate(location).then(
             data => {
                 window.document.title = data

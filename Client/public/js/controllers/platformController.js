@@ -2516,19 +2516,19 @@ define(['js/app'], function (myApp) {
                     te.prop("disabled", true).css("background-color", "#eee");
                     te.find("input").prop("disabled", true).css("background-color", "#eee")
                 } else if (playerQuery.name) {
-                    var te = $("#playerTable-search-filters > div").not(":nth-child(2)").find(".form-control");
+                    var te = $("#playerTable-search-filters > div").not(":nth-child(1)").find(".form-control");
                     te.prop("disabled", true).css("background-color", "#eee");
                     te.find("input").prop("disabled", true).css("background-color", "#eee")
                 } else if (playerQuery.phoneNumber) {
-                    var te = $("#playerTable-search-filters > div").not(":nth-child(11)").find(".form-control");
+                    var te = $("#playerTable-search-filters > div").not(":nth-child(10)").find(".form-control");
                     te.prop("disabled", true).css("background-color", "#eee");
                     te.find("input").prop("disabled", true).css("background-color", "#eee")
                 } else if (playerQuery.bankAccount) {
-                    let te = $("#playerTable-search-filters > div").not(":nth-child(12)").find(".form-control");
+                    let te = $("#playerTable-search-filters > div").not(":nth-child(11)").find(".form-control");
                     te.prop("disabled", true).css("background-color", "#eee");
                     te.find("input").prop("disabled", true).css("background-color", "#eee")
                 } else if (playerQuery.email) {
-                    let te = $("#playerTable-search-filters > div").not(":nth-child(13)").find(".form-control");
+                    let te = $("#playerTable-search-filters > div").not(":nth-child(12)").find(".form-control");
                     te.prop("disabled", true).css("background-color", "#eee");
                     te.find("input").prop("disabled", true).css("background-color", "#eee")
                 } else {
