@@ -1,7 +1,7 @@
 #operPlatform.panel.panel-primary
     .panel-heading.padding-all-5
         .panel-title.left-col
-            .fa.fa-cubes(ng-if='vm.selectedPlatform')
+            .fa.fa-tasks(ng-if='vm.selectedPlatform')
             //-
                 text(ng-click='vm.operSelPlatform=true') {{vm.selectedPlatform.platformName | translate}}
                 .fa.fa-cubes(ng-if='!vm.selectedPlatform')
