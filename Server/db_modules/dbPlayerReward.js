@@ -1359,6 +1359,7 @@ let dbPlayerReward = {
         let playerObj;
         let limitedOfferObj;
         let platformObj;
+        let eventObj;
 
         return dbConfig.collection_platform.findOne({
             platformId: platformId
@@ -1400,6 +1401,7 @@ let dbPlayerReward = {
                 eventData.map(e => {
                     e.param.reward.map(f => {
                         if (String(f._id) == String(limitedOfferObjId)) {
+                            eventObj = e;
                             limitedOfferObj = f;
                         }
                     })
@@ -1432,7 +1434,11 @@ let dbPlayerReward = {
                         rewardAmount: limitedOfferObj.oriPrice - limitedOfferObj.offerPrice,
                         spendingAmount: limitedOfferObj.oriPrice * limitedOfferObj.bet,
                         limitedOfferName: limitedOfferObj.name,
-                        expirationTime: moment().add(30, 'm').toDate()
+                        expirationTime: moment().add(30, 'm').toDate(),
+                        eventId: eventObj._id,
+                        eventName: eventObj.name,
+                        eventCode: eventObj.code,
+                        eventDescription: eventObj.description
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
