@@ -1288,14 +1288,14 @@ include modalGameCreditLog
             textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
         .text-center(style="position:relative;")
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
-            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
+            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
                 text {{"Permission History" | translate}}
 #modalPlayerPermissionChangeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         #playerPermissionHistory.modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{'Player' | translate}} : {{vm.selectedSinglePlayer.name}}
+                h4.modal-title {{'Player' | translate}} : {{vm.popOverPlayerPermission.name}}
             .modal-body
                 .well.searchDiv
                     .inlineBlk
