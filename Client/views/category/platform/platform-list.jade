@@ -2,8 +2,9 @@
     .panel.panel-primary
         .panel-heading.padding-all-5
             .panel-title.left-col
-                .fa.fa-cubes
-                text &nbsp;{{"PLATFORM" | translate}}
+                .fa
+                    img(src="images/icon/websiteBusiness_hover.png" width="40" )
+                text &nbsp;{{"Website Business" | translate}}
                 a#platformRefresh.fa.fa-refresh.pull-right(style='font-size:1.7em', ng-click='vm.loadPlatformData();vm.syncPlatform()')
         .panel-body.common-left-panel-body
             .search-box.margin-top-bottom-small
