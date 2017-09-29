@@ -707,16 +707,16 @@
             table#onlinePaymentMismatchTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 thead
                     tr
-                        th {{'proposalId' | translate}}
+                        th {{'PROPOSAL_ID' | translate}}
                         th {{'CREATE_TIME' | translate}}
                         th {{'SYSTEM_THAT_MISSING' | translate}}
-
+                        th {{'CREDIT' | translate}}
                 tbody
                     tr(ng-repeat='(i,v) in vm.proposalMismatchDetail.mismatches')
                         td {{v.proposalId}}
                         td {{v.createTime}}
                         td {{v.missing}}
-
+                        td {{v.amount}}
             div
                 span fpms：提案个数： {{vm.proposalMismatchDetail.fpmsCount || 0}}  提案总额度： {{vm.proposalMismatchDetail.fpmsAmount || 0}}
             div

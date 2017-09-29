@@ -1,6 +1,6 @@
 nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bottom: 0;height: 100px')
-    .navbar-header.nav-header.visible-lg
-        img(src="{{companyLogo}}")
+    .navbar-header.nav-header.visible-lg(style='max-width:150px;min-width:150px;')
+        img(ng-src="{{companyLogo}}")
     #cssmenu
         ul.navibar.navbar-header.nav-header.navbar-brand
             li(style="{{ checkViewPermission('Platform')? 'display:block' : 'display:none'}}" class="wbLogo")

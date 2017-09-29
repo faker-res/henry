@@ -4,23 +4,23 @@ let ObjectId = mongoose.Types.ObjectId;
 
 let dbCsOfficer = {
 
-   createOfficer: function(platformId, name){
-       return dbconfig.collection_csOfficer.findOne({platform: platformId, name: name}).lean().then(
-           function (data) {
-               if (data) {
-                   return Promise.reject({
-                       name: "DataError",
-                       message: "Name already existed"
-                   });
-               }
+    createOfficer: function (platformId, name) {
+        return dbconfig.collection_csOfficer.findOne({platform: platformId, name: name}).lean().then(
+            function (data) {
+                if (data) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Name already existed"
+                    });
+                }
 
-               let newOfficer = dbconfig.collection_csOfficer({platform: platformId, name: name});
-               return newOfficer.save();
-           }
-       );
-   },
+                let newOfficer = dbconfig.collection_csOfficer({platform: platformId, name: name});
+                return newOfficer.save();
+            }
+        );
+    },
 
-    addPromoteWay: function(name, platformId){
+    addPromoteWay: function (name, platformId) {
         return dbconfig.collection_csPromoteWay.findOne({name: name, platform: platformId}).lean().then(
             function (data) {
                 if (data) {
@@ -46,7 +46,10 @@ let dbCsOfficer = {
 
     addUrl: (platformId, officerId, domain, way) => {
         let officerProm = dbconfig.collection_csOfficer.findOne({_id: officerId}).lean();
-        let domainProm = dbconfig.collection_csOfficer.findOne({platform: platformId, "url.domain": {$in: [domain]}}).lean();
+        let domainProm = dbconfig.collection_csOfficer.findOne({
+            platform: platformId,
+            "url.domain": {$in: [domain]}
+        }).lean();
 
         return Promise.all([officerProm, domainProm]).then(
             data => {
@@ -59,7 +62,6 @@ let dbCsOfficer = {
                     });
                 }
 
-                console.log('WALAO', domainExisted)
                 if (domainExisted) {
                     return Promise.reject({
                         name: "DataError",
@@ -126,10 +128,10 @@ function updateUrlWithOfficerChange(urlId, domain, officerId, way, createTime) {
         {"url._id": urlId},
         {$pull: {url: {_id: urlId}}}
     ).then(
-        () =>{
+        () => {
             return dbconfig.collection_csOfficer.findOneAndUpdate(
                 {_id: officerId},
-                {$push: {url: {_id: ObjectId(urlId), domain: domain, way:way, createTime: createTime}}}
+                {$push: {url: {_id: ObjectId(urlId), domain: domain, way: way, createTime: createTime}}}
             ).lean();
         }
     );
@@ -140,7 +142,12 @@ function updateUrlWithoutOfficerChange(urlId, domain, officerId, way) {
         _id: officerId,
         "url._id": urlId
     };
-    return dbconfig.collection_csOfficer.findOneAndUpdate(query, {$set: {"url.$.domain": domain, "url.$.way": way}}).lean();
+    return dbconfig.collection_csOfficer.findOneAndUpdate(query, {
+        $set: {
+            "url.$.domain": domain,
+            "url.$.way": way
+        }
+    }).lean();
 }
 
 module.exports = dbCsOfficer;

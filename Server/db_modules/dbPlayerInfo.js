@@ -1899,9 +1899,23 @@ let dbPlayerInfo = {
                     }
                     var logProm = dbLogger.createCreditChangeLog(playerId, data.platform, amount, type, data.validCredit, null, logData);
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
+
+                    let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
+                        dbconfig.collection_proposal,
+                        {_id: proposalData.data.limitedOfferObjId},
+                        {
+                            $set: {
+                                'data.topUpProposalObjId': proposalData._id,
+                                'data.topUpProposalId': proposalData.proposalId
+                            },
+                            $currentDate: {settleTime: true}
+                        },
+                        constShardKeys.collection_proposal
+                    );
+
                     //no need to check player reward task status now.
                     //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
-                    return Q.all([recordProm, logProm, levelProm]);
+                    return Q.all([recordProm, logProm, levelProm, limitedOfferProm]);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't update player credit."});
@@ -9802,7 +9816,7 @@ let dbPlayerInfo = {
         );
     },
 
-    updatePlayerCredibilityRemark: (platformObjId, playerObjId, remarks) => {
+    updatePlayerCredibilityRemark: (platformObjId, playerObjId, remarks, comment) => {
         return dbconfig.collection_players.findOneAndUpdate(
             {
                 _id: playerObjId,
@@ -9813,6 +9827,7 @@ let dbPlayerInfo = {
             }
         ).lean().then(
             playerData => {
+                dbPlayerCredibility.createUpdateCredibilityLog(platformObjId, playerObjId, remarks, comment);
                 // dbPlayerCredibility.calculatePlayerValue(playerData._id);
                 return playerData;
             }
@@ -9870,6 +9885,7 @@ let dbPlayerInfo = {
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
+
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
         let getPlayerProm = Promise.resolve("");
@@ -9924,13 +9940,25 @@ let dbPlayerInfo = {
         ).then(
             () => {
                 // handle index limit sortcol here
-                result.sort(function (a, b) {
-                    if (a._id > b._id) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                });
+                if (Object.keys(sortCol).length > 0) {
+                    result.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                else {
+                    result.sort(function (a, b) {
+                        if (a._id > b._id) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
 
                 let outputResult = [];
 
