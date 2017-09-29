@@ -314,6 +314,7 @@ function getMismatchFromProposalGroup(proposals, option) {
     let localAmount = 0;
     for (let i = 0, iLength = localProposals.length; i < iLength; i++) {
         let localProposal = localProposals[i];
+        localProposal.createTime = getPMSTimeFormat(localProposal.createTime);
         if (!localProposal.matched) {
             mismatches.push({proposalId: localProposal.proposalId, missing: "PMS", createTime: localProposal.createTime, amount: localProposal.data.amount});
             localMismatchCount++;

@@ -576,11 +576,11 @@
                                             text {{level.name | translate}}
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
                                             div(style='display:inline-block')
-                                              text(ng-show='!vm.configTableEdit') {{level.bonusPercentageCharges | number}}
+                                                text(ng-show='!vm.configTableEdit') {{level.bonusPercentageCharges | number}}
                                             div(style='display:inline-block')
-                                              input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.bonusPercentageCharges')
+                                                input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.bonusPercentageCharges')
                                             div(style='display:inline-block')
-                                              span %
+                                                span %
 
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
                                             input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.bonusCharges')

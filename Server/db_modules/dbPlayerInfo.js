@@ -1899,9 +1899,51 @@ let dbPlayerInfo = {
                     }
                     var logProm = dbLogger.createCreditChangeLog(playerId, data.platform, amount, type, data.validCredit, null, logData);
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
+
+                    let promArr = [recordProm, logProm, levelProm];
+
+                    if (proposalData.data.limitedOfferObjId) {
+                        let newProp;
+                        let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
+                            dbconfig.collection_proposal,
+                            {_id: proposalData.data.limitedOfferObjId},
+                            {
+                                $set: {
+                                    'data.topUpProposalObjId': proposalData._id,
+                                    'data.topUpProposalId': proposalData.proposalId
+                                },
+                                $currentDate: {settleTime: true}
+                            },
+                            constShardKeys.collection_proposal,
+                            true
+                        ).then(
+                            res => {
+                                newProp = res;
+                                return dbconfig.collection_proposalType.findOne({
+                                    platformId: newProp.data.platformObjId,
+                                    name: constProposalType.PLAYER_LIMITED_OFFER_REWARD
+                                }).lean();
+                            }
+                        ).then(
+                            proposalTypeData => {
+                                if (proposalTypeData) {
+                                    let proposalData = {
+                                        type: proposalTypeData._id,
+                                        creator: newProp.creator,
+                                        data: newProp.data,
+                                        entryType: newProp.entryType,
+                                        userType: newProp.userType
+                                    };
+                                    return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+                                }
+                            }
+                        );
+
+                        promArr.push(limitedOfferProm);
+                    }
                     //no need to check player reward task status now.
                     //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
-                    return Q.all([recordProm, logProm, levelProm]);
+                    return Q.all(promArr);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't update player credit."});
@@ -2742,7 +2784,7 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: 0,
+                                    spendingAmount: curRewardAmount,
                                     eventName: rewardParams[i].name,
                                     eventCode: rewardParams[i].code,
                                 }
@@ -9926,17 +9968,16 @@ let dbPlayerInfo = {
         ).then(
             () => {
                 // handle index limit sortcol here
-                if (Object.keys(sortCol).length > 0){
-                    result.sort(function (a, b){
-                       if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]){
-                           return 1 * sortCol[Object.keys(sortCol)[0]];
-                       } else{
-                           return -1 * sortCol[Object.keys(sortCol)[0]];
-                       }
+                if (Object.keys(sortCol).length > 0) {
+                    result.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
                     });
                 }
-                else
-                {
+                else {
                     result.sort(function (a, b) {
                         if (a._id > b._id) {
                             return 1;

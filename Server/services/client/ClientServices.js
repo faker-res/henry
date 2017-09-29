@@ -140,6 +140,7 @@
                 "getOnlineTopupType",
                 "createOnlineTopupProposal",
                 "requestManualTopup",
+                "getCashRechargeStatus",
                 "cancelManualTopupRequest",
                 "delayManualTopupRequest",
                 "modifyManualTopupRequest",
