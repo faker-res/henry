@@ -554,7 +554,7 @@ include modalGameCreditLog
                 .panel.panel-primary
                     .panel-body
                         button.btn.btn-danger.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", ng-click='vm.submitRemarkUpdate()') {{"CONFIRM" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
                         button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
                         span {{vm.credibilityRemarkUpdateMessage | translate}}
                         div.row
@@ -574,7 +574,7 @@ include modalGameCreditLog
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected")
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
 
                             div.col-md-4
                                 .well
@@ -592,7 +592,7 @@ include modalGameCreditLog
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected")
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
 
                             div.col-md-4
                                 .well
@@ -610,10 +610,7 @@ include modalGameCreditLog
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected")
-
-
-
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
                 .panel.panel-primary
                     .panel-body
                         div.col-md-4(style='width:40%;')
