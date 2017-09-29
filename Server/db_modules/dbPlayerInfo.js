@@ -1900,22 +1900,43 @@ let dbPlayerInfo = {
                     var logProm = dbLogger.createCreditChangeLog(playerId, data.platform, amount, type, data.validCredit, null, logData);
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
 
-                    let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
-                        dbconfig.collection_proposal,
-                        {_id: proposalData.data.limitedOfferObjId},
-                        {
-                            $set: {
-                                'data.topUpProposalObjId': proposalData._id,
-                                'data.topUpProposalId': proposalData.proposalId
-                            },
-                            $currentDate: {settleTime: true}
-                        },
-                        constShardKeys.collection_proposal
-                    );
+                    let promArr = [recordProm, logProm, levelProm];
 
+                    if (proposalData.data.limitedOfferObjId) {
+                        let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
+                            dbconfig.collection_proposal,
+                            {_id: proposalData.data.limitedOfferObjId},
+                            {
+                                $set: {
+                                    'data.topUpProposalObjId': proposalData._id,
+                                    'data.topUpProposalId': proposalData.proposalId
+                                },
+                                $currentDate: {settleTime: true}
+                            },
+                            constShardKeys.collection_proposal,
+                            true
+                        ).then(
+                            newProp => {
+                                console.log('newProp', newProp);
+                                let taskData = {
+                                    playerId: newProp.data.playerObjId,
+                                    type: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
+                                    rewardType: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
+                                    requiredUnlockAmount: newProp.data.spendingAmount,
+                                    currentAmount: newProp.data.rewardAmount,
+                                    platformId: newProp.data.platformId,
+                                    initAmount: newProp.data.rewardAmount,
+                                    eventId: newProp.data.eventId
+                                };
+                                return dbRewardTask.createRewardTaskForProposal(newProp, taskData, deferred, constRewardType.PLAYER_LIMITED_OFFERS_REWARD);
+                            }
+                        );
+
+                        promArr.push(limitedOfferProm);
+                    }
                     //no need to check player reward task status now.
                     //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
-                    return Q.all([recordProm, logProm, levelProm, limitedOfferProm]);
+                    return Q.all(promArr);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't update player credit."});

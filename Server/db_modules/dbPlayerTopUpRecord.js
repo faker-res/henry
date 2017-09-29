@@ -2,6 +2,9 @@ var dbPlayerTopUpRecordFunc = function () {
 };
 module.exports = new dbPlayerTopUpRecordFunc();
 
+const pmsAPI = require("../externalAPI/pmsAPI.js");
+const pmsFakeAPI = require("../externalAPI/pmsFakeAPI.js");
+
 const Q = require('q');
 const dbconfig = require('./../modules/dbproperties');
 const dataUtility = require('./../modules/encrypt');
@@ -13,7 +16,7 @@ const constSystemParam = require('./../const/constSystemParam');
 const constProposalType = require('./../const/constProposalType');
 const constPlayerTopUpType = require('./../const/constPlayerTopUpType');
 const constProposalMainType = require('../const/constProposalMainType');
-const pmsAPI = require("../externalAPI/pmsAPI.js");
+
 const counterManager = require("../modules/counterManager.js");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
 const constServerCode = require("../const/constServerCode");
@@ -658,14 +661,7 @@ var dbPlayerTopUpRecord = {
 
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
-                    if (limitedOfferTopUp._id) {
-                        proposalData.limitedOfferObjId = limitedOfferTopUp._id;
-                        proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
-                    }
-
-                    if (limitedOfferTopUp.expired) {
-                        proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
-                    }
+                    proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                 }
 
                 let newProposal = {
@@ -699,6 +695,9 @@ var dbPlayerTopUpRecord = {
                     //     .catch(
                     //     err => Q.reject({name: "DataError", message: "Failure with requestOnlineMerchant", error: err, requestData: requestData})
                     // );
+
+                    // FAKE CALL PMSAPI
+                    // return pmsFakeAPI.payment_requestOnlineMerchant();
                 }
                 else {
                     return Q.reject({
@@ -863,14 +862,7 @@ var dbPlayerTopUpRecord = {
 
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
-                    if (limitedOfferTopUp._id) {
-                        proposalData.limitedOfferObjId = limitedOfferTopUp._id;
-                        proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
-                    }
-
-                    if (limitedOfferTopUp.expired) {
-                        proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
-                    }
+                    proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                 }
 
                 var newProposal = {
@@ -1484,14 +1476,7 @@ var dbPlayerTopUpRecord = {
 
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
-                        if (limitedOfferTopUp._id) {
-                            proposalData.limitedOfferObjId = limitedOfferTopUp._id;
-                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
-                        }
-
-                        if (limitedOfferTopUp.expired) {
-                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
-                        }
+                        proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                     }
 
                     let newProposal = {
@@ -1690,14 +1675,7 @@ var dbPlayerTopUpRecord = {
 
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
-                        if (limitedOfferTopUp._id) {
-                            proposalData.limitedOfferObjId = limitedOfferTopUp._id;
-                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
-                        }
-
-                        if (limitedOfferTopUp.expired) {
-                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
-                        }
+                        proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                     }
 
                     let newProposal = {
@@ -1851,14 +1829,7 @@ var dbPlayerTopUpRecord = {
 
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
-                        if (limitedOfferTopUp._id) {
-                            proposalData.limitedOfferObjId = limitedOfferTopUp._id;
-                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; " + (proposalData.remark ? proposalData.remark : "");
-                        }
-
-                        if (limitedOfferTopUp.expired) {
-                            proposalData.remark = "秒杀礼包: " + limitedOfferTopUp.proposalId + "; (已过期)" + (proposalData.remark ? proposalData.remark : "");
-                        }
+                        proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                     }
 
                     let newProposal = {
@@ -1995,21 +1966,24 @@ function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
     }).lean().then(
         proposalTypeData => {
-            return dbconfig.collection_proposal.findOne({
-                'data.platformObjId': platformObjId,
-                'data.playerObjId': playerObjId,
-                'data.applyAmount': topUpAmount,
-                'data.topUpProposalObjId': {$exists: false},
-                type: proposalTypeData._id
-            }).sort({createTime: -1}).lean();
+            if(proposalTypeData){
+                return dbconfig.collection_proposal.findOne({
+                    'data.platformObjId': platformObjId,
+                    'data.playerObjId': playerObjId,
+                    'data.applyAmount': topUpAmount,
+                    'data.topUpProposalObjId': {$exists: false},
+                    type: proposalTypeData._id
+                }).sort({createTime: -1}).lean();
+            }
         }
     ).then(
         intentionProp => {
             if (intentionProp) {
-                return intentionProp.data.expirationTime.getTime() >= new Date().getTime() ? intentionProp : {
-                    proposalId: intentionProp.proposalId,
-                    expired: true
-                };
+                return intentionProp;
+                // return intentionProp.data.expirationTime.getTime() >= new Date().getTime() ? intentionProp : {
+                //     proposalId: intentionProp.proposalId,
+                //     expired: true
+                // };
             } else {
                 return false;
             }
