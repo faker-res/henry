@@ -70,7 +70,7 @@ form(name="form_new_platform" ,novalidate)
     //    label.control-label {{"SETTLEMENT" | translate}} {{"STATUS" | translate}}
     //    select.form-control(ng-model="vm.showPlatform.settlementStatus", ng-options='o for o in ["Ready", "DailySettlement", "WeeklySettlement"]')
     div.form-group.col-md-6
-        label.margin-left-5 {{"AUTO_SETTLEMENT" | translate}}
+        //label.margin-left-5 {{"AUTO_SETTLEMENT" | translate}}
             input.margin-left-2(type='checkbox', ng-model="vm.showPlatform.canAutoSettlement")
         label.margin-left-5 {{"SMS_VERIFICATION" | translate}}
             input.margin-left-2(type='checkbox', ng-model="vm.showPlatform.requireSMSVerification")
@@ -78,11 +78,11 @@ form(name="form_new_platform" ,novalidate)
             input.margin-left-2(type='checkbox', ng-model="vm.showPlatform.requireSMSVerificationForPasswordUpdate")
         label.margin-left-5 {{"SMS_VERIFICATION_FOR_PAYMENT_UPDATE" | translate}}
             input.margin-left-2(type='checkbox', ng-model="vm.showPlatform.requireSMSVerificationForPaymentUpdate")
-    .col-md-12
+    //.col-md-12
         .text-center
             label {{"SETTLEMENT" | translate}}
             label.colorRed.margin-left-5 {{"Weekly settlement time has to be after daily settlement time" | translate}}
-    div.platform-time.col-md-6
+    //div.platform-time.col-md-6
         .text-center
             label.text-success {{"DAILY_SETTLE_TIME" | translate}}
         table(ng-show='!vm.pickDay')
@@ -125,7 +125,7 @@ form(name="form_new_platform" ,novalidate)
             p
             div(ng-repeat='n in vm.listArray track by $index')
                 a.badge(ng-click='vm.showPlatform.dailySettlementMinute=$index;vm.pickDay=null;') {{vm.getMinName($index) | translate}}
-    div.platform-time.col-md-6
+    //div.platform-time.col-md-6
         .text-center
             label.text-success {{"WEEKLY_SETTLE_TIME" | translate}}
         table(ng-show='!vm.pickWeek')
