@@ -962,11 +962,18 @@ let dbPlayerReward = {
             if (data && data.length > 0) {
                 data.map(grp => {
                     grp.platformObjId = platformObjId;
-                    saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
-                        platformObjId: platformObjId,
-                        name: grp.name
-                    }, grp, {upsert: true}));
-                });
+
+                let saveObj = {
+                    platformObjId: grp.platformObjId,
+                    name: grp.name,
+                    color: grp.color,
+                    playerNames: grp.playerNames || []
+                };
+
+                saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
+                    name: grp.name
+                }, saveObj, {upsert: true}));
+            });
             }
         }
 
