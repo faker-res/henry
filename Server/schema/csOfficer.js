@@ -5,9 +5,9 @@ var csOfficerSchema = new Schema({
     name: {type: String, unique: true, required: true},
     platform: {type: Schema.ObjectId, ref: 'platform', index: true},
     url: [{
-        domain:{type: String},
-        way:{type: String},
-        createTime:{type: Date}
+        domain: {type: String},
+        way: {type: String},
+        createTime: {type: Date}
     }]
 });
 
