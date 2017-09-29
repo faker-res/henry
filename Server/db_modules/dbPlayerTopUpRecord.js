@@ -967,7 +967,9 @@ var dbPlayerTopUpRecord = {
                     proposalId: data.proposalId,
                     requestId: request.result.requestId,
                     status: data.status,
-                    result: request.result
+                    result: request.result,
+                    inputData: inputData,
+                    restTime: parseInt( (new Date().getTime() - new Date(request.result.validTime).getTime())/1000 )
                 };
             }
         );
