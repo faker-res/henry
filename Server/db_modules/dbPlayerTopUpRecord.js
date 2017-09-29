@@ -1966,13 +1966,15 @@ function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
     }).lean().then(
         proposalTypeData => {
-            return dbconfig.collection_proposal.findOne({
-                'data.platformObjId': platformObjId,
-                'data.playerObjId': playerObjId,
-                'data.applyAmount': topUpAmount,
-                'data.topUpProposalObjId': {$exists: false},
-                type: proposalTypeData._id
-            }).sort({createTime: -1}).lean();
+            if(proposalTypeData){
+                return dbconfig.collection_proposal.findOne({
+                    'data.platformObjId': platformObjId,
+                    'data.playerObjId': playerObjId,
+                    'data.applyAmount': topUpAmount,
+                    'data.topUpProposalObjId': {$exists: false},
+                    type: proposalTypeData._id
+                }).sort({createTime: -1}).lean();
+            }
         }
     ).then(
         intentionProp => {
