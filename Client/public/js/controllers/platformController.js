@@ -7030,6 +7030,8 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerPermissionChange = function (flag) {
+                $('.playerPermissionPopover').popover('hide');
+                // $('#playerPermissionPopover').modal('hide');
                 vm.playerPermissionQuery = vm.playerPermissionQuery || {};
                 vm.playerPermissionQuery.searching = true;
                 vm.playerPermissionHistory = [];
@@ -13597,6 +13599,10 @@ define(['js/app'], function (myApp) {
                     console.log(err);
                 });
         };
+
+        $('body').on('click','#permissionRecordButton',function(){
+            vm.getPlayerPermissionChange("new")
+        })
 
         };
         platformController.$inject = injectParams;
