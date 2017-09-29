@@ -503,6 +503,8 @@
   "BANK_NAME":"Bank Name",
   "BANK_BRANCH":"Bank Branch",
 
+  "ONLINE_PAYMENT_MISMATCH_REPORT":"Online Payment Mismatch Report",
+  "SYSTEM_THAT_MISSING":"Mismatch Occurrence System",
   "TOPUP_REPORT":"Top Up Report",
   "PROPOSAL_REPORT":"Proposal Report",
   "OPERATION_REPORT":"Operation Report",
@@ -790,6 +792,8 @@
   "MERCHANT_GROUP": "Merchant Group",
   "topupOnline":"Online Topup",
   "topupManual":"Manual Topup",
+  "TOPUPONLINE":"Online Topup",
+  "TOPUPMANUAL":"Manual Topup",
   "ADD_PLAYER_TO_BANKCARD_GROUP":"Add player to bank card group",
   "ADD_PLAYER_TO_MERCHANT_GROUP":"Add player to merchant group",
   "ADD_PLAYER":"Add Player",
@@ -938,5 +942,6 @@
   "CHOOSE_PROMOTE_WAY": "Choose Promote Way",
   "DELETE_OFFICER": "Delete Officer",
   "TOPUP_WECHAT": "weChat",
-  "TOPUP_ALIPAY": "AliPay"
+  "TOPUP_ALIPAY": "AliPay",
+  "CREDIBILITY_RECORD": "Credibility Records"
 }
