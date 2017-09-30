@@ -1360,6 +1360,7 @@ let dbPlayerReward = {
         let limitedOfferObj;
         let platformObj;
         let eventObj;
+        let proposalTypeObj;
 
         return dbConfig.collection_platform.findOne({
             platformId: platformId
@@ -1374,18 +1375,22 @@ let dbPlayerReward = {
             }
         ).then(
             playerData => {
-                playerObj = playerData;
+                if (playerData) {
+                    playerObj = playerData;
 
-                //check if player is valid for reward
-                if (playerObj.permission.PlayerLimitedOfferReward === false) {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_NO_PERMISSION,
-                        name: "DataError",
-                        message: "Reward not applicable"
-                    });
+                    //check if player is valid for reward
+                    if (playerObj.permission.PlayerLimitedOfferReward === false) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            message: "Reward not applicable"
+                        });
+                    }
+
+                    return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
+                } else {
+                    return Q.reject({name: "DataError", message: "Player Not Found"});
                 }
-
-                return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
             }
         ).then(
             rewardTypeData => {
@@ -1414,9 +1419,52 @@ let dbPlayerReward = {
             }
         ).then(
             proposalTypeData => {
+                proposalTypeObj = proposalTypeData;
+                return dbConfig.collection_proposal.aggregate({
+                    $match: {
+                        'data.platformObjId': platformObj._id,
+                        'data.limitedOfferObjId': limitedOfferObj._id,
+                        type: proposalTypeData._id
+                    }
+                }, {
+                    $group: {
+                        _id: "$data.playerObjId",
+                        count: {$sum: 1}
+                    }
+                });
+            }
+        ).then(
+            offerCount => {
+                if (offerCount && offerCount.length > 0) {
+                    let totalCount = offerCount.reduce((a, b) => a.count + b.count);
+                    let isPurchased = false;
+
+                    if (totalCount >= limitedOfferObj.qty) {
+                        return Q.reject({
+                            status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
+                            name: "DataError",
+                            message: "Reward not applicable"
+                        });
+                    }
+
+                    offerCount.forEach((el, idx, arr) => {
+                        if (String(el._id) == String(playerObj._id) && el.count >= limitedOfferObj.limitPerson) {
+                            isPurchased = true;
+                        }
+                    });
+
+                    if (isPurchased) {
+                        return Q.reject({
+                            status: constServerCode.FAILED_LIMITED_OFFER_CONDITION,
+                            name: "DataError",
+                            message: "Reward not applicable"
+                        });
+                    }
+                }
+
                 // create reward proposal
                 let proposalData = {
-                    type: proposalTypeData._id,
+                    type: proposalTypeObj._id,
                     creator: adminInfo ? adminInfo :
                         {
                             type: 'player',
@@ -1443,7 +1491,7 @@ let dbPlayerReward = {
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
                 };
-                return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+                return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData);
             }
         )
     }
