@@ -1029,7 +1029,7 @@ var dbPlayerTopUpRecord = {
                                 bankTypeId: el.data.bankTypeId,
                                 depositMethod: el.data.depositMethod
                             },
-                            restTime: moment.duration(moment(createTime).diff(moment()))
+                            restTime: Math.abs(parseInt((new Date().getTime() - new Date(el.data.validTime).getTime()) / 1000))
                         })
                     });
 
