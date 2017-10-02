@@ -1286,7 +1286,7 @@ include modalGameCreditLog
                         a.text-danger.togglePlayer(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
         .textareaDetail.margin-top-bottom-small
             textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
-        .text-center(style="position:relative;")
+        .text-left(style="position:relative;")
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
             button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
                 text {{"Permission History" | translate}}
