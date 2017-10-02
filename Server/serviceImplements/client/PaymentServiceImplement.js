@@ -116,6 +116,18 @@ var PaymentServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
+    this.getCashRechargeStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && conn.playerId);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.getCashRechargeStatus, [conn.playerId], isValidData, true, false, false).then(
+            function (res) {
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS,
+                    data: res
+                }, data);
+            }
+        ).catch(WebSocketUtil.errorHandler).done();
+    };
+
     this.requestAlipayTopup.expectsData = 'amount: Number|String';
     this.requestAlipayTopup.onRequest = function (wsFunc, conn, data) {
         if (data) {
