@@ -104,7 +104,7 @@ var PaymentServiceImplement = function () {
         if (data) {
             data.amount = Number(data.amount);
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && data.provinceId && data.cityId && Number.isInteger(data.amount));
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount));
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
