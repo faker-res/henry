@@ -908,7 +908,7 @@ var dbPlayerTopUpRecord = {
                         depositMethod: depositMethod,
                         bankTypeId: inputData.bankTypeId,
                         bankCardNo: inputData.lastBankcardNo || "",
-                        provinceId: inputData.provinceId,
+                        provinceId: inputData.provinceId || "",
                         cityId: inputData.cityId,
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : [],
