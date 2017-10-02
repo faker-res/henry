@@ -273,7 +273,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId) {
+    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation) {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
                 platformObjId = platform._id;
@@ -287,7 +287,7 @@ const dbPlayerMail = {
             }
         ).then(
             player => {
-                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId);
+                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation);
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});

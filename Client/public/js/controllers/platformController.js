@@ -3431,6 +3431,8 @@ define(['js/app'], function (myApp) {
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
 
+                                vm.popOverPlayerPermission = row;
+
                                 // Invert second render
                                 row.permission.banReward = !row.permission.banReward;
                                 row.permission.disableWechatPay = !row.permission.disableWechatPay;
@@ -7038,6 +7040,8 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerPermissionChange = function (flag) {
+                $('.playerPermissionPopover').popover('hide');
+                // $('#playerPermissionPopover').modal('hide');
                 vm.playerPermissionQuery = vm.playerPermissionQuery || {};
                 vm.playerPermissionQuery.searching = true;
                 vm.playerPermissionHistory = [];
@@ -7051,7 +7055,7 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 var sendData = {
-                    playerId: vm.selectedSinglePlayer._id,
+                    playerId: vm.popOverPlayerPermission._id,
                     platform: vm.selectedPlatform.id,
                     createTime: {
                         $gte: new Date(vm.playerPermissionQuery.startTime.data('datetimepicker').getLocalDate()),
@@ -13606,6 +13610,10 @@ define(['js/app'], function (myApp) {
                     console.log(err);
                 });
         };
+
+        $('body').on('click','#permissionRecordButton',function(){
+            vm.getPlayerPermissionChange("new")
+        })
 
         };
         platformController.$inject = injectParams;
