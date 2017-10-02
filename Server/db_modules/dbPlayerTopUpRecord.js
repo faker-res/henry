@@ -908,7 +908,7 @@ var dbPlayerTopUpRecord = {
                         depositMethod: depositMethod,
                         bankTypeId: inputData.bankTypeId,
                         bankCardNo: inputData.lastBankcardNo || "",
-                        provinceId: inputData.provinceId,
+                        provinceId: inputData.provinceId || "",
                         cityId: inputData.cityId,
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : [],
@@ -969,10 +969,74 @@ var dbPlayerTopUpRecord = {
                     status: data.status,
                     result: request.result,
                     inputData: inputData,
-                    restTime: parseInt( (new Date().getTime() - new Date(request.result.validTime).getTime())/1000 )
+                    restTime: Math.abs(parseInt((new Date().getTime() - new Date(request.result.validTime).getTime()) / 1000))
                 };
             }
         );
+    },
+
+    getCashRechargeStatus: playerId => {
+        let playerObj;
+
+        return dbconfig.collection_players.findOne({
+            playerId: playerId
+        }).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: playerObj.platform._id,
+                        name: constProposalType.PLAYER_MANUAL_TOP_UP
+                    }).lean();
+                }
+            }
+        ).then(
+            propTypeData => {
+                if (propTypeData) {
+                    return dbconfig.collection_proposal.find({
+                        "data.platformId": playerObj.platform._id,
+                        "data.playerObjId": playerObj._id,
+                        "data.validTime": {$gt: new Date()},
+                        type: propTypeData._id
+                    }).lean();
+                }
+            }
+        ).then(
+            res => {
+                let retArr = [];
+
+                if (res && res.length > 0) {
+                    res.forEach((el, idx, arr) => {
+                        retArr.push({
+                            proposalId: el.proposalId,
+                            requestId: el.data.requestId,
+                            status: el.status,
+                            result: {
+                                requestId: el.data.requestId,
+                                bankTypeId: el.data.bankTypeId,
+                                bankCardNo: el.data.bankCardNo,
+                                cardOwner: el.data.cardOwner,
+                                createTime: el.createTime,
+                                validTime: el.data.validTime
+                            },
+                            inputData: {
+                                amount: el.data.amount,
+                                lastBankcardNo: el.data.lastBankcardNo,
+                                bankTypeId: el.data.bankTypeId,
+                                depositMethod: el.data.depositMethod
+                            },
+                            restTime: Math.abs(parseInt((new Date().getTime() - new Date(el.data.validTime).getTime()) / 1000))
+                        })
+                    });
+
+                    return retArr;
+                }
+            }
+        )
     },
 
     cancelManualTopupRequest: function (playerId, proposalId, adminName) {
@@ -1622,15 +1686,21 @@ var dbPlayerTopUpRecord = {
         let proposal = null;
         let request = null;
 
-        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
+        return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean();
-        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
-
-        return Promise.all([playerProm, limitedOfferProm]).then(
-            res => {
-                player = res[0];
-                let limitedOfferTopUp = res[1];
+            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}
+            ).lean().then(
+                playerData => {
+                    if (playerData) {
+                        player = playerData;
+                        return checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                    } else {
+                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                    }
+                }
+            ).then(
+                intentionProp => {
+                    let limitedOfferTopUp = intentionProp;
 
                 if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
@@ -1779,15 +1849,26 @@ var dbPlayerTopUpRecord = {
         let proposal = null;
         let request = null;
 
-        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "quickPayGroup", model: dbconfig.collection_platformQuickPayGroup}).lean();
-        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
-
-        return Promise.all([playerProm, limitedOfferProm]).then(
-            res => {
-                player = res[0];
-                let limitedOfferTopUp = res[1];
+        return dbconfig.collection_players.findOne({
+            playerId: playerId
+        }).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).populate({
+            path: "quickPayGroup",
+            model: dbconfig.collection_platformQuickPayGroup
+        }).lean().then(
+            playerData => {
+                if (playerData) {
+                    player = playerData;
+                    return checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                } else {
+                    return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                }
+            }
+        ).then(
+            intentionProp => {
+                let limitedOfferTopUp = intentionProp;
 
                 if (player && player.platform && player.quickPayGroup && player.quickPayGroup.quickpays && player.quickPayGroup.quickpays.length > 0) {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
