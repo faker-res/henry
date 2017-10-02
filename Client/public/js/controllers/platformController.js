@@ -134,6 +134,13 @@ define(['js/app'], function (myApp) {
                         : $.extend(true, {}, value);
                 }
             };
+            /////////////Victor::Platform functions
+            vm.toggleShowPlatformDropDownList = function () {
+                console.log("showplatformddl");
+                vm.showPlatformDropDownList = !vm.showPlatformDropDownList;
+
+                $scope.safeApply();
+            };
 
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
@@ -267,6 +274,7 @@ define(['js/app'], function (myApp) {
                 // vm.selectPlatformNode($('#platformTree').treeview('getNode', 0));
                 $('#platformTree').on('nodeSelected', function (event, data) {
                     vm.selectPlatformNode(data);
+                    vm.showPlatformDropDownList = false;
                 });
             };
 
@@ -372,7 +380,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     },
                     function (error) {
-                        console.log("error gettting all levels", error);
+                        console.log("error getting all levels", error);
                     }
                 ).done();
                 vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
@@ -13103,6 +13111,7 @@ define(['js/app'], function (myApp) {
 
                         vm.phonePattern = /^[0-9]{8,18}$/;
                         vm.showPlatformList = true;
+                        vm.showPlatformDropDownList = false;
                         // vm.allGameStatusString = {};
                         vm.credibilityRemarks = [];
                         vm.gameStatus = {};

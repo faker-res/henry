@@ -11,7 +11,7 @@
                 .fa.fa-search.pull-right.margin-all-5(ng-click='vm.searchPlatform()')
                 input.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}}' ng-model="vm.platformSearchText", ng-change='vm.rebuildPlatformListDebounced()')
             p
-            div#platformTree(style="height: 400px;")
+            //div#platformTree(style="height: 400px;")
             div#platformDetail.margin-top-bottom-small
                 table.platformDetailClass(style='width:100%;font-size:16px')
                     tr

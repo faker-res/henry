@@ -9,16 +9,33 @@
                         .pull-left.padding-all-5
                             a.fa.fa-chevron-circle-left.contractIcon(ng-show='vm.showPlatformList', ng-click='vm.toggleShowPlatformList(false)')
                             a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showPlatformList', ng-click='vm.toggleShowPlatformList(true)')
-                        li(ng-if='!vm.curPlatformText')
-                            div.platformName
+
+                        li.padding-all-5(style='margin:5px 10px; margin-top:8px;')
+                            .text-success(ng-show='vm.selectedPlatform.data.settlementStatus=="Ready"' style='color:rgb(0,180,0)')
+                                i.fa.fa-lg.fa-circle
+                            .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="DailyError"')
+                                i.fa.fa-lg.fa-circle.margin-right-5
+                            .text-danger(ng-show='vm.selectedPlatform.data.settlementStatus=="WeeklyError"')
+                                i.fa.fa-lg.fa-circle.margin-right-5
+
+                        li(ng-if='!vm.curPlatformText', style='margin-right: 0;')
+                            div.platformName(style='border-radius: 9px 0 0 9px;')
                                 .fa.fa-2x(style='margin:5px 10px;')
                                     img(src="images/icon/websiteBusiness_hover.png" width="30" )
                                 text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
-                        li(ng-if='vm.curPlatformText', style='margin: 0 5px')
-                            div.platformName(ng-click='vm.showPlatformDetailModal()')
+                        li(ng-if='vm.curPlatformText', style='margin-right: 0;')
+                            div.platformName(ng-if='checkViewPermission("Platform","Platform", "Edit")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform', ng-click='vm.initPlatform(true);vm.getAllDepartmentData();vm.befreUpdatePlatform()', style='border-radius: 9px 0 0 9px;')
                                 .fa.fa-2x(style='margin:5px 10px;')
                                     img(src="images/icon/websiteBusiness_hover.png" width="30" )
                                 text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
+
+                        //dropdown
+                        li(style='margin-right:5px')
+                            div.platformName(ng-click='vm.toggleShowPlatformDropDownList()', style='border-radius: 0 9px 9px 0;')
+                                .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px;')
+                            //div#platformTree(style="height: 400px;")
+                            #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
                         li.active(ng-show="checkViewPermission('Platform', 'Player', 'Read')")
                             a.common-tab(data-toggle="tab", href="#Player", ng-click="vm.activatePlayerTab();vm.platformPageName='Player';vm.updatePageTile();")
                                 .fa.fa-users.margin-right-5
