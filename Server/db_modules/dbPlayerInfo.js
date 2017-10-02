@@ -1903,6 +1903,7 @@ let dbPlayerInfo = {
                     let promArr = [recordProm, logProm, levelProm];
 
                     if (proposalData.data.limitedOfferObjId) {
+                        let newProp;
                         let limitedOfferProm = dbUtility.findOneAndUpdateForShard(
                             dbconfig.collection_proposal,
                             {_id: proposalData.data.limitedOfferObjId},
@@ -1916,19 +1917,25 @@ let dbPlayerInfo = {
                             constShardKeys.collection_proposal,
                             true
                         ).then(
-                            newProp => {
-                                console.log('newProp', newProp);
-                                let taskData = {
-                                    playerId: newProp.data.playerObjId,
-                                    type: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
-                                    rewardType: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
-                                    requiredUnlockAmount: newProp.data.spendingAmount,
-                                    currentAmount: newProp.data.rewardAmount,
-                                    platformId: newProp.data.platformId,
-                                    initAmount: newProp.data.rewardAmount,
-                                    eventId: newProp.data.eventId
-                                };
-                                return dbRewardTask.createRewardTaskForProposal(newProp, taskData, deferred, constRewardType.PLAYER_LIMITED_OFFERS_REWARD);
+                            res => {
+                                newProp = res;
+                                return dbconfig.collection_proposalType.findOne({
+                                    platformId: newProp.data.platformObjId,
+                                    name: constProposalType.PLAYER_LIMITED_OFFER_REWARD
+                                }).lean();
+                            }
+                        ).then(
+                            proposalTypeData => {
+                                if (proposalTypeData) {
+                                    let proposalData = {
+                                        type: proposalTypeData._id,
+                                        creator: newProp.creator,
+                                        data: newProp.data,
+                                        entryType: newProp.entryType,
+                                        userType: newProp.userType
+                                    };
+                                    return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+                                }
                             }
                         );
 

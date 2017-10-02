@@ -967,7 +967,9 @@ var dbPlayerTopUpRecord = {
                     proposalId: data.proposalId,
                     requestId: request.result.requestId,
                     status: data.status,
-                    result: request.result
+                    result: request.result,
+                    inputData: inputData,
+                    restTime: parseInt( (new Date().getTime() - new Date(request.result.validTime).getTime())/1000 )
                 };
             }
         );
@@ -1620,15 +1622,21 @@ var dbPlayerTopUpRecord = {
         let proposal = null;
         let request = null;
 
-        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
+        return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean();
-        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
-
-        return Promise.all([playerProm, limitedOfferProm]).then(
-            res => {
-                player = res[0];
-                let limitedOfferTopUp = res[1];
+            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}
+            ).lean().then(
+                playerData => {
+                    if (playerData) {
+                        player = playerData;
+                        return checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                    } else {
+                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                    }
+                }
+            ).then(
+                intentionProp => {
+                    let limitedOfferTopUp = intentionProp;
 
                 if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
@@ -1777,15 +1785,26 @@ var dbPlayerTopUpRecord = {
         let proposal = null;
         let request = null;
 
-        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "quickPayGroup", model: dbconfig.collection_platformQuickPayGroup}).lean();
-        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
-
-        return Promise.all([playerProm, limitedOfferProm]).then(
-            res => {
-                player = res[0];
-                let limitedOfferTopUp = res[1];
+        return dbconfig.collection_players.findOne({
+            playerId: playerId
+        }).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).populate({
+            path: "quickPayGroup",
+            model: dbconfig.collection_platformQuickPayGroup
+        }).lean().then(
+            playerData => {
+                if (playerData) {
+                    player = playerData;
+                    return checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                } else {
+                    return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                }
+            }
+        ).then(
+            intentionProp => {
+                let limitedOfferTopUp = intentionProp;
 
                 if (player && player.platform && player.quickPayGroup && player.quickPayGroup.quickpays && player.quickPayGroup.quickpays.length > 0) {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
