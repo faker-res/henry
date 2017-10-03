@@ -4973,18 +4973,39 @@ define(['js/app'], function (myApp) {
                     return deferred.promise;
                 };
 
+            // vm.prepareShowFeedbackRecord = function () {
+            //     vm.playerFeedbackData = [];
+            //     vm.processDataTableinModal('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable', {'dom': 't'});
+            //     vm.playerFeedbackRecord = vm.playerFeedbackRecord || {};
+            //     utilService.actionAfterLoaded('#modalPlayerFeedbackRecord .searchDiv .startTime', function () {
+            //         vm.playerFeedbackRecord.startTime = utilService.createDatePicker('#modalPlayerFeedbackRecord .searchDiv .startTime');
+            //         vm.playerFeedbackRecord.endTime = utilService.createDatePicker('#modalPlayerFeedbackRecord .searchDiv .endTime');
+            //         vm.playerFeedbackRecord.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+            //         vm.playerFeedbackRecord.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+            //         vm.updatePlayerFeedbackData('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable', {'dom': 't'});
+            //     });
+            // }
+
             vm.prepareShowFeedbackRecord = function () {
                 vm.playerFeedbackData = [];
-                vm.processDataTableinModal('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable', {'dom': 't'});
+                vm.processDataTableinModal('#modalAddPlayerFeedback', '#playerFeedbackRecordTable', {'dom': 't'});
                 vm.playerFeedbackRecord = vm.playerFeedbackRecord || {};
-                utilService.actionAfterLoaded('#modalPlayerFeedbackRecord .searchDiv .startTime', function () {
-                    vm.playerFeedbackRecord.startTime = utilService.createDatePicker('#modalPlayerFeedbackRecord .searchDiv .startTime');
-                    vm.playerFeedbackRecord.endTime = utilService.createDatePicker('#modalPlayerFeedbackRecord .searchDiv .endTime');
+                utilService.actionAfterLoaded('#modalAddPlayerFeedback .searchDiv .startTime', function () {
+                    vm.playerFeedbackRecord.startTime = utilService.createDatePicker('#modalAddPlayerFeedback .searchDiv .startTime');
+                    vm.playerFeedbackRecord.endTime = utilService.createDatePicker('#modalAddPlayerFeedback .searchDiv .endTime');
                     vm.playerFeedbackRecord.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerFeedbackRecord.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.updatePlayerFeedbackData('#modalPlayerFeedbackRecord', '#playerFeedbackRecordTable', {'dom': 't'});
+                    vm.updatePlayerFeedbackData('#modalAddPlayerFeedback', '#playerFeedbackRecordTable', {'dom': 't'});
                 });
             }
+
+            vm.initFeedbackModal = function() {
+                $('#addFeedbackTab').addClass('active');
+                $('#feedbackHistoryTab').removeClass('active');
+                $scope.safeApply();
+                vm.feedbackModalTab = "addFeedbackPanel";
+            }
+
             vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
                 opt = opt || {'dom': 't'};
                 vm.playerFeedbackRecord.searching = true;
