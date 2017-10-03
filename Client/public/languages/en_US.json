@@ -942,5 +942,11 @@
   "DELETE_OFFICER": "Delete Officer",
   "TOPUP_WECHAT": "weChat",
   "TOPUP_ALIPAY": "AliPay",
-  "CREDIBILITY_RECORD": "Credibility Records"
+  "CREDIBILITY_RECORD": "Credibility Records",
+  "ACTION_BUTTON": "Action",
+  "CONTACT_INFO": "Contact Info",
+  "WITHDRAW_INFO": "Withdrawal Info",
+  "ONLINE_TOP_UP_GROUP": "Online TopUp Group",
+  "PERSONAL_ALIPAY_GROUP": "Alipay Group",
+  "PERSONAL_WECHAT_GRUOP": "Wechat Pay Group"
 }

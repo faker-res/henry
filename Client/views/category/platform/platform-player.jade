@@ -1108,7 +1108,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerInfo.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1124,130 +1124,244 @@ include modalGameCreditLog
                                     th
                                         div {{'Type' | translate}}
                                     th {{'CONTENT' | translate}}
+                                    th
+                                        div {{'ACTION_BUTTON' | translate}}
                             tbody
                                 tr
                                     td
                                         div {{'Basic' | translate}}
                                     td
-                                        .inlineBlk
-                                            label {{"PLAYER_ID" | translate}}
-                                            text {{vm.selectedSinglePlayer.playerId}}
-                                        .inlineBlk
-                                            label {{"PLAYER_NAME" | translate}}
-                                            text {{vm.selectedSinglePlayer.name}}
-                                        .inlineBlk
-                                            label {{"NICK_NAME" | translate}}
-                                            text {{vm.selectedSinglePlayer.nickName || 'NONE' | translate}}
-                                        .inlineBlk
-                                            label {{"realName" | translate}}
-                                            text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
-                                        .inlineBlk
-                                            label {{"EMAIL" | translate}}
-                                            text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{"WECHAT" | translate}}
-                                            text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{"QQ" | translate}}
-                                            text {{vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'Test Player' | translate}}
-                                            text(style='height:inherit') {{vm.selectedSinglePlayer.isTestPlayer ? 'Yes' : 'No' | translate}}
-                                        .inlineBlk
-                                            label {{'Partner' | translate}}
-                                            text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
-                                        .inlineBlk
-                                            label {{'REFERRAL' | translate}}
-                                            text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
-                                        .inlineBlk
-                                            label {{'REMARK' | translate}}
-                                            text(style='height:inherit') {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
-                                        .inlineBlk
-                                            button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRER" | translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"PLAYER_NAME" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.name}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"PLAYER_ID" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.playerId}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"REMARK" | translate}}
+                                                    .col-sm-8
+                                                        text(style='height:inherit') {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"realName" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"Partner" | translate}}
+                                                    .col-sm-8
+                                                        text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"NICK_NAME" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.nickName || 'NONE' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"REFERRAL" | translate}}
+                                                    .col-sm-8
+                                                        text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
+                                    td
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRER" | translate}}
                                 tr
                                     td
-                                        div {{'PLAYER_CREDIT' | translate}}
+                                        div {{'CONTACT_INFO' | translate}}
                                     td
-                                        .inlineBlk
-                                            label {{"Today Consumption" | translate}}
-                                            text {{vm.selectedSinglePlayer.dailyConsumptionSum || 0}}
-                                        .inlineBlk
-                                            label {{"Today Topup" | translate}}
-                                            text {{vm.selectedSinglePlayer.dailyTopUpSum || 0}}
+                                        .row
+                                            div(style='min-width:max-content;display:inline-block;width:11.11111112%;padding-left:15px;padding-right:15px;white-space: nowrap;')
+                                                    label {{"TELEPHONE" | translate}}
+                                            div(style='display:inline-block;width:88.88888888%;padding-left:15px;padding-right:15px;white-space: nowrap;')
+                                                    text.
+                                                        {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}&nbsp;
+                                                        ({{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}},&nbsp;
+                                                        {{vm.selectedSinglePlayer.phoneProvince || 'Unknown' | translate}}/
+                                                        {{vm.selectedSinglePlayer.phoneType || 'Unknown' | translate}})
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"WECHAT" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"QQ" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
+                                        .row
+                                            .col-md-4
+                                                    .row
+                                                        .col-sm-4(style='white-space: nowrap;')
+                                                            label {{"EMAIL" | translate}}
+                                                        .col-sm-8
+                                                            text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
+
+                                        //.inlineBlk.col-md-3
+                                        //    label {{'Test Player' | translate}}
+                                        //    text(style='height:inherit') {{vm.selectedSinglePlayer.isTestPlayer ? 'Yes' : 'No' | translate}}
+                                        //.inlineBlk.col-md-3
+                                    td
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRER" | translate}}
                                 tr
                                     td
-                                        div {{"TELEPHONE" | translate}}
+                                        div {{'WITHDRAW_INFO' | translate}}
                                     td
-                                        .inlineBlk
-                                            label {{"TELEPHONE" | translate}}
-                                            text {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'PHONE_CITY' | translate}}
-                                            text {{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'PHONE_PROVINCE' | translate}}
-                                            text {{vm.selectedSinglePlayer.phoneProvince || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'PHONE_TYPE' | translate}}
-                                            text {{vm.selectedSinglePlayer.phoneType || 'Unknown' | translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"BANK_NAME" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.allBankTypeList[vm.selectedSinglePlayer.bankName] || vm.selectedSinglePlayer.bankName || 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"BANK_ACCOUNT_NAME" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"BANK_ACCOUNT_TYPE" | translate}}
+                                                    .col-sm-8
+                                                        text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card '|translate}}
+                                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card '|translate}}
+                                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==3 || vm.selectedSinglePlayer.bankAccountType=="3"') {{'储存卡'|translate}}
+                                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==4 || vm.selectedSinglePlayer.bankAccountType=="4"') {{'储蓄卡'|translate}}
+                                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==5 || vm.selectedSinglePlayer.bankAccountType=="5"') {{'商务理财卡'|translate}}
+                                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"BANK_ACCOUNT" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.encodedBankAccount || 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"BANK_ACCOUNT_PROVINCE" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.showProvinceStr ? vm.showProvinceStr : 'Unknown' | translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"BANK_ACCOUNT_CITY" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.showCityStr ? vm.showCityStr : 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"BANK_ACCOUNT_DISTRICT" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"Bank Address" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.bankAddress || 'Unknown' | translate}}
+
+                                        //.inlineBlk
+                                        //    label {{"Today Consumption" | translate}}
+                                        //    text {{vm.selectedSinglePlayer.dailyConsumptionSum || 0}}
+                                        //.inlineBlk
+                                        //    label {{"Today Topup" | translate}}
+                                        //    text {{vm.selectedSinglePlayer.dailyTopUpSum || 0}}
+                                    td
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRER" | translate}}
+                                tr
+                                    td
+                                        div {{"Topup Group" | translate}}
+                                    td
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"BankCardGroup" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.platformBankCardGroupListCheck[vm.selectedSinglePlayer.bankCardGroup] | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"ONLINE_TOP_UP_GROUP" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.platformMerchantGroupListCheck[vm.selectedSinglePlayer.merchantGroup] | translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='min-width:max-content;white-space: nowrap;')
+                                                        label {{"PERSONAL_ALIPAY_GROUP" | translate}}
+                                                    .col-sm-8(style='max-width:max-content;')
+                                                        text {{vm.platformAlipayGroupListCheck[vm.selectedSinglePlayer.alipayGroup] | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"PERSONAL_WECHAT_GROUP" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.platformWechatPayGroupListCheck[vm.selectedSinglePlayer.wechatPayGroup] | translate}}
+                                    td
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.initPlayerReferral()') {{"REFERRER" | translate}}
                                 tr
                                     td
                                         div {{'IP' | translate}}
                                     td
-                                        .inlineBlk
-                                            label {{'IP' | translate}}
-                                            text {{vm.selectedSinglePlayer.lastLoginIp || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'COUNTRY' | translate}}
-                                            text {{vm.selectedSinglePlayer.country || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'CITY' | translate}}
-                                            text {{vm.selectedSinglePlayer.city || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'Registration Domain' | translate}}
-                                            text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'SOURCE_URL' | translate}}
-                                            text
-                                                a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            button.btn.btn-primary.common-button-sm(ng-click='vm.showIPHistory()') {{"View Details" | translate}}
-                                tr
-                                    td
-                                        div {{'PaymentInformation' | translate}}
-                                    td
-                                        .inlineBlk
-                                            label {{'BANK_NAME' | translate}}
-                                            text {{vm.allBankTypeList[vm.selectedSinglePlayer.bankName] || vm.selectedSinglePlayer.bankName || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'BANK_ACCOUNT' | translate}}
-                                            text {{vm.selectedSinglePlayer.encodedBankAccount || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'BANK_ACCOUNT_NAME' | translate}}
-                                            text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'BANK_ACCOUNT_TYPE' | translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==2 || vm.selectedSinglePlayer.bankAccountType=="2"') {{'Debit Card '|translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==1 || vm.selectedSinglePlayer.bankAccountType=="1"') {{'Credit Card '|translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==3 || vm.selectedSinglePlayer.bankAccountType=="3"') {{'储存卡'|translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==4 || vm.selectedSinglePlayer.bankAccountType=="4"') {{'储蓄卡'|translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==5 || vm.selectedSinglePlayer.bankAccountType=="5"') {{'商务理财卡'|translate}}
-                                            text(ng-if='vm.selectedSinglePlayer.bankAccountType==6 || vm.selectedSinglePlayer.bankAccountType=="6"') {{'工商银行一卡通'|translate}}
-                                        .inlineBlk
-                                            label {{'BANK_ACCOUNT_PROVINCE' | translate}}
-                                            text {{vm.showProvinceStr ? vm.showProvinceStr : 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'BANK_ACCOUNT_CITY' | translate}}
-                                            text {{vm.showCityStr ? vm.showCityStr : 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'BANK_ACCOUNT_DISTRICT' | translate}}
-                                            text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
-                                        .inlineBlk
-                                            label {{'Bank Address' | translate}}
-                                            text {{vm.selectedSinglePlayer.bankAddress || 'Unknown' | translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"IP" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.lastLoginIp || 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{'COUNTRY' | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.country || 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"CITY" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.city || 'Unknown' | translate}}
+                                        .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{'Registration Domain' | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{'SOURCE_URL' | translate}}
+                                                    .col-sm-8
+                                                        text
+                                                            a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
                                         //.inlineBlk
                                         //    label {{'BANK_BRANCH' | translate}}
                                         //    text {{vm.selectedSinglePlayer.bankBranch || 'Unknown' | translate}}
+                                    td
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.showIPHistory()') {{"View Details" | translate}}
                 .panel.panel-primary
                     .panel-heading.panel-heading-sm
                         h5.text-center {{"Similar Players" | translate}}

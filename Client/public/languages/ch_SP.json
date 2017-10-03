@@ -260,8 +260,8 @@
   "The following topup types will be disabled": "这些充值类型将被禁用",
   "All topup types are available!": "可用所有充值类型",
   "PAYMENT_PLAYER": "支付资料",
-  "BANK_ACCOUNT_NAME": "账号名称",
-  "BANK_ACCOUNT": "银行账户",
+  "BANK_ACCOUNT_NAME": "账号姓名",
+  "BANK_ACCOUNT": "银行卡号",
   "MEMBERSHIP_ACCOUNT_NUMBER": "会员账号",
   "BANK_TYPE": "银行类别",
   "BANK_ACCOUNT_NUMBER": "银行账号",
@@ -896,7 +896,7 @@
   "NO_RECORD": "无记录",
   "BANK_BRANCH": "银行支行",
   "bankBranch": "银行支行",
-  "BANK_NAME": "银行名",
+  "BANK_NAME": "银行名称",
   "7 Days": "7日内",
   "REWARD_CLIENT_APPLY": "客户端是否显示按钮",
   "NO_REPORT_TYPE_MESSAGE": "请选择报表类型",
@@ -2400,5 +2400,12 @@
   "Backstage Privilege": "后台权限",
   "Website Business": "网站业务",
   "Topup Group": "充值分组",
-  "CREDIBILITY_RECORD": "信用评价记录"
+  "CREDIBILITY_RECORD": "信用评价记录",
+  "ACTION_BUTTON": "操作",
+  "CONTACT_INFO": "联系资讯",
+  "WITHDRAW_INFO": "提款资料",
+  "ONLINE_TOP_UP_GROUP": "在线充值组",
+  "PERSONAL_ALIPAY_GROUP": "个人支付宝组",
+  "PERSONAL_WECHAT_GROUP": "个人微信组"
+
 }

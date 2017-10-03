@@ -2639,6 +2639,7 @@ define(['js/app'], function (myApp) {
 
             // Clears the table data and shows the provided data instead, without re-creating the table object itself.
             var setTableData = function (table, data) {
+                console.log("WALAO",data)
                 table.clear();
                 if (data) {
                     data.forEach(function (rowData) {
@@ -4276,7 +4277,6 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 };
-
                 option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
                 option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
                 option.childScope.changeReferral = function () {
@@ -9331,7 +9331,7 @@ define(['js/app'], function (myApp) {
                     vm.platformBankCardGroupList = data.data;
                     vm.platformBankCardGroupListCheck = {};
                     $.each(vm.platformBankCardGroupList, function (i, v) {
-                        vm.platformBankCardGroupListCheck[v._id] = true;
+                        vm.platformBankCardGroupListCheck[v._id] = v.name ? v.name : true;
                     })
                     $scope.safeApply();
                 })
@@ -9364,7 +9364,7 @@ define(['js/app'], function (myApp) {
                     vm.platformMerchantGroupList = data.data;
                     vm.platformMerchantGroupListCheck = {};
                     $.each(vm.platformMerchantGroupList, function (i, v) {
-                        vm.platformMerchantGroupListCheck[v._id] = true;
+                        vm.platformMerchantGroupListCheck[v._id] = v.name ? v.name : true;
                     })
                     $scope.safeApply();
                 })
@@ -9389,7 +9389,7 @@ define(['js/app'], function (myApp) {
                     vm.platformAlipayGroupList = data.data;
                     vm.platformAlipayGroupListCheck = {};
                     $.each(vm.platformAlipayGroupList, function (i, v) {
-                        vm.platformAlipayGroupListCheck[v._id] = true;
+                        vm.platformAlipayGroupListCheck[v._id] = v.name ? v.name : true;
                     })
                     $scope.safeApply();
                 })
@@ -9447,7 +9447,7 @@ define(['js/app'], function (myApp) {
                     vm.platformWechatPayGroupList = data.data;
                     vm.platformWechatPayGroupListCheck = {};
                     $.each(vm.platformWechatPayGroupList, function (i, v) {
-                        vm.platformWechatPayGroupListCheck[v._id] = true;
+                        vm.platformWechatPayGroupListCheck[v._id] = v.name ? v.name : true;
                     });
                     $scope.safeApply();
                 })
