@@ -850,6 +850,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.remark = inputData.remark || "";
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
                 proposalData.createTime = inputData.createTime || "";
+                proposalData.inputData = inputData;
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -946,6 +947,7 @@ var dbPlayerTopUpRecord = {
                     updateData.data.bankCardNo = requestData.result.bankCardNo;
                     updateData.data.cardOwner = requestData.result.cardOwner;
                     updateData.data.bankTypeId = requestData.result.bankTypeId;
+                    updateData.data.resultData = requestData.result;
 
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
@@ -1012,20 +1014,8 @@ var dbPlayerTopUpRecord = {
                         proposalId: res.proposalId,
                         requestId: res.data.requestId,
                         status: res.status,
-                        result: {
-                            requestId: res.data.requestId,
-                            bankTypeId: res.data.bankTypeId,
-                            bankCardNo: res.data.bankCardNo,
-                            cardOwner: res.data.cardOwner,
-                            createTime: res.createTime,
-                            validTime: res.data.validTime
-                        },
-                        inputData: {
-                            amount: res.data.amount,
-                            lastBankcardNo: res.data.lastBankcardNo,
-                            bankTypeId: res.data.bankTypeId,
-                            depositMethod: res.data.depositMethod
-                        },
+                        result: res.data.result,
+                        inputData: res.data.inputData,
                         restTime: Math.abs(parseInt((new Date().getTime() - new Date(res.data.validTime).getTime()) / 1000))
                     };
 
