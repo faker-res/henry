@@ -849,7 +849,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.realName = inputData.realName;
                 proposalData.remark = inputData.remark || "";
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
-                proposalData.createTime = inputData.createTime || "";
+                proposalData.depositTime = inputData.createTime || "";
                 proposalData.inputData = inputData;
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
