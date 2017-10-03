@@ -2575,6 +2575,9 @@ define(['js/app'], function (myApp) {
             });
 
             vm.advancedPlayerQuery = function (newSearch) {
+                if (vm.advancedQueryObj.credibilityRemarks && (vm.advancedQueryObj.credibilityRemarks.constructor !== Array || vm.advancedQueryObj.credibilityRemarks.length === 0)) {
+                    delete vm.advancedQueryObj.credibilityRemarks;
+                }
                 var apiQuery = {
                     platformId: vm.selectedPlatform.id,
                     query: vm.advancedQueryObj,
@@ -13648,6 +13651,7 @@ define(['js/app'], function (myApp) {
                     delete vm.advancedQueryObj[k];
                 }
             }
+
             if (playerQuery.playerId) {
                 var te = $("#playerTable-search-filter > div").not(":nth-child(1)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
