@@ -516,7 +516,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.playerNewPassword', data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerCredibilityRemarks.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -525,7 +525,7 @@ include modalGameCreditLog
                 .panel.panel-primary
                     .panel-body
                         button.btn.btn-danger.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", ng-click='vm.submitRemarkUpdate()') {{"CONFIRM" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
                         button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
                         span {{vm.credibilityRemarkUpdateMessage | translate}}
                         div.row
@@ -545,7 +545,7 @@ include modalGameCreditLog
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected")
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
 
                             div.col-md-4
                                 .well
@@ -563,7 +563,7 @@ include modalGameCreditLog
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected")
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
 
                             div.col-md-4
                                 .well
@@ -581,7 +581,31 @@ include modalGameCreditLog
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected")
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
+                .panel.panel-primary
+                    .panel-body
+                        div.col-md-4(style='width:40%;')
+                            label {{'REMARKS' | translate}}:
+                            div
+                                textarea.form-control(style="max-width: 90%; overflow: auto; margin-bottom: 12px;", rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
+                        div.col-md-4(style='width:60%;')
+                            label {{'CREDIBILITY_RECORD' | translate}}
+                            .well
+                                div(align="center")
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"TIME" | translate}}
+                                                th {{"CREDIBILITY" | translate}}
+                                                th {{"remark" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                                                td(style= "border: 1px solid #0099CC")
+                                                    text {{data.createTime}}
+                                                td(style="text-align:center;border: 1px solid #0099CC")
+                                                    text {{data.remarks$}}
+                                                td(style = "background-color:white;border: 1px solid #0099CC")
+                                                    text {{data.comment}}
 
 #modalPlayerExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:95%;')
@@ -1144,6 +1168,9 @@ include modalGameCreditLog
                                     td
                                         div {{'Basic' | translate}}
                                     td
+                                        .inlineBlk
+                                            label {{"PLAYER_ID" | translate}}
+                                            text {{vm.selectedSinglePlayer.playerId}}
                                         .inlineBlk
                                             label {{"PLAYER_NAME" | translate}}
                                             text {{vm.selectedSinglePlayer.name}}

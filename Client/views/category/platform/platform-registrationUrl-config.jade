@@ -51,25 +51,25 @@
                             td(ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
                                 a {{'SELECT' | translate}}
                         tr(ng-if="vm.urlTableEdit")
-                             td
-                                 select.form-control#officerOption(ng-model='vm.currentUrlEditSelect._id', ng-disabled="!vm.urlTableEdit", required)
-                                     option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
-                             td
-                                 select.form-control#officerPromoteOption(ng-model='vm.currentUrlEditSelect.url.way', ng-disabled="!vm.urlTableEdit", required)
-                                     option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
-                             td
-                                 input.form-control(type="text", ng-model="vm.currentUrlEditSelect.url.domain", ng-disabled="!vm.urlTableEdit", required)
+                            td
+                                select.form-control#officerOption(ng-model='vm.currentUrlEditSelect._id', ng-disabled="!vm.urlTableEdit", required)
+                                    option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
+                            td
+                                select.form-control#officerPromoteOption(ng-model='vm.currentUrlEditSelect.url.way', ng-disabled="!vm.urlTableEdit", required)
+                                    option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+                            td
+                                input.form-control(type="text", ng-model="vm.currentUrlEditSelect.url.domain", ng-disabled="!vm.urlTableEdit", required)
                         tr(ng-if="vm.urlTableAdd")
                             td
-                               select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required)
-                                   option(value='') {{'CHOOSE_OFFICER' | translate}}
-                                   option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
+                                select.form-control#officerOption(ng-model='vm.addOfficerUrl.officer', required)
+                                    option(value='') {{'CHOOSE_OFFICER' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allOfficer', value='{{v._id}}') {{v.name}}
                             td
-                               select.form-control#officerPromoteOption(ng-model='vm.addOfficerUrl.promoteWay', required)
-                                   option(value='') {{'CHOOSE_PROMOTE_WAY' | translate}}
-                                   option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+                                select.form-control#officerPromoteOption(ng-model='vm.addOfficerUrl.promoteWay')
+                                    option(value='') {{'CHOOSE_PROMOTE_WAY' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
                             td
-                               input.form-control(type="text", ng-model="vm.addOfficerUrl.url", required)
+                                input.form-control(type="text", ng-model="vm.addOfficerUrl.url", required)
         .pull-right
             button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Create')", ng-click="vm.initCreateUrl()")
                 text {{'CREATE' | translate}}

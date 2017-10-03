@@ -232,7 +232,7 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         return $scope.isShowConsole ? "Hide Console" : "Show Console";
     }
     $scope.logoIndex = 0;
-    $scope.companyLogo = $scope.logolist[0];
+    $scope.companyLogo = null; //$scope.logolist[0];
     $scope.changeLanguage = function () {
         switch ($scope.langKey) {
             case "ch_SP":
@@ -1056,5 +1056,8 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
     $scope.changeServer = (server) => {
         $cookies.put('curFPMSServer', server);
         $scope.connectSocket();
+    }
+    $scope.changeLogoImg = (url) =>{
+        $scope.companyLogo = url;
     }
 });

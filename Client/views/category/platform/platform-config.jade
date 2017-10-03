@@ -564,7 +564,7 @@
                                         th(rowspan='2') {{"LEVEL" | translate}}
                                         th(colspan='2') {{"Bonus Basic" | translate}}
                                     tr
-                                        th {{'Percentage Charge' | translate}}
+                                        th {{'Percentage Charge %' | translate}}
                                         th {{'Apply without charge' | translate}}
 
                                 thead
@@ -575,11 +575,16 @@
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
                                             text {{level.name | translate}}
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
+                                            div(style='display:inline-block')
+                                                text(ng-show='!vm.configTableEdit') {{level.bonusPercentageCharges | number}}
+                                            div(style='display:inline-block')
+                                                input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.bonusPercentageCharges')
+                                            div(style='display:inline-block')
+                                                span %
+
+                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
                                             input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.bonusCharges')
                                             text(ng-show='!vm.configTableEdit') {{level.bonusCharges | number}}
-                                        td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
-                                            input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.bonusPercentageCharges')
-                                            text(ng-show='!vm.configTableEdit') {{level.bonusPercentageCharges | number}}
 
 
                                 tbody(ng-if='vm.configTableAdd')
@@ -857,7 +862,7 @@
                                         tr(ng-repeat='(i, data) in vm.negativeRemarks')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.name}}
-                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name')
+                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name', ng-change='vm.updateRemarkInEdit("negative", "update", data._id)')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.score}}
                                                 input.form-control(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("negative", "update", data._id)')
@@ -880,7 +885,7 @@
                                         tr(ng-repeat='(i, data) in vm.positiveRemarks')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.name}}
-                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name')
+                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name', ng-change='vm.updateRemarkInEdit("positive", "update", data._id)')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.score}}
                                                 input.form-control(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("positive", "update", data._id)')
@@ -902,7 +907,7 @@
                                         tr(ng-repeat='(i, data) in vm.neutralRemarks')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.name}}
-                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name')
+                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
                                             td
                                                 text(ng-if="!vm.configTableEdit") {{data.score}}
                                                 input.form-control(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
