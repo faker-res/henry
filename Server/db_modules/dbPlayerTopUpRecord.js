@@ -997,43 +997,52 @@ var dbPlayerTopUpRecord = {
         ).then(
             propTypeData => {
                 if (propTypeData) {
-                    return dbconfig.collection_proposal.find({
+                    return dbconfig.collection_proposal.findOne({
                         "data.platformId": playerObj.platform._id,
                         "data.playerObjId": playerObj._id,
                         "data.validTime": {$gt: new Date()},
                         type: propTypeData._id
-                    }).lean();
+                    }).sort({settleTime: -1}).lean();
                 }
             }
         ).then(
             res => {
-                let retArr = [];
+                if (res) {
+                    let retData = {
+                        proposalId: res.proposalId,
+                        requestId: res.data.requestId,
+                        status: res.status,
+                        result: {
+                            requestId: res.data.requestId,
+                            bankTypeId: res.data.bankTypeId,
+                            bankCardNo: res.data.bankCardNo,
+                            cardOwner: res.data.cardOwner,
+                            createTime: res.createTime,
+                            validTime: res.data.validTime
+                        },
+                        inputData: {
+                            amount: res.data.amount,
+                            lastBankcardNo: res.data.lastBankcardNo,
+                            bankTypeId: res.data.bankTypeId,
+                            depositMethod: res.data.depositMethod
+                        },
+                        restTime: Math.abs(parseInt((new Date().getTime() - new Date(res.data.validTime).getTime()) / 1000))
+                    };
 
-                if (res && res.length > 0) {
-                    res.forEach((el, idx, arr) => {
-                        retArr.push({
-                            proposalId: el.proposalId,
-                            requestId: el.data.requestId,
-                            status: el.status,
-                            result: {
-                                requestId: el.data.requestId,
-                                bankTypeId: el.data.bankTypeId,
-                                bankCardNo: el.data.bankCardNo,
-                                cardOwner: el.data.cardOwner,
-                                createTime: el.createTime,
-                                validTime: el.data.validTime
-                            },
-                            inputData: {
-                                amount: el.data.amount,
-                                lastBankcardNo: el.data.lastBankcardNo,
-                                bankTypeId: el.data.bankTypeId,
-                                depositMethod: el.data.depositMethod
-                            },
-                            restTime: Math.abs(parseInt((new Date().getTime() - new Date(el.data.validTime).getTime()) / 1000))
-                        })
-                    });
-
-                    return retArr;
+                    if (res.status == constProposalStatus.APPROVED || res.status == constProposalStatus.SUCCESS) {
+                        if (!res.data.isViewedByFrontEnd) {
+                            return dbconfig.collection_proposal.findOneAndUpdate({
+                                _id: res._id,
+                                createTime: res.createTime
+                            }, {
+                                "data.isViewedByFrontEnd": true
+                            }).then(
+                                res => retData
+                            );
+                        }
+                    } else if (res.status == constProposalStatus.PENDING) {
+                        return retData;
+                    }
                 }
             }
         )
