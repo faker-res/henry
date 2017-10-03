@@ -1786,7 +1786,7 @@ define(['js/app'], function (myApp) {
 
         };
 
-        vm.getMismatchReport = function () {
+        vm.getLimitedOfferReport = function () {
             $('#limitedOfferTableSpin').show();
             let sendQuery = {
                 platform: vm.selectedPlatform._id,
