@@ -1402,6 +1402,7 @@
   "smsLog": "SMS记录",
   "sendSMS": "发短信",
   "SEND_MESSAGE_TO_PLAYER": "发站内信给玩家",
+  "SEND_MESSAGE": "发站内信",
   "Send SMS to Player": "发短信给玩家",
   "smsPlayer": "发短信给玩家",
   "TO_PLAYER": "给玩家",

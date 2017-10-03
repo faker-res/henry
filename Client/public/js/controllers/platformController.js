@@ -2952,7 +2952,7 @@ define(['js/app'], function (myApp) {
                                 var link = $('<div>', {});
                                 link.append($('<a>', {
                                     'class': 'fa fa-envelope margin-right-5',
-                                    'ng-click': 'vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'tooltip',
                                     'title': $translate("SEND_MESSAGE_TO_PLAYER"),
@@ -5031,6 +5031,13 @@ define(['js/app'], function (myApp) {
                 vm.feedbackModalTab = "addFeedbackPanel";
             }
 
+            vm.initMessageModal = function() {
+                $('#sendMessageToPlayerTab').addClass('active');
+                $('#messageLogTab').removeClass('active');
+                $scope.safeApply();
+                vm.messageModalTab = "sendMessageToPlayerPanel";
+            }
+
             vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
                 opt = opt || {'dom': 't'};
                 vm.playerFeedbackRecord.searching = true;
@@ -6607,13 +6614,26 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
 
+            // vm.initMailLog = function () {
+            //     vm.mailLog = vm.mailLog || {};
+            //     vm.mailLog.query = {};
+            //     vm.mailLog.receivedMails = [{}];
+            //     utilService.actionAfterLoaded('#modalMailLog.in #mailLogQuery .endTime', function () {
+            //         vm.mailLog.startTime = utilService.createDatePicker('#mailLogQuery .startTime');
+            //         vm.mailLog.endTime = utilService.createDatePicker('#mailLogQuery .endTime');
+            //         vm.mailLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+            //         vm.mailLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+            //         vm.searchMailLog();
+            //     });
+            // }
+
             vm.initMailLog = function () {
                 vm.mailLog = vm.mailLog || {};
                 vm.mailLog.query = {};
                 vm.mailLog.receivedMails = [{}];
-                utilService.actionAfterLoaded('#modalMailLog.in #mailLogQuery .endTime', function () {
-                    vm.mailLog.startTime = utilService.createDatePicker('#mailLogQuery .startTime');
-                    vm.mailLog.endTime = utilService.createDatePicker('#mailLogQuery .endTime');
+                utilService.actionAfterLoaded('#messagePlayerModal.in #messageLogPanel #mailLogQuery .endTime', function () {
+                    vm.mailLog.startTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .startTime');
+                    vm.mailLog.endTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .endTime');
                     vm.mailLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.mailLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.searchMailLog();

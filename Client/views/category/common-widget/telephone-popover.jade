@@ -6,20 +6,57 @@
 
 ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' | translate}}")
     ez-modal-body
-        form(name="form_send_message")
-            .row
-                div.form-group.col-md-12
-                    label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
-                    text {{vm.telphonePlayer.name}} {{vm.telphonePlayer.nickName && '(' + vm.telphonePlayer.nickName + ')'}}
-            .row
-                div.form-group.col-md-12
-                    label.control-label {{"TITLE" | translate}}
-                    input.form-control(type="text", ng-model="vm.messageForPlayer.title", placeholder="...")
-            .row
-                div.form-group.col-md-12
-                    label.control-label {{"MESSAGE" | translate}}
-                    textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8")
-    ez-modal-footer
+        ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='margin:10px 0 10px 0;height: 43px;')
+            .pull-left.padding-all-5
+            li.active(id = 'sendMessageToPlayerTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                a.common-tab(data-toggle="tab", ng-click='vm.messageModalTab = \'sendMessageToPlayerPanel\'')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"SEND_MESSAGE" | translate}}
+            li(id = 'messageLogTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                a.common-tab(data-toggle="tab",ng-click='vm.messageModalTab = \'messageLogPanel\'; vm.initMailLog();')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"mailLog" | translate}}
+
+        #sendMessageToPlayerPanel.panel-body(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")
+            form(name="form_send_message")
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
+                        text {{vm.telphonePlayer.name}} {{vm.telphonePlayer.nickName && '(' + vm.telphonePlayer.nickName + ')'}}
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"TITLE" | translate}}
+                        input.form-control(type="text", ng-model="vm.messageForPlayer.title", placeholder="...")
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"MESSAGE" | translate}}
+                        textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8")
+
+        #messageLogPanel.panel-body(ng-if="vm.messageModalTab === 'messageLogPanel'")
+            #mailLogQuery.block-query.well
+                div
+                    label {{"Start date" | translate}}
+                    .startTime
+                div
+                    label {{"End date" | translate}}
+                    .endTime
+                button.btn.btn-primary.common-button(ng-click='vm.searchMailLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+            div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                table.simple-table.display(style='min-width: 100%; width: 100%')
+                    thead
+                        tr
+                            th {{"date" | translate}}
+                            th {{"Sender Type" | translate}}
+                            th {{"Sender Name" | translate}}
+                            th {{"CONTENT" | translate}}
+                    tbody
+                        tr(ng-repeat='(i,mailLog) in vm.mailLog.receivedMails')
+                            td {{mailLog.createTime | date:'medium'}}
+                            td {{mailLog.senderType}}
+                            td {{mailLog.senderName}}
+                            td {{mailLog.content}}
+
+    ez-modal-footer(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")
         ez-confirm-button(ng-click="vm.sendMessageToPlayer()") {{"SEND" | translate}}
         ez-cancel-button {{"CANCEL" | translate}}
 
