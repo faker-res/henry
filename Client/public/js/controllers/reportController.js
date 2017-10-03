@@ -2122,7 +2122,7 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$"},
                     {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$"},
-                    {title: $translate('TOPUP_ALIPAY'), data: "aliPayTopUpAmount$"},
+                    {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$"},
                     {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$"},
                     {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                     {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$"},

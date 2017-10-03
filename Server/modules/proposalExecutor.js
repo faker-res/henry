@@ -148,6 +148,7 @@ var proposalExecutor = {
             this.executions.executePlayerLevelMigration.des = "Player Level Migration";
             this.executions.executePlayerPacketRainReward.des = "Player Packet Rain Reward";
             this.executions.executePlayerPromoCodeReward.des = "Player Promo Code Reward";
+            this.executions.executePlayerLimitedOfferReward.des = "Player Limited Offer Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -195,6 +196,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerLevelMigration.des = "Reject Player Level Migration";
             this.rejections.rejectPlayerPacketRainReward.des = "Reject Player Packet Rain Reward";
             this.rejections.rejectPlayerPromoCodeReward.des = "Reject Player Promo Code Reward";
+            this.rejections.rejectPlayerLimitedOfferReward.des = "Reject Player Limited Offer Reward";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1843,7 +1845,33 @@ var proposalExecutor = {
                         message: "Incorrect player promo code reward proposal data"
                     });
                 }
-            }
+            },
+
+            executePlayerLimitedOfferReward: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
+                        rewardType: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.applyAmount,
+                        initAmount: proposalData.data.applyAmount,
+                        eventId: proposalData.data.eventId
+                    };
+                    if (proposalData.data.providers) {
+                        taskData.targetProviders = proposalData.data.providers;
+                    }
+
+                    createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_LIMITED_OFFERS_REWARD, proposalData);
+                } else {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Incorrect player promo code reward proposal data"
+                    });
+                }
+            },
+
         },
 
         /**
@@ -2383,7 +2411,11 @@ var proposalExecutor = {
 
             rejectPlayerPromoCodeReward: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
-            }
+            },
+
+            rejectPlayerLimitedOfferReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
         }
     }
 ;

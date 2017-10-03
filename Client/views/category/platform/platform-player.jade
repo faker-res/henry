@@ -211,9 +211,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'FeedbackHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.prepareShowFeedbackRecord()')
             text {{"Feedback History" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
-            text {{"Permission History" | translate}}
-            img.img-edit
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
+        //    text {{"Permission History" | translate}}
+        //    img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'mailLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initMailLog()', data-target='#modalMailLog')
             text {{"Mail Log" | translate}}
             img.img-edit
@@ -1356,14 +1356,16 @@ include modalGameCreditLog
                         a.text-danger.togglePlayer(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
         .textareaDetail.margin-top-bottom-small
             textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
-        .text-center
+        .text-left(style="position:relative;")
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
+            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
+                text {{"Permission History" | translate}}
 #modalPlayerPermissionChangeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
         #playerPermissionHistory.modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{'Player' | translate}} : {{vm.selectedSinglePlayer.name}}
+                h4.modal-title {{'Player' | translate}} : {{vm.popOverPlayerPermission.name}}
             .modal-body
                 .well.searchDiv
                     .inlineBlk

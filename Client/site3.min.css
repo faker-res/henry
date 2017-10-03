@@ -4058,6 +4058,38 @@ input[type='number'].leftALignNumber {
     height: 0;
 }
 
+.privilegeLogo div{
+    background-image: url(/images/icon/privilege.png);
+    -webkit-background-size: cover;
+    background-size: cover;
+    margin: 0 auto;
+    width:40px; height: 36px;
+}
+
+.privilegeLogo:hover div{
+    background-image: url(/images/icon/privilege_hover.png);
+}
+
+.clickedBackstagePrivilege div{
+    background-image: url(/images/icon/privilege_hover.png);
+}
+
+.wbLogo div{
+    background-image: url(/images/icon/websiteBusiness.png);
+    -webkit-background-size: cover;
+    background-size: cover;
+    margin: 0 auto;
+    width:40px; height: 36px;
+}
+
+.wbLogo:hover div{
+    background-image: url(/images/icon/websiteBusiness_hover.png);
+}
+
+.clickedWebsiteBusiness div{
+    background-image: url(/images/icon/websiteBusiness_hover.png);
+}
+
 /*@media all and (max-width: 768px), only screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 1024px), only screen and (min--moz-device-pixel-ratio: 2) and (max-width: 1024px), only screen and (-o-min-device-pixel-ratio: 2 / 1) and (max-width: 1024px), only screen and (min-device-pixel-ratio: 2) and (max-width: 1024px), only screen and (min-resolution: 192dpi) and (max-width: 1024px), only screen and (min-resolution: 2dppx) and (max-width: 1024px) {*/
     /*#cssmenu {*/
         /*width: 100%;*/

@@ -11,11 +11,13 @@
                             a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showPlatformList', ng-click='vm.toggleShowPlatformList(true)')
                         li(ng-if='!vm.curPlatformText')
                             div.platformName
-                                .fa.fa-2x.fa-cubes(style='margin:5px 10px;')
+                                .fa.fa-2x(style='margin:5px 10px;')
+                                    img(src="images/icon/websiteBusiness_hover.png" width="30" )
                                 text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
                         li(ng-if='vm.curPlatformText', style='margin: 0 5px')
                             div.platformName(ng-click='vm.showPlatformDetailModal()')
-                                .fa.fa-2x.fa-cubes(style='margin:5px 10px;')
+                                .fa.fa-2x(style='margin:5px 10px;')
+                                    img(src="images/icon/websiteBusiness_hover.png" width="30" )
                                 text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}
                         li.active(ng-show="checkViewPermission('Platform', 'Player', 'Read')")
                             a.common-tab(data-toggle="tab", href="#Player", ng-click="vm.activatePlayerTab();vm.platformPageName='Player';vm.updatePageTile();")

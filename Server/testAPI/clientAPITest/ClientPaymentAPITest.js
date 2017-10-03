@@ -111,6 +111,14 @@
         });
     };
 
+    proto.getCashRechargeStatus = function (callback, requestData) {
+        let data = requestData || {
+            playerId: testPlayerId,
+        };
+        this._service.getCashRechargeStatus.request(data);
+        this._service.getCashRechargeStatus.once(callback);
+    };
+
     proto.requestAlipayTopup = function (callback, requestData) {
         var data = requestData || {
                 playerId: testPlayerId,
