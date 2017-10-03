@@ -2794,6 +2794,8 @@ let dbPlayerInfo = {
                                     eventCode: rewardParams[i].code,
                                 }
                             };
+
+                            console.log('transaction reward proposal console.log data', proposalData);
                             let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
                             levelProm.push(temp);
                         }
