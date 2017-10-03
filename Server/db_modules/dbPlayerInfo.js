@@ -974,9 +974,14 @@ let dbPlayerInfo = {
 
     getPlayerInfo: function (query) {
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-            .populate({path: "partner", model: dbconfig.collection_partner})
-            .exec();
+            .populate({path: "platform", model: dbconfig.collection_platform}).then(
+                playerData => {
+                    return {
+                        name: playerData.name,
+                        platformId: playerData.platform.platformId
+                    }
+                }
+            );
     },
     getOnePlayerInfo: function (query) {
         let playerData;
