@@ -3876,7 +3876,7 @@ let dbPlayerInfo = {
                         rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
                     }
                     let gameCreditProm = {};
-                    if (playerData.lastPlayedProvider) {
+                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
                         gameCreditProm = cpmsAPI.player_queryCredit(
                             {
                                 username: userName,
