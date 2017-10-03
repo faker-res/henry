@@ -307,6 +307,7 @@ define(['js/app'], function (myApp) {
                 vm.platformSettlement = {};
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
                 vm.getCredibilityRemarks();
+                vm.playerAdvanceSearchQuery = {creditOperator: ">="};
 
                 //load partner
                 utilService.actionAfterLoaded("#partnerTablePage", function () {
@@ -2681,7 +2682,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
@@ -2693,38 +2694,38 @@ define(['js/app'], function (myApp) {
                                 return link.prop('outerHTML');
                             }
                         },
-                        {
-                            title: $translate('STATUS'), data: 'status',
-                            render: function (data, type, row) {
-                                var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
-                                var textClass = '';
-                                if (data == 4) {
-                                    textClass = "text-black";
-                                } else if (data == 5) {
-                                    textClass = "text-danger";
-                                } else if (data === 6) {
-                                    textClass = "text-warning";
-                                }
-
-                                return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text(showText)
-                                    .addClass(textClass)
-                                    .prop('outerHTML');
-                            },
-                            advSearch: true,
-                            filterConfig: {
-                                type: "dropdown",
-                                options: vm.allPlayersStatusKeys.map(function (status) {
-                                    return {
-                                        value: vm.allPlayersStatusString[status],
-                                        text: $translate(status)
-                                    };
-                                })
-                            },
-                            "sClass": ""
-                        },
+                        // {
+                        //     title: $translate('STATUS'), data: 'status',
+                        //     render: function (data, type, row) {
+                        //         var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
+                        //         var textClass = '';
+                        //         if (data == 4) {
+                        //             textClass = "text-black";
+                        //         } else if (data == 5) {
+                        //             textClass = "text-danger";
+                        //         } else if (data === 6) {
+                        //             textClass = "text-warning";
+                        //         }
+                        //
+                        //         return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                        //             'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                        //             .attr('data-row', JSON.stringify(row))
+                        //             .text(showText)
+                        //             .addClass(textClass)
+                        //             .prop('outerHTML');
+                        //     },
+                        //     advSearch: true,
+                        //     filterConfig: {
+                        //         type: "dropdown",
+                        //         options: vm.allPlayersStatusKeys.map(function (status) {
+                        //             return {
+                        //                 value: vm.allPlayersStatusString[status],
+                        //                 text: $translate(status)
+                        //             };
+                        //         })
+                        //     },
+                        //     "sClass": ""
+                        // },
                         {
                             // this object is use for column show
                             // credibility remark advsearch column's object will appear later in the code
@@ -3662,26 +3663,26 @@ define(['js/app'], function (myApp) {
                         }));
                     }
                 });
-                var btn = $('<button>', {
-                    id: "resetPlayerQuery",
-                    class: "btn btn-primary common-button-sm",
-                    style: "display:block;",
-                }).text($translate('Reset'));
-                var newFilter = $('<div class="search-filter col-md-3">').append($('<label class="control-label">')).append(btn);
-                $(config.filtersElement).append(newFilter);
-                utilService.actionAfterLoaded('#resetPlayerQuery', function () {
-                    $('#resetPlayerQuery').off('click');
-                    $('#resetPlayerQuery').click(function () {
-                        $('#playerTable-search-filters').find(".form-control").each((i, v) => {
-                            $(v).val(null);
-                            utilService.clearDatePickerDate(v)
-                        })
-                        getPlayersByAdvanceQueryDebounced(function ({}) {
-                        });
-                        vm.advancedQueryObj = {};
-                        vm.advancedPlayerQuery(true);
-                    })
-                })
+                // var btn = $('<button>', {
+                //     id: "resetPlayerQuery",
+                //     class: "btn btn-primary common-button-sm",
+                //     style: "display:block;",
+                // }).text($translate('Reset'));
+                // var newFilter = $('<div class="search-filter col-md-3">').append($('<label class="control-label">')).append(btn);
+                // $(config.filtersElement).append(newFilter);
+                // utilService.actionAfterLoaded('#resetPlayerQuery', function () {
+                //     $('#resetPlayerQuery').off('click');
+                //     $('#resetPlayerQuery').click(function () {
+                //         $('#playerTable-search-filters').find(".form-control").each((i, v) => {
+                //             $(v).val(null);
+                //             utilService.clearDatePickerDate(v)
+                //         })
+                //         getPlayersByAdvanceQueryDebounced(function ({}) {
+                //         });
+                //         vm.advancedQueryObj = {};
+                //         vm.advancedPlayerQuery(true);
+                //     })
+                // })
             }
 
             function createAdvancedSearchFilters(config) {
@@ -11699,6 +11700,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
                         console.log('credibilityRemarks', data);
                         vm.credibilityRemarks = data.data;
+                        $scope.safeApply();
+                        vm.setupRemarksMultiInput();
                         resolve();
                     }, function (err) {
                         reject(err);
@@ -13603,6 +13606,114 @@ define(['js/app'], function (myApp) {
                     console.log(err);
                 });
         };
+
+        vm.setupRemarksMultiInput = function () {
+            let remarkSelect = $('select#selectCredibilityRemark');
+            if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
+            remarkSelect.multipleSelect({
+                showCheckbox  : true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+            $scope.safeApply();
+        };
+
+        utilService.actionAfterLoaded('#resetPlayerQuery', function () {
+            $('#resetPlayerQuery').off('click');
+            $('#resetPlayerQuery').click(function () {
+                utilService.clearDatePickerDate('#regDateTimePicker');
+                utilService.clearDatePickerDate('#regEndDateTimePicker');
+                utilService.clearDatePickerDate('#lastAccessDateTimePicker');
+                utilService.clearDatePickerDate('#lastAccessEndDateTimePicker');
+                $("select#selectCredibilityRemark").multipleSelect("enable");
+                $("select#selectCredibilityRemark").multipleSelect("uncheckAll");
+                vm.playerAdvanceSearchQuery = {creditOperator: ">="};
+                vm.getPlayersByAdvanceQueryDebounced(function(){});
+                vm.advancedQueryObj = {};
+                vm.advancedPlayerQuery(true);
+            })
+        })
+
+        vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
+            // NOTE: If the response is ignoring your field filter and returning all players, please check that the
+            // field is whitelisted in buildPlayerQueryString() in encrypt.js
+            utilService.hideAllPopoversExcept();
+            vm.advancedQueryObj = $.extend({}, vm.advancedQueryObj, playerQuery);
+            for (let k in playerQuery) {
+                if (!playerQuery[k] || $.isEmptyObject(playerQuery)) {
+                    delete vm.advancedQueryObj[k];
+                }
+            }
+            if (playerQuery.playerId) {
+                var te = $("#playerTable-search-filter > div").not(":nth-child(1)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee");
+                $("select#selectCredibilityRemark").multipleSelect("disable");
+            } else if (playerQuery.name) {
+                var te = $("#playerTable-search-filter > div").not(":nth-child(2)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee");
+                $("select#selectCredibilityRemark").multipleSelect("disable");
+            } else if (playerQuery.phoneNumber) {
+                var te = $("#playerTable-search-filter > div").not(":nth-child(9)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee");
+                $("select#selectCredibilityRemark").multipleSelect("disable");
+            } else if (playerQuery.bankAccount) {
+                let te = $("#playerTable-search-filter > div").not(":nth-child(10)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee");
+                $("select#selectCredibilityRemark").multipleSelect("disable");
+            } else if (playerQuery.email) {
+                let te = $("#playerTable-search-filter > div").not(":nth-child(11)").find(".form-control");
+                te.prop("disabled", true).css("background-color", "#eee");
+                te.find("input").prop("disabled", true).css("background-color", "#eee");
+                $("select#selectCredibilityRemark").multipleSelect("disable");
+            } else {
+                $("#playerTable-search-filter .form-control").prop("disabled", false).css("background-color", "#fff");
+                $("#playerTable-search-filter .form-control input").prop("disabled", false).css("background-color", "#fff");
+            }
+            if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber || playerQuery.bankAccount || playerQuery.email) {
+                var sendQuery = {
+                    platformId: vm.selectedPlatform.id,
+                    query: playerQuery,
+                    index: 0,
+                    limit: 100
+                };
+                socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery, function (data) {
+                    console.log('playerData', data);
+                    var size = data.data.size || 0;
+                    var result = data.data.data || [];
+                    setPlayerTableData(result);
+                    utilService.hideAllPopoversExcept();
+                    vm.searchPlayerCount = size;
+                    vm.playerTableQuery.pageObj.init({maxCount: size}, true);
+
+                    var found = false;
+                    if (size == 1) {
+                        vm.playerTable.rows(function (idx, rowData, node) {
+                            if (rowData._id == result[0]._id) {
+                                vm.playerTableRowClicked(rowData);
+                                vm.selectedPlayersCount = 1;
+                                $(node).addClass('selected');
+                                found = true;
+                            }
+                        })
+                    }
+                    if (!found) {
+                        vm.selectedSinglePlayer = null;
+                        vm.selectedPlayersCount = 0;
+                    }
+                    $scope.safeApply();
+                });
+            } else {
+                vm.advancedPlayerQuery(true);
+            }
+        });
 
         $('body').on('click','#permissionRecordButton',function(){
             vm.getPlayerPermissionChange("new")
