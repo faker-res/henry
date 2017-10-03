@@ -2784,7 +2784,7 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: curRewardAmount,
+                                    spendingAmount: rewardAmount,
                                     eventName: rewardParams[i].name,
                                     eventCode: rewardParams[i].code,
                                 }
