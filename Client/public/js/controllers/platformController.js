@@ -10331,6 +10331,8 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeEdit = false;
                 vm.promoCodeSMSContentEdit = false;
                 vm.promoCodeUserGroupEdit = false;
+                vm.promoCodeUserGroupInlineEdit = false;
+                vm.promoCodeUserGroupPlayerEdit = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
