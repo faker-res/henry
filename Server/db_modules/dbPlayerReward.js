@@ -283,7 +283,7 @@ let dbPlayerReward = {
                             platformId: topUpProposalData.data.platformId,
                             platform: topUpProposalData.data.platform,
                             rewardAmount: rewardAmount,
-                            spendingAmount: 0,
+                            spendingAmount: rewardAmount,
                             applyAmount: 0,
                             amount: rewardAmount,
                             eventId: promoEventDetail._id,
