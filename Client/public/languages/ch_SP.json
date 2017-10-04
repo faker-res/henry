@@ -1,6 +1,7 @@
 {
   "BACKSTAGE_SETTINGS": "后台设置",
   "PLAYER_DISPLAY_DATA": "玩家前端展示",
+  "CUSTOMER_SERVICE_EMAIL_AUTOMATED": "自动回复邮箱",
   "CUSTOMER_SERVICE_WEIXIN_PHOTO": "客服微信图片URL",
   "PARTNER_DISPLAY_DATA": "代理前端展示",
   "CUSTOMER_SERVICE_DISPLAY_URL": "欲展示网址（玩家页面）",
@@ -1065,7 +1066,7 @@
   "CUSTOMER_SERVICE_PARTNER_EMAIL": "代理客服邮箱",
   "CUSTOMER_SERVICE_PARTNER_QQ": "代理客服QQ号",
   "CUSTOMER_SERVICE_PARTNER_SKYPE": "代理客服Skype号",
-  "used when sending automated messages": "用作于自动回复",
+  "used when sending automated messages": "",
   "PLAYER_CONSUMPTION_RETURN_REPORT": "玩家洗码报表",
   "PARTNER_CONSUMPTION_REPORT": "推广洗码报表",
   "PARTNER ID": "代理ID",
