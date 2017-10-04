@@ -3722,14 +3722,21 @@ input[type='number'].leftALignNumber {
     margin-right:10px;
 }
 
-.scrollRecord{
-  overflow-x:scroll;
+.scrollRecord {
+    overflow-x: scroll;
 }
 
-.limitOffersTB td input[type='text']{
-  min-width: 85px;
+.limitOffersTB td input[type='text'] {
+    min-width: 85px;
 }
 
+#modalUpdatePlatform .nav-tabs>li {
+    cursor: pointer;
+}
+#modalUpdatePlatform .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
 .navbar-right {
     padding-right: 10px !important;
 }

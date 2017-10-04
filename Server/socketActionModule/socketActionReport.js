@@ -443,6 +443,14 @@ function socketActionReport(socketIO, socket) {
                 socketUtil.emitter(self.socket, dbPaymentReconciliation.getOnlinePaymentProposalMismatchReport, [ObjectId(data.platform), data.platformId, data.type, startTime, endTime], actionName, isValidData);
             }
 
+        },
+
+        testPMSCashoutAPI: function testPMSCashoutAPI(data) {
+            let actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.platformId &&data.startTime && data.endTime && (endTime > startTime));
+            socketUtil.emitter(self.socket, dbPaymentReconciliation.testCashoutAPI, [data.platformId, startTime, endTime], actionName, isValidData);
         }
     };
     socketActionReport.actions = this.actions;
