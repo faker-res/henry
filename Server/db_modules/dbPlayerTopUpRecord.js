@@ -1014,7 +1014,7 @@ var dbPlayerTopUpRecord = {
                         proposalId: res.proposalId,
                         requestId: res.data.requestId,
                         status: res.status,
-                        result: res.data.result,
+                        result: res.data.resultData,
                         inputData: res.data.inputData,
                         restTime: Math.abs(parseInt((new Date().getTime() - new Date(res.data.validTime).getTime()) / 1000))
                     };

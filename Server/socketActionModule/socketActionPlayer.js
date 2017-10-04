@@ -872,6 +872,12 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.remarks);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
         },
+        testThisAPI: function testThisAPI(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.topupAmount && data.playerLevel);
+            socketUtil.emitter(self.socket, dbPlayerInfo.applyForPlatformTransactionReward, [data.platformObjId, data.playerObjId, data.topupAmount, data.playerLevel], actionName, isValidData);
+        },
+
     };
     socketActionPlayer.actions = this.actions;
 }

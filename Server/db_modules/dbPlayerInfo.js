@@ -2743,6 +2743,7 @@ let dbPlayerInfo = {
         let playerData = {};
         Q.all([eventProm, proposalProm, playerLevelProm, playerProm]).then(
             function (data) {
+                console.log('data', JSON.stringify(data, null, 4))
                 if (data && data[0] && data[1] && data[2] && data[3]) {
                     if (!data[3].permission || !data[3].permission.transactionReward) {
                         deferred.resolve("No permission!");
