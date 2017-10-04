@@ -1494,6 +1494,25 @@ let dbPlayerReward = {
                 return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData);
             }
         )
+    },
+
+    getLimitedOfferReport: (platformId) => {
+        return dbConfig.collection_platform.findOne({
+            platformId: platformId
+        }).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbConfig.collection_proposalType.find({
+                        platformId: platformData._id,
+                        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                    }).lean();
+                }
+            }
+        ).then(
+            intentions => {
+                console.log('intentions', intentions);
+            }
+        )
     }
 };
 
