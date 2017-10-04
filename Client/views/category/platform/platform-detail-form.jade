@@ -29,11 +29,14 @@ form(name="form_new_platform" ,novalidate)
                 div.form-group.col-md-6
                     label.control-label {{"PUSH_NOTIFICATION_MASTER_KEY" | translate}}
                     input.form-control(type="text", ng-model="vm.showPlatform.jiguangMasterKey")
+                div.form-group.col-md-6
+                    label.control-label *{{"CUSTOMER_SERVICE_EMAIL_AUTOMATED" | translate}} ({{"used when sending automated messages" | translate}})
+                    input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail", required)
 
             div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
                 div.form-group.col-md-6
-                    label.control-label *{{"CUSTOMER_SERVICE_EMAIL" | translate}} ({{"IMAGE_URL" | translate}}) ({{"used when sending automated messages" | translate}})
-                    input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail", required)
+                    label.control-label {{"CUSTOMER_SERVICE_EMAIL" | translate}} ({{"IMAGE_URL" | translate}})
+                    input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmailImageUrl")
                 div.form-group.col-md-6
                     label.control-label {{"CUSTOMER_SERVICE_HOTLINE" | translate}} ({{"IMAGE_URL" | translate}})
                     input.form-control(type="text", placeholder="{{'HOTLINE' | translate}}", ng-model="vm.showPlatform.csPhone")
@@ -103,7 +106,7 @@ div(name="system-settlement", ng-show="vm.selectedPlatformDetailTab == 'system-s
             label &nbsp;
             button.btn.common-button.btn-primary(ng-click='vm.getSettlementHistory()') {{'SEARCH' | translate}}
         hr
-        table#platformSettlementHistoryTbl.common-table.display(style='width:100%')
+        table#platformSettlementHistoryTbl.common-table.display.collapse(style='width:100%')
             thead
                 tr
                     th {{"SETTLEMENT" | translate}} {{'TIME' | translate}}

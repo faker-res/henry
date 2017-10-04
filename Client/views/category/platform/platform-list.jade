@@ -1,4 +1,4 @@
-.padding-all-5
+//.padding-all-5
     .panel.panel-primary
         .panel-heading.padding-all-5
             .panel-title.left-col
@@ -162,7 +162,7 @@
                 //button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Delete")',ng-disabled="!vm.selectedPlatform", ng-click='vm.transferAllCreditOut()')
                 //    text {{"TRANSFER_OUT_FROM_AGMG" | translate}}
                 //    img.img-edit
-#modalCreatePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalCreatePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header
@@ -177,7 +177,7 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled='form_new_platform.$invalid', ng-click="vm.createNewPlatform();") {{"CREATE" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
-#modalDeletePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalDeletePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header
@@ -249,7 +249,7 @@
 
 
 
-#modalPlatformSettlementHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalPlatformSettlementHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header
@@ -287,7 +287,7 @@
                                         td.wordWrap(style='width:50%;word-break:break-all') {{v.data}}
             .modal-footer
                 button.btn.btn-success.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}
-#modalPlatformSettlement.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalPlatformSettlement.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header
@@ -333,7 +333,7 @@
                 button.btn.btn-success.common-button(ng-if='vm.partnerCommissionSettlement.status=="ready"', ng-click="vm.performPartnerCommissionSetlement()") {{'CONFIRM' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.partnerCommissionSettlement.status=="processing"')
 
-#modalTransferOutAllPlayerCreditFromGameProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalTransferOutAllPlayerCreditFromGameProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:70%;')
         .modal-content
             .modal-header
