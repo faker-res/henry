@@ -134,12 +134,25 @@ define(['js/app'], function (myApp) {
                         : $.extend(true, {}, value);
                 }
             };
+
             /////////////Victor::Platform functions
             vm.toggleShowPlatformDropDownList = function () {
                 console.log("showplatformddl");
                 vm.showPlatformDropDownList = !vm.showPlatformDropDownList;
 
                 $scope.safeApply();
+            };
+
+            vm.showPlatformDetailTab = function(tabName) {
+                vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
+            };
+
+            vm.setPlatformFooter = function(platformAction) {
+                vm.platformAction = platformAction;
+            };
+
+            vm.populatePlatformData = function() {
+                vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
 
             ////////////////Mark::Platform functions//////////////////
@@ -671,21 +684,21 @@ define(['js/app'], function (myApp) {
             };
 
             vm.prepareSettlementHistory = function () {
-                vm.initQueryTimeFilter('modalPlatformSettlementHistory');
-                vm.queryPara.modalPlatformSettlementHistory.interval = 'daily';
+                vm.initQueryTimeFilter('modalUpdatePlatform');
+                vm.queryPara.modalUpdatePlatform.interval = 'daily';
                 $scope.safeApply();
-                vm.processDataTableinModal('#modalPlatformSettlementHistory', '#platformSettlementHistoryTbl');
-                vm.getSettlementHistory();
+                // vm.processDataTableinModal('#modalUpdatePlatform', '#platformSettlementHistoryTbl');
+                // vm.getSettlementHistory();
             }
             vm.getSettlementHistory = function () {
                 socketService.$socket($scope.AppSocket, 'getSettlementHistory', {
                     query: {
                         type: "platform",
-                        interval: vm.queryPara.modalPlatformSettlementHistory.interval,
+                        interval: vm.queryPara.modalUpdatePlatform.interval,
                         id: vm.selectedPlatform.id,
                         createTime: {
-                            $gte: vm.queryPara.modalPlatformSettlementHistory.startTime.data('datetimepicker').getLocalDate(),
-                            $lt: vm.queryPara.modalPlatformSettlementHistory.endTime.data('datetimepicker').getLocalDate(),
+                            $gte: vm.queryPara.modalUpdatePlatform.startTime.data('datetimepicker').getLocalDate(),
+                            $lt: vm.queryPara.modalUpdatePlatform.endTime.data('datetimepicker').getLocalDate(),
                         }
                     }
                 }, success, failfunc);
@@ -693,7 +706,7 @@ define(['js/app'], function (myApp) {
                     console.log('settlement history', data);
                     vm.platformSettlementHis = data.data;
                     $scope.safeApply();
-                    vm.updateDataTableinModal('#modalPlatformSettlementHistory', '#platformSettlementHistoryTbl');
+                    vm.updateDataTableinModal('#modalUpdatePlatform', '#platformSettlementHistoryTbl');
                 };
                 function failfunc(error) {
                     console.log(error);
@@ -888,7 +901,7 @@ define(['js/app'], function (myApp) {
             }
 
             //before update platform
-            vm.befreUpdatePlatform = function () {
+            vm.beforeUpdatePlatform = function () {
                 let idStr = vm.showPlatform.department;
                 vm.showPlatform.department = {_id: idStr};
                 console.log('require', vm.selectedPlatform);
@@ -13116,6 +13129,8 @@ define(['js/app'], function (myApp) {
                         vm.phonePattern = /^[0-9]{8,18}$/;
                         vm.showPlatformList = true;
                         vm.showPlatformDropDownList = false;
+                        vm.showPlatformDetailTab(null);
+                        vm.platformAction = null;
                         // vm.allGameStatusString = {};
                         vm.credibilityRemarks = [];
                         vm.gameStatus = {};
