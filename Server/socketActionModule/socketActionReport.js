@@ -430,7 +430,7 @@ function socketActionReport(socketIO, socket) {
 
         },
 
-        getLimitedOfferReport: function getMismatchReport(data) {
+        getLimitedOfferReport: function getLimitedOfferReport(data) {
             let actionName = arguments.callee.name;
             let startTime = new Date(data.startTime);
             let endTime = new Date(data.endTime);

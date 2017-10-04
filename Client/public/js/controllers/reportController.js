@@ -1798,7 +1798,7 @@ define(['js/app'], function (myApp) {
 
             console.log('sendQuery', sendQuery);
 
-            socketService.$socket($scope.AppSocket, 'getMismatchReport', sendQuery, function (data) {
+            socketService.$socket($scope.AppSocket, 'getLimitedOfferReport', sendQuery, function (data) {
                 console.log('_getMismatchReport', data);
                 $('#onlinePaymentMismatchTableSpin').hide();
                 vm.proposalMismatchDetail = data.data;
