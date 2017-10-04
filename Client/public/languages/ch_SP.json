@@ -1421,6 +1421,7 @@
   "smsLog": "SMS记录",
   "sendSMS": "发短信",
   "SEND_MESSAGE_TO_PLAYER": "发站内信给玩家",
+  "SEND_MESSAGE": "发站内信",
   "Send SMS to Player": "发短信给玩家",
   "smsPlayer": "发短信给玩家",
   "TO_PLAYER": "给玩家",
@@ -2424,5 +2425,6 @@
   "Backstage Privilege": "后台权限",
   "Website Business": "网站业务",
   "Topup Group": "充值分组",
-  "CREDIBILITY_RECORD": "信用评价记录"
+  "CREDIBILITY_RECORD": "信用评价记录",
+  "SMS Notify Settings": "短信通知设定"
 }
