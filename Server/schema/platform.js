@@ -42,6 +42,7 @@ var platformSchema = new Schema({
     //CUSTOMER SERVICE INFO
     //email address used when sending emails to players
     csEmail: {type: String},
+    csEmailImageUrl: {type: String},
     csPhone: {type: String},
     csUrl: {type: String},
     csQQ: {type: String},

@@ -1,12 +1,15 @@
 .row.margin-left-5.margin-right-5(ng-show="checkViewPermission('Platform')")
-    .col-md-3(ng-class='vm.leftPanelClass')
-        include ./platform-list
-    #platformContent.col-md-9(style="padding-left:0;",ng-class='vm.rightPanelClass')
+    //.col-md-3(ng-class='vm.leftPanelClass')
+    include ./platform-list
+
+
+    //#platformContent.col-md-9(style="padding-left:0;",ng-class='vm.rightPanelClass')
+    #platformContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
         .padding-all-5
             .panel.panel-primary
                 .panel-heading.common-left-panel-heading
                     ul.nav.nav-tabs.common-nav-tabs
-                        .pull-left.padding-all-5
+                        //.pull-left.padding-all-5
                             a.fa.fa-chevron-circle-left.contractIcon(ng-show='vm.showPlatformList', ng-click='vm.toggleShowPlatformList(false)')
                             a.fa.fa-chevron-circle-right.contractIcon(ng-show='!vm.showPlatformList', ng-click='vm.toggleShowPlatformList(true)')
 
