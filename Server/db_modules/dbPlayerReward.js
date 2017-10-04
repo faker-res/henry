@@ -1503,22 +1503,30 @@ let dbPlayerReward = {
         )
     },
 
-    getLimitedOfferReport: (platformId) => {
-        return dbConfig.collection_platform.findOne({
-            platformId: platformId
+    getLimitedOfferReport: (platformObjId, startTime, endTime, playerName, promoName) => {
+        return dbConfig.collection_proposalType.findOne({
+            platformId: platformObjId,
+            name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
         }).lean().then(
-            platformData => {
-                if (platformData) {
-                    return dbConfig.collection_proposalType.find({
-                        platformId: platformData._id,
-                        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
-                    }).lean();
+            propType => {
+                let matchQ = {
+                    "data.platformObjId": platformObjId,
+                    type: propType._id,
+                    createTime: {$gte: startTime, $lt: endTime}
+                };
+
+                if (playerName) {
+                    matchQ['data.playerName'] = playerName;
                 }
+
+                if (promoName) {
+                    matchQ['data.limitedOfferName'] = promoName;
+                }
+
+                return dbConfig.collection_proposal.find(matchQ).lean();
             }
         ).then(
-            intentions => {
-                console.log('intentions', intentions);
-            }
+            intProps => intProps
         )
     }
 };
