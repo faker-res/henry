@@ -722,6 +722,54 @@
             div
                 span pms：提案个数： {{vm.proposalMismatchDetail.pmsCount || 0}}  提案总额度： {{vm.proposalMismatchDetail.pmsAmount || 0}}
 
+        div(ng-if='vm.showPageName=="LIMITED_OFFER_REPORT"')
+            #limitedOfferQuery.block-query.col-md-12.well
+                div
+                    label {{'playerName' | translate}}
+                    input.form-control(type='text', ng-model='vm.limitedOfferQuery.playerName')
+                div
+                    label {{'TITLE' | translate}}
+                    input.form-control(type='text', ng-model='vm.limitedOfferQuery.promoName')
+                div
+                    label {{'Status' | translate}}
+                    select.form-control(ng-model='vm.limitedOfferQuery.status')
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.getLimitedOfferReport()') {{'SEARCH' | translate}}
+                    span#limitedOfferTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.winRateReportLoadingStatus}}
+            .clearfix
+            table#limitedOfferTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                thead
+                    tr
+                        th {{'PROPOSAL_ID' | translate}}
+                        th {{'TITLE' | translate}}
+                        th {{'PLAYERNAME' | translate}}
+                        th {{'LIMITED_OFFER_APPLY_TIME' | translate}}
+                        th {{'topUpProposalId' | translate}}
+                        th {{'topUpAmount' | translate}}
+                        th {{'rewardProposalId' | translate}}
+                        th {{'rewardAmount' | translate}}
+                        th {{'spendingAmount' | translate}}
+                tbody
+                    tr(ng-repeat='el in vm.limitedOfferDetail')
+                        td {{el.proposalId}}
+                        td {{el.data.limitedOfferName}}
+                        td {{el.data.playerName}}
+                        td {{el.createTime}}
+                        td {{el.data.topUpProposalId}}
+                        td {{el.data.topUpAmount}}
+                        td {{el.data.rewardProposalId}}
+                        td {{el.data.rewardProposalId ? el.data.rewardAmount : ""}}
+                        td {{el.data.spendingAmount}}
+
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')
 script(src='js/lib/flot/jquery.flot.pie.min.js')
