@@ -137,7 +137,6 @@ define(['js/app'], function (myApp) {
 
             /////////////Victor::Platform functions
             vm.toggleShowPlatformDropDownList = function () {
-                console.log("showplatformddl");
                 vm.showPlatformDropDownList = !vm.showPlatformDropDownList;
 
                 $scope.safeApply();

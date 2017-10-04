@@ -30,7 +30,6 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label {{"PUSH_NOTIFICATION_MASTER_KEY" | translate}}
                     input.form-control(type="text", ng-model="vm.showPlatform.jiguangMasterKey")
 
-            //1.客服邮箱//2.客服电话//3.在线客服Url//4.客服QQ号//5.客服微信号//6.客服Skype//7.欲展示网址（玩家页面）//8.玩家邀请URL（绑定推荐人）//9.客服微信图片URL
             div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
                 div.form-group.col-md-6
                     label.control-label *{{"CUSTOMER_SERVICE_EMAIL" | translate}} ({{"IMAGE_URL" | translate}}) ({{"used when sending automated messages" | translate}})
@@ -60,7 +59,6 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label {{"CUSTOMER_SERVICE_WEIXIN_PHOTO" | translate}}
                     input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.weixinPhotoUrl")
 
-            //1.代理客服邮箱//2.代理客服电话//3.代理在线客服Url//4.代理客服QQ号//5.代理客服微信号//6.代理客服Skype//7.欲展示网址（代理页面）//8.代理邀请URL（绑定代理上线）//9.代理客服微信图片URL
             div(name="partner-display-data", ng-show="vm.selectedPlatformDetailTab == 'partner-display-data'")
                 div.form-group.col-md-6
                     label.control-label {{"CUSTOMER_SERVICE_PARTNER_EMAIL" | translate}} ({{"IMAGE_URL" | translate}})
