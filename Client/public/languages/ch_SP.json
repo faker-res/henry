@@ -2406,6 +2406,9 @@
   "WITHDRAW_INFO": "提款资料",
   "ONLINE_TOP_UP_GROUP": "在线充值组",
   "PERSONAL_ALIPAY_GROUP": "个人支付宝组",
-  "PERSONAL_WECHAT_GROUP": "个人微信组"
+  "PERSONAL_WECHAT_GROUP": "个人微信组",
+  "EDIT_HISTORY": "修改历史",
+  "EDIT_WEBSITE_PASS": "修改网站密码",
+  "EDIT_PROVIDER_PASS": "修改供应商密码"
 
 }
