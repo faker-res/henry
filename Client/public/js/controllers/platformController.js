@@ -11345,6 +11345,20 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
             };
+
+        vm.testThisAPI = function () {
+            let sendQuery = {
+                platformObjId: vm.selectedSinglePlayer.platform,
+                playerObjId: vm.selectedSinglePlayer._id,
+                topupAmount: 200,
+                playerLevel: vm.selectedSinglePlayer.playerLevel._id
+            };
+            return $scope.$socketPromise('testThisAPI', sendQuery)
+                .then(function (data) {
+                    console.log('testAPIData', data)
+                });
+        };
+
             vm.sortPlayerLevels = function () {
                 vm.allPlayerLvl.sort((a, b) => a.value - b.value);
             };

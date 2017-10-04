@@ -3766,6 +3766,19 @@ define(['js/app'], function (myApp) {
             return content.html();
         }
 
+        // debug use
+        vm.testCashOutAPI = function (startTime, endTime) {
+            let sendQuery = {
+                platformId: vm.selectedPlatform.platformId,
+                startTime: startTime,
+                endTime: endTime
+            };
+            return $scope.$socketPromise('testPMSCashoutAPI', sendQuery)
+                .then(function (data) {
+                    console.log('testAPIData', data);
+                });
+        };
+
         vm.getStatusStrfromRow = function (row) {
             if (row.status) {
                 return row.status;
