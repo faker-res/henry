@@ -1915,7 +1915,8 @@ let dbPlayerInfo = {
                             {
                                 $set: {
                                     'data.topUpProposalObjId': proposalData._id,
-                                    'data.topUpProposalId': proposalData.proposalId
+                                    'data.topUpProposalId': proposalData.proposalId,
+                                    'data.topUpAmount': proposalData.data.amount
                                 },
                                 $currentDate: {settleTime: true}
                             },
@@ -1932,6 +1933,7 @@ let dbPlayerInfo = {
                         ).then(
                             proposalTypeData => {
                                 if (proposalTypeData) {
+                                    // Create reward proposal with intention data
                                     let proposalData = {
                                         type: proposalTypeData._id,
                                         creator: newProp.creator,
@@ -1941,6 +1943,23 @@ let dbPlayerInfo = {
                                     };
                                     return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
                                 }
+                            }
+                        ).then(
+                            res => {
+                                return dbUtility.findOneAndUpdateForShard(
+                                    dbconfig.collection_proposal,
+                                    {_id: proposalData.data.limitedOfferObjId},
+                                    {
+                                        $set: {
+                                            'data.rewardProposalObjId': res._id,
+                                            'data.rewardProposalId': res.proposalId,
+                                            'data.rewardAmount': res.data.rewardAmount
+                                        },
+                                        $currentDate: {settleTime: true}
+                                    },
+                                    constShardKeys.collection_proposal,
+                                    true
+                                )
                             }
                         );
 

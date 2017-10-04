@@ -554,7 +554,7 @@ var roleChecker = {
                 PLAYER_ALMOST_LEVELUP_REPORT: ['getPlayerAlmostLevelupReport'],
                 ACTIONLOG_REPORT: ['getActionLogPageReport'],
                 ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
-                LIMITED_OFFER_REPORT: []
+                LIMITED_OFFER_REPORT: ['getLimitedOfferReport']
             }
         },
         Monitor: {
