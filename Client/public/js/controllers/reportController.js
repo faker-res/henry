@@ -491,6 +491,13 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
                 });
                 $scope.safeApply();
+            } else if (choice == "LIMITED_OFFER_REPORT") {
+                vm.limitedOfferQuery = {};
+                vm.limitedOfferDetail = {};
+                utilService.actionAfterLoaded("#limitedOfferTable", function () {
+                    vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
+                });
+                $scope.safeApply();
             } else if (choice == "PLAYERPARTNER_REPORT") {
                 vm.partnerQuery = {};
                 utilService.actionAfterLoaded("#playerPartnerTable", function () {
@@ -1779,6 +1786,26 @@ define(['js/app'], function (myApp) {
 
         };
 
+        vm.getLimitedOfferReport = function () {
+            $('#limitedOfferTableSpin').show();
+            let sendQuery = {
+                platform: vm.selectedPlatform._id,
+                platformId: vm.selectedPlatform.platformId,
+                startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
+                type: vm.limitedOfferQuery.type
+            };
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getLimitedOfferReport', sendQuery, function (data) {
+                console.log('_getMismatchReport', data);
+                $('#onlinePaymentMismatchTableSpin').hide();
+                vm.proposalMismatchDetail = data.data;
+                $scope.safeApply();
+            });
+        };
+
         /////// player domain report
         vm.searchPlayerDomainRepport = function (newSearch) {
             $('#playerDomainReportTableSpin').show();
@@ -2122,7 +2149,7 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$"},
                     {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$"},
-                    {title: $translate('TOPUP_ALIPAY'), data: "aliPayTopUpAmount$"},
+                    {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$"},
                     {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$"},
                     {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
                     {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$"},

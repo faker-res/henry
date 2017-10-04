@@ -974,9 +974,14 @@ let dbPlayerInfo = {
 
     getPlayerInfo: function (query) {
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-            .populate({path: "partner", model: dbconfig.collection_partner})
-            .exec();
+            .populate({path: "platform", model: dbconfig.collection_platform}).then(
+                playerData => {
+                    return {
+                        name: playerData.name,
+                        platformId: playerData.platform.platformId
+                    }
+                }
+            );
     },
     getOnePlayerInfo: function (query) {
         let playerData;
@@ -2784,11 +2789,13 @@ let dbPlayerInfo = {
                                     eventDescription: rewardParams[i].description,
                                     curRewardAmount: curRewardAmount,
                                     maxRewardAmountPerDay: rewardParams[i].param.maxRewardAmountPerDay,
-                                    spendingAmount: 0,
+                                    spendingAmount: rewardAmount,
                                     eventName: rewardParams[i].name,
                                     eventCode: rewardParams[i].code,
                                 }
                             };
+
+                            console.log('transaction reward proposal console.log data', proposalData);
                             let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
                             levelProm.push(temp);
                         }
@@ -3871,7 +3878,7 @@ let dbPlayerInfo = {
                         rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
                     }
                     let gameCreditProm = {};
-                    if (playerData.lastPlayedProvider) {
+                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
                         gameCreditProm = cpmsAPI.player_queryCredit(
                             {
                                 username: userName,

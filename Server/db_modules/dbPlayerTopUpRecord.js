@@ -849,7 +849,8 @@ var dbPlayerTopUpRecord = {
                 proposalData.realName = inputData.realName;
                 proposalData.remark = inputData.remark || "";
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
-                proposalData.createTime = inputData.createTime || "";
+                proposalData.depositTime = inputData.createTime || "";
+                proposalData.inputData = inputData;
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -908,7 +909,7 @@ var dbPlayerTopUpRecord = {
                         depositMethod: depositMethod,
                         bankTypeId: inputData.bankTypeId,
                         bankCardNo: inputData.lastBankcardNo || "",
-                        provinceId: inputData.provinceId,
+                        provinceId: inputData.provinceId || "",
                         cityId: inputData.cityId,
                         districtId: inputData.districtId || "",
                         groupBankcardList: player.bankCardGroup ? player.bankCardGroup.banks : [],
@@ -946,6 +947,7 @@ var dbPlayerTopUpRecord = {
                     updateData.data.bankCardNo = requestData.result.bankCardNo;
                     updateData.data.cardOwner = requestData.result.cardOwner;
                     updateData.data.bankTypeId = requestData.result.bankTypeId;
+                    updateData.data.resultData = requestData.result;
 
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
@@ -969,10 +971,71 @@ var dbPlayerTopUpRecord = {
                     status: data.status,
                     result: request.result,
                     inputData: inputData,
-                    restTime: parseInt( (new Date().getTime() - new Date(request.result.validTime).getTime())/1000 )
+                    restTime: Math.abs(parseInt((new Date().getTime() - new Date(request.result.validTime).getTime()) / 1000))
                 };
             }
         );
+    },
+
+    getCashRechargeStatus: playerId => {
+        let playerObj;
+
+        return dbconfig.collection_players.findOne({
+            playerId: playerId
+        }).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: playerObj.platform._id,
+                        name: constProposalType.PLAYER_MANUAL_TOP_UP
+                    }).lean();
+                }
+            }
+        ).then(
+            propTypeData => {
+                if (propTypeData) {
+                    return dbconfig.collection_proposal.findOne({
+                        "data.platformId": playerObj.platform._id,
+                        "data.playerObjId": playerObj._id,
+                        "data.validTime": {$gt: new Date()},
+                        type: propTypeData._id
+                    }).sort({settleTime: -1}).lean();
+                }
+            }
+        ).then(
+            res => {
+                if (res) {
+                    let retData = {
+                        proposalId: res.proposalId,
+                        requestId: res.data.requestId,
+                        status: res.status,
+                        result: res.data.result,
+                        inputData: res.data.inputData,
+                        restTime: Math.abs(parseInt((new Date().getTime() - new Date(res.data.validTime).getTime()) / 1000))
+                    };
+
+                    if (res.status == constProposalStatus.APPROVED || res.status == constProposalStatus.SUCCESS) {
+                        if (!res.data.isViewedByFrontEnd) {
+                            return dbconfig.collection_proposal.findOneAndUpdate({
+                                _id: res._id,
+                                createTime: res.createTime
+                            }, {
+                                "data.isViewedByFrontEnd": true
+                            }).then(
+                                res => retData
+                            );
+                        }
+                    } else if (res.status == constProposalStatus.PENDING) {
+                        return retData;
+                    }
+                }
+            }
+        )
     },
 
     cancelManualTopupRequest: function (playerId, proposalId, adminName) {
@@ -1622,15 +1685,21 @@ var dbPlayerTopUpRecord = {
         let proposal = null;
         let request = null;
 
-        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
+        return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean();
-        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
-
-        return Promise.all([playerProm, limitedOfferProm]).then(
-            res => {
-                player = res[0];
-                let limitedOfferTopUp = res[1];
+            .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}
+            ).lean().then(
+                playerData => {
+                    if (playerData) {
+                        player = playerData;
+                        return checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                    } else {
+                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                    }
+                }
+            ).then(
+                intentionProp => {
+                    let limitedOfferTopUp = intentionProp;
 
                 if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
@@ -1779,15 +1848,26 @@ var dbPlayerTopUpRecord = {
         let proposal = null;
         let request = null;
 
-        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform})
-            .populate({path: "quickPayGroup", model: dbconfig.collection_platformQuickPayGroup}).lean();
-        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
-
-        return Promise.all([playerProm, limitedOfferProm]).then(
-            res => {
-                player = res[0];
-                let limitedOfferTopUp = res[1];
+        return dbconfig.collection_players.findOne({
+            playerId: playerId
+        }).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).populate({
+            path: "quickPayGroup",
+            model: dbconfig.collection_platformQuickPayGroup
+        }).lean().then(
+            playerData => {
+                if (playerData) {
+                    player = playerData;
+                    return checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                } else {
+                    return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                }
+            }
+        ).then(
+            intentionProp => {
+                let limitedOfferTopUp = intentionProp;
 
                 if (player && player.platform && player.quickPayGroup && player.quickPayGroup.quickpays && player.quickPayGroup.quickpays.length > 0) {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;

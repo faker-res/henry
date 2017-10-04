@@ -283,7 +283,7 @@ let dbPlayerReward = {
                             platformId: topUpProposalData.data.platformId,
                             platform: topUpProposalData.data.platform,
                             rewardAmount: rewardAmount,
-                            spendingAmount: 0,
+                            spendingAmount: rewardAmount,
                             applyAmount: 0,
                             amount: rewardAmount,
                             eventId: promoEventDetail._id,
@@ -963,11 +963,18 @@ let dbPlayerReward = {
             if (data && data.length > 0) {
                 data.map(grp => {
                     grp.platformObjId = platformObjId;
-                    saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
-                        platformObjId: platformObjId,
-                        name: grp.name
-                    }, grp, {upsert: true}));
-                });
+
+                let saveObj = {
+                    platformObjId: grp.platformObjId,
+                    name: grp.name,
+                    color: grp.color,
+                    playerNames: grp.playerNames || []
+                };
+
+                saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
+                    name: grp.name
+                }, saveObj, {upsert: true}));
+            });
             }
         }
 
@@ -1492,6 +1499,25 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS
                 };
                 return dbProposal.createProposalWithTypeId(proposalTypeObj._id, proposalData);
+            }
+        )
+    },
+
+    getLimitedOfferReport: (platformId) => {
+        return dbConfig.collection_platform.findOne({
+            platformId: platformId
+        }).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbConfig.collection_proposalType.find({
+                        platformId: platformData._id,
+                        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                    }).lean();
+                }
+            }
+        ).then(
+            intentions => {
+                console.log('intentions', intentions);
             }
         )
     }

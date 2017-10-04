@@ -10,7 +10,77 @@
         .fa.fa-search.pull-right.margin-all-5
         input#playerTableExactSearch.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}} : {{"PLAYERNAME" | translate}}' ng-model="playerExactSearchText" ng-change="vm.searchForExactPlayerDebounced(playerExactSearchText)")
 .col-md-12(ng-show="checkViewPermission('Platform', 'Player', 'AdvancedSearch') && vm.curPlatformText")
-    .col-md-12.search-filters-container#playerTable-search-filters.well
+    .col-md-12.search-filters-container#playerTable-search-filter.well
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'PLAYER_ID' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'PLAYERNAME' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.name', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'REAL_NAME' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.realName', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'LEVEL' | translate}}
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerLevel', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                option(value='') —
+                option(ng-repeat="(i,v) in vm.allPlayerLvl", value='{{v._id}}') {{v.name | translate}}
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'REGISTRATION_TIME' | translate}}
+            #regDateTimePicker.datetimepicker.form-control
+                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                span.add-on
+                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'REGISTRATION_TIME_END' | translate}}
+            #regEndDateTimePicker.datetimepicker.form-control
+                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                span.add-on
+                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'LAST_ACCESS_TIME' | translate}}
+            #lastAccessDateTimePicker.datetimepicker.form-control
+                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                span.add-on
+                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'LAST_ACCESS_TIME_END' | translate}}
+            #lastAccessEndDateTimePicker.datetimepicker.form-control
+                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                span.add-on
+                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'TELEPHONE' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.phoneNumber', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'BANK_ACCOUNT' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.bankAccount', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'EMAIL' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.email', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'LOGIN_IP' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.loginIps', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'CREDIBILITY_REMARK' | translate}}
+            select.form-control#selectCredibilityRemark(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6(style="width:400px !important")
+            label.control-label {{'VALID_CREDIT' | translate}}
+            div
+                select.form-control(ng-model='vm.playerAdvanceSearchQuery.creditOperator', style="width:75px;display:inline-block", ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                div(style= "width:8px;display:inline-block")
+                input.form-control(ng-model='vm.playerAdvanceSearchQuery.creditAmountOne', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.playerAdvanceSearchQuery.creditAmountTwo" style="width:80px;display:inline-block" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'" ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-md-3
+            label.control-label
+            button#resetPlayerQuery.btn.btn-primary.common-button-sm(style="display:block;") {{'Reset' | translate}}
+
+
 
 .col-md-12
     label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.platformPlayerCount}} ({{"Search Result" | translate}} : {{vm.searchPlayerCount}})
@@ -1286,7 +1356,7 @@ include modalGameCreditLog
                         a.text-danger.togglePlayer(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
         .textareaDetail.margin-top-bottom-small
             textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
-        .text-center(style="position:relative;")
+        .text-left(style="position:relative;")
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
             button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
                 text {{"Permission History" | translate}}
