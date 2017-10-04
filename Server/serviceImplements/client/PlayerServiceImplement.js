@@ -832,7 +832,9 @@ let PlayerServiceImplement = function () {
     this.sendSMSCodeToPlayer.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
         let smsCode = parseInt(Math.random() * 9000 + 1000);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId], isValidData, false, false, true);
+        let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
+        conn.captchaCode = null;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation], isValidData, false, false, true);
     };
 
     this.authenticate.expectsData = 'playerId: String, token: String';

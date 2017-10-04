@@ -104,7 +104,7 @@ var PaymentServiceImplement = function () {
         if (data) {
             data.amount = Number(data.amount);
         }
-        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && data.provinceId && data.cityId && Number.isInteger(data.amount));
+        var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount));
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
@@ -112,6 +112,18 @@ var PaymentServiceImplement = function () {
                     data: res
                 }, data);
                 // SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.MANUAL_TOPUP);
+            }
+        ).catch(WebSocketUtil.errorHandler).done();
+    };
+
+    this.getCashRechargeStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && conn.playerId);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.getCashRechargeStatus, [conn.playerId], isValidData, true, false, false).then(
+            function (res) {
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS,
+                    data: res
+                }, data);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };

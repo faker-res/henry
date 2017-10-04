@@ -1,4 +1,4 @@
-.padding-all-5
+//.padding-all-5
     .panel.panel-primary
         .panel-heading.padding-all-5
             .panel-title.left-col
@@ -11,7 +11,7 @@
                 .fa.fa-search.pull-right.margin-all-5(ng-click='vm.searchPlatform()')
                 input.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}}' ng-model="vm.platformSearchText", ng-change='vm.rebuildPlatformListDebounced()')
             p
-            div#platformTree(style="height: 400px;")
+            //div#platformTree(style="height: 400px;")
             div#platformDetail.margin-top-bottom-small
                 table.platformDetailClass(style='width:100%;font-size:16px')
                     tr
@@ -126,7 +126,7 @@
                 button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Delete")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalDeletePlatform', ng-click='vm.initPlatform(false)')
                     text {{"DELETE" | translate}}
                     img.img-delete
-                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Edit")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform', ng-click='vm.initPlatform(true);vm.getAllDepartmentData();vm.befreUpdatePlatform()')
+                button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Edit")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform')
                     text {{"EDIT" | translate}}
                     img.img-edit
                 button.btn.btn-primary.common-button(ng-show='checkViewPermission("Platform","Platform", "DailySettlement") && !vm.selectedPlatform.data.canAutoSettlement && vm.showDailySettlement', ng-disabled="!vm.selectedPlatform", data-toggle="modal", ng-click='vm.settlementModal("Daily Settlement")')
@@ -162,7 +162,7 @@
                 //button.btn.btn-primary.common-button(ng-if='checkViewPermission("Platform","Platform", "Delete")',ng-disabled="!vm.selectedPlatform", ng-click='vm.transferAllCreditOut()')
                 //    text {{"TRANSFER_OUT_FROM_AGMG" | translate}}
                 //    img.img-edit
-#modalCreatePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalCreatePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header
@@ -177,7 +177,7 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled='form_new_platform.$invalid', ng-click="vm.createNewPlatform();") {{"CREATE" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
-#modalDeletePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalDeletePlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header
@@ -203,19 +203,53 @@
     .modal-dialog
         .modal-content
             .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"EDIT_PLATFORM" | translate}}
+                a.fa.fa-times.close(type='button', data-dismiss='modal', ng-click="")
+                h4.modal-title(ng-show="!vm.platformAction") {{"PLATFORM" | translate}}
+                h4.modal-title(ng-show="vm.platformAction=='create'") {{"CREATE_PLATFORM" | translate}}
+                h4.modal-title(ng-show="vm.platformAction=='delete'") {{"DELETE_PLATFORM" | translate}}
+                h4.modal-title(ng-show="vm.platformAction=='edit'") {{"EDIT_PLATFORM" | translate}}
             .modal-body
-                .panel.panel-primary
+                ul.nav.nav-tabs.common-nav-tabs
+                    li(ng-class="vm.selectedPlatformDetailTab == 'backstage-settings' ? 'active' : null")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('backstage-settings')") {{"BACKSTAGE_SETTINGS" | translate}}
+                    li(ng-class="vm.selectedPlatformDetailTab == 'player-display-data' ? 'active' : null")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('player-display-data')") {{"PLAYER_DISPLAY_DATA" | translate}}
+                    li(ng-class="vm.selectedPlatformDetailTab == 'partner-display-data' ? 'active' : null")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('partner-display-data')") {{"PARTNER_DISPLAY_DATA" | translate}}
+                    li(ng-class="vm.selectedPlatformDetailTab == 'system-settlement' ? 'active' : null")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('system-settlement')", ng-show="vm.platformAction!='create'&&vm.platformAction!='edit'") {{"SYSTEM_SETTLEMENT" | translate}}
+                .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
-                        .well
-                            .row
-                                include ./platform-detail-form
+                        .well(ng-show="vm.platformAction=='delete'")
+                            p
+                                #WarningIcon.fa.fa-exclamation-triangle
+                                label.margin-right-5 {{"DELETE_PLATFORM_MESSAGE" | translate}}
+                                strong.text-danger {{vm.selectedPlatform.text}} ?
+                        include ./platform-detail-form
             .modal-footer
-                button.btn.btn-primary.common-button(data-dismiss='modal',ng-disabled='form_update_platform.$invalid', ng-click="vm.updatePlatformAction();") {{"UPDATE" | translate}}
-                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('create');vm.initPlatform(true);vm.clearShowPlatform();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction") {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('delete')", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction") {{"DELETE" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('edit');vm.initPlatform(true);vm.beforeUpdatePlatform();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction") {{"EDIT" | translate}}
 
-#modalPlatformSettlementHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='create'", ng-click="vm.createNewPlatform();vm.setPlatformFooter(null)", ng-disabled="form_new_platform.$invalid") {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='delete'", ng-click="vm.deletePlatform();vm.setPlatformFooter(null)") {{"CONFIRM" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='edit'", ng-click="vm.updatePlatformAction();vm.setPlatformFooter(null)") {{"EDIT" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction", ng-click="vm.setPlatformFooter(null)") {{"CANCEL" | translate}}
+
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerConsecutiveConsumptionSettlement($event);vm.setPlatformFooter(null)")
+                    text {{"Player Consecutive Consumption Settlement" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerLevelSettlement($event);vm.setPlatformFooter(null)")
+                    text {{"Player Level Settlement" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPlayerConsumptionIncentiveSettlement($event);vm.setPlatformFooter(null)")
+                    text {{"Player Consumption Incentive Settlement" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPartnerCommissionSettlement($event);vm.setPlatformFooter(null)")
+                    text {{"Partner Commission Settlement" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPlayerConsumptionReturnSettlement($event);vm.setPlatformFooter(null)")
+                    text {{"Player Consumption Return Settlement" | translate}}
+
+
+
+//#modalPlatformSettlementHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header
@@ -253,7 +287,7 @@
                                         td.wordWrap(style='width:50%;word-break:break-all') {{v.data}}
             .modal-footer
                 button.btn.btn-success.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}
-#modalPlatformSettlement.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalPlatformSettlement.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header
@@ -299,7 +333,7 @@
                 button.btn.btn-success.common-button(ng-if='vm.partnerCommissionSettlement.status=="ready"', ng-click="vm.performPartnerCommissionSetlement()") {{'CONFIRM' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.partnerCommissionSettlement.status=="processing"')
 
-#modalTransferOutAllPlayerCreditFromGameProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//#modalTransferOutAllPlayerCreditFromGameProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:70%;')
         .modal-content
             .modal-header

@@ -3722,12 +3722,12 @@ input[type='number'].leftALignNumber {
     margin-right:10px;
 }
 
-.scrollRecord{
-  overflow-x:scroll;
+.scrollRecord {
+    overflow-x: scroll;
 }
 
-.limitOffersTB td input[type='text']{
-  min-width: 85px;
+.limitOffersTB td input[type='text'] {
+    min-width: 85px;
 }
 
 .popupHeaderMenu{
