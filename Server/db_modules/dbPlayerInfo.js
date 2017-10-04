@@ -976,6 +976,9 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
             .populate({path: "platform", model: dbconfig.collection_platform}).then(
                 playerData => {
+                    if (!playerData) {
+                        return false;
+                    }
                     return {
                         name: playerData.name,
                         platformId: playerData.platform.platformId
