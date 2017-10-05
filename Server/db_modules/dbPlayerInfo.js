@@ -2967,7 +2967,7 @@ let dbPlayerInfo = {
                         .sort(sortObj).skip(index).limit(limit)
                         .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
                         .populate({path: "partner", model: dbconfig.collection_partner})
-                        .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
+                        // .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                         .lean().then(
                             playerData => {
                                 var players = [];
