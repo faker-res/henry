@@ -1342,16 +1342,29 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId) => {
+    getLimitedOffers: (platformId, playerObjId) => {
         let platformObj;
+        let intPropTypeObj;
+        let timeSet;
+        let rewards;
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 platformObj = platformData;
-                return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
+
+                let rewardTypeProm = dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
+                let intentionTypeProm = dbConfig.collection_proposalType.findOne({
+                    platformId: platformObj._id,
+                    name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                }).lean();
+
+                return Promise.all([rewardTypeProm, intentionTypeProm]);
             }
         ).then(
-            rewardTypeData => {
+            res => {
+                let rewardTypeData = res[0];
+                intPropTypeObj = res[1];
+
                 let rewardEventQuery = {
                     platform: platformObj._id,
                     type: rewardTypeData._id
@@ -1359,7 +1372,85 @@ let dbPlayerReward = {
 
                 return dbConfig.collection_rewardEvent.findOne(rewardEventQuery).lean();
             }
-        ).then(eventData => eventData.param.reward);
+        ).then(
+            eventData => {
+                rewards = eventData.param.reward;
+                timeSet = new Set();
+                let promArr = [];
+
+
+                rewards.map(e => {
+                    let status = 0;
+                    timeSet.add(String(e.hrs + ":" + e.min));
+
+                    e.startTime = moment().set({hour: e.hrs, minute: e.min, second: 0});
+                    e.upTime = moment(e.startTime).subtract(e.inStockDisplayTime, 'minute');
+                    e.downTime = moment(e.startTime).add(e.outStockDisplayTime, 'minute');
+
+                    if (new Date().getTime() >= dbUtility.getLocalTime(e.startTime).getTime()
+                        && new Date().getTime() < dbUtility.getLocalTime(e.downTime).getTime()) {
+                        status = 1;
+                    }
+
+                    promArr.push(
+                        dbConfig.collection_proposal.aggregate({
+                            $match: {
+                                'data.platformObjId': platformObj._id,
+                                'data.limitedOfferObjId': e._id,
+                                type: intPropTypeObj._id
+                            }
+                        }, {
+                            $project: {
+                                "data.playerObjId": 1,
+                                paidCount: {$cond: [{$not: ['$data.topUpProposalId']}, 0, 1]}
+                            }
+                        }, {
+                            $group: {
+                                _id: "$data.playerObjId",
+                                count: {$sum: 1},
+                                paidCount: {$sum: "$paidCount"}
+                            }
+                        }).then(
+                            summ => {
+                                let totalPromoCount = 0;
+
+                                summ.map(f => {
+                                    if (String(f._id) == String(playerObjId)) {
+                                        status = 2;
+
+                                        if (f.paidCount > 0) {
+                                            status = 3;
+                                        }
+                                    }
+
+                                    totalPromoCount += f.count;
+                                });
+
+                                if (totalPromoCount >= e.limitTime) {
+                                    status = 4;
+                                }
+
+                                if (status == 2 && new Date().getTime() > dbUtility.getLocalTime(e.downTime).getTime()) {
+                                    status = 5;
+                                }
+
+                                e.status = status;
+                            }
+                        )
+                    )
+                });
+
+                return Promise.all(promArr);
+            }
+        ).then(
+            offerSumm => {
+                return {
+                    time: [...timeSet].join("/"),
+                    secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
+                    normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
+                }
+            }
+        );
     },
 
     applyLimitedOffers: (platformId, playerName, limitedOfferObjId, adminInfo) => {
