@@ -13813,24 +13813,38 @@ define(['js/app'], function (myApp) {
                     limit: 100
                 };
                 socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery, function (data) {
-                    console.log('playerData', data);
-                    var size = data.data.size || 0;
-                    var result = data.data.data || [];
-                    setPlayerTableData(result);
-                    utilService.hideAllPopoversExcept();
-                    vm.searchPlayerCount = size;
-                    vm.playerTableQuery.pageObj.init({maxCount: size}, true);
-
-                    var found = false;
+                    let size = data.data.size || 0;
+                    let result = data.data.data || [];
+                    let found = false;
                     if (size == 1) {
-                        vm.playerTable.rows(function (idx, rowData, node) {
-                            if (rowData._id == result[0]._id) {
-                                vm.playerTableRowClicked(rowData);
-                                vm.selectedPlayersCount = 1;
-                                $(node).addClass('selected');
-                                found = true;
-                            }
-                        })
+                        //search and append to player table
+                        let sendQuery2 = {
+                            platformId: vm.selectedPlatform.id,
+                            query: {
+                                "referral": data.data.data[0]._id
+                            },
+                            index: 0,
+                            limit: 100
+                        }
+                        socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery2, function (data2) {
+                            size += data2.data.size || 0;
+                            result = result.concat(data2.data.data);
+                            vm.playerTable.context[0].aaSorting = [];
+                            setPlayerTableData(result);
+                            utilService.hideAllPopoversExcept();
+                            vm.searchPlayerCount = size;
+                            vm.playerTableQuery.pageObj.init({maxCount: size}, true);
+
+
+                            vm.playerTable.rows(function (idx, rowData, node) {
+                                if (rowData._id == result[0]._id) {
+                                    vm.playerTableRowClicked(rowData);
+                                    vm.selectedPlayersCount = 1;
+                                    $(node).addClass('selected');
+                                    found = true;
+                                }
+                            })
+                        });
                     }
                     if (!found) {
                         vm.selectedSinglePlayer = null;
