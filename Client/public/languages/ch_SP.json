@@ -2420,5 +2420,13 @@
   "Backstage Privilege": "后台权限",
   "Website Business": "网站业务",
   "Topup Group": "充值分组",
-  "CREDIBILITY_RECORD": "信用评价记录"
+  "CREDIBILITY_RECORD": "信用评价记录",
+  "DEVICE": "装置",
+  "3rd Party Platform": "第三方平台",
+  "Business Acc/ Bank Acc": "收款商户/帐号",
+  "Total Business Acc": "商户计数",
+  "Total Members" :"会员计数",
+  "From Bank Type":"收款银行类别",
+  "TopUp Amount":"充值金额",
+  "Real Name":"会员姓名"
 }

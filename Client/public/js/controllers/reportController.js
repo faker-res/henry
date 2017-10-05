@@ -35,7 +35,11 @@ define(['js/app'], function (myApp) {
             OTHER: "Other",
             LAST_CALL: "LastCall"
         };
-
+        vm.depositMethodList = {
+            1:"Online",
+            2:"ATM",
+            3:"Counter"
+        };
         //get all platform data from server
         vm.setPlatform = function (platObj) {
             vm.operSelPlatform = false;
@@ -66,6 +70,7 @@ define(['js/app'], function (myApp) {
             obj.endTime = new Date();
             return obj;
         }
+
 
         var constRewardReportTableProp = [
             {// player reward tables
@@ -356,6 +361,19 @@ define(['js/app'], function (myApp) {
                     console.log("merchantList", data);
                 });
 
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                    if (data && data.data && data.data.data) {
+                        vm.allBankTypeList = {};
+                        console.log('banktype', data.data.data);
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.allBankTypeList[item.id] = item.name;
+                            }
+                        })
+                    }
+                    $scope.safeApply();
+                });
+
 
                 utilService.actionAfterLoaded("#topupTablePage", function () {
                     vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
@@ -398,7 +416,7 @@ define(['js/app'], function (myApp) {
             //     utilService.actionAfterLoadedDateTimePickers("#providerRewardReport", function () {
             //         $scope.safeApply();
             //     });
-            // } 
+            // }
             else if (choice == "PROPOSAL_REPORT") {
                 vm.proposalQuery = {};
                 vm.proposalQuery.status = 'all';
@@ -1057,30 +1075,69 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate('proposalId'), data: 'proposalId'},
-                    {title: $translate('DINGDAN_ID'), data: "data.requestId"},
-                    // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
-                    {title: $translate('STATUS'), data: "status$"},
-                    // {title: $translate('ISNEWPLAYER'), data: null},
-                    {title: $translate('Merchant No'), data: "merchantName"},
-                    {title: $translate('PLAYER_NAME'), data: "data.playerName"},
-                    {title: $translate('realName'), data: "data.playerObjId.realName", sClass: "sumText"},
-                    // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
-                    {title: $translate('CREDIT'), data: "amount$", sClass: "sumFloat alignRight"},
                     {
-                        "title": $translate('TYPE'), "data": "type",
+                        "title": $translate('topupType'), "data": "type",
                         render: function (data, type, row) {
                             var text = $translate(row.type ? row.type.name : "");
                             return "<div>" + text + "</div>";
                         }
                     },
+                    {title: $translate('DEVICE'), data: "data.userAgent"},
                     {
-                        title: $translate('topupType'), data: "data.topupType",
+                        "title": $translate('Online Topup Type'), "data": 'type.name',
                         render: function (data, type, row) {
-                            let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
+                            var text = $translate(data ? data: "");
                             return "<div>" + text + "</div>";
                         }
                     },
-                    {"title": $translate('Merchant No'), "data": "merchantNo$"},
+                    {title: $translate('3rd Party Platform'), data: ""},
+                    {
+                        "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
+                        render: function (data, type, row) {
+                            var text = $translate(data ? vm.depositMethodList[data]: "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {title: $translate('From Bank Type'), data: "data.bankTypeId",
+                        render: function (data, type, row) {
+                          if(data){
+                              var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data]: "");
+                              return "<div>" + text + "</div>";
+                          }else{
+                              return "<div>" + '' + "</div>";
+                          }
+                        }
+                    },
+                    {title: $translate('Business Acc/ Bank Acc'), data: "merchantNo$"},
+                    {title: $translate('Total Business Acc'), data: ""},
+
+                    // {
+                    //     title: $translate('topupType'), data: "data.topupType",
+                    //     render: function (data, type, row) {
+                    //         let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
+                    //         return "<div>" + text + "</div>";
+                    //     }
+                    // },
+
+                    // {title: $translate('DINGDAN_ID'), data: "data.requestId"},
+                    // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
+                    {title: $translate('STATUS'), data: "status$"},
+                    // {title: $translate('ISNEWPLAYER'), data: null},
+                    // {title: $translate('Merchant No'), data: "merchantName"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName"},
+                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText"},
+                    {title: $translate('Total Members'), data: "", sClass: "sumText"},
+                    // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
+                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
+
+                    // {
+                    //     title: $translate('topupType'), data: "data.topupType",
+                    //     render: function (data, type, row) {
+                    //         let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
+                    //         return "<div>" + text + "</div>";
+                    //     }
+                    // },
+                    // {"title": $translate('Merchant No'), "data": "merchantNo$"},
                     // {title: $translate('IP'), data: null},
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {title: $translate('END_TIME'), data: "endTime$"},
