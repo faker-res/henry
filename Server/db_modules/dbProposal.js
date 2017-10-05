@@ -430,7 +430,7 @@ var proposal = {
                 }
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING ||
                     proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
-                    || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.requestId == requestId) {
+                    || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data) {
                     return proposalData;
                 }
                 else {
