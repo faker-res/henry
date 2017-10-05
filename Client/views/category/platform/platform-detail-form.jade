@@ -5,7 +5,7 @@ form(name="form_new_platform" ,novalidate)
             div(name="backstage-settings", ng-show="vm.selectedPlatformDetailTab == 'backstage-settings'")
                 div.form-group.col-md-6
                     label.control-label *{{"PLATFORM_NAME" | translate}}
-                    input.form-control(type="text", placeholder="{{'PLATFORM_NAME' | translate}}", ng-model="vm.showPlatform.name", required, disabled)
+                    input.form-control(type="text", placeholder="{{'PLATFORM_NAME' | translate}}", ng-model="vm.showPlatform.name", required)
                 div.form-group.col-md-6
                     label.control-label *{{"OPERATION_DEPARTMENT" | translate}}
                     select.form-control(ng-model="vm.showPlatform.department._id", required)
@@ -14,14 +14,14 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label *{{"PLATFORM_CODE" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_CODE' | translate}}", ng-model="vm.showPlatform.code", required)
                 div.form-group.col-md-6
-                    label.control-label *{{"PLATFORM_PREFIX" | translate}}
+                    label.control-label {{"PLATFORM_PREFIX" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_PREFIX' | translate}}", ng-model="vm.showPlatform.prefix")
                 div.form-group.col-md-6
                     label.control-label {{"PLATFORM_ICON" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM ICON URL' | translate}}", ng-model="vm.showPlatform.icon", style='width:calc(100% - 50px);display:inline-block')
                     img.margin-left-5(ng-if='vm.showPlatform.icon', src="{{vm.showPlatform.icon}}", style='width:40px;height:40px;top: 20px;position: absolute;')
                 div.form-group.col-md-6
-                    label.control-label *{{"PLATFORM_PARTNER_PREFIX" | translate}}
+                    label.control-label {{"PLATFORM_PARTNER_PREFIX" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_PARTNER_PREFIX' | translate}}", ng-model="vm.showPlatform.partnerPrefix")
                 div.form-group.col-md-6
                     label.control-label {{"PUSH_NOTIFICATION_APP_KEY" | translate}}
@@ -30,8 +30,8 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label {{"PUSH_NOTIFICATION_MASTER_KEY" | translate}}
                     input.form-control(type="text", ng-model="vm.showPlatform.jiguangMasterKey")
                 div.form-group.col-md-6
-                    label.control-label *{{"CUSTOMER_SERVICE_EMAIL_AUTOMATED" | translate}} ({{"used when sending automated messages" | translate}})
-                    input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail", required)
+                    label.control-label {{"CUSTOMER_SERVICE_EMAIL_AUTOMATED" | translate}} {{"used when sending automated messages" | translate}}
+                    input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail")
 
             div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
                 div.form-group.col-md-6
@@ -93,6 +93,7 @@ form(name="form_new_platform" ,novalidate)
 
 div(name="system-settlement", ng-show="vm.selectedPlatformDetailTab == 'system-settlement'")
     .col-md-12.block-query.well
+        h4(style="margin-top:0;font-weight:bold;text-decoration:underline;") {{"SETTLEMENT_HISTORY" | translate}}
         div
             label.margin-right-5 {{'Settlement Interval' | translate}}
             select.form-control(ng-model='vm.queryPara.modalUpdatePlatform.interval', ng-options='a | translate for a in ["daily","weekly"]')
