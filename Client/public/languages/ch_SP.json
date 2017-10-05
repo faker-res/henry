@@ -1931,6 +1931,7 @@
   "CommissionHistoryTimes": "周期数",
   "bonusRate": "奖励比率",
   "childrenCommissionRate": "下线提成设置",
+  "LOCAL_AMOUNT": "本地额度",
   "profitAmount": "赢利值",
   "serviceFee": "服务费用",
   "platformFee": "平台费用",
