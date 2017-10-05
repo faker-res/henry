@@ -65,7 +65,7 @@
             label.control-label {{'CREDIBILITY_REMARK' | translate}}
             select.form-control#selectCredibilityRemark(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6(style="width:400px !important")
-            label.control-label {{'VALID_CREDIT' | translate}}
+            label.control-label {{'LOCAL_AMOUNT' | translate}}
             div
                 select.form-control(ng-model='vm.playerAdvanceSearchQuery.creditOperator', style="width:75px;display:inline-block", ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
                     option(value='>=') >=
