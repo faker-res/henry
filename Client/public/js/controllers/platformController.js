@@ -2717,6 +2717,13 @@ define(['js/app'], function (myApp) {
                                 return link.prop('outerHTML');
                             }
                         },
+                        {
+                            title: $translate('REAL_NAME'),
+                            data: 'realName',
+                            sClass: "wordWrap realNameCell",
+                            advSearch: true
+                        },
+                        {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
                         // {
                         //     title: $translate('STATUS'), data: 'status',
                         //     render: function (data, type, row) {
@@ -2778,38 +2785,54 @@ define(['js/app'], function (myApp) {
                                 return output;
                             }
                         },
-                        {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
                         {
-                            title: $translate('REAL_NAME'),
-                            data: 'realName',
-                            sClass: "wordWrap realNameCell",
-                            advSearch: true
-                        },
-                        {
-                            title: $translate('VALID_CREDIT'),
-                            "visible": false,
-                            data: 'validCredit',
-                            orderable: false,
-                            advSearch: true,
+                            title: $translate('LEVEL'), "data": 'playerLevel',
+                            render: function (data, type, row) {
+                                // todo :: #22
+                                data = data || '';
+                                return $('<a class="levelPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                    'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row))
+                                    .text($translate(data.name))
+                                    .prop('outerHTML');
+                            },
+                            // advSearch: true,
                             filterConfig: {
                                 type: "dropdown",
-                                options: [
-                                    //{ value:      "<0", text: '<0'       },
-                                    {value: "0-10", text: '0-10'},
-                                    {value: "10-100", text: '10-100'},
-                                    {value: "100-500", text: '100-500'},
-                                    {value: ">500", text: '>500'}
-                                ]
-                            },
-                            render: function (data, type, row) {
-                                return $('<a class="playerCreditPopover" href="" ng-click="vm.creditChangeLogPlayerName = \'' + row.name + '\'; " ' +
-                                    'data-toggle="popover" data-trigger="focus" data-placement="bottom" data-container="body" ></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text(data)
-                                    .prop('outerHTML');
+                                options: vm.allPlayerLvl.map(function (level) {
+                                    return {
+                                        value: level._id,
+                                        text: $translate(level.name)
+                                    };
+                                })
                             },
                             "sClass": "alignLeft"
                         },
+                        // {
+                        //     title: $translate('VALID_CREDIT'),
+                        //     "visible": false,
+                        //     data: 'validCredit',
+                        //     orderable: false,
+                        //     advSearch: true,
+                        //     filterConfig: {
+                        //         type: "dropdown",
+                        //         options: [
+                        //             //{ value:      "<0", text: '<0'       },
+                        //             {value: "0-10", text: '0-10'},
+                        //             {value: "10-100", text: '10-100'},
+                        //             {value: "100-500", text: '100-500'},
+                        //             {value: ">500", text: '>500'}
+                        //         ]
+                        //     },
+                        //     render: function (data, type, row) {
+                        //         return $('<a class="playerCreditPopover" href="" ng-click="vm.creditChangeLogPlayerName = \'' + row.name + '\'; " ' +
+                        //             'data-toggle="popover" data-trigger="focus" data-placement="bottom" data-container="body" ></a>')
+                        //             .attr('data-row', JSON.stringify(row))
+                        //             .text(data)
+                        //             .prop('outerHTML');
+                        //     },
+                        //     "sClass": "alignLeft"
+                        // },
                         {
                             title: $translate('CREDIT'),
                             data: 'validCredit',
@@ -2817,6 +2840,7 @@ define(['js/app'], function (myApp) {
                             orderable: true,
                             bSortable: true,
                             render: function (data, type, row) {
+                                // todo :: #13
                                 if (type == 'sort') return row.validCredit;
                                 data = data || 0;
                                 var link = $('<div>', {
@@ -2880,28 +2904,6 @@ define(['js/app'], function (myApp) {
                         //     "sClass": "alignLeft"
                         // },
                         {
-                            title: $translate('LEVEL'), "data": 'playerLevel',
-                            render: function (data, type, row) {
-                                data = data || '';
-                                return $('<a class="levelPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text($translate(data.name))
-                                    .prop('outerHTML');
-                            },
-                            advSearch: true,
-                            filterConfig: {
-                                type: "dropdown",
-                                options: vm.allPlayerLvl.map(function (level) {
-                                    return {
-                                        value: level._id,
-                                        text: $translate(level.name)
-                                    };
-                                })
-                            },
-                            "sClass": "alignLeft"
-                        },
-                        {
                             title: $translate('REGISTRATION_TIME'),
                             data: 'registrationTime',
                             advSearch: true,
@@ -2918,21 +2920,21 @@ define(['js/app'], function (myApp) {
                                 return utilService.getFormatTime(data);
                             }
                         },
-                        {
-                            "visible": false,
-                            title: $translate('REGISTRATION_TIME_END'),
-                            data: 'registrationEndTime',
-                            advSearch: true,
-                            filterConfig: {
-                                type: "datetimepicker",
-                                id: "regEndDateTimePicker",
-                                options: {
-                                    language: 'en',
-                                    format: 'dd/MM/yyyy hh:mm:ss',
-                                }
-                            },
-                            "sClass": "alignLeft"
-                        },
+                        // {
+                        //     "visible": false,
+                        //     title: $translate('REGISTRATION_TIME_END'),
+                        //     data: 'registrationEndTime',
+                        //     advSearch: true,
+                        //     filterConfig: {
+                        //         type: "datetimepicker",
+                        //         id: "regEndDateTimePicker",
+                        //         options: {
+                        //             language: 'en',
+                        //             format: 'dd/MM/yyyy hh:mm:ss',
+                        //         }
+                        //     },
+                        //     "sClass": "alignLeft"
+                        // },
                         {
                             title: $translate('LAST_ACCESS_TIME'),
                             data: 'lastAccessTime',
@@ -2951,21 +2953,34 @@ define(['js/app'], function (myApp) {
                                 return utilService.getFormatTime(data);
                             }
                         },
+                        // {
+                        //     "visible": false,
+                        //     title: $translate('LAST_ACCESS_TIME_END'),
+                        //     data: 'lastAccessEndTime',
+                        //     advSearch: true,
+                        //     type: "datetimepicker",
+                        //     filterConfig: {
+                        //         type: "datetimepicker",
+                        //         id: "lastAccessEndDateTimePicker",
+                        //         options: {
+                        //             language: 'en',
+                        //             format: 'dd/MM/yyyy hh:mm:ss',
+                        //         }
+                        //     },
+                        //     "sClass": "alignLeft"
+                        // },
+                        {title: $translate('LOGIN_TIMES'), data: "loginTimes", "sClass": "alignRight"}, // todo :: Open player action report default 'login'
                         {
-                            "visible": false,
-                            title: $translate('LAST_ACCESS_TIME_END'),
-                            data: 'lastAccessEndTime',
-                            advSearch: true,
-                            type: "datetimepicker",
-                            filterConfig: {
-                                type: "datetimepicker",
-                                id: "lastAccessEndDateTimePicker",
-                                options: {
-                                    language: 'en',
-                                    format: 'dd/MM/yyyy hh:mm:ss',
-                                }
-                            },
-                            "sClass": "alignLeft"
+                            title: "<div>" + $translate('TOP_UP') + "</div><div>" + $translate('TIMES') + "</div>",
+                            "data": 'topUpTimes',
+                            "sClass": "alignRight",
+                            // todo :: link to #13-4
+                            // render: function (data, type, row) {
+                            //     var link = $('<text>', {
+                            //         'ng-click': "vm.showPlayerTopupModal(" + JSON.stringify(row) + ")",
+                            //     }).text(data);
+                            //     return link.prop('outerHTML');
+                            // },
                         },
                         {
                             title: $translate('Function'), //data: 'phoneNumber',
@@ -2991,7 +3006,56 @@ define(['js/app'], function (myApp) {
                                     'data-placement': 'left',
                                 }));
                                 link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5',
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5',
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
                                     'class': 'fa fa-volume-control-phone',
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'right',
+                                }));
+                                link.append($('<br>'));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-envelope margin-right-5 margin-right-5',
+                                    'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("SEND_MESSAGE_TO_PLAYER"),
+                                    'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-comment margin-right-5 margin-right-5',
+                                    'ng-click': 'vm.initSMSModal();vm.telorMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("Send SMS to Player"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5',
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'right',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5',
                                     'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'tooltip',
@@ -3030,18 +3094,10 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-gift margin-right-5 ' + (perm.applyBonus === true ? "text-primary" : "text-danger"),
                                 }));
                                 link.append($('<i>', {
-                                    'class': 'fa fa-share-square margin-right-5 ' + (perm.transactionReward === true ? "text-primary" : "text-danger"),
-                                }));
-                                link.append($('<i>', {
                                     'class': 'fa fa-pencil-square margin-right-5 ' + (perm.topupOnline === true ? "text-primary" : "text-danger"),
                                 }));
                                 link.append($('<i>', {
                                     'class': 'fa fa-folder-open margin-right-5 ' + (perm.topupManual === true ? "text-primary" : "text-danger"),
-                                }));
-
-                                // Inverted
-                                link.append($('<i>', {
-                                    'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
                                 }));
 
                                 link.append($('<img>', {
@@ -3050,39 +3106,70 @@ define(['js/app'], function (myApp) {
                                     height: "15px",
                                     width: "15px",
                                 }));
+
                                 link.append($('<i>', {
                                     'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
                                 }));
-                                link.append($('<i>', {
-                                    'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
-                                }));
-                                link.append($('<i>', {
-                                    'class': 'fa fa-tint margin-right-5 ' + (perm.advanceConsumptionReward === true ? "text-primary" : "text-danger"),
-                                }));
-                                link.append($('<i>', {
-                                    'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === true ? "text-danger" : "text-primary"),
-                                }));
-                                link.append($('<i>', {
-                                    'class': 'fa fa-plus-square margin-right-5 ' + (perm.PlayerTopUpReturn === false ? "text-danger" : "text-primary"),
-                                }));
-                                link.append($('<i>', {
-                                    'class': 'fa fa-plus-square-o margin-right-5 ' + (perm.PlayerDoubleTopUpReturn === false ? "text-danger" : "text-primary"),
-                                }));
+
+                                // todo :: 点卡充值
+
                                 link.append($('<i>', {
                                     'class': 'fa margin-right-5 ' + (perm.forbidPlayerFromLogin === true ? "fa-sign-out text-danger" : "fa-sign-in  text-primary"),
                                 }));
+
                                 link.append($('<i>', {
                                     'class': 'fa fa-gamepad margin-right-5 ' + (perm.forbidPlayerFromEnteringGame === true ? "text-danger" : "text-primary"),
                                 }));
-                                link.append($('<i>', {
-                                    'class': 'fa fa-forward margin-right-5 ' + (perm.playerConsecutiveConsumptionReward === false ? "text-danger" : "text-primary"),
-                                }));
-                                link.append($('<i>', {
-                                    'class': 'fa fa-umbrella margin-right-5 ' + (perm.PlayerPacketRainReward === false ? "text-danger" : "text-primary"),
-                                }));
+
                                 link.append($('<i>', {
                                     'class': 'fa fa-bullseye margin-right-5 ' + (perm.PlayerLimitedOfferReward === false ? "text-danger" : "text-primary"),
                                 }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
+                                }));
+
+
+
+
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-share-square margin-right-5 ' + (perm.transactionReward === true ? "text-primary" : "text-danger"),
+                                // }));
+                                //
+                                // // Inverted
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-ban margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
+                                // }));
+                                //
+                                //
+                                //
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
+                                // }));
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-tint margin-right-5 ' + (perm.advanceConsumptionReward === true ? "text-primary" : "text-danger"),
+                                // }));
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-ambulance margin-right-5 ' + (perm.forbidPlayerConsumptionIncentive === true ? "text-danger" : "text-primary"),
+                                // }));
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-plus-square margin-right-5 ' + (perm.PlayerTopUpReturn === false ? "text-danger" : "text-primary"),
+                                // }));
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-plus-square-o margin-right-5 ' + (perm.PlayerDoubleTopUpReturn === false ? "text-danger" : "text-primary"),
+                                // }));
+                                //
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-forward margin-right-5 ' + (perm.playerConsecutiveConsumptionReward === false ? "text-danger" : "text-primary"),
+                                // }));
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-umbrella margin-right-5 ' + (perm.PlayerPacketRainReward === false ? "text-danger" : "text-primary"),
+                                // }));
+                                // link.append($('<i>', {
+                                //     'class': 'fa fa-bullseye margin-right-5 ' + (perm.PlayerLimitedOfferReward === false ? "text-danger" : "text-primary"),
+                                // }));
+
+
 
                                 let link2 = $('<a class="prohibitGamePopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
                                     'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
@@ -3094,54 +3181,76 @@ define(['js/app'], function (myApp) {
                             "sClass": "alignLeft"
                         },
                         {
-                            title: "<div>" + $translate('TOP_UP') + "</div><div>" + $translate('TIMES') + "</div>",
-                            "data": 'topUpTimes',
-                            "sClass": "alignRight",
-                            // render: function (data, type, row) {
-                            //     var link = $('<text>', {
-                            //         'ng-click': "vm.showPlayerTopupModal(" + JSON.stringify(row) + ")",
-                            //     }).text(data);
-                            //     return link.prop('outerHTML');
-                            // },
-                        },
-                        {
-                            title: "<div>" + $translate('FEEDBACK') + "</div><div>" + $translate('TIMES') + "</div>",
-                            data: 'feedbackTimes',
-                            render: function (data, type, row) {
-                                var link = $('<a>', {
-                                    'class': "playerFeedbackPopover",
-                                    'style': "z-index: auto",
-                                    'data-toggle': "popover",
-                                    'data-container': "body",
-                                    'data-placement': "bottom",
-                                    'data-trigge': "focus",
-                                    'data-row': JSON.stringify(row),
-                                }).text(data);
-                                return link.prop('outerHTML');
-                            },
-                            "sClass": "alignRight"
-                        },
-                        {title: $translate('PHONENUMBER'), data: "phoneNumber", advSearch: true, visible: false,},
-                        {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
-                        {title: $translate("EMAIL"), visible: false, data: "email", advSearch: true},
-                        {title: $translate("LOGIN_IP"), visible: false, data: "loginIps", advSearch: true},
-                        {
-                            // this object is used for search filter
-                            title: $translate("CREDIBILITY_REMARK"),
-                            data: "credibilityRemarks",
-                            advSearch: true,
+                            title: $translate('PERMISSION'),
                             orderable: false,
-                            visible: false,
-                            filterConfig: {
-                                type: "multi",
-                                options: vm.credibilityRemarks.map(function (remark) {
-                                    return {
-                                        value: remark._id,
-                                        text: remark.name
-                                    };
-                                })
-                            }
+                            render: function (data, type, row) {
+                                // data = data || {permission: {}};
+
+                                var link = $('<div>', {});
+                                var playerObjId = row._id ? row._id : "";
+
+                                link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5',
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'right',
+                                }));
+
+                                link.append($('<a class="prohibitGamePopover fa fa-volume-control-phone margin-right-5" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row)));
+
+                                link.append($('<a class="prohibitGamePopover fa fa-volume-control-phone margin-right-5" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row)));
+
+                                return link.prop('outerHTML') + "&nbsp;";
+                            },
+                            "sClass": "alignLeft"
                         },
+                        {title: $translate('partner'), orderable: false, data: "partner.partnerName", "sClass": "alignRight"},
+                        {title: $translate('REFERRAL'), orderable: false, data: "referral.name", "sClass": "alignRight"},
+
+                        // {
+                        //     title: "<div>" + $translate('FEEDBACK') + "</div><div>" + $translate('TIMES') + "</div>",
+                        //     data: 'feedbackTimes',
+                        //     render: function (data, type, row) {
+                        //         var link = $('<a>', {
+                        //             'class': "playerFeedbackPopover",
+                        //             'style': "z-index: auto",
+                        //             'data-toggle': "popover",
+                        //             'data-container': "body",
+                        //             'data-placement': "bottom",
+                        //             'data-trigge': "focus",
+                        //             'data-row': JSON.stringify(row),
+                        //         }).text(data);
+                        //         return link.prop('outerHTML');
+                        //     },
+                        //     "sClass": "alignRight"
+                        // },
+                        // {title: $translate('PHONENUMBER'), data: "phoneNumber", advSearch: true, visible: false,},
+                        // {title: $translate("BANK_ACCOUNT"), visible: false, data: "bankAccount", advSearch: true},
+                        // {title: $translate("EMAIL"), visible: false, data: "email", advSearch: true},
+                        // {title: $translate("LOGIN_IP"), visible: false, data: "loginIps", advSearch: true},
+                        // {
+                        //     // this object is used for search filter
+                        //     title: $translate("CREDIBILITY_REMARK"),
+                        //     data: "credibilityRemarks",
+                        //     advSearch: true,
+                        //     orderable: false,
+                        //     visible: false,
+                        //     filterConfig: {
+                        //         type: "multi",
+                        //         options: vm.credibilityRemarks.map(function (remark) {
+                        //             return {
+                        //                 value: remark._id,
+                        //                 text: remark.name
+                        //             };
+                        //         })
+                        //     }
+                        // },
                         // {
                         //     visible: false,
                         //     title: $translate('PLAYER_TYPE'),
