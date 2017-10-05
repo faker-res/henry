@@ -1376,7 +1376,6 @@ let dbPlayerReward = {
                 timeSet = new Set();
                 let promArr = [];
 
-
                 rewards.map(e => {
                     let status = 0;
                     timeSet.add(String(e.hrs + ":" + e.min));
