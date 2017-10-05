@@ -2666,16 +2666,18 @@ define(['js/app'], function (myApp) {
                 table.clear();
                 if (data) {
                     data.forEach(function (rowData) {
-                        if (rowData.credits) {
-                            rowData.credits = rowData.credits.toFixed(2);
+                        if(rowData){
+                            if (rowData.credits) {
+                                rowData.credits = rowData.credits.toFixed(2);
+                            }
+                            if (rowData.registrationTime) {
+                                rowData.registrationTime = utilService.getFormatTime(rowData.registrationTime);
+                            }
+                            if (rowData.lastAccessTime) {
+                                rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
+                            }
+                            table.row.add(rowData);
                         }
-                        if (rowData.registrationTime) {
-                            rowData.registrationTime = utilService.getFormatTime(rowData.registrationTime);
-                        }
-                        if (rowData.lastAccessTime) {
-                            rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
-                        }
-                        table.row.add(rowData);
                     });
                 }
                 table.draw();
