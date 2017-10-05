@@ -418,7 +418,7 @@
                             thead
                                 tr
                                     th(width="80%", style="background-color:{{vm.selectedPromoCodeUserGroup.color}}") {{'PLAYER' | translate}} - {{vm.selectedPromoCodeUserGroup.name}}
-                                    th(width="20%") {{'INLINE_EDIT' | translate}}
+                                    th(width="20%", style="background-color:{{vm.selectedPromoCodeUserGroup.color}}") {{'INLINE_EDIT' | translate}}
                             tbody
                                 // before edit enabled
                                 tr(ng-repeat='name in vm.selectedPromoCodeUserGroup.playerNames', ng-if='!vm.promoCodeUserGroupPlayerEdit')
@@ -455,8 +455,7 @@
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.promoCodeUserGroupEdit', ng-click='vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit;') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.promoCodeUserGroupEdit', ng-click='vm.promoCodeUserGroupEdit=!vm.promoCodeUserGroupEdit;vm.savePromoCodeUserGroup()') {{"CONFIRM" | translate}}
-                    br
-                    pre {{vm.userGroupConfig|json}}
+
                 // Tab - Activate Promo Code
                 div(ng-if='vm.selectedPromoCodeTab=="activatePromoCode" && checkViewPermission("Platform", "promoCode", "activatePromoCode")')
                     label {{"SET_PROMO_CODE_FLAG" | tramslate}}
