@@ -1421,6 +1421,7 @@
   "smsLog": "SMS记录",
   "sendSMS": "发短信",
   "SEND_MESSAGE_TO_PLAYER": "发站内信给玩家",
+  "SEND_MESSAGE": "发站内信",
   "Send SMS to Player": "发短信给玩家",
   "smsPlayer": "发短信给玩家",
   "TO_PLAYER": "给玩家",
@@ -2384,10 +2385,12 @@
   "allowedProviders": "仅限以上游戏提供商",
   "PlayerValue": "玩家价值",
   "Credibility": "玩家信用",
+  "rewardProposalId": "促销优惠提案号",
   "SOUND_NOTIFICATION": "声响",
   "SOUND_NOTIFICATION_CHOICE": "声响音选择",
   "RegistrationUrlConfig": "开户网址配置",
   "Create Officer": "创建客服",
+  "LIMITED_OFFER_APPLY_TIME": "秒杀时间",
   "Name already existed": "客服名重复",
   "OFFICER_NAME": "客服名",
   "ADD_OFFICER_URL": "添加URL",
@@ -2395,6 +2398,8 @@
   "PROMOTE_WAY": "推广方式",
   "CHOOSE_PROMOTE_WAY": "选择推广方式",
   "DELETE_OFFICER": "删除客服",
+  "topUpAmount": "存款额",
+  "topUpProposalId": "存款提案号",
   "Offer Name": "标题",
   "Original Amount": "原价",
   "Offer Amount": "卖价",
@@ -2420,5 +2425,6 @@
   "Backstage Privilege": "后台权限",
   "Website Business": "网站业务",
   "Topup Group": "充值分组",
-  "CREDIBILITY_RECORD": "信用评价记录"
+  "CREDIBILITY_RECORD": "信用评价记录",
+  "SMS Notify Settings": "短信通知设定"
 }

@@ -151,7 +151,6 @@ var encrypt = {
             }
         }
 
-        console.log('new code updated');
         if (creditOperator && creditAmountOne) {
             switch (creditOperator) {
                 case '<=':
