@@ -226,9 +226,7 @@ let dbPlayerReward = {
                 rewardTypeData => {
                     let rewardEventQuery = {
                         platform: topUpProposalData.data.platformId,
-                        type: rewardTypeData._id,
-                        validStartTime: {$lte: topUpProposalData.createTime},
-                        validEndTime: {$gte: topUpProposalData.createTime}
+                        type: rewardTypeData._id
                     };
 
                     return dbConfig.collection_rewardEvent.find(rewardEventQuery).lean();
