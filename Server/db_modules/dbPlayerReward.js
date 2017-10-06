@@ -1400,7 +1400,6 @@ let dbPlayerReward = {
                         if (new Date().getTime() >= dbUtility.getLocalTime(e.startTime).getTime()
                             && new Date().getTime() < dbUtility.getLocalTime(e.downTime).getTime()) {
                             status = 1;
-                            e.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(e.downTime).getTime()) / 1000));
                         }
 
                         promArr.push(
@@ -1461,6 +1460,13 @@ let dbPlayerReward = {
             offerSumm => {
                 // Filter by status if any
                 rewards = rewards.filter(e => (!status || status == e.status));
+
+                // Get time left when count down to start time
+                rewards.map(e => {
+                    if (e.status == 0) {
+                        e.timeLeft = new Date().getTime() < new Date(e.downTime).getTime() ? Math.abs(parseInt((new Date().getTime() - new Date(e.startTime).getTime()) / 1000)) : 0;
+                    }
+                });
 
                 return {
                     time: [...timeSet].join("/"),
