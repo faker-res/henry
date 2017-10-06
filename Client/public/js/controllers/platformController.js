@@ -13828,6 +13828,7 @@ define(['js/app'], function (myApp) {
             } else {
                 $("#playerTable-search-filter .form-control").prop("disabled", false).css("background-color", "#fff");
                 $("#playerTable-search-filter .form-control input").prop("disabled", false).css("background-color", "#fff");
+                $("select#selectCredibilityRemark").multipleSelect("enable");
             }
             if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber || playerQuery.bankAccount || playerQuery.email) {
                 var sendQuery = {
