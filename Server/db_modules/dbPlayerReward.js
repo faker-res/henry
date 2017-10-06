@@ -13,6 +13,7 @@ const constServerCode = require('../const/constServerCode');
 
 const dbPlayerUtil = require('../db_common/dbPlayerUtility');
 
+const dbGameProvider = require('../db_modules/dbGameProvider');
 const dbProposal = require('./../db_modules/dbProposal');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
@@ -1447,7 +1448,17 @@ let dbPlayerReward = {
                                     e.status = status;
                                 }
                             )
-                        )
+                        );
+
+                        if (e.providers && e.providers.length > 0) {
+                            let providerIds = e.providers;
+
+                            promArr.push(
+                                dbGameProvider.getGameProviders({_id: {$in: providerIds}}).then(providerObjs => {
+                                    e.providers = providerObjs.map(g => g.name);
+                                })
+                            )
+                        }
                     });
 
                     return Promise.all(promArr);
@@ -1459,13 +1470,19 @@ let dbPlayerReward = {
         ).then(
             offerSumm => {
                 // Filter by status if any
-                rewards = rewards.filter(e => (!status || status == e.status));
+                rewards = rewards.filter(e => (!status || status == e.status)
+                    && new Date().getTime() < new Date(dbUtility.getLocalTime(e.downTime)).getTime()
+                    && new Date().getTime() >= new Date(dbUtility.getLocalTime(e.upTime)).getTime());
 
-                // Get time left when count down to start time
+
                 rewards.map(e => {
+                    // Get time left when count down to start time
                     if (e.status == 0) {
-                        e.timeLeft = new Date().getTime() < new Date(e.downTime).getTime() ? Math.abs(parseInt((new Date().getTime() - new Date(e.startTime).getTime()) / 1000)) : 0;
+                        e.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(e.startTime).getTime()) / 1000));
                     }
+
+                    // Interpret providers
+                    e.providers = e.providers && e.providers.length > 0 ? [...e.providers].join(",") : "所有平台"
                 });
 
                 return {
