@@ -1492,28 +1492,22 @@ let dbPlayerReward = {
         );
     },
 
-    applyLimitedOffers: (platformId, playerName, limitedOfferObjId, adminInfo) => {
+    applyLimitedOffers: (playerObjId, limitedOfferObjId, adminInfo) => {
         let playerObj;
         let limitedOfferObj;
         let platformObj;
         let eventObj;
         let proposalTypeObj;
 
-        return dbConfig.collection_platform.findOne({
-            platformId: platformId
+        return dbConfig.collection_players.findOne({
+            _id: playerObjId
+        }).populate({
+            path: "platform", model: dbConfig.collection_platform
         }).lean().then(
-            platformData => {
-                platformObj = platformData;
-
-                return dbConfig.collection_players.findOne({
-                    platform: platformObj._id,
-                    name: playerName
-                }).lean();
-            }
-        ).then(
             playerData => {
                 if (playerData) {
                     playerObj = playerData;
+                    platformObj = playerData.platform;
 
                     //check if player is valid for reward
                     if (playerObj.permission.PlayerLimitedOfferReward === false) {
