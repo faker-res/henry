@@ -17,6 +17,11 @@
   "IMAGE_URL": "Image URL",
   "SETTLEMENT_HISTORY": "Settlement History",
 
+  "MANUAL_TOPUP": "Manual",
+  "ALIPAY": "Alipay",
+  "WECHATPAY": "WeChat Pay",
+  "DEPOSIT_TIME": "Deposit Time",
+
 
   "CREATE":"Create",
   "EDIT":"Edit",

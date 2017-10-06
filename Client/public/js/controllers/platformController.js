@@ -154,6 +154,10 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
 
+            vm.showTopupTab = function(tabName) {
+                vm.selectedTopupTab = tabName == null ? "manual" : tabName;
+            };
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
@@ -7515,8 +7519,10 @@ define(['js/app'], function (myApp) {
                     vm.existingManualTopup = data.data ? data.data : false;
                     $scope.safeApply();
                 });
-                utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
-                    vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
+                // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
+                //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
+                utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
+                    vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_manual_topup"] .createTime');
                     vm.playerManualTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                 });
                 $scope.safeApply();
@@ -7542,8 +7548,10 @@ define(['js/app'], function (myApp) {
                     });
                 vm.alipaysAcc = '';
 
-                utilService.actionAfterLoaded('#modalPlayerAlipayTopUp', function () {
-                    vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerAlipayTopUp .createTime');
+                // utilService.actionAfterLoaded('#modalPlayerAlipayTopUp', function () {
+                //     vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerAlipayTopUp .createTime');
+                utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
+                    vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_alipay_topup"] .createTime');
                     vm.playerAlipayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                 });
                 $scope.safeApply();
@@ -7616,8 +7624,10 @@ define(['js/app'], function (myApp) {
                     });
                 vm.wechatpaysAcc = '';
 
-                utilService.actionAfterLoaded('#modalPlayerWechatPayTopUp', function () {
-                    vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerWechatPayTopUp .createTime');
+                // utilService.actionAfterLoaded('#modalPlayerWechatPayTopUp', function () {
+                //     vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerWechatPayTopUp .createTime');
+                utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
+                    vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_wechatPay_topup"] .createTime');
                     vm.playerWechatPayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                 });
                 $scope.safeApply();
@@ -13239,6 +13249,7 @@ define(['js/app'], function (myApp) {
                         vm.showPlatformDropDownList = false;
                         vm.showPlatformDetailTab(null);
                         vm.platformAction = null;
+                        vm.showTopupTab(null);
                         // vm.allGameStatusString = {};
                         vm.credibilityRemarks = [];
                         vm.gameStatus = {};
