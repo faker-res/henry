@@ -1350,27 +1350,37 @@ let dbPlayerReward = {
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
-                platformObj = platformData;
+                if (platformData) {
+                    platformObj = platformData;
 
-                let rewardTypeProm = dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
-                let intentionTypeProm = dbConfig.collection_proposalType.findOne({
-                    platformId: platformObj._id,
-                    name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
-                }).lean();
+                    let rewardTypeProm = dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_LIMITED_OFFERS_REWARD}).lean();
+                    let intentionTypeProm = dbConfig.collection_proposalType.findOne({
+                        platformId: platformObj._id,
+                        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                    }).lean();
 
-                return Promise.all([rewardTypeProm, intentionTypeProm]);
+                    return Promise.all([rewardTypeProm, intentionTypeProm]);
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Platform Not Found"});
+                }
             }
         ).then(
             res => {
                 let rewardTypeData = res[0];
                 intPropTypeObj = res[1];
 
-                let rewardEventQuery = {
-                    platform: platformObj._id,
-                    type: rewardTypeData._id
-                };
+                if (rewardTypeData) {
+                    let rewardEventQuery = {
+                        platform: platformObj._id,
+                        type: rewardTypeData._id
+                    };
 
-                return dbConfig.collection_rewardEvent.findOne(rewardEventQuery).lean();
+                    return dbConfig.collection_rewardEvent.findOne(rewardEventQuery).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Reward Type Not Found"});
+                }
             }
         ).then(
             eventData => {
