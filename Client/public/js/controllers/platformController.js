@@ -13828,6 +13828,7 @@ define(['js/app'], function (myApp) {
             } else {
                 $("#playerTable-search-filter .form-control").prop("disabled", false).css("background-color", "#fff");
                 $("#playerTable-search-filter .form-control input").prop("disabled", false).css("background-color", "#fff");
+                $("select#selectCredibilityRemark").multipleSelect("enable");
             }
             if (playerQuery.playerId || playerQuery.name || playerQuery.phoneNumber || playerQuery.bankAccount || playerQuery.email) {
                 var sendQuery = {
@@ -13841,26 +13842,42 @@ define(['js/app'], function (myApp) {
                     let size = data.data.size || 0;
                     let result = data.data.data || [];
                     let found = false;
+
                     if (size == 1) {
                         //search and append to player table
-                        let sendQuery2 = {
-                            platformId: vm.selectedPlatform.id,
-                            query: {
-                                "referral": data.data.data[0]._id
-                            },
-                            index: 0,
-                            limit: 100
+                        if (playerQuery.name) {
+                            let sendQuery2 = {
+                                platformId: vm.selectedPlatform.id,
+                                query: {
+                                    "referral": data.data.data[0]._id
+                                },
+                                index: 0,
+                                limit: 100
+                            }
+                            socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery2, function (data2) {
+                                size += data2.data.size || 0;
+                                result = result.concat(data2.data.data);
+                                vm.playerTable.context[0].aaSorting = [];
+
+                                setPlayerTableData(result);
+                                utilService.hideAllPopoversExcept();
+                                vm.searchPlayerCount = size;
+                                vm.playerTableQuery.pageObj.init({maxCount: size}, true);
+                                vm.playerTable.rows(function (idx, rowData, node) {
+                                    if (rowData._id == result[0]._id) {
+                                        vm.playerTableRowClicked(rowData);
+                                        vm.selectedPlayersCount = 1;
+                                        $(node).addClass('selected');
+                                        found = true;
+                                    }
+                                })
+                            });
                         }
-                        socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery2, function (data2) {
-                            size += data2.data.size || 0;
-                            result = result.concat(data2.data.data);
-                            vm.playerTable.context[0].aaSorting = [];
+                        else {
                             setPlayerTableData(result);
                             utilService.hideAllPopoversExcept();
                             vm.searchPlayerCount = size;
                             vm.playerTableQuery.pageObj.init({maxCount: size}, true);
-
-
                             vm.playerTable.rows(function (idx, rowData, node) {
                                 if (rowData._id == result[0]._id) {
                                     vm.playerTableRowClicked(rowData);
@@ -13869,7 +13886,7 @@ define(['js/app'], function (myApp) {
                                     found = true;
                                 }
                             })
-                        });
+                        }
                     }
                     else {
                         setPlayerTableData(result);
