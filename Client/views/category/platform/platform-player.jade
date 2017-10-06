@@ -230,7 +230,7 @@ include modalGameCreditLog
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.enableDisablePlayer();") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
-#dialogEditPlayer.dialog-dialog(ng-non-bindable).hidden
+#dialogEditPlayer.dialog-dialog(ng-non-bindable).hidden(style='width:60%;max-width:722px;')
     .dialog-content(style="overflow: scroll;height:600px;")
         .dialog-header
             a.fa.fa-times.close.btn.btn-sm(type='button', data-dismiss='dialog')
@@ -239,11 +239,39 @@ include modalGameCreditLog
         .dialog-body
             .panel
                 .panel-body
-                    //- .well
-                    .row
-                        include player-edit-form
-            button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-            button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                    //here
+                    .padding-all-5
+                        .panel.panel-primary
+                            .panel-heading.common-left-panel-heading
+                                ul.nav.nav-tabs.common-nav-tabs
+                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='basicInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='basicInfo';")
+                                            text.span {{"Basic" | translate}}
+                                    li(ng-show="editContactPermission",ng-class="selectedTab=='contactInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='contactInfo';prepareEditCritical('player');")
+                                            text.span {{"CONTACT_INFO" | translate}}
+                                    li(ng-show="editWithdrawPermission",ng-class="selectedTab=='withdrawInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPlayerPayment();")
+                                            text.span {{"WITHDRAW_INFO" | translate}}
+                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='topUpInfo'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='topUpInfo';")
+                                            text.span {{"Topup Group" | translate}}
+                                            //button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditCritical("player")', data-target='#modalEditCritical') {{"EDIT" | translate}}
+
+                            .panel-body.common-right-panel-body
+                                div.tab-content
+                                    #basicGroup.tab-pane.fade(ng-class="selectedTab =='basicInfo'?'in active':''")
+                                        include player-edit-form
+                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                    #contactGroup.tab-pane.fade(ng-class="selectedTab =='contactInfo'?'in active':''")
+                                        include player-edit-contact
+                                    #withdrawGroup.tab-pane.fade(ng-class="selectedTab =='withdrawInfo'?'in active':''")
+                                        include player-edit-withdraw
+                                    #topUpGroup.tab-pane.fade(ng-class="selectedTab =='topUpInfo'?'in active':''")
+                                        include player-edit-payment-form
+                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
 
 #modalPlayerCredit.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
@@ -974,7 +1002,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-click='vm.confirmUpdatePlayerTopupTypes()') {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
-#modalPlayerInfo.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+#modalPlayerInfo.modal.fade(role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
@@ -1044,7 +1072,7 @@ include modalGameCreditLog
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog()', ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                         br
@@ -1093,7 +1121,7 @@ include modalGameCreditLog
                                         //    text(style='height:inherit') {{vm.selectedSinglePlayer.isTestPlayer ? 'Yes' : 'No' | translate}}
                                         //.inlineBlk.col-md-3
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditCritical("player")', data-target='#modalEditCritical') {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('contactInfo')") {{"EDIT" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                 tr
@@ -1154,7 +1182,7 @@ include modalGameCreditLog
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{"Bank Address" | translate}}
-                                                    .col-sm-8
+                                                    .col-sm-8(style='min-width:max-content;')
                                                         text {{vm.selectedSinglePlayer.bankAddress || 'Unknown' | translate}}
 
                                         //.inlineBlk
@@ -1164,7 +1192,7 @@ include modalGameCreditLog
                                         //    label {{"Today Topup" | translate}}
                                         //    text {{vm.selectedSinglePlayer.dailyTopUpSum || 0}}
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformation')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditPlayerPayment()', data-target='#modalEditPlayerPayment') {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformation')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('withdrawInfo');") {{"EDIT" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                 tr
@@ -1198,7 +1226,7 @@ include modalGameCreditLog
                                                     .col-sm-8
                                                         text {{vm.platformWechatPayGroupListCheck[vm.selectedSinglePlayer.wechatPayGroup] | translate}}
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog()', ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo")', ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                 tr
@@ -1368,13 +1396,13 @@ include modalGameCreditLog
                     .form-group-col-md-6
                         .col-md-4(style='padding-left:0')
                             label.control-label {{"PHONE_PROVINCE" | translate}}
-                            select.form-control(type='text', ng-model='vm.currentProvince', ng-options='v.id as v.name for (i,v) in vm.provinceList', ng-change='vm.changeProvince(true)', ng-disabled='!vm.isEditingPlayerPayment')
+                            select.form-control(type='text', ng-model='vm.currentProvince.province', ng-options='v.id as v.name for (i,v) in vm.provinceList', ng-change='vm.changeProvince(true)', ng-disabled='!vm.isEditingPlayerPayment')
                         .col-md-4(style='padding-right:0')
                             label.control-label {{"PHONE_CITY" | translate}}
-                            select.form-control(type='text', ng-model='vm.currentCity', ng-options='v.id as v.name for (i,v) in vm.cityList', ng-change='vm.changeCity(true)', ng-disabled='!vm.isEditingPlayerPayment')
+                            select.form-control(type='text', ng-model='vm.currentCity.city', ng-options='v.id as v.name for (i,v) in vm.cityList', ng-change='vm.changeCity(true)', ng-disabled='!vm.isEditingPlayerPayment')
                         .col-md-4(style='padding-right:0')
                             label.control-label {{"districtId" | translate}}
-                            select.form-control(type='text', ng-model='vm.currentDistrict', ng-options='v.id as v.name for (i,v) in vm.districtList', ng-disabled='!vm.isEditingPlayerPayment')
+                            select.form-control(type='text', ng-model='vm.currentDistrict.district', ng-options='v.id as v.name for (i,v) in vm.districtList', ng-disabled='!vm.isEditingPlayerPayment')
                     .form-group-col-md-6
                         label.control-label *{{'Bank Address' | translate}}
                         input.form-control(ng-model='vm.playerPayment.bankAddress', ng-disabled='!vm.isEditingPlayerPayment', required)
