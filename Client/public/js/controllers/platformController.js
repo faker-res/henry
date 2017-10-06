@@ -328,6 +328,7 @@ define(['js/app'], function (myApp) {
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
                 vm.getCredibilityRemarks();
                 vm.playerAdvanceSearchQuery = {creditOperator: ">="};
+                vm.getDepartmentUsers();
 
                 //load partner
                 utilService.actionAfterLoaded("#partnerTablePage", function () {
@@ -9978,7 +9979,7 @@ define(['js/app'], function (myApp) {
                         });
                     }
                     $scope.safeApply();
-                } else if (vm.showRewardTypeData.name === "PlayerLimitedOffersReward") {
+                } else if (vm.showRewardTypeData.name === "PlayerLimitedOfferReward") {
                     vm.rewardParams.reward = vm.rewardParams.reward || [];
                     vm.allGames = [];
                     socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
@@ -13463,7 +13464,7 @@ define(['js/app'], function (myApp) {
             vm.getAllOfficer();
             vm.getAllPromoteWay();
             vm.getAllUrl();
-        }
+        };
 
         vm.initClearMessage = function () {
             vm.officerPromoteMessage = "";
@@ -13471,7 +13472,7 @@ define(['js/app'], function (myApp) {
             vm.officerCreateMessage = "";
             vm.deleteOfficerMessage = "";
             vm.officerUrlMessage = "";
-        }
+        };
 
         vm.initCreateUrl = function () {
             vm.urlTableAdd = true;
@@ -13482,7 +13483,7 @@ define(['js/app'], function (myApp) {
         vm.urlCancelEditOrAdd = function () {
             vm.urlTableEdit = false;
             vm.urlTableAdd = false;
-        }
+        };
 
         vm.addPromoteWay = function () {
             let officerPromoteMessageId = $("#officer-promote-message");
@@ -13497,6 +13498,7 @@ define(['js/app'], function (myApp) {
                     vm.officerPromoteMessage = $translate('Approved');
                     officerPromoteMessageId.css("color", "green");
                     officerPromoteMessageId.css("font-weight", "bold");
+                    vm.getAllPromoteWay();
                     $scope.safeApply();
                 },
                 function (err) {
@@ -13506,7 +13508,7 @@ define(['js/app'], function (myApp) {
                     console.log(err);
                     $scope.safeApply();
                 });
-        }
+        };
 
         vm.getAllPromoteWay = function () {
             vm.allPromoteWay = {};
@@ -13545,7 +13547,7 @@ define(['js/app'], function (myApp) {
                     console.log(err);
                     $scope.safeApply();
                 });
-        }
+        };
 
         vm.createOfficer = function () {
             vm.initClearMessage();
@@ -13569,7 +13571,7 @@ define(['js/app'], function (myApp) {
                     console.log(err);
                     $scope.safeApply();
                 });
-        }
+        };
 
         vm.deleteOfficerById = function () {
             let deleteOfficerMessageId = $("#delete-officer-message");
@@ -13592,7 +13594,7 @@ define(['js/app'], function (myApp) {
                     console.log(err);
                     $scope.safeApply();
                 });
-        }
+        };
 
         vm.getAllOfficer = function () {
             vm.allOfficer = {};
@@ -13612,6 +13614,26 @@ define(['js/app'], function (myApp) {
         vm.pickOfficer = function () {
             vm.platformOfficer.url = '';
             $scope.safeApply();
+        };
+
+        vm.getDepartmentUsers = function () {
+            let departmentID = vm.selectedPlatform.data.department;
+            if (departmentID) {
+                socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.selectedPlatform.data.department}, function (data) {
+                    var result = [];
+                    data.data.forEach(function (userData) {
+                        userData.users.forEach(function (user) {
+                            var singleRecord = {}
+                            singleRecord.departmentName = userData.departmentName;
+                            singleRecord.adminName = user.adminName;
+                            singleRecord._id = user._id;
+                            result.push(singleRecord);
+                        })
+                    });
+                    vm.departmentUsers = result;
+                    $scope.safeApply();
+                });
+            }
         };
 
         vm.addUrl = function () {
