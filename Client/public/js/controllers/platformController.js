@@ -13837,6 +13837,7 @@ define(['js/app'], function (myApp) {
                     limit: 100
                 };
                 socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery, function (data) {
+                    console.log('playerData', data);
                     let size = data.data.size || 0;
                     let result = data.data.data || [];
                     let found = false;
@@ -13869,6 +13870,12 @@ define(['js/app'], function (myApp) {
                                 }
                             })
                         });
+                    }
+                    else {
+                        setPlayerTableData(result);
+                        utilService.hideAllPopoversExcept();
+                        vm.searchPlayerCount = size;
+                        vm.playerTableQuery.pageObj.init({maxCount: size}, true);
                     }
                     if (!found) {
                         vm.selectedSinglePlayer = null;
