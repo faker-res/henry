@@ -63,7 +63,19 @@ define(['js/app'], function (myApp) {
             vm.showPageName = '';
             vm.setPlatform(JSON.stringify(platObj));
         }
+        vm.showProposalModal2 = function(proposalId){
+          socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+              platformId: vm.selectedPlatform.id,
+              proposalId: proposalId
+          }, function (data) {
+            vm.selectedProposal = data.data;
+            $('#modalProposal').modal('show');
+            $('#modalProposal').on('shown.bs.modal', function (e) {
+              $scope.safeApply();
+            })
 
+          })
+        }
         vm.initReportPara = function () {
             var obj = {};
             obj.startTime = utilService.setNDaysAgo(new Date(), 30);
@@ -381,7 +393,8 @@ define(['js/app'], function (myApp) {
                     vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryTopup", vm.searchTopupRecord)
                     });
-                    $scope.safeApply();
+                        $scope.safeApply();
+
                 })
 
             } else if (choice == "RewardReport") {
@@ -1029,7 +1042,7 @@ define(['js/app'], function (myApp) {
                 $('#topupTableSpin').hide();
                 console.log('topup', data);
                 vm.queryTopup.totalCount = data.data.size;
-                $scope.safeApply();
+
                 vm.drawTopupReport(
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
@@ -1042,6 +1055,8 @@ define(['js/app'], function (myApp) {
                             : item.data.alipayAccount != null
                             ? item.data.alipayAccount
                             : null;
+                            item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                            item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         if (item.type.name == 'PlayerTopUp') {
                             //show detail topup type info for online topup.
                             let typeID = item.data.topUpType || item.data.topupType
@@ -1058,6 +1073,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
+                $scope.safeApply();
             }, function (err) {
                 console.log(err);
             }, true);
@@ -1074,7 +1090,23 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('proposalId'), data: 'proposalId'},
+                    {
+                        "title": $translate('proposalId'),
+                        "data": "proposalId",
+                        render: function (data, type, row) {
+                            // var link = $('<div>', {
+                            //     'ng-click': "vm.showProposalModal2("+data+")";
+                            // }).text(data);
+                            var link = $('<div>', {});
+                            link.append($('<a>', {
+                                'ng-click': 'vm.showProposalModal2(' +data + ');',
+                                'data-row':'click me',
+                                'title':'click'
+                            }));
+                            return link.prop('outerHTML');
+
+                        }
+                    },
                     {
                         "title": $translate('topupType'), "data": "type",
                         render: function (data, type, row) {
@@ -1109,7 +1141,7 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {title: $translate('Business Acc/ Bank Acc'), data: "merchantNo$"},
-                    {title: $translate('Total Business Acc'), data: ""},
+                    {title: $translate('Total Business Acc'), data: "merchantCount$"},
 
                     // {
                     //     title: $translate('topupType'), data: "data.topupType",
@@ -1126,7 +1158,7 @@ define(['js/app'], function (myApp) {
                     // {title: $translate('Merchant No'), data: "merchantName"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName"},
                     {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText"},
-                    {title: $translate('Total Members'), data: "", sClass: "sumText"},
+                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
 
@@ -1145,6 +1177,19 @@ define(['js/app'], function (myApp) {
                     // {title: $translate('REMARK'), data: null},
                 ],
                 "paging": false,
+                fnRowCallback: function(){
+                  console.log('hhehe')
+                  $timeout(function(){
+                    $scope.safeApply();
+
+                  },50)
+                },
+                fnDrawCallback: function(){
+                  $timeout(function(){
+                    $scope.safeApply();
+
+                  },50)
+                }
                 // dom: 'RZrtlp',
                 // fnDrawCallback: function (oSettings) {
                 //     var container = oSettings.nTable;
@@ -1180,6 +1225,7 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'queryTopup', vm.searchTopupRecord);
             });
             $('#topupTable').resize();
+
         }
 
         ///End topup report
@@ -3982,6 +4028,8 @@ define(['js/app'], function (myApp) {
             eventName = "socketConnected";
             $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
         }
+
+
         $scope.$on(eventName, function (e, d) {
 
             setTimeout(
