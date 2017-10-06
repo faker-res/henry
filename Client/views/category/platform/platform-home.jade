@@ -27,7 +27,7 @@
                                     img(src="images/icon/websiteBusiness_hover.png" width="30" )
                                 text.text-danger.shadow(style='margin:5px 10px;font-size:20px') {{"SELECT_PLATFORM"|translate}}
                         li(ng-if='vm.curPlatformText', style='margin-right: 0;')
-                            div.platformName(ng-if='checkViewPermission("Platform","Platform", "Edit")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform', ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();', style='border-radius: 9px 0 0 9px;')
+                            div.platformName(ng-if='checkViewPermission("Platform","Platform", "Read")',ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalUpdatePlatform', ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();', style='border-radius: 9px 0 0 9px;')
                                 .fa.fa-2x(style='margin:5px 10px;')
                                     img(src="images/icon/websiteBusiness_hover.png" width="30" )
                                 text.shadow(style='margin:5px 10px;font-size:20px') {{vm.curPlatformText}}

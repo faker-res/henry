@@ -140,6 +140,9 @@ let playerCredibilityRemarkModel = db_admin.model('playerCredibilityRemark', pla
 let csOfficerSchema = require('../schema/csOfficer');
 let csOfficerModel = db_admin.model('csOfficer', csOfficerSchema, 'csOfficer');
 
+let csOfficerUrlSchema = require('../schema/csOfficerUrl');
+let csOfficerUrlModel = db_admin.model('csOfficerUrl', csOfficerUrlSchema, 'csOfficerUrl');
+
 let csPromoteWaySchema = require('../schema/csPromoteWay');
 let csPromoteWayModel = db_admin.model('csPromoteWay', csPromoteWaySchema, 'csPromoteWay');
 
@@ -360,6 +363,7 @@ var dbProperties = {
     collection_promoCodeUserGroup: promoCodeUserGroupModel,
 
     collection_csOfficer: csOfficerModel,
+    collection_csOfficerUrl: csOfficerUrlModel,
     collection_csPromoteWay: csPromoteWayModel,
 
     //logs
