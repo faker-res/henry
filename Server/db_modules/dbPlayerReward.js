@@ -1342,7 +1342,7 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId, playerObjId) => {
+    getLimitedOffers: (platformId, playerObjId, status) => {
         let platformObj;
         let intPropTypeObj;
         let timeSet;
@@ -1400,6 +1400,7 @@ let dbPlayerReward = {
                         if (new Date().getTime() >= dbUtility.getLocalTime(e.startTime).getTime()
                             && new Date().getTime() < dbUtility.getLocalTime(e.downTime).getTime()) {
                             status = 1;
+                            e.timeLeft = Math.abs(parseInt((new Date().getTime() - new Date(e.downTime).getTime()) / 1000));
                         }
 
                         promArr.push(
@@ -1458,6 +1459,9 @@ let dbPlayerReward = {
             }
         ).then(
             offerSumm => {
+                // Filter by status if any
+                rewards = rewards.filter(e => (!status || status == e.status));
+
                 return {
                     time: [...timeSet].join("/"),
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
