@@ -325,7 +325,7 @@ db.rewardType.insert({"name": type22, params: param22._id, des: "Player Packet R
 
 //Player Limited Offers Reward
 
-var type23 = "PlayerLimitedOffersReward";
+var type23 = "PlayerLimitedOfferReward";
 db.rewardParam.insert({
     "name": type23, params: {
         dailyApplyLimit: {type: "Boolean", des: "Daily apply limit"},

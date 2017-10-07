@@ -290,7 +290,7 @@
         websocketURL: null,
         //
         cpmsWSURL: "ws://gameapi-server.neweb.me/websocketapi",
-        pmsWSURL: "ws://101.78.133.212:8566/acc",
+        pmsWSURL: "ws://203.192.151.11:8330/acc",
         smsWSURL: "ws://203.192.151.12:8560/sms",
 
         setAPIName: setAPIName,

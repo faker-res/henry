@@ -208,7 +208,7 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
-                        if (inputData.referral) {
+                        if (inputData.referral || inputData.referralName) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
                             let referralProm = dbconfig.collection_players.findOne({
                                 name: referralName,
@@ -976,6 +976,9 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
             .populate({path: "platform", model: dbconfig.collection_platform}).then(
                 playerData => {
+                    if (!playerData) {
+                        return false;
+                    }
                     return {
                         name: playerData.name,
                         platformId: playerData.platform.platformId
@@ -1915,7 +1918,8 @@ let dbPlayerInfo = {
                             {
                                 $set: {
                                     'data.topUpProposalObjId': proposalData._id,
-                                    'data.topUpProposalId': proposalData.proposalId
+                                    'data.topUpProposalId': proposalData.proposalId,
+                                    'data.topUpAmount': proposalData.data.amount
                                 },
                                 $currentDate: {settleTime: true}
                             },
@@ -1932,6 +1936,7 @@ let dbPlayerInfo = {
                         ).then(
                             proposalTypeData => {
                                 if (proposalTypeData) {
+                                    // Create reward proposal with intention data
                                     let proposalData = {
                                         type: proposalTypeData._id,
                                         creator: newProp.creator,
@@ -1941,6 +1946,23 @@ let dbPlayerInfo = {
                                     };
                                     return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
                                 }
+                            }
+                        ).then(
+                            res => {
+                                return dbUtility.findOneAndUpdateForShard(
+                                    dbconfig.collection_proposal,
+                                    {_id: proposalData.data.limitedOfferObjId},
+                                    {
+                                        $set: {
+                                            'data.rewardProposalObjId': res._id,
+                                            'data.rewardProposalId': res.proposalId,
+                                            'data.rewardAmount': res.data.rewardAmount
+                                        },
+                                        $currentDate: {settleTime: true}
+                                    },
+                                    constShardKeys.collection_proposal,
+                                    true
+                                )
                             }
                         );
 
@@ -2743,7 +2765,6 @@ let dbPlayerInfo = {
         let playerData = {};
         Q.all([eventProm, proposalProm, playerLevelProm, playerProm]).then(
             function (data) {
-                console.log('data', JSON.stringify(data, null, 4))
                 if (data && data[0] && data[1] && data[2] && data[3]) {
                     if (!data[3].permission || !data[3].permission.transactionReward) {
                         deferred.resolve("No permission!");
@@ -2795,8 +2816,6 @@ let dbPlayerInfo = {
                                     eventCode: rewardParams[i].code,
                                 }
                             };
-
-                            console.log('transaction reward proposal console.log data', proposalData);
                             let temp = dbProposal.createProposalWithTypeId(rewardParams[i].executeProposal, proposalData);
                             levelProm.push(temp);
                         }
@@ -2948,6 +2967,7 @@ let dbPlayerInfo = {
                         .sort(sortObj).skip(index).limit(limit)
                         .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
                         .populate({path: "partner", model: dbconfig.collection_partner})
+                        // .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                         .lean().then(
                             playerData => {
                                 var players = [];

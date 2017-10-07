@@ -1892,19 +1892,24 @@ define(['js/app'], function (myApp) {
         vm.getLimitedOfferReport = function () {
             $('#limitedOfferTableSpin').show();
             let sendQuery = {
-                platform: vm.selectedPlatform._id,
-                platformId: vm.selectedPlatform.platformId,
+                platformObjId: vm.selectedPlatform._id,
                 startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
-                type: vm.limitedOfferQuery.type
+                type: vm.limitedOfferQuery.type,
+                playerName: vm.limitedOfferQuery.playerName,
+                promoName: vm.limitedOfferQuery.promoName
             };
 
             console.log('sendQuery', sendQuery);
 
             socketService.$socket($scope.AppSocket, 'getLimitedOfferReport', sendQuery, function (data) {
-                console.log('_getMismatchReport', data);
-                $('#onlinePaymentMismatchTableSpin').hide();
-                vm.proposalMismatchDetail = data.data;
+                console.log('getLimitedOfferReport', data);
+                $('#limitedOfferTableSpin').hide();
+                vm.limitedOfferDetail = data.data;
+                vm.limitedOfferDetail.map(e => {
+                    e.createTime = $scope.timeReformat(e.createTime)
+                });
+
                 $scope.safeApply();
             });
         };

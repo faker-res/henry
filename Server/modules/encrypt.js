@@ -67,6 +67,7 @@ var encrypt = {
         var creditOperator = data.hasOwnProperty('creditOperator') ? data.creditOperator : "";
         var creditAmountOne = data.hasOwnProperty('creditAmountOne') ? data.creditAmountOne : "";
         var creditAmountTwo = data.hasOwnProperty('creditAmountTwo') ? data.creditAmountTwo : "";
+        let referral = data.hasOwnProperty('referral') ? data.referral : "";
 
 
         var query = {};
@@ -127,6 +128,9 @@ var encrypt = {
         if (credibilityRemarks && credibilityRemarks !== '' && credibilityRemarks.length !== 0) {
             query["credibilityRemarks"] = {$all: credibilityRemarks};
         }
+        if (referral !== '') {
+            query["referral"] = referral;
+        }
 
         if (validCredit !== '') {
             // We can accept the following forms for validCredit parameter:
@@ -151,7 +155,6 @@ var encrypt = {
             }
         }
 
-        console.log('new code updated');
         if (creditOperator && creditAmountOne) {
             switch (creditOperator) {
                 case '<=':

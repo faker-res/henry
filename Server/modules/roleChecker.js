@@ -239,7 +239,7 @@ var roleChecker = {
                 PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement']
             },
             "Player": {
-                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
+                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
                     'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog'],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
@@ -554,7 +554,7 @@ var roleChecker = {
                 PLAYER_ALMOST_LEVELUP_REPORT: ['getPlayerAlmostLevelupReport'],
                 ACTIONLOG_REPORT: ['getActionLogPageReport'],
                 ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
-                LIMITED_OFFER_REPORT: []
+                LIMITED_OFFER_REPORT: ['getLimitedOfferReport']
             }
         },
         Monitor: {
