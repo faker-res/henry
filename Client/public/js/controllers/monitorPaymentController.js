@@ -254,84 +254,63 @@ define(['js/app'], function (myApp) {
                 "order": vm.paymentMonitorQuery.aaSorting || [[11, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [11]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [8]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {
-                        title: $translate('proposalId'),
-                        data: 'proposalId',
+                        "title": $translate('proposalId'),
+                        "data": "proposalId",
                         render: function (data, type, row) {
-                            let data$ = data.slice(-3);
-                            let $link = $('<a>').text(data$);
-                            return $link.prop('outerHTML');
+                          return '<a ng-click="vm.showProposalModal2('+data+')">'+data+'</a>';
                         }
                     },
                     {
-                        title: $translate('TYPE'),
-                        data: "type",
-                        sClass: 'merchantCount',
+                        "title": $translate('topupType'), "data": "type",
                         render: function (data, type, row) {
                             var text = $translate(row.type ? row.type.name : "");
                             return "<div>" + text + "</div>";
                         }
                     },
+                    {title: $translate('DEVICE'), data: "data.userAgent"},
                     {
-                        title: $translate('topupType'),
-                        data: "data.topupType",
-                        sClass: 'merchantCount',
+                        "title": $translate('Online Topup Type'), "data": 'type.name',
                         render: function (data, type, row) {
-                            let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : "";
+                            var text = $translate(data ? data: "");
                             return "<div>" + text + "</div>";
                         }
                     },
+                    {title: $translate('3rd Party Platform'), data: ""},
                     {
-                        title: $translate('Merchant'),
-                        data: "merchantName",
-                        sClass: 'merchantCount'
+                        "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
+                        render: function (data, type, row) {
+                            var text = $translate(data ? vm.depositMethodList[data]: "");
+                            return "<div>" + text + "</div>";
+                        }
                     },
-                    {
-                        title: $translate('Merchant No'),
-                        data: "merchantNo$",
-                        sClass: 'merchantCount'
+                    {title: $translate('From Bank Type'), data: "data.bankTypeId",
+                        render: function (data, type, row) {
+                          if(data){
+                              var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data]: "");
+                              return "<div>" + text + "</div>";
+                          }else{
+                              return "<div>" + '' + "</div>";
+                          }
+                        }
                     },
-                    {
-                        title: $translate('merchantCount'),
-                        data: "merchantCount$",
-                        sClass: 'merchantCount'
-                    },
-                    {
-                        title: $translate('STATUS'),
-                        data: "status$"
-                    },
-                    {
-                        title: $translate('PLAYER_NAME'),
-                        data: "data.playerName",
-                        sClass: 'playerCount'
-                    },
-                    {
-                        title: $translate('realName'),
-                        data: "data.playerObjId.realName",
-                        sClass: "sumText playerCount"
-                    },
-                    {
-                        title: $translate('playerCount'),
-                        data: "playerCount$",
-                        sClass: 'playerCount'
-                    },
-                    {
-                        title: $translate('CREDIT'),
-                        data: "amount$",
-                        sClass: "sumFloat alignRight"
-                    },
-                    {
-                        title: $translate('START_TIME'),
-                        data: "startTime$"
-                    },
-                    {
-                        title: $translate('END_TIME'),
-                        data: "endTime$"
-                    }
+                    {title: $translate('Business Acc/ Bank Acc'), data: "merchantNo$"},
+                    {title: $translate('Total Business Acc'), data: "merchantCount$"},
+                    {title: $translate('STATUS'), data: "status$"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName"},
+                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText"},
+                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText"},
+                    // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
+                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
+
+                    {title: $translate('START_TIME'), data: "startTime$"},
+                    {title: $translate('END_TIME'), data: "endTime$"}
+
                 ],
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -354,6 +333,9 @@ define(['js/app'], function (myApp) {
                             vm.lastPlayerExceedId = aData._id;
                         }
                     }
+                },
+                createdRow: function(row, data, dataIndex){
+                  $compile(angular.element(row).contents())($scope)
                 }
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);

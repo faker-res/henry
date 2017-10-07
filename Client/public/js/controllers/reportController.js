@@ -1239,37 +1239,10 @@ define(['js/app'], function (myApp) {
                     {title: $translate('END_TIME'), data: "endTime$"},
                 ],
                 "paging": false,
-                fnDrawCallback: function(){
-                  $timeout(function(){
-                    $scope.safeApply();
-
-                  },50)
-                },
                 createdRow: function(row, data, dataIndex){
                   $compile(angular.element(row).contents())($scope)
                 }
-                // dom: 'RZrtlp',
-                // fnDrawCallback: function (oSettings) {
-                //     var container = oSettings.nTable;
-                //     utilService.setupPopover({
-                //         context: container,
-                //         elem: '.telPopover',
-                //         content: function () {
-                //             vm.telphonePlayer = JSON.parse(this.dataset.row);
-                //             $scope.safeApply();
-                //             return $('#telPopover').html();
-                //         },
-                //         callback: function () {
-                //             $("button.playerMessage").on('click', function () {
-                //                 console.log('message', this);
-                //                 alert("will send message to " + vm.telphonePlayer.name);
-                //             });
-                //             $("button.playerTelephone").on('click', function () {
-                //                 alert("will call " + vm.telphonePlayer.name);
-                //             });
-                //         }
-                //     });
-                // },
+
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
