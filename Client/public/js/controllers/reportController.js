@@ -2,8 +2,8 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$sce', '$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies"];
-    var reportController = function ($sce, $scope, $filter, $location, $log, $timeout, authService, socketService, utilService, CONFIG, $cookies) {
+    var injectParams = ['$sce', '$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies","$compile"];
+    var reportController = function ($sce, $scope, $filter, $location, $log, $timeout, authService, socketService, utilService, CONFIG, $cookies,$compile) {
         var $translate = $filter('translate');
         var vm = this;
 
@@ -1190,17 +1190,7 @@ define(['js/app'], function (myApp) {
                         "title": $translate('proposalId'),
                         "data": "proposalId",
                         render: function (data, type, row) {
-                            // var link = $('<div>', {
-                            //     'ng-click': "vm.showProposalModal2("+data+")";
-                            // }).text(data);
-                            var link = $('<div>', {});
-                            link.append($('<a>', {
-                                'ng-click': 'vm.showProposalModal2(' +data + ');',
-                                'data-row':'click me',
-                                'title':'click'
-                            }));
-                            return link.prop('outerHTML');
-
+                          return '<a ng-click="vm.showProposalModal2('+data+')">'+data+'</a>';
                         }
                     },
                     {
@@ -1238,53 +1228,25 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate('Business Acc/ Bank Acc'), data: "merchantNo$"},
                     {title: $translate('Total Business Acc'), data: "merchantCount$"},
-
-                    // {
-                    //     title: $translate('topupType'), data: "data.topupType",
-                    //     render: function (data, type, row) {
-                    //         let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
-                    //         return "<div>" + text + "</div>";
-                    //     }
-                    // },
-
-                    // {title: $translate('DINGDAN_ID'), data: "data.requestId"},
-                    // {title: $translate('PAYMENT_CHANNEL'), data: "paymentId"},
                     {title: $translate('STATUS'), data: "status$"},
-                    // {title: $translate('ISNEWPLAYER'), data: null},
-                    // {title: $translate('Merchant No'), data: "merchantName"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName"},
                     {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText"},
                     {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText"},
                     // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
 
-                    // {
-                    //     title: $translate('topupType'), data: "data.topupType",
-                    //     render: function (data, type, row) {
-                    //         let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
-                    //         return "<div>" + text + "</div>";
-                    //     }
-                    // },
-                    // {"title": $translate('Merchant No'), "data": "merchantNo$"},
-                    // {title: $translate('IP'), data: null},
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {title: $translate('END_TIME'), data: "endTime$"},
-                    // {title: $translate('END_TIME'), data: null},
-                    // {title: $translate('REMARK'), data: null},
                 ],
                 "paging": false,
-                fnRowCallback: function(){
-                  console.log('hhehe')
-                  $timeout(function(){
-                    $scope.safeApply();
-
-                  },50)
-                },
                 fnDrawCallback: function(){
                   $timeout(function(){
                     $scope.safeApply();
 
                   },50)
+                },
+                createdRow: function(row, data, dataIndex){
+                  $compile(angular.element(row).contents())($scope)
                 }
                 // dom: 'RZrtlp',
                 // fnDrawCallback: function (oSettings) {
