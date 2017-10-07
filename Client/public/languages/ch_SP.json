@@ -2435,6 +2435,6 @@
   "Total Members" :"会员计数",
   "From Bank Type":"收款银行类别",
   "TopUp Amount":"充值金额",
-  "Real Name":"会员姓名"
-  "SMS Notify Settings": "短信通知设定"
+  "Real Name":"会员姓名",
+  "SMS Notify Settings":"短信通知设定"
 }
