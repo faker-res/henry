@@ -1494,8 +1494,8 @@ let dbPlayerReward = {
         );
     },
 
-    applyLimitedOffers: (playerObjId, limitedOfferObjId, adminInfo) => {
-        console.log('applyLimitedOffers', playerObjId, limitedOfferObjId);
+    applyLimitedOffers: (playerId, limitedOfferObjId, adminInfo) => {
+        console.log('applyLimitedOffers', playerId, limitedOfferObjId);
 
         let playerObj;
         let limitedOfferObj;
@@ -1504,7 +1504,7 @@ let dbPlayerReward = {
         let proposalTypeObj;
 
         return dbConfig.collection_players.findOne({
-            _id: playerObjId
+            playerId: playerId
         }).populate({
             path: "platform", model: dbConfig.collection_platform
         }).lean().then(
