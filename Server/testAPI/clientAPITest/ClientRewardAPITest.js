@@ -201,6 +201,12 @@
         this.rewardService.applyLimitedOffers.once(callback);
     };
 
+    proto.getLimitedOfferBonus = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getLimitedOfferBonus.request(data);
+        this.rewardService.getLimitedOfferBonus.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {
