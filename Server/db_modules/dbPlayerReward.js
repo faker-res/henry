@@ -1401,27 +1401,27 @@ let dbPlayerReward = {
                             status = 1;
                         }
 
-                        if (playerId) {
-                            promArr.push(
-                                dbConfig.collection_proposal.aggregate({
-                                    $match: {
-                                        'data.platformObjId': platformObj._id,
-                                        'data.limitedOfferObjId': e._id,
-                                        type: intPropTypeObj._id
-                                    }
-                                }, {
-                                    $project: {
-                                        "data.playerId": 1,
-                                        paidCount: {$cond: [{$not: ['$data.topUpProposalId']}, 0, 1]}
-                                    }
-                                }, {
-                                    $group: {
-                                        _id: "$data.playerId",
-                                        count: {$sum: 1},
-                                        paidCount: {$sum: "$paidCount"}
-                                    }
-                                }).then(
-                                    summ => {
+                        promArr.push(
+                            dbConfig.collection_proposal.aggregate({
+                                $match: {
+                                    'data.platformObjId': platformObj._id,
+                                    'data.limitedOfferObjId': e._id,
+                                    type: intPropTypeObj._id
+                                }
+                            }, {
+                                $project: {
+                                    "data.playerId": 1,
+                                    paidCount: {$cond: [{$not: ['$data.topUpProposalId']}, 0, 1]}
+                                }
+                            }, {
+                                $group: {
+                                    _id: "$data.playerId",
+                                    count: {$sum: 1},
+                                    paidCount: {$sum: "$paidCount"}
+                                }
+                            }).then(
+                                summ => {
+                                    if (playerId) {
                                         let totalPromoCount = 0;
 
                                         summ.map(f => {
@@ -1443,12 +1443,12 @@ let dbPlayerReward = {
                                         if (status == 2 && new Date().getTime() > dbUtility.getLocalTime(e.downTime).getTime()) {
                                             status = 5;
                                         }
-
-                                        e.status = status;
                                     }
-                                )
-                            );
-                        }
+
+                                    e.status = status;
+                                }
+                            )
+                        );
 
                         if (e.providers && e.providers.length > 0) {
                             let providerIds = e.providers;
