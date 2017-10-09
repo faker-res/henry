@@ -1654,6 +1654,51 @@ let dbPlayerReward = {
         ).then(
             intProps => intProps
         )
+    },
+
+    getLimitedOfferBonus: (platformId) => {
+        let platformObj;
+        let intPropTypeObj;
+
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+
+                    return dbConfig.collection_proposalType.findOne({
+                        platformId: platformObj._id,
+                        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Platform Not Found"});
+                }
+            }
+        ).then(
+            res => {
+                intPropTypeObj = res;
+
+                let startTime = moment().subtract(4, "hours");
+
+                return dbConfig.collection_proposal.find({
+                    'data.platformObjId': platformObj._id,
+                    type: intPropTypeObj._id,
+                    createTime: {$gte: startTime}
+                }).lean();
+            }
+        ).then(
+            res => {
+                return res.map(e => {
+                    return {
+                        accountNo: e.data.playerName,
+                        bonus: e.data.applyAmount + e.data.rewardAmount,
+                        time: e.createTime
+                    }
+                })
+            }
+        )
+
+
     }
 };
 
