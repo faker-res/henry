@@ -96,6 +96,7 @@ var dbPlayerTopUpRecord = {
         if (query.status && query.status.length > 0) {
             queryObj.status = {$in: query.status};
         }
+
         return Q.resolve().then(
             () => {
                 var str = '';
@@ -163,6 +164,13 @@ var dbPlayerTopUpRecord = {
                 if (query.topupType) {
                     queryObj['data.topupType'] = query.topupType
                 }
+                if(query.bankTypeId){
+                    queryObj['data.bankTypeId'] = query.bankTypeId;
+                }
+                if(query.merchantNo){
+                    queryObj['data.merchantNo'] = query.merchantNo;
+                }
+
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
         ).then(
@@ -171,6 +179,7 @@ var dbPlayerTopUpRecord = {
                     return type._id;
                 });
                 queryObj.type = {$in: typeIds};
+                console.log(query);
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
                 var a = dbconfig.collection_proposal.find(queryObj).count();
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)

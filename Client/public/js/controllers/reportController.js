@@ -40,6 +40,13 @@ define(['js/app'], function (myApp) {
             2:"ATM",
             3:"Counter"
         };
+
+        vm.getDepositMethodbyId = {
+            1: 'Online',
+            2: 'ATM',
+            3: 'Counter'
+        };
+
         //get all platform data from server
         vm.setPlatform = function (platObj) {
             vm.operSelPlatform = false;
@@ -76,7 +83,11 @@ define(['js/app'], function (myApp) {
 
           })
         }
-
+        vm.initMultiSelect = function(){
+            $timeout(function () {
+              $('.merchantNoList').selectpicker('refresh');
+            });
+        }
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
                 if (!obj) return '';
@@ -178,7 +189,6 @@ define(['js/app'], function (myApp) {
             obj.endTime = new Date();
             return obj;
         }
-
 
         var constRewardReportTableProp = [
             {// player reward tables
@@ -484,6 +494,7 @@ define(['js/app'], function (myApp) {
 
 
                 utilService.actionAfterLoaded("#topupTablePage", function () {
+
                     vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
                     vm.queryTopup.merchantType = null;
                     vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
@@ -1113,21 +1124,30 @@ define(['js/app'], function (myApp) {
             }
 
             var sendObj = {
+                playerName: vm.queryTopup.playerName,
+                proposalNo: vm.queryTopup.proposalID,
+                mainTopupType: vm.queryTopup.mainTopupType,
+                userAgent: vm.queryTopup.userAgent,
+                topupType: vm.queryTopup.topupType,
+                merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
+                depositMethod: vm.queryTopup.depositMethod,
+
+                //new
+                bankTypeId: vm.queryTopup.bankTypeId,
+                //new
+                merchantNo: vm.queryTopup.merchantNo,
+                status: staArr,
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
+
                 platformId: vm.curPlatformId,
-                dingdanID: vm.queryTopup.dingdanID,
-                mainTopupType: vm.queryTopup.mainTopupType,
-                topupType: vm.queryTopup.topupType,
-                depositMethod: vm.queryTopup.depositMethod,
-                proposalNo: vm.queryTopup.proposalID,
-                merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
-                playerName: vm.queryTopup.playerName,
+                // dingdanID: vm.queryTopup.dingdanID,
                 // merchant: vm.queryTopup.merchant,
-                status: staArr,
+
                 index: newSearch ? 0 : (vm.queryTopup.index || 0),
                 limit: vm.queryTopup.limit || 10,
-                sortCol: vm.queryTopup.sortCol
+                sortCol: vm.queryTopup.sortCol,
+
             }
             // if (vm.queryTopup.status) {
             //     sendObj.status = {'$in': staArr}
@@ -1208,7 +1228,13 @@ define(['js/app'], function (myApp) {
                             return "<div>" + text + "</div>";
                         }
                     },
-                    {title: $translate('3rd Party Platform'), data: ""},
+                    {
+                        title: $translate('3rd Party Platform'), "data": 'data.merchantGroup',
+                        render: function (data, type, row){
+                            var text = $translate(data ? vm.merchantGroupObj[data]:"");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {

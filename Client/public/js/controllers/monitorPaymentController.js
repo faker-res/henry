@@ -285,7 +285,7 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
-                            var text = $translate(data ? vm.depositMethodList[data]: "");
+                            var text = $translate(data ? vm.getDepositMethodbyId[data]: "");
                             return "<div>" + text + "</div>";
                         }
                     },
