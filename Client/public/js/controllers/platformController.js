@@ -11657,6 +11657,9 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.requireCaptchaInSMS = vm.selectedPlatform.data.requireCaptchaInSMS;
                 vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
                 vm.platformBasic.useLockedCredit = vm.selectedPlatform.data.useLockedCredit;
+                vm.platformBasic.requireSMSVerification = vm.selectedPlatform.data.requireSMSVerification;
+                vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
+                vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 $scope.safeApply();
             }
 
@@ -12075,7 +12078,10 @@ define(['js/app'], function (myApp) {
                         useLockedCredit: srcData.useLockedCredit,
                         playerNameMaxLength: srcData.playerNameMaxLength,
                         playerNameMinLength: srcData.playerNameMinLength,
-                        bonusSetting: srcData.bonusSetting
+                        bonusSetting: srcData.bonusSetting,
+                        requireSMSVerification: srcData.requireSMSVerification,
+                        requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
+                        requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
