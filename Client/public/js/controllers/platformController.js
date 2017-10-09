@@ -328,6 +328,7 @@ define(['js/app'], function (myApp) {
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
                 vm.getCredibilityRemarks();
                 vm.playerAdvanceSearchQuery = {creditOperator: ">="};
+                vm.advancedQueryObj = {};
                 vm.getDepartmentUsers();
 
                 //load partner
@@ -2536,6 +2537,9 @@ define(['js/app'], function (myApp) {
                     limit: vm.playerTableQuery.limit,
                     sortCol: vm.playerTableQuery.sortCol
                 };
+                $("#playerTable-search-filter .form-control").prop("disabled", false).css("background-color", "#fff");
+                $("#playerTable-search-filter .form-control input").prop("disabled", false).css("background-color", "#fff");
+                $("select#selectCredibilityRemark").multipleSelect("enable");
                 console.log(apiQuery);
                 $('#loadingPlayerTableSpin').show();
                 socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', apiQuery, function (reply) {
@@ -13725,7 +13729,7 @@ define(['js/app'], function (myApp) {
             })
         })
 
-        vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(function (playerQuery) {
+        vm.getPlayersByAdvanceQuery = function (playerQuery) {
             // NOTE: If the response is ignoring your field filter and returning all players, please check that the
             // field is whitelisted in buildPlayerQueryString() in encrypt.js
             utilService.hideAllPopoversExcept();
@@ -13839,7 +13843,9 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.advancedPlayerQuery(true);
             }
-        });
+        };
+
+        vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
 
         $('body').on('click','#permissionRecordButton',function(){
             vm.getPlayerPermissionChange("new")
