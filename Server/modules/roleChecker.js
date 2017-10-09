@@ -239,7 +239,7 @@ var roleChecker = {
                 PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement']
             },
             "Player": {
-                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList',
+                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
                     'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog'],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
