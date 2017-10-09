@@ -1495,6 +1495,8 @@ let dbPlayerReward = {
     },
 
     applyLimitedOffers: (playerObjId, limitedOfferObjId, adminInfo) => {
+        console.log('applyLimitedOffers', playerObjId, limitedOfferObjId);
+
         let playerObj;
         let limitedOfferObj;
         let platformObj;
