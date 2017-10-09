@@ -3193,12 +3193,17 @@ define(['js/app'], function (myApp) {
                                 var playerObjId = row._id ? row._id : "";
 
                                 link.append($('<a>', {
-                                    'class': 'fa fa-volume-control-phone margin-right-5',
-                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    'class': 'forbidTopUpPopover fa fa-volume-control-phone margin-right-5',
                                     'data-row': JSON.stringify(row),
-                                    'data-toggle': 'tooltip',
-                                    'title': $translate("PHONE"),
+                                    'data-toggle': 'popover',
+                                    // 'title': $translate("PHONE"),
                                     'data-placement': 'right',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    'style': "z-index: auto",
+                                    'data-container': "body",
                                 }));
 
                                 link.append($('<a class="prohibitGamePopover fa fa-volume-control-phone margin-right-5" style="z-index: auto" data-toggle="popover" data-container="body" ' +
@@ -3528,6 +3533,42 @@ define(['js/app'], function (myApp) {
                                     };
                                     vm.updatePlayerForbidProviders(sendData);
                                     $(".prohibitGamePopover").popover('hide');
+                                });
+                            }
+                        });
+
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.forbidTopUpPopover',
+                            content: function () {
+                                var data = JSON.parse(this.dataset.row);
+                                vm.forbidTopUpPopover = data;
+                                $scope.safeApply();
+                                return $compile($('#forbidTopUpPopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                let rowData = JSON.parse(this.dataset.row);
+                                $scope.safeApply();
+
+                                $("button.forbidTopUpConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidTopUpList = $(thisPopover).find('.playerTopUpTypeForbid');
+                                    let forbidTopUpTypes = [];
+                                    $.each(forbidTopUpList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidTopUpTypes.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    let sendData = {
+                                        query: {_id: rowData._id},
+                                        updateData: {forbidTopUpType: forbidTopUpTypes},
+                                        adminName: authService.adminName
+                                    };
+                                    vm.confirmUpdatePlayerTopupTypes(sendData);
+                                    $(".forbidTopUpPopover").popover('hide');
                                 });
                             }
                         });
@@ -6552,6 +6593,7 @@ define(['js/app'], function (myApp) {
             //     });
             // };
 
+            // todo :: comment these out since not use anymore
             vm.prepareShowPlayerForbidTopUpType = function () {
                 let sendData = {_id: vm.isOneSelectedPlayer()._id};
 
@@ -6571,11 +6613,13 @@ define(['js/app'], function (myApp) {
                 }
                 $scope.safeApply();
             }
-            vm.confirmUpdatePlayerTopupTypes = function () {
-                var sendData = {
+            vm.confirmUpdatePlayerTopupTypes = function (sendData) {
+                sendData = sendData || {
                     query: {_id: vm.isOneSelectedPlayer()._id},
-                    updateData: {forbidTopUpType: vm.showForbidTopupTypes}
+                    updateData: {forbidTopUpType: vm.showForbidTopupTypes || []}
                 };
+
+                console.log('sendData', sendData)
                 socketService.$socket($scope.AppSocket, 'updatePlayerPayment', sendData, function (data) {
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
