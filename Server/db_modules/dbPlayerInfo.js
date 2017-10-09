@@ -10444,9 +10444,22 @@ let dbPlayerInfo = {
                 }
             );
         }
-       
-    }
+    },
 
+    setShowInfo: (playerId, field, flag) => {
+        let updateQ = {
+            viewInfo: {}
+        };
+
+        updateQ.viewInfo[field] = flag;
+
+        return dbUtility.findOneAndUpdateForShard(
+            dbconfig.collection_players,
+            {playerId: playerId},
+            updateQ,
+            constShardKeys.collection_players
+        );
+    }
 };
 
 

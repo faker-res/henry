@@ -1341,7 +1341,7 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId, playerId, status) => {
+    getLimitedOffers: (platformId, playerId, status, showInfo) => {
         let platformObj;
         let intPropTypeObj;
         let timeSet;
@@ -1487,6 +1487,7 @@ let dbPlayerReward = {
 
                 return {
                     time: [...timeSet].join("/"),
+                    showInfo: showInfo === 0 ? 0 : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
                     normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
                 }
@@ -1683,7 +1684,8 @@ let dbPlayerReward = {
                 return dbConfig.collection_proposal.find({
                     'data.platformObjId': platformObj._id,
                     type: intPropTypeObj._id,
-                    createTime: {$gte: startTime}
+                    createTime: {$gte: startTime},
+                    'data.topUpProposalId': {$exists: true}
                 }).lean();
             }
         ).then(
