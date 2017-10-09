@@ -329,6 +329,7 @@ define(['js/app'], function (myApp) {
                 vm.getCredibilityRemarks();
                 vm.playerAdvanceSearchQuery = {creditOperator: ">="};
                 vm.getDepartmentUsers();
+                vm.getRewardEventsByPlatform();
 
                 //load partner
                 utilService.actionAfterLoaded("#partnerTablePage", function () {
@@ -3193,7 +3194,7 @@ define(['js/app'], function (myApp) {
                                 var playerObjId = row._id ? row._id : "";
 
                                 link.append($('<a>', {
-                                    'class': 'forbidTopUpPopover fa fa-volume-control-phone margin-right-5',
+                                    'class': 'forbidRewardEventPopover fa fa-volume-control-phone margin-right-5',
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -3210,9 +3211,19 @@ define(['js/app'], function (myApp) {
                                     'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
                                     .attr('data-row', JSON.stringify(row)));
 
-                                link.append($('<a class="prohibitGamePopover fa fa-volume-control-phone margin-right-5" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row)));
+                                link.append($('<a>', {
+                                    'class': 'forbidTopUpPopover fa fa-volume-control-phone margin-right-5',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    // 'title': $translate("PHONE"),
+                                    'data-placement': 'right',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    'style': "z-index: auto",
+                                    'data-container': "body",
+                                }));
 
                                 return link.prop('outerHTML') + "&nbsp;";
                             },
@@ -3569,6 +3580,42 @@ define(['js/app'], function (myApp) {
                                     };
                                     vm.confirmUpdatePlayerTopupTypes(sendData);
                                     $(".forbidTopUpPopover").popover('hide');
+                                });
+                            }
+                        });
+
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.forbidRewardEventPopover',
+                            content: function () {
+                                var data = JSON.parse(this.dataset.row);
+                                vm.forbidRewardEventPopover = data;
+                                $scope.safeApply();
+                                return $compile($('#forbidRewardEventPopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                let rowData = JSON.parse(this.dataset.row);
+                                $scope.safeApply();
+
+                                $("button.forbidRewardEventConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
+                                    let forbidRewardEvents = [];
+                                    $.each(forbidRewardEventList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidRewardEvents.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    let sendData = {
+                                        _id: rowData._id,
+                                        forbidRewardEvents: forbidRewardEvents,
+                                        adminName: authService.adminName
+                                    };
+                                    vm.updatePlayerForbidRewardEvents(sendData);
+                                    $(".forbidRewardEventPopover").popover('hide');
                                 });
                             }
                         });
@@ -7293,6 +7340,13 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.updatePlayerForbidRewardEvents = function (sendData) {
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
+                    vm.getPlatformPlayersData();
+                });
+            };
+
             vm.getPlayerStatusChangeLog = function (rowData) {
                 var deferred = Q.defer();
                 console.log(rowData);
@@ -9866,6 +9920,14 @@ define(['js/app'], function (myApp) {
                 // });
 
             }
+
+            vm.getRewardEventsByPlatform = function () {
+                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
+                    vm.allRewardEvent = data.data;
+                    console.log("vm.allRewardEvent", data.data);
+                });
+            };
+
             vm.rewardEventClicked = function (i, v) {
                 if (!v) {
                     vm.platformRewardPageName = 'showReward';

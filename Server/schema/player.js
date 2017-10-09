@@ -200,6 +200,8 @@ var playerSchema = new Schema({
     quickPayGroup: {type: Schema.ObjectId, ref: 'platformQuickPayGroup'},
     //forbid top up types
     forbidTopUpType: [{type: String}],
+    // forbid reward events by player
+    forbidRewardEvents: [{type: Schema.ObjectId, ref: 'rewardEvent'}],
     //reward info
     //if this player has been rewarded for first time top up event
     bFirstTopUpReward: {type: Boolean, default: false},
