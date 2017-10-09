@@ -164,19 +164,44 @@ define(['js/app'], function (myApp) {
             }
 
             vm.paymentMonitorQuery.index = isNewSearch ? 0 : (vm.paymentMonitorQuery.index || 0);
-
-            let sendObj = {
-                startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformId: vm.paymentMonitorQuery.platformId,
+            var sendObj = {
+                playerName: vm.paymentMonitorQuery.playerName,
+                proposalNo: vm.paymentMonitorQuery.proposalID,
                 mainTopupType: vm.paymentMonitorQuery.mainTopupType,
+                userAgent: vm.paymentMonitorQuery.userAgent,
                 topupType: vm.paymentMonitorQuery.topupType,
                 merchantGroup: angular.fromJson(angular.toJson(vm.paymentMonitorQuery.merchantGroup)),
-                playerName: vm.paymentMonitorQuery.playerName,
+                depositMethod: vm.paymentMonitorQuery.depositMethod,
+
+                //new
+                bankTypeId: vm.paymentMonitorQuery.bankTypeId,
+                //new
+                merchantNo: vm.paymentMonitorQuery.merchantNo,
+                // status: staArr,
+                startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
+
+                platformId: vm.curPlatformId,
+                // dingdanID: vm.paymentMonitorQuery.dingdanID,
+                // merchant: vm.paymentMonitorQuery.merchant,
+
                 index: vm.paymentMonitorQuery.index,
                 limit: vm.paymentMonitorQuery.limit || 10,
-                sortCol: vm.paymentMonitorQuery.sortCol
-            };
+                sortCol: vm.paymentMonitorQuery.sortCol,
+
+            }
+            // let sendObj = {
+            //     startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
+            //     endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
+            //     platformId: vm.paymentMonitorQuery.platformId,
+            //     mainTopupType: vm.paymentMonitorQuery.mainTopupType,
+            //     topupType: vm.paymentMonitorQuery.topupType,
+            //     merchantGroup: angular.fromJson(angular.toJson(vm.paymentMonitorQuery.merchantGroup)),
+            //     playerName: vm.paymentMonitorQuery.playerName,
+            //     index: vm.paymentMonitorQuery.index,
+            //     limit: vm.paymentMonitorQuery.limit || 10,
+            //     sortCol: vm.paymentMonitorQuery.sortCol
+            // };
 
             vm.paymentMonitorQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo : null;
             console.log('sendObj', sendObj);
