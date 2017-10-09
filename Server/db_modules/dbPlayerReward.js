@@ -1341,7 +1341,7 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId, playerObjId, status) => {
+    getLimitedOffers: (platformId, playerId, status) => {
         let platformObj;
         let intPropTypeObj;
         let timeSet;
@@ -1410,37 +1410,39 @@ let dbPlayerReward = {
                                 }
                             }, {
                                 $project: {
-                                    "data.playerObjId": 1,
+                                    "data.playerId": 1,
                                     paidCount: {$cond: [{$not: ['$data.topUpProposalId']}, 0, 1]}
                                 }
                             }, {
                                 $group: {
-                                    _id: "$data.playerObjId",
+                                    _id: "$data.playerId",
                                     count: {$sum: 1},
                                     paidCount: {$sum: "$paidCount"}
                                 }
                             }).then(
                                 summ => {
-                                    let totalPromoCount = 0;
+                                    if (playerId) {
+                                        let totalPromoCount = 0;
 
-                                    summ.map(f => {
-                                        if (String(f._id) == String(playerObjId)) {
-                                            status = 2;
+                                        summ.map(f => {
+                                            if (String(f._id) == String(playerId)) {
+                                                status = 2;
 
-                                            if (f.paidCount > 0) {
-                                                status = 3;
+                                                if (f.paidCount > 0) {
+                                                    status = 3;
+                                                }
                                             }
+
+                                            totalPromoCount += f.count;
+                                        });
+
+                                        if (totalPromoCount >= e.limitTime) {
+                                            status = 4;
                                         }
 
-                                        totalPromoCount += f.count;
-                                    });
-
-                                    if (totalPromoCount >= e.limitTime) {
-                                        status = 4;
-                                    }
-
-                                    if (status == 2 && new Date().getTime() > dbUtility.getLocalTime(e.downTime).getTime()) {
-                                        status = 5;
+                                        if (status == 2 && new Date().getTime() > dbUtility.getLocalTime(e.downTime).getTime()) {
+                                            status = 5;
+                                        }
                                     }
 
                                     e.status = status;
@@ -1492,7 +1494,7 @@ let dbPlayerReward = {
         );
     },
 
-    applyLimitedOffers: (playerObjId, limitedOfferObjId, adminInfo) => {
+    applyLimitedOffers: (playerId, limitedOfferObjId, adminInfo) => {
         let playerObj;
         let limitedOfferObj;
         let platformObj;
@@ -1500,7 +1502,7 @@ let dbPlayerReward = {
         let proposalTypeObj;
 
         return dbConfig.collection_players.findOne({
-            _id: playerObjId
+            playerId: playerId
         }).populate({
             path: "platform", model: dbConfig.collection_platform
         }).lean().then(
@@ -1652,6 +1654,51 @@ let dbPlayerReward = {
         ).then(
             intProps => intProps
         )
+    },
+
+    getLimitedOfferBonus: (platformId) => {
+        let platformObj;
+        let intPropTypeObj;
+
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+
+                    return dbConfig.collection_proposalType.findOne({
+                        platformId: platformObj._id,
+                        name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
+                    }).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Platform Not Found"});
+                }
+            }
+        ).then(
+            res => {
+                intPropTypeObj = res;
+
+                let startTime = moment().subtract(4, "hours");
+
+                return dbConfig.collection_proposal.find({
+                    'data.platformObjId': platformObj._id,
+                    type: intPropTypeObj._id,
+                    createTime: {$gte: startTime}
+                }).lean();
+            }
+        ).then(
+            res => {
+                return res.map(e => {
+                    return {
+                        accountNo: e.data.playerName,
+                        bonus: e.data.applyAmount + e.data.rewardAmount,
+                        time: e.createTime
+                    }
+                })
+            }
+        )
+
+
     }
 };
 
