@@ -1401,52 +1401,54 @@ let dbPlayerReward = {
                             status = 1;
                         }
 
-                        promArr.push(
-                            dbConfig.collection_proposal.aggregate({
-                                $match: {
-                                    'data.platformObjId': platformObj._id,
-                                    'data.limitedOfferObjId': e._id,
-                                    type: intPropTypeObj._id
-                                }
-                            }, {
-                                $project: {
-                                    "data.playerObjId": 1,
-                                    paidCount: {$cond: [{$not: ['$data.topUpProposalId']}, 0, 1]}
-                                }
-                            }, {
-                                $group: {
-                                    _id: "$data.playerObjId",
-                                    count: {$sum: 1},
-                                    paidCount: {$sum: "$paidCount"}
-                                }
-                            }).then(
-                                summ => {
-                                    let totalPromoCount = 0;
+                        if (playerObjId) {
+                            promArr.push(
+                                dbConfig.collection_proposal.aggregate({
+                                    $match: {
+                                        'data.platformObjId': platformObj._id,
+                                        'data.limitedOfferObjId': e._id,
+                                        type: intPropTypeObj._id
+                                    }
+                                }, {
+                                    $project: {
+                                        "data.playerObjId": 1,
+                                        paidCount: {$cond: [{$not: ['$data.topUpProposalId']}, 0, 1]}
+                                    }
+                                }, {
+                                    $group: {
+                                        _id: "$data.playerObjId",
+                                        count: {$sum: 1},
+                                        paidCount: {$sum: "$paidCount"}
+                                    }
+                                }).then(
+                                    summ => {
+                                        let totalPromoCount = 0;
 
-                                    summ.map(f => {
-                                        if (String(f._id) == String(playerObjId)) {
-                                            status = 2;
+                                        summ.map(f => {
+                                            if (String(f._id) == String(playerObjId)) {
+                                                status = 2;
 
-                                            if (f.paidCount > 0) {
-                                                status = 3;
+                                                if (f.paidCount > 0) {
+                                                    status = 3;
+                                                }
                                             }
+
+                                            totalPromoCount += f.count;
+                                        });
+
+                                        if (totalPromoCount >= e.limitTime) {
+                                            status = 4;
                                         }
 
-                                        totalPromoCount += f.count;
-                                    });
+                                        if (status == 2 && new Date().getTime() > dbUtility.getLocalTime(e.downTime).getTime()) {
+                                            status = 5;
+                                        }
 
-                                    if (totalPromoCount >= e.limitTime) {
-                                        status = 4;
+                                        e.status = status;
                                     }
-
-                                    if (status == 2 && new Date().getTime() > dbUtility.getLocalTime(e.downTime).getTime()) {
-                                        status = 5;
-                                    }
-
-                                    e.status = status;
-                                }
-                            )
-                        );
+                                )
+                            );
+                        }
 
                         if (e.providers && e.providers.length > 0) {
                             let providerIds = e.providers;
