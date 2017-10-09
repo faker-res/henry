@@ -1341,7 +1341,7 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId, playerObjId, status) => {
+    getLimitedOffers: (platformId, playerId, status) => {
         let platformObj;
         let intPropTypeObj;
         let timeSet;
@@ -1401,7 +1401,7 @@ let dbPlayerReward = {
                             status = 1;
                         }
 
-                        if (playerObjId) {
+                        if (playerId) {
                             promArr.push(
                                 dbConfig.collection_proposal.aggregate({
                                     $match: {
@@ -1411,12 +1411,12 @@ let dbPlayerReward = {
                                     }
                                 }, {
                                     $project: {
-                                        "data.playerObjId": 1,
+                                        "data.playerId": 1,
                                         paidCount: {$cond: [{$not: ['$data.topUpProposalId']}, 0, 1]}
                                     }
                                 }, {
                                     $group: {
-                                        _id: "$data.playerObjId",
+                                        _id: "$data.playerId",
                                         count: {$sum: 1},
                                         paidCount: {$sum: "$paidCount"}
                                     }
@@ -1425,7 +1425,7 @@ let dbPlayerReward = {
                                         let totalPromoCount = 0;
 
                                         summ.map(f => {
-                                            if (String(f._id) == String(playerObjId)) {
+                                            if (String(f._id) == String(playerId)) {
                                                 status = 2;
 
                                                 if (f.paidCount > 0) {
@@ -1495,8 +1495,6 @@ let dbPlayerReward = {
     },
 
     applyLimitedOffers: (playerId, limitedOfferObjId, adminInfo) => {
-        console.log('applyLimitedOffers', playerId, limitedOfferObjId);
-
         let playerObj;
         let limitedOfferObj;
         let platformObj;
