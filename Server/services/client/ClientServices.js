@@ -257,7 +257,8 @@
                 "applyPromoCode",
                 "getLimitedOffers",
                 "applyLimitedOffers",
-                "getLimitedOfferBonus"
+                "getLimitedOfferBonus",
+                "setLimitedOfferShowInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

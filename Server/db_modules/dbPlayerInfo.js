@@ -4617,6 +4617,10 @@ let dbPlayerInfo = {
                                         creditData => {
                                             returnObj.gameCredit = creditData ? parseFloat(creditData.credit) : 0;
                                             return returnObj;
+                                        },
+                                        error => {
+                                            //if can't query credit use 0 for game credit
+                                            return returnObj;
                                         }
                                     );
                                 }
@@ -10444,9 +10448,22 @@ let dbPlayerInfo = {
                 }
             );
         }
-       
-    }
+    },
 
+    setShowInfo: (playerId, field, flag) => {
+        let updateQ = {
+            viewInfo: {}
+        };
+
+        updateQ.viewInfo[field] = flag;
+
+        return dbUtility.findOneAndUpdateForShard(
+            dbconfig.collection_players,
+            {playerId: playerId},
+            updateQ,
+            constShardKeys.collection_players
+        );
+    }
 };
 
 
