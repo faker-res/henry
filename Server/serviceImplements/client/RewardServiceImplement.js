@@ -139,7 +139,7 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getLimitedOfferBonus, [data.platformId], isValidData, false, false, true);
     };
 
-    this.setLimitedOfferShowInfo.expectsData = 'showInfo: Number';
+    this.setLimitedOfferShowInfo.expectsData = 'showInfo: Number|String';
     this.setLimitedOfferShowInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.showInfo);
 
