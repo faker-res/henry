@@ -11,7 +11,7 @@ var constPlayerTrustLevel = require('./../const/constPlayerTrustLevel');
 var constProposalType = require('./../const/constProposalType');
 var constRewardType = require('./../const/constRewardType');
 var dbPartnerLevel = require('./../db_modules/dbPartnerLevel');
-var dbPlayerReward = require('./../db_modules/dbPlayerReward');
+const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 var dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 var dbPlayerTrustLevel = require('./../db_modules/dbPlayerTrustLevel');
 var dbProposalType = require('./../db_modules/dbProposalType');
@@ -39,8 +39,6 @@ const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
 const constSystemParam = require('../const/constSystemParam');
-
-const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');

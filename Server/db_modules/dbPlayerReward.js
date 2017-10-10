@@ -1673,7 +1673,6 @@ let dbPlayerReward = {
         )
     },
 
-<<<<<<< HEAD
     isRewardEventForbidden: function (playerData, eventId) {
         eventId = eventId ? eventId.toString() : "";
         // return playerData.forbidRewardEvents.indexOf()
@@ -1683,7 +1682,8 @@ let dbPlayerReward = {
             if (forbiddenEventId === eventId) return true;
         }
         return false;
-=======
+    },
+    
     getLimitedOfferBonus: (platformId) => {
         let platformObj;
         let intPropTypeObj;
@@ -1728,7 +1728,6 @@ let dbPlayerReward = {
         )
 
 
->>>>>>> upstream/develop-1.1
     }
 };
 
