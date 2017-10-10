@@ -228,7 +228,10 @@ define(['js/app'], function (myApp) {
                         item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                         item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         item.status$ = $translate(item.status);
-                        item.merchantName = vm.merchantNumbers[item.data.merchantNo];
+                        item.merchantName = vm.getMerchantName(item.data.merchantNo);
+
+
+                        //vm.merchantNumbers[item.data.merchantNo];
 
                         if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
                             let msgSplit = item.data.msg.split(" 单号:");
@@ -257,6 +260,20 @@ define(['js/app'], function (myApp) {
             }, true);
 
         };
+        vm.getMerchantName = function(merchantNo){
+            let merchantName = '';
+            let result = '';
+            if(merchantNo){
+              let merchantName = vm.merchantGroups.filter(item=>{
+                  return item.list.includes(merchantNo);
+              });
+              result = merchantName[0] ? merchantName[0].name :'';
+            }else{
+              result = '';
+            }
+            return result;
+        }
+
 
         vm.resetTopUpMonitorQuery = function () {
             vm.paymentMonitorQuery.mainTopupType = "";
@@ -306,7 +323,7 @@ define(['js/app'], function (myApp) {
                             return "<div>" + text + "</div>";
                         }
                     },
-                    {title: $translate('3rd Party Platform'), data: ""},
+                    {title: $translate('3rd Party Platform'), data: "merchantName"},
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {

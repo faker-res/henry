@@ -22,7 +22,6 @@
                     select.form-control(ng-model='vm.queryTopup.mainTopupType', required)
                         option(value='') {{"any" | translate}}
                         option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{"TOPUP"+i | translate}}
-                // 装置
                 div(style='max-width:125px')
                     label {{'DEVICE' | translate}}
                     select.form-control(ng-model='vm.queryTopup.userAgent', required)

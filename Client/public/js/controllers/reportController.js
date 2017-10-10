@@ -473,6 +473,7 @@ define(['js/app'], function (myApp) {
                     data.data.merchantTypes.forEach(mer => {
                         merGroupName[mer.merchantTypeId] = mer.name;
                     })
+
                     vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
                     $scope.safeApply();
                 }, function (data) {
@@ -1163,7 +1164,7 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
-                        item.merchantName = vm.merchantNoNameObj[item.data.merchantNo];
+                        item.merchantName = vm.getMerchantName(item.data.merchantNo);
                         item.merchantNo$ = item.data.merchantNo != null
                             ? item.data.merchantNo
                             : item.data.weChatAccount != null
@@ -1194,6 +1195,21 @@ define(['js/app'], function (myApp) {
                 console.log(err);
             }, true);
         };
+
+        vm.getMerchantName = function(merchantNo){
+          console.log(merchantNo);
+          let result = '';
+          if(merchantNo){
+            let merchantName = vm.merchantGroupObj.filter(item=>{
+                return item.list.includes(merchantNo);
+            });
+            result = merchantName[0] ? merchantName[0].name :'';
+          }else{
+            result = '';
+          }
+          console.log(result, merchantNo);
+          return result;
+        }
         vm.drawTopupReport = function (data, size, summary, newSearch) {
             console.log('data', data);
             var tableOptions = {
@@ -1228,13 +1244,7 @@ define(['js/app'], function (myApp) {
                             return "<div>" + text + "</div>";
                         }
                     },
-                    {
-                        title: $translate('3rd Party Platform'), "data": 'data.merchantGroup',
-                        render: function (data, type, row){
-                            var text = $translate(data ? vm.merchantGroupObj[data]:"");
-                            return "<div>" + text + "</div>";
-                        }
-                    },
+                    {   "title": $translate('3rd Party Platform'), "data": 'merchantName'},
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
@@ -1245,8 +1255,9 @@ define(['js/app'], function (myApp) {
                     {title: $translate('From Bank Type'), data: "data.bankTypeId",
                         render: function (data, type, row) {
                           if(data){
-                              var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data]: "");
-                              return "<div>" + text + "</div>";
+                              // var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data]: "");
+                              var text = vm.allBankTypeList[data]?vm.allBankTypeList[data]:"";
+                              return "<div>" + $translate(text) + "</div>";
                           }else{
                               return "<div>" + '' + "</div>";
                           }
@@ -1266,7 +1277,7 @@ define(['js/app'], function (myApp) {
                 ],
                 "paging": false,
                 createdRow: function(row, data, dataIndex){
-                  $compile(angular.element(row).contents())($scope)
+                  $compile(angular.element(row).contents())($scope);
                 }
 
             }

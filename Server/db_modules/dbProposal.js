@@ -2274,7 +2274,12 @@ var proposal = {
         if (data.playerName) {
             query['data.playerName'] = data.playerName;
         }
-
+        if (data.proposalNo) {
+            query['data.proposalId'] = data.proposalNo;
+        }
+        if (data.bankTypeId){
+            query['data.bankTypeId'] = data.bankTypeId;
+        }
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
             case constPlayerTopUpType.ONLINE.toString():
