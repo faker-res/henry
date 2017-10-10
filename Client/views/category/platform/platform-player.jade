@@ -92,7 +92,7 @@
             text s
         label.inlineBlk {{'Auto Refresh' | translate}}
             input#autoRefreshPlayerFlag.margin-left-5(type='checkbox')
-        a.fa.fa-refresh.margin-top-5(ng-click='vm.getPlatformPlayersData()')
+        a.fa.fa-refresh.margin-top-5(ng-click='vm.getPlayersByAdvanceQuery(vm.playerAdvanceSearchQuery)')
             text.margin-right-5.pull-left {{"Refresh" | translate}}
 .col-md-12
     table.common-table#playerDataTable.display(style="min-width:100%;")

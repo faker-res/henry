@@ -280,7 +280,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         switch (getProp.mainType) {
                             case "TopUp":
                                 // Get real amount left before top up, if there's any top up before transfer in after last withdrawal
-                                if (!isCheckedInitialAmount && initialTransferTime.getTime() > getProp.settleTime.getTime() && Number(initialAmount) >= Number(getProp.data.amount)) {
+                                if (!isCheckedInitialAmount && initialTransferTime && initialTransferTime.getTime() > getProp.settleTime.getTime() && Number(initialAmount) >= Number(getProp.data.amount)) {
                                     initialAmount -= getProp.data.amount;
                                     isCheckedInitialAmount = true;
                                 }
