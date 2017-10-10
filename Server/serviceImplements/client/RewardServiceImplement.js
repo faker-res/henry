@@ -141,7 +141,7 @@ let RewardServiceImplement = function () {
 
     this.setLimitedOfferShowInfo.expectsData = 'showInfo: Number|String';
     this.setLimitedOfferShowInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.showInfo);
+        let isValidData = Boolean(data);
 
         if (conn.viewInfo) {
             conn.viewInfo.limitedOfferInfo = data.showInfo;
