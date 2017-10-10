@@ -524,6 +524,11 @@ let dbPlayerReward = {
                 playerData => {
                     if (playerData && playerData.platform && playerData.permission.playerConsecutiveConsumptionReward) {
                         playerObj = playerData;
+
+                        let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, eventData._id);
+
+                        if (playerIsForbiddenForThisReward) return;
+
                         eventData.param.reward.forEach(
                             reward => {
                                 if (consumptionAmount >= reward.minConsumptionAmount) {
@@ -682,6 +687,12 @@ let dbPlayerReward = {
                 // Check if player has take more than allowed packet today
                 if (eventData && eventData.param && eventData.param.reward
                     && eventData.param.dailyApplyLimit && todayPacketCount < eventData.param.dailyApplyLimit) {
+
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, eventData._id);
+
+                    if (playerIsForbiddenForThisReward)
+                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+
                     //calculate player reward amount
                     let rewardAmount = 0;
                     let totalProbability = 0;

@@ -2787,6 +2787,9 @@ let dbPlayerInfo = {
                     if (!data[3].permission || !data[3].permission.transactionReward) {
                         deferred.resolve("No permission!");
                     }
+                    if (dbPlayerReward.isRewardEventForbidden(data[3], data[0]._id)) {
+                        deferred.resolve("No permission!");
+                    }
                     if (data[1] && data[1][0]) {
                         curRewardAmount = data[1][0].totalAmount;
                     }
@@ -8034,6 +8037,15 @@ let dbPlayerInfo = {
                 eventData = data[0];
                 taskData = data[1];
 
+                let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(player, eventData._id);
+                if (playerIsForbiddenForThisReward) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NO_PERMISSION,
+                        name: "DataError",
+                        message: "Player is forbidden for this reward."
+                    });
+                }
+
                 if (eventData.validStartTime && eventData.validEndTime) {
                     // TODO Temoporary hardcoding: Only can apply 1 time within period
                     return dbconfig.collection_proposalType.findOne({
@@ -8275,6 +8287,10 @@ let dbPlayerInfo = {
                     if (rewardUtility.isValidRewardEvent(constRewardType.PLAYER_CONSUMPTION_INCENTIVE, eventData) && eventData.needApply) {
                         event = eventData;
                         let minTopUpRecordAmount = 0;
+
+                        if (dbPlayerReward.isRewardEventForbidden(player, event._id)) {
+                            return Q.reject({status:constServerCode.PLAYER_NO_PERMISSION, name: "DataError", message: "Player is forbidden for this reward."});
+                        }
 
                         // Filter event param based on player level
                         eventParams = eventData.param.reward.filter(reward => {
@@ -9443,6 +9459,17 @@ let dbPlayerInfo = {
                     return eventProm.then(
                         eData => {
                             eventData = eData;
+
+                            let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(player, eventData._id);
+
+                            if (playerIsForbiddenForThisReward) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_NO_PERMISSION,
+                                    name: "DataError",
+                                    message: "Reward not applicable"
+                                });
+                            }
+
                             //get today's double top up reward
                             let rewardProm = dbconfig.collection_proposalType.findOne({
                                 name: constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD,
