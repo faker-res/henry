@@ -1779,6 +1779,7 @@
   "Player has too much credit": "玩家额度过多",
   "Not enough reward amount": "奖励额度不足",
   "Link Transfer Record": "连接转账记录",
+  "Player is forbidden for this reward.": "玩家已被禁止申请此优惠",
   "CHANGE_AMOUNT": "变化额度",
   "dashboard": "面板",
   "mainPage": "用户",

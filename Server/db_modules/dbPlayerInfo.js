@@ -2624,8 +2624,18 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && !data[2]) {
-                    if (String(data[0].platform._id) == String(data[1].platform) && data[1].type.name == constRewardType.GAME_PROVIDER_REWARD
-                        && data[0].validCredit > 0 && amount > 0 && amount <= data[0].validCredit && rewardUtility.isValidRewardEvent(constRewardType.GAME_PROVIDER_REWARD, data[1])) {
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(data[0], data[1]._id);
+                    if (playerIsForbiddenForThisReward) {
+                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                    }
+
+                    if (String(data[0].platform._id) == String(data[1].platform)
+                        && data[1].type.name == constRewardType.GAME_PROVIDER_REWARD
+                        && data[0].validCredit > 0
+                        && amount > 0
+                        && amount <= data[0].validCredit
+                        && rewardUtility.isValidRewardEvent(constRewardType.GAME_PROVIDER_REWARD, data[1]
+                    )) {
                         proposalData = {
                             type: data[1].executeProposal,
                             creator: adminInfo ? adminInfo :
@@ -4724,11 +4734,13 @@ let dbPlayerInfo = {
         var deferred = Q.defer();
 
         var playerPlatformId = null;
+        let playerData;
 
         dbconfig.collection_players.findOne(query).then(
             function (player) {
                 if (player) {
                     playerPlatformId = player.platform;
+                    playerData = player;
                     return dbconfig.collection_rewardEvent.find({platform: player.platform})
                         .populate({
                             path: "type",
@@ -8769,6 +8781,12 @@ let dbPlayerInfo = {
         ).then(
             rewardEvent => {
                 if (rewardEvent && rewardEvent.type) {
+
+                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerInfo, rewardEvent._id);
+                    if (playerIsForbiddenForThisReward) {
+                        deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
+                    }
+
                     //check valid time for reward event
                     let curTime = new Date();
                     if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
