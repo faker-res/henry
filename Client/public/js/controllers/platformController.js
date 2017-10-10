@@ -4253,6 +4253,7 @@ define(['js/app'], function (myApp) {
                 vm.editSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
                 vm.prepareEditCritical('player');
                 vm.prepareEditPlayerPayment();
+                vm.getPlayerTopUpGroupLog();
                 dialogDetails();
                 function dialogDetails() {
                     let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
@@ -4264,6 +4265,7 @@ define(['js/app'], function (myApp) {
                         $scope: $scope,
                         $compile: $compile,
                         childScope: {
+                            playerTopUpGroupLog: vm.playerTopUpGroupLog,
                             editPlayerPermission: $scope.checkViewPermission('Platform', 'Player', 'Edit'),
                             editContactPermission: $scope.checkViewPermission('Platform', 'Player', 'EditContact'),
                             editWithdrawPermission: $scope.checkViewPermission('Platform', 'Player', 'PaymentInformation'),
@@ -4299,6 +4301,7 @@ define(['js/app'], function (myApp) {
                             playerId: selectedPlayer._id,
                             playerBeforeEditing: _.clone(editPlayer),
                             playerBeingEdited: _.clone(editPlayer),
+                            topUpGroupRemark: "",
                             platformBankCardGroupList: vm.platformBankCardGroupList,
                             platformMerchantGroupList: vm.platformMerchantGroupList,
                             platformAlipayGroupList: vm.platformAlipayGroupList,
@@ -4306,7 +4309,7 @@ define(['js/app'], function (myApp) {
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             updateEditedPlayer: function () {
-                                sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited);
+                                sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited,this.topUpGroupRemark);
                             },
                             checkPlayerNameValidity: function (a, b, c) {
                                 vm.checkPlayerNameValidity(a, b, c);
@@ -4316,7 +4319,6 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     };
-
                     option.childScope.prepareEditPlayerPayment= function () {
                         vm.prepareEditPlayerPayment();
                         this.isEditingPlayerPayment = vm.isEditingPlayerPayment;
@@ -4326,7 +4328,8 @@ define(['js/app'], function (myApp) {
                         this.filterBankName = vm.filterBankName;
                         this.isEditingPlayerPaymentShowVerify = vm.isEditingPlayerPaymentShowVerify;
                         this.correctVerifyBankAccount = vm.correctVerifyBankAccount;
-                        this.verifyBankAccount= "";
+                        this.verifyBankAccount = "";
+                        this.topUpGroupRemark = "";
                     };
 
                     option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
@@ -4425,7 +4428,58 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData) {
+            function buildTopUpGroupChangesString(updateData, oldData){
+                var bankGroup = {};
+                var oldGroupName = "";
+                if (updateData.bankCardGroup) {
+                    for (let i = 0; i < vm.platformBankCardGroupList.length; i++) {
+                        if (oldData.bankCardGroup == vm.platformBankCardGroupList[i]._id)
+                            oldGroupName = vm.platformBankCardGroupList[i].displayName;
+                        if (updateData.bankCardGroup == vm.platformBankCardGroupList[i]._id)
+                            bankGroup.bankCardGroup = vm.platformBankCardGroupList[i].displayName;
+                    }
+                    bankGroup.bankCardGroup = oldGroupName +" -> "+ bankGroup.bankCardGroup;
+                }
+                if (updateData.merchantGroup) {
+                    for (let i = 0; i < vm.platformMerchantGroupList.length; i++) {
+                        if (oldData.merchantGroup == vm.platformMerchantGroupList[i]._id)
+                            oldGroupName = vm.platformMerchantGroupList[i].displayName;
+                        if (updateData.merchantGroup == vm.platformMerchantGroupList[i]._id)
+                            bankGroup.merchantGroup = vm.platformMerchantGroupList[i].displayName;
+                    }
+                    bankGroup.merchantGroup = oldGroupName +" -> "+ bankGroup.merchantGroup;
+                }
+                if (updateData.alipayGroup) {
+                    for (let i = 0; i < vm.platformAlipayGroupList.length; i++) {
+                        if (oldData.alipayGroup == vm.platformAlipayGroupList[i]._id)
+                            oldGroupName = vm.platformAlipayGroupList[i].displayName;
+                        if (updateData.alipayGroup == vm.platformAlipayGroupList[i]._id)
+                            bankGroup.alipayGroup = vm.platformAlipayGroupList[i].displayName;
+                    }
+                    bankGroup.alipayGroup = oldGroupName +" -> "+ bankGroup.alipayGroup;
+                }
+                if (updateData.wechatPayGroup) {
+                    for (let i = 0; i < vm.platformWechatPayGroupList.length; i++) {
+                        if (oldData.wechatPayGroup == vm.platformWechatPayGroupList[i]._id)
+                            oldGroupName = vm.platformWechatPayGroupList[i].displayName;
+                        if (updateData.wechatPayGroup == vm.platformWechatPayGroupList[i]._id)
+                            bankGroup.wechatPayGroup = vm.platformWechatPayGroupList[i].displayName;
+                    }
+                    bankGroup.wechatPayGroup = oldGroupName +" -> "+ bankGroup.wechatPayGroup;
+                }
+                if (updateData.quickPayGroup){
+                    for (let i = 0; i < vm.platformQuickPayGroupList.length; i++) {
+                        if (oldData.quickPayGroup == vm.platformQuickPayGroupList[i]._id)
+                            oldGroupName = vm.platformQuickPayGroupList[i].displayName;
+                        if (updateData.quickPayGroup == vm.platformQuickPayGroupList[i]._id)
+                            bankGroup.quickPayGroup = vm.platformQuickPayGroupList[i].displayName;
+                    }
+                    bankGroup.quickPayGroup = oldGroupName +" -> "+ bankGroup.quickPayGroup;
+                }
+                return bankGroup;
+            }
+
+            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark) {
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
                 var updateSMS = {
@@ -4521,6 +4575,15 @@ define(['js/app'], function (myApp) {
                     }, function (updated) {
                         console.log('updated', updated);
                         vm.getPlatformPlayersData();
+                        let queryData = {
+                            playerId: playerId,
+                            remark: topUpGroupRemark,
+                            adminId: authService.adminId,
+                            topUpGroup: buildTopUpGroupChangesString(updateBankData, oldPlayerData)
+                        };
+                        socketService.$socket($scope.AppSocket, 'createUpdateTopUpGroupLog', queryData, function (created) {
+                            console.log('top up group log created', created);
+                        });
                     });
                 }
                 if (Object.keys(updateSMS).length > 0) {
@@ -6932,24 +6995,28 @@ define(['js/app'], function (myApp) {
                     }
                     $scope.emailConfirmation = null;
                     $scope.qqConfirmation = null;
-                    vm.modifyCritical = {
-                        which: 'player',
-                        title: $translate('MODIFY_PLAYER') + ' ' + vm.selectedSinglePlayer.name,
-                        changeType: 'email',
-                        curEmail: vm.selectedSinglePlayer.email,
-                        curQQ: vm.selectedSinglePlayer.qq,
-                        phoneNumber: vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-4)) : '',
+                    if (!vm.modifyCritical) {
+                        vm.modifyCritical = {
+                            which: 'player',
+                            title: $translate('MODIFY_PLAYER') + ' ' + vm.selectedSinglePlayer.name,
+                            changeType: 'email',
+                            curEmail: vm.selectedSinglePlayer.email,
+                            curQQ: vm.selectedSinglePlayer.qq,
+                            phoneNumber: vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-4)) : '',
+                        }
                     }
                 } else if (which == 'partner') {
                     $scope.emailConfirmation = null;
                     $scope.qqConfirmation = null;
-                    vm.modifyCritical = {
-                        which: 'partner',
-                        title: $translate('MODIFY_PARTNER') + ' ' + vm.selectedSinglePartner.partnerName,
-                        changeType: 'email',
-                        curEmail: vm.selectedSinglePartner.email,
-                        curQQ: vm.selectedSinglePartner.qq,
-                        phoneNumber: vm.selectedSinglePartner.phoneNumber,
+                    if (!vm.modifyCritical) {
+                        vm.modifyCritical = {
+                            which: 'partner',
+                            title: $translate('MODIFY_PARTNER') + ' ' + vm.selectedSinglePartner.partnerName,
+                            changeType: 'email',
+                            curEmail: vm.selectedSinglePartner.email,
+                            curQQ: vm.selectedSinglePartner.qq,
+                            phoneNumber: vm.selectedSinglePartner.phoneNumber,
+                        }
                     }
                 }
                 $scope.safeApply();
@@ -13699,6 +13766,39 @@ define(['js/app'], function (myApp) {
                     console.log(err);
                 });
         };
+
+
+        vm.getPlayerTopUpGroupLog = function (newSearch) {
+            if (!vm.playerTopUpGroupLog) {
+                vm.playerTopUpGroupLog = [];
+            }
+            let query = {
+                playerId: vm.selectedSinglePlayer._id
+            };
+            socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
+                vm.playerTopUpGroupLog.length = 0;
+                for (let i = 0, len = data.data.length; i < len; i++) {
+                    let topUpGroupLog = data.data[i];
+                    vm.playerTopUpGroupLog.push(topUpGroupLog);
+                }
+                for (let i = 0, len = Object.keys(vm.playerTopUpGroupLog).length; i < len; i++) {
+                    let log = vm.playerTopUpGroupLog[i];
+                    log.topUpGroupNames$ = "";
+                    // for (let j = 0, len = Object.keys(log.topUpGroupNames).length; j < len; j++) {
+                    //     log.topUpGroupNames$ += Object.keys(log.topUpGroupNames)[j] + ": " + log.topUpGroupNames[Object.keys(log.topUpGroupNames)[j]];
+                        // j < (len - 1) ? log.topUpGroupNames$ += "\n " : null;
+                    // }
+                    log.topUpGroupNames$ = Object.keys(log.topUpGroupNames)[0]
+                    log.createTime = new Date(log.createTime).toLocaleString();
+                    log.topUpGroupChanges = log.topUpGroupNames[Object.keys(log.topUpGroupNames)[0]];
+                }
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
+        };
+
 
         $('body').on('click','#permissionRecordButton',function(){
             vm.getPlayerPermissionChange("new")

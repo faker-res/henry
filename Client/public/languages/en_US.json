@@ -951,5 +951,8 @@
   "PERSONAL_WECHAT_GRUOP": "Wechat Pay Group",
   "EDIT_HISTORY": "Edit History",
   "EDIT_WEBSITE_PASS": "Edit Website Password",
-  "EDIT_PROVIDER_PASS": "Edit Provider Password"
+  "EDIT_PROVIDER_PASS": "Edit Provider Password",
+  "TOPUP_GROUP_RECORD": "Top Up Group Record",
+  "OPERATOR_NAME": "Operator Name",
+  "OPERATOR_ACTION": "Operation"
 }

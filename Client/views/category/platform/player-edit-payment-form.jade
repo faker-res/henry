@@ -1,4 +1,4 @@
-form(name="form_edit_player", novalidate)
+form#formEditPlayer(name="form_edit_player", novalidate)
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label {{"Bankcard Group"|translate}}
@@ -16,7 +16,7 @@ form(name="form_edit_player", novalidate)
             label.control-label {{"WechatPay Group"|translate}}
             select.form-control(ng-model='playerBeingEdited.wechatPayGroup')
                 option(ng-repeat='(i,v) in platformWechatPayGroupList', value='{{v._id}}', ng-selected='playerBeingEdited.wechatPayGroup==v._id') {{v.displayName}}
-        .form-group.col-md-6
+        .form-group.col-md-6.collapse
             label.control-label {{"QuickPay Group"|translate}}
             select.form-control(ng-model='playerBeingEdited.quickPayGroup')
                 option(ng-repeat='(i,v) in platformQuickPayGroupList', value='{{v._id}}', ng-selected='playerBeingEdited.quickPayGroup==v._id') {{v.displayName}}
@@ -24,6 +24,35 @@ form(name="form_edit_player", novalidate)
             label.control-label {{"TrustLevel"|translate}}
             select.form-control(ng-model='playerBeingEdited.trustLevel')
                 option(ng-repeat='(i,v) in allPlayerTrustLvl', value='{{v.value}}', ng-selected='playerBeingEdited.trustLevel==v.value') {{v.name | translate}}
+        .form-group.col-md-12
+            label {{'REMARKS' | translate}}:
+            div
+                textarea.form-control(style="overflow: auto; margin-bottom: 12px;", rows="3", ng-model="topUpGroupRemark", placeholder="{{'Topup Group' | translate}}{{'REMARKS' | translate}}")
+        .form-group.col-md-12
+            label {{'TOPUP_GROUP_RECORD' | translate}}
+            div(align="center").well
+                table.paddingTbl(style='min-width:100%')
+                    thead
+                        tr
+                            th {{"OPERATOR_NAME" | translate}}
+                            th {{"Topup Group" | translate}}
+                            th {{"TIME" | translate}}
+                            th {{"OPERATOR_ACTION" | translate}}
+                            th {{"remark" | translate}}
+                    tbody
+                        tr(ng-repeat='(i, data) in playerTopUpGroupLog')
+
+                            td(style="text-align:center;border: 1px solid #0099CC")
+                                text {{data.admin.adminName}}
+                            td(style="text-align:left;border: 1px solid #0099CC")
+                                text {{data.topUpGroupNames$ | translate}}
+                            td(style= "border: 1px solid #0099CC")
+                                text {{data.createTime}}
+                            td(style= "border: 1px solid #0099CC")
+                                text {{data.topUpGroupChanges}}
+                            td(style = "background-color:white;border: 1px solid #0099CC")
+                                text {{data.remark}}
+            #topUpGroupRecordPage
 
 //.form-group.col-md-6
     //   label.control-label {{"TELEPHONE" | translate}}
