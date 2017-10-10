@@ -154,6 +154,10 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
 
+            vm.showReapplyLostOrderTab = function(tabName) {
+                vm.selectedReapplyLostOrderTab = tabName == null ? "credit" : tabName;
+            };
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
@@ -6261,7 +6265,7 @@ define(['js/app'], function (myApp) {
                                 } else {
                                     tbl.$('tr.selected').removeClass('selected');
                                     $(this).addClass('selected');
-                                    vm.repairProposalId = tbl.row(this).data()[1]
+                                    vm.repairProposalId = tbl.row(this).data()[1];
                                 }
                                 $scope.safeApply();
                             });
@@ -13247,6 +13251,7 @@ define(['js/app'], function (myApp) {
                         vm.showPlatformList = true;
                         vm.showPlatformDropDownList = false;
                         vm.showPlatformDetailTab(null);
+                        vm.showReapplyLostOrderTab(null);
                         vm.platformAction = null;
                         // vm.allGameStatusString = {};
                         vm.credibilityRemarks = [];

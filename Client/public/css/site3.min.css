@@ -4726,3 +4726,12 @@ input[type='number'].leftALignNumber {
     padding: 0px;
   }
 }
+
+
+#modalReapplyLostOrder .nav-tabs>li {
+    cursor: pointer;
+}
+#modalReapplyLostOrder .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
