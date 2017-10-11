@@ -473,7 +473,7 @@ define(['js/app'], function (myApp) {
                             merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
                             merGroupList[item.merchantTypeId].list.push(item.merchantNo);
                         }) || [];
-                        
+
                         Object.keys(vm.merchantNoList).forEach(item=>{
                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
                            if(vm.merchantTypes[merchantTypeId].name){
@@ -1212,7 +1212,6 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getMerchantName = function(merchantNo){
-          console.log(merchantNo);
           let result = '';
           if(merchantNo){
             let merchantName = vm.merchantGroupObj.filter(item=>{
@@ -1222,7 +1221,6 @@ define(['js/app'], function (myApp) {
           }else{
             result = '';
           }
-          console.log(result, merchantNo);
           return result;
         }
         vm.drawTopupReport = function (data, size, summary, newSearch) {
@@ -1251,7 +1249,12 @@ define(['js/app'], function (myApp) {
                             return "<div>" + text + "</div>";
                         }
                     },
-                    {title: $translate('DEVICE'), data: "data.userAgent"},
+                    {title: $translate('DEVICE'), data: "data.userAgent",
+                        render: function(data, type, row){
+                          var text = $translate(data ? $scope.userAgentType[data]: "");
+                          return "<div>" + text + "</div>";
+                        }
+                    },
                     {
                         "title": $translate('Online Topup Type'), "data": 'type.name',
                         render: function (data, type, row) {

@@ -324,7 +324,12 @@ define(['js/app'], function (myApp) {
                             return "<div>" + text + "</div>";
                         }
                     },
-                    {title: $translate('DEVICE'), data: "data.userAgent"},
+                    {title: $translate('DEVICE'), data: "data.userAgent",
+                        render: function(data, type, row){
+                          var text = $translate(data ? $scope.userAgentType[data]: "");
+                          return "<div>" + text + "</div>";
+                        }
+                    },
                     {
                         "title": $translate('Online Topup Type'), "data": 'type.name',
                         render: function (data, type, row) {

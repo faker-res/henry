@@ -361,6 +361,11 @@ angular.module('myApp.controllers', []).controller('AppCtrl', function ($scope, 
         '2': "clientType_Application",
         '3': 'clientType_Both'
     };
+    $scope.userAgentType = {
+        '1': "WEB",
+        '2': "APP",
+        '3': "H5",
+    }
     $scope.constProposalEntryType = {
         0: "ENTRY_TYPE_CLIENT",
         1: "ENTRY_TYPE_ADMIN",

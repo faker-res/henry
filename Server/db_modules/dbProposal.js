@@ -2280,6 +2280,10 @@ var proposal = {
         if (data.bankTypeId){
             query['data.bankTypeId'] = data.bankTypeId;
         }
+        if (data.userAgent){
+            query['data.userAgent'] = data.userAgent;
+        }
+
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
             case constPlayerTopUpType.ONLINE.toString():
