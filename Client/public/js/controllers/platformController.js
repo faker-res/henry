@@ -2976,7 +2976,7 @@ define(['js/app'], function (myApp) {
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalAddPlayerFeedback',
-                                        'title': $translate("PHONE"),
+                                        'title': $translate("ADD_FEEDBACK"),
                                         'data-placement': 'right',
                                     }));
                                 }
@@ -2987,20 +2987,26 @@ define(['js/app'], function (myApp) {
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerTopUp',
-                                        'title': $translate("PHONE"),
+                                        'title': $translate("TOP_UP"),
                                         'data-placement': 'left',
                                         'style': 'color: #68C60C'
                                     }));
                                 }
                                 link.append($('<br>'));
-                                link.append($('<a>', {
-                                    'class': 'fa fa-envelope margin-right-5 margin-right-5',
-                                    'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'tooltip',
-                                    'title': $translate("SEND_MESSAGE_TO_PLAYER"),
-                                    'data-placement': 'left',   // because top and bottom got hidden behind the table edges
-                                }));
+                                if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 margin-right-5',
+                                        'src': "images/icon/withdrawBlue.png",
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.initPlayerBonus();',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPlayerBonus',
+                                        'title': $translate("Bonus"),
+                                        'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                                    }));
+                                }
                                 link.append($('<a>', {
                                     'class': 'fa fa-comment margin-right-5 margin-right-5',
                                     'ng-click': 'vm.initSMSModal();vm.telorMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
