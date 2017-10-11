@@ -154,6 +154,10 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
 
+            vm.showPlayerAccountingDetailTab = function(tabName) {
+                vm.selectedPlayerAccountingDetailTab = tabName == null ? "current-credit" : tabName;
+            };
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
@@ -5106,7 +5110,9 @@ define(['js/app'], function (myApp) {
             //get player's game provider credit
             vm.showPlayerCreditinProvider = function (row) {
                 vm.gameProviderCreditPlayerName = row.name;
-                vm.creditModal = $('#modalPlayerGameProviderCredit').modal();
+                vm.queryPlatformCreditTransferPlayerName = row.name;
+                // vm.creditModal = $('#modalPlayerGameProviderCredit').modal();
+                vm.creditModal = $('#modalPlayerAccountingDetail').modal();
                 vm.playerCredit = {};
                 vm.creditTransfer = {};
                 vm.fixPlayerRewardAmount = {rewardInfo: row.rewardInfo};
@@ -5128,6 +5134,7 @@ define(['js/app'], function (myApp) {
                 for (var i in vm.platformProviderList) {
                     vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
                 }
+                vm.showPlayerAccountingDetailTab(null);
             }
             vm.transferCreditFromProviderClicked = function (providerId) {
                 console.log('vm.playerCredit', vm.playerCredit);
@@ -6063,7 +6070,8 @@ define(['js/app'], function (myApp) {
                             record.amount$ = parseFloat(record.amount).toFixed(2);
                             record.bonusAmount$ = parseFloat(record.bonusAmount).toFixed(2);
                             record.commissionAmount$ = parseFloat(record.commissionAmount).toFixed(2);
-                            record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
+                            // record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
+                            record.bDirty$ = record.bDirty ? $translate('UNABLE') : $translate('ABLE');
                             return record
                         }
                     );
@@ -6106,7 +6114,7 @@ define(['js/app'], function (myApp) {
                                 title: $translate('bonusAmount1'),
                                 data: "bonusAmount$", sClass: 'alignRight sumFloat'
                             },
-                            {title: $translate('Occupy'), data: "bDirty$"},
+                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
                             // {
                             //     title: $translate('commissionAmount'),
                             //     data: "commissionAmount$",
@@ -7303,7 +7311,8 @@ define(['js/app'], function (myApp) {
 
             vm.initPlayerCreditLog = function () {
                 vm.playerCreditLog = vm.playerCreditLog || {totalCount: 0, limit: 10, index: 0, query: {}};
-                utilService.actionAfterLoaded('#modalPlayerCreditLog.in #playerCreditLogQuery .endTime', function () {
+                // utilService.actionAfterLoaded('#modalPlayerCreditLog.in #playerCreditLogQuery .endTime', function () {
+                utilService.actionAfterLoaded('#modalPlayerAccountingDetail #playerCreditLogQuery .endTime', function () {
                     vm.playerCreditLog.query.startTime = utilService.createDatePicker('#playerCreditLogQuery .startTime');
                     vm.playerCreditLog.query.endTime = utilService.createDatePicker('#playerCreditLogQuery .endTime');
                     vm.playerCreditLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
@@ -13182,6 +13191,7 @@ define(['js/app'], function (myApp) {
                         vm.showPlatformList = true;
                         vm.showPlatformDropDownList = false;
                         vm.showPlatformDetailTab(null);
+                        vm.showPlayerAccountingDetailTab(null);
                         vm.platformAction = null;
                         // vm.allGameStatusString = {};
                         vm.credibilityRemarks = [];
