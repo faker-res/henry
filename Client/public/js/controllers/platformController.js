@@ -13611,7 +13611,7 @@ define(['js/app'], function (myApp) {
             let officeraddUrlMessageId = $("#officer-addUrl-message");
             vm.initClearMessage();
             let sendData = {
-                urlId: vm.currentUrlEditSelect.url._id,
+                urlId: vm.currentUrlEditSelect._id,
             };
             vm.selectedOfficerUrl = null;
             socketService.$socket($scope.AppSocket, 'deleteUrl', sendData, function () {
@@ -13635,12 +13635,12 @@ define(['js/app'], function (myApp) {
             let officeraddUrlMessageId = $("#officer-addUrl-message");
             vm.initClearMessage();
             let sendData = {
-                urlId: vm.currentUrlEditSelect.url._id,
-                domain: vm.currentUrlEditSelect.url.domain,
-                officerId: vm.currentUrlEditSelect._id,
-                way: vm.currentUrlEditSelect.url.way,
+                urlId: vm.currentUrlEditSelect._id,
+                domain: vm.currentUrlEditSelect.domain,
+                officerId: vm.currentUrlEditSelect.admin,
+                way: vm.currentUrlEditSelect.way,
             };
-            console.log("IAM HERE", sendData)
+            console.log("sendData", sendData);
             vm.selectedOfficerUrl = null;
             socketService.$socket($scope.AppSocket, 'updateUrl', sendData, function () {
                     console.log("Url updated");
@@ -13667,6 +13667,16 @@ define(['js/app'], function (myApp) {
             };
             socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
                     vm.allUrl = data.data;
+                    vm.allUrl = vm.allUrl.map(url => {
+                        for (let i = 0, len = vm.departmentUsers.length; i < len; i++) {
+                            let admin = vm.departmentUsers[i];
+                            if (url.admin.toString() === admin._id.toString()) {
+                                url.adminName$ = admin.adminName;
+                                break;
+                            }
+                        }
+                        return url;
+                    });
                     console.log("vm.allUrl", vm.allUrl);
                     $scope.safeApply();
                 },
