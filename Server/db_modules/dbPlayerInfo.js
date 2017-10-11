@@ -10059,7 +10059,8 @@ let dbPlayerInfo = {
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     return playerIdObj._id;
-                                })
+                                }),
+                                isDX: true
                             });
                         },
                         processResponse: function (record) {
@@ -10132,7 +10133,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, isDX) {
         let proms = [];
         let proposalType = [];
 
@@ -10140,7 +10141,25 @@ let dbPlayerInfo = {
             proposalTypeData => {
                 proposalType = proposalTypeData;
                 for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
-                    proms.push(getPlayerRecord(playerObjIds[p]));
+                    let prom;
+
+                    if (isDX) {
+                        prom = dbconfig.collection_players.findOne({
+                            _id: playerObjIds[p]
+                        }).then(
+                            playerData => {
+                                let qStartTime = new Date(playerData.registrationTime);
+                                let qEndTime = moment(qStartTime).add(query.days, 'day');
+
+                                return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain);
+                            }
+                        );
+
+                        proms.push(prom);
+                    } else {
+                        proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
+                    }
+
                 }
 
                 return Promise.all(proms);
@@ -10156,7 +10175,7 @@ let dbPlayerInfo = {
             }
         );
 
-        function getPlayerRecord(playerObjId) {
+        function getPlayerRecord(playerObjId, startTime, endTime, domain) {
             let result = {_id: playerObjId};
             playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
@@ -10305,7 +10324,14 @@ let dbPlayerInfo = {
                 }
             ).lean();
 
-            return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm]).then(
+            // Promise domain CS and promote way
+            let promoteWayProm = domain ?
+                dbconfig.collection_csOfficerUrl.findOne({domain: domain}).populate({
+                    path: 'admin',
+                    model: dbconfig.collection_admin
+                }).lean() : Promise.resolve(false);
+
+            return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
                 data => {
                     if (!data[5]) {
                         return "";
@@ -10521,6 +10547,12 @@ let dbPlayerInfo = {
                     result.valueScore = playerDetail.valueScore;
                     result.registrationTime = playerDetail.registrationTime;
                     result.endTime = endTime;
+
+                    let csOfficerDetail = data[6];
+                    if (csOfficerDetail) {
+                        result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
+                        result.csPromoteWay = csOfficerDetail.way;
+                    }
 
                     return result;
                 }
