@@ -3482,168 +3482,168 @@ define(['js/app'], function (myApp) {
                 // vm.playerTable.columns.adjust().draw();
                 utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
 
-                // if (!vm.playersQueryCreated) {
-                //     createPlayerAdvancedSearchFilters({
-                //         tableOptions: tableOptions,
-                //         filtersElement: '#playerTable-search-filters',
-                //         queryFunction: vm.getPlayersByAdvanceQueryDebounced
-                //     });
-                // }
+                if (!vm.playersQueryCreated) {
+                    createPlayerAdvancedSearchFilters({
+                        tableOptions: tableOptions,
+                        filtersElement: '#playerTable-search-filters',
+                        queryFunction: vm.getPlayersByAdvanceQueryDebounced
+                    });
+                }
 
                 $scope.safeApply();
             };
-            // function createPlayerAdvancedSearchFilters(config) {
-            //     vm.playersQueryCreated = true;
-            //     var currentQueryValues = {};
-            //     $(config.filtersElement).empty();
-            //     function getRegTimeQueryValue(src) {
-            //         var startValue = $('#regDateTimePicker').data('datetimepicker').getLocalDate();
-            //         var endValue = $('#regEndDateTimePicker').data('datetimepicker').getLocalDate();
-            //         var queryValue = {};
-            //         if ($('#regDateTimePicker input').val()) {
-            //             queryValue["$gte"] = startValue;
-            //         }
-            //         if ($('#regEndDateTimePicker input').val()) {
-            //             queryValue["$lt"] = endValue;
-            //         }
-            //         return $.isEmptyObject(queryValue) ? null : queryValue;
-            //     }
-            //
-            //     function getAccessTimeQueryValue(src) {
-            //         var startValue = $('#lastAccessDateTimePicker').data('datetimepicker').getLocalDate();
-            //         var endValue = $('#lastAccessEndDateTimePicker').data('datetimepicker').getLocalDate();
-            //         var queryValue = {};
-            //         if ($('#lastAccessDateTimePicker input').val()) {
-            //             queryValue["$gte"] = startValue;
-            //         }
-            //         if ($('#lastAccessEndDateTimePicker input').val()) {
-            //             queryValue["$lt"] = endValue;
-            //         }
-            //         return $.isEmptyObject(queryValue) ? null : queryValue;
-            //     }
-            //
-            //     config.tableOptions.columns.forEach(function (columnConfig, i) {
-            //         var shouldBeSearchable = columnConfig.advSearch;
-            //         if (shouldBeSearchable) {
-            //             var fieldName = columnConfig.data;
-            //
-            //             // Add the search filter textbox for this field
-            //             var label = $('<label class="control-label">').text(columnConfig.title);
-            //
-            //             var filterConfig = columnConfig.filterConfig;
-            //
-            //             var input = getFilterInputForColumn(filterConfig).addClass('form-control');
-            //             // console.log("input", input);
-            //
-            //             if (columnConfig.filterConfig &&
-            //                 columnConfig.filterConfig.hasOwnProperty('type') &&
-            //                 columnConfig.filterConfig.type === 'datetimepicker') {
-            //                 console.log("columnConfig.filterConfig.id", columnConfig.filterConfig.id);
-            //                 var newFilter = $('<div class="search-filter col-xs-12 col-sm-6 col-md-3">')
-            //                     .append(label).append(input);
-            //             }
-            //             else {
-            //                 var newFilter = $('<div class="search-filter col-xs-12 col-sm-6 col-md-3">')
-            //                     .append(label).append(input);
-            //             }
-            //             $(config.filtersElement).append(newFilter);
-            //
-            //             // Listen for user editing the textbox, and pass the search to datatable
-            //             //var ptCol = vm.playerTable.columns(i);
-            //
-            //             var regStartTime = '';
-            //             var regEndTime = '';
-            //             var lastAccessStartTime = '';
-            //             var lastAccessEndTime = '';
-            //
-            //             if (fieldName == "registrationTime") {
-            //                 $('#regDateTimePicker').datetimepicker().off('changeDate');
-            //                 $('#regDateTimePicker').datetimepicker().on('changeDate', function (ev) {
-            //                     getQueryFunction(config, filterConfig, 'registrationTime', getRegTimeQueryValue(), true);
-            //
-            //                 });
-            //             }
-            //
-            //             if (fieldName == "registrationEndTime") {
-            //                 $('#regEndDateTimePicker').datetimepicker().off('changeDate');
-            //                 $('#regEndDateTimePicker').datetimepicker().on('changeDate', function (ev) {
-            //                     getQueryFunction(config, filterConfig, 'registrationTime', getRegTimeQueryValue(), true);
-            //
-            //                 });
-            //             }
-            //             if (fieldName == "lastAccessTime") {
-            //                 $('#lastAccessDateTimePicker').datetimepicker().off('changeDate');
-            //                 $('#lastAccessDateTimePicker').datetimepicker().on('changeDate', function (ev) {
-            //                     getQueryFunction(config, filterConfig, 'lastAccessTime', getAccessTimeQueryValue(), true);
-            //
-            //                 });
-            //             }
-            //
-            //             if (fieldName == "lastAccessEndTime") {
-            //                 $('#lastAccessEndDateTimePicker').datetimepicker().off('changeDate');
-            //                 $('#lastAccessEndDateTimePicker').datetimepicker().on('changeDate', function (ev) {
-            //                     getQueryFunction(config, filterConfig, 'lastAccessTime', getAccessTimeQueryValue(), true);
-            //                 });
-            //             }
-            //
-            //             input.on('keyup change', (function (evt) {
-            //                 //Text inputs do not fire the change event until they lose focus.
-            //                 if (evt.currentTarget.tagName == "INPUT" && evt.type == 'change')return;
-            //                 var queryValue = '';
-            //                 // Do Additional listening to the keyup event of datetime picker by the className of the div
-            //                 if (this.className == 'datetimepicker form-control') {
-            //                     // assign the value of input (firstchild of the div) to queryValue
-            //                     if (evt.currentTarget.id == "regDateTimePicker" || evt.currentTarget.id == "regEndDateTimePicker") {
-            //                         queryValue = getRegTimeQueryValue();
-            //                         getQueryFunction(config, filterConfig, "registrationTime", queryValue, false);
-            //                     } else if (evt.currentTarget.id == "lastAccessDateTimePicker" || evt.currentTarget.id == "lastAccessEndDateTimePicker") {
-            //                         queryValue = getAccessTimeQueryValue();
-            //                         getQueryFunction(config, filterConfig, "lastAccessTime", queryValue, false);
-            //                     }
-            //                 }
-            //                 else if (filterConfig && filterConfig.type === "multi") {
-            //                     let values = [];
-            //                     let options = this && this.options;
-            //                     for (let i = 0; i < options.length; i++) {
-            //                         let option = options[i];
-            //                         if (option.selected && option.text !== "—") {
-            //                             values.push(option.value || option.text);
-            //                         }
-            //                     }
-            //
-            //                     if (values.length === 0) {
-            //                         values = null;
-            //                     }
-            //                     getQueryFunction(config, filterConfig, fieldName, values, false);
-            //                 }
-            //                 else {
-            //                     queryValue = this.value;
-            //                     getQueryFunction(config, filterConfig, fieldName, queryValue, false);
-            //                 }
-            //             }));
-            //         }
-            //     });
-            //     // var btn = $('<button>', {
-            //     //     id: "resetPlayerQuery",
-            //     //     class: "btn btn-primary common-button-sm",
-            //     //     style: "display:block;",
-            //     // }).text($translate('Reset'));
-            //     // var newFilter = $('<div class="search-filter col-md-3">').append($('<label class="control-label">')).append(btn);
-            //     // $(config.filtersElement).append(newFilter);
-            //     // utilService.actionAfterLoaded('#resetPlayerQuery', function () {
-            //     //     $('#resetPlayerQuery').off('click');
-            //     //     $('#resetPlayerQuery').click(function () {
-            //     //         $('#playerTable-search-filters').find(".form-control").each((i, v) => {
-            //     //             $(v).val(null);
-            //     //             utilService.clearDatePickerDate(v)
-            //     //         })
-            //     //         getPlayersByAdvanceQueryDebounced(function ({}) {
-            //     //         });
-            //     //         vm.advancedQueryObj = {};
-            //     //         vm.advancedPlayerQuery(true);
-            //     //     })
-            //     // })
-            // }
+            function createPlayerAdvancedSearchFilters(config) {
+                vm.playersQueryCreated = true;
+                var currentQueryValues = {};
+                $(config.filtersElement).empty();
+                function getRegTimeQueryValue(src) {
+                    var startValue = $('#regDateTimePicker').data('datetimepicker').getLocalDate();
+                    var endValue = $('#regEndDateTimePicker').data('datetimepicker').getLocalDate();
+                    var queryValue = {};
+                    if ($('#regDateTimePicker input').val()) {
+                        queryValue["$gte"] = startValue;
+                    }
+                    if ($('#regEndDateTimePicker input').val()) {
+                        queryValue["$lt"] = endValue;
+                    }
+                    return $.isEmptyObject(queryValue) ? null : queryValue;
+                }
+
+                function getAccessTimeQueryValue(src) {
+                    var startValue = $('#lastAccessDateTimePicker').data('datetimepicker').getLocalDate();
+                    var endValue = $('#lastAccessEndDateTimePicker').data('datetimepicker').getLocalDate();
+                    var queryValue = {};
+                    if ($('#lastAccessDateTimePicker input').val()) {
+                        queryValue["$gte"] = startValue;
+                    }
+                    if ($('#lastAccessEndDateTimePicker input').val()) {
+                        queryValue["$lt"] = endValue;
+                    }
+                    return $.isEmptyObject(queryValue) ? null : queryValue;
+                }
+
+                config.tableOptions.columns.forEach(function (columnConfig, i) {
+                    var shouldBeSearchable = columnConfig.advSearch;
+                    if (shouldBeSearchable) {
+                        var fieldName = columnConfig.data;
+
+                        // Add the search filter textbox for this field
+                        var label = $('<label class="control-label">').text(columnConfig.title);
+
+                        var filterConfig = columnConfig.filterConfig;
+
+                        var input = getFilterInputForColumn(filterConfig).addClass('form-control');
+                        // console.log("input", input);
+
+                        if (columnConfig.filterConfig &&
+                            columnConfig.filterConfig.hasOwnProperty('type') &&
+                            columnConfig.filterConfig.type === 'datetimepicker') {
+                            console.log("columnConfig.filterConfig.id", columnConfig.filterConfig.id);
+                            var newFilter = $('<div class="search-filter col-xs-12 col-sm-6 col-md-3">')
+                                .append(label).append(input);
+                        }
+                        else {
+                            var newFilter = $('<div class="search-filter col-xs-12 col-sm-6 col-md-3">')
+                                .append(label).append(input);
+                        }
+                        $(config.filtersElement).append(newFilter);
+
+                        // Listen for user editing the textbox, and pass the search to datatable
+                        //var ptCol = vm.playerTable.columns(i);
+
+                        var regStartTime = '';
+                        var regEndTime = '';
+                        var lastAccessStartTime = '';
+                        var lastAccessEndTime = '';
+
+                        if (fieldName == "registrationTime") {
+                            $('#regDateTimePicker').datetimepicker().off('changeDate');
+                            $('#regDateTimePicker').datetimepicker().on('changeDate', function (ev) {
+                                getQueryFunction(config, filterConfig, 'registrationTime', getRegTimeQueryValue(), true);
+
+                            });
+                        }
+
+                        if (fieldName == "registrationEndTime") {
+                            $('#regEndDateTimePicker').datetimepicker().off('changeDate');
+                            $('#regEndDateTimePicker').datetimepicker().on('changeDate', function (ev) {
+                                getQueryFunction(config, filterConfig, 'registrationTime', getRegTimeQueryValue(), true);
+
+                            });
+                        }
+                        if (fieldName == "lastAccessTime") {
+                            $('#lastAccessDateTimePicker').datetimepicker().off('changeDate');
+                            $('#lastAccessDateTimePicker').datetimepicker().on('changeDate', function (ev) {
+                                getQueryFunction(config, filterConfig, 'lastAccessTime', getAccessTimeQueryValue(), true);
+
+                            });
+                        }
+
+                        if (fieldName == "lastAccessEndTime") {
+                            $('#lastAccessEndDateTimePicker').datetimepicker().off('changeDate');
+                            $('#lastAccessEndDateTimePicker').datetimepicker().on('changeDate', function (ev) {
+                                getQueryFunction(config, filterConfig, 'lastAccessTime', getAccessTimeQueryValue(), true);
+                            });
+                        }
+
+                        input.on('keyup change', (function (evt) {
+                            //Text inputs do not fire the change event until they lose focus.
+                            if (evt.currentTarget.tagName == "INPUT" && evt.type == 'change')return;
+                            var queryValue = '';
+                            // Do Additional listening to the keyup event of datetime picker by the className of the div
+                            if (this.className == 'datetimepicker form-control') {
+                                // assign the value of input (firstchild of the div) to queryValue
+                                if (evt.currentTarget.id == "regDateTimePicker" || evt.currentTarget.id == "regEndDateTimePicker") {
+                                    queryValue = getRegTimeQueryValue();
+                                    getQueryFunction(config, filterConfig, "registrationTime", queryValue, false);
+                                } else if (evt.currentTarget.id == "lastAccessDateTimePicker" || evt.currentTarget.id == "lastAccessEndDateTimePicker") {
+                                    queryValue = getAccessTimeQueryValue();
+                                    getQueryFunction(config, filterConfig, "lastAccessTime", queryValue, false);
+                                }
+                            }
+                            else if (filterConfig && filterConfig.type === "multi") {
+                                let values = [];
+                                let options = this && this.options;
+                                for (let i = 0; i < options.length; i++) {
+                                    let option = options[i];
+                                    if (option.selected && option.text !== "—") {
+                                        values.push(option.value || option.text);
+                                    }
+                                }
+
+                                if (values.length === 0) {
+                                    values = null;
+                                }
+                                getQueryFunction(config, filterConfig, fieldName, values, false);
+                            }
+                            else {
+                                queryValue = this.value;
+                                getQueryFunction(config, filterConfig, fieldName, queryValue, false);
+                            }
+                        }));
+                    }
+                });
+                // var btn = $('<button>', {
+                //     id: "resetPlayerQuery",
+                //     class: "btn btn-primary common-button-sm",
+                //     style: "display:block;",
+                // }).text($translate('Reset'));
+                // var newFilter = $('<div class="search-filter col-md-3">').append($('<label class="control-label">')).append(btn);
+                // $(config.filtersElement).append(newFilter);
+                // utilService.actionAfterLoaded('#resetPlayerQuery', function () {
+                //     $('#resetPlayerQuery').off('click');
+                //     $('#resetPlayerQuery').click(function () {
+                //         $('#playerTable-search-filters').find(".form-control").each((i, v) => {
+                //             $(v).val(null);
+                //             utilService.clearDatePickerDate(v)
+                //         })
+                //         getPlayersByAdvanceQueryDebounced(function ({}) {
+                //         });
+                //         vm.advancedQueryObj = {};
+                //         vm.advancedPlayerQuery(true);
+                //     })
+                // })
+            }
 
             function createAdvancedSearchFilters(config) {
 
