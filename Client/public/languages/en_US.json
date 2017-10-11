@@ -967,5 +967,7 @@
   "DELETE_OFFICER": "Delete Officer",
   "TOPUP_WECHAT": "weChat",
   "TOPUP_ALIPAY": "AliPay",
-  "CREDIBILITY_RECORD": "Credibility Records"
+  "CREDIBILITY_RECORD": "Credibility Records",
+  "MAIN": "Main",
+  "SECONDARY": "Secondary"
 }

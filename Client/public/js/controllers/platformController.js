@@ -2673,38 +2673,38 @@ define(['js/app'], function (myApp) {
                             advSearch: true
                         },
                         {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
-                        // {
-                        //     title: $translate('STATUS'), data: 'status',
-                        //     render: function (data, type, row) {
-                        //         var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
-                        //         var textClass = '';
-                        //         if (data == 4) {
-                        //             textClass = "text-black";
-                        //         } else if (data == 5) {
-                        //             textClass = "text-danger";
-                        //         } else if (data === 6) {
-                        //             textClass = "text-warning";
-                        //         }
-                        //
-                        //         return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                        //             'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                        //             .attr('data-row', JSON.stringify(row))
-                        //             .text(showText)
-                        //             .addClass(textClass)
-                        //             .prop('outerHTML');
-                        //     },
-                        //     advSearch: true,
-                        //     filterConfig: {
-                        //         type: "dropdown",
-                        //         options: vm.allPlayersStatusKeys.map(function (status) {
-                        //             return {
-                        //                 value: vm.allPlayersStatusString[status],
-                        //                 text: $translate(status)
-                        //             };
-                        //         })
-                        //     },
-                        //     "sClass": ""
-                        // },
+                        {
+                            title: $translate('STATUS'), data: 'status',
+                            render: function (data, type, row) {
+                                var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
+                                var textClass = '';
+                                if (data == 4) {
+                                    textClass = "text-black";
+                                } else if (data == 5) {
+                                    textClass = "text-danger";
+                                } else if (data === 6) {
+                                    textClass = "text-warning";
+                                }
+
+                                return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row))
+                                    .text(showText)
+                                    .addClass(textClass)
+                                    .prop('outerHTML');
+                            },
+                            advSearch: true,
+                            filterConfig: {
+                                type: "dropdown",
+                                options: vm.allPlayersStatusKeys.map(function (status) {
+                                    return {
+                                        value: vm.allPlayersStatusString[status],
+                                        text: $translate(status)
+                                    };
+                                })
+                            },
+                            "sClass": ""
+                        },
                         {
                             // this object is use for column show
                             // credibility remark advsearch column's object will appear later in the code
@@ -3040,7 +3040,7 @@ define(['js/app'], function (myApp) {
                             "sClass": "alignLeft"
                         },
                         {
-                            title: $translate('PERMISSION'), //data: 'phoneNumber',
+                            title: $translate('MAIN') + $translate('PERMISSION'), //data: 'phoneNumber',
                             orderable: false,
                             render: function (data, type, row) {
                                 data = data || {permission: {}};
@@ -3144,17 +3144,17 @@ define(['js/app'], function (myApp) {
 
 
 
-                                let link2 = $('<a class="prohibitGamePopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text($translate("DisableGame"));
+                                // let link2 = $('<a class="prohibitGamePopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                //     'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                                //     .attr('data-row', JSON.stringify(row))
+                                //     .text($translate("DisableGame"));
 
-                                return link.prop('outerHTML') + "&nbsp;" + link2.prop('outerHTML');
+                                return link.prop('outerHTML') + "&nbsp;";
                             },
                             "sClass": "alignLeft"
                         },
                         {
-                            title: $translate('PERMISSION'),
+                            title: $translate('SECONDARY') + $translate('PERMISSION'),
                             orderable: false,
                             render: function (data, type, row) {
                                 // data = data || {permission: {}};
@@ -3163,7 +3163,7 @@ define(['js/app'], function (myApp) {
                                 var playerObjId = row._id ? row._id : "";
 
                                 link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-volume-control-phone margin-right-5',
+                                    'class': 'forbidRewardEventPopover fa fa-ils margin-right-5',
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -3176,12 +3176,12 @@ define(['js/app'], function (myApp) {
                                     'data-container': "body",
                                 }));
 
-                                link.append($('<a class="prohibitGamePopover fa fa-volume-control-phone margin-right-5" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                                link.append($('<a class="prohibitGamePopover fa fa-gg margin-right-5" style="z-index: auto" data-toggle="popover" data-container="body" ' +
                                     'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
                                     .attr('data-row', JSON.stringify(row)));
 
                                 link.append($('<a>', {
-                                    'class': 'forbidTopUpPopover fa fa-volume-control-phone margin-right-5',
+                                    'class': 'forbidTopUpPopover fa fa-krw margin-right-5',
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -3194,7 +3194,7 @@ define(['js/app'], function (myApp) {
                                     'data-container': "body",
                                 }));
 
-                                return link.prop('outerHTML') + "&nbsp;";
+                                return link.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
                         },
