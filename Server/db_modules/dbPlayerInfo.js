@@ -10028,8 +10028,6 @@ let dbPlayerInfo = {
     },
 
     getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
-        console.log('getDXNewPlayerReport');
-
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -10041,7 +10039,7 @@ let dbPlayerInfo = {
         let stream = dbconfig.collection_players.aggregate({
             $match: {
                 platform: platform,
-                registrationTime: {$gte: new Date(query.start), $lt: new Date(query.end)}
+                registrationTime: {$gte: startDate, $lt: endDate}
             }
         }).cursor({batchSize: 100}).allowDiskUse(true).exec();
 
@@ -10057,7 +10055,7 @@ let dbPlayerInfo = {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
-                                endTime: query.end,
+                                endTime: moment(query.start).add(query.days, "day"),
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     return playerIdObj._id;
@@ -10072,7 +10070,6 @@ let dbPlayerInfo = {
             );
         }).then(
             () => {
-                console.log('result', result);
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -10302,7 +10299,11 @@ let dbPlayerInfo = {
                 playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
             }
 
-            let playerProm = dbconfig.collection_players.findOne(playerQuery, {playerLevel: 1, credibilityRemarks: 1, name: 1}).lean();
+            let playerProm = dbconfig.collection_players.findOne(
+                playerQuery, {
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1
+                }
+            ).lean();
 
             return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm]).then(
                 data => {
@@ -10517,6 +10518,9 @@ let dbPlayerInfo = {
                     result.credibilityRemarks = playerDetail.credibilityRemarks;
                     result.playerLevel = playerDetail.playerLevel;
                     result.name = playerDetail.name;
+                    result.valueScore = playerDetail.valueScore;
+                    result.registrationTime = playerDetail.registrationTime;
+                    result.endTime = endTime;
 
                     return result;
                 }
