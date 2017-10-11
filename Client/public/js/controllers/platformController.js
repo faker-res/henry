@@ -2910,7 +2910,18 @@ define(['js/app'], function (myApp) {
                         //     },
                         //     "sClass": "alignLeft"
                         // },
-                        {title: $translate('LOGIN_TIMES'), data: "loginTimes", "sClass": "alignRight"}, // todo :: Open player action report default 'login'
+                        {title: $translate('LOGIN_TIMES'), data: "loginTimes",
+                            render: function (data, type, row) {
+                                data = data || '0';
+                                return $('<a data-target="#modalPlayerApiLog" style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                    'data-placement="bottom" data-trigger="focus" type="button" ng-click="vm.initPlayerApiLog()" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row))
+                                    .text((data))
+                                    .prop('outerHTML');
+                            },
+                            "sClass": "alignRight"
+
+                        }, // todo :: Open player action report default 'login'
                         {
                             title: "<div>" + $translate('TOP_UP') + "</div><div>" + $translate('TIMES') + "</div>",
                             "data": 'topUpTimes',
@@ -7582,6 +7593,7 @@ define(['js/app'], function (myApp) {
 
             vm.initPlayerApiLog = function () {
                 vm.playerApiLog = {totalCount: 0, limit: 10, index: 0};
+                vm.playerApiLog.apiAction = "login";
                 utilService.actionAfterLoaded('#modalPlayerApiLog.in #playerApiLogQuery .endTime', function () {
                     vm.playerApiLog.startDate = utilService.createDatePicker('#playerApiLogQuery .startTime');
                     vm.playerApiLog.endDate = utilService.createDatePicker('#playerApiLogQuery .endTime');
