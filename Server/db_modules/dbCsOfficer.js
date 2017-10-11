@@ -62,7 +62,7 @@ let dbCsOfficer = {
     },
 
     deleteUrl: (urlId) => {
-        return dbconfig.collection_csOfficerUrl.findOneAndDelete({_id: urlId}).lean();
+        return dbconfig.collection_csOfficerUrl.remove({_id: urlId});
     },
 
 };

@@ -13611,7 +13611,7 @@ define(['js/app'], function (myApp) {
             let officeraddUrlMessageId = $("#officer-addUrl-message");
             vm.initClearMessage();
             let sendData = {
-                urlId: vm.currentUrlEditSelect.url._id,
+                urlId: vm.currentUrlEditSelect._id,
             };
             vm.selectedOfficerUrl = null;
             socketService.$socket($scope.AppSocket, 'deleteUrl', sendData, function () {
@@ -13635,12 +13635,12 @@ define(['js/app'], function (myApp) {
             let officeraddUrlMessageId = $("#officer-addUrl-message");
             vm.initClearMessage();
             let sendData = {
-                urlId: vm.currentUrlEditSelect.url._id,
-                domain: vm.currentUrlEditSelect.url.domain,
-                officerId: vm.currentUrlEditSelect._id,
-                way: vm.currentUrlEditSelect.url.way,
+                urlId: vm.currentUrlEditSelect._id,
+                domain: vm.currentUrlEditSelect.domain,
+                officerId: vm.currentUrlEditSelect.admin,
+                way: vm.currentUrlEditSelect.way,
             };
-            console.log("IAM HERE", sendData)
+            console.log("sendData", sendData);
             vm.selectedOfficerUrl = null;
             socketService.$socket($scope.AppSocket, 'updateUrl', sendData, function () {
                     console.log("Url updated");
