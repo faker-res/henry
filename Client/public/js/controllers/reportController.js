@@ -2382,8 +2382,6 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PlayerValue'), data: "valueScore"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
                     {title: $translate('endTime'), data: "endTime$"},
-                    //{title: $translate('LEVEL'), data: "playerLevel$"},
-                    //{title: $translate('CREDIBILITY'), data: "credibility$"},
                     {
                         title: $translate('LOBBY'), data: "provider$", "className": 'expandPlayerReport',
                         render: function (data) {
@@ -2404,6 +2402,8 @@ define(['js/app'], function (myApp) {
                     {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$"},
                     {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$"},
                     {title: $translate('COMPANY_PROFIT'), data: "profit$"},
+                    {title: $translate('csOfficer'), data: "csOfficer"},
+                    {title: $translate('csPromoteWay'), data: "csPromoteWay"},
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
                 ],
                 "paging": false,
