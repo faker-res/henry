@@ -158,6 +158,10 @@ define(['js/app'], function (myApp) {
                 vm.selectedTopupTab = tabName == null ? "manual" : tabName;
             };
 
+            vm.showRewardSettingsTab = function(tabName) {
+                vm.selectedRewardSettingsTab = tabName == null ? "manual-reward" : tabName;
+            };
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
@@ -6034,12 +6038,12 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardPara = {};
                 vm.playerApplyRewardShow = {};
                 vm.playerApplyEventResult = null;
-                $('#modalPlayerApplyReward').modal();
-                $('#modalPlayerApplyReward').on('shown.bs.modal', function () {
-                    $('#modalPlayerApplyReward').off('shown.bs.modal');
+                // $('#modalPlayerApplyReward').modal();
+                // $('#modalPlayerApplyReward').on('shown.bs.modal', function () {
+                //     $('#modalPlayerApplyReward').off('shown.bs.modal');
                     $scope.rewardObj = vm.allRewardEvent[0];
                     vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara);
-                });
+                // });
             }
             vm.getPlayerTopupRecord = function (playerId, rewardObj) {
                 socketService.$socket($scope.AppSocket, 'getValidTopUpRecordList', {
@@ -6131,44 +6135,44 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initPlayerAddRewardTask = function () {
-                vm.playerAddRewadTask = {
+                vm.playerAddRewardTask = {
                     showSubmit: true
                 };
-                $('#modalPlayerAddRewardTask').modal();
+                // $('#modalPlayerAddRewardTask').modal();
             }
 
             vm.submitAddPlayerRewardTask = function () {
-                vm.playerAddRewadTask.showSubmit = false;
+                vm.playerAddRewardTask.showSubmit = false;
                 let providerArr = [];
-                for (let key in vm.playerAddRewadTask.provider) {
-                    if (vm.playerAddRewadTask.provider[key]) {
+                for (let key in vm.playerAddRewardTask.provider) {
+                    if (vm.playerAddRewardTask.provider[key]) {
                         providerArr.push(key);
                     }
                 }
                 let sendObj = {
                     targetProviders: providerArr,
-                    type: vm.playerAddRewadTask.type,
-                    rewardType: vm.playerAddRewadTask.type,
+                    type: vm.playerAddRewardTask.type,
+                    rewardType: vm.playerAddRewardTask.type,
                     platformId: vm.selectedSinglePlayer.platform,
                     playerId: vm.selectedSinglePlayer._id,
                     playerObjId: vm.selectedSinglePlayer._id,
                     playerName: vm.selectedSinglePlayer.name,
-                    requiredUnlockAmount: vm.playerAddRewadTask.requiredUnlockAmount,
-                    currentAmount: vm.playerAddRewadTask.currentAmount,
-                    amount: vm.playerAddRewadTask.currentAmount,
-                    initAmount: vm.playerAddRewadTask.currentAmount,
-                    useConsumption: Boolean(vm.playerAddRewadTask.useConsumption),
-                    remark: vm.playerAddRewadTask.remark,
+                    requiredUnlockAmount: vm.playerAddRewardTask.requiredUnlockAmount,
+                    currentAmount: vm.playerAddRewardTask.currentAmount,
+                    amount: vm.playerAddRewardTask.currentAmount,
+                    initAmount: vm.playerAddRewardTask.currentAmount,
+                    useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
+                    remark: vm.playerAddRewardTask.remark,
                 }
                 console.log('sendObj', sendObj);
                 socketService.$socket($scope.AppSocket, 'createPlayerRewardTask', sendObj, function (data) {
-                    vm.playerAddRewadTask.resMsg = $translate('SUCCESS');
+                    vm.playerAddRewardTask.resMsg = $translate('SUCCESS');
                     if (data.data && data.data.stepInfo) {
                         socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                     }
                     $scope.safeApply();
                 }, function (err) {
-                    vm.playerAddRewadTask.resMsg = err.error.message || $translate('FAIL');
+                    vm.playerAddRewardTask.resMsg = err.error.message || $translate('FAIL');
                     $scope.safeApply();
                 })
             };
@@ -6183,7 +6187,7 @@ define(['js/app'], function (myApp) {
                         vm.manualUnlockRewardTask.resMsg = "";
                     }
                 });
-                $('#modalManualUnlockRewardTask').modal();
+                // $('#modalManualUnlockRewardTask').modal();
                 $scope.safeApply();
             };
 
@@ -7027,7 +7031,8 @@ define(['js/app'], function (myApp) {
             ////////////////// reward task log
             vm.initRewardTaskLog = function () {
                 vm.rewardTaskLog = vm.rewardTaskLog || {totalCount: 0, limit: 10, index: 0, query: {}};
-                utilService.actionAfterLoaded('#modalRewardTaskLog.in #rewardTaskLogQuery .endTime', function () {
+                // utilService.actionAfterLoaded('#modalRewardTaskLog.in #rewardTaskLogQuery .endTime', function () {
+                utilService.actionAfterLoaded('#rewardTaskLogQuery .endTime', function () {
                     vm.rewardTaskLog.query.startTime = utilService.createDatePicker('#rewardTaskLogQuery .startTime');
                     vm.rewardTaskLog.query.endTime = utilService.createDatePicker('#rewardTaskLogQuery .endTime');
                     vm.rewardTaskLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
@@ -13435,6 +13440,7 @@ define(['js/app'], function (myApp) {
                         vm.showPlatformList = true;
                         vm.showPlatformDropDownList = false;
                         vm.showPlatformDetailTab(null);
+                        vm.showRewardSettingsTab(null);
                         vm.platformAction = null;
                         vm.showTopupTab(null);
                         // vm.allGameStatusString = {};
