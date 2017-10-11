@@ -176,7 +176,9 @@ var simplifiedChinese = {
     "Invalid image captcha": "图片验证码不正确，请再次输入",
     "Player is forbidden to the game": "连接游戏端失败,稍后再试",
     "Please Set the Bonus PercentageCharges First": "请先设置提款手续费",
-    "Name already existed": "客服名重复"
+    "Name already existed": "客服名重复",
+    "Cant find player current reward.": "游戏正在维护中，请稍后再试",
+    "Player is forbidden for this reward.": "玩家已被禁止申请此优惠"
     //todo::add missing messages here
 
     /*

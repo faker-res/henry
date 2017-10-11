@@ -18,6 +18,8 @@ var ObjectId = mongoose.Types.ObjectId;
 var dbUtil = require('./../modules/dbutility');
 var dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 
+const dbPlayerReward = require('./../db_modules/dbPlayerReward');
+
 function socketActionReport(socketIO, socket) {
 
     this.socketIO = socketIO;
@@ -428,6 +430,23 @@ function socketActionReport(socketIO, socket) {
                 socketUtil.emitter(self.socket, dbPaymentReconciliation.getOnlinePaymentProposalMismatchReport, [ObjectId(data.platform), data.platformId, data.type, startTime, endTime], actionName, isValidData);
             }
 
+        },
+
+        getLimitedOfferReport: function getLimitedOfferReport(data) {
+            let actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && (endTime > startTime));
+
+            socketUtil.emitter(self.socket, dbPlayerReward.getLimitedOfferReport, [ObjectId(data.platformObjId), startTime, endTime, data.playerName, data.promoName], actionName, isValidData);
+        },
+
+        testPMSCashoutAPI: function testPMSCashoutAPI(data) {
+            let actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.platformId &&data.startTime && data.endTime && (endTime > startTime));
+            socketUtil.emitter(self.socket, dbPaymentReconciliation.testCashoutAPI, [data.platformId, startTime, endTime], actionName, isValidData);
         }
     };
     socketActionReport.actions = this.actions;

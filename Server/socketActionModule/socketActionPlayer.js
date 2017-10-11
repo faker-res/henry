@@ -176,6 +176,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidProviders, [data._id, data.forbidProviders], actionName, isValidData);
         },
 
+        updatePlayerForbidRewardEvents: function updatePlayerForbidRewardEvents(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.forbidRewardEvents);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents], actionName, isValidData);
+        },
+
         /**
          * Delete player infos by _ids
          * @param {json} data - It has to contain _ids(array of player object id)

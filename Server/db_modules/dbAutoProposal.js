@@ -238,6 +238,7 @@ function checkProposalConsumption(proposal, platformObj) {
             let dateTo = proposal.settleTime ? proposal.settleTime : proposal.createTime;
 
             let checkResult = [], checkMsg = "", checkMsgChinese = "";
+            let devCheckMsg = "";
 
             if (proposals && !proposals.length && !bFirstWithdraw && !bNoBonusPermission && !bTransferAbnormal) {
                 // There is no other proposal between this withdrawal and last withdrawal
@@ -265,109 +266,114 @@ function checkProposalConsumption(proposal, platformObj) {
                 );
             }
             else {
-                while (proposals && proposals.length > 0) {
-                    // FIFO dequeue from nearest date proposal
-                    let getProp = proposals.shift();
+                try {
+                    while (proposals && proposals.length > 0) {
+                        // FIFO dequeue from nearest date proposal
+                        let getProp = proposals.shift();
 
-                    // Set query date from checking proposal -> current proposal
-                    // Use settleTime instead of createTime for more accurate consumption calculation
-                    let queryDateFrom = new Date(getProp.settleTime ? getProp.settleTime : getProp.createTime);
-                    let queryDateTo = new Date(dateTo);
+                        // Set query date from checking proposal -> current proposal
+                        // Use settleTime instead of createTime for more accurate consumption calculation
+                        let queryDateFrom = new Date(getProp.settleTime ? getProp.settleTime : getProp.createTime);
+                        let queryDateTo = new Date(dateTo);
 
-                    let checkingNo = countProposals;
-                    switch (getProp.mainType) {
-                        case "TopUp":
-                            // Get real amount left before top up, if there's any top up before transfer in after last withdrawal
-                            if (!isCheckedInitialAmount && initialTransferTime > getProp.settleTime && initialAmount >= getProp.data.amount) {
-                                initialAmount -= getProp.data.amount;
-                                isCheckedInitialAmount = true;
-                            }
-
-                            proms.push(
-                                getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
-                                    record => {
-                                        let curConsumption = 0, bonusAmount = 0;
-                                        if (record && record[0]) {
-                                            curConsumption = record[0].validAmount;
-                                            bonusAmount = record[0].bonusAmount;
-                                        }
-
-                                        checkResult.push({
-                                            sequence: checkingNo,
-                                            proposalId: getProp.proposalId,
-                                            initBonusAmount: getProp.data.amount,
-                                            requiredConsumption: getProp.data.amount,
-                                            curConsumption: curConsumption,
-                                            bonusAmount: bonusAmount,
-                                            settleTime: new Date(queryDateFrom),
-                                            isTopUp: true
-                                        });
-                                    }
-                                )
-                            );
-                            break;
-                        case "Reward":
-                            // Consumption return proposal does not need to check consumption
-                            if (getProp.type == constProposalType.PLAYER_CONSUMPTION_RETURN
-                                || getProp.type == constProposalType.PARTNER_CONSUMPTION_RETURN) {
-                                // return > bonus, and it's the nearest proposal
-                                if (getProp.data.amount >= proposal.data.amount && countProposals == 0) {
-                                    // Flag for force approve
-                                    isTypeEApproval = true;
+                        let checkingNo = countProposals;
+                        switch (getProp.mainType) {
+                            case "TopUp":
+                                // Get real amount left before top up, if there's any top up before transfer in after last withdrawal
+                                if (!isCheckedInitialAmount && initialTransferTime && initialTransferTime.getTime() > getProp.settleTime.getTime() && Number(initialAmount) >= Number(getProp.data.amount)) {
+                                    initialAmount -= getProp.data.amount;
+                                    isCheckedInitialAmount = true;
                                 }
-                            }
-                            else {
-                                // Only check rewards that require consumption
+
                                 proms.push(
-                                    getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo)).then(
+                                    getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
                                         record => {
                                             let curConsumption = 0, bonusAmount = 0;
-                                            let initBonusAmount = 0;
-                                            let isIncludePreviousConsumption = false;
-                                            let spendingAmount = getProp.data.spendingAmount ? getProp.data.spendingAmount : getProp.data.requiredUnlockAmount;
-
-                                            if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
-                                                initBonusAmount = getProp.data.rewardAmount;
-                                                isIncludePreviousConsumption = true;
-                                            } else {
-                                                initBonusAmount = getProp.data.rewardAmount ? getProp.data.rewardAmount : getProp.data.initAmount;
-                                            }
-
                                             if (record && record[0]) {
                                                 curConsumption = record[0].validAmount;
                                                 bonusAmount = record[0].bonusAmount;
                                             }
 
-                                            // Skip applyAmount if reward is consumption return
-                                            let applyAmount = 0;
-
-                                            if (getProp.data.applyAmount) {
-                                                applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
-                                            }
-
                                             checkResult.push({
                                                 sequence: checkingNo,
                                                 proposalId: getProp.proposalId,
-                                                initBonusAmount: initBonusAmount,
-                                                requiredConsumption: spendingAmount - applyAmount,
+                                                initBonusAmount: getProp.data.amount,
+                                                requiredConsumption: getProp.data.amount,
                                                 curConsumption: curConsumption,
                                                 bonusAmount: bonusAmount,
                                                 settleTime: new Date(queryDateFrom),
-                                                isIncludePreviousConsumption: isIncludePreviousConsumption
+                                                isTopUp: true
                                             });
-
                                         }
                                     )
-                                )
-                            }
+                                );
+                                break;
+                            case "Reward":
+                                // Consumption return proposal does not need to check consumption
+                                if (getProp.type == constProposalType.PLAYER_CONSUMPTION_RETURN
+                                    || getProp.type == constProposalType.PARTNER_CONSUMPTION_RETURN) {
+                                    // return > bonus, and it's the nearest proposal
+                                    if (getProp.data.amount >= proposal.data.amount && countProposals == 0) {
+                                        // Flag for force approve
+                                        isTypeEApproval = true;
+                                    }
+                                }
+                                else {
+                                    // Only check rewards that require consumption
+                                    proms.push(
+                                        getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo)).then(
+                                            record => {
+                                                let curConsumption = 0, bonusAmount = 0;
+                                                let initBonusAmount = 0;
+                                                let isIncludePreviousConsumption = false;
+                                                let spendingAmount = getProp.data.spendingAmount ? getProp.data.spendingAmount : getProp.data.requiredUnlockAmount;
 
-                            break;
+                                                if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
+                                                    initBonusAmount = getProp.data.rewardAmount;
+                                                    isIncludePreviousConsumption = true;
+                                                } else {
+                                                    initBonusAmount = getProp.data.rewardAmount ? getProp.data.rewardAmount : getProp.data.initAmount;
+                                                }
+
+                                                if (record && record[0]) {
+                                                    curConsumption = record[0].validAmount;
+                                                    bonusAmount = record[0].bonusAmount;
+                                                }
+
+                                                // Skip applyAmount if reward is consumption return
+                                                let applyAmount = 0;
+
+                                                if (getProp.data.applyAmount) {
+                                                    applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
+                                                }
+
+                                                checkResult.push({
+                                                    sequence: checkingNo,
+                                                    proposalId: getProp.proposalId,
+                                                    initBonusAmount: initBonusAmount,
+                                                    requiredConsumption: spendingAmount - applyAmount,
+                                                    curConsumption: curConsumption,
+                                                    bonusAmount: bonusAmount,
+                                                    settleTime: new Date(queryDateFrom),
+                                                    isIncludePreviousConsumption: isIncludePreviousConsumption
+                                                });
+
+                                            }
+                                        )
+                                    )
+                                }
+
+                                break;
+                        }
+
+                        // After push the action promise, set next dateTo to this checking proposal createTime
+                        dateTo = queryDateFrom;
+
+                        countProposals++;
                     }
-
-                    // After push the action promise, set next dateTo to this checking proposal createTime
-                    dateTo = queryDateFrom;
-
-                    countProposals++;
+                }
+                catch (ex) {
+                    devCheckMsg += "ERROR: " + ex.toString() + "; ";
                 }
             }
 
@@ -378,7 +384,6 @@ function checkProposalConsumption(proposal, platformObj) {
                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
                     let lastTopUpResult = {};
                     let currentProposal = null;
-                    let devCheckMsg = "";
 
                     // Make sure the check result is in correct order
                     checkResult.sort((a, b) => a.settleTime.getTime() - b.settleTime.getTime());
@@ -528,7 +533,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         } else {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：流水 " + validConsumptionAmount + "，所需流水 " + spendingAmount;
-                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese);
+                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                         }
                     } else {
                         // Consumption not reached; Throw back to loop pool or deny this proposal
@@ -588,7 +593,7 @@ function checkProposalConsumption(proposal, platformObj) {
     )
 }
 
-function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese) {
+function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -612,7 +617,8 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                 'data.detail': abnormalMessage ? abnormalMessage : "",
                                 'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
                                 'data.autoAuditRepeatMsg': repeatMsg,
-                                'data.autoAuditRepeatMsgChinese': repeatMsgChinese
+                                'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
+                                'data.devCheckMsg': devCheckMsg
                             },
                             {new: true}
                         );

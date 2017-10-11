@@ -200,6 +200,8 @@ var playerSchema = new Schema({
     quickPayGroup: {type: Schema.ObjectId, ref: 'platformQuickPayGroup'},
     //forbid top up types
     forbidTopUpType: [{type: String}],
+    // forbid reward events by player
+    forbidRewardEvents: [{type: Schema.ObjectId, ref: 'rewardEvent'}],
     //reward info
     //if this player has been rewarded for first time top up event
     bFirstTopUpReward: {type: Boolean, default: false},
@@ -241,7 +243,11 @@ var playerSchema = new Schema({
     // the number of times where player login
     loginTimes: {type: Number, default: 0},
     //for reporo conversion
-    reporoId: {type: String}
+    reporoId: {type: String},
+    // UI Help Info View
+    viewInfo: {
+        limitedOfferInfo: {type: Number, default: 1}
+    }
 });
 
 //record is unique by name and platform
