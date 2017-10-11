@@ -35,7 +35,7 @@ function callSMSAPI(service, functionName, data) {
     setTimeout(function(){
         if( !bOpen ){
             return deferred.reject({
-                status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                status: 400,
                 message: "SMS is not available"
             });
         }
