@@ -2252,17 +2252,17 @@ var proposal = {
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
 
-        if (data.merchantNo && !data.merchantGroup) {
-            query['data.merchantNo'] = data.merchantNo;
+        if (data.merchantNo && data.merchantNo.length > 0 && !data.merchantGroup) {
+            query['data.merchantNo'] = {$in: data.merchantNo};
         }
 
         if (!data.merchantNo && data.merchantGroup) {
             query['data.merchantNo'] = {$in: data.merchantGroup};
         }
 
-        if (data.merchantNo && data.merchantGroup) {
+        if (data.merchantNo && data.merchantNo.length >0 && data.merchantGroup) {
             query['$and'] = [
-                {'data.merchantNo': {$in: [data.merchantNo]}},
+                {'data.merchantNo': {$in: data.merchantNo}},
                 {'data.merchantNo': {$in: data.merchantGroup}}
             ]
         }

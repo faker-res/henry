@@ -450,6 +450,18 @@ define(['js/app'], function (myApp) {
                 // }, function (data) {
                 //     console.log("cannot find proposal status", data);
                 // });
+                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                    data.data.merchantTypes.forEach(mer => {
+                        merGroupName[mer.merchantTypeId] = mer.name;
+                    })
+                    vm.merchantTypes = data.data.merchantTypes;
+                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+
+                    $scope.safeApply();
+
+                }, function (data) {
+                    console.log("merchantList", data);
+                });
 
                 socketService.$socket($scope.AppSocket, 'getMerchantList', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
@@ -461,24 +473,25 @@ define(['js/app'], function (myApp) {
                             merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
                             merGroupList[item.merchantTypeId].list.push(item.merchantNo);
                         }) || [];
-
+                        
+                        Object.keys(vm.merchantNoList).forEach(item=>{
+                           let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
+                           if(vm.merchantTypes[merchantTypeId].name){
+                              vm.merchantNoList[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name :'';
+                           }else{
+                             vm.merchantNoList[item].merchantTypeName = '';
+                           }
+                        })
                         vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
                     }
+
+
                     $scope.safeApply();
                 }, function (data) {
                     console.log("merchantList", data);
                 });
 
-                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                    data.data.merchantTypes.forEach(mer => {
-                        merGroupName[mer.merchantTypeId] = mer.name;
-                    })
 
-                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                    $scope.safeApply();
-                }, function (data) {
-                    console.log("merchantList", data);
-                });
 
                 socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                     if (data && data.data && data.data.data) {
@@ -495,7 +508,9 @@ define(['js/app'], function (myApp) {
 
 
                 utilService.actionAfterLoaded("#topupTablePage", function () {
-
+                  $timeout(function(){
+                    $('.merchantNoList').selectpicker('refresh');
+                  },50)
                     vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
                     vm.queryTopup.merchantType = null;
                     vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
@@ -1278,6 +1293,7 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 createdRow: function(row, data, dataIndex){
                   $compile(angular.element(row).contents())($scope);
+
                 }
 
             }

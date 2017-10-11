@@ -28,6 +28,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 const serverInstance = require("../modules/serverInstance");
+const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 
 var dbPlayerTopUpRecord = {
     /**
@@ -140,15 +141,15 @@ var dbPlayerTopUpRecord = {
                     })
                 }
 
-                if (query.merchantNo && !query.merchantGroup) {
-                    queryObj['data.merchantNo'] = query.merchantNo;
+                if (query.merchantNo && query.merchantNo.length > 0 && !query.merchantGroup) {
+                    queryObj['data.merchantNo'] = {$in: query.merchantNo};
                 }
                 if (!query.merchantNo && query.merchantGroup) {
                     queryObj['data.merchantNo'] = {$in: query.merchantGroup};
                 }
-                if (query.merchantNo && query.merchantGroup) {
+                if (query.merchantNo && query.merchantNo.length > 0  && query.merchantGroup) {
                     queryObj['$and'] = [
-                        {'data.merchantNo': {$in: [query.merchantNo]}},
+                        {'data.merchantNo': {$in: query.merchantNo}},
                         {'data.merchantNo': {$in: query.merchantGroup}}
                     ]
                 }
@@ -167,8 +168,8 @@ var dbPlayerTopUpRecord = {
                 if(query.bankTypeId){
                     queryObj['data.bankTypeId'] = query.bankTypeId;
                 }
-                if(query.merchantNo){
-                    queryObj['data.merchantNo'] = query.merchantNo;
+                if(query.userAgent){
+                    queryObj['data.userAgent'] = query.userAgent;
                 }
 
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
@@ -600,7 +601,7 @@ var dbPlayerTopUpRecord = {
      * @param {Number} topupRequest.amount
      * @param {Number} topupRequest.topupType
      */
-    addOnlineTopupRequest: function (playerId, topupRequest, merchantUseType, clientType) {
+    addOnlineTopupRequest: function (userAgent, playerId, topupRequest, merchantUseType, clientType) {
         var player = null;
         var proposal = null;
         var merchantResponse = null;
@@ -660,6 +661,11 @@ var dbPlayerTopUpRecord = {
                 if (!player.merchantGroup || !player.merchantGroup.merchants) {
                     return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
                 }
+
+                if(userAgent){
+                    userAgent = retrieveAgent(userAgent);
+                }
+
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
@@ -667,6 +673,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.playerLevel = player.playerLevel;
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
+                proposalData.userAgent = userAgent ? userAgent : "";
                 proposalData.creator = {
                     type: 'player',
                     name: player.name,
@@ -842,7 +849,7 @@ var dbPlayerTopUpRecord = {
                         errorMessage: "Top up amount is not enough"
                     });
                 }
-
+                console.log(inputData);
                 if (!player.permission || !player.permission.topupManual) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
@@ -850,7 +857,9 @@ var dbPlayerTopUpRecord = {
                         errorMessage: "Player does not have manual topup permission"
                     });
                 }
-
+                if(inputData.userAgent){
+                    inputData.userAgent = retrieveAgent(inputData.userAgent);
+                }
                 let proposalData = Object.assign({}, inputData);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
@@ -865,6 +874,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
                 proposalData.depositTime = inputData.createTime || "";
                 proposalData.inputData = inputData;
+                proposalData.userAgent = userAgent ? userAgent :"";
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -1482,7 +1492,7 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestAlipayTopup: function (playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, entryType, adminId, adminName, remark, createTime) {
         let player = null;
         let proposal = null;
         let request = null;
@@ -1529,6 +1539,10 @@ var dbPlayerTopUpRecord = {
                             errorMessage: "Player does not have this permission"
                         });
                     }
+                    if(userAgent){
+                        userAgent = retrieveAgent(userAgent);
+                    }
+
                     let proposalData = {};
                     proposalData.playerId = playerId;
                     proposalData.playerObjId = player._id;
@@ -1540,6 +1554,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.alipayName = alipayName;
                     proposalData.alipayAccount = alipayAccount;
                     proposalData.remark = remark;
+                    proposalData.userAgent = userAgent ? userAgent:'';
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
@@ -1694,7 +1709,7 @@ var dbPlayerTopUpRecord = {
      * @param adminId
      * @param adminName
      */
-    requestWechatTopup: function (playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
+    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, entryType, adminId, adminName, remark, createTime) {
         let player = null;
         let proposal = null;
         let request = null;
@@ -1733,7 +1748,9 @@ var dbPlayerTopUpRecord = {
                             errorMessage: "Player does not have this permission"
                         });
                     }
-
+                    if(userAgent){
+                        userAgent = retrieveAgent(userAgent);
+                    }
                     let proposalData = {};
                     proposalData.playerId = playerId;
                     proposalData.playerObjId = player._id;
@@ -1745,6 +1762,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.wechatName = wechatName;
                     proposalData.wechatAccount = wechatAccount;
                     proposalData.remark = remark;
+                    proposalData.userAgent = userAgent ? userAgent : "";
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
@@ -2430,6 +2448,23 @@ function getMinutesBetweenDates(startDate, endDate) {
     var diff = endDate.getTime() - startDate.getTime();
     return Math.floor(diff / 60000);
 }
+
+function retrieveAgent(agentInfo){
+
+    let userAgent = agentInfo;
+    if (userAgent.indexOf("WebKit") !== -1 || userAgent.indexOf("WebView") !== -1) {
+        registrationInterface = 2;
+    }
+    else if (userAgent.indexOf("iOS") !== -1 || userAgent.indexOf("ndroid") !== -1 || userAgent.indexOf("obile") !== -1) {
+        registrationInterface = 3;
+    }
+    else {
+        registrationInterface = 1;
+    }
+    return registrationInterface;
+}
+
+
 // end of count user /merchant
 var proto = dbPlayerTopUpRecordFunc.prototype;
 proto = Object.assign(proto, dbPlayerTopUpRecord);

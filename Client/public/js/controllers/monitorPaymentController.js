@@ -132,7 +132,7 @@ define(['js/app'], function (myApp) {
                 data => {
                     vm.merchants = data[0];
                     vm.merchantTypes = data[1];
-
+                    vm.getMerchantTypeName();
                     vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
                     vm.merchantNumbers = getMerchantNumbers(vm.merchants);
                     vm.getPaymentMonitorRecord();
@@ -149,7 +149,16 @@ define(['js/app'], function (myApp) {
             })
 
         };
-
+        vm.getMerchantTypeName = function(){
+          vm.merchants.map(item=>{
+            let merchantTypeId = item.merchantTypeId;
+            if(merchantTypeId){
+              item.merchantTypeName = vm.merchantTypes[merchantTypeId].name;
+            }else{
+              item.merchantTypeName = '';
+            }
+          })
+        }
         vm.getPaymentMonitorRecord = function (isNewSearch) {
             if (isNewSearch) {
                 $('#autoRefreshProposalFlag').attr('checked', false);
@@ -251,7 +260,7 @@ define(['js/app'], function (myApp) {
                         }
                         item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
                         item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
-
+                          $('.merchantNoList').selectpicker('refresh');
                         return item;
                     }), data.data.size, {}, isNewSearch
                 );
