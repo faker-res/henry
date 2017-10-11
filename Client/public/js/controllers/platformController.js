@@ -2973,14 +2973,18 @@ define(['js/app'], function (myApp) {
                                     'title': $translate("PHONE"),
                                     'data-placement': 'left',
                                 }));
-                                link.append($('<a>', {
-                                    'class': 'fa fa-volume-control-phone',
-                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'tooltip',
-                                    'title': $translate("PHONE"),
-                                    'data-placement': 'right',
-                                }));
+                                if ($scope.checkViewPermission('Platform', 'Player', 'AddFeedback')) {
+                                    link.append($('<a>', {
+                                        //edit here
+                                        'class': 'fa fa-volume-control-phone',
+                                        'ng-click': 'vm.initFeedbackModal();',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalAddPlayerFeedback',
+                                        'title': $translate("PHONE"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
                                 link.append($('<br>'));
                                 link.append($('<a>', {
                                     'class': 'fa fa-envelope margin-right-5 margin-right-5',
