@@ -222,6 +222,17 @@ const dbPaymentReconciliation = {
             }
 
         );
+    },
+
+    // debug purpose only
+    testCashoutAPI: function (platformId, startTime, endTime) {
+        let pmsProm = pmsAPI.reconciliation_getCashoutList({
+            platformId: platformId,
+            starttime: getPMSTimeFormat(startTime),
+            endtime: getPMSTimeFormat(endTime)
+        });
+
+        return pmsProm;
     }
 
 };

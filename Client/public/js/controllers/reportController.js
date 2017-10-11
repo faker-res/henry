@@ -491,6 +491,13 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
                 });
                 $scope.safeApply();
+            } else if (choice == "LIMITED_OFFER_REPORT") {
+                vm.limitedOfferQuery = {};
+                vm.limitedOfferDetail = {};
+                utilService.actionAfterLoaded("#limitedOfferTable", function () {
+                    vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
+                });
+                $scope.safeApply();
             } else if (choice == "PLAYERPARTNER_REPORT") {
                 vm.partnerQuery = {};
                 utilService.actionAfterLoaded("#playerPartnerTable", function () {
@@ -1777,6 +1784,31 @@ define(['js/app'], function (myApp) {
                 console.log('data', data);
             });
 
+        };
+
+        vm.getLimitedOfferReport = function () {
+            $('#limitedOfferTableSpin').show();
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
+                type: vm.limitedOfferQuery.type,
+                playerName: vm.limitedOfferQuery.playerName,
+                promoName: vm.limitedOfferQuery.promoName
+            };
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getLimitedOfferReport', sendQuery, function (data) {
+                console.log('getLimitedOfferReport', data);
+                $('#limitedOfferTableSpin').hide();
+                vm.limitedOfferDetail = data.data;
+                vm.limitedOfferDetail.map(e => {
+                    e.createTime = $scope.timeReformat(e.createTime)
+                });
+
+                $scope.safeApply();
+            });
         };
 
         /////// player domain report
@@ -3738,6 +3770,19 @@ define(['js/app'], function (myApp) {
             content.append(div1, div2);
             return content.html();
         }
+
+        // debug use
+        vm.testCashOutAPI = function (startTime, endTime) {
+            let sendQuery = {
+                platformId: vm.selectedPlatform.platformId,
+                startTime: startTime,
+                endTime: endTime
+            };
+            return $scope.$socketPromise('testPMSCashoutAPI', sendQuery)
+                .then(function (data) {
+                    console.log('testAPIData', data);
+                });
+        };
 
         vm.getStatusStrfromRow = function (row) {
             if (row.status) {
