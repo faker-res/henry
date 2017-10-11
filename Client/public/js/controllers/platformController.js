@@ -2649,10 +2649,13 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
+                                let perm = (row && row.permission) ? row.permission : {};
                                 var link = $('<a>', {
+                                    'class': (perm.forbidPlayerFromLogin === true ? "text-danger" : "text-primary"),
                                     'ng-click': 'vm.showPlayerInfoModal("' + data + '")'
                                 }).text(data);
                                 return link.prop('outerHTML');
+
                             }
                         },
                         {
