@@ -10027,6 +10027,84 @@ let dbPlayerInfo = {
         );
     },
 
+    getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
+        console.log('getDXNewPlayerReport');
+
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
+        query = query ? query : {};
+
+        let startDate = new Date(query.start);
+        let endDate = new Date(query.end);
+        let result = [];
+
+        let stream = dbconfig.collection_players.aggregate({
+            $match: {
+                platform: platform,
+                registrationTime: {$gte: new Date(query.start), $lt: new Date(query.end)}
+            }
+        }).cursor({batchSize: 100}).allowDiskUse(true).exec();
+
+        let balancer = new SettlementBalancer();
+
+        return balancer.initConns().then(function () {
+            return Q(
+                balancer.processStream(
+                    {
+                        stream: stream,
+                        batchSize: constSystemParam.BATCH_SIZE,
+                        makeRequest: function (playerIdObjs, request) {
+                            request("player", "getConsumptionDetailOfPlayers", {
+                                platformId: platform,
+                                startTime: query.start,
+                                endTime: query.end,
+                                query: query,
+                                playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                    return playerIdObj._id;
+                                })
+                            });
+                        },
+                        processResponse: function (record) {
+                            result = result.concat(record.data);
+                        }
+                    }
+                )
+            );
+        }).then(
+            () => {
+                console.log('result', result);
+                // handle index limit sortcol here
+                if (Object.keys(sortCol).length > 0) {
+                    result.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                else {
+                    result.sort(function (a, b) {
+                        if (a._id > b._id) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
+
+                let outputResult = [];
+
+                for (let i = 0, len = limit; i < len; i++) {
+                    result[index + i] ? outputResult.push(result[index + i]) : null;
+                }
+
+                return {size: result.length, data: outputResult};
+            }
+        );
+    },
+
     verifyUserPassword: function (playerName, playerPassword) {
         return dbconfig.collection_players.findOne({name: playerName}, {password: 1}).lean().then(
             playerData => {
@@ -10458,6 +10536,8 @@ let dbPlayerInfo = {
             {playerId: playerId},
             updateQ,
             constShardKeys.collection_players
+        ).then(
+            res => res.viewInfo[field]
         );
     }
 };
