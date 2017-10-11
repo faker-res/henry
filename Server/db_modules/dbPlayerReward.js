@@ -1341,11 +1341,12 @@ let dbPlayerReward = {
         })
     },
 
-    getLimitedOffers: (platformId, playerId, status, showInfo) => {
+    getLimitedOffers: (platformId, playerId, status) => {
         let platformObj;
         let intPropTypeObj;
         let timeSet;
         let rewards;
+        let playerObj;
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -1357,8 +1358,11 @@ let dbPlayerReward = {
                         platformId: platformObj._id,
                         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
                     }).lean();
+                    let playerProm = dbConfig.collection_players.findOne({
+                        playerId: playerId
+                    }).lean();
 
-                    return Promise.all([rewardTypeProm, intentionTypeProm]);
+                    return Promise.all([rewardTypeProm, intentionTypeProm, playerProm]);
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Platform Not Found"});
@@ -1368,6 +1372,7 @@ let dbPlayerReward = {
             res => {
                 let rewardTypeData = res[0];
                 intPropTypeObj = res[1];
+                playerObj = res[2];
 
                 if (rewardTypeData) {
                     let rewardEventQuery = {
@@ -1487,7 +1492,7 @@ let dbPlayerReward = {
 
                 return {
                     time: [...timeSet].join("/"),
-                    showInfo: String(showInfo) === '0' ? 0 : 1,
+                    showInfo: playerObj.viewInfo ? playerObj.viewInfo.limitedOfferInfo : 1,
                     secretList: rewards.filter(e => Boolean(e.displayOriPrice) === false),
                     normalList: rewards.filter(e => Boolean(e.displayOriPrice) === true)
                 }
