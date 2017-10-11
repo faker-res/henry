@@ -241,7 +241,11 @@ var playerSchema = new Schema({
     // the number of times where player login
     loginTimes: {type: Number, default: 0},
     //for reporo conversion
-    reporoId: {type: String}
+    reporoId: {type: String},
+    // UI Help Info View
+    viewInfo: {
+        limitedOfferInfo: {type: Number, default: 1}
+    }
 });
 
 //record is unique by name and platform

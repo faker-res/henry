@@ -10,7 +10,77 @@
         .fa.fa-search.pull-right.margin-all-5
         input#playerTableExactSearch.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}} : {{"PLAYERNAME" | translate}}' ng-model="playerExactSearchText" ng-change="vm.searchForExactPlayerDebounced(playerExactSearchText)")
 .col-md-12(ng-show="checkViewPermission('Platform', 'Player', 'AdvancedSearch') && vm.curPlatformText")
-    .col-md-12.search-filters-container#playerTable-search-filters.well
+    .col-md-12.search-filters-container#playerTable-search-filter.well
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'PLAYER_ID' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'PLAYERNAME' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.name', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'REAL_NAME' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.realName', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'LEVEL' | translate}}
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerLevel', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                option(value='') —
+                option(ng-repeat="(i,v) in vm.allPlayerLvl", value='{{v._id}}') {{v.name | translate}}
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'REGISTRATION_TIME' | translate}}
+            #regDateTimePicker.datetimepicker.form-control
+                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                span.add-on
+                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'REGISTRATION_TIME_END' | translate}}
+            #regEndDateTimePicker.datetimepicker.form-control
+                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                span.add-on
+                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'LAST_ACCESS_TIME' | translate}}
+            #lastAccessDateTimePicker.datetimepicker.form-control
+                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                span.add-on
+                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'LAST_ACCESS_TIME_END' | translate}}
+            #lastAccessEndDateTimePicker.datetimepicker.form-control
+                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                span.add-on
+                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'TELEPHONE' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.phoneNumber', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'BANK_ACCOUNT' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.bankAccount', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'EMAIL' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.email', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'LOGIN_IP' | translate}}
+            input.form-control(ng-model='vm.playerAdvanceSearchQuery.loginIps', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'CREDIBILITY_REMARK' | translate}}
+            select.form-control#selectCredibilityRemark(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6(style="width:400px !important")
+            label.control-label {{'LOCAL_AMOUNT' | translate}}
+            div
+                select.form-control(ng-model='vm.playerAdvanceSearchQuery.creditOperator', style="width:75px;display:inline-block", ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                div(style= "width:8px;display:inline-block")
+                input.form-control(ng-model='vm.playerAdvanceSearchQuery.creditAmountOne', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.playerAdvanceSearchQuery.creditAmountTwo" style="width:80px;display:inline-block" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'" ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filter.col-md-3
+            label.control-label
+            button#resetPlayerQuery.btn.btn-primary.common-button-sm(style="display:block;") {{'Reset' | translate}}
+
+
 
 .col-md-12
     label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.platformPlayerCount}} ({{"Search Result" | translate}} : {{vm.searchPlayerCount}})
@@ -22,7 +92,7 @@
             text s
         label.inlineBlk {{'Auto Refresh' | translate}}
             input#autoRefreshPlayerFlag.margin-left-5(type='checkbox')
-        a.fa.fa-refresh.margin-top-5(ng-click='vm.getPlatformPlayersData()')
+        a.fa.fa-refresh.margin-top-5(ng-click='vm.getPlayersByAdvanceQuery(vm.playerAdvanceSearchQuery)')
             text.margin-right-5.pull-left {{"Refresh" | translate}}
 .col-md-12
     table.common-table#playerDataTable.display(style="min-width:100%;")
@@ -63,8 +133,8 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()')
             text {{"Payment Info History" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'AddFeedback')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalAddPlayerFeedback')
-            text {{"ADD_FEEDBACK" | translate}}
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'AddFeedback')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalAddPlayerFeedback', ng-click='vm.initFeedbackModal()')
+            text {{"FEEDBACK_PLAYER" | translate}}
             i.fa.fa-retweet
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'referrals')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", ng-click='vm.initPlayerReferral()')
             text {{"REFERRAL" | translate}}
@@ -424,7 +494,18 @@ include modalGameCreditLog
                 h4.modal-title {{"FEEDBACK_PLAYER" | translate}}
             .modal-body
                 .panel.panel-primary
-                    .panel-body
+                    ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
+                        .pull-left.padding-all-5
+                        li.active(id = 'addFeedbackTab', ng-show="checkViewPermission('Platform', 'Player','AddFeedback')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.feedbackModalTab = \'addFeedbackPanel\'')
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"ADD_FEEDBACK" | translate}}
+                        li(id = 'feedbackHistoryTab',ng-show="checkViewPermission('Platform', 'Player','FeedbackHistory')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.feedbackModalTab = \'feedbackHistoryPanel\';vm.prepareShowFeedbackRecord();')
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"Feedback History" | translate}}
+
+                #addFeedbackPanel.panel-body(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
                         form(name='form_feedback').well
                             .form-group
                                 label.control-label {{'PLAYER_NAME' | translate}}
@@ -440,7 +521,34 @@ include modalGameCreditLog
                                 label.control-label {{'FEEDBACK_CONTENT' | translate}}
                                 .textareaDetail
                                     textarea.form-control(rows='4', ng-model='vm.playerFeedback.content')
-            .modal-footer
+
+                #feedbackHistoryPanel.panel-body(ng-show="vm.feedbackModalTab === 'feedbackHistoryPanel'")
+                    .well.searchDiv
+                        .inlineBlk
+                            label {{"Start date"|translate}}
+                            .startTime
+                        .inlineBlk
+                            label {{"End date"|translate}}
+                            .endTime
+                        .inlineBlk
+                            button.common-button.btn.btn-primary(ng-click='vm.updatePlayerFeedbackData("#modalAddPlayerFeedback","#playerFeedbackRecordTable")') {{'FILTER' | translate}}
+                            i.fa.fa-spinner.fa-spin(ng-if='vm.playerFeedbackRecord.searching')
+                    //text(ng-if='vm.playerFeedbackData.length==0') {{'NO_RECORD' | translate}}
+                    table#playerFeedbackRecordTable.simple-table.collapse
+                        thead
+                            tr
+                                th(style='min-width:90px;') {{'TIME' | translate}}
+                                th {{'RESULT' | translate}}
+                                th {{'CONTENT' | translate}}
+                                th {{'adminName' | translate}}
+                        tbody(ng-if='vm.playerFeedbackData.data.length>0')
+                            tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
+                                td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
+                                td {{v.result | translate}}
+                                td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
+                                td {{v.adminId.adminName}}
+
+            .modal-footer(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePlayerFeedback();") {{"ADD" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
@@ -953,39 +1061,40 @@ include modalGameCreditLog
                             text {{ (!rewardTask.targetProviders || rewardTask.targetProviders.length <= 0) ? "ALL_PROVIDERS" : rewardTask.targetEnable ? "Allow:" : "Disable:" | translate }}
                             text(ng-repeat='(i,v) in rewardTask.targetProviders') &nbsp;{{v.name}}
 
-#modalPlayerFeedbackRecord.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"Feedback History"| translate}} : {{vm.selectedSinglePlayer.name}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .well.searchDiv
-                            .inlineBlk
-                                label {{"Start date"|translate}}
-                                .startTime
-                            .inlineBlk
-                                label {{"End date"|translate}}
-                                .endTime
-                            .inlineBlk
-                                button.common-button.btn.btn-primary(ng-click='vm.updatePlayerFeedbackData("#modalPlayerFeedbackRecord","#playerFeedbackRecordTable")') {{'FILTER' | translate}}
-                                i.fa.fa-spinner.fa-spin(ng-if='vm.playerFeedbackRecord.searching')
-                        //text(ng-if='vm.playerFeedbackData.length==0') {{'NO_RECORD' | translate}}
-                        table#playerFeedbackRecordTable.simple-table
-                            thead
-                                tr
-                                    th(style='min-width:90px;') {{'TIME' | translate}}
-                                    th {{'RESULT' | translate}}
-                                    th {{'CONTENT' | translate}}
-                                    th {{'adminName' | translate}}
-                            tbody(ng-if='vm.playerFeedbackData.data.length>0')
-                                tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
-                                    td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
-                                    td {{v.result | translate}}
-                                    td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
-                                    td {{v.adminId.adminName}}
+//#modalPlayerFeedbackRecord.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//    .modal-dialog(style='width:60%;')
+//        .modal-content
+//            .modal-header
+//                a.fa.fa-times.close(type='button', data-dismiss='modal')
+//                h4.modal-title {{"Feedback History"| translate}} : {{vm.selectedSinglePlayer.name}}
+//            .modal-body
+//                .panel.panel-primary
+//                    .panel-body
+//                        .well.searchDiv
+//                            .inlineBlk
+//                                label {{"Start date"|translate}}
+//                                .startTime
+//                            .inlineBlk
+//                                label {{"End date"|translate}}
+//                                .endTime
+//                            .inlineBlk
+//                                button.common-button.btn.btn-primary(ng-click='vm.updatePlayerFeedbackData("#modalPlayerFeedbackRecord","#playerFeedbackRecordTable")') {{'FILTER' | translate}}
+//                                i.fa.fa-spinner.fa-spin(ng-if='vm.playerFeedbackRecord.searching')
+//                        //text(ng-if='vm.playerFeedbackData.length==0') {{'NO_RECORD' | translate}}
+//                        table#playerFeedbackRecordTable.simple-table
+//                            thead
+//                                tr
+//                                    th(style='min-width:90px;') {{'TIME' | translate}}
+//                                    th {{'RESULT' | translate}}
+//                                    th {{'CONTENT' | translate}}
+//                                    th {{'adminName' | translate}}
+//                            tbody(ng-if='vm.playerFeedbackData.data.length>0')
+//                                tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
+//                                    td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
+//                                    td {{v.result | translate}}
+//                                    td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
+//                                    td {{v.adminId.adminName}}
+
 
 #playerFeedbackPopover.hide(style="width: 600px")
     label {{"Feedback History"| translate}}
