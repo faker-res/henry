@@ -4247,13 +4247,24 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+                var isChange = false;
+                if (pageSize != vm[objKey].limit) {
+                    isChange = true;
+                    vm[objKey].limit = pageSize;
+                }
+                if ((curP - 1) * pageSize != vm[objKey].index) {
+                    isChange = true;
+                    vm[objKey].index = (curP - 1) * pageSize;
+                }
+                if (isChange) return searchFunc.call(this);
+            };
 
             vm.openEditPlayerDialog = function (selectedTab) {
                 vm.editSelectedTab = "";
                 vm.editSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
                 vm.prepareEditCritical('player');
                 vm.prepareEditPlayerPayment();
-                vm.getPlayerTopUpGroupLog();
                 dialogDetails();
                 function dialogDetails() {
                     let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
@@ -4265,6 +4276,10 @@ define(['js/app'], function (myApp) {
                         $scope: $scope,
                         $compile: $compile,
                         childScope: {
+                            playerTopUpGroupQuery: {
+                                index: 0,
+                                limit: 10
+                            },
                             playerTopUpGroupLog: vm.playerTopUpGroupLog,
                             editPlayerPermission: $scope.checkViewPermission('Platform', 'Player', 'Edit'),
                             editContactPermission: $scope.checkViewPermission('Platform', 'Player', 'EditContact'),
@@ -4316,6 +4331,84 @@ define(['js/app'], function (myApp) {
                             },
                             duplicateNameFound: function () {
                                 return vm.duplicateNameFound;
+                            },
+                            initTopUpGroupChangeLog: function () {
+                                let cvm = this;
+                                utilService.actionAfterLoaded("#topupGroupRecordTablePage", function () {
+                                    cvm.playerTopUpGroupQuery.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
+                                        var isChange = false;
+                                        if (pageSize != vm.playerTopUpGroupQuery.limit) {
+                                            isChange = true;
+                                            cvm.playerTopUpGroupQuery.limit = pageSize;
+                                        }
+                                        if ((curP - 1) * pageSize != vm.playerTopUpGroupQuery.index) {
+                                            isChange = true;
+                                            cvm.playerTopUpGroupQuery.index = (curP - 1) * pageSize;
+                                        }
+                                        if (isChange) return getPlayerTopUpGroupChangeLog(cvm.playerTopUpGroupQuery.index, cvm.playerTopUpGroupQuery.limit);
+                                    });
+                                });
+                            },
+                            getPlayerTopUpGroupChangeLog: function (index, limit) {
+                                let cvm = this;
+                                let playerId = cvm.playerId;
+                                let query = {
+                                    playerId,
+                                    index,
+                                    limit
+                                };
+
+                                socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
+                                    // it is a change log for topup group
+                                    // let singleLog = data.data[i]
+                                    // vm.playerTopUpGroupLog.length = 0;
+                                    cvm.drawChangeLogTable(data.data.data.map(log => {
+                                        console.log(log);
+                                        log.createTime = new Date(log.createTime).toLocaleString();
+                                        log.topUpGroupNames$ = Object.keys(log.topUpGroupNames)[0];
+                                        log.topUpGroupChanges = log.topUpGroupNames[Object.keys(log.topUpGroupNames)[0]];
+
+                                        for (let i = 0, len = vm.departmentUsers.length; i < len; i++) {
+                                            let admin = vm.departmentUsers[i];
+                                            if (log.admin.toString() === admin._id.toString()) {
+                                                log.adminName$ = admin.adminName;
+                                                break;
+                                            }
+                                        }
+
+
+
+
+
+                                        return log;
+                                    }), data.data.size, index, limit)
+                                },
+                                function (err) {
+                                    console.log(err);
+                                });
+                            },
+                            drawChangeLogTable: function (tableData, size, index, limit) {
+                                let tableOptions = {
+                                    data: tableData,
+                                    order: [[3, 'desc']],
+                                    columns: [
+                                        {title: $translate('OPERATOR_NAME'), data: "adminName$"},
+                                        {title: $translate('Topup Group'), data: "topUpGroupNames$", sClass: "realNameCell wordWrap"},
+                                        {title: $translate('TIME'), data: "createTime"},
+                                        {title: $translate("OPERATOR_ACTION"), data: "topUpGroupChanges"},
+                                        {title: $translate("remark"), data: "remark"},
+                                    ],
+                                    "paging": false,
+                                    "dom": 'Zrtlp',
+                                    "autoWidth": true,
+                                    "scrollX": true,
+                                    "scrollCollapse": true,
+                                    "destroy": true,
+                                    "language": {
+                                        "emptyTable": $translate("No data available in table"),
+                                    },
+                                };
+                                utilService.createDatatableWithFooter('#topupGroupRecordTable', tableOptions, {});
                             }
                         }
                     };
@@ -13766,39 +13859,6 @@ define(['js/app'], function (myApp) {
                     console.log(err);
                 });
         };
-
-
-        vm.getPlayerTopUpGroupLog = function (newSearch) {
-            if (!vm.playerTopUpGroupLog) {
-                vm.playerTopUpGroupLog = [];
-            }
-            let query = {
-                playerId: vm.selectedSinglePlayer._id
-            };
-            socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
-                vm.playerTopUpGroupLog.length = 0;
-                for (let i = 0, len = data.data.length; i < len; i++) {
-                    let topUpGroupLog = data.data[i];
-                    vm.playerTopUpGroupLog.push(topUpGroupLog);
-                }
-                for (let i = 0, len = Object.keys(vm.playerTopUpGroupLog).length; i < len; i++) {
-                    let log = vm.playerTopUpGroupLog[i];
-                    log.topUpGroupNames$ = "";
-                    // for (let j = 0, len = Object.keys(log.topUpGroupNames).length; j < len; j++) {
-                    //     log.topUpGroupNames$ += Object.keys(log.topUpGroupNames)[j] + ": " + log.topUpGroupNames[Object.keys(log.topUpGroupNames)[j]];
-                        // j < (len - 1) ? log.topUpGroupNames$ += "\n " : null;
-                    // }
-                    log.topUpGroupNames$ = Object.keys(log.topUpGroupNames)[0]
-                    log.createTime = new Date(log.createTime).toLocaleString();
-                    log.topUpGroupChanges = log.topUpGroupNames[Object.keys(log.topUpGroupNames)[0]];
-                }
-                $scope.safeApply();
-            },
-            function (err) {
-                console.log(err);
-            });
-        };
-
 
         $('body').on('click','#permissionRecordButton',function(){
             vm.getPlayerPermissionChange("new")
