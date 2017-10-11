@@ -46,12 +46,11 @@
                     tbody
                         tr(ng-if="!vm.urlTableAdd && !vm.urlTableEdit", ng-repeat="(i,url) in vm.allUrl", sn-selectable-model="vm.selectedOfficerUrl", sn-selectable-value="url", ng-click="vm.currentUrlEditSelect = url")
                             td
-                                select.form-control#officerOption(ng-model='url.admin', ng-disabled="!vm.urlTableEdit", required, ng-options='a._id as a.adminName group by a.departmentName for a in vm.departmentUsers')
+                                text {{url.adminName$}}
                             td
-                                select.form-control#officerPromoteOption(ng-model='url.way', ng-disabled="!vm.urlTableEdit", required)
-                                    option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+                                text {{url.way}}
                             td
-                                input.form-control(type="text", ng-model="url.domain", ng-disabled="!vm.urlTableEdit", required)
+                                text {{url.domain}}
                             td(ng-if="!vm.urlTableAdd && !vm.urlTableEdit")
                                 a {{'SELECT' | translate}}
                         tr(ng-if="vm.urlTableEdit")
