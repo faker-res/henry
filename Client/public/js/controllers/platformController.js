@@ -4439,6 +4439,7 @@ define(['js/app'], function (myApp) {
                                 index: 0,
                                 limit: 10
                             },
+                            isChangeLogTableInitiated: false,
                             playerTopUpGroupLog: vm.playerTopUpGroupLog,
                             editPlayerPermission: $scope.checkViewPermission('Platform', 'Player', 'Edit'),
                             editContactPermission: $scope.checkViewPermission('Platform', 'Player', 'EditContact'),
@@ -4493,18 +4494,18 @@ define(['js/app'], function (myApp) {
                             },
                             initTopUpGroupChangeLog: function () {
                                 let cvm = this;
-                                utilService.actionAfterLoaded("#topupGroupRecordTablePage", function () {
-                                    cvm.playerTopUpGroupQuery.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
+                                utilService.actionAfterLoaded(".topupGroupRecordTablePage", function () {
+                                    cvm.playerTopUpGroupQuery.pageObj = utilService.createPageForPagingTable(".topupGroupRecordTablePage", {}, $translate, function (curP, pageSize) {
                                         var isChange = false;
-                                        if (pageSize != vm.playerTopUpGroupQuery.limit) {
+                                        if (pageSize != cvm.playerTopUpGroupQuery.limit) {
                                             isChange = true;
                                             cvm.playerTopUpGroupQuery.limit = pageSize;
                                         }
-                                        if ((curP - 1) * pageSize != vm.playerTopUpGroupQuery.index) {
+                                        if ((curP - 1) * pageSize != cvm.playerTopUpGroupQuery.index) {
                                             isChange = true;
                                             cvm.playerTopUpGroupQuery.index = (curP - 1) * pageSize;
                                         }
-                                        if (isChange) return getPlayerTopUpGroupChangeLog(cvm.playerTopUpGroupQuery.index, cvm.playerTopUpGroupQuery.limit);
+                                        if (isChange) return cvm.getPlayerTopUpGroupChangeLog(cvm.playerTopUpGroupQuery.index, cvm.playerTopUpGroupQuery.limit);
                                     });
                                 });
                             },
@@ -4517,6 +4518,11 @@ define(['js/app'], function (myApp) {
                                     limit
                                 };
 
+                                if (!cvm.isChangeLogTableInitiated) {
+                                    cvm.isChangeLogTableInitiated = true;
+                                    cvm.initTopUpGroupChangeLog();
+                                }
+
                                 socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
                                     // it is a change log for topup group
                                     // let singleLog = data.data[i]
@@ -4527,17 +4533,6 @@ define(['js/app'], function (myApp) {
                                         log.topUpGroupNames$ = Object.keys(log.topUpGroupNames)[0];
                                         log.topUpGroupChanges = log.topUpGroupNames[Object.keys(log.topUpGroupNames)[0]];
 
-                                        for (let i = 0, len = vm.departmentUsers.length; i < len; i++) {
-                                            let admin = vm.departmentUsers[i];
-                                            if (log.admin.toString() === admin._id.toString()) {
-                                                log.adminName$ = admin.adminName;
-                                                break;
-                                            }
-                                        }
-
-
-
-
 
                                         return log;
                                     }), data.data.size, index, limit)
@@ -4547,11 +4542,12 @@ define(['js/app'], function (myApp) {
                                 });
                             },
                             drawChangeLogTable: function (tableData, size, index, limit) {
+                                let cvm = this;
                                 let tableOptions = {
                                     data: tableData,
                                     order: [[3, 'desc']],
                                     columns: [
-                                        {title: $translate('OPERATOR_NAME'), data: "adminName$"},
+                                        {title: $translate('OPERATOR_NAME'), data: "admin.adminName"},
                                         {title: $translate('Topup Group'), data: "topUpGroupNames$", sClass: "realNameCell wordWrap"},
                                         {title: $translate('TIME'), data: "createTime"},
                                         {title: $translate("OPERATOR_ACTION"), data: "topUpGroupChanges"},
@@ -4567,7 +4563,9 @@ define(['js/app'], function (myApp) {
                                         "emptyTable": $translate("No data available in table"),
                                     },
                                 };
-                                utilService.createDatatableWithFooter('#topupGroupRecordTable', tableOptions, {});
+                                utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
+                                cvm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
+                                $scope.safeApply()
                             }
                         }
                     };
