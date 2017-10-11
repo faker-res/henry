@@ -4726,3 +4726,12 @@ input[type='number'].leftALignNumber {
     padding: 0px;
   }
 }
+#modalPlayerTopUp .nav-tabs>li {
+    cursor: pointer;
+    z-index: 9;
+}
+#modalPlayerTopUp .nav-tabs>li.active>a {
+    background: #e8e8e8;
+    border: 1px solid #dcdcdc;
+    border-bottom: none;
+}

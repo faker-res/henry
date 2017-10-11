@@ -154,6 +154,10 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
 
+            vm.showTopupTab = function(tabName) {
+                vm.selectedTopupTab = tabName == null ? "manual" : tabName;
+            };
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
@@ -2965,24 +2969,27 @@ define(['js/app'], function (myApp) {
                                     'title': $translate("PHONE"),
                                     'data-placement': 'left',
                                 }));
-                                link.append($('<a>', {
-                                    'class': 'fa fa-volume-control-phone margin-right-5',
-                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'tooltip',
-                                    'title': $translate("PHONE"),
-                                    'data-placement': 'left',
-                                }));
                                 if ($scope.checkViewPermission('Platform', 'Player', 'AddFeedback')) {
                                     link.append($('<a>', {
-                                        //edit here
-                                        'class': 'fa fa-volume-control-phone',
+                                        'class': 'fa fa-volume-control-phone margin-right-5',
                                         'ng-click': 'vm.initFeedbackModal();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalAddPlayerFeedback',
                                         'title': $translate("PHONE"),
                                         'data-placement': 'right',
+                                    }));
+                                }
+                                if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
+                                    link.append($('<a>', {
+                                        'class': 'fa fa-plus-circle',
+                                        'ng-click': 'vm.showTopupTab(null);vm.initPlayerManualTopUp();',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPlayerTopUp',
+                                        'title': $translate("PHONE"),
+                                        'data-placement': 'left',
+                                        'style': 'color: #68C60C'
                                     }));
                                 }
                                 link.append($('<br>'));
@@ -7679,8 +7686,10 @@ define(['js/app'], function (myApp) {
                     vm.existingManualTopup = data.data ? data.data : false;
                     $scope.safeApply();
                 });
-                utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
-                    vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
+                // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
+                //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
+                utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
+                    vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_manual_topup"] .createTime');
                     vm.playerManualTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                 });
                 $scope.safeApply();
@@ -7706,8 +7715,10 @@ define(['js/app'], function (myApp) {
                     });
                 vm.alipaysAcc = '';
 
-                utilService.actionAfterLoaded('#modalPlayerAlipayTopUp', function () {
-                    vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerAlipayTopUp .createTime');
+                // utilService.actionAfterLoaded('#modalPlayerAlipayTopUp', function () {
+                //     vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerAlipayTopUp .createTime');
+                utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
+                    vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_alipay_topup"] .createTime');
                     vm.playerAlipayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                 });
                 $scope.safeApply();
@@ -7780,8 +7791,10 @@ define(['js/app'], function (myApp) {
                     });
                 vm.wechatpaysAcc = '';
 
-                utilService.actionAfterLoaded('#modalPlayerWechatPayTopUp', function () {
-                    vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerWechatPayTopUp .createTime');
+                // utilService.actionAfterLoaded('#modalPlayerWechatPayTopUp', function () {
+                //     vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerWechatPayTopUp .createTime');
+                utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
+                    vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_wechatPay_topup"] .createTime');
                     vm.playerWechatPayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                 });
                 $scope.safeApply();
@@ -13417,6 +13430,7 @@ define(['js/app'], function (myApp) {
                         vm.showPlatformDropDownList = false;
                         vm.showPlatformDetailTab(null);
                         vm.platformAction = null;
+                        vm.showTopupTab(null);
                         // vm.allGameStatusString = {};
                         vm.credibilityRemarks = [];
                         vm.gameStatus = {};
