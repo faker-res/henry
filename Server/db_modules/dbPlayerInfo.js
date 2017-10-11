@@ -10032,8 +10032,6 @@ let dbPlayerInfo = {
     },
 
     getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
-        console.log('getDXNewPlayerReport');
-
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -10045,7 +10043,7 @@ let dbPlayerInfo = {
         let stream = dbconfig.collection_players.aggregate({
             $match: {
                 platform: platform,
-                registrationTime: {$gte: new Date(query.start), $lt: new Date(query.end)}
+                registrationTime: {$gte: startDate, $lt: endDate}
             }
         }).cursor({batchSize: 100}).allowDiskUse(true).exec();
 
@@ -10061,11 +10059,12 @@ let dbPlayerInfo = {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
-                                endTime: query.end,
+                                endTime: moment(query.start).add(query.days, "day"),
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                     return playerIdObj._id;
-                                })
+                                }),
+                                isDX: true
                             });
                         },
                         processResponse: function (record) {
@@ -10076,7 +10075,6 @@ let dbPlayerInfo = {
             );
         }).then(
             () => {
-                console.log('result', result);
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -10139,7 +10137,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, isDX) {
         let proms = [];
         let proposalType = [];
 
@@ -10147,7 +10145,25 @@ let dbPlayerInfo = {
             proposalTypeData => {
                 proposalType = proposalTypeData;
                 for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
-                    proms.push(getPlayerRecord(playerObjIds[p]));
+                    let prom;
+
+                    if (isDX) {
+                        prom = dbconfig.collection_players.findOne({
+                            _id: playerObjIds[p]
+                        }).then(
+                            playerData => {
+                                let qStartTime = new Date(playerData.registrationTime);
+                                let qEndTime = moment(qStartTime).add(query.days, 'day');
+
+                                return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain);
+                            }
+                        );
+
+                        proms.push(prom);
+                    } else {
+                        proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
+                    }
+
                 }
 
                 return Promise.all(proms);
@@ -10163,7 +10179,7 @@ let dbPlayerInfo = {
             }
         );
 
-        function getPlayerRecord(playerObjId) {
+        function getPlayerRecord(playerObjId, startTime, endTime, domain) {
             let result = {_id: playerObjId};
             playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
@@ -10306,9 +10322,20 @@ let dbPlayerInfo = {
                 playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
             }
 
-            let playerProm = dbconfig.collection_players.findOne(playerQuery, {playerLevel: 1, credibilityRemarks: 1, name: 1}).lean();
+            let playerProm = dbconfig.collection_players.findOne(
+                playerQuery, {
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1
+                }
+            ).lean();
 
-            return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm]).then(
+            // Promise domain CS and promote way
+            let promoteWayProm = domain ?
+                dbconfig.collection_csOfficerUrl.findOne({domain: domain}).populate({
+                    path: 'admin',
+                    model: dbconfig.collection_admin
+                }).lean() : Promise.resolve(false);
+
+            return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
                 data => {
                     if (!data[5]) {
                         return "";
@@ -10521,6 +10548,15 @@ let dbPlayerInfo = {
                     result.credibilityRemarks = playerDetail.credibilityRemarks;
                     result.playerLevel = playerDetail.playerLevel;
                     result.name = playerDetail.name;
+                    result.valueScore = playerDetail.valueScore;
+                    result.registrationTime = playerDetail.registrationTime;
+                    result.endTime = endTime;
+
+                    let csOfficerDetail = data[6];
+                    if (csOfficerDetail) {
+                        result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
+                        result.csPromoteWay = csOfficerDetail.way;
+                    }
 
                     return result;
                 }
