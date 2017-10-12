@@ -1198,6 +1198,8 @@
   "userGroupConfig": "代码用户分组设置",
   "GROUP": "群组",
   "ADD_GROUP": "添加群组",
+  "DELETE_GROUP": "删除群组",
+  "Are you sure you want to delete group": "你确定要删除群组",
   "COLOR_CODE": "颜色代码",
   "INLINE_EDIT": "同行编辑",
   "ACTIVATE_PROMO_CODE": "展示已使用代码",
