@@ -367,9 +367,10 @@ define(['js/app'], function (myApp) {
                     language: 'en',
                     format: 'yyyy/MM/dd hh:mm:ss',
                 });
-                var lastMonth = utilService.setNDaysAgo(new Date(), 1);
-                var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
-                vm.queryProposalstartTime = $("#datetimepicker").data('datetimepicker').setLocalDate(lastMonthDateStartTime);
+                let defaultStartTime = new Date();
+                // let default start time to be 3 hours ago
+                defaultStartTime.setHours(defaultStartTime.getHours() - 3);
+                vm.queryProposalstartTime = $("#datetimepicker").data('datetimepicker').setLocalDate(defaultStartTime);
 
                 $('#datetimepicker2').datetimepicker({
                     language: 'en',
