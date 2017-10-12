@@ -10393,7 +10393,7 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeEdit = false;
                 vm.promoCodeSMSContentEdit = false;
                 vm.promoCodeUserGroupEdit = false;
-                vm.promoCodeUserGroupAdd = false;
+                vm.promoCodeUserGroupAdd=false;
                 vm.promoCodeUserGroupPlayerEdit = false;
                 vm.promoCodeUserGroupPlayerAdd = false;
 
