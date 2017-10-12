@@ -478,22 +478,67 @@ define(['js/app'], function (myApp) {
                 });
             } else if (choice == 'DX_NEWACCOUNT_REPORT') {
                 utilService.actionAfterLoaded('#dxNewPlayerReportTablePage', function () {
-                    // todo :: change date to yesterday
                     let yesterday = utilService.setNDaysAgo(new Date(), 1);
                     let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                     let todayEndTime = utilService.getTodayEndTime();
-                    vm.dxNewPlayerQuery = {days: 1};
-                    vm.dxNewPlayerQuery.consumptionTimesOperator = ">=";
-                    vm.dxNewPlayerQuery.profitAmountOperator = ">=";
-                    vm.dxNewPlayerQuery.topUpTimesOperator = ">=";
-                    vm.dxNewPlayerQuery.bonusTimesOperator = ">=";
-                    vm.dxNewPlayerQuery.topUpAmountOperator = ">=";
+
+                    // Get Promote CS and way lists
+                    vm.allPromoteWay = {};
+                    let query = {
+                        platformId: vm.selectedPlatform._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                            vm.allPromoteWay = data.data;
+                            console.log("vm.allPromoteWay", vm.allPromoteWay);
+                            $scope.safeApply();
+                        },
+                        function (err) {
+                            console.log(err);
+                        });
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, function success(data) {
+                        let parentObjId;
+                        vm.queryDepartments = [];
+                        vm.queryRoles = [];
+
+                        // Get department
+                        data.data.map(e => {
+                            e.platforms.map(f => {
+                                if (String(f) == String(vm.selectedPlatform._id)) {
+                                    parentObjId = e._id;
+                                }
+                            })
+                        });
+
+                        // Get department childrens
+                        data.data.map(e => {
+                            if (String(e.parent) == String(parentObjId)) {
+                                vm.queryDepartments.push(e);
+                            }
+                        });
+
+                        //vm.drawDepartmentTree();
+                        //vm.getAllUserData();
+                        $scope.$digest();
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+
+                    vm.dxNewPlayerQuery = {
+                        days: 1,
+                        valueScoreOperator: ">=",
+                        topUpTimesOperator: ">=",
+                        bonusTimesOperator: ">=",
+                        topUpAmountOperator: ">="
+                    };
                     vm.dxNewPlayerQuery.start = utilService.createDatePicker('#dxNewPlayerReportQuery .startTime');
                     vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
                     vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     vm.dxNewPlayerQuery.pageObj = utilService.createPageForPagingTable("#dxNewPlayerReportTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "dxNewPlayerQuery", vm.searchPlayerReport);
+                        vm.commonPageChangeHandler(curP, pageSize, "dxNewPlayerQuery", vm.searchDXNewPlayerReport);
                     });
                     $scope.safeApply();
                 })
@@ -870,7 +915,39 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 console.log("create not", data);
             });
-        }
+        };
+
+        vm.endLoadMultipleSelect = function () {
+            $timeout(function () {
+                $('.spicker').selectpicker('refresh');
+            }, 0);
+        };
+
+        vm.setQueryRole = () => {
+            vm.queryRoles = [];
+
+            vm.queryDepartments.map(e => {
+                if (vm.dxNewPlayerQuery.departments.indexOf(e._id) >= 0) {
+                    vm.queryRoles = vm.queryRoles.concat(e.roles);
+                }
+            });
+
+            vm.endLoadMultipleSelect();
+            $scope.safeApply();
+        };
+
+        vm.setQueryAdmins = () => {
+            vm.queryAdmins = [];
+
+            vm.queryRoles.map(e => {
+                if (vm.dxNewPlayerQuery.roles.indexOf(e._id) >= 0) {
+                    vm.queryAdmins = vm.queryAdmins.concat(e.users);
+                }
+            });
+
+            vm.endLoadMultipleSelect();
+            $scope.safeApply();
+        };
 
         vm.getGameByIds = function (id) {
             if (!id) return;
@@ -2263,12 +2340,41 @@ define(['js/app'], function (myApp) {
         vm.searchDXNewPlayerReport = function (newSearch) {
             $('#dxNewPlayerReportTableSpin').show();
 
+            let admins = [];
+
+            if (vm.dxNewPlayerQuery.departments) {
+                if (vm.dxNewPlayerQuery.roles) {
+                    vm.queryRoles.map(e => {
+                        if (vm.dxNewPlayerQuery.roles.indexOf(e._id) >= 0) {
+                            e.users.map(f => admins.push(f.adminName))
+                        }
+                    })
+                } else {
+                    vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                }
+            }
+
             let sendquery = {
                 platformId: vm.curPlatformId,
                 query: {
                     start: vm.dxNewPlayerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxNewPlayerQuery.end.data('datetimepicker').getLocalDate(),
-                    days: vm.dxNewPlayerQuery.days
+                    days: vm.dxNewPlayerQuery.days,
+                    userType: vm.dxNewPlayerQuery.userType,
+                    csPromoteWay: vm.dxNewPlayerQuery.csPromoteWay,
+                    admins: vm.dxNewPlayerQuery.admins && vm.dxNewPlayerQuery.admins.length > 0 ? vm.dxNewPlayerQuery.admins : admins,
+                    valueScoreOperator: vm.dxNewPlayerQuery.valueScoreOperator,
+                    playerScoreValue: vm.dxNewPlayerQuery.playerScoreValue,
+                    playerScoreValueTwo: vm.dxNewPlayerQuery.playerScoreValueTwo,
+                    topUpTimesOperator: vm.dxNewPlayerQuery.topUpTimesOperator,
+                    topUpTimesValue: vm.dxNewPlayerQuery.topUpTimesValue,
+                    topUpTimesValueTwo: vm.dxNewPlayerQuery.topUpTimesValueTwo,
+                    bonusTimesOperator: vm.dxNewPlayerQuery.bonusTimesOperator,
+                    bonusTimesValue: vm.dxNewPlayerQuery.bonusTimesValue,
+                    bonusTimesValueTwo: vm.dxNewPlayerQuery.bonusTimesValueTwo,
+                    topUpAmountOperator: vm.dxNewPlayerQuery.topUpAmountOperator,
+                    topUpAmountValue: vm.dxNewPlayerQuery.topUpAmountValue,
+                    topUpAmountValueTwo: vm.dxNewPlayerQuery.topUpAmountValueTwo
                 },
                 index: newSearch ? 0 : (vm.dxNewPlayerQuery.index || 0),
                 limit: vm.dxNewPlayerQuery.limit || 5000,
