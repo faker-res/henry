@@ -2742,12 +2742,20 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 // todo :: #22
                                 data = data || '';
-                                return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
-                                    'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
-                                    'ng-click="vm.onEditPlayerCheck(\''+ row._id +'\');"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text($translate(data.name))
-                                    .prop('outerHTML');
+                                if ($scope.checkViewPermission('Platform', 'Player', 'Edit')) {
+                                    return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                        'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
+                                        'ng-click="vm.onEditPlayerCheck(\'' + row._id + '\');"></a>')
+                                        .attr('data-row', JSON.stringify(row))
+                                        .text($translate(data.name))
+                                        .prop('outerHTML');
+                                }else {
+                                    return $('<span style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                        'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ></span>')
+                                        .attr('data-row', JSON.stringify(row))
+                                        .text($translate(data.name))
+                                        .prop('outerHTML');
+                                }
                             },
                             // advSearch: true,
                             filterConfig: {
@@ -3015,14 +3023,20 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',   // because top and bottom got hidden behind the table edges
                                     }));
                                 }
-                                link.append($('<a>', {
-                                    'class': 'fa fa-comment margin-right-5 margin-right-5',
-                                    'ng-click': 'vm.initSMSModal();vm.telorMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'tooltip',
-                                    'title': $translate("Send SMS to Player"),
-                                    'data-placement': 'left',
-                                }));
+                                if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 margin-right-5',
+                                        'src': "images/icon/rewardBlue.png",
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.initRewardSettings();',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPlayerAddRewardTask',
+                                        'title': $translate("REWARD_ACTION"),
+                                        'data-placement': 'left',
+                                    }));
+                                }
                                 link.append($('<a>', {
                                     'class': 'fa fa-volume-control-phone margin-right-5',
                                     'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
