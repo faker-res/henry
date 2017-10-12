@@ -9850,7 +9850,8 @@ let dbPlayerInfo = {
                     }
                     return dbconfig.collection_playerMail.update(
                         qObj,
-                        {bDelete: true}
+                        {bDelete: true},
+                        {multi: true}
                     );
                 }
                 else {
