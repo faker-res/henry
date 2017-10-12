@@ -76,17 +76,56 @@ define(['js/app'], function (myApp) {
               proposalId: proposalId
           }, function (data) {
             vm.selectedProposal = data.data;
+            let playerName = vm.selectedProposal.playerName;
+            let typeName = [vm.selectedProposal.type.name];
+            if(vm.selectedProposal.data.inputData.provinceId){
+                vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+            }
+            if(vm.selectedProposal.data.inputData.cityId){
+                vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+            }
+            // vm.selectedProposal.data.cityId;
             $('#modalProposal').modal('show');
             $('#modalProposal').on('shown.bs.modal', function (e) {
               $scope.safeApply();
             })
-
+            vm.loadTodayTopupQuota(playerName, typeName);
           })
         }
+        vm.loadTodayTopupQuota = function(playerName, typeName){
+          var selectedStatus =  ["Success", "Fail", "Pending"];
+          var start = new Date();
+          start.setHours(0,0,0,0);
+          var end = new Date();
+          end.setHours(23,59,59,999);
+
+          var sendData = {
+              adminId: authService.adminId,
+              platformId: vm.selectedPlatform._id,
+              type: typeName,
+              startDate: start,
+              endDate: end,
+              name: playerName,
+              size: 10,
+              index: 0
+          }
+          if (selectedStatus && selectedStatus != "") {
+              sendData.status = selectedStatus
+          } else {
+              sendData.status = ["Success", "Fail", "Pending"];
+          }
+
+          socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
+               console.log(data.data.data);
+               if(data.data.summary.amount){
+                  vm.selectedProposal.quota = data.data.summary.amount;
+               }
+          });
+        }
         vm.initMultiSelect = function(){
-            $timeout(function () {
-              $('.merchantNoList').selectpicker('refresh');
-            });
+            // $timeout(function () {
+            //   $('.merchantNoList').selectpicker('refresh');
+            // });
         }
             // display  proposal detail
             vm.showProposalDetailField = function (obj, fieldName, val) {
@@ -476,7 +515,7 @@ define(['js/app'], function (myApp) {
 
                         Object.keys(vm.merchantNoList).forEach(item=>{
                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
-                           if(vm.merchantTypes[merchantTypeId].name){
+                           if(vm.merchantTypes[merchantTypeId]){
                               vm.merchantNoList[item].merchantTypeName = merchantTypeId ? vm.merchantTypes[merchantTypeId].name :'';
                            }else{
                              vm.merchantNoList[item].merchantTypeName = '';
@@ -508,9 +547,9 @@ define(['js/app'], function (myApp) {
 
 
                 utilService.actionAfterLoaded("#topupTablePage", function () {
-                  $timeout(function(){
-                    $('.merchantNoList').selectpicker('refresh');
-                  },50)
+                  // $timeout(function(){
+                  //   $('.merchantNoList').selectpicker('refresh');
+                  // },50)
                     vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
                     vm.queryTopup.merchantType = null;
                     vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
@@ -1205,7 +1244,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch
                 );
-                $scope.safeApply();
+                // $scope.safeApply();
             }, function (err) {
                 console.log(err);
             }, true);
@@ -1296,7 +1335,6 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 createdRow: function(row, data, dataIndex){
                   $compile(angular.element(row).contents())($scope);
-
                 }
 
             }
@@ -4120,7 +4158,21 @@ define(['js/app'], function (myApp) {
             eventName = "socketConnected";
             $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
         }
+        vm.getProvinceName = function(provinceId){
+          socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
+              var text = data.data.province ? data.data.province.name : '';
+              vm.selectedProposal.data.provinceName = text;
+              $scope.safeApply();
+          });
+        }
 
+        vm.getCityName = function(cityId){
+          socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
+              var text = data.data.city ? data.data.city.name : '';
+              vm.selectedProposal.data.cityName = text;
+              $scope.safeApply();
+          });
+        }
 
         $scope.$on(eventName, function (e, d) {
 
@@ -4145,7 +4197,7 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
                         vm.gameAllTypes = data.data;
-                        //console.log("getAllGameTypes",vm.gameAllTypes);
+                        //console.log("getAllGameTypfes",vm.gameAllTypes);
                         $scope.safeApply();
                     }, function (data) {
                         console.log("create not", data);

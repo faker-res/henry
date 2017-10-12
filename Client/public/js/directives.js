@@ -228,6 +228,21 @@ angular.module('myApp.directives', [])
     };
   })
 
+  .directive('bsp', function($timeout){
+   return  {
+      restrict : 'A',
+      link: function(scope, element, attrs){
+        if (attrs.ngOptions && / in /.test(attrs.ngOptions)) {
+            scope.$watch(attrs.ngOptions.split(' in ')[1], function() {
+                scope.$applyAsync(function () {
+                    $(element).selectpicker('refresh');
+                });
+            }, true);
+        }
+      }
+    };
+  })
+
   .directive('ezNormalButton', function () {
     return {
       restrict: 'E',

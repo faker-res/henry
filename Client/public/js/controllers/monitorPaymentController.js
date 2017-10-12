@@ -149,11 +149,26 @@ define(['js/app'], function (myApp) {
             })
 
         };
+        vm.getProvinceName = function(provinceId){
+          socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
+              var text = data.data.province ? data.data.province.name : '';
+              vm.selectedProposal.data.provinceName = text;
+              $scope.safeApply();
+          });
+        }
+
+        vm.getCityName = function(cityId){
+          socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
+              var text = data.data.city ? data.data.city.name : '';
+              vm.selectedProposal.data.cityName = text;
+              $scope.safeApply();
+          });
+        }
         vm.getMerchantTypeName = function(){
           vm.merchants.map(item=>{
             let merchantTypeId = item.merchantTypeId;
             if(merchantTypeId){
-              item.merchantTypeName = vm.merchantTypes[merchantTypeId].name;
+              item.merchantTypeName = vm.merchantTypes[merchantTypeId] ? vm.merchantTypes[merchantTypeId].name : "";
             }else{
               item.merchantTypeName = '';
             }
@@ -220,6 +235,7 @@ define(['js/app'], function (myApp) {
                 console.log('Payment Monitor Result', data);
                 vm.paymentMonitorQuery.totalCount = data.data.size;
                 $scope.safeApply();
+
                 vm.drawPaymentRecordTable(
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
@@ -260,7 +276,7 @@ define(['js/app'], function (myApp) {
                         }
                         item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
                         item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
-                          $('.merchantNoList').selectpicker('refresh');
+                          // $('.merchantNoList').selectpicker('refresh');
                         return item;
                     }), data.data.size, {}, isNewSearch
                 );
@@ -297,7 +313,26 @@ define(['js/app'], function (myApp) {
             $('#autoRefreshProposalFlag')[0].checked = true;
             $scope.safeApply();
         };
+        vm.showProposalModal = function(proposalId){
+          socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+              platformId: vm.selectedPlatform._id,
+              proposalId: proposalId
+          }, function (data) {
+            vm.selectedProposal = data.data;
+            if(vm.selectedProposal.data.inputData.provinceId){
+                vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
+            }
+            if(vm.selectedProposal.data.inputData.cityId){
+                vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+            }
+            // vm.selectedProposal.data.cityId;
+            $('#modalProposal').modal('show');
+            $('#modalProposal').on('shown.bs.modal', function (e) {
+              $scope.safeApply();
+            })
 
+          })
+        }
         vm.drawPaymentRecordTable = function (data, size, summary, newSearch) {
             console.log('data', data);
             let tableOptions = {
@@ -314,7 +349,7 @@ define(['js/app'], function (myApp) {
                         "title": $translate('proposalId'),
                         "data": "proposalId",
                         render: function (data, type, row) {
-                          return '<a ng-click="vm.showProposalModal2('+data+')">'+data+'</a>';
+                          return '<a ng-click="vm.showProposalModal('+data+')">'+data+'</a>';
                         }
                     },
                     {

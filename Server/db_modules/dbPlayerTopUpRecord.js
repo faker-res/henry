@@ -780,7 +780,7 @@ var dbPlayerTopUpRecord = {
      * @param playerID
      * @param inputData
      */
-    addManualTopupRequest: function (playerId, inputData, entryType, adminId, adminName, fromFPMS) {
+    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS) {
         var player = null;
         var proposal = null;
         var request = null;
@@ -857,8 +857,8 @@ var dbPlayerTopUpRecord = {
                         errorMessage: "Player does not have manual topup permission"
                     });
                 }
-                if(inputData.userAgent){
-                    inputData.userAgent = retrieveAgent(inputData.userAgent);
+                if(userAgent){
+                    userAgent = retrieveAgent(userAgent);
                 }
                 let proposalData = Object.assign({}, inputData);
                 proposalData.playerId = playerId;
