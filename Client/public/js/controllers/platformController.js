@@ -11349,8 +11349,13 @@ define(['js/app'], function (myApp) {
                         vm.newUserPromoCodeUserGroup.newGroup.playerNames.push(data);
                         vm.newUserPromoCodeUserGroup = null;
                     } else {
-                        vm.selectedPromoCodeUserGroup.playerNames.push(data);
-                        vm.newUserPromoCodeUserGroup = null;
+                        vm.countNewLinesInString = (vm.newUserPromoCodeUserGroup.name.match(/\n/g)||[]).length;
+                        vm.splitNewLine = vm.newUserPromoCodeUserGroup.name.split("\n");
+
+                        for(var i = 0; i < vm.splitNewLine.length; i++) {
+                            vm.selectedPromoCodeUserGroup.playerNames.push(vm.splitNewLine[i].trim());
+                            vm.newUserPromoCodeUserGroup = null;
+                        }
                     }
 
                     data = null;
