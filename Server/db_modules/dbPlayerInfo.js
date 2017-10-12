@@ -10498,8 +10498,9 @@ let dbPlayerInfo = {
             );
         }
 
+
     },
-    
+
     setShowInfo: (playerId, field, flag) => {
         let updateQ = {
             viewInfo: {}
@@ -10537,11 +10538,21 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
-    getPlayerTopUpGroupLog: function (playerId) {
-        return dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).populate(
+    getPlayerTopUpGroupLog: function (playerId, index, limit) {
+        let logProm = dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).skip(index).limit(limit).sort({createTime: -1}).populate(
             {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
-        ).lean()
-    }
+        ).lean();
+        let countProm = dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
 
 };
 
