@@ -981,7 +981,17 @@ let dbPlayerReward = {
         return Promise.all(saveArr);
     },
 
+    saveDelayDurationGroup: (platformObjId, data) => {
+        let saveObj = {consumptionTimeConfig: data};
+
+        return dbConfig.collection_platform.findOneAndUpdate({
+            _id: platformObjId
+        }, saveObj);
+
+    },
+
     getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+    getDelayDurationGroup: (platformObjId,duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
     applyPromoCode: (platformObjId, playerName, promoCode, adminInfo) => {
         let promoCodeObj, playerObj, topUpProp;

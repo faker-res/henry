@@ -146,6 +146,52 @@ define(['js/app'], function (myApp) {
                 vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
             };
 
+            //////////Lin Hao:: Provider List Delay Popup
+            utilService.setupPopover({
+                context: ulMenu,
+                elem: '.providerListPopover',
+                content: function () {
+                    // vm.getProviderLatestTimeRecord();
+                    $scope.safeApply();
+                    return $compile($('#providerListPopover').html())($scope);
+                },
+                callback: function () {
+                    let thisPopover = utilService.$getPopoverID(this);
+                    $scope.safeApply();
+                }
+            });
+
+            vm.getProviderLatestTimeRecord = function () {
+                console.log("should show twice")
+                vm.providerLatestTime = {};
+                vm.delayStatus = {};
+
+                let counter = 1;
+
+                let p = Promise.resolve();
+
+                vm.platformProviderList.forEach(providerId => {
+                    p = p.then(() => {
+                        return $scope.$socketPromise('getProviderLatestTimeRecord', {providerId: providerId.providerId,platformObjId: vm.selectedPlatform.id}).then(function (data) {
+                            console.log('getPlatformProviderTime', providerId.providerId, data);
+
+                            if(data.data){
+                                vm.providerLatestTime[counter] = vm.dateReformat(data.data.createTime);
+                                vm.delayStatus[counter] = data.data.delayStatusColor;
+                            }
+                            else
+                            {
+                                vm.providerLatestTime[counter] = "";
+                                vm.delayStatus[counter] = "rgb(255,255,255)";
+                            }
+                            counter ++;
+                            $scope.safeApply();
+                        })
+                    })
+                })
+                return p;
+            }
+
             vm.setPlatformFooter = function(platformAction) {
                 vm.platformAction = platformAction;
             };
@@ -10401,6 +10447,7 @@ define(['js/app'], function (myApp) {
             vm.configTabClicked = function (choice) {
                 vm.selectedConfigTab = choice;
                 vm.configTableEdit = false;
+                vm.delayDurationGroupProviderEdit = false;
                 switch (choice) {
                     case 'player':
                         //vm.playerTableShowCol = {};
@@ -10431,6 +10478,10 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'platformBasic':
                         vm.getPlatformBasic();
+                        vm.getDelayDurationGroup();
+                        loadDelayDurationGroup();
+
+                        vm.newDelayDurationGroup = {};
                         break;
                     case 'bonusBasic':
                         vm.getBonusBasic();
@@ -10455,6 +10506,7 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeEdit = false;
                 vm.promoCodeSMSContentEdit = false;
                 vm.promoCodeUserGroupEdit = false;
+                vm.delayDurationGroupEdit = false;
                 vm.promoCodeUserGroupInlineEdit = false;
                 vm.promoCodeUserGroupPlayerEdit = false;
 
@@ -10467,6 +10519,7 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeType3 = [];
 
                 vm.userGroupConfig = [];
+                vm.durationGroupConfig = [];
                 vm.modalYesNo = {};
 
                 loadPromoCodeTypes();
@@ -10588,6 +10641,12 @@ define(['js/app'], function (myApp) {
                 vm.selectedPromoCodeUserGroup = null;
 
                 vm.getPromoCodeUserGroup();
+            }
+
+            function loadDelayDurationGroup() {
+                vm.selectedDelayDurationGroup = null;
+
+                vm.getDelayDurationGroup();
             }
 
             vm.checkPlayerName = function (el, id) {
@@ -11371,8 +11430,19 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                        socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
                 }
+            };
+
+            vm.saveDelayDurationGroup = function (isDelete, index) {
+                console.log('durationGroupConfig', vm.durationGroupConfig);
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    groupData: vm.durationGroupConfig
+                };
+
+                socketService.$socket($scope.AppSocket, 'saveDelayDurationGroup', sendData);
             };
 
             vm.searchPromoCodeUserGroup = function (s, isRet) {
@@ -11427,6 +11497,18 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
+            vm.getDelayDurationGroup = function(){
+                socketService.$socket($scope.AppSocket, 'getDelayDurationGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log('getDelayDurationGroup', data);
+
+                    if(data.data[0].consumptionTimeConfig){
+                        vm.durationGroupConfig = data.data[0].consumptionTimeConfig;
+                        $scope.safeApply();
+                    }
+
+                });
+            }
 
             vm.getAllPartnerLevels = function () {
 
