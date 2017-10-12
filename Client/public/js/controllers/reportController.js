@@ -1118,6 +1118,7 @@ define(['js/app'], function (myApp) {
 
             vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
+
             $('#topupTable').off('order.dt');
             $('#topupTable').on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'queryTopup', vm.searchTopupRecord);

@@ -279,6 +279,9 @@ let apiLogModel = dbLogs.model('apiLog', apiLogSchema, 'apiLog');
 let playerCredibilityUpdateLogSchema = require('./../schema/logs/playerCredibilityUpdateLog');
 let playerCredibilityUpdateLogModel = dbLogs.model('playerCredibilityUpdateLog', playerCredibilityUpdateLogSchema, 'playerCredibilityUpdateLog');
 
+let playerTopUpGroupUpdateLogSchema = require('./../schema/logs/playerTopUpGroupUpdateLog');
+let playerTopUpGroupUpdateLogModel = dbLogs.model('playerTopUpGroupUpdateLog', playerTopUpGroupUpdateLogSchema, 'playerTopUpGroupUpdateLog');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -413,6 +416,7 @@ var dbProperties = {
     collection_promoCode: promoCodeModel,
     collection_playerState: playerStateModel,
     collection_playerCredibilityUpdateLog: playerCredibilityUpdateLogModel,
+    collection_playerTopUpGroupUpdateLog: playerTopUpGroupUpdateLogModel,
 
     //unique
     collection_playerName: playerNameModal,

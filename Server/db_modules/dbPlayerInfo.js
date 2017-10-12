@@ -10497,8 +10497,9 @@ let dbPlayerInfo = {
                 }
             );
         }
-    },
 
+    },
+    
     setShowInfo: (playerId, field, flag) => {
         let updateQ = {
             viewInfo: {}
@@ -10512,7 +10513,36 @@ let dbPlayerInfo = {
             updateQ,
             constShardKeys.collection_players
         );
+    },
+
+    createUpdateTopUpGroupLog: (player, adminId, bankGroup, remark) => {
+        remark = remark || "";
+        let proms = [];
+        for (let i = 0; i < Object.keys(bankGroup).length; i++){
+            if (bankGroup.hasOwnProperty(Object.keys(bankGroup)[i])) {
+                let bankGroup$ = {};
+                bankGroup$[Object.keys(bankGroup)[i]] = bankGroup[Object.keys(bankGroup)[i]];
+                let logDetail = {
+                    admin: adminId,
+                    player: player,
+                    topUpGroupNames: bankGroup$,
+                    remark: remark
+                }
+
+                let createSingleLog = dbconfig.collection_playerTopUpGroupUpdateLog(logDetail)
+                    .save().then().catch(errorUtils.reportError);
+                proms.push(createSingleLog);
+            }
+        }
+        return Promise.all(proms);
+    },
+
+    getPlayerTopUpGroupLog: function (playerId) {
+        return dbconfig.collection_playerTopUpGroupUpdateLog.find({player: playerId}).populate(
+            {path: "admin",select: 'adminName', model: dbconfig.collection_admin}
+        ).lean()
     }
+
 };
 
 

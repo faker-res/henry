@@ -16,6 +16,9 @@ define(['js/app'], function (myApp) {
             vm.editPlayer = {};
             vm.editPartner = {};
             vm.merchantTopupTypeJson = $scope.merchantTopupTypeJson;
+            vm.provinceList = [];
+            vm.cityList = [];
+            vm.districtList = [];
 
             // constants declaration
             vm.allPlayerCreditTransferStatus = {
@@ -4438,55 +4441,113 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.openEditPlayerDialog = function () {
-                let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
-                let editPlayer = vm.editPlayer;                  // ~ 6 fields
-                let allPartner = vm.partnerIdObj;
-                let allPlayerLevel = vm.allPlayerLvl;
 
-                let option = {
-                    $scope: $scope,
-                    $compile: $compile,
-                    childScope: {
-                        allPlayerLevel: allPlayerLevel,
-                        allPartner: allPartner,
-                        playerId: selectedPlayer._id,
-                        playerBeforeEditing: _.clone(editPlayer),
-                        playerBeingEdited: _.clone(editPlayer),
-                        platformBankCardGroupList: vm.platformBankCardGroupList,
-                        platformMerchantGroupList: vm.platformMerchantGroupList,
-                        platformAlipayGroupList: vm.platformAlipayGroupList,
-                        platformWechatPayGroupList: vm.platformWechatPayGroupList,
-                        platformQuickPayGroupList: vm.platformQuickPayGroupList,
-                        allPlayerTrustLvl: vm.allPlayerTrustLvl,
-                        updateEditedPlayer: function () {
-                            sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited);
-                        },
-                        checkPlayerNameValidity: function (a, b, c) {
-                            vm.checkPlayerNameValidity(a, b, c);
-                        },
-                        duplicateNameFound: function () {
-                            return vm.duplicateNameFound;
+            vm.openEditPlayerDialog = function (selectedTab) {
+                vm.editSelectedTab = "";
+                vm.editSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
+                vm.prepareEditCritical('player');
+                vm.prepareEditPlayerPayment();
+                vm.getPlayerTopUpGroupLog();
+                dialogDetails();
+                function dialogDetails() {
+                    let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
+                    let editPlayer = vm.editPlayer;                  // ~ 6 fields
+                    let allPartner = vm.partnerIdObj;
+                    let allPlayerLevel = vm.allPlayerLvl;
+
+                    let option = {
+                        $scope: $scope,
+                        $compile: $compile,
+                        childScope: {
+                            playerTopUpGroupLog: vm.playerTopUpGroupLog,
+                            editPlayerPermission: $scope.checkViewPermission('Platform', 'Player', 'Edit'),
+                            editContactPermission: $scope.checkViewPermission('Platform', 'Player', 'EditContact'),
+                            editWithdrawPermission: $scope.checkViewPermission('Platform', 'Player', 'PaymentInformation'),
+                            selectedTab: vm.editSelectedTab,
+                            modifyCritical: vm.modifyCritical,
+                            verifyPlayerPhoneNumber: vm.verifyPlayerPhoneNumber,
+                            correctVerifyPhoneNumber: vm.correctVerifyPhoneNumber,
+                            platformPageName: vm.platformPageName,
+                            prepareEditCritical: vm.prepareEditCritical,
+                            submitCriticalUpdate: vm.submitCriticalUpdate,
+                            isEditingPlayerPayment: vm.isEditingPlayerPayment,
+                            playerPayment: vm.playerPayment,
+                            allBankTypeList: vm.allBankTypeList,
+                            filteredBankTypeList: vm.filteredBankTypeList,
+                            filterBankName: vm.filterBankName,
+                            filterBankname: vm.filterBankname,
+                            isEditingPlayerPaymentShowVerify: vm.isEditingPlayerPaymentShowVerify,
+                            correctVerifyBankAccount: vm.correctVerifyBankAccount,
+                            currentProvince: vm.currentProvince,
+                            provinceList: vm.provinceList,
+                            changeProvince: vm.changeProvince,
+                            currentCity: vm.currentCity,
+                            cityList: vm.cityList,
+                            changeCity: vm.changeCity,
+                            currentDistrict: vm.currentDistrict,
+                            districtList: vm.districtList,
+                            verifyBankAccount: vm.verifyBankAccount,
+                            verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
+                            updatePlayerPayment: vm.updatePlayerPayment,
+
+                            allPlayerLevel: allPlayerLevel,
+                            allPartner: allPartner,
+                            playerId: selectedPlayer._id,
+                            playerBeforeEditing: _.clone(editPlayer),
+                            playerBeingEdited: _.clone(editPlayer),
+                            topUpGroupRemark: "",
+                            platformBankCardGroupList: vm.platformBankCardGroupList,
+                            platformMerchantGroupList: vm.platformMerchantGroupList,
+                            platformAlipayGroupList: vm.platformAlipayGroupList,
+                            platformWechatPayGroupList: vm.platformWechatPayGroupList,
+                            platformQuickPayGroupList: vm.platformQuickPayGroupList,
+                            allPlayerTrustLvl: vm.allPlayerTrustLvl,
+                            updateEditedPlayer: function () {
+                                sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited,this.topUpGroupRemark);
+                            },
+                            checkPlayerNameValidity: function (a, b, c) {
+                                vm.checkPlayerNameValidity(a, b, c);
+                            },
+                            duplicateNameFound: function () {
+                                return vm.duplicateNameFound;
+                            }
                         }
-                    }
-                };
+                    };
+                    option.childScope.prepareEditPlayerPayment= function () {
+                        vm.prepareEditPlayerPayment();
+                        this.isEditingPlayerPayment = vm.isEditingPlayerPayment;
+                        this.playerPayment = vm.playerPayment;
+                        this.allBankTypeList = vm.allBankTypeList;
+                        this.filteredBankTypeList = vm.filteredBankTypeList;
+                        this.filterBankName = vm.filterBankName;
+                        this.isEditingPlayerPaymentShowVerify = vm.isEditingPlayerPaymentShowVerify;
+                        this.correctVerifyBankAccount = vm.correctVerifyBankAccount;
+                        this.verifyBankAccount = "";
+                        this.topUpGroupRemark = "";
+                    };
 
-                option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
-                option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
-                option.childScope.changeReferral = function () {
-                    return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
+                    option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
+                    option.childScope.playerBeingEdited.smsSetting = _.clone(editPlayer.smsSetting);
+                    option.childScope.changeReferral = function () {
+                        return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
+                    };
+                    option.childScope.changePartner = function () {
+                        return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change");
+                    }
+                    vm.partnerChange = false;
+                    $('.referralValidTrue').hide();
+                    $('.referralValidFalse').hide();
+                    $('.partnerValidTrue').hide();
+                    $('.partnerValidFalse').hide();
+                    $('#dialogEditPlayer').floatingDialog(option);
+                    $('#dialogEditPlayer').focus();
+                    vm.getReferralPlayer(option.childScope.playerBeingEdited, "new");
+                    vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "new");
+                    $scope.safeApply();
                 };
-                option.childScope.changePartner = function () {
-                    return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change");
+                return function(){
+                    console.log('x')
                 }
-                vm.partnerChange = false;
-                $('.referralValidTrue').hide();
-                $('.referralValidFalse').hide();
-                $('.partnerValidTrue').hide();
-                $('.partnerValidFalse').hide();
-                $('#dialogEditPlayer').floatingDialog(option);
-                vm.getReferralPlayer(option.childScope.playerBeingEdited, "new");
-                vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "new");
             };
 
             vm.loadSMSSettings = function () {
@@ -4582,7 +4643,58 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData) {
+            function buildTopUpGroupChangesString(updateData, oldData){
+                var bankGroup = {};
+                var oldGroupName = "";
+                if (updateData.bankCardGroup) {
+                    for (let i = 0; i < vm.platformBankCardGroupList.length; i++) {
+                        if (oldData.bankCardGroup == vm.platformBankCardGroupList[i]._id)
+                            oldGroupName = vm.platformBankCardGroupList[i].displayName;
+                        if (updateData.bankCardGroup == vm.platformBankCardGroupList[i]._id)
+                            bankGroup.bankCardGroup = vm.platformBankCardGroupList[i].displayName;
+                    }
+                    bankGroup.bankCardGroup = oldGroupName +" -> "+ bankGroup.bankCardGroup;
+                }
+                if (updateData.merchantGroup) {
+                    for (let i = 0; i < vm.platformMerchantGroupList.length; i++) {
+                        if (oldData.merchantGroup == vm.platformMerchantGroupList[i]._id)
+                            oldGroupName = vm.platformMerchantGroupList[i].displayName;
+                        if (updateData.merchantGroup == vm.platformMerchantGroupList[i]._id)
+                            bankGroup.merchantGroup = vm.platformMerchantGroupList[i].displayName;
+                    }
+                    bankGroup.merchantGroup = oldGroupName +" -> "+ bankGroup.merchantGroup;
+                }
+                if (updateData.alipayGroup) {
+                    for (let i = 0; i < vm.platformAlipayGroupList.length; i++) {
+                        if (oldData.alipayGroup == vm.platformAlipayGroupList[i]._id)
+                            oldGroupName = vm.platformAlipayGroupList[i].displayName;
+                        if (updateData.alipayGroup == vm.platformAlipayGroupList[i]._id)
+                            bankGroup.alipayGroup = vm.platformAlipayGroupList[i].displayName;
+                    }
+                    bankGroup.alipayGroup = oldGroupName +" -> "+ bankGroup.alipayGroup;
+                }
+                if (updateData.wechatPayGroup) {
+                    for (let i = 0; i < vm.platformWechatPayGroupList.length; i++) {
+                        if (oldData.wechatPayGroup == vm.platformWechatPayGroupList[i]._id)
+                            oldGroupName = vm.platformWechatPayGroupList[i].displayName;
+                        if (updateData.wechatPayGroup == vm.platformWechatPayGroupList[i]._id)
+                            bankGroup.wechatPayGroup = vm.platformWechatPayGroupList[i].displayName;
+                    }
+                    bankGroup.wechatPayGroup = oldGroupName +" -> "+ bankGroup.wechatPayGroup;
+                }
+                if (updateData.quickPayGroup){
+                    for (let i = 0; i < vm.platformQuickPayGroupList.length; i++) {
+                        if (oldData.quickPayGroup == vm.platformQuickPayGroupList[i]._id)
+                            oldGroupName = vm.platformQuickPayGroupList[i].displayName;
+                        if (updateData.quickPayGroup == vm.platformQuickPayGroupList[i]._id)
+                            bankGroup.quickPayGroup = vm.platformQuickPayGroupList[i].displayName;
+                    }
+                    bankGroup.quickPayGroup = oldGroupName +" -> "+ bankGroup.quickPayGroup;
+                }
+                return bankGroup;
+            }
+
+            function sendPlayerUpdate(playerId, oldPlayerData, newPlayerData, topUpGroupRemark) {
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
                 var updateSMS = {
@@ -4678,6 +4790,15 @@ define(['js/app'], function (myApp) {
                     }, function (updated) {
                         console.log('updated', updated);
                         vm.getPlatformPlayersData();
+                        let queryData = {
+                            playerId: playerId,
+                            remark: topUpGroupRemark,
+                            adminId: authService.adminId,
+                            topUpGroup: buildTopUpGroupChangesString(updateBankData, oldPlayerData)
+                        };
+                        socketService.$socket($scope.AppSocket, 'createUpdateTopUpGroupLog', queryData, function (created) {
+                            console.log('top up group log created', created);
+                        });
                     });
                 }
                 if (Object.keys(updateSMS).length > 0) {
@@ -6731,39 +6852,69 @@ define(['js/app'], function (myApp) {
                 "bankName", "bankAccount", "encodedBankAccount", "bankAccountName", "bankAccountType", "bankAccountProvince", "bankAccountCity", "bankAccountDistrict", "bankAddress", "bankBranch"
             ];
             vm.prepareEditPlayerPayment = function () {
-                console.log('playerID', vm.isOneSelectedPlayer()._id);
-                vm.correctVerifyBankAccount = undefined;
-                vm.isEditingPlayerPayment = false;
-                vm.isEditingPlayerPaymentShowVerify = false;
-                vm.playerPayment = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys);
-                vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
-                vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
-                vm.playerPayment.showNewAccountNo = false;
-                vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
-                vm.filterBankName = '';
-                vm.currentProvince = vm.playerPayment.bankAccountProvince;
-                vm.currentCity = vm.playerPayment.bankAccountCity;
-                vm.currentDistrict = vm.playerPayment.bankAccountDistrict;
-                socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
-                    if (data) {
-                        vm.provinceList = data.data.provinces.map(item => {
-                            item.id = item.id.toString();
-                            return item;
-                        });
-                        vm.changeProvince(false);
-                        vm.changeCity(false);
-                        $scope.safeApply();
+                return new Promise(function (resolve) {
+                    console.log('playerID', vm.isOneSelectedPlayer()._id);
+                    if (!vm.currentCity) {
+                        vm.currentCity = {};
                     }
-                }, null, true);
-                $scope.safeApply();
+                    if(!vm.currentProvince) {
+                        vm.currentProvince = {};
+                    }
+                    if(!vm.currentDistrict) {
+                        vm.currentDistrict = {};
+                    }
+                    vm.correctVerifyBankAccount = undefined;
+                    vm.isEditingPlayerPayment = false;
+                    vm.isEditingPlayerPaymentShowVerify = false;
+                    vm.playerPayment = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys);
+                    vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
+                    vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
+                    vm.playerPayment.showNewAccountNo = false;
+                    vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
+                    vm.filterBankName = '';
+                    vm.currentProvince.province = vm.playerPayment.bankAccountProvince;
+                    vm.currentCity.city = vm.playerPayment.bankAccountCity;
+                    vm.currentDistrict.district = vm.playerPayment.bankAccountDistrict;
+                    socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
+                        if (data) {
+                            // vm.provinceList = data.data.provinces.map(item => {
+                            //     item.id = item.id.toString();
+                            //     return item;
+                            // });
+                            vm.provinceList.length = 0;
+
+                            for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                                let province = data.data.provinces[i];
+                                province.id = province.id.toString();
+                                vm.provinceList.push(province);
+                            }
+                            // vm.provinceList.push(...data.data.provinces);
+
+                            vm.changeProvince(false);
+                            vm.changeCity(false);
+                            $scope.safeApply();
+                            resolve(vm.provinceList);
+                        }
+                    }, null, true);
+                    $scope.safeApply();
+                })
+                
             }
 
             vm.changeProvince = function (reset) {
-                socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince.province}, function (data) {
                     if (data) {
-                        vm.cityList = data.data.cities;
+                        // vm.cityList = data.data.cities;
+                        if(data.data.cities) {
+                            vm.cityList.length = 0;
+                            for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                                let city = data.data.cities[i];
+                                city.id = city.id.toString();
+                                vm.cityList.push(city);
+                            }
+                        }
                         if (reset) {
-                            vm.currentCity = vm.cityList[0].id;
+                            vm.currentCity.city = vm.cityList[0].id;
                             vm.changeCity(reset);
                             $scope.safeApply();
                         }
@@ -6772,13 +6923,21 @@ define(['js/app'], function (myApp) {
             }
             vm.changeCity = function (reset) {
                 socketService.$socket($scope.AppSocket, 'getDistrictList', {
-                    provinceId: vm.currentProvince,
-                    cityId: vm.currentCity
+                    provinceId: vm.currentProvince.province,
+                    cityId: vm.currentCity.city
                 }, function (data) {
                     if (data) {
-                        vm.districtList = data.data.districts;
+                        // vm.districtList = data.data.districts;
+                        if(data.data.districts) {
+                            vm.districtList.length = 0;
+                            for (let i = 0, len = data.data.districts.length; i < len; i++) {
+                                let district = data.data.districts[i];
+                                district.id = district.id.toString();
+                                vm.districtList.push(district);
+                            }
+                        }
                         if (reset && vm.districtList && vm.districtList[0]) {
-                            vm.currentDistrict = vm.districtList[0].id
+                            vm.currentDistrict.district = vm.districtList[0].id
                         }
                         $scope.safeApply();
                     }
@@ -6803,9 +6962,9 @@ define(['js/app'], function (myApp) {
                 sendData._id = vm.isOneSelectedPlayer()._id;
                 sendData.playerName = vm.isOneSelectedPlayer().name;
                 sendData.playerId = vm.isOneSelectedPlayer().playerId;
-                sendData.bankAccountProvince = vm.currentProvince;
-                sendData.bankAccountCity = vm.currentCity;
-                sendData.bankAccountDistrict = vm.currentDistrict;
+                sendData.bankAccountProvince = vm.currentProvince.province;
+                sendData.bankAccountCity = vm.currentCity.city;
+                sendData.bankAccountDistrict = vm.currentDistrict.district;
                 console.log('send', sendData);
                 if (sendData.newBankAccount != sendData.encodedBankAccount) {
                     sendData.bankAccount = sendData.newBankAccount;
@@ -7129,27 +7288,33 @@ define(['js/app'], function (myApp) {
             //Edit selected player
             vm.prepareEditCritical = function (which) {
                 if (which == 'player') {
-                    vm.correctVerifyPhoneNumber = undefined;
+                    if(!vm.correctVerifyPhoneNumber) {
+                        vm.correctVerifyPhoneNumber = {str: ""};
+                    }
                     $scope.emailConfirmation = null;
                     $scope.qqConfirmation = null;
-                    vm.modifyCritical = {
-                        which: 'player',
-                        title: $translate('MODIFY_PLAYER') + ' ' + vm.selectedSinglePlayer.name,
-                        changeType: 'email',
-                        curEmail: vm.selectedSinglePlayer.email,
-                        curQQ: vm.selectedSinglePlayer.qq,
-                        phoneNumber: vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-4)) : '',
+                    if (!vm.modifyCritical) {
+                        vm.modifyCritical = {
+                            which: 'player',
+                            title: $translate('MODIFY_PLAYER') + ' ' + vm.selectedSinglePlayer.name,
+                            changeType: 'email',
+                            curEmail: vm.selectedSinglePlayer.email,
+                            curQQ: vm.selectedSinglePlayer.qq,
+                            phoneNumber: vm.selectedSinglePlayer.phoneNumber ? (vm.selectedSinglePlayer.phoneNumber.substring(0, 3) + "******" + vm.selectedSinglePlayer.phoneNumber.slice(-4)) : '',
+                        }
                     }
                 } else if (which == 'partner') {
                     $scope.emailConfirmation = null;
                     $scope.qqConfirmation = null;
-                    vm.modifyCritical = {
-                        which: 'partner',
-                        title: $translate('MODIFY_PARTNER') + ' ' + vm.selectedSinglePartner.partnerName,
-                        changeType: 'email',
-                        curEmail: vm.selectedSinglePartner.email,
-                        curQQ: vm.selectedSinglePartner.qq,
-                        phoneNumber: vm.selectedSinglePartner.phoneNumber,
+                    if (!vm.modifyCritical) {
+                        vm.modifyCritical = {
+                            which: 'partner',
+                            title: $translate('MODIFY_PARTNER') + ' ' + vm.selectedSinglePartner.partnerName,
+                            changeType: 'email',
+                            curEmail: vm.selectedSinglePartner.email,
+                            curQQ: vm.selectedSinglePartner.qq,
+                            phoneNumber: vm.selectedSinglePartner.phoneNumber,
+                        }
                     }
                 }
                 $scope.safeApply();
@@ -7240,7 +7405,7 @@ define(['js/app'], function (myApp) {
                     phoneNumber: vm.modifyCritical.verifyPhoneNumber
                 }, function (data) {
                     console.log("verifyPlayerPhoneNumber:", data);
-                    vm.correctVerifyPhoneNumber = data.data;
+                    vm.correctVerifyPhoneNumber.str = data.data;
                     $scope.safeApply();
                 });
             };
@@ -9643,7 +9808,7 @@ define(['js/app'], function (myApp) {
                     vm.platformBankCardGroupList = data.data;
                     vm.platformBankCardGroupListCheck = {};
                     $.each(vm.platformBankCardGroupList, function (i, v) {
-                        vm.platformBankCardGroupListCheck[v._id] = true;
+                        vm.platformBankCardGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                     })
                     $scope.safeApply();
                 })
@@ -9676,7 +9841,7 @@ define(['js/app'], function (myApp) {
                     vm.platformMerchantGroupList = data.data;
                     vm.platformMerchantGroupListCheck = {};
                     $.each(vm.platformMerchantGroupList, function (i, v) {
-                        vm.platformMerchantGroupListCheck[v._id] = true;
+                        vm.platformMerchantGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                     })
                     $scope.safeApply();
                 })
@@ -9701,7 +9866,7 @@ define(['js/app'], function (myApp) {
                     vm.platformAlipayGroupList = data.data;
                     vm.platformAlipayGroupListCheck = {};
                     $.each(vm.platformAlipayGroupList, function (i, v) {
-                        vm.platformAlipayGroupListCheck[v._id] = true;
+                        vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                     })
                     $scope.safeApply();
                 })
@@ -9759,7 +9924,7 @@ define(['js/app'], function (myApp) {
                     vm.platformWechatPayGroupList = data.data;
                     vm.platformWechatPayGroupListCheck = {};
                     $.each(vm.platformWechatPayGroupList, function (i, v) {
-                        vm.platformWechatPayGroupListCheck[v._id] = true;
+                        vm.platformWechatPayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                     });
                     $scope.safeApply();
                 })
@@ -14107,6 +14272,37 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
+
+        vm.getPlayerTopUpGroupLog = function (newSearch) {
+            if (!vm.playerTopUpGroupLog) {
+                vm.playerTopUpGroupLog = [];
+            }
+            let query = {
+                playerId: vm.selectedSinglePlayer._id
+            };
+            socketService.$socket($scope.AppSocket, 'getPlayerTopUpGroupLog', query, function (data) {
+                vm.playerTopUpGroupLog.length = 0;
+                for (let i = 0, len = data.data.length; i < len; i++) {
+                    let topUpGroupLog = data.data[i];
+                    vm.playerTopUpGroupLog.push(topUpGroupLog);
+                }
+                for (let i = 0, len = Object.keys(vm.playerTopUpGroupLog).length; i < len; i++) {
+                    let log = vm.playerTopUpGroupLog[i];
+                    log.topUpGroupNames$ = "";
+                    // for (let j = 0, len = Object.keys(log.topUpGroupNames).length; j < len; j++) {
+                    //     log.topUpGroupNames$ += Object.keys(log.topUpGroupNames)[j] + ": " + log.topUpGroupNames[Object.keys(log.topUpGroupNames)[j]];
+                        // j < (len - 1) ? log.topUpGroupNames$ += "\n " : null;
+                    // }
+                    log.topUpGroupNames$ = Object.keys(log.topUpGroupNames)[0]
+                    log.createTime = new Date(log.createTime).toLocaleString();
+                    log.topUpGroupChanges = log.topUpGroupNames[Object.keys(log.topUpGroupNames)[0]];
+                }
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
+        };
 
         $('body').on('click','#permissionRecordButton',function(){
             vm.getPlayerPermissionChange("new")

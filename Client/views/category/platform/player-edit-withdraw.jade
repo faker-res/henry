@@ -1,0 +1,58 @@
+form(name='form_playerPaymentInfo').well
+    .row.margin-left-5.margin-right-5
+        .form-group-col-md-6
+            label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
+            input.form-control(ng-model='playerPayment.bankAccountName', ng-disabled='!isEditingPlayerPayment')
+        .form-group-col-md-6
+            label.control-label(style='width:100%') *{{'BANK_NAME' | translate}}
+            select.form-control(ng-model='playerPayment.bankName', ng-show='!isEditingPlayerPayment', disabled)
+                option(ng-repeat="(i,v) in allBankTypeList", value='{{i}}') {{v}}
+            .col-md-6(style='padding-left:0', ng-show='isEditingPlayerPayment')
+                select.form-control(ng-model='playerPayment.bankName', ng-options='i as v for (i,v) in filteredBankTypeList', required)
+            .col-md-6(style='padding-right:0', ng-show='isEditingPlayerPayment')
+                input.form-control(type='text', placeholder="{{'SEARCH' | translate}}", ng-model='filterBankName', ng-change='filterBankname("playerPayment")')
+        .form-group-col-md-6
+            .control-label
+                label {{'BANK_ACCOUNT' | translate}}
+                text.margin-left-5.small ({{'Min length 16, all digits' | translate}})
+            div
+                input.form-control.inlineBlk(ng-model='playerPayment.encodedBankAccount', style='width:calc(100% - 100px)', ng-if='!isEditingPlayerPayment', disabled)
+                input.form-control.inlineBlk(ng-model='playerPayment.newBankAccount', ng-change='playerPayment.showNewAccountNo=true;', style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment && !playerPayment.showNewAccountNo')
+                input.form-control.inlineBlk(ng-model='playerPayment.newBankAccount', pattern= "[0-9]{16,}", style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment && playerPayment.showNewAccountNo')
+                button.btn.btn-info.pull-right(style='width:80px', ng-click='isEditingPlayerPaymentShowVerify=!isEditingPlayerPaymentShowVerify')
+                    text(ng-if='isEditingPlayerPaymentShowVerify') {{::'CLOSE' | translate}}
+                    text(ng-if='!isEditingPlayerPaymentShowVerify') {{::'VERIFY' | translate}}
+        .panel.panel-default.margin-top-10(ng-if='isEditingPlayerPaymentShowVerify')
+            .panel-body
+                label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
+                input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="verifyBankAccount")
+                p
+                button.btn.btn-primary.common-button(ng-disabled='!verifyBankAccount', ng-click="verifyPlayerBankAccount()") {{"VERIFY" | translate}}
+                label.fa.fa-check.colorGreen(ng-if='correctVerifyBankAccount')
+                label.fa.fa-times.colorRed(ng-if='(!correctVerifyBankAccount && (correctVerifyBankAccount !== undefined))')
+        .form-group-col-md-6
+            label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
+            select.form-control(ng-model='playerPayment.bankAccountType', ng-disabled='!isEditingPlayerPayment')
+                option(value='2') {{'Debit Card '|translate}}
+                option(value='1') {{'Credit Card '|translate}}
+                option(value='3') {{'储存卡'|translate}}
+                option(value='4') {{'储蓄卡'|translate}}
+                option(value='5') {{'商务理财卡'|translate}}
+                option(value='6') {{'工商银行一卡通'|translate}}
+        .form-group-col-md-6
+            .col-md-4(style='padding-left:0')
+                label.control-label {{"PHONE_PROVINCE" | translate}}
+                select.form-control(type='text', ng-model='currentProvince.province', ng-options='v.id as v.name for (i,v) in provinceList', ng-change='changeProvince(true)', ng-disabled='!isEditingPlayerPayment')
+            .col-md-4(style='padding-right:0')
+                label.control-label {{"PHONE_CITY" | translate}}
+                select.form-control(type='text', ng-model='currentCity.city', ng-options='v.id as v.name for (i,v) in cityList', ng-change='changeCity(true)', ng-disabled='!isEditingPlayerPayment')
+            .col-md-4(style='padding-right:0')
+                label.control-label {{"districtId" | translate}}
+                select.form-control(type='text', ng-model='currentDistrict.district', ng-options='v.id as v.name for (i,v) in districtList', ng-disabled='!isEditingPlayerPayment')
+        .form-group-col-md-6
+            label.control-label *{{'Bank Address' | translate}}
+            input.form-control(ng-model='playerPayment.bankAddress', ng-disabled='!isEditingPlayerPayment', required)
+button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPlayerPayment', ng-click="isEditingPlayerPayment=true") {{"EDIT" | translate}}
+button.common-button.margin-right-5.btn.btn-primary(ng-show='isEditingPlayerPayment', ng-click="prepareEditPlayerPayment()") {{"CANCEL" | translate}}
+button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPlayerPayment', ng-disabled='form_playerPaymentInfo.$invalid || form_playerPaymentInfo.$pristine', ng-click="updatePlayerPayment();") {{"UPDATE" | translate}}
+button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog') {{"CLOSE" | translate}}

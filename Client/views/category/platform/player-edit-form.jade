@@ -39,50 +39,7 @@ form(name="form_edit_player", novalidate)
             img.margin-left-5(ng-if='playerBeingEdited.photoUrl', src="{{playerBeingEdited.photoUrl}}", style='width:40px;height:40px;')
             br
             input.form-control(type="text", placeholder='{{"URL" | translate}}', ng-model="playerBeingEdited.photoUrl", style='width:100%;display:inline-block')
-    .row.margin-left-5.margin-right-5
-        .form-group.col-md-6
-            label.control-label {{"Bankcard Group"|translate}}
-            select.form-control(ng-model='playerBeingEdited.bankCardGroup')
-                option(ng-repeat='(i,v) in platformBankCardGroupList', value='{{v._id}}', ng-selected='playerBeingEdited.bankCardGroup==v._id') {{v.displayName}}
-        .form-group.col-md-6
-            label.control-label {{"MERCHANT_GROUP"|translate}}
-            select.form-control(ng-model='playerBeingEdited.merchantGroup')
-                option(ng-repeat='(i,v) in platformMerchantGroupList', value='{{v._id}}', ng-selected='playerBeingEdited.merchantGroup==v._id') {{v.displayName}}
-        .form-group.col-md-6
-            label.control-label {{"alipayGroup"|translate}}
-            select.form-control(ng-model='playerBeingEdited.alipayGroup')
-                option(ng-repeat='(i,v) in platformAlipayGroupList', value='{{v._id}}', ng-selected='playerBeingEdited.alipayGroup==v._id') {{v.displayName}}
-        .form-group.col-md-6
-            label.control-label {{"WechatPay Group"|translate}}
-            select.form-control(ng-model='playerBeingEdited.wechatPayGroup')
-                option(ng-repeat='(i,v) in platformWechatPayGroupList', value='{{v._id}}', ng-selected='playerBeingEdited.wechatPayGroup==v._id') {{v.displayName}}
-        .form-group.col-md-6
-            label.control-label {{"QuickPay Group"|translate}}
-            select.form-control(ng-model='playerBeingEdited.quickPayGroup')
-                option(ng-repeat='(i,v) in platformQuickPayGroupList', value='{{v._id}}', ng-selected='playerBeingEdited.quickPayGroup==v._id') {{v.displayName}}
-        .form-group.col-md-6
-            label.control-label {{"TrustLevel"|translate}}
-            select.form-control(ng-model='playerBeingEdited.trustLevel')
-                option(ng-repeat='(i,v) in allPlayerTrustLvl', value='{{v.value}}', ng-selected='playerBeingEdited.trustLevel==v.value') {{v.name | translate}}
-    .row.margin-left-5.margin-right-5
-        .form-group.col-md-12
-            label.control-label {{"RECEIVE_SMS" | translate}}
-                input.pull-left.margin-right-5(type="checkbox", ng-model="playerBeingEdited.receiveSMS")
-            p
-            label.control-label.margin-right-5 {{"MANUAL_TOP_UP" | translate}}
-                input.pull-left.margin-right-5(type="checkbox", ng-model="playerBeingEdited.smsSetting.manualTopup")
-            label.control-label.margin-right-5 {{"APPLY_BONUS" | translate}}
-                input.pull-left.margin-right-5(type="checkbox", ng-model="playerBeingEdited.smsSetting.applyBonus")
-            label.control-label.margin-right-5 {{"CANCEL_BONUS" | translate}}
-                input.pull-left.margin-right-5(type="checkbox", ng-model="playerBeingEdited.smsSetting.cancelBonus")
-            label.control-label.margin-right-5 {{"APPLY_REWARD" | translate}}
-                input.pull-left.margin-right-5(type="checkbox", ng-model="playerBeingEdited.smsSetting.applyReward")
-            label.control-label.margin-right-5 {{"CONSUMPTION_RETURN" | translate}}
-                input.pull-left.margin-right-5(type="checkbox", ng-model="playerBeingEdited.smsSetting.consumptionReturn")
-            label.control-label.margin-right-5 {{"UPDATE_PAYMENT_INFO" | translate}}
-                input.pull-left.margin-right-5(type="checkbox", ng-model="playerBeingEdited.smsSetting.updatePaymentInfo")
-            label.control-label.margin-right-5 {{"UPDATE_PASSWORD" | translate}}
-                input.pull-left.margin-right-5(type="checkbox", ng-model="playerBeingEdited.smsSetting.updatePassword")
+
 
 //.form-group.col-md-6
     //   label.control-label {{"TELEPHONE" | translate}}

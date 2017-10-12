@@ -879,6 +879,18 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
         },
 
+
+        createUpdateTopUpGroupLog: function createUpdateTopUpGroupLog(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.adminId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createUpdateTopUpGroupLog, [data.playerId,data.adminId, data.topUpGroup, data.remark], actionName, isValidData);
+        },
+
+        getPlayerTopUpGroupLog: function getPlayerTopUpGroupLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTopUpGroupLog, [data.playerId], actionName, isValidData);
+        }
     };
     socketActionPlayer.actions = this.actions;
 }
