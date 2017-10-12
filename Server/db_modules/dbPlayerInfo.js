@@ -10040,12 +10040,24 @@ let dbPlayerInfo = {
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
         let result = [];
+        let matchObj = {
+            platform: platform,
+            registrationTime: {$gte: startDate, $lt: endDate}
+        };
+
+        if (query.userType) {
+            switch (query.userType) {
+                case "1":
+                    matchObj.partner = {$exists: false};
+                    break;
+                case "2":
+                    matchObj.partner = {$exists: true};
+                    break;
+            }
+        }
 
         let stream = dbconfig.collection_players.aggregate({
-            $match: {
-                platform: platform,
-                registrationTime: {$gte: startDate, $lt: endDate}
-            }
+            $match: matchObj
         }).cursor({batchSize: 100}).allowDiskUse(true).exec();
 
         let balancer = new SettlementBalancer();
@@ -10102,6 +10114,10 @@ let dbPlayerInfo = {
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
+
+                // Output filter promote way
+                outputResult = query.csPromoteWay && query.csPromoteWay.length > 0 ? outputResult.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : outputResult;
+                outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : outputResult;
 
                 return {size: result.length, data: outputResult};
             }
@@ -10321,6 +10337,26 @@ let dbPlayerInfo = {
             }
             if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
                 playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+            }
+
+            // Player Score Query Operator
+            if (query.playerScoreValue) {
+                switch (query.valueScoreOperator) {
+                    case '>=':
+                        playerQuery.valueScore = {$gte: query.playerScoreValue};
+                        break;
+                    case '=':
+                        playerQuery.valueScore = {$eq: query.playerScoreValue};
+                        break;
+                    case '<=':
+                        playerQuery.valueScore = {$lte: query.playerScoreValue};
+                        break;
+                    case 'range':
+                        if (query.playerScoreValueTwo) {
+                            playerQuery.valueScore = {$gte: query.playerScoreValue, $lte: query.playerScoreValueTwo};
+                        }
+                        break;
+                }
             }
 
             let playerProm = dbconfig.collection_players.findOne(
