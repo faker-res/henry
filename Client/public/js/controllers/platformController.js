@@ -11350,13 +11350,9 @@ define(['js/app'], function (myApp) {
                         vm.newUserPromoCodeUserGroup = null;
                     } else {
                         vm.countNewLinesInString = (vm.newUserPromoCodeUserGroup.name.match(/\n/g)||[]).length;
-                        console.log('vm.countNewLinesInString',vm.countNewLinesInString);
-
                         vm.splitNewLine = vm.newUserPromoCodeUserGroup.name.split("\n");
-                        console.log('vm.splitNewLine',vm.splitNewLine);
 
                         for(var i = 0; i < vm.splitNewLine.length; i++) {
-                            console.log(vm.splitNewLine[i]);
                             vm.selectedPromoCodeUserGroup.playerNames.push(vm.splitNewLine[i].trim());
                             vm.newUserPromoCodeUserGroup = null;
                         }
