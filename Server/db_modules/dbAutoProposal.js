@@ -345,6 +345,11 @@ function checkProposalConsumption(proposal, platformObj) {
 
                                                 if (getProp.data.applyAmount) {
                                                     applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
+
+                                                    // Special Handling - Old EU Migration XI MA proposal
+                                                    if (getProp.type.executionType == "executePlayerConsumptionReturn" && getProp.from_old_system) {
+                                                        applyAmount = 0;
+                                                    }
                                                 }
 
                                                 checkResult.push({

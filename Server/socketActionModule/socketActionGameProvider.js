@@ -149,7 +149,16 @@ function socketActionGame(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.providerIds);
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionIntervalByProvider, [data.providerIds], actionName, isValidData);
-        }
+        },
+
+        /**
+         * Get latest time record of provider
+         * @param {json} data - It has to contain platformId
+         */
+        getProviderLatestTimeRecord: function getProviderLatestTimeRecord(data) {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getProviderLatestTimeRecord, [data.providerId,data.platformObjId], actionName);
+        },
     };
     socketActionGame.actions = this.actions;
 };

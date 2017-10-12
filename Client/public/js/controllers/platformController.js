@@ -146,6 +146,52 @@ define(['js/app'], function (myApp) {
                 vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
             };
 
+            //////////Lin Hao:: Provider List Delay Popup
+            utilService.setupPopover({
+                context: ulMenu,
+                elem: '.providerListPopover',
+                content: function () {
+                    // vm.getProviderLatestTimeRecord();
+                    $scope.safeApply();
+                    return $compile($('#providerListPopover').html())($scope);
+                },
+                callback: function () {
+                    let thisPopover = utilService.$getPopoverID(this);
+                    $scope.safeApply();
+                }
+            });
+
+            vm.getProviderLatestTimeRecord = function () {
+                console.log("should show twice")
+                vm.providerLatestTime = {};
+                vm.delayStatus = {};
+
+                let counter = 1;
+
+                let p = Promise.resolve();
+
+                vm.platformProviderList.forEach(providerId => {
+                    p = p.then(() => {
+                        return $scope.$socketPromise('getProviderLatestTimeRecord', {providerId: providerId.providerId,platformObjId: vm.selectedPlatform.id}).then(function (data) {
+                            console.log('getPlatformProviderTime', providerId.providerId, data);
+
+                            if(data.data){
+                                vm.providerLatestTime[counter] = vm.dateReformat(data.data.createTime);
+                                vm.delayStatus[counter] = data.data.delayStatusColor;
+                            }
+                            else
+                            {
+                                vm.providerLatestTime[counter] = "";
+                                vm.delayStatus[counter] = "rgb(255,255,255)";
+                            }
+                            counter ++;
+                            $scope.safeApply();
+                        })
+                    })
+                })
+                return p;
+            }
+
             vm.setPlatformFooter = function(platformAction) {
                 vm.platformAction = platformAction;
             };
@@ -329,7 +375,8 @@ define(['js/app'], function (myApp) {
                 vm.getCredibilityRemarks();
                 vm.playerAdvanceSearchQuery = {creditOperator: ">="};
                 vm.advancedQueryObj = {};
-                vm.getDepartmentUsers();
+                if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
+                    vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
 
                 //load partner
                 utilService.actionAfterLoaded("#partnerTablePage", function () {
@@ -10339,6 +10386,7 @@ define(['js/app'], function (myApp) {
             vm.configTabClicked = function (choice) {
                 vm.selectedConfigTab = choice;
                 vm.configTableEdit = false;
+                vm.delayDurationGroupProviderEdit = false;
                 switch (choice) {
                     case 'player':
                         //vm.playerTableShowCol = {};
@@ -10369,6 +10417,10 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'platformBasic':
                         vm.getPlatformBasic();
+                        vm.getDelayDurationGroup();
+                        loadDelayDurationGroup();
+
+                        vm.newDelayDurationGroup = {};
                         break;
                     case 'bonusBasic':
                         vm.getBonusBasic();
@@ -10393,6 +10445,8 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeEdit = false;
                 vm.promoCodeSMSContentEdit = false;
                 vm.promoCodeUserGroupEdit = false;
+                vm.delayDurationGroupEdit = false;
+                vm.promoCodeUserGroupInlineEdit = false;
                 vm.promoCodeUserGroupAdd = false;
                 vm.promoCodeUserGroupPlayerEdit = false;
                 vm.promoCodeUserGroupPlayerAdd = false;
@@ -10406,6 +10460,7 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeType3 = [];
 
                 vm.userGroupConfig = [];
+                vm.durationGroupConfig = [];
                 vm.modalYesNo = {};
 
                 loadPromoCodeTypes();
@@ -10527,6 +10582,12 @@ define(['js/app'], function (myApp) {
                 vm.selectedPromoCodeUserGroup = null;
 
                 vm.getPromoCodeUserGroup();
+            }
+
+            function loadDelayDurationGroup() {
+                vm.selectedDelayDurationGroup = null;
+
+                vm.getDelayDurationGroup();
             }
 
             vm.checkPlayerName = function (el, id) {
@@ -11310,8 +11371,19 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                        socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
                 }
+            };
+
+            vm.saveDelayDurationGroup = function (isDelete, index) {
+                console.log('durationGroupConfig', vm.durationGroupConfig);
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    groupData: vm.durationGroupConfig
+                };
+
+                socketService.$socket($scope.AppSocket, 'saveDelayDurationGroup', sendData);
             };
 
             vm.searchPromoCodeUserGroup = function (s, isRet) {
@@ -11375,6 +11447,18 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
+            vm.getDelayDurationGroup = function(){
+                socketService.$socket($scope.AppSocket, 'getDelayDurationGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log('getDelayDurationGroup', data);
+
+                    if(data.data[0].consumptionTimeConfig){
+                        vm.durationGroupConfig = data.data[0].consumptionTimeConfig;
+                        $scope.safeApply();
+                    }
+
+                });
+            }
 
             vm.getAllPartnerLevels = function () {
 
@@ -12176,6 +12260,39 @@ define(['js/app'], function (myApp) {
                 }
             };
             // partner level codes==============end===============================
+
+            vm.getDepartmentUserIds = function (departmentId) {
+                var userIds = [];
+
+                if (!vm.departmentListObj) {
+                    vm.departmentListObj = {};
+                    for (let i = 0; i < vm.departments.length; i++) {
+                        vm.departmentListObj[vm.departments[i]._id] = vm.departments[i];
+                    }
+                }
+
+                if (!vm.departmentListObj[departmentId]) {
+                    return [];
+                }
+
+                let currentDepartment = vm.departmentListObj[departmentId];
+                userIds = userIds.concat(currentDepartment.users);
+                if (currentDepartment.children && currentDepartment.children.length > 0) {
+                    for (let i = 0; i < currentDepartment.children.length; i++) {
+                        let childDepartmentId = currentDepartment.children[i];
+                        userIds = userIds.concat(vm.getDepartmentUserIds(childDepartmentId));
+                    }
+                }
+
+                return userIds;
+            };
+
+            vm.getAdminNameByDepartment = function (departmentId) {
+                socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
+                    console.log('getAdminsData', data);
+                    vm.adminList = data.data;
+                });
+            };
 
             vm.getPlatformAnnouncements = function () {
                 if (!vm.selectedPlatform) return;
@@ -13403,8 +13520,12 @@ define(['js/app'], function (myApp) {
             });
 
         vm.initPlatformOfficer = function () {
+            vm.csUrlSearchQuery = {
+                admin: "",
+                promoteWay: "",
+                url: ""
+            };
             vm.platformOfficer = {};
-            // vm.addOfficerUrl = {};
             vm.officerPromoteMessage = "";
             vm.officerCreateMessage = "";
             vm.officerUrlMessage = "";
@@ -13412,7 +13533,6 @@ define(['js/app'], function (myApp) {
             vm.deleteOfficer = {};
             vm.currentUrlEditSelect = {};
             vm.urlTableEdit = false;
-            vm.getAllOfficer();
             vm.getAllPromoteWay();
             vm.getAllUrl();
         };
@@ -13547,21 +13667,6 @@ define(['js/app'], function (myApp) {
                 });
         };
 
-        vm.getAllOfficer = function () {
-            vm.allOfficer = {};
-            let query = {
-                platformId: vm.selectedPlatform.id
-            };
-            socketService.$socket($scope.AppSocket, 'getAllOfficer', query, function (data) {
-                    vm.allOfficer = data.data;
-                    console.log("vm.allOfficer", vm.allOfficer);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
-                });
-        };
-
         vm.pickOfficer = function () {
             vm.platformOfficer.url = '';
             $scope.safeApply();
@@ -13569,22 +13674,9 @@ define(['js/app'], function (myApp) {
 
         vm.getDepartmentUsers = function () {
             let departmentID = vm.selectedPlatform.data.department;
-            if (departmentID) {
-                socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.selectedPlatform.data.department}, function (data) {
-                    var result = [];
-                    data.data.forEach(function (userData) {
-                        userData.users.forEach(function (user) {
-                            var singleRecord = {}
-                            singleRecord.departmentName = userData.departmentName;
-                            singleRecord.adminName = user.adminName;
-                            singleRecord._id = user._id;
-                            result.push(singleRecord);
-                        })
-                    });
-                    vm.departmentUsers = result;
-                    $scope.safeApply();
-                });
-            }
+
+            let departmentUsers = vm.getDepartmentUserIds(departmentID);
+            vm.getAdminsData(departmentUsers);
         };
 
         vm.addUrl = function () {
@@ -13671,28 +13763,57 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getAllUrl = function () {
-            vm.allUrl = {};
+            vm.allUrl = [];
             let query = {
                 platformId: vm.selectedPlatform.id
             };
             socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                    vm.allUrl = data.data;
-                    vm.allUrl = vm.allUrl.map(url => {
-                        for (let i = 0, len = vm.departmentUsers.length; i < len; i++) {
-                            let admin = vm.departmentUsers[i];
-                            if (url.admin.toString() === admin._id.toString()) {
-                                url.adminName$ = admin.adminName;
-                                break;
-                            }
+                vm.allUrl = data.data;
+                vm.allUrl = vm.allUrl.map(url => {
+                    for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                        let admin = vm.adminList[i];
+                        if (url.admin.toString() === admin._id.toString()) {
+                            url.adminName$ = admin.adminName;
+                            break;
                         }
-                        return url;
-                    });
-                    console.log("vm.allUrl", vm.allUrl);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
+                    }
+                    return url;
                 });
+                console.log("vm.allUrl", vm.allUrl);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
+        };
+
+        vm.searchCsUrl = function () {
+            vm.allUrl = [];
+            let query = {
+                platformId: vm.selectedPlatform.id,
+                admin: vm.csUrlSearchQuery.admin || "",
+                domain: vm.csUrlSearchQuery.url || "",
+                way: vm.csUrlSearchQuery.promoteWay || ""
+            };
+
+            socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
+                vm.allUrl = data.data;
+                vm.allUrl = vm.allUrl.map(url => {
+                    for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                        let admin = vm.adminList[i];
+                        if (url.admin.toString() === admin._id.toString()) {
+                            url.adminName$ = admin.adminName;
+                            break;
+                        }
+                    }
+                    return url;
+                });
+                console.log("vm.allUrl", vm.allUrl);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
         };
 
         vm.getPlayerCredibilityComment = function () {
@@ -13701,22 +13822,22 @@ define(['js/app'], function (myApp) {
                 playerObjId: vm.selectedSinglePlayer._id
             };
             socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
-                    vm.playerCredibilityComment = data.data;
-                    for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
-                        let log = vm.playerCredibilityComment[i];
-                        log.remarks$ = "";
-                        for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
-                            log.remarks$ += log.credibilityRemarkNames[j];
-                            j < (len - 1) ? log.remarks$ += ", " : null;
-                        }
-                        log.createTime = new Date(log.createTime).toLocaleString();
+                vm.playerCredibilityComment = data.data;
+                for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
+                    let log = vm.playerCredibilityComment[i];
+                    log.remarks$ = "";
+                    for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
+                        log.remarks$ += log.credibilityRemarkNames[j];
+                        j < (len - 1) ? log.remarks$ += ", " : null;
                     }
-                    console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
-                });
+                    log.createTime = new Date(log.createTime).toLocaleString();
+                }
+                console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                $scope.safeApply();
+            },
+            function (err) {
+                console.log(err);
+            });
         };
 
         vm.setupRemarksMultiInput = function () {

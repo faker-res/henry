@@ -347,18 +347,18 @@
                 div
                     label {{"csPromoteWay"|translate}}
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.csPromoteWay', multiple, data-actions-box='true')
-                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}') {{v.name}}
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
                 div
-                    label {{"DEPARTMENT"|translate}}
-                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.departments', multiple, data-actions-box='true' ng-change="vm.setQueryRole()")
+                    label {{"REGISTRATION_DEPARTMENT"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole()")
                         option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
                 div
-                    label {{"ROLE"|translate}}
-                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', multiple, data-actions-box='true' ng-change="vm.setQueryAdmins()")
+                    label {{"REGISTRATION_ROLE"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins()")
                         option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
                 div
-                    label {{"ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', multiple, data-actions-box='true')
+                    label {{"REGISTRATION_ADMIN"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', multiple, data-actions-box='true' data-width="200px")
                         option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v.adminName}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
                 div
                     label {{"PlayerValue"|translate}}

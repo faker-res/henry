@@ -13,17 +13,17 @@ function socketActionCsOfficer(socketIO, socket) {
         //     var isValidData = Boolean(true);
         //     socketUtil.emitter(self.socket, dbCsOfficer.testNewApi, [], actionName, isValidData);
         // },
-        createOfficer: function createOfficer(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data.name);
-            socketUtil.emitter(self.socket, dbCsOfficer.createOfficer, [data.platformId, data.name], actionName, isValidData);
-        },
+        // createOfficer: function createOfficer(data) {
+        //     let actionName = arguments.callee.name;
+        //     let isValidData = Boolean(data && data.platformId && data.name);
+        //     socketUtil.emitter(self.socket, dbCsOfficer.createOfficer, [data.platformId, data.name], actionName, isValidData);
+        // },
 
-        getAllOfficer: function getAllOfficer(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, dbCsOfficer.getAllOfficer, [data.platformId], actionName, isValidData);
-        },
+        // getAllOfficer: function getAllOfficer(data) {
+        //     let actionName = arguments.callee.name;
+        //     let isValidData = Boolean(data && data.platformId);
+        //     socketUtil.emitter(self.socket, dbCsOfficer.getAllOfficer, [data.platformId], actionName, isValidData);
+        // },
 
         addPromoteWay: function addPromoteWay(data) {
             let actionName = arguments.callee.name;
@@ -71,6 +71,12 @@ function socketActionCsOfficer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.urlId && data.domain && data.officerId && data.way);
             socketUtil.emitter(self.socket, dbCsOfficer.updateUrl, [data.urlId, data.domain, data.officerId, data.way], actionName, isValidData);
+        },
+
+        searchUrl: function searchUrl(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbCsOfficer.searchUrl, [data.platformId, data.domain, data.admin, data.way], actionName, isValidData);
         }
     };
 
