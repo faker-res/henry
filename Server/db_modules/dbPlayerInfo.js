@@ -7007,7 +7007,7 @@ let dbPlayerInfo = {
                     }
                     else {
                         SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
-                        return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
+                        // return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
                     }
                 }
                 else {
