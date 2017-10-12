@@ -2676,38 +2676,38 @@ define(['js/app'], function (myApp) {
                             advSearch: true
                         },
                         {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
-                        {
-                            title: $translate('STATUS'), data: 'status',
-                            render: function (data, type, row) {
-                                var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
-                                var textClass = '';
-                                if (data == 4) {
-                                    textClass = "text-black";
-                                } else if (data == 5) {
-                                    textClass = "text-danger";
-                                } else if (data === 6) {
-                                    textClass = "text-warning";
-                                }
-
-                                return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text(showText)
-                                    .addClass(textClass)
-                                    .prop('outerHTML');
-                            },
-                            advSearch: true,
-                            filterConfig: {
-                                type: "dropdown",
-                                options: vm.allPlayersStatusKeys.map(function (status) {
-                                    return {
-                                        value: vm.allPlayersStatusString[status],
-                                        text: $translate(status)
-                                    };
-                                })
-                            },
-                            "sClass": ""
-                        },
+                        // {
+                        //     title: $translate('STATUS'), data: 'status',
+                        //     render: function (data, type, row) {
+                        //         var showText = $translate(vm.allPlayersStatusKeys[data - 1]) || 'No Value';
+                        //         var textClass = '';
+                        //         if (data == 4) {
+                        //             textClass = "text-black";
+                        //         } else if (data == 5) {
+                        //             textClass = "text-danger";
+                        //         } else if (data === 6) {
+                        //             textClass = "text-warning";
+                        //         }
+                        //
+                        //         return $('<a class="statusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
+                        //             'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                        //             .attr('data-row', JSON.stringify(row))
+                        //             .text(showText)
+                        //             .addClass(textClass)
+                        //             .prop('outerHTML');
+                        //     },
+                        //     advSearch: true,
+                        //     filterConfig: {
+                        //         type: "dropdown",
+                        //         options: vm.allPlayersStatusKeys.map(function (status) {
+                        //             return {
+                        //                 value: vm.allPlayersStatusString[status],
+                        //                 text: $translate(status)
+                        //             };
+                        //         })
+                        //     },
+                        //     "sClass": ""
+                        // },
                         {
                             // this object is use for column show
                             // credibility remark advsearch column's object will appear later in the code
@@ -2742,8 +2742,9 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 // todo :: #22
                                 data = data || '';
-                                return $('<a class="levelPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#"></a>')
+                                return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                    'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
+                                    'ng-click="vm.onEditPlayerCheck(\''+ row._id +'\');"></a>')
                                     .attr('data-row', JSON.stringify(row))
                                     .text($translate(data.name))
                                     .prop('outerHTML');
@@ -2978,7 +2979,7 @@ define(['js/app'], function (myApp) {
                                 }));
                                 if ($scope.checkViewPermission('Platform', 'Player', 'AddFeedback')) {
                                     link.append($('<a>', {
-                                        'class': 'fa fa-volume-control-phone margin-right-5',
+                                        'class': 'fa fa-commenting margin-right-5',
                                         'ng-click': 'vm.initFeedbackModal();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
@@ -4453,6 +4454,21 @@ define(['js/app'], function (myApp) {
                 }
                 if (isChange) return searchFunc.call(this);
             };
+
+            //check if value is pass in before openEditPlayerDialog is call
+            vm.onEditPlayerCheck = function (recordId){
+                var timeOut;
+                function recall() {
+                    vm.onEditPlayerCheck(recordId);
+                }
+
+                if (vm.isOneSelectedPlayer() && recordId === vm.isOneSelectedPlayer()._id){
+                    vm.openEditPlayerDialog('basicInfo');
+                }else {
+                    timeOut = setTimeout(recall, 50);
+                }
+            }
+            // }
 
             vm.openEditPlayerDialog = function (selectedTab) {
                 vm.editSelectedTab = "";
