@@ -1888,8 +1888,11 @@ define(['js/app'], function (myApp) {
                                 vm.updateProposalData();
                             });
                             var showLeft = $cookies.get("operationShowLeft");
-                            if (showLeft === 'false') {
-                                vm.toggleShowOperationList(false)
+                            if (showLeft === 'true') {
+                                vm.toggleShowOperationList(true);
+                            }
+                            else {
+                                vm.toggleShowOperationList(false);
                             }
                             vm.initQueryPara();
                         }
