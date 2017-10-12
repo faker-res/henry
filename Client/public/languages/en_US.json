@@ -15,6 +15,7 @@
   "PARTNER_WEIXIN_PHOTO": "Partner WeChat Photo",
   "PARTNER_INVITE": "Partner Referral URL",
   "IMAGE_URL": "Image URL",
+  "SETTLEMENT_HISTORY": "Settlement History",
 
 
   "CREATE":"Create",
@@ -616,7 +617,7 @@
   "CUSTOMER_SERVICE_PARTNER_EMAIL": "Customer Service Partner Email",
   "CUSTOMER_SERVICE_PARTNER_QQ": "Customer Service Partner QQ",
   "CUSTOMER_SERVICE_PARTNER_SKYPE": "Customer Service Partner Skype",
-  "used when sending automated messages":"for automated messages",
+  "used when sending automated messages":"(for automated messages)",
   "HALF_MONTH":"half month",
   "CHOOSE_HOUR":"Choose Hour",
   "CHOOSE_DAY":"Choose Day",

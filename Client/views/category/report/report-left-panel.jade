@@ -33,6 +33,8 @@
                                 text {{'PLAYER_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.NEWACCOUNT_REPORT}}" ng-click='vm.loadPage("NEWACCOUNT_REPORT")', ng-if="checkViewPermission('Report', 'General', 'NEWACCOUNT_REPORT')")
                                 text {{'NEWACCOUNT_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.DX_NEWACCOUNT_REPORT}}" ng-click='vm.loadPage("DX_NEWACCOUNT_REPORT")', ng-if="checkViewPermission('Report', 'General', 'DX_NEWACCOUNT_REPORT')")
+                                text {{'DX_NEWACCOUNT_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PLAYERPARTNER_REPORT}}" ng-click='vm.loadPage("PLAYERPARTNER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYERPARTNER_REPORT')")
                                 text {{'PLAYERPARTNER_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PARTNERPLAYERBOUNS_REPORT}}" ng-click='vm.loadPage("PARTNERPLAYERBOUNS_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PARTNERPLAYERBOUNS_REPORT')")

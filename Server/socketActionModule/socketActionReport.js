@@ -242,6 +242,14 @@ function socketActionReport(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
+        getDXNewPlayerReport: function getDXNewPlayerReport(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.platformId && data.query.days);
+            let platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerInfo.getDXNewPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
         // getFullAttendanceProposalReport: function getFullAttendanceProposalReport(data) {
         //     var actionName = arguments.callee.name;
         //     var time = dbUtil.getYesterdaySGTime();

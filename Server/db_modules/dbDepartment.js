@@ -400,7 +400,14 @@ var dbDepartment = {
      */
     getDepartmentTreeById: function(departmentId){
         var deferred = Q.defer();
-        dbconfig.collection_department.find().then(
+        dbconfig.collection_department.find().populate({
+            path: "roles",
+            model: dbconfig.collection_role,
+            populate: {
+                path: "users",
+                model: dbconfig.collection_admin
+            }
+        }).then(
             function(data){
                 if( data && data.length > 0 ){
                     var allDepartments = {};

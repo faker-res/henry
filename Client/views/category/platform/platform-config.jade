@@ -529,6 +529,18 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'SMS_VERIFICATION' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerification', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_VERIFICATION_FOR_PASSWORD_UPDATE' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForPasswordUpdate', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_VERIFICATION_FOR_PAYMENT_UPDATE' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForPaymentUpdate', ng-disabled='!vm.configTableEdit')
+                            tr
                                 td {{'CAPTCHA_VERIFICATION_FOR_LOGIN' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireLogInCaptcha', ng-disabled='!vm.configTableEdit')
