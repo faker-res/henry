@@ -2713,3 +2713,11 @@ input[type='number'].leftALignNumber {
     border: 1px solid #2B6698;
     border-bottom: none;
 }
+
+#modalReapplyLostOrder .nav-tabs>li {
+    cursor: pointer;
+}
+#modalReapplyLostOrder .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
