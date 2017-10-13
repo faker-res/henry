@@ -104,6 +104,11 @@ function socketActionPlayer(socketIO, socket) {
             var isValidData = Boolean(data && (data.name || data._id || data.playerId));
             socketUtil.emitter(self.socket, dbPlayerInfo.getOnePlayerInfo, [data], actionName, isValidData);
         },
+        getOnePlayerCardGroup: function getOnePlayerCardGroup(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.name || data._id || data.playerId));
+            socketUtil.emitter(self.socket, dbPlayerInfo.getOnePlayerCardGroup, [data], actionName, isValidData);
+        },
 
         /**
          * Create player phone number by object id

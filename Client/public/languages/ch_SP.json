@@ -1624,7 +1624,7 @@
   "spendingAmount": "解锁额度",
   "HONOREE_DETAIL": "提款备注",
   "honoreeDetail": "提款备注",
-  "DEPOSITMETHOD": "手工存款方式",
+  "DEPOSIT_METHOD": "手工存款方式",
   "APPLY_MANUAL_TOPUP": "申请手工充值",
   "APPLY_ALIPAY_TOPUP": "申请支付宝充值",
   "APPLY_WECHATPAY_TOPUP": "申请微信充值",

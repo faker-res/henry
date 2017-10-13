@@ -48,14 +48,17 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{'PLAYER_NAME' | translate}}
                     td {{ vm.selectedProposal.data.playerName}}
                 tr
+                    td {{'REAL_NAME' | translate}}
+                    td {{ vm.proposalPlayer.realName}}
+                tr(ng-if='vm.proposalPlayer.bankCardGroup.displayName && vm.selectedProposal.type.name=="ManualPlayerTopUp"')
                     td {{'BankCardGroup' | translate}}
-                    td　""
+                    td {{ vm.proposalPlayer.bankCardGroup.displayName}}
                 tr
                     td {{'playerLevelName' | translate}}
                     td {{vm.selectedProposal.data.playerLevelName}}
                 tr
                     td {{'PlayerCredibilityStatus' | translate}}
-                    td ""
+                    td {{vm.selectedProposal.data.credibilityRemarks || '-'}}
                 tr
                     td {{'PlayerValue' | translate}}
                     td {{vm.selectedProposal.data.proposalPlayerLevelValue}}
@@ -81,20 +84,20 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.merchantNo }}
                 tr(ng-if="vm.selectedProposal.data.merchantNo")
                     td {{'MerchantBackendId' | translate }}
-                    td ""
+                    td
                 tr(ng-if="vm.selectedProposal.data.merchantNo")
                     td {{'SINGLELIMIT' | translate }}
-                    td ""　
+                    td {{vm.selectedProposal.card.singleLimit}}
                 tr(ng-if="vm.selectedProposal.data.merchantNo")
                     td {{'DAYLIMIT' | translate }}
-                    td ""
+                    td {{vm.selectedProposal.card.quota}}
 
                 // manual topup
                 tr(ng-if="vm.selectedProposal.data.validTime")
                     td {{'DEPOSITTIME' | translate}}
                     td {{ vm.selectedProposal.data.validTime }}
                 tr(ng-if="vm.selectedProposal.data.depositMethod")
-                    td {{'DEPOSITMETHOD' | translate}}
+                    td {{'DEPOSIT_METHOD' | translate}}
                     td {{ vm.depositMethodList[vm.selectedProposal.data.depositMethod] || "" }}
                 tr(ng-if="vm.selectedProposal.data.inputData.realName")
                     td {{'ACCNAME' | translate}}
@@ -127,13 +130,13 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.alipayAccount }}
                 tr(ng-if="vm.selectedProposal.data.alipayAccount")
                     td {{'SINGLELIMIT' | translate }}
-                    td ""
+                    td {{vm.selectedProposal.card.singleLimit}}
                 tr(ng-if="vm.selectedProposal.data.alipayAccount")
                     td {{'DAYLIMIT' | translate }}
-                    td ""
+                    td {{vm.selectedProposal.card.quota}}
                 tr(ng-if="vm.selectedProposal.data.alipayQRCode")
                     td {{'alipayQRCode' | translate }}
-                    td ""
+                    td {{vm.selectedProposal.data.alipayQRCode}}
                 tr(ng-if="vm.selectedProposal.data.validTime")
                     td {{'validTime' | translate }}
                     td {{ vm.selectedProposal.data.validTime }}
@@ -147,16 +150,22 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td ""
                 tr(ng-if="vm.selectedProposal.data.weChatAccount")
                     td {{'SINGLELIMIT' | translate }}
-                    td ""
+                    td {{vm.selectedProposal.card.singleLimit}}
                 tr(ng-if="vm.selectedProposal.data.weChatAccount")
                     td {{'DAYLIMIT' | translate }}
-                    td ""
-                tr(ng-if="vm.selectedProposal.data.alipayQRCode")
+                    td {{vm.selectedProposal.card.quota}}
+                tr(ng-if="vm.selectedProposal.data.weChatQRCode")
                     td {{'weChatQRCode' | translate }}
                     td {{ vm.selectedProposal.data.validTime }}
                 tr(ng-if="vm.selectedProposal.data.weChatAccount")
                     td {{'validTime' | translate }}
                     td {{ vm.selectedProposal.data.validTime }}
+                tr(ng-if="vm.selectedProposal.card.quota && vm.selectedProposal.data.weChatAccount")
+                    td {{'DAYLIMIT' | translate }}
+                    td {{ vm.selectedProposal.card.quota }}
+                tr(ng-if="vm.selectedProposal.card.singleLimit && vm.selectedProposal.data.weChatAccount")
+                    td {{'SINGLELIMIT' | translate }}
+                    td  {{ vm.selectedProposal.card.singleLimit }}
 
             //tr(ng-repeat='(i,v) in vm.selectedProposalDetailForDisplay')
             //tr(ng-repeat='(i,v) in vm.selectedProposal.data')

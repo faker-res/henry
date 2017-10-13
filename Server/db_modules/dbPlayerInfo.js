@@ -1016,7 +1016,49 @@ let dbPlayerInfo = {
                 }
             )
     },
+    getOnePlayerCardGroup: function(query){
+        let playerData;
 
+        return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+            .populate({path: "partner", model: dbconfig.collection_partner})
+            .populate({
+                path: "bankCardGroup",
+                model: dbconfig.collection_platformBankCardGroup
+            }).populate({
+                path: "merchantGroup",
+                model: dbconfig.collection_platformMerchantGroup
+            }).populate({
+                path: "alipayGroup",
+                model: dbconfig.collection_platformAlipayGroup
+            }).populate({
+                path: "wechatPayGroup",
+                model: dbconfig.collection_platformWechatPayGroup
+            })
+            .then(data => {
+                if (data) {
+                    playerData = data;
+                    return dbconfig.collection_platform.findOne({
+                        _id: playerData.platform
+                    });
+                } else return Q.reject({message: "incorrect player result"});
+            }).then(
+                platformData => {
+                    return dbconfig.collection_playerClientSourceLog.findOne({
+                        platformId: platformData.platformId,
+                        playerName: playerData.name
+                    }).lean()
+                }
+            ).then(
+                sourceLogData => {
+                    if (sourceLogData) {
+                        playerData.sourceUrl = sourceLogData.sourceUrl;
+                    }
+                    return playerData;
+                }
+            )
+
+    },
     getPlayerPhoneNumber: function (playerObjId) {
         return dbconfig.collection_players.findOne({_id: playerObjId}).then(
             playerData => {
@@ -10322,7 +10364,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    // proposal related 
+                    // proposal related
                     result.topUpAmount = 0;
                     result.topUpTimes = 0;
                     result.onlineTopUpAmount = 0;
@@ -10333,7 +10375,7 @@ let dbPlayerInfo = {
                     let topUpTypeDetail = data[1];
                     for (let i = 0, len = topUpTypeDetail.length; i < len; i++) {
                         let topUpTypeRecord = topUpTypeDetail[i];
-                        
+
                         if (topUpTypeRecord.typeId.toString() === onlineTopUpTypeId) {
                             result.onlineTopUpAmount = topUpTypeRecord.amount;
                         }
@@ -10444,7 +10486,7 @@ let dbPlayerInfo = {
                 }
             );
         }
-       
+
     }
 
 };
