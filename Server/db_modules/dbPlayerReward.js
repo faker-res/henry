@@ -504,13 +504,13 @@ let dbPlayerReward = {
             let yerTime = dbUtility.getYesterdayConsumptionReturnSGTime();
 
             return dbConfig.collection_players.findOne({
-                _id: playerObjId,
-                isNewSystem: true
+                _id: playerObjId
+                // isNewSystem: true
             }).populate(
                 {path: "platform", model: dbConfig.collection_platform}
             ).then(
                 playerData => {
-                    if (playerData && playerData.platform /*&& playerData.permission.playerConsecutiveConsumptionReward */) {
+                    if (playerData && playerData.platform && playerData.permission.playerConsecutiveConsumptionReward) {
                         playerObj = playerData;
                         eventData.param.reward.forEach(
                             reward => {
